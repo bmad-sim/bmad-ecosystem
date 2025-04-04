@@ -5,7 +5,8 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat, lat2
-type (ele_struct) ele, ele0, ele1
+type (ele_struct) ele0, ele1
+type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orb(:), orb2(:)
 type (coord_struct) orb0, orb1
 type (normal_modes_struct) mode, mode2
@@ -59,7 +60,6 @@ write (2, '(a, 6es16.6)') '"Closed Orb 4 Start"  ABS 1e-12', orb(0)%vec
 write (2, '(a, 6es12.4)') '"Closed Orb 4 Del"    ABS 1e-12', orb(lat%n_ele_track)%vec - orb(0)%vec
 call set_on_off (rfcavity$, lat, on$)
 
-
 orb(0)%vec = 0
 call twiss_at_start (lat)
 call closed_orbit_calc (lat, orb, 6)
@@ -72,14 +72,17 @@ call twiss_propagate_all (lat)
 allocate (lat%ele(96)%descrip)
 lat%ele(96)%descrip = 'First'
 
-ele = lat%ele(96)
-ele%descrip = 'Second'
+ele0 = lat%ele(96)
+ele0%descrip = 'Second'
 
 write (2, '(3a)') '"First Descrip"      STR  "', trim(lat%ele(96)%descrip), '"'
-write (2, '(3a)') '"Second Descrip"     STR  "', trim(ele%descrip), '"'
+write (2, '(3a)') '"Second Descrip"     STR  "', trim(ele0%descrip), '"'
 
 delta_e = 0.0
 call chrom_calc (lat, delta_e, chrom_x, chrom_y)
+
+ele => lat%ele(96)
+write (2, '(a, 4es16.8)') '"W-func" REL 1e-5', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
 
 !
 
@@ -137,7 +140,7 @@ call data_out (ele1%b%deta_ds - ele0%b%deta_ds, 1.0d-6, 'Dif:Etap_Y')
 !! print *
 !! print *, 'Non-wiggler lattice check...'
 
-ele = lat%ele(96)
+ele => lat%ele(96)
 
 call data_out (ele%a%beta,           1.0D-06, 'Lat1:Beta_a')
 call data_out (ele%a%alpha,          1.0D-06, 'Lat1:Alpha_a')
@@ -209,7 +212,7 @@ call ri_diff('wig')
 
 call chrom_calc (lat, delta_e, chrom_x, chrom_y)
 
-ele = lat%ele(96)
+ele => lat%ele(96)
  
 call data_out (ele%a%beta,           1.0D-05, 'Lat2:Beta_a')
 call data_out (ele%a%alpha,          1.0D-05, 'Lat2:Alpha_a')

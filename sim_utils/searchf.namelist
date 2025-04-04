@@ -110,57 +110,6 @@ parallel_mod
 File: interfaces/sim_utils.f90
 sim_utils
 
-File: interfaces/particle_species_mod.f90
-particle_species_mod
-pion_0$
-helion$
-ref_particle$
-neutron$
-deuteron$
-pion_plus$
-antimuon$
-proton$
-positron$
-photon$
-electron$
-antiproton$
-muon$
-pion_minus$
-anti_deuteron$
-anti_neutron$
-anti_ref_particle$
-anti_helion$
-lb_subatomic
-ub_subatomic
-anti_atom$
-subatomic_species_name
-openpmd_subatomic_species_name
-charge_of_subatomic
-mass_of_subatomic
-anomalous_moment_of_subatomic
-antiparticle_of_subatomic
-spin_of_subatomic
-atomic_name
-atom_struct
-mean_excitation_energy_over_z
-molecular_name
-molecular_components
-antiparticle
-species_of
-species_id
-species_name
-species_id_from_openpmd
-openpmd_species_name
-anomalous_moment_of
-spin_of
-charge_of
-mass_of
-charge_to_mass_of
-set_species_charge
-x0_radiation_length
-atomic_number
-is_subatomic_species
-
 File: interfaces/physical_constants.f90
 physical_constants
 pi
@@ -322,6 +271,7 @@ reals_to_table_row
 all_pointer_to_string
 unquote
 real_num_fortran_format
+str_count
 str_set
 svd_fit
 real_path
@@ -334,6 +284,7 @@ sincc
 sinhx_x
 skip_header
 sqrt_one
+sqrt_alpha
 str_first_in_set
 str_first_not_in_set
 str_last_in_set
@@ -361,6 +312,58 @@ find_location_real
 find_location_int
 find_location_logic
 find_location_str
+
+File: interfaces/particle_species_mod.f90
+particle_species_mod
+pion_0$
+helion$
+ref_particle$
+neutron$
+deuteron$
+pion_plus$
+antimuon$
+proton$
+positron$
+photon$
+electron$
+antiproton$
+muon$
+pion_minus$
+anti_deuteron$
+anti_neutron$
+anti_ref_particle$
+anti_helion$
+lb_subatomic
+ub_subatomic
+anti_atom$
+subatomic_species_name
+openpmd_subatomic_species_name
+charge_of_subatomic
+mass_of_subatomic
+anomalous_moment_of_subatomic
+antiparticle_of_subatomic
+spin_of_subatomic
+atomic_name
+atom_struct
+mean_excitation_energy_over_z
+molecular_name
+molecular_components
+antiparticle
+species_of
+species_id
+atomic_species_id
+species_name
+species_id_from_openpmd
+openpmd_species_name
+anomalous_moment_of
+spin_of
+charge_of
+mass_of
+charge_to_mass_of
+set_species_charge
+x0_radiation_length
+atomic_number
+is_subatomic_species
 
 File: io/command_line_mod.f90
 command_line_mod
@@ -1312,6 +1315,9 @@ procedure
 sign_of_real
 sign_of_int
 
+File: special_functions/sqrt_alpha.f90
+sqrt_alpha
+
 File: string/all_pointer_to_string.f90
 all_pointer_to_string
 
@@ -1516,3 +1522,6 @@ detab
 
 File: string/real_str.f90
 real_str
+
+File: string/str_count.f90
+str_count

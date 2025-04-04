@@ -497,9 +497,6 @@ tao_setup_key_table
 File: code/tao_shape_init.f90
 tao_shape_init
 
-File: code/tao_evaluate_expression.f90
-tao_evaluate_expression
-
 File: code/tao_write_cmd.f90
 tao_write_cmd
 
@@ -601,58 +598,17 @@ tao_spin_polarization_calc
 File: code/tao_timer.f90
 tao_timer
 
+File: code/tao_evaluate_a_datum.f90
+tao_evaluate_a_datum
+
 File: code/tao_pipe_cmd.f90
 tao_pipe_cmd
-
-File: code/tao_set_mod.f90
-tao_set_mod
-tao_set_tune_cmd
-tao_set_z_tune_cmd
-tao_set_openmp_n_threads
-tao_set_calculate_cmd
-tao_set_key_cmd
-tao_set_ran_state_cmd
-tao_set_lattice_cmd
-tao_set_global_cmd
-tao_set_space_charge_com_cmd
-tao_set_bmad_com_cmd
-tao_set_ptc_com_cmd
-tao_set_geodesic_lm_cmd
-tao_set_opti_de_param_cmd
-tao_set_wave_cmd
-tao_set_beam_cmd
-tao_set_beam_init_cmd
-tao_set_particle_start_cmd
-tao_set_plot_page_cmd
-tao_set_curve_cmd
-tao_set_plot_cmd
-tao_set_region_cmd
-tao_set_graph_cmd
-tao_set_var_cmd
-tao_set_branch_cmd
-tao_set_data_cmd
-tao_set_default_cmd
-tao_set_dynamic_aperture_cmd
-tao_set_universe_cmd
-tao_set_elements_cmd
-tao_set_logical_value
-tao_set_integer_value
-tao_set_switch_value
-tao_set_real_value
-tao_set_drawing_cmd
-tao_set_symbolic_number_cmd
-tao_set_qp_rect_struct
-tao_set_qp_axis_struct
-tao_set_qp_point_struct
 
 File: code/tao_single_mode.f90
 tao_single_mode
 
 File: code/tao_spin_matrices_calc_needed.f90
 tao_spin_matrices_calc_needed
-
-File: code/tao_evaluate_a_datum.f90
-tao_evaluate_a_datum
 
 File: code/tao_show_this.f90
 tao_show_this
@@ -773,6 +729,47 @@ tao_lattice_equal_tao_lattice
 File: code/tao_regression_test.f90
 tao_regression_test
 
+File: code/tao_set_mod.f90
+tao_set_mod
+tao_set_tune_cmd
+tao_set_z_tune_cmd
+tao_set_openmp_n_threads
+tao_set_calculate_cmd
+tao_set_key_cmd
+tao_set_ran_state_cmd
+tao_set_lattice_cmd
+tao_set_global_cmd
+tao_set_space_charge_com_cmd
+tao_set_bmad_com_cmd
+tao_set_ptc_com_cmd
+tao_set_geodesic_lm_cmd
+tao_set_opti_de_param_cmd
+tao_set_wave_cmd
+tao_set_beam_cmd
+tao_set_beam_init_cmd
+tao_set_particle_start_cmd
+tao_set_plot_page_cmd
+tao_set_curve_cmd
+tao_set_plot_cmd
+tao_set_region_cmd
+tao_set_graph_cmd
+tao_set_var_cmd
+tao_set_branch_cmd
+tao_set_data_cmd
+tao_set_default_cmd
+tao_set_dynamic_aperture_cmd
+tao_set_universe_cmd
+tao_set_elements_cmd
+tao_set_logical_value
+tao_set_integer_value
+tao_set_switch_value
+tao_set_real_value
+tao_set_drawing_cmd
+tao_set_symbolic_number_cmd
+tao_set_qp_rect_struct
+tao_set_qp_axis_struct
+tao_set_qp_point_struct
+
 File: code/tao_set_flags_for_changed_attribute.f90
 tao_set_flags_for_changed_attribute
 
@@ -781,6 +778,9 @@ tao_curve_ele_ref
 
 File: code/tao_set_invalid.f90
 tao_set_invalid
+
+File: code/tao_evaluate_expression.f90
+tao_evaluate_expression
 
 File: hook/tao_hook_branch_calc.f90
 tao_hook_branch_calc

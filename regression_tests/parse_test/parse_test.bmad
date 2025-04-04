@@ -10,7 +10,11 @@
 
 no_digested
 beginning[beta_a] = 10
-beginning[beta_b] = 10
+beginning[beta_b] = 11
+beginning[dbeta_dpz_a] = 12
+beginning[dbeta_dpz_b] = 13
+beginning[dalpha_dpz_a] = 14
+beginning[dalpha_dpz_b] = 15
 
 parameter[particle] = He++
 beam, energy =   +5.28900
@@ -148,6 +152,10 @@ phot[E_tot] = 1e4
 phot[particle] = photon
 phot[beta_a] = 10
 phot[beta_b] = 10
+phot[dbeta_dpz_a] = 112
+phot[dbeta_dpz_b] = 113
+phot[dalpha_dpz_a] = 114
+phot[dalpha_dpz_b] = 115
 
 
 mp: marker, superimpose, offset = 3, ref = phot>>beginning

@@ -1420,16 +1420,19 @@ end subroutine new_element_init
 
 subroutine set_this_twiss_struct (t_in, t_out)
 type (twiss_struct) t_in, t_out
-call set_this_real_val(t_in%beta,      t_out%beta)
-call set_this_real_val(t_in%alpha,     t_out%alpha)
-call set_this_real_val(t_in%gamma,     t_out%gamma)
-call set_this_real_val(t_in%phi,       t_out%phi)
-call set_this_real_val(t_in%eta,       t_out%eta)
-call set_this_real_val(t_in%etap,      t_out%etap)
-call set_this_real_val(t_in%sigma,     t_out%sigma)
-call set_this_real_val(t_in%sigma_p,   t_out%sigma_p)
-call set_this_real_val(t_in%emit,      t_out%emit)
-call set_this_real_val(t_in%norm_emit, t_out%norm_emit)
+call set_this_real_val(t_in%beta,       t_out%beta)
+call set_this_real_val(t_in%alpha,      t_out%alpha)
+call set_this_real_val(t_in%gamma,      t_out%gamma)
+call set_this_real_val(t_in%phi,        t_out%phi)
+call set_this_real_val(t_in%eta,        t_out%eta)
+call set_this_real_val(t_in%etap,       t_out%etap)
+call set_this_real_val(t_in%deta_ds,    t_out%deta_ds)
+call set_this_real_val(t_in%sigma,      t_out%sigma)
+call set_this_real_val(t_in%sigma_p,    t_out%sigma_p)
+call set_this_real_val(t_in%emit,       t_out%emit)
+call set_this_real_val(t_in%norm_emit,  t_out%norm_emit)
+call set_this_real_val(t_in%dbeta_dpz,  t_out%dbeta_dpz)
+call set_this_real_val(t_in%dalpha_dpz, t_out%dalpha_dpz)
 end subroutine set_this_twiss_struct
 
 !---------------------------------------------------------------------
@@ -1439,6 +1442,7 @@ subroutine set_this_xy_disp_struct (t_in, t_out)
 type (xy_disp_struct) t_in, t_out
 call set_this_real_val(t_in%eta,       t_out%eta)
 call set_this_real_val(t_in%etap,      t_out%etap)
+call set_this_real_val(t_in%deta_ds,   t_out%deta_ds)
 call set_this_real_val(t_in%sigma,     t_out%sigma)
 end subroutine set_this_xy_disp_struct
 
