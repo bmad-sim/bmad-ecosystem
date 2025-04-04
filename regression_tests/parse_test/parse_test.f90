@@ -190,6 +190,11 @@ call write_bmad_lattice_file ('write_parser_test.bmad', lat2)
 call bmad_parser ('write_parser_test.bmad', lat, make_mats6 = .false.)
 call bmad_parser ('write_parser_test.bmad', lat, make_mats6 = .false.)   ! To read digested file
 
+ele => lat%ele(0)
+write (1, '(a, 4f14.6)') '"W-func-Beginning" ABS 1e-6', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
+ele => lat%branch(1)%ele(0)
+write (1, '(a, 4f14.6)') '"W-func-branch1" ABS 1e-6', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
+
 write (1, '(a, es12.4)') '"ele(1):num_steps" ABS 0 ', lat%ele(1)%value(num_steps$)
 write (1, '(a, es12.4)') '"parameter[abc]" ABS 0 ', lat%custom(2)
 

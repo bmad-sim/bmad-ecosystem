@@ -787,8 +787,7 @@ case ('chrom.')
   case ('chrom.dbeta.a')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%beta) / (tao_lat%lat%ele(i)%a%beta * dpz)
+        value_vec(i) = tao_lat%lat%ele(i)%a%dbeta_dpz / tao_lat%lat%ele(i)%a%beta
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -796,8 +795,7 @@ case ('chrom.')
   case ('chrom.dbeta.b')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%beta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%beta) / (tao_lat%lat%ele(i)%b%beta * dpz)
+        value_vec(i) = tao_lat%lat%ele(i)%b%dbeta_dpz / tao_lat%lat%ele(i)%b%beta
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -860,19 +858,12 @@ case ('chrom.')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         if (data_type == 'chrom.w.a') then
-          z2 => tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a
-          z1 => tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a
           z0 => branch%ele(i)%a
         else
-          z2 => tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b
-          z1 => tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b
           z0 => branch%ele(i)%b
         endif
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        dalpha = (z2%alpha - z1%alpha) / dpz
-        dbeta  = (z2%beta - z1%beta) / dpz
-        aa = dalpha - z0%alpha * dbeta / z0%beta
-        bb = dbeta / z0%beta
+        bb = z0%dbeta_dpz / z0%beta
+        aa = z0%dalpha_dpz - z0%alpha * bb
         value_vec(i) = sqrt(aa**2 + bb**2)
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)

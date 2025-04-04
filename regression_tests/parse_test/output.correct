@@ -162,6 +162,8 @@
 "Overlap-Lord13"    STR   "MB"
 "Overlap-Lord14"    STR   "C"
 "Overlap-Lord15"    STR   "GG"
+"W-func-Beginning" ABS 1e-6     12.000000     13.000000     14.000000     15.000000
+"W-func-branch1" ABS 1e-6    112.000000    113.000000    114.000000    115.000000
 "ele(1):num_steps" ABS 0   7.0000E+00
 "parameter[abc]" ABS 0   1.7000E+01
 "zzz"                                   ABS 0  3.0000

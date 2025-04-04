@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 328
+integer, parameter :: bmad_inc_version$ = 329
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -177,10 +177,10 @@ character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND',
                        'UNSTABLE', 'UNSTABLE A-MODE', 'UNSTABLE B-MODE', 'XFER_MAT_CALC_FAILURE', &
                        'TWISS_PROPAGATE_FAILURE', 'NO_CLOSED_ORBIT']
 
-
 type twiss_struct
   real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
   real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
+  real(rp) :: dbeta_dpz = 0, dalpha_dpz = 0
 end type
 
 ! Misc parameters
@@ -1861,11 +1861,11 @@ integer, parameter :: ran_seed$ = 109, origin_ele$ = 109, beta_b$ = 109
 
 ! 
 
-integer, parameter :: to_line$ = 110, field_overlaps$ = 110 
-integer, parameter :: field_master$ = 111, to_element$ = 111
+integer, parameter :: to_line$ = 110, field_overlaps$ = 110, dbeta_dpz_a$ = 110
+integer, parameter :: field_master$ = 111, to_element$ = 111, dbeta_dpz_b$ = 111
 integer, parameter :: descrip$ = 112
-integer, parameter :: scale_multipoles$ = 113
-integer, parameter :: sr_wake$ = 114
+integer, parameter :: scale_multipoles$ = 113, dalpha_dpz_a$ = 113
+integer, parameter :: sr_wake$ = 114, dalpha_dpz_b$ = 114
 integer, parameter :: ref_orbit$ = 115, lr_wake$ = 115
 integer, parameter :: phi_b$ = 116, crystal_type$ = 116, material_type$ = 116
 integer, parameter :: type$ = 117

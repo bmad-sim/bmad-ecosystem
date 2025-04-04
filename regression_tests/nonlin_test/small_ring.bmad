@@ -1,20 +1,53 @@
-parameter[p0c] = 1e9
-bmad_com[radiation_damping_on] = f
-bmad_com[radiation_fluctuations_on] = f
+parameter[geometry] = Closed          
+
+parameter[p0c]                      =  1.00000000000000000E+009
+parameter[particle]                 = Positron
 bmad_com[spin_tracking_on] = T
 
-q1: quad, l = 0.5, k1 = 0.6, tilt = 0.05
-q2: quad, l = 0.5, k1 = -0.5
+beginning[beta_a]       =  1.19675941463019608E+001
+beginning[alpha_a]      = -1.71369110977010886E+000
+beginning[eta_x]        =  3.58952525815326462E+000
+beginning[etap_x]       =  5.24996131805886779E-001
+beginning[beta_b]       =  4.59847190032679531E+000
+beginning[alpha_b]      =  6.42759611283067467E-001
+beginning[eta_y]        = -3.72150419026160972E-001
+beginning[etap_y]       =  9.43173026297313283E-002
+beginning[cmat_11]      = -3.32956559262709506E-001
+beginning[cmat_12]      = -1.30025027825905443E-001
+beginning[cmat_21]      = -4.50467557775815416E-002
+beginning[cmat_22]      = -1.23708553963345583E-001
 
-d: drift, l = 0.3
-b: sbend, l = 3, angle = pi/8, e1 = 0.07, e2 = 0.07
+beginning[dbeta_dpz_a]  = -1.07706577132393733E+001
+beginning[dbeta_dpz_b]  =  1.33313504747878397E+000
+beginning[dalpha_dpz_a] =  1.61716396881228519E+000
+beginning[dalpha_dpz_b] =  1.17255217529921296E-001
 
-s1: sextupole, l = 0.01
-s2: sextupole, l = 0.01
+particle_start[spin_x] = -2.47342838289130127E-017
+particle_start[spin_y] = -1.00000000000000000E+000
+particle_start[spin_z] =  2.69932573694198406E-016
 
-rf: rfcavity, l = 1.2, rf_frequency = 250e6, voltage = 1e6
 
-sector: line = (s1, d, q1, d, b, d, q2, d, s2, rf, b)
-ring: line = (1*sector)
+!-------------------------------------------------------
 
-use, ring
+S1: Sextupole, L =  1.00000000000000002E-002
+D: Drift, L =  2.99999999999999989E-001
+Q1: Quadrupole, L =  5.00000000000000000E-001, TILT =  5.00000000000000028E-002,
+   K1 =  5.99999999999999978E-001
+B: SBend, L =  3.00000000000000000E+000, G =  1.30899693899574704E-001, E1 =  7.00000000000000067E-002,
+   E2 =  7.00000000000000067E-002
+Q2: Quadrupole, L =  5.00000000000000000E-001, K1 = -5.00000000000000000E-001
+S2: Sextupole, L =  1.00000000000000002E-002
+RF: RFCavity, L =  1.19999999999999996E+000, VOLTAGE =  1.00000000000000000E+006,
+   RF_FREQUENCY =  2.50000000000000000E+008, DS_STEP =  1.19999999999999996E-001
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+
+RING: line = ( S1, D, Q1, D, B, D, Q2, D, S2, RF, B)
+
+use, RING

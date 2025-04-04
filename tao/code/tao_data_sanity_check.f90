@@ -1,5 +1,5 @@
 !+
-! Function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
+! Function tao_data_sanity_check (datum, print_err, default_data_type, uni) result (is_valid)
 !
 ! Routine to check if the data is internally consistent.
 ! Note: A datum whose data_type demands an associated lattice element will be invalid but will
@@ -9,18 +9,20 @@
 !   datum               -- tao_data_struct: Datum to check.
 !   print_err           -- logical: Print error message if data is not valid?
 !   default_data_type   -- character(*): Default data type associated with the datum's d2 structure.
+!   uni                 -- tao_universe_struct, optional: Universe to use instead of datum%d1%d2%ix_universe
 !
 ! Output:
 !   is_valid  -- logical: True if internally consistent.
 !-
 
-function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
+function tao_data_sanity_check (datum, print_err, default_data_type, uni) result (is_valid)
 
 use tao_interface, dummy => tao_data_sanity_check
 
 implicit none
 
 type (tao_data_struct) datum
+type (tao_universe_struct), optional, target :: uni
 type (branch_struct), pointer :: branch
 type (tao_universe_struct), pointer :: u
 
@@ -32,7 +34,12 @@ character(*), parameter :: r_name = 'tao_data_sanity_check'
 
 !
 
-u => s%u(datum%d1%d2%ix_universe)
+if (present(uni)) then
+  u => uni
+else
+  u => s%u(datum%d1%d2%ix_universe)
+endif
+
 branch => u%design%lat%branch(datum%ix_branch)
 
 is_valid = .false.
@@ -50,9 +57,10 @@ if (datum%ele_start_name /= '') then
   if (.not. check_this_ele_exists (datum%ele_start_name, datum%ix_ele_start, 'DATUM ELEMENT START NOT FOUND: ' // datum%ele_start_name)) return
 endif
 
-!
+! If datum%d1 does not point to a d1 data array then this datum has been constructed on-the-fly and
+! does not need a merit_type
 
-if (datum%merit_type == '') then
+if (datum%merit_type == '' .and. associated(datum%d1)) then
   datum%why_invalid = 'MERIT_TYPE NOT SET FOR DATUM: ' // tao_datum_name(datum)
   if (print_err) call out_io (s_error$, r_name, datum%why_invalid)
   return
