@@ -1371,7 +1371,7 @@ if (info%data_class_type /= H5T_COMPOUND_F) then
   return
 endif
 
-! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
+! Need to use cc array for temp storage since array argument may not be stored in contiguous memory.
 
 call hdf5_read_dataorder(root_id, name, data_order)
 if (data_order == 'C') then

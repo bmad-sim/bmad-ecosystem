@@ -1636,6 +1636,7 @@ type (hdf5_info_struct) info
 integer(hid_t) root_id, z_id
 integer n
 character(*) object_name, d_ord
+character(40) d_order
 character(16), allocatable :: physical_labels(:)
 logical error
 
@@ -1643,7 +1644,8 @@ logical error
 
 info = hdf5_object_info (root_id, object_name, error, .true.);  if (error) return
 z_id = hdf5_open_object (root_id, object_name, info, error, .true.);  if (error) return
-call hdf5_read_attribute_string(z_id, 'gridDataOrder', d_ord, error, .false.)
+call hdf5_read_attribute_string(z_id, 'gridDataOrder', d_order, error, .false.)
+if (.not. error) d_ord = d_order
 call hdf5_close_object(z_id, info)
 
 end subroutine hdf5_read_dataorder

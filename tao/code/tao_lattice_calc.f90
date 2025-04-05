@@ -60,7 +60,8 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
     do id = 1, size(u%data)
       if (u%data(id)%data_type /= 'unstable.lattice') cycle
       if (.not. u%data(id)%exists) cycle
-      call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+      call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, &
+                                      u%data(id)%good_model, called_from_lat_calc = .true.)
     enddo
     calc_ok = .false.
     return
@@ -293,7 +294,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
   do id = 1, size(u%data)
     if (substr(u%data(id)%data_type,1,11) == 'expression:') cycle
     if (.not. u%data(id)%exists) cycle
-    call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+    call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, &
+                                  u%data(id)%good_model, called_from_lat_calc = .true.)
   enddo
 
   ! Mark this lattice as done 
@@ -316,7 +318,8 @@ do iuni = lbound(s%u, 1), ubound(s%u, 1)
   do id = 1, size(u%data)
     if (substr(u%data(id)%data_type,1,11) /= 'expression:') cycle
     if (.not. u%data(id)%exists) cycle
-    call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, u%data(id)%good_model)
+    call tao_evaluate_a_datum (u%data(id), u, u%model, u%data(id)%model_value, &
+                                                  u%data(id)%good_model, called_from_lat_calc = .true.)
   enddo
 enddo
 
