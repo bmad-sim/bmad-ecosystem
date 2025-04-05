@@ -1013,8 +1013,9 @@ $(1/\beta_{a,b})\partial\beta_{a,b}/\partial p_z$. Unlike the standard chromatic
 and \vn{chrom.b}, the these chromaticities are evaluated at individual elements. The calculation uses
 finite differences with the variation of $pz$ being set by \vn{global%delta_e_chrom}.
 
-Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
-In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
+Chromaticities and the W-function will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set in the lattice file by setting
+\vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]}, \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]}.
 
   %----------------------
   \item[chrom.deta.x, .deta.y] \Newline \hlabel{chrom.deta}
@@ -1041,8 +1042,9 @@ chromaticities,\vn{chrom.a} and \vn{chrom.b}, these chromaticities are evaluated
 elements. The calculation uses finite differences with the variation of $pz$ being set by
 \vn{global%delta_e_chrom}.
 
-Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
-In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
+Chromaticities and the W-function will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set in the lattice file by setting
+\vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]}, \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]}.
 
   %----------------------
   \item[chrom.w.a, chrom.w.b] \Newline \hlabel{chrom.w}

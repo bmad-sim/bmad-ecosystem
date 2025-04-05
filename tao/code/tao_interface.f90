@@ -237,7 +237,8 @@ subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1,
   character(*) label_name
 end subroutine
 
-recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
+recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
+                                                            why_invalid, called_from_lat_calc)
   import
   implicit none
   type (tao_data_struct) datum
@@ -245,6 +246,7 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
   type (tao_lattice_struct), target :: tao_lat
   real(rp) datum_value
   logical valid_value
+  logical, optional :: called_from_lat_calc
   character(*), optional :: why_invalid
 end subroutine
 

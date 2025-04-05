@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
+! Subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid, called_from_lat_calc)
 !
 ! Subroutine to put the proper data in the specified datum
 !
@@ -7,6 +7,8 @@
 !   datum          -- Tao_data_struct: What type of datum
 !   u              -- Tao_universe_struct: Which universe to use.
 !   tao_lat        -- Tao_lattice_struct: Lattice to use.
+!   called_from_lat_calc -- logical, optional: Default is False. If true, prevents infinite loop of this
+!                             routine calling tao_lattice_calc
 !
 ! Output:
 !   datum          -- Tao_data_struct: 
@@ -16,7 +18,7 @@
 !   why_invalid   -- Character(*), optional: Tells why datum value is invalid.
 !-
 
-recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
+recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid, called_from_lat_calc)
 
 use tao_data_and_eval_mod, dummy => tao_evaluate_a_datum
 use pointer_lattice, only: operator(.sub.)
@@ -82,6 +84,7 @@ character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
 character(100) data_type, str
 character(:), allocatable :: e_str
 
+logical, optional :: called_from_lat_calc
 logical found, valid_value, err, err1, err2, taylor_is_complex, use_real_part, term_found, ok
 logical particle_lost, exterminate, printit, twiss_at_ele
 logical, allocatable :: good(:)
@@ -754,13 +757,18 @@ case ('chrom.')
   if (.not. tao_lat%chrom_calc_ok) then
     ! Can happen with a command like "show lat -attribute chrom.a" that the chromaticity has not been computed.
     ! So try to compute it.
-    s%com%force_chrom_calc = .true.
-    s%u%calc%lattice = .true.
-    call tao_lattice_calc(ok)
+    ok = .false.
+    if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
+      s%com%force_chrom_calc = .true.
+      s%u%calc%lattice = .true.
+      call tao_lattice_calc(ok)
+    endif
+
     if (.not. ok .or. .not. tao_lat%chrom_calc_ok) then
       call tao_set_invalid (datum, 'Chrom calc failed.', why_invalid)
       return
     endif
+
   elseif (.not. allocated(tao_lat%low_E_lat%branch)) then
     if (branch%param%unstable_factor == 0) then
       call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.', why_invalid)
@@ -2292,9 +2300,16 @@ case ('rad_int.')
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
   if (.not. tao_lat%rad_int_calc_ok .or. .not. tao_lat%emit_6d_calc_ok) then
-    s%com%force_rad_int_calc = .true.
-    u%calc%lattice = .true.
-    call tao_lattice_calc(ok)
+    if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
+      s%com%force_rad_int_calc = .true.
+      u%calc%lattice = .true.
+      call tao_lattice_calc(ok)
+    endif
+
+    if (.not. tao_lat%rad_int_calc_ok .or. .not. tao_lat%emit_6d_calc_ok) then
+      call tao_set_invalid (datum, 'Radiation integral calc failed.', why_invalid)
+      return
+    endif
   endif
 
   branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
