@@ -8,7 +8,7 @@ implicit none
 
 type pmd_unit_struct
  character(8) :: unitSymbol = ''     ! Native units name. EG 'eV'
- real(rp) :: unitSI = 0              ! Conversion to SI
+ real(rp) :: unitSI = 1              ! Conversion to SI
  real(rp) :: unitDimension(7) = 0    ! SI Base Exponents
 end type
 
@@ -152,14 +152,14 @@ end subroutine pmd_kill_compound_complex
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 1.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:)            -- integer: Array to hold the data. Must be of the correct size.
 !
@@ -167,13 +167,13 @@ end subroutine pmd_kill_compound_complex
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_int_to_dataset_rank1 (root_id, dataset_name, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 integer array(:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(1)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -182,7 +182,7 @@ v_max = maxval(array)
 v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, v_max, shape(array), error) 
   return
 endif
 
@@ -194,7 +194,7 @@ call H5LTmake_dataset_int_f(root_id, dataset_name, 1, v_shape, array, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_int_to_dataset_rank1
 
@@ -202,14 +202,14 @@ end subroutine pmd_write_int_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:)          -- integer: Array to hold the data. Must be of the correct size.
 !
@@ -217,13 +217,13 @@ end subroutine pmd_write_int_to_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_int_to_dataset_rank2 (root_id, dataset_name, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 integer array(:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(2)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -232,7 +232,7 @@ v_max = maxval(array)
 v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, v_max, shape(array), error) 
   return
 endif
 
@@ -244,7 +244,7 @@ call H5LTmake_dataset_int_f(root_id, dataset_name, 2, v_shape, array, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_int_to_dataset_rank2
 
@@ -252,14 +252,14 @@ end subroutine pmd_write_int_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:,:)        -- integer: Array to hold the data. Must be of the correct size.
 !
@@ -267,13 +267,13 @@ end subroutine pmd_write_int_to_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_int_to_dataset_rank3 (root_id, dataset_name, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 integer array(:,:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(3)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -282,7 +282,7 @@ v_max = maxval(array)
 v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  call pmd_write_int_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, v_max, shape(array), error) 
   return
 endif
 
@@ -294,7 +294,7 @@ call H5LTmake_dataset_int_f(root_id, dataset_name, 3, v_shape, array, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_int_to_dataset_rank3
 
@@ -302,14 +302,14 @@ end subroutine pmd_write_int_to_dataset_rank3
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)
+! Subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, value, v_shape, error)
 !
 ! Routine to write an openpmd formatted dataset of an array were all the data values are the same.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   value               -- integer: Data value.
 !   v_shape(:)          -- integer: Shape of the data array.
@@ -318,14 +318,14 @@ end subroutine pmd_write_int_to_dataset_rank3
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, value, v_shape, error)
+subroutine pmd_write_int_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, value, v_shape, error)
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id, group_id
 integer(size_t) :: n_dim
 integer value
 integer err, v_shape(:)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -336,7 +336,7 @@ call H5LTset_attribute_int_f(root_id, dataset_name, 'value', [value], 1_size_t, 
 n_dim = size(v_shape)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_shape, n_dim, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 call h5gclose_f(group_id, err)
 
@@ -346,14 +346,14 @@ end subroutine pmd_write_int_to_pseudo_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 1.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:)            -- real(rp): Array to hold the data. Must be of the correct size.
 !
@@ -361,13 +361,13 @@ end subroutine pmd_write_int_to_pseudo_dataset
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_real_to_dataset_rank1 (root_id, dataset_name, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 real(rp) array(:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(1)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -376,7 +376,7 @@ v_max = maxval(array)
 v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, v_max, shape(array), error) 
   return
 endif
 
@@ -388,7 +388,7 @@ call H5LTmake_dataset_double_f(root_id, dataset_name, 1, v_shape, array, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_real_to_dataset_rank1
 
@@ -396,14 +396,14 @@ end subroutine pmd_write_real_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:)          -- real(rp): Array to hold the data. Must be of the correct size.
 !
@@ -411,13 +411,13 @@ end subroutine pmd_write_real_to_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_real_to_dataset_rank2 (root_id, dataset_name, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 real(rp) array(:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(2)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -426,7 +426,7 @@ v_max = maxval(array)
 v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  call pmd_write_real_to_pseudo_dataset (root_id, dataset_name, descrip_name, unit, v_max, shape(array), error) 
   return
 endif
 
@@ -438,7 +438,7 @@ call H5LTmake_dataset_double_f(root_id, dataset_name, 2, v_shape, array, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_real_to_dataset_rank2
 
@@ -446,14 +446,14 @@ end subroutine pmd_write_real_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+! Subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:,:)        -- real(rp): Array to hold the data. Must be of the correct size.
 !
@@ -461,13 +461,13 @@ end subroutine pmd_write_real_to_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, bmad_name, unit, array, error)
+subroutine pmd_write_real_to_dataset_rank3 (root_id, dataset_name, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 real(rp) array(:,:,:), v_max, v_min
 integer err
 integer(hid_t) :: root_id, v_shape(3)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -476,7 +476,7 @@ v_max = maxval(array)
 v_min = minval(array)
 
 if (v_max == v_min) then
-  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, bmad_name, unit, v_max, shape(array), error) 
+  call pmd_write_real_to_pseudo_dataset(root_id, dataset_name, descrip_name, unit, v_max, shape(array), error) 
   return
 endif
 
@@ -488,7 +488,7 @@ call H5LTmake_dataset_double_f(root_id, dataset_name, 3, v_shape, array, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'minValue', [v_min], 1_size_t, err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'maxValue', [v_max], 1_size_t, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_real_to_dataset_rank3
 
@@ -496,14 +496,14 @@ end subroutine pmd_write_real_to_dataset_rank3
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)
+! Subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, descrip_name, unit, value, v_shape, error)
 !
 ! Routine to write an openpmd formatted dataset of an array were all the data values are the same.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   value               -- real(rp): Data value.
 !   v_shape(:)          -- integer: Shape of the data array.
@@ -512,14 +512,14 @@ end subroutine pmd_write_real_to_dataset_rank3
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, bmad_name, unit, value, v_shape, error)
+subroutine pmd_write_real_to_pseudo_dataset (root_id, dataset_name, descrip_name, unit, value, v_shape, error)
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id, group_id
 integer(size_t) n_dim
 real(rp) value
 integer v_shape(:), err
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -530,7 +530,7 @@ call H5LTset_attribute_double_f(root_id, dataset_name, 'value', [value], 1_size_
 n_dim = size(v_shape)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_shape, n_dim, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 call h5gclose_f(group_id, err)
 
@@ -540,7 +540,7 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 1.
 !
@@ -548,7 +548,7 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
 !   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:)            -- complex(rp): Array to hold the data. Must be of the correct size.
 !
@@ -556,20 +556,20 @@ end subroutine pmd_write_real_to_pseudo_dataset
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank1 (root_id, dataset_name, complex_t, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 complex(rp), target :: array(:), cc(size(array,1))
 integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(1)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical err, error
 
 ! 
 
 !if (all(array == array(1))) then
-!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, array(1), shape(array), error)
+!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, descrip_name, unit, array(1), shape(array), error)
 !  return
 !endif
 
@@ -583,7 +583,7 @@ call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
 call H5Sclose_f(dspace_id, h5_err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank1
 
@@ -591,7 +591,7 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 2.
 !
@@ -599,7 +599,7 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
 !   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
 !
@@ -607,20 +607,20 @@ end subroutine pmd_write_complex_to_dataset_rank1
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank2 (root_id, dataset_name, complex_t, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 complex(rp), target :: array(:,:), cc(size(array,1),size(array,2))
 integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(2)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error, err
 
 ! 
 
 !if (all(array == array(1,1))) then
-!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, array(1,1), shape(array), error)
+!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, descrip_name, unit, array(1,1), shape(array), error)
 !  return
 !endif
 
@@ -634,7 +634,7 @@ call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
 call H5Sclose_f(dspace_id, h5_err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank2
 
@@ -642,7 +642,7 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+! Subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, descrip_name, unit, array, error)
 !
 ! Routine to write an openpmd formatted dataset of rank 3.
 !
@@ -650,7 +650,7 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
 !   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
 !
@@ -658,20 +658,20 @@ end subroutine pmd_write_complex_to_dataset_rank2
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, bmad_name, unit, array, error)
+subroutine pmd_write_complex_to_dataset_rank3 (root_id, dataset_name, complex_t, descrip_name, unit, array, error)
 
 type (pmd_unit_struct) unit
 complex(rp), target :: array(:,:,:), cc(size(array,1),size(array,2),size(array,3))
 integer h5_err
 integer(hid_t) :: root_id, dspace_id, z_id, complex_t
 integer(hsize_t) dims(3)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical err, error
 
 ! 
 
 !if (all(array == array(1,1,1))) then
-!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, array(1,1,1), shape(array), error)
+!  call pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, descrip_name, unit, array(1,1,1), shape(array), error)
 !  return
 !endif
 
@@ -685,7 +685,7 @@ call H5dwrite_f(z_id, complex_t, c_loc(cc), h5_err)
 call H5Dclose_f(z_id, h5_err)
 call H5Sclose_f(dspace_id, h5_err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 end subroutine pmd_write_complex_to_dataset_rank3
 
@@ -693,7 +693,7 @@ end subroutine pmd_write_complex_to_dataset_rank3
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, value, v_shape, error)
+! Subroutine pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, descrip_name, unit, value, v_shape, error)
 !
 ! Routine to write an openpmd formatted dataset of an array were all the data values are the same.
 !
@@ -701,7 +701,7 @@ end subroutine pmd_write_complex_to_dataset_rank3
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
 !   complex_t           -- integer(hid_t): Complex type ID obtained from pmd_init_compound_complex.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. See pmd_write_units_to_dataset.
 !   unit                -- pmd_unit_struct: Data units.
 !   value               -- complex(rp): Data value.
 !   v_shape(:)          -- integer: Shape of the data array.
@@ -710,14 +710,14 @@ end subroutine pmd_write_complex_to_dataset_rank3
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, bmad_name, unit, value, v_shape, error)
+subroutine pmd_write_complex_to_pseudo_dataset(root_id, dataset_name, complex_t, descrip_name, unit, value, v_shape, error)
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id, group_id, complex_t
 integer(size_t) :: n_dim
 complex(rp) value
 integer err, v_shape(:)
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 logical error
 
 !
@@ -729,7 +729,7 @@ call my_H5LTset_attribute_complex(root_id, dataset_name, complex_t, 'value', val
 n_dim = size(v_shape)
 call H5LTset_attribute_int_f(root_id, dataset_name, 'shape', v_shape, n_dim, err)
 
-call pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+call pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 call h5gclose_f(group_id, err)
 
@@ -787,29 +787,30 @@ end subroutine my_H5LTset_attribute_complex
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+! Subroutine pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 !
 ! Routine to write the data units and conversion factors to a dataset.
 !
 ! Input:
 !   root_id             -- integer(hid_t): Root group containing the dataset.
 !   dataset_name        -- character(*): Name of the dataset.
-!   bmad_name           -- character(*): Equivalent Bmad name.
+!   descrip_name        -- character(*): Descriptive name for the dataset. Stored in "localName" attribute.
+!                             If descrip_name is blank, the attribute is not created.
 !   unit                -- pmd_unit_struct: Data units.
 !
 ! Output:
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
 
-subroutine pmd_write_units_to_dataset (root_id, dataset_name, bmad_name, unit, error)
+subroutine pmd_write_units_to_dataset (root_id, dataset_name, descrip_name, unit, error)
 
 type (pmd_unit_struct) unit
 integer(hid_t) :: root_id
 integer h5_err, n
 logical error
-character(*) dataset_name, bmad_name
+character(*) dataset_name, descrip_name
 
-if (bmad_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', bmad_name, h5_err)
+if (descrip_name /= '') call H5LTset_attribute_string_f(root_id, dataset_name, 'localName', descrip_name, h5_err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'unitSI', [unit%unitSI], 1_size_t, h5_err)
 call H5LTset_attribute_double_f(root_id, dataset_name, 'unitDimension', [unit%unitDimension], 7_size_t, h5_err)
 call H5LTset_attribute_string_f(root_id, dataset_name, 'unitSymbol', unit%unitSymbol, h5_err)
@@ -1253,6 +1254,7 @@ end subroutine pmd_read_real_dataset_rank3
 !   array(:)            -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
+!   complex_t           -- integer(hid_t): Complex type ID.
 !   array(:)            -- complex(rp): Array with data.
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
@@ -1285,9 +1287,9 @@ z_id = hdf5_open_object(root_id, name, info, error, .true.)
 if (info%data_class_type /= H5T_COMPOUND_F) then
   allocate (re(size(array,1)), im(size(array,1)))
 
-  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);      if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);      if (err) return
+  call h5gopen_f(root_id, name, z_id, h5_err);                         if (h5_err == -1) return
+  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);  if (err) return
+  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);  if (err) return
   call h5gclose_f(z_id, h5_err)
 
   array = cmplx(re, im, rp)
@@ -1329,6 +1331,7 @@ end subroutine pmd_read_complex_dataset_rank1
 !   array(:,:)          -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
+!   complex_t           -- integer(hid_t): Complex type ID.
 !   array(:,:)          -- complex(rp): Array with data.
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
@@ -1419,6 +1422,7 @@ end subroutine pmd_read_complex_dataset_rank2
 !   array(:,:,:)        -- complex(rp): Array to hold the data. Must be of the correct size.
 !
 ! Output:
+!   complex_t           -- integer(hid_t): Complex type ID.
 !   array(:,:,:)        -- complex(rp): Array with data.
 !   error               -- logical: Set true if there is an error. False otherwise.
 !-
@@ -1436,31 +1440,41 @@ integer(hid_t) :: root_id, z_id, complex_t
 integer h5_err, i, j
 type(c_ptr) :: f_ptr
 
-logical error, err
+logical error, err, value_here
 
 character(*) name
 character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank3'
 
-! Non-compound data means old format
+!
 
 error = .true.
+info = hdf5_object_info(root_id, name, err, .true.); if (err) return
 
-info = hdf5_object_info(root_id, name, error, .true.)
+! Non-compound data attribute means old format or constant record format
 
 if (info%data_class_type /= H5T_COMPOUND_F) then
-  allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
+  call h5gopen_f(root_id, name, z_id, h5_err);                                     if (h5_err == -1) return
+  value_here = hdf5_exists(z_id, 'value', err, .false.) ! "value" attribute that means this is a constant record.
 
-  call h5gopen_f(root_id, name, z_id, h5_err);                     if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err);      if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err);      if (err) return
+  if (value_here) then
+
+    call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, err, .true.); if (err) return
+    if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+
+  else
+    allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
+    call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err);  if (err) return
+    call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err);  if (err) return
+    array = cmplx(re, im, rp)
+  endif
+
   call h5gclose_f(z_id, h5_err)
-
-  array = cmplx(re, im, rp)
   error = .false.
   return
 endif
 
+! New format...
 ! Need to use cc for temp storage since array argument may not be stored in contiguous memory.
 
 call hdf5_read_dataorder(root_id, name, data_order)
@@ -1475,10 +1489,10 @@ if (any(info%data_dim(1:3) /= shape(cc))) then
   return
 endif
 
-z_id = hdf5_open_object(root_id, name, info, error, .true.)
+z_id = hdf5_open_object(root_id, name, info, err, .true.);  if (err) return
 f_ptr = c_loc(cc)
 call H5Dread_f(z_id, complex_t, f_ptr, h5_err)
-call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, error, .true.)
+call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, err, .true.); if (err) return
 call hdf5_close_object(z_id, info)
 
 if (data_order == 'C') then
@@ -1490,6 +1504,7 @@ else
 endif
 
 if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+error = .false.
 
 end subroutine pmd_read_complex_dataset_rank3
 

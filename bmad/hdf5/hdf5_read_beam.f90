@@ -350,9 +350,9 @@ enddo
 
 ! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
 
-if (g2_id /= root_id) call H5Gclose_f(g2_id, h5_err)
-if (g_id /= g2_id)    call H5Gclose_f(g_id, h5_err)
-if (g1_id /= g2_id)   call H5Gclose_f(g1_id, h5_err)
+if (g2_id /= root_id)                     call H5Gclose_f(g2_id, h5_err)
+if (g_id /= g2_id .and. g_id /= root_id)  call H5Gclose_f(g_id, h5_err)
+if (g1_id /= g2_id)                       call H5Gclose_f(g1_id, h5_err)
 
 if (error) then
   call out_io (s_error$, r_name, 'ERROR READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
