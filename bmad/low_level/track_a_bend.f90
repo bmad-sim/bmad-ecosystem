@@ -41,7 +41,8 @@ logical, optional :: make_matrix
 
 start_orb = orbit
 
-call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, &
+                              orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 ! Entrance edge kick
 
@@ -320,7 +321,8 @@ if (orbit_too_large(orbit, param)) return
 fringe_info%particle_at = second_track_edge$
 call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make_matrix)
 
-call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, &
+                              orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = start_orb%t + orbit%direction*orbit%time_dir*ele%value(delta_ref_time$) + (start_orb%vec(5) - orbit%vec(5)) / (orbit%beta * c_light)
 

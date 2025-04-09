@@ -45,7 +45,9 @@ and the exclamation mark and everything after the exclamation mark on a line are
 
 \bmad is generally case insensitive. Most names are converted to uppercase. Exceptions are 
 file names and atomic formulas for materials used in crystal diffraction. Also \vn{type}, \vn{alias},
-and \vn{descrip} string labels which can be set for any element are not converted (\sref{s:alias}).
+and \vn{descrip} string labels, which can be set for any element, are not converted (\sref{s:alias}).
+Notice that commands for the \vn{Tao} program are case sensitive. The reason for this difference is
+due to one of history. \bmad was developed back in the days where case sensitivity was not important.
 
 \index{\& continuation symbol}
 \index{continuation symbol (\&)}
@@ -1307,9 +1309,11 @@ might be a file (or files) that define the layout of the lattice (something that
 often) and a file (or files) that define magnet strengths (something that changes more often).  The
 \vn{call} is used to read in separated lattice files. The syntax is
 \begin{example}
-  call, filename = <file-name>
+  call, filename = <file-name>   ! or
+  call, no_abort_on_open_error, file = <file-name>
 \end{example}
-Example:
+If the \vn{no_abort_on_open_error} option is present, a missing file will not abort the parsing.
+Examples:
 \begin{example}
   call, filename = "../layout/my_layout.bmad"      ! Relative pathname
   call, filename = "/nfs/cesr/lat/my_layout.bmad"  ! Absolute pathname

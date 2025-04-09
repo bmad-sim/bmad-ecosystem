@@ -76,10 +76,10 @@ typedef valarray<CPP_expression_atom>          CPP_expression_atom_ARRAY;
 typedef valarray<CPP_expression_atom_ARRAY>    CPP_expression_atom_MATRIX;
 typedef valarray<CPP_expression_atom_MATRIX>   CPP_expression_atom_TENSOR;
 
-class CPP_wake_sr_z;
-typedef valarray<CPP_wake_sr_z>          CPP_wake_sr_z_ARRAY;
-typedef valarray<CPP_wake_sr_z_ARRAY>    CPP_wake_sr_z_MATRIX;
-typedef valarray<CPP_wake_sr_z_MATRIX>   CPP_wake_sr_z_TENSOR;
+class CPP_wake_sr_z_long;
+typedef valarray<CPP_wake_sr_z_long>          CPP_wake_sr_z_long_ARRAY;
+typedef valarray<CPP_wake_sr_z_long_ARRAY>    CPP_wake_sr_z_long_MATRIX;
+typedef valarray<CPP_wake_sr_z_long_MATRIX>   CPP_wake_sr_z_long_TENSOR;
 
 class CPP_wake_sr_mode;
 typedef valarray<CPP_wake_sr_mode>          CPP_wake_sr_mode_ARRAY;
@@ -884,35 +884,43 @@ bool operator== (const CPP_expression_atom&, const CPP_expression_atom&);
 
 
 //--------------------------------------------------------------------
-// CPP_wake_sr_z
+// CPP_wake_sr_z_long
 
-class Opaque_wake_sr_z_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_wake_sr_z_long_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_wake_sr_z {
+class CPP_wake_sr_z_long {
 public:
-  CPP_spline_ARRAY w;
-  CPP_spline_ARRAY w_sum1;
-  CPP_spline_ARRAY w_sum2;
-  Int plane;
+  Real_ARRAY w;
+  Complex_ARRAY fw;
+  Complex_ARRAY fbunch;
+  Complex_ARRAY w_out;
+  Real dz;
+  Real z0;
+  Real smoothing_sigma;
   Int position_dependence;
+  Bool time_based;
 
-  CPP_wake_sr_z() :
-    w(CPP_spline_ARRAY(CPP_spline(), 0)),
-    w_sum1(CPP_spline_ARRAY(CPP_spline(), 0)),
-    w_sum2(CPP_spline_ARRAY(CPP_spline(), 0)),
-    plane(Bmad::NOT_SET),
-    position_dependence(Bmad::NOT_SET)
+  CPP_wake_sr_z_long() :
+    w(0.0, 0),
+    fw(0.0, 0),
+    fbunch(0.0, 0),
+    w_out(0.0, 0),
+    dz(0.0),
+    z0(0.0),
+    smoothing_sigma(0.0),
+    position_dependence(Bmad::NONE),
+    time_based(false)
     {}
 
-  ~CPP_wake_sr_z() {
+  ~CPP_wake_sr_z_long() {
   }
 
 };   // End Class
 
-extern "C" void wake_sr_z_to_c (const Opaque_wake_sr_z_class*, CPP_wake_sr_z&);
-extern "C" void wake_sr_z_to_f (const CPP_wake_sr_z&, Opaque_wake_sr_z_class*);
+extern "C" void wake_sr_z_long_to_c (const Opaque_wake_sr_z_long_class*, CPP_wake_sr_z_long&);
+extern "C" void wake_sr_z_long_to_f (const CPP_wake_sr_z_long&, Opaque_wake_sr_z_long_class*);
 
-bool operator== (const CPP_wake_sr_z&, const CPP_wake_sr_z&);
+bool operator== (const CPP_wake_sr_z_long&, const CPP_wake_sr_z_long&);
 
 
 //--------------------------------------------------------------------
@@ -965,7 +973,7 @@ class Opaque_wake_sr_class {};  // Opaque class for pointers to corresponding fo
 class CPP_wake_sr {
 public:
   string file;
-  CPP_wake_sr_z_ARRAY z;
+  CPP_wake_sr_z_long z_long;
   CPP_wake_sr_mode_ARRAY long_wake;
   CPP_wake_sr_mode_ARRAY trans_wake;
   Real z_ref_long;
@@ -977,7 +985,7 @@ public:
 
   CPP_wake_sr() :
     file(),
-    z(CPP_wake_sr_z_ARRAY(CPP_wake_sr_z(), 0)),
+    z_long(),
     long_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
     trans_wake(CPP_wake_sr_mode_ARRAY(CPP_wake_sr_mode(), 0)),
     z_ref_long(0.0),
@@ -1733,6 +1741,7 @@ public:
   Int mat6;
   Int rad_int;
   Int ptc;
+  Bool has_misalign;
 
   CPP_bookkeeping_state() :
     attributes(Bmad::STALE),
@@ -1742,7 +1751,8 @@ public:
     ref_energy(Bmad::STALE),
     mat6(Bmad::STALE),
     rad_int(Bmad::STALE),
-    ptc(Bmad::STALE)
+    ptc(Bmad::STALE),
+    has_misalign(false)
     {}
 
   ~CPP_bookkeeping_state() {
@@ -2759,6 +2769,7 @@ public:
   Bool use_particle_start;
   Bool use_t_coords;
   Bool use_z_as_t;
+  string file_name;
 
   CPP_beam_init() :
     position_file(),
@@ -2794,7 +2805,8 @@ public:
     full_6d_coupling_calc(false),
     use_particle_start(false),
     use_t_coords(false),
-    use_z_as_t(false)
+    use_z_as_t(false),
+    file_name()
     {}
 
   ~CPP_beam_init() {
@@ -3295,8 +3307,8 @@ public:
     d_orb(1e-5, 6),
     default_ds_step(0.0),
     significant_length(1e-10),
-    rel_tol_tracking(1e-8),
-    abs_tol_tracking(1e-11),
+    rel_tol_tracking(1e-9),
+    abs_tol_tracking(1e-12),
     rel_tol_adaptive_tracking(1e-8),
     abs_tol_adaptive_tracking(1e-10),
     init_ds_adaptive_tracking(1e-3),

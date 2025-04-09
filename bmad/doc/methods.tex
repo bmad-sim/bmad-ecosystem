@@ -453,6 +453,9 @@ Possible \vn{spin_tracking_method} settings are:
 This method will call a routine \vn{track1_spin_custom} which must be supplied by the programmer
 implementing the custom spin tracking calculation. See \vn{s:custom.ele} for more details.
 %
+\item[\vn{Off}] \Newline
+No spin tracking is done and the spin at the end of the element is the same as at the beginning.
+%
 \item[\vn{Sprint}] \Newline
 The \vn{sprint} algorithm (\sref{s:sprint.std}) uses first order transfer spin maps to track the
 spin through lattice elements. This method is very fast at the cost of accuracy for particles away
@@ -475,8 +478,20 @@ integration of the spin rotation matrix.
 
 The \vn{runge_kutta} and \vn{time_runge_kutta} spin tracking uses the same fourth order integrator
 as is used for the orbital coordinates to track the spin rotation vector.
+%
+\item[\vn{Transverse_Kick}] \Newline
+With a setting of \vn{transverse_kick}, it is assumed that the orbital transfer matrix is due solely
+to transverse magnetic fields so that the integrated spin rotation (\Eqs{orpt}, \eq{pqlbp1}, and
+\eq{pqlbp2}) can be related to the orbital transport via
+\begin{equation}
+  \int {\pmb\Omega}_{BMT} = \frac{1 + a \gamma}{1 + p_z} \, (-\Delta p_y, \Delta p_x, 0)
+\end{equation}
+where $\Delta p_x$ and $\Delta p_y$ are the change in $p_x$ and $p_y$.
+Here the small angle approximation ($p_x, p_y \ll 1$) has been used.
 \end{description}
 
+
+%-----------------
 Since speed may be an issue, \bmad has an global parameter called \vn{spin_tracking_on} which is
 part of the \vn{bmad_com} instance (\sref{s:bmad.ptc.com}) that determines whether spin is tracked or
 not. Note: There is also another \vn{bmad_com} parameter called \vn{spin_baier_katkov_flipping_on}
@@ -502,44 +517,47 @@ Example:
 \index{crystal}\index{capillary}
 \begin{table}[pth]
 \centering {
-\begin{tabular}{lcccc} \toprule
+\begin{tabular}{lcccccc} \toprule
 \rule{0pt}{80pt} &
+\begin{sideways}\vn{Off}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{Sprint}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
+\begin{sideways}\vn{Transverse_Kick}\end{sideways} &
 \\ \midrule
-%                                      C  Spt SLP Trk 
-  \vn{ab_multipole and multipole}    & X &   &   & D \\  
-  \vn{ac_kicker}                     & X &   &   & D \\  
-  \vn{beambeam}                      & X &   &   & D \\  
-  \vn{bends: rbend and sbend}        & X & X & X & D \\ 
-  \vn{converter}                     & X &   &   & D \\  
-  \vn{crab_cavity}                   & X &   &   & D \\  
-  \vn{custom}                        & D &   &   & X \\  
-  \vn{drift}                         & X & X & X & D \\  
-  \vn{e_gun}                         & X &   &   & D \\  
-  \vn{ecollimator and rcollimator}   & X & X & X & D \\  
-  \vn{elseparator}                   & X &   & X & D \\  
-  \vn{em_field}                      & X &   &   & D \\  
-  \vn{fiducial}                      & X &   & X & D \\  
-  \vn{floor_shift}                   & X &   & X & D \\  
-  \vn{hkicker}                       & X & X & X & D \\  
-  \vn{instrument, monitor and pipe}  & X & X & X & D \\  
-  \vn{kicker}                        & X & X & X & D \\  
-  \vn{lcavity and rfcavity}          & X &   & X & D \\  
-  \vn{marker}                        & X &   & X & D \\  
-  \vn{match}                         & X &   &   & D \\  
-  \vn{octupole}                      & X & X & X & D \\ 
-  \vn{patch}                         & X &   & X & D \\ 
-  \vn{quadrupole}                    & X & X & X & D \\ 
-  \vn{sad_mult}                      & X &   &   & D \\  
-  \vn{sextupole}                     & X & X & X & D \\ 
-  \vn{solenoid}                      & X & X & X & D \\ 
-  \vn{sol_quad}                      & X &   & X & D \\ 
-  \vn{taylor}                        &   &   &   & D \\ 
-  \vn{vkicker}                       & X & X & X & D \\ 
-  \vn{wiggler}                       & X &   & X & D \\ \bottomrule
+%                                      O   C  Spt SLP Trk TK
+  \vn{ab_multipole and multipole}    & X & X &   &   & D &   \\  
+  \vn{ac_kicker}                     & X & X &   &   & D &   \\  
+  \vn{beambeam}                      & X & X &   &   & D &   \\  
+  \vn{bends: rbend and sbend}        & X & X & X & X & D &   \\ 
+  \vn{converter}                     & X & X &   &   & D &   \\  
+  \vn{crab_cavity}                   & X & X &   &   & D &   \\  
+  \vn{custom}                        & X & D &   &   & X &   \\  
+  \vn{drift}                         & X & X & X & X & D &   \\  
+  \vn{e_gun}                         & X & X &   &   & D &   \\  
+  \vn{ecollimator and rcollimator}   & X & X & X & X & D &   \\  
+  \vn{elseparator}                   & X & X &   & X & D &   \\  
+  \vn{em_field}                      & X & X &   &   & D &   \\  
+  \vn{fiducial}                      & X & X &   & X & D &   \\  
+  \vn{floor_shift}                   & X & X &   & X & D &   \\  
+  \vn{hkicker}                       & X & X & X & X & D &   \\  
+  \vn{instrument, monitor and pipe}  & X & X & X & X & D &   \\  
+  \vn{kicker}                        & X & X & X & X & D &   \\  
+  \vn{lcavity and rfcavity}          & X & X &   & X & D &   \\  
+  \vn{marker}                        & X & X &   & X & D &   \\  
+  \vn{match}                         & D &   &   &   &   & X \\  
+  \vn{octupole}                      & X & X & X & X & D &   \\ 
+  \vn{patch}                         & X & X &   & X & D &   \\ 
+  \vn{quadrupole}                    & X & X & X & X & D &   \\ 
+  \vn{sad_mult}                      & X & X &   &   & D &   \\  
+  \vn{sextupole}                     & X & X & X & X & D &   \\ 
+  \vn{solenoid}                      & X & X & X & X & D &   \\ 
+  \vn{sol_quad}                      & X & X &   & X & D & X \\ 
+  \vn{taylor}                        & X &   &   &   & D &   \\ 
+  \vn{vkicker}                       & X & X & X & X & D &   \\ 
+  \vn{wiggler}                       & X & X &   & X & D &   \\ 
+  \bottomrule
 \end{tabular}
 }
 

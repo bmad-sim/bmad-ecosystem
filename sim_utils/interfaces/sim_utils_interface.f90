@@ -101,8 +101,7 @@ end function
 subroutine cplx_mat_inverse(mat, mat_inv, ok, print_err)
   import
   implicit none
-  complex(rp) :: mat(:,:)
-  complex(rp) :: mat_inv(:,:)
+  complex(rp) :: mat(:,:), mat_inv(:,:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -480,10 +479,10 @@ subroutine mat_eigen (mat, eigen_val, eigen_vec, error, print_err)
   logical, optional :: print_err
 end subroutine
 
-subroutine mat_inverse (mat, mat_inv, ok, print_err)
+subroutine mat_inverse (mat, mat_inv, vec0, vec0_inv, ok, print_err)
   import
-  real(rp) :: mat(:,:)
-  real(rp) :: mat_inv(:,:)
+  real(rp) :: mat(:,:), mat_inv(:,:)
+  real(rp), optional :: vec0(:), vec0_inv(:)
   logical, optional :: ok, print_err
 end subroutine
 
@@ -749,6 +748,12 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   character(9) fmt_str
 end function
 
+function str_count(str, match) result (num)
+  implicit none
+  character(*) str, match
+  integer num
+end function
+
 subroutine str_set(str_out, str_in)
   implicit none
   character(:), allocatable :: str_out
@@ -790,10 +795,10 @@ function rot_2d (vec_in, angle) result (vec_out)
   real(rp) vec_in(2), angle, vec_out(2)
 end function
 
-subroutine run_timer(command, time)
+subroutine run_timer(command, time, time0)
   import
   implicit none
-  real(rp), optional :: time
+  real(rp), optional :: time, time0
   character(*) command
 end subroutine
 
@@ -829,9 +834,17 @@ end subroutine
 
 elemental function sqrt_one(x, nd) result (ds1)
   import
+  implicit none
   real(rp), intent(in) :: x
   real(rp) ds1
   integer, optional, intent(in) :: nd
+end function
+
+elemental function sqrt_alpha(alpha, x) result (y)
+  import
+  implicit none
+  real(rp), intent(in) :: alpha, x
+  real(rp) y
 end function
 
 function str_first_in_set(line, set, ignore_clauses) result (ix_match)

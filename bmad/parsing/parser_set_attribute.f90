@@ -58,6 +58,7 @@ type (ac_kicker_struct), pointer :: ac
 type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), allocatable :: rt_save(:)
 type (photon_reflect_table_struct), pointer :: rt
+type (material_struct) :: material
 
 real(rp) kx, ky, kz, tol, value, coef, r_vec(10), r0(2), vec(1000)
 real(rp), allocatable :: table(:,:), arr(:)
@@ -71,7 +72,7 @@ character(40) :: word, str_ix, attrib_word, word2, name, who
 character(40), allocatable :: name_list(:)
 character(1) delim, delim1, delim2
 character(80) str, err_str 
-character(200) line
+character(400) line
 
 logical, target :: delim_found, err_flag, logic, set_done, end_of_file, do_evaluate, hetero_list
 logical is_attrib, err_flag2, old_style_input, ok, err, call_found
@@ -279,6 +280,18 @@ if (ele%key == wiggler$ .or. ele%key == undulator$) then
 endif
 
 ! Other old-style conversions
+
+if (word == 'SPIN_TRACKING_MODEL') then
+  call parser_error ('"SPIN_TRACKING_MODEL = TRANSVERSE_FIELD" HAS BEEN REPLACED BY "SPIN_TRACKING_METHOD = TRANSVERSE_KICK"', &
+                     'AND "SPIN_TRACKING_MODEL = OFF" HAS BEEN REPLACED BY SPIN_TRACKING_METHOD = OFF".', &
+                     'THE PROGRAM WILL RUN BUT PLEASE REPLACE THIS IN THE LATTICE FILE.', level = s_warn$)
+  call get_switch (attrib_word, [character(20):: 'Off', 'Transverse_Field'], ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  if (ix == off$) then
+    ele%spin_tracking_method = off$
+  else
+    ele%spin_tracking_method = transverse_kick$
+  endif
+endif
 
 if (ele%key == beambeam$) then
   select case (word)
@@ -781,7 +794,7 @@ endif
 
 if (attrib_word == 'AMP_VS_TIME') then
   ac => ele%ac_kick
-  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, delim, delim_found)) return
+  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' AMP_VS_TIME', table, 2, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%amp_vs_time(n))
@@ -799,7 +812,7 @@ endif
 
 if (attrib_word == 'FREQUENCIES') then
   ac => ele%ac_kick
-  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, delim, delim_found)) return
+  if (.not. parse_real_matrix (lat, ele, trim(ele%name) // ' FREQUENCIES', table, 3, .true., delim, delim_found)) return
   if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
   n = size(table, 1)
   allocate (ac%frequency(n))
@@ -1488,7 +1501,8 @@ if (attrib_word == 'GRID_FIELD') then
 
   ! Note: get_next_word will change "call::" to "hdf5" or "binary" if appropriate.
   if (.not. expect_this ('=', .true., .true., 'AFTER "GRID_FIELD"', ele, delim, delim_found)) return
-  call get_next_word (word, ix_word, ':[],(){}', delim, delim_found, call_check = .true.)
+  call get_next_word (word, ix_word, ':[],(){}', delim, delim_found, call_check = .true., err_flag = err_flag)
+  if (err_flag) return
 
   ! "ele1[grid_field] = ele2[grid_field]" construct
 
@@ -1783,18 +1797,26 @@ case ('DENSITY', 'AREA_DENSITY', 'RADIATION_LENGTH')
   if (.not. ok) return
 
   if (allocated(ele%foil%material)) then
-    if (size(ele%foil%material) /= n) then
+    if (size(ele%foil%material) == 1 .and. n > 1) then
+      material = ele%foil%material(1)
+      deallocate (ele%foil%material)
+      allocate(ele%foil%material(n))
+      ele%foil%material(1) = material
+    endif
+
+    if (size(ele%foil%material) /= n .and. (attrib_word == 'RADIATION_LENGTH' .or. (n > 1 .and. size(ele%foil%material) > 1))) then
       call parser_error('MATERIAL_TYPE, DENSITY, AREA_DENSITY, AND RADIATION_LENGTH MUST ALL BE THE SAME SIZE VECTORS FOR ELE: ' // ele%name)
       return
     endif
+      
   else
     allocate(ele%foil%material(n))
   endif
 
   select case (attrib_word)
-  case ('DENSITY');           ele%foil%material(:)%density = arr
-  case ('AREA_DENSITY');      ele%foil%material(:)%area_density = arr
-  case ('RADIATION_LENGTH');  ele%foil%material(:)%radiation_length = arr
+  case ('DENSITY');           ele%foil%material(1:n)%density = arr(1:n)
+  case ('AREA_DENSITY');      ele%foil%material(1:n)%area_density = arr(1:n)
+  case ('RADIATION_LENGTH');  ele%foil%material(1:n)%radiation_length = arr(1:n)
   end select
 
   if (delim == ')') then
@@ -2063,6 +2085,13 @@ case ('SCATTER_METHOD')
   call get_switch (attrib_word, scatter_method_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(scatter_method$) = ix
 
+case ('SPACE_CHARGE_METHOD')
+  call get_switch (attrib_word, space_charge_method_name(1:), switch, err_flag, ele, delim, delim_found)
+  if (err_flag) return
+  ele%space_charge_method = switch
+  !  With multipass, space_charge_method needs bookkeeping since this param can be set individually in the slaves.
+  if (bp_com%parser_name == 'bmad_parser2') call set_flags_for_changed_attribute(ele, ele%space_charge_method)
+
 case ('SPATIAL_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(spatial_distribution$) = ix
@@ -2105,10 +2134,6 @@ case ('SPIN_TRACKING_METHOD')
   endif
   ele%spin_tracking_method = switch
 
-case ('SPIN_TRACKING_MODEL')
-  call get_switch (attrib_word, spin_tracking_model_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
-  ele%value(spin_tracking_model$) = ix
-
 case ('TAYLOR_MAP_INCLUDES_OFFSETS')
   call parser_get_logical (attrib_word, ele%taylor_map_includes_offsets, ele%name, delim, delim_found, err_flag); if (err_flag) return
 
@@ -2125,11 +2150,6 @@ case ('TRACKING_METHOD')
     return
   endif
   ele%tracking_method = switch
-
-case ('SPACE_CHARGE_METHOD')
-  call get_switch (attrib_word, space_charge_method_name(1:), switch, err_flag, ele, delim, delim_found)
-  if (err_flag) return
-  ele%space_charge_method = switch
 
 case ('VELOCITY_DISTRIBUTION')
   call get_switch (attrib_word, distribution_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return

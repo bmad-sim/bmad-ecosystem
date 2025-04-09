@@ -14,6 +14,7 @@ integer i, n, n_dim
 
 open (1, file = 'output.now')
 
+bmad_com%auto_bookkeeper = .false.
 call bmad_parser ('bmad_L9A18A000-_MOVEREC.lat', lat)
 
 n = lat%n_ele_track

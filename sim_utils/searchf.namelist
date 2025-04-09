@@ -24,14 +24,6 @@ file_get_open
 File: file/file_suffixer.f90
 file_suffixer
 
-File: file/filename_mod.f90
-filename_mod
-fullfilename
-splitfilename
-file_name_is_relative
-simplify_path
-append_subdirectory
-
 File: file/get_file_number.f90
 get_file_number
 
@@ -67,6 +59,14 @@ skip_header
 
 File: file/type_this_file.f90
 type_this_file
+
+File: file/filename_mod.f90
+filename_mod
+fullfilename
+splitfilename
+file_name_is_relative
+simplify_path
+append_subdirectory
 
 File: geodesic_lm/accept.f90
 acceptance
@@ -109,57 +109,6 @@ parallel_mod
 
 File: interfaces/sim_utils.f90
 sim_utils
-
-File: interfaces/particle_species_mod.f90
-particle_species_mod
-pion_0$
-helion$
-ref_particle$
-neutron$
-deuteron$
-pion_plus$
-antimuon$
-proton$
-positron$
-photon$
-electron$
-antiproton$
-muon$
-pion_minus$
-anti_deuteron$
-anti_neutron$
-anti_ref_particle$
-anti_helion$
-lb_subatomic
-ub_subatomic
-anti_atom$
-subatomic_species_name
-openpmd_subatomic_species_name
-charge_of_subatomic
-mass_of_subatomic
-anomalous_moment_of_subatomic
-antiparticle_of_subatomic
-spin_of_subatomic
-atomic_name
-atom_struct
-mean_excitation_energy_over_z
-molecular_name
-molecular_components
-antiparticle
-species_of
-species_id
-species_name
-species_id_from_openpmd
-openpmd_species_name
-anomalous_moment_of
-spin_of
-charge_of
-mass_of
-charge_to_mass_of
-set_species_charge
-x0_radiation_length
-atomic_number
-is_subatomic_species
 
 File: interfaces/physical_constants.f90
 physical_constants
@@ -205,6 +154,61 @@ dp
 i4_b
 global_common_struct
 named_number_struct
+
+File: interfaces/sim_utils_struct.f90
+sim_utils_struct
+var_length_string_struct
+str_index_struct
+nametable_struct
+all_pointer_struct
+i_imaginary
+i_imag
+int_garbage$
+real_garbage$
+null_name$
+str_garbage$
+lf$
+invalid$
+not_set$
+invalid_name
+molecular_component_struct
+x_axis$
+y_axis$
+z_axis$
+xy_axis$
+true$
+false$
+true_int$
+false_int$
+yes$
+no$
+maybe$
+provisional$
+rl_prompt_start_ignore
+rl_prompt_end_ignore
+black_color
+red_color
+green_color
+yellow_color
+blue_color
+magenta_color
+cyan_color
+gray_color
+dark_gray_color
+peach_color
+light_green_color
+light_yellow_color
+light_blue_color
+pink_color
+aqua_color
+white_color
+blink_color
+bold_color
+reset_color
+int_logic
+is_true
+is_false
+value_of_all_ptr
 
 File: interfaces/sim_utils_interface.f90
 sim_utils_interface
@@ -267,6 +271,7 @@ reals_to_table_row
 all_pointer_to_string
 unquote
 real_num_fortran_format
+str_count
 str_set
 svd_fit
 real_path
@@ -279,6 +284,7 @@ sincc
 sinhx_x
 skip_header
 sqrt_one
+sqrt_alpha
 str_first_in_set
 str_first_not_in_set
 str_last_in_set
@@ -307,60 +313,57 @@ find_location_int
 find_location_logic
 find_location_str
 
-File: interfaces/sim_utils_struct.f90
-sim_utils_struct
-var_length_string_struct
-str_index_struct
-nametable_struct
-all_pointer_struct
-i_imaginary
-i_imag
-int_garbage$
-real_garbage$
-null_name$
-str_garbage$
-lf$
-invalid$
-not_set$
-invalid_name
-molecular_component_struct
-x_axis$
-y_axis$
-z_axis$
-xy_axis$
-true$
-false$
-true_int$
-false_int$
-yes$
-no$
-maybe$
-provisional$
-rl_prompt_start_ignore
-rl_prompt_end_ignore
-black_color
-red_color
-green_color
-yellow_color
-blue_color
-magenta_color
-cyan_color
-gray_color
-dark_gray_color
-peach_color
-light_green_color
-light_yellow_color
-light_blue_color
-pink_color
-aqua_color
-white_color
-blink_color
-bold_color
-reset_color
-int_logic
-is_true
-is_false
-value_of_all_ptr
+File: interfaces/particle_species_mod.f90
+particle_species_mod
+pion_0$
+helion$
+ref_particle$
+neutron$
+deuteron$
+pion_plus$
+antimuon$
+proton$
+positron$
+photon$
+electron$
+antiproton$
+muon$
+pion_minus$
+anti_deuteron$
+anti_neutron$
+anti_ref_particle$
+anti_helion$
+lb_subatomic
+ub_subatomic
+anti_atom$
+subatomic_species_name
+openpmd_subatomic_species_name
+charge_of_subatomic
+mass_of_subatomic
+anomalous_moment_of_subatomic
+antiparticle_of_subatomic
+spin_of_subatomic
+atomic_name
+atom_struct
+mean_excitation_energy_over_z
+molecular_name
+molecular_components
+antiparticle
+species_of
+species_id
+atomic_species_id
+species_name
+species_id_from_openpmd
+openpmd_species_name
+anomalous_moment_of
+spin_of
+charge_of
+mass_of
+charge_to_mass_of
+set_species_charge
+x0_radiation_length
+atomic_number
+is_subatomic_species
 
 File: io/command_line_mod.f90
 command_line_mod
@@ -587,6 +590,9 @@ da2_evaluate
 File: math/fft_1d.f90
 fft_1d
 
+File: math/quadratic_roots.f90
+quadratic_roots
+
 File: math/random_mod.f90
 random_mod
 kr4b
@@ -618,6 +624,36 @@ ran_uniform_vector
 super_sobseq
 pointer_to_ran_state
 allocate_thread_states
+
+File: math/rotation_3d_mod.f90
+rotation_3d_mod
+quat_conj
+procedure
+procedure
+quat_mul
+procedure
+procedure
+quat_rotate
+procedure
+procedure
+w_mat_to_axis_angle
+w_mat_to_quat
+quat_to_w_mat
+axis_angle_to_w_mat
+quat_to_omega
+omega_to_quat
+quat_to_axis_angle
+axis_angle_to_quat
+quat_conj_real
+quat_conj_complex
+quat_inverse
+quat_mul_real
+quat_mul_complex
+quat_rotate_real
+quat_rotate_complex
+rotate_vec_given_axis_angle
+rotate_vec
+rotate_mat
 
 File: math/spline_mod.f90
 spline_mod
@@ -659,39 +695,6 @@ trapzd_2d
 super_poly
 covar_expand
 
-File: math/rotation_3d_mod.f90
-rotation_3d_mod
-quat_conj
-procedure
-procedure
-quat_mul
-procedure
-procedure
-quat_rotate
-procedure
-procedure
-w_mat_to_axis_angle
-w_mat_to_quat
-quat_to_w_mat
-axis_angle_to_w_mat
-quat_to_omega
-omega_to_quat
-quat_to_axis_angle
-axis_angle_to_quat
-quat_conj_real
-quat_conj_complex
-quat_inverse
-quat_mul_real
-quat_mul_complex
-quat_rotate_real
-quat_rotate_complex
-rotate_vec_given_axis_angle
-rotate_vec
-rotate_mat
-
-File: math/quadratic_roots.f90
-quadratic_roots
-
 File: matrix/cplx_mat_inverse.f90
 cplx_mat_inverse
 
@@ -700,9 +703,6 @@ cplx_mat_make_unit
 
 File: matrix/determinant.f90
 determinant
-
-File: matrix/mat_inverse.f90
-mat_inverse
 
 File: matrix/mat_make_unit.f90
 mat_make_unit
@@ -745,6 +745,9 @@ mat_symp_conj
 
 File: matrix/mat_symp_conj_i.f90
 mat_symp_conj_i
+
+File: matrix/mat_inverse.f90
+mat_inverse
 
 File: misc/assert_equal.f90
 assert_equal
@@ -897,9 +900,6 @@ re_associate_integer
 re_associate_real
 re_associate_logical
 
-File: misc/run_timer.f90
-run_timer
-
 File: misc/set_logical_to_garbage.f90
 set_logical_to_garbage
 
@@ -942,6 +942,9 @@ on_off_logic
 File: misc/virtual_memory_usage.f90
 virtual_memory_usage
 
+File: misc/run_timer.f90
+run_timer
+
 File: mpi/opti_de_mpi_mod.f90
 opti_de_mpi_mod
 solution_struct
@@ -963,15 +966,15 @@ File: optimizers/opti.cpp
 RandInt
 UniRand
 
+File: optimizers/opti_de_openmp_mod.f90
+opti_de_openmp_mod
+opti_de_openmp
+solution_struct
+
 File: optimizers/opti_de_mod.f90
 opti_de_mod
 opti_de_param_struct
 opti_de
-solution_struct
-
-File: optimizers/opti_de_openmp_mod.f90
-opti_de_openmp_mod
-opti_de_openmp
 solution_struct
 
 File: plot/display_size_and_resolution.c
@@ -1066,75 +1069,6 @@ qp_select_page_basic
 qp_close_page_basic
 qp_end_basic
 
-File: plot/quick_plot_struct.f90
-quick_plot_struct
-white$
-black$
-red$
-green$
-blue$
-cyan$
-magenta$
-yellow$
-orange$
-yellow_green$
-light_green$
-navy_blue$
-purple$
-reddish_purple$
-dark_grey$
-light_grey$
-transparent$
-qp_color_name
-solid$
-dashed$
-dash_dot$
-dotted$
-dash_dot3$
-qp_line_pattern_name
-solid_fill$
-no_fill$
-hatched$
-cross_hatched$
-qp_symbol_fill_pattern_name
-square_sym$
-dot_sym$
-plus_sym$
-times_sym$
-circle_sym$
-x_symbol_sym$
-triangle_sym$
-circle_plus_sym$
-circle_dot_sym$
-square_concave_sym$
-diamond_sym$
-star5_sym$
-triangle_filled_sym$
-red_cross_sym$
-star_of_david_sym$
-square_filled_sym$
-circle_filled_sym$
-star5_filled_sym$
-qp_symbol_type_name
-dflt_draw$
-dflt_set$
-print_page_long_len
-print_page_short_len
-filled_arrow_head$
-outline_arrow_head$
-qp_arrow_head_type_name
-qp_axis_struct
-qp_plot_struct
-qp_point_struct
-qp_rect_struct
-qp_text_struct
-qp_line_struct
-qp_symbol_struct
-qp_arrow_struct
-qp_state_struct
-qp_string_to_enum
-qp_enum_to_string
-
 File: plot/quick_plot.f90
 quick_plot
 qp_base_library
@@ -1228,6 +1162,76 @@ qp_continuous_color
 qp_continuous_color_inverse
 qp_end
 
+File: plot/quick_plot_struct.f90
+quick_plot_struct
+white$
+black$
+red$
+green$
+blue$
+cyan$
+magenta$
+yellow$
+orange$
+yellow_green$
+light_green$
+navy_blue$
+purple$
+reddish_purple$
+dark_grey$
+light_grey$
+transparent$
+qp_color_name
+solid$
+dashed$
+dash_dot$
+dotted$
+dash_dot3$
+qp_line_pattern_name
+solid_fill$
+no_fill$
+hatched$
+cross_hatched$
+qp_symbol_fill_pattern_name
+square_sym$
+dot_sym$
+plus_sym$
+times_sym$
+circle_sym$
+x_symbol_sym$
+triangle_sym$
+circle_plus_sym$
+circle_dot_sym$
+square_concave_sym$
+diamond_sym$
+star5_sym$
+triangle_filled_sym$
+red_cross_sym$
+star_of_david_sym$
+square_filled_sym$
+circle_filled_sym$
+star5_filled_sym$
+qp_symbol_type_name
+dflt_draw$
+dflt_set$
+print_page_long_len
+print_page_short_len
+filled_arrow_head$
+outline_arrow_head$
+qp_arrow_head_type_name
+qp_axis_struct
+qp_plot_struct
+qp_point_struct
+qp_rect_struct
+qp_text_struct
+qp_line_struct
+qp_symbol_struct
+qp_arrow_struct
+qp_legend_struct
+qp_state_struct
+qp_string_to_enum
+qp_enum_to_string
+
 File: special_functions/asinc.f90
 asinc
 
@@ -1310,6 +1314,9 @@ procedure
 procedure
 sign_of_real
 sign_of_int
+
+File: special_functions/sqrt_alpha.f90
+sqrt_alpha
 
 File: string/all_pointer_to_string.f90
 all_pointer_to_string
@@ -1515,3 +1522,6 @@ detab
 
 File: string/real_str.f90
 real_str
+
+File: string/str_count.f90
+str_count

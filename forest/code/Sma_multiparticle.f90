@@ -1236,7 +1236,9 @@ endif
        global_e= p%x(5)*el%p%p0c
           !          CALL TRACK_SLICE(EL%ECOL19,p%x,K)
        case(KIND21)
-          CALL TRACK_SLICE(EL%CAV21,p%x,k,t%POS_IN_FIBRE-2)
+          CALL TRACK_SLICE_CAV21(p,K,t)
+
+!          CALL TRACK_SLICE(EL%CAV21,p%x,k,t%POS_IN_FIBRE-2)
        global_e= p%x(5)*el%p%p0c
        case(KIND22)
           CALL TRACK_SLICE(EL%he22,p%x,k,t%POS_IN_FIBRE-2)
@@ -1518,7 +1520,8 @@ endif
           !          CALL TRACK_SLICE(EL%ECOL19,p%x,K)
          global_e= p%x(5)*el%p%p0c
        case(KIND21)
-          CALL TRACK_SLICE(EL%CAV21,p%x,k,t%POS_IN_FIBRE-2)
+        CALL TRACK_SLICE_CAV21(p,K,t)
+ !         CALL TRACK_SLICE(EL%CAV21,p%x,k,t%POS_IN_FIBRE-2)
          global_e= p%x(5)*el%p%p0c
        case(KINDWIGGLER)
        !   CALL TRACK_SLICE(EL%WI,p%x,k,t%POS_IN_FIBRE-2)

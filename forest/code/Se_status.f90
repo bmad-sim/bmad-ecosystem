@@ -10952,7 +10952,8 @@ endif
      endif
     enddo
     if(i>nrmax-10) then
-     write(6,*) i, a, "did not converge in orthonormalisep"
+     write(6,*) i, a, "did not converge in orthonormalisep 2"
+     read(5,*) i
      ! stop
     endif 
     do i=1,3

@@ -44,6 +44,11 @@ private tao_pointer_to_universe_int, tao_pointer_to_universe_str
 
 interface
 
+subroutine tao_abort_command_file(force_abort)
+  implicit none
+  logical, optional :: force_abort
+end subroutine
+
 subroutine tao_alias_cmd (alias, string)
   implicit none
   character(*) :: alias
@@ -138,6 +143,14 @@ subroutine tao_count_strings (string, pattern, num)
   integer num
 end subroutine
 
+function tao_curve_ele_ref (curve, point_to_ele_ref) result (ele_track)
+  import
+  implicit none
+  type (tao_curve_struct) curve
+  type (ele_struct), pointer :: ele_track
+  logical point_to_ele_ref
+end function
+
 function tao_curve_ix_uni (curve) result (ix_uni)
   import
   implicit none
@@ -176,9 +189,10 @@ subroutine tao_data_check (err)
   logical err
 end subroutine
 
-function tao_data_sanity_check (datum, print_err, default_data_type) result (is_valid)
+function tao_data_sanity_check (datum, print_err, default_data_type, uni) result (is_valid)
   import
   type (tao_data_struct) datum
+  type (tao_universe_struct), optional, target :: uni
   logical print_err, is_valid
   character(*) default_data_type
 end function
@@ -223,13 +237,8 @@ subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1,
   character(*) label_name
 end subroutine
 
-subroutine tao_ele_to_ele_track (ix_universe, ix_branch, ix_ele, ix_ele_track)
-  import
-  implicit none
-  integer ix_universe, ix_branch, ix_ele, ix_ele_track
-end subroutine
-
-recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid)
+recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
+                                                            why_invalid, called_from_lat_calc)
   import
   implicit none
   type (tao_data_struct) datum
@@ -237,6 +246,7 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
   type (tao_lattice_struct), target :: tao_lat
   real(rp) datum_value
   logical valid_value
+  logical, optional :: called_from_lat_calc
   character(*), optional :: why_invalid
 end subroutine
 
@@ -486,14 +496,14 @@ subroutine tao_locate_all_elements (ele_list, eles, err, ignore_blank)
 end subroutine
 
 subroutine tao_locate_elements (ele_list, ix_universe, eles, err, lat_type, ignore_blank, &
-                                       err_stat_level, above_ubound_is_err, ix_dflt_branch, multiple_eles_is_err)
+                                       err_stat_level, above_ubound_is_err, ix_branch, multiple_eles_is_err)
   import
   implicit none
   character(*) ele_list
   integer ix_universe
   type (ele_pointer_struct), allocatable :: eles(:)
   logical err
-  integer, optional :: lat_type, err_stat_level, ix_dflt_branch
+  integer, optional :: lat_type, err_stat_level, ix_branch
   logical, optional :: ignore_blank, above_ubound_is_err, multiple_eles_is_err
 end subroutine
 
@@ -704,6 +714,10 @@ subroutine tao_re_allocate_expression_info (info, n, exact)
   type (tao_expression_info_struct), allocatable :: info(:)
   integer, intent(in) :: n
   logical, optional :: exact
+end subroutine
+
+subroutine tao_regression_test ()
+  implicit none
 end subroutine
 
 subroutine tao_remove_blank_characters (str)

@@ -3,7 +3,7 @@ program wake_test
 use beam_mod
 use bmad
 
-type (lat_struct), target :: lat
+type (lat_struct), target :: lat, lat0
 type (ele_struct), pointer :: ele, ele_z1, ele_p1, ele_p2
 type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
@@ -35,7 +35,10 @@ elseif (nargs > 1) then
   call err_exit
 endif
 
-call bmad_parser (lat_file, lat)
+call bmad_parser (lat_file, lat0)
+call write_bmad_lattice_file('lat2.bmad', lat0)
+call bmad_parser('lat2.bmad', lat)
+
 call ran_seed_put(123456)
 
 open (1, file = 'output.now')
@@ -251,9 +254,21 @@ do i = 1, size(bunch%particle) - 1
 enddo
 
 !------------------------------------------------------------------
+! SR z_long wake test
+
+ele => lat%branch(2)%ele(1)
+bunch = bunch_init
+bmad_com%sr_wakes_on = .true.
+call track1_bunch (bunch, ele, err_flag)
+
+write (1, '(a, 6es18.9)') '"SRZ-A" REL 1E-8', bunch%particle(1:5)%vec(6) - bunch_init%particle(1:5)%vec(6)
+write (1, '(a, 6es18.9)') '"SRZ-B" REL 1E-8', bunch%particle(21:25)%vec(6) - bunch_init%particle(21:25)%vec(6)
+
+!------------------------------------------------------------------
 contains
 
 ! vec(6) is much larger than the other components so rescale to be of the same magnitude
+
 function dvec(vec_in) result (vec_out)
 real(rp) vec_in(6), vec_out(6)
 vec_out = vec_in

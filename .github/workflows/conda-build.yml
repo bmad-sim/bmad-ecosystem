@@ -1,0 +1,68 @@
+name: Bmad-ecosystem - Conda build & test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-conda:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: ubuntu-single-core
+            os: ubuntu-latest
+            shared: Y
+            openmp_mpi: N
+          - name: macos-single-core
+            os: macos-latest
+            shared: Y
+            openmp_mpi: N
+          - name: ubuntu-openmp
+            os: ubuntu-latest
+            shared: Y
+            openmp_mpi: Y
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Include Linux-only requirements
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        shell: bash -eo pipefail -l {0}
+        run: |
+          echo '  - libacl' >> .github/bmad-build-env.yaml
+          echo '  - libgomp' >> .github/bmad-build-env.yaml
+
+      - name: Setup miniconda
+        uses: conda-incubator/setup-miniconda@v3
+        with:
+          miniforge-version: latest
+          use-mamba: true
+          activate-environment: bmad-build
+          channels: conda-forge
+          environment-file: .github/bmad-build-env.yaml
+          python-version: 3.12
+          conda-remove-defaults: true
+
+      - name: Include OpenMPI variants (if using MPI)
+        if: ${{ matrix.openmp_mpi == 'Y' }}
+        shell: bash -eo pipefail -l {0}
+        run: conda install -y 'hdf5=*=mpi_openmpi*'
+
+      - name: Build Bmad with Conda
+        env:
+          USE_MPI: ${{ matrix.openmp_mpi }}
+          SHARED: ${{ matrix.shared }}
+          USE_CONDA: 1
+        shell: bash -eo pipefail -l {0}
+        run: .github/scripts/install_bmad.sh
+
+      - name: Run Tests
+        shell: bash -eo pipefail -l {0}
+        run: .github/scripts/run_tests.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

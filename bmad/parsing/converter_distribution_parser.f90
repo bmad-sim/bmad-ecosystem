@@ -43,7 +43,7 @@ real(rp) val
 integer i, j, k, n, ix_word, n_r, n_pc, ixe, n_sd, n_subd, ix_sd
 
 character(*) delim
-character(200) str
+character(400) str
 character(:), allocatable :: line, why_invalid
 
 logical delim_found, valid, err_flag
@@ -185,7 +185,7 @@ function get_more_text_func (line, end_of_document, why_invalid) result (valid)
 
 integer ix_word
 character(:), allocatable :: line, why_invalid
-character(200) str
+character(400) str
 logical end_of_document, valid, err_flag
 
 !

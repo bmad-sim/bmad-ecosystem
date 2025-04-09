@@ -1,6 +1,6 @@
 !+ 
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 !
 ! Subroutine to write a Elegant, MAD-8, MAD-X, OPAL, SAD, or JULIA, lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -43,13 +43,11 @@
 !   ix_branch         -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
-!   converted_lat     -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
-!                           sol_quad elements replaced by their respective models.
 !   err               -- logical, optional: Set True if, say a file could not be opened.
 !-
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
-                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 
 use bmad_interface, dummy => write_lattice_in_foreign_format
 use opal_interface_mod, only: write_opal_lattice_file
@@ -57,7 +55,6 @@ use opal_interface_mod, only: write_opal_lattice_file
 implicit none
 
 type (lat_struct), target :: lat
-type (lat_struct), optional, target :: converted_lat
 type (coord_struct), allocatable, optional :: ref_orbit(:)
 
 real(rp), optional :: dr12_drift_max
@@ -80,14 +77,14 @@ case ('JULIA')
 
 case ('ELEGANT')
   call write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &
-                                     include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                                     include_apertures, dr12_drift_max, ix_branch, err)
 
 case ('MAD-8', 'MAD-X')
   call write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                                     include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                                     include_apertures, dr12_drift_max, ix_branch, err)
 
 case ('SAD')
-  call write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+  call write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
 
 case ('OPAL-T')
   iu = lunget()
@@ -106,7 +103,5 @@ case default
   return
 
 end select
-
-if (present(converted_lat)) converted_lat = lat
 
 end subroutine write_lattice_in_foreign_format

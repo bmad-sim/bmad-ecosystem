@@ -39,9 +39,9 @@
 "Depolarization Rate Partial" REL 1e-8   5.10277794E-04  4.10236457E-06  1.04048639E-06
 "Depolarization Rate Partial2" REL 1e-8  1.81658388E-06  5.06163317E-04  5.76485078E-04
 "Integral g^3 * b_hat * n_0" REL 1e-8           1.34575854E-02
-"Integral g^3 * b_hat * dn/ddelta" REL 1e-8     2.71191375E-18
+"Integral g^3 * b_hat * dn/ddelta" ABS 5E-17    2.71191375E-18
 "Integral g^3 (1 - 2(n * s_hat)/9)" REL 1e-8    1.34575854E-02
-"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1e-8  5.28855663E-01
+"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1E-8  5.28855663E-01
 "orb-evec-1" ABS 1e-8    2.406797    0.399089    0.703623    0.002991
 "spin-re-evec-1" REL 1e-8 -4.68985050E+00  4.22193710E-01
 "spin-im-evec-1" REL 1e-8  4.03529761E-01  4.90355786E+00

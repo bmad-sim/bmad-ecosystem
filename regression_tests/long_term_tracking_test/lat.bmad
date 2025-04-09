@@ -1,8 +1,7 @@
+no_digested
 call, file = small_ring.bmad
 parameter[p0c] = 1e9
 
 call, file = ramp_1GeV.bmad
 bmad_com[radiation_damping_on] = T
 bmad_com[spin_tracking_on] = T
-
-

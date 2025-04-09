@@ -42,7 +42,8 @@ call out_io (s_blank$, r_name, [ &
         '  -prompt_color <color>                # Set color of prompt string. Default is blue.           ', &
         '  -reverse                             # Reverse lattice element order?                         ', &
         '  -rf_on                               # Use "--rf_on" to turn off RF (default is now RF on)    ', &
-        '  -quiet                               # Suppress terminal output when running a command file?  ', &
+        '  -quiet <level>                       # Suppress terminal output when running a command file?  ', &
+        '                                       #  Levels: "all" (default), "warnings".                  ', &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
         '  -start_branch_at <ele_name>          # Start lattice branch at element.                       ', &
         '  -startup_file <file_name>            # Commands to run after parsing Tao init file            ', &

@@ -65,12 +65,12 @@ do igf = 1, size(g_field)
   gptr => gf%ptr%pt
   select case (gf%geometry)
   case (xyz$)
-    component_name = [character(6):: 'x', 'y', 'z']
+    component_name = xyz_axislabels
     indx = [1, 2, 3]
     call hdf5_write_attribute_string(b2_id,  'gridGeometry', 'rectangular', err)
 
   case (rotationally_symmetric_rz$)
-    component_name = [character(6):: 'r', 'theta', 'z']
+    component_name = rthetaz_axislabels
     indx = [1, 3, 2]
     allocate(gpt(lbound(gptr, 1):ubound(gptr, 1), lbound(gptr, 3):ubound(gptr, 3), lbound(gptr, 2):ubound(gptr, 2)))
     gptr => gpt
@@ -81,8 +81,6 @@ do igf = 1, size(g_field)
     enddo
     call hdf5_write_attribute_string(b2_id, 'gridGeometry', 'cylindrical', err)
   end select
-
-  call hdf5_write_attribute_string(b2_id, 'axisLabels', component_name, err)
 
   im = gf%master_parameter 
   if (im == 0) then
@@ -103,6 +101,7 @@ do igf = 1, size(g_field)
     endif
   endif
 
+  call hdf5_write_attribute_string(b2_id,  'axisLabels', component_name(3:1:-1), err) ! Write labels in reverse since using Fortran
   call hdf5_write_attribute_string(b2_id,  'eleAnchorPt',          downcase(anchor_pt_name(gf%ele_anchor_pt)), err)
   call hdf5_write_attribute_real(b2_id,    'gridOriginOffset',     gf%r0, err)
   call hdf5_write_attribute_real(b2_id,    'gridSpacing',          gf%dr(indx), err)

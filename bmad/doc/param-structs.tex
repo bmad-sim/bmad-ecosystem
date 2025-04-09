@@ -89,13 +89,13 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     min_ds_adaptive_tracking = 0        ! Minimum step size to use.
     fatal_ds_adaptive_tracking = 1e-8   ! Threshold for loosing particles.
     autoscale_amp_abs_tol = 0.1_rp      ! Autoscale absolute amplitude tolerance (eV).
-    autoscale_amp_rel_tol = 1d-6        ! Autoscale relative amplitude tolerance
-    autoscale_phase_tol = 1d-5          ! Autoscale phase tolerance.
+    autoscale_amp_rel_tol = 1e-6        ! Autoscale relative amplitude tolerance
+    autoscale_phase_tol = 1e-5          ! Autoscale phase tolerance.
     electric_dipole_moment = 0          ! Particle's EDM. 
     synch_rad_scale = 1.0               ! Synch radiation kick scale. 1 => normal
     ptc_cut_factor = 0.006              ! Cut factor for PTC tracking
-    sad_eps_scale = 5.0d-3              ! Used in sad_mult step length calc.
-    sad_amp_max = 5.0d-2                ! Used in sad_mult step length calc.
+    sad_eps_scale = 5.0e-3              ! Used in sad_mult step length calc.
+    sad_amp_max = 5.0e-2                ! Used in sad_mult step length calc.
     sad_n_div_max = 1000                ! Used in sad_mult step length calc.
     taylor_order = 3                    ! 3rd order is default
     default_integ_order = 2             ! PTC integration order
@@ -154,9 +154,9 @@ tracking in \bmad with tracking in programs that use absolute time tracking but 
 reference shift (for example, the IMPACT and GPT programs), it is convenient not to have to worry
 about the reference shift.
 %
-\item[\vn{aperture_limit_on]}] \Newline
-Aperture limits may be set for elements in the lattice (\sref{s:limit}). Setting
-\vn{aperture_limit_on} to \vn{False} will disable all set apertures. \vn{True} is the default.
+\item[\vn{aperture_limit_on}] \Newline
+Setting \vn{aperture_limit_on} to \vn{False} will disable the aperture limits set for individual
+elements (\sref{s:limit}). The default is \vn{True}.
 %
 \item[\vn{auto_bookkeeper}] \Newline
 Toggles automatic or intelligent bookkeeping. See
@@ -428,8 +428,8 @@ and an \vn{instance name} of \vn{space_charge_com}. This structure has component
     dt_track_step = 0                   ! Time based space charge step
     beam_chamber_height = 0             ! Used in shielding calculation.
     cathode_strength_cutoff = 0.01      ! Cutoff for the cathode field calc.
-    rel_tol_tracking = 1d-8
-    abs_tol_tracking = 1d-10            
+    rel_tol_tracking = 1e-8
+    abs_tol_tracking = 1e-10            
     lsc_sigma_cutoff = 0.1              ! Cutoff for the lsc calc. If a bin sigma
                                         !  is < cutoff * sigma_ave then ignore.
     particle_sigma_cutoff = -1          ! Veto particles that are far from the bench with 3D SC.

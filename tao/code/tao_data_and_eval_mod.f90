@@ -247,6 +247,9 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       datum%s_offset = s_offset
     endif
 
+    err_flag = .not. tao_data_sanity_check(datum, .true., '', u)
+    if (err_flag) return
+
     select case (component)
     case ('model')   
       call tao_evaluate_a_datum (datum, u, u%model, values(n_tot+j), valid)
@@ -259,7 +262,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       return
     end select
 
-    if (valid) err = .false.
+    if (.not. valid) return
   enddo
 
   n_tot = n_tot + n_loc
@@ -267,8 +270,11 @@ enddo
 
 if (n_tot == 0) then
   if (print_err) call out_io (s_error$, r_name, 'ELEMENT NOT FOUND: ' // ele_name)
+  err = .true.
   return
 endif
+
+err = .false.
 
 end subroutine tao_evaluate_lat_or_beam_data
 
@@ -1316,15 +1322,21 @@ if (source == 'lat' .or. source == 'beam') then
 elseif (source == 'ele') then
   call tao_evaluate_element_parameters (err_flag, name, stack%value, print_err, dflt_ele, &
                                                   dflt_source, dflt_component, dflt_uni, dflt_eval_point, stack%info)
+  stack%type = ele_num$
+
+  if (err_flag) then
+    call tao_evaluate_lat_or_beam_data (err_flag, name, stack%value, print_err, "lat", dflt_ele_ref, &
+                              dflt_ele_start, dflt_ele, dflt_component, dflt_uni, dflt_eval_point, dflt_s_offset)
+    stack%type = lat_num$
+  endif
+
   call tao_re_allocate_expression_info (stack%info, size(stack%value))
   stack%info%good = (.not. err_flag)
-  stack%type = ele_num$
   return
 
 ! Look for variable or data values
 
 else
-
   err_flag = .true.
   print_error = print_err
   if (source == '') print_error = .false. ! Don't generate unnecessary messages

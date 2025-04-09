@@ -37,7 +37,7 @@ open (1, file = 'output.now', recl = 200)
 !ele1 => lat%ele(1)
 !ele1%tracking_method = taylor$
 !call attribute_bookkeeper (ele1, lat%param, .true.)  ! So taylor map will not be killed in tracking
-!call ele_to_taylor (ele1, lat%param, lat%particle_start)
+!call ele_to_taylor (ele1, lat%particle_start)
 !
 !call concat_ele_taylor(ele1%taylor, ele2, ele2%taylor)
 

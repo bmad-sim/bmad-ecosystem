@@ -379,7 +379,7 @@ is equivalent, in the present syntax, to:
 \end{example}
 
 %-----------------------------------------------------------------
-\section[Energy and Wavelength Attributes]{Energy and Wavelength Attributes: E_tot, P0C, and \\ Ref_Wavelength}
+\section{Reference Energy, Time, and Wavelength}
 \label{s:energy}
 
 \index{parameter statement}\index{e_tot}
@@ -450,7 +450,24 @@ line name of the branch (\sref{s:beginning}). For example:
 \end{example}
 
 For \vn{multipass} elements, the reference energy may be set by specifying one of \vn{e_tot},
-\vn{p0c}, as described in \sref{c:multipass}.
+\vn{p0c}, as described in \sref{s:ref.e.multi}.
+
+The value of the reference time (cf \Eq{zbctt}) at the downstream end of an element is given by the
+element parameter \vn{ref_time}. At the upstream end of the element, the reference time is given by
+\vn{ref_time_start}. The change in reference time is given by {delta_ref_time}. The value of
+\vn{ref_time} for a given element in a given branch is computed starting from the \vn{ref_time} set
+for the \vn{beginning} element of the branch and summing all the \vn{delta_ref_time} values of the
+elements up to the element in question. Notice that when multi-turn tracking is involved, the \vn{ref_time}
+of an element is appropriate for the first turn but to calculate the reference time for subsequent turns
+involves knowing how many turns a particle has traveled along with the reference time for each turn (which
+may not be the same turn-for-turn if there is ramping and energy changes).
+
+The value of \vn{delta_ref_time} for an element is generally computed using the time-of-flight of
+the \vn{reference particle} assuming that the reference particle is following the reference
+orbit. Exceptions are \vn{wiggler} elements which uses the time-of-flight of the actual trajectory
+starting from a particle on the zero orbit (phase space parameters all zero). Note that if
+\vn{delta_ref_time_user_set} for a \vn{wiggler} is set \vn{True}, \vn{delta_ref_time} may be set
+in the lattice file (as opposed to being computed by \bmad).
 
 For photons, the reference wavelength, \vn{ref_wavelength} is also a dependent attribute calculated
 from the reference energy.
@@ -1225,8 +1242,6 @@ The following X-ray elements have a surface which X-rays impinge upon:
 [There is also the \vn{capillary} element but this element specifies
 its surface differently.]
 
-\index{spherical_curvature}\index{elliptical_curvature_x}
-\index{elliptical_curvature_y}\index{elliptical_curvature_z}
 The coordinate system used for characterizing the curvature of a surface is the element reference
 frame as shown in \fig{f:surface}). This coordinate system has the $z$ axis pointing towards the
 interior of the element, and the $x$ axis in the plane defined by the entrance and exit reference
@@ -1251,11 +1266,11 @@ The spherical, ellipsoid and polynomial parameters are set for an element by set
 curvature parameter. The syntax is
 \begin{example}
   curvature = \{
-      spherical    = <Real>,   ! g_{sp}
-      elliptical_x = <Real>,   ! g_{x}
-      elliptical_y = <Real>,   ! g_{y}
-      elliptical_z = <Real>,   ! g_{z}
-      xMyN         = <Real>    ! $c_{ij}
+      spherical    = <Real>,   ! \(g_{sp}\)
+      elliptical_x = <Real>,   ! \(g_{x}\)
+      elliptical_y = <Real>,   ! \(g_{y}\)
+      elliptical_z = <Real>,   ! \(g_{z}\)
+      xMyN         = <Real>    ! \(c_{ij}\)
 \end{example}
 
 The polynomial coefficients $c_{ij}$ are set via the \vn{xMyN} components where \vn{M} and \vn{N}
@@ -1265,7 +1280,7 @@ are integers in the range 0 through 6 with the restriction
 \end{example}
 Example:
 \begin{example}
-  c2: crystal, spherical_curvature = 1/4.7, curvature = \{x2y0 = 0.37, ...\}
+  c2: crystal, curvature = \{spherical = 1/4.7, x2y0 = 0.37, ...\}
 \end{example}
 in this example, \vn{x2y0} corresponds to the $c_{20}$ term in \Eq{xs2ij4}. To get the
 effect of a nonzero $x^0\, y^0$, $x^1 \, y^0$, or $x^0 \, y^1$ terms (since corresponding
@@ -2932,19 +2947,23 @@ The short-range wakes for a lattice element are specified via a set of ``pseudo'
 for short-range wakefields are given in \Sref{s:sr.wake.eq}.  The \vn{sr_wake} attribute is used to set
 wakefield parameters. The general form of this attribute is:
 \begin{example}
-  sr_wake = \{z_max = <real>, z_scale = <real>, amp_scale = <real>, 
+  sr_wake = \{
+      z_max = <real>, z_scale = <real>, amp_scale = <real>, 
       scale_with_length = <logical>,
       longitudinal = \{<amp>, <damp>, <k>, <phi>, <position_dependence>\},
       ...
       longitudinal = \{...\}, 
       transverse = \{<amp>, <damp>, <k>, <phi>, <polarization>, <particle_dependence>\},
       ...
-      transverse = \{...\} \}
+      transverse = \{...\} 
+      z_long = \{...\}
+    \}
 \end{example}
 The \vn{sr_wake} structure has optional components \vn{z_max}, \vn{z_scale}, \vn{amp_scale}, and
-\vn{scale_with_length} along with zero or more \vn{longitudinal} sub-structures each one specifying
-a single longitudinal mode, and zero or more \vn{transverse} sub-structures each one specifying a
-single transverse mode. Example:
+\vn{scale_with_length}. To specify wakes, zero or more \vn{longitudinal} sub-structures each one specifying
+a single longitudinal mode, zero or more \vn{transverse} sub-structures each one specifying a
+single transverse mode and zero or one \vn{z_long} sub-structures that can be used to specify the longitudinal
+wake as a function of z-position (\sref{s:sr.wake.z.long}). Example:
 \begin{example}
   cav9: lcavity, ..., sr_wake = \{z_max = 1.3e-3, scale_with_length = F, 
        longitudinal = \{3.23e14, 1.23e3, 3.62e3, 0.123, none\}, 
@@ -2976,8 +2995,8 @@ $A_i$, $d_i$, $k_i$, and $\phi_i/2\pi$ of \Eq{wadzk}. The units for these compon
 Monopole modes are modes that are independent of transverse position and dipole modes are modes that
 are linear in the transverse position. 
 
-For the \vn{longitudinal} sub-structures, there is a 5\Th
-component which gives the transverse position dependence of the wake. Possible values are:
+For the \vn{longitudinal} sub-structures, there is a 5\Th component, called
+\vn{position_dependence}, gives the transverse position dependence of the wake. Possible values are:
 \begin{example}
   none          ! No position dependence
   x_leading     ! Linear in the leading particle x-position
@@ -3027,6 +3046,49 @@ The default value is 1.0.
 Note: In a beam chamber with circular symmetry, the linear terms in the \vn{longitudinal} wake are
 zero and the transverse wake has no terms independent of the transverse offsets nor terms that
 depend upon the trailing particle offset.
+
+%-----------------------------------------------------------------
+\subsection{Short-Range Longitudinal Wake With a Wake table}
+\label{s:sr.wake.z.long}
+
+The \vn{z_long} substructure of \vn{sr_wake} (\sref{s:sr.wake.syntax}) is an alternative to the
+\vn{longitudinal} substructure. With the \vn{z_long} substructure, the wake is specified using a
+table of equally spaced points in $z$-position or as a function of time. The syntax for \vn{z_long}
+is
+\begin{example}
+  z_long = \{
+    time_based = <T/F>,
+    smoothing_sigma = <sigma>,
+    position_dependence = <dep>,
+    w = \{
+      <z1>  <w1>,            ! Wake <w> table as a function of z-position (or time).
+      <z2>  <w2>,
+      ...
+    \}
+  \}
+\end{example}
+The \vn{w} component gives the single particle wake as a function of either z-position or time
+depending upon the setting of the optional \vn{time_based} logical. The default is \vn{False}. The z
+(or time) values in the \vn{w} table must be equally spaced and in increasing order. Unlike the
+\vn{longitudinal} and \vn{transverse} pseudo-mode description, the wake can be finite for both
+positive and negative z (or time). When the wake is parsed, if \vn{time_based} is \vn{True}, the
+table is converted to be z-based using the conversion $z = -c \, t$ where $c$ is the speed of
+light. If the table is not symmetric around $z = 0$ (if there are more points on one size of zero
+than the other), the table is extended to be symmetric (this is needed for tracking).  During
+tracking, the half-width of the wake (the magnitude of the maximum or minimum z of the symmeterized
+table) must be greater than the full width of the bunch (excluding 1\% outlier particles). If not,
+an error message is generated and tracking is stopped. 
+
+The optional \vn{position_dependence} component determines if the wake depends upon the transverse coordinates
+of the bunch particles. See \sref{s:sr.wake.syntax} for details. The default is \vn{none}. 
+
+The wake is applied to a bunch by convoluting the bunch distribution with the wake.  The optional
+\vn{smoothing_sigma} component, if set non-zero, applies a Gaussian smoothing filter to the
+convolution. The value of \vn{smoothing_sigma} is in meters if \vn{time_based} is False or seconds
+otherwise.
+
+The \vn{z_scale} and \vn{amp_scale} parameters of the \vn{sr_wake} structure (\sref{s:sr.wake.syntax})
+are used with \vn{z_long}.
 
 %-----------------------------------------------------------------
 \subsection{Short-Range Wakes --- Old Format}

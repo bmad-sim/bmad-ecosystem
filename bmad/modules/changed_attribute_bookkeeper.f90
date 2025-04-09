@@ -102,11 +102,11 @@ end subroutine set_flags_for_changed_all_attribute
 subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: slave
+type (ele_struct), pointer :: slave, lord
 
 integer, target :: attrib
 integer, pointer :: a_ptr
-integer i
+integer i, ix_pass
 
 real(rp) dummy
 
@@ -119,6 +119,14 @@ call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
 !
 
 a_ptr => attrib
+
+if (ele%key /= taylor$ .or. ele%tracking_method /= taylor$) then
+  if (associated(a_ptr, ele%spin_tracking_method)) then
+    call kill_taylor (ele%spin_taylor)
+  endif
+endif
+
+!-------------------------------------------------------------------
 
 select case (ele%key)
 case (rfcavity$, lcavity$, e_gun$)
@@ -157,6 +165,17 @@ if (ele%lord_status == multipass_lord$) then
   enddo
 endif
 
+!-------------------------------------------------------------------
+
+if (ele%slave_status == multipass_slave$) then
+  lord => pointer_to_multipass_lord(ele, ix_pass)
+  if (ix_pass == 1) then
+    if (associated(a_ptr, ele%space_charge_method)) then
+      lord%space_charge_method = ele%space_charge_method
+    endif
+  endif
+endif
+
 end subroutine set_flags_for_changed_integer_attribute
 
 !----------------------------------------------------------------------------
@@ -187,6 +206,16 @@ logical, optional :: set_dependent
 ! Call to set_flags_for_changed_real_attribute will set some generic flags
 
 a_ptr => attrib
+
+if (ele%key /= taylor$ .or. ele%tracking_method /= taylor$) then
+  if (associated(a_ptr, ptc_com%exact_model) .or. associated(a_ptr, ptc_com%exact_misalign)) then
+    call kill_taylor (ele%spin_taylor)
+    call kill_taylor (ele%taylor)
+  endif
+endif
+
+!-------------------------------------------------------------------
+
 if (associated(a_ptr, ele%field_master)) then
   f = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
   if (ele%key == multipole$) then
@@ -342,6 +371,7 @@ endif
 
 if (associated(a_ptr, ele%value(delta_ref_time$))) then
   call set_ele_status_stale (ele, ref_energy_group$)  ! Energy & time
+  return
 endif
 
 ! A length change involves changes in the floor position.

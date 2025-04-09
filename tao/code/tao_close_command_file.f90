@@ -25,5 +25,6 @@ if (s%com%cmd_file(n)%reset_at_end) then
 endif
 
 s%com%cmd_file_level = n - 1
+call tao_quiet_set('cmd-file-end')
 
 end subroutine

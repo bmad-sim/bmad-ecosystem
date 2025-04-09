@@ -1,11 +1,11 @@
 !+ 
-! Subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+! Subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
 !
 ! Private routine used by write_lattice_in_foreign_format and not for general use. 
 ! See write_lattice_in_foreign_format for details about the argument list.
 !-
 
-subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
 
 use element_modeling_mod, dummy => write_lattice_in_sad_format
 use write_lattice_file_mod, dummy2 => write_lattice_in_sad_format
@@ -13,7 +13,6 @@ use write_lattice_file_mod, dummy2 => write_lattice_in_sad_format
 implicit none
 
 type (lat_struct), target :: lat, lat_model, lat_out
-type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
 type (branch_struct), pointer :: branch, branch_out
 type (ele_struct), save :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
@@ -882,21 +881,6 @@ call out_io (s_info$, r_name, 'Written SAD lattice file: ' // trim(out_file_name
 
 deallocate (names)
 if (present(err)) err = .false.
-
-if (present(converted_lat)) then
-  converted_lat = lat
-  converted_lat%branch(branch%ix_branch) = branch_out
-  converted_lat%n_ele_max = converted_lat%n_ele_track
-  do ib = 0, ubound(converted_lat%branch, 1)
-    branch => converted_lat%branch(ib)
-    do i = 1, branch%n_ele_track
-      branch%ele(i)%slave_status = free$
-      branch%ele(i)%n_lord = 0
-    enddo
-  enddo
-  converted_lat%n_control_max = 0
-  converted_lat%n_ic_max = 0
-endif
 
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)

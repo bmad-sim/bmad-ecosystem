@@ -1678,15 +1678,18 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     type(INTEGRATION_NODE), pointer :: C
     type(probe), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
-
+if(C%parent_fibre%mag%name=="MAP") then
+   if(c%cas==case1) call track_mapr(C,XS)
+return
+endif
     if(2*old_integrator+c%parent_fibre%mag%old_integrator>0) then
      call TRACK_NODE_FLAG_probe_R(C,XS,K)
     else
       SELECT CASE(C%parent_fibre%mag%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
-      KIND21,KIND22,KINDabell,kindsuperdrift)
+      KIND22,KINDabell,kindsuperdrift)
          call TRACK_NODE_FLAG_probe_R(C,XS,K)
-       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
+       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KIND21,KINDWIGGLER,KINDPA)
           call TRACK_NODE_FLAG_probe_quaR(C,XS,K)
        CASE DEFAULT
           WRITE(6,*) "NOT IMPLEMENTED in old_integrator bifurcation",C%parent_fibre%mag%KIND
@@ -1701,6 +1704,10 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     type(INTEGRATION_NODE), pointer :: C
     type(probe_8), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
+if(C%parent_fibre%magp%name=="MAP") then
+   if(c%cas==case1) call track_mapp(C,XS)
+return
+endif
     if(compute_stoch_kick) then
       c%delta_rad_in=0
       c%delta_rad_out=0 
@@ -1710,9 +1717,9 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     else
       SELECT CASE(C%parent_fibre%magp%KIND)
 CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND19, &
-      KIND21,KIND22,KINDabell,kindsuperdrift)
+      KIND22,KINDabell,kindsuperdrift)
         call TRACK_NODE_FLAG_probe_p(C,XS,K)
-       case(KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
+       case(KIND21,KIND2,KIND4,KIND5,KIND7,KIND10,KIND16,KIND20,KINDWIGGLER,KINDPA)
 
           if(compute_stoch_kick) then
            start_stochastic_computation=0
@@ -1731,7 +1738,158 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     endif
     end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p
 
+  subroutine track_mapr(c,xs)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    integer n,i
+    real(dp) x(4),dl,k,rhoi,z
+
  
+!x(1)=cos(twopi*c%parent_fibre%mag%bn(2))*xs%x(1)+sin(twopi*c%parent_fibre%mag%bn(2))*xs%x(2)
+!x(2)=cos(twopi*c%parent_fibre%mag%bn(2))*xs%x(2)-sin(twopi*c%parent_fibre%mag%bn(2))*xs%x(1)
+!x(2)=x(2)+c%parent_fibre%mag%bn(3)*x(1)**2
+!xs%x(1)=x(1)
+!xs%x(2)=x(2)
+   
+   n=c%parent_fibre%mag%p%nst
+   dl=c%parent_fibre%mag%an(1)/n
+   rhoi=c%parent_fibre%mag%bn(1)/n
+   
+   k=twopi/c%parent_fibre%mag%an(2)/c%parent_fibre%mag%an(1)  ! an(2) # period    
+   
+   xs%x(1)=xs%x(1)-c%parent_fibre%mag%an(1)/2.0_dp*xs%x(2)
+   xs%x(3)=xs%x(3)-c%parent_fibre%mag%an(1)/2.0_dp*xs%x(4)
+   
+z=0
+if(c%parent_fibre%mag%bn(3)>=0) then
+   do i=1,n
+   z=z+dl
+     xs%x(1)=xs%x(1)+dl*xs%x(2)
+     xs%x(3)=xs%x(3)+dl*xs%x(4)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)-dl*k*xs%x(2)*xs%x(4)*rhoi*cosh(k*xs%x(3))
+     xs%x(1)=xs%x(1)    +dl*xs%x(4)*rhoi*sinh(k*xs%x(3))
+     xs%x(3)=xs%x(3)    +dl*xs%x(2)*rhoi*sinh(k*xs%x(3))
+
+x(1)=xs%x(2)*xs%x(1)*dl*rhoi
+ xs%x(1)=xs%x(1)*(1.d0+x(1))
+ xs%x(2)=xs%x(2)*(1.d0-x(1))
+ xs%x(1)=xs%x(1)+c%parent_fibre%mag%bn(2)*dl*rhoi*xs%x(1)**2
+ xs%x(2)=xs%x(2) +c%parent_fibre%mag%bn(2)*2.d0*dl*rhoi*xs%x(1)*xs%x(2) 
+
+   enddo 
+else
+   do i=1,n
+   z=z+dl
+     xs%x(1)=xs%x(1)+dl*xs%x(2)
+     xs%x(3)=xs%x(3)+dl*xs%x(4)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)/(1.0_dp+dl*k*xs%x(2)*rhoi*cosh(k*xs%x(3)))
+     xs%x(1)=xs%x(1)    +dl*xs%x(4)*rhoi*sinh(k*xs%x(3))
+     xs%x(3)=xs%x(3)    +dl*xs%x(2)*rhoi*sinh(k*xs%x(3))
+
+
+x(1)=xs%x(2)*xs%x(1)*dl*rhoi
+ xs%x(1)=xs%x(1)*exp(x(1))
+ xs%x(2)=xs%x(2)*exp(-x(1))
+ xs%x(2)=xs%x(2)/(1.d0+c%parent_fibre%mag%bn(2)*2.d0*dl*rhoi*xs%x(1))
+ xs%x(1)=xs%x(1)+c%parent_fibre%mag%bn(2)*dl*rhoi*xs%x(1)**2
+
+   enddo 
+endif
+   xs%x(1)=xs%x(1)-c%parent_fibre%mag%an(1)/2.0_dp*xs%x(2)
+   xs%x(3)=xs%x(3)-c%parent_fibre%mag%an(1)/2.0_dp*xs%x(4)
+  
+
+  end subroutine track_mapr
+
+  subroutine track_mapp(c,xs)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    integer n,i
+    type(real_8) x(4),dl,k,rhoi,z
+!call alloc(x)
+! x(3)=twopi*c%parent_fibre%magp%bn(2)
+!x(1)=cos(x(3))*xs%x(1)+sin(x(3))*xs%x(2)
+!x(2)=cos(x(3))*xs%x(2)-sin(x(3))*xs%x(1)
+
+!x(2)=x(2)+c%parent_fibre%magp%bn(3)*x(1)**2
+
+!xs%x(1)=x(1)
+!xs%x(2)=x(2)
+ 
+!call kill(x)
+ 
+call alloc(x) 
+call alloc(dl,k,rhoi,z)
+
+   n=c%parent_fibre%magp%p%nst
+   dl=c%parent_fibre%magp%an(1)/n
+   rhoi=c%parent_fibre%magp%bn(1)/n
+   
+   k=twopi/c%parent_fibre%magp%an(2)/c%parent_fibre%magp%an(1)  ! an(2) # period    
+   
+   xs%x(1)=xs%x(1)-c%parent_fibre%magp%an(1)/2.0_dp*xs%x(2)
+   xs%x(3)=xs%x(3)-c%parent_fibre%magp%an(1)/2.0_dp*xs%x(4)
+   
+z=0
+if(c%parent_fibre%magp%bn(3)>=0) then
+   do i=1,n
+   z=z+dl
+     xs%x(1)=xs%x(1)+dl*xs%x(2)
+     xs%x(3)=xs%x(3)+dl*xs%x(4)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)-dl*k*xs%x(2)*xs%x(4)*rhoi*cosh(k*xs%x(3))
+
+
+
+     xs%x(1)=xs%x(1)    +dl*xs%x(4)*rhoi*sinh(k*xs%x(3))
+     xs%x(3)=xs%x(3)    +dl*xs%x(2)*rhoi*sinh(k*xs%x(3))
+
+call alloc(x(1))
+x(1)=xs%x(2)*xs%x(1)*dl*rhoi
+ xs%x(1)=xs%x(1)*(1.d0+x(1))
+ xs%x(2)=xs%x(2)*(1.d0-x(1))
+ xs%x(1)=xs%x(1)+c%parent_fibre%magp%bn(2)*dl*rhoi*xs%x(1)**2
+ xs%x(2)=xs%x(2) +c%parent_fibre%magp%bn(2)*2.d0*dl*rhoi*xs%x(1)*xs%x(2) 
+
+call kill(x(1))
+
+
+   enddo 
+else
+   do i=1,n
+   z=z+dl
+     xs%x(1)=xs%x(1)+dl*xs%x(2)
+     xs%x(3)=xs%x(3)+dl*xs%x(4)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+
+xs%x(4)=xs%x(4)/(1.0_dp+dl*k*xs%x(2)*rhoi*cosh(k*xs%x(3)))
+
+     xs%x(1)=xs%x(1)    +dl*xs%x(4)*rhoi*sinh(k*xs%x(3))
+     xs%x(3)=xs%x(3)    +dl*xs%x(2)*rhoi*sinh(k*xs%x(3))
+
+call alloc(x(1))
+x(1)=xs%x(2)*xs%x(1)*dl*rhoi
+ xs%x(1)=xs%x(1)*exp(x(1))
+ xs%x(2)=xs%x(2)*exp(-x(1))
+ xs%x(2)=xs%x(2)/(1.d0+c%parent_fibre%magp%bn(2)*2.d0*dl*rhoi*xs%x(1))
+ xs%x(1)=xs%x(1)+c%parent_fibre%magp%bn(2)*dl*rhoi*xs%x(1)**2
+
+call kill(x(1))
+
+   enddo 
+endif
+   xs%x(1)=xs%x(1)-c%parent_fibre%magp%an(1)/2.0_dp*xs%x(2)
+   xs%x(3)=xs%x(3)-c%parent_fibre%magp%an(1)/2.0_dp*xs%x(4)
+  
+call kill(x)
+call kill(dl,k,rhoi,z)
+
+
+  end subroutine track_mapp
 
   SUBROUTINE TRACK_NODE_FLAG_probe_R(C,XS,K)
     IMPLICIT NONE

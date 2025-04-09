@@ -102,7 +102,150 @@ interface pointer_to_ele
   module procedure pointer_to_ele4
 end interface
 
-! 
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine reallocate_coord (...)
+!
+! Routine to allocate or reallocate at allocatable coord_struct array.
+! reallocate_coord is an overloaded name for:
+!   reallocate_coord_n (coord, n_coord)
+!   reallocate_coord_lat (coord, lat, ix_branch)
+!
+! Subroutine to allocate an allocatable coord_struct array to at least:
+!     coord(0:n_coord)                            if n_coord arg is used.
+!     coord(0:lat%branch(ix_branch)%n_ele_max)    if lat arg is used.
+!
+! The old coordinates are saved
+! If, at input, coord(:) is not allocated, coord(0)%vec is set to zero.
+! In any case, coord(n)%vec for n > 0 is set to zero.
+!
+! Input:
+!   coord(:)  -- Coord_struct, allocatable: Allocatable array.
+!   n_coord   -- Integer: Minimum array upper bound wanted.
+!   lat       -- lat_struct: Lattice 
+!   ix_branch -- Integer, optional: Branch to use. Default is 0 (main branch).
+!
+! Output:
+!   coord(:) -- coord_struct: Allocated array.
+!-
+
+interface reallocate_coord
+  subroutine reallocate_coord_n (coord, n_coord)
+    import
+    implicit none
+    type (coord_struct), allocatable :: coord(:)
+    integer, intent(in) :: n_coord
+  end subroutine
+
+  subroutine reallocate_coord_lat (coord, lat, ix_branch)
+    import
+    implicit none
+    type (coord_struct), allocatable :: coord(:)
+    type (lat_struct), target :: lat
+    integer, optional :: ix_branch
+  end subroutine
+
+  subroutine reallocate_coord_array (coord_array, lat)
+    import
+    implicit none
+    type (coord_array_struct), allocatable :: coord_array(:)
+    type (lat_struct) lat
+  end subroutine
+end interface
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine init_coord (...)
+!
+! Routine to initialize a coord_struct. 
+!
+! This routine is an overloaded name for:
+!   Subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+!   Subroutine init_coord2 (orb, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+!   Subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+!
+! Note: Unless shift_vec6 is set to False, if ele is a beginning_ele (IE, the element at the beginning of the lattice), 
+! or e_gun, orb%vec(6) is shifted so that a particle with orb%vec(6) = 0 will end up with a value of orb%vec(6) 
+! corresponding to the beginning_ele's value of ele%value(p0c_start$).
+!
+! Note: For non-photons, if orb_in%vec(5) is set to real_garbage$, orb_in%t will be used to set orb%vec(5) instead 
+! of the standard which is to set orb%t from orb%vec(5).
+!
+! For photons:
+!   orb%vec(5) is set depending upon where the photon is relative to the element.
+!   If orb is a photon, and orb_in is not a photon, photon is launched in same direciton as particle 
+!       except if direction is set.
+!
+! Input:
+!   orb_in       -- coord_struct: Input orbit.
+!   vec(6)       -- real(rp), optional: Coordinate vector. If not present then taken to be zero.
+!   ele          -- ele_struct, optional: Particle is initialized to start at element_end of this ele.
+!   element_end  -- integer, optional: upstream_end$, downstream_end$, inside$, or start_end$.
+!                     Must be present if ele argument is present.
+!                     start_end$ -> upstream_end$ if dir = 1 and start_end$ -> downstream_end$ if dir = -1.
+!                     Default is upstream_end$. Note: If ele is the beginning element (index zero), the
+!                     setting of element_end will not matter.
+!   particle     -- integer, optional: Particle type (electron$, etc.). 
+!                     If particle = not_set$ and orb_in is present, use orb_in%species instead.
+!   dirction     -- integer, optional: +1 -> moving downstream +s direciton, -1 -> moving upstream.
+!                     0 -> Ignore. Default is to not change orb%direction except for photons which get set
+!                     according to orb%vec(6).
+!   E_photon     -- real(rp), optional: Photon energy if particle is a photon. Ignored otherwise.
+!   t_offset     -- real(rp), optional: Offset of the reference time. This is non-zero when
+!                     there are multiple bunches and the reference time for a particular particle
+!                     is pegged to the time of the center of the bunch.
+!   shift_vec6   -- logical, optional: If present and False, prevent the shift of orb%vec(6).
+!   spin(3)      -- real(rp), optional: Particle spin. Taken to be zero if not present.
+!   s_pos        -- real(rp), optional: Particle s-position. Only relavent if element_end = inside$.
+!   random_on    -- logical, optional: Default is True. Used only for photons being initalized with a photon_init
+!                     element. If True, vary the photon coords using a random number generator. If False, the 
+!                     photon coords will be centered within the distribution specified in the photon_init ele.
+!
+! Output:
+!   orb -- Coord_struct: Initialized coordinate.
+!                 Note: For photons, orb%vec(6) is computed as sqrt(1 - vec(2)^2 - vec(4)^2) if needed.
+!-
+
+interface init_coord
+  subroutine init_coord1 (orb, vec, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+    import
+    implicit none
+    type (coord_struct) orb
+    type (ele_struct), optional :: ele
+    real(rp) :: vec(6)
+    real(rp), optional :: t_offset, E_photon, spin(3), s_pos
+    integer, optional :: element_end, particle, direction
+    logical, optional :: shift_vec6, random_on
+  end subroutine
+
+  subroutine init_coord2 (orb_out, orb_in, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin, s_pos, random_on)
+    import
+    implicit none
+    type (coord_struct) orb_out, orb_in
+    type (ele_struct), optional, target :: ele
+    real(rp), optional :: E_photon, t_offset, spin(3), s_pos
+    integer, optional :: element_end, particle, direction
+    logical, optional :: shift_vec6, random_on
+  end subroutine
+
+  subroutine init_coord3 (orb, ele, element_end, particle, direction, E_photon, t_offset, shift_vec6, spin)
+    import
+    implicit none
+    type (coord_struct) orb
+    type (ele_struct), optional :: ele
+    real(rp), optional :: t_offset, E_photon, spin(3)
+    integer, optional :: element_end, particle, direction
+    logical, optional :: shift_vec6
+  end subroutine
+end interface
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 
 interface
 
@@ -908,11 +1051,10 @@ subroutine ele_rad_int_cache_calc (ele)
   type (ele_struct) ele
 end subroutine
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
+subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (lat_param_struct) param
   type (coord_struct), optional :: ref_in
   type (fibre), pointer :: ptc_fibre
   integer, optional :: integ_order, steps
@@ -920,11 +1062,18 @@ subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_ord
   logical, optional :: for_layout
 end subroutine
 
-subroutine ele_to_taylor (ele, param, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
+subroutine ele_to_spin_taylor(ele, param, orb0)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (lat_param_struct) param
+  type (coord_struct) orb0
+end subroutine
+
+subroutine ele_to_taylor (ele, orb0, taylor_map_includes_offsets, include_damping, orbital_taylor, spin_taylor)
   import
   implicit none
   type (ele_struct), target :: ele
-  type (lat_param_struct) :: param
   type (coord_struct), optional, intent(in) :: orb0
   type (taylor_struct), optional, target :: orbital_taylor(6), spin_taylor(0:3)
   logical, optional :: taylor_map_includes_offsets, include_damping
@@ -946,6 +1095,17 @@ function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed
   real(rp) abs_tol(:)
   logical set_old, has_changed
 end function
+
+subroutine elec_multipole_field (a, b, n, coord, Ex, Ey, dE, compute_dE)
+  import
+  implicit none
+  type (coord_struct)  coord
+  real(rp) a, b
+  real(rp), optional :: dE(2,2)
+  real(rp) Ex, Ey
+  integer n
+  logical, optional :: compute_dE
+end subroutine
 
 subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
   import
@@ -1137,12 +1297,13 @@ subroutine g_integrals_calc (lat)
   type (lat_struct), target :: lat
 end subroutine
 
-subroutine init_a_photon_from_a_photon_init_ele (ele, param, orbit)
+subroutine init_photon_from_a_photon_init_ele (ele, param, orbit, random_on)
   import
   implicit none
   type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) orbit
+  logical, optional :: random_on
 end subroutine
 
 subroutine init_bmad()
@@ -1154,6 +1315,12 @@ subroutine init_bmad_parser_common(lat)
   import
   implicit none
   type (lat_struct), optional:: lat
+end subroutine
+
+subroutine init_custom (lat)
+  import
+  implicit none
+  type (lat_struct), target :: lat
 end subroutine
 
 subroutine init_ele (ele, key, sub_key, ix_ele, branch)
@@ -1186,6 +1353,14 @@ subroutine init_multipole_cache(ele)
   import
   implicit none
   type (ele_struct) ele
+end subroutine
+
+subroutine init_taylor_series (bmad_taylor, n_term, save_old)
+  import
+  implicit none
+  type (taylor_struct) bmad_taylor
+  integer n_term
+  logical, optional :: save_old
 end subroutine
 
 subroutine init_wake (wake, n_sr_long, n_sr_trans, n_sr_z, n_lr_mode, always_allocate)
@@ -1302,6 +1477,12 @@ subroutine lattice_bookkeeper (lat, err_flag)
   logical, optional :: err_flag
 end subroutine
 
+subroutine linear_to_spin_taylor(q_map, spin_taylor)
+  import
+  type (taylor_struct) spin_taylor(0:3)
+  real(rp) q_map(0:3, 0:6)
+end subroutine
+
 function lord_edge_aligned (slave, slave_edge, lord) result (is_aligned)
   import
   implicit none
@@ -1365,12 +1546,11 @@ recursive subroutine make_mat6 (ele, param, start_orb, end_orb, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine make_mat6_taylor (ele, param, start_orb, end_orb, err_flag)
+subroutine make_mat6_taylor (ele, start_orb, end_orb, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
-  type (lat_param_struct) param
   logical, optional :: err_flag
 end subroutine
 
@@ -1400,21 +1580,21 @@ subroutine make_mat6_runge_kutta (ele, param, start_orb, end_orb)
   type (lat_param_struct) param
 end subroutine
 
-subroutine make_mat6_symp_lie_ptc (ele, param, start_orb, end_orb)
+subroutine make_mat6_symp_lie_ptc (ele, start_orb, end_orb)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
-  type (lat_param_struct) param
 end subroutine
 
-subroutine make_mat6_tracking (ele, param, start_orb, end_orb, err_flag)
+subroutine make_mat6_tracking (ele, param, start_orb, end_orb, err_flag, spin_only)
   import
   implicit none
   type (ele_struct), target :: ele
   type (coord_struct) :: start_orb, end_orb
   type (lat_param_struct) param
   logical err_flag
+  logical, optional :: spin_only
 end subroutine
 
 subroutine make_v_mats (ele, v_mat, v_inv_mat)
@@ -1534,6 +1714,29 @@ subroutine multipass_chain (ele, ix_pass, n_links, chain_ele, use_super_lord)
   logical, optional :: use_super_lord
 end subroutine
 
+subroutine multipole1_ab_to_kt (an, bn, n, knl, tn)
+  import
+  implicit none
+  real(rp) an, bn
+  real(rp) knl, knsl, tn
+  integer n
+end subroutine
+
+subroutine multipole1_kt_to_ab (knl, knsl, tn, n, an, bn)
+  import
+  implicit none
+  real(rp) an, bn
+  real(rp) knl, knsl, tn
+  integer n
+end subroutine
+
+subroutine multipole_ab_to_kt (an, bn, knl, tn)
+  import
+  implicit none
+  real(rp) an(0:), bn(0:)
+  real(rp) knl(0:), tn(0:)
+end subroutine
+
 recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
   import
   implicit none
@@ -1544,6 +1747,23 @@ recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, 
   integer, optional :: pole_type, include_kicks
   integer include_kck
   logical use_ele_tilt
+end subroutine
+
+subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type, include_kicks)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  real(rp) knl(0:), tilt(0:)
+  integer ix_pole_max
+  integer, optional :: pole_type, include_kicks
+  logical use_ele_tilt
+end subroutine
+
+subroutine multipole_kt_to_ab (knl, knsl, tn, an, bn)
+  import
+  implicit none
+  real(rp) an(0:), bn(0:)
+  real(rp) knl(0:), knsl(0:), tn(0:)
 end subroutine
 
 subroutine multipole_init (ele, who, zero)
@@ -2162,10 +2382,11 @@ subroutine sbend_body_with_k1_map (ele, dg, k_1, param, n_step, orbit, mat6, mak
   logical, optional :: make_matrix
 end subroutine
 
-subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords)
+subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords, err_id)
   import
   implicit none
   type (ele_struct), target :: ele
+  integer, optional :: err_id
   logical, optional :: err_print_flag, set_lords
   logical err_flag
   character(*) set_string
@@ -2397,9 +2618,10 @@ function spin_dn_dpz_from_mat8 (mat_1turn, dn_dpz_partial, error) result (dn_dpz
   logical error
 end function
 
-function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, dn_dpz_partial2, error) result (dn_dpz)
+function spin_dn_dpz_from_qmap (orb_mat, q_map, dn_dpz_partial, dn_dpz_partial2, error, n0) result (dn_dpz)
   import
   implicit none
+  real(rp), optional :: n0(3)
   real(rp) orb_mat(6,6), q_map(0:3,0:6), dn_dpz(3)
   real(rp) :: dn_dpz_partial(3,3), dn_dpz_partial2(3,3)
   logical error
@@ -2890,7 +3112,7 @@ subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
   logical, optional :: make_quaternion
 end subroutine
 
-subroutine track1_spin_bmad (start_orb, ele, param, end_orb)
+subroutine track1_spin_integration (start_orb, ele, param, end_orb)
   import
   implicit none
   type (coord_struct) :: start_orb
@@ -2904,7 +3126,7 @@ subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
   implicit none
   type (coord_struct) :: start_orb, end_orb
   type (ele_struct) ele
-  type (lat_param_struct) param
+  type (lat_param_struct) :: param
 end subroutine
 
 subroutine track1_symp_lie_ptc (orbit, ele, param, track)
@@ -2916,12 +3138,11 @@ subroutine track1_symp_lie_ptc (orbit, ele, param, track)
   type (track_struct), optional :: track
 end subroutine
 
-subroutine track1_taylor (orbit, ele, param, taylor, mat6, make_matrix)
+subroutine track1_taylor (orbit, ele, taylor, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: orbit
   type (ele_struct), target :: ele
-  type (lat_param_struct) :: param
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
   type (taylor_struct), optional, target :: taylor(6)
@@ -3074,7 +3295,7 @@ subroutine transfer_wall3d (wall3d_in, wall3d_out)
 end subroutine
 
 subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
-                                                               ele_start, ele_end, err, compute_floor_coords)
+                                          ele_start, ele_end, err, compute_floor_coords, compute_twiss)
   import
   implicit none
   type (coord_struct) :: orbit_start, orbit_end
@@ -3082,11 +3303,11 @@ subroutine twiss_and_track_from_s_to_s (branch, orbit_start, s_end, orbit_end, &
   type (branch_struct), target :: branch
   real(rp) s_end
   logical, optional, intent(inout) :: err
-  logical, optional :: compute_floor_coords
+  logical, optional :: compute_floor_coords, compute_twiss
 end subroutine
 
-recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, &
-                 track_downstream_end, orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, reuse_ele_end)
+recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, track_upstream_end, track_downstream_end, &
+                 orbit_start, orbit_end, ele_start, ele_end, err, compute_floor_coords, compute_twiss, reuse_ele_end)
   import
   implicit none
   type (coord_struct), optional :: orbit_start, orbit_end
@@ -3095,7 +3316,7 @@ recursive subroutine twiss_and_track_intra_ele (ele, param, l_start, l_end, trac
   type (lat_param_struct) param
   real(rp) l_start, l_end
   logical track_upstream_end, track_downstream_end
-  logical, optional :: err, compute_floor_coords, reuse_ele_end
+  logical, optional :: err, compute_floor_coords, reuse_ele_end, compute_twiss
 end subroutine
 
 recursive subroutine twiss_at_element (ele, start_ele, end_ele, average)
@@ -3363,11 +3584,10 @@ subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, e
 end subroutine
 
 subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                                           include_apertures, dr12_drift_max, ix_branch, err)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (lat_struct), optional, target :: converted_lat
   type (coord_struct), allocatable, optional :: ref_orbit(:)
   real(rp), optional :: dr12_drift_max
   integer, optional :: ix_branch
@@ -3376,11 +3596,10 @@ subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_or
 end subroutine
 
 subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                                           include_apertures, dr12_drift_max, ix_branch, err)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (lat_struct), optional, target :: converted_lat
   type (coord_struct), allocatable, optional :: ref_orbit(:)
   real(rp), optional :: dr12_drift_max
   integer, optional :: ix_branch
@@ -3389,11 +3608,10 @@ subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit,
 end subroutine
 
 subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &
-                                           include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                                           include_apertures, dr12_drift_max, ix_branch, err)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (lat_struct), optional, target :: converted_lat
   type (coord_struct), allocatable, optional :: ref_orbit(:)
   real(rp), optional :: dr12_drift_max
   integer, optional :: ix_branch
@@ -3401,11 +3619,10 @@ subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_m
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, converted_lat, err)
+subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
   import
   implicit none
   type (lat_struct), target :: lat
-  type (lat_struct), optional, target :: converted_lat
   integer, optional :: ix_branch
   character(*) out_file_name
   logical, optional :: include_apertures, err
@@ -3506,12 +3723,11 @@ recursive subroutine em_field_custom_def (ele, param, s_rel, orbit, local_ref_fr
   logical, optional :: calc_dfield, calc_potential, use_overlap
 end subroutine
 
-subroutine ele_to_fibre_hook_def (ele, ptc_fibre, param, use_offsets, err_flag)
+subroutine ele_to_fibre_hook_def (ele, ptc_fibre, use_offsets, err_flag)
   import
   implicit none
   type (ele_struct) ele
   type (fibre) ptc_fibre
-  type (lat_param_struct) param
   logical use_offsets, err_flag
 end subroutine
 

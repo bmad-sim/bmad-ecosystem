@@ -74,7 +74,7 @@ character(16), parameter :: r_name = 'bmad_parser'
 character(40) word_1, word_2, name, this_name, this_branch_name
 character(40), allocatable :: seq_name(:)
 character(80) debug_line
-character(200) full_lat_file_name, digested_file, call_file
+character(400) full_lat_file_name, digested_file, call_file
 character(280) parse_line_save, line, use_line_str
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
@@ -1165,8 +1165,8 @@ endif
 call cpu_time(bp_com%time1)
 
 call drift_and_pipe_track_methods_adjustment(lat)
-
 call set_flags_for_changed_attribute(lat)
+call parser_init_custom_elements (lat)
 
 call s_calc(lat)
 call lattice_bookkeeper (lat, err)
@@ -1232,8 +1232,6 @@ do n = 0, ubound(lat%branch, 1)
   enddo
 enddo
 
-call parser_init_custom_elements (lat)
-
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 
 ! lat_make_mat6 since if there is a match element, there is an error raised 
@@ -1295,7 +1293,7 @@ type (ele_struct), pointer :: ele
 
 logical, optional :: set_error_flag
 integer i, j, stat_b(24), stat, ierr
-character(200) name
+character(400) name
 
 !
 
@@ -1422,16 +1420,19 @@ end subroutine new_element_init
 
 subroutine set_this_twiss_struct (t_in, t_out)
 type (twiss_struct) t_in, t_out
-call set_this_real_val(t_in%beta,      t_out%beta)
-call set_this_real_val(t_in%alpha,     t_out%alpha)
-call set_this_real_val(t_in%gamma,     t_out%gamma)
-call set_this_real_val(t_in%phi,       t_out%phi)
-call set_this_real_val(t_in%eta,       t_out%eta)
-call set_this_real_val(t_in%etap,      t_out%etap)
-call set_this_real_val(t_in%sigma,     t_out%sigma)
-call set_this_real_val(t_in%sigma_p,   t_out%sigma_p)
-call set_this_real_val(t_in%emit,      t_out%emit)
-call set_this_real_val(t_in%norm_emit, t_out%norm_emit)
+call set_this_real_val(t_in%beta,       t_out%beta)
+call set_this_real_val(t_in%alpha,      t_out%alpha)
+call set_this_real_val(t_in%gamma,      t_out%gamma)
+call set_this_real_val(t_in%phi,        t_out%phi)
+call set_this_real_val(t_in%eta,        t_out%eta)
+call set_this_real_val(t_in%etap,       t_out%etap)
+call set_this_real_val(t_in%deta_ds,    t_out%deta_ds)
+call set_this_real_val(t_in%sigma,      t_out%sigma)
+call set_this_real_val(t_in%sigma_p,    t_out%sigma_p)
+call set_this_real_val(t_in%emit,       t_out%emit)
+call set_this_real_val(t_in%norm_emit,  t_out%norm_emit)
+call set_this_real_val(t_in%dbeta_dpz,  t_out%dbeta_dpz)
+call set_this_real_val(t_in%dalpha_dpz, t_out%dalpha_dpz)
 end subroutine set_this_twiss_struct
 
 !---------------------------------------------------------------------
@@ -1441,6 +1442,7 @@ subroutine set_this_xy_disp_struct (t_in, t_out)
 type (xy_disp_struct) t_in, t_out
 call set_this_real_val(t_in%eta,       t_out%eta)
 call set_this_real_val(t_in%etap,      t_out%etap)
+call set_this_real_val(t_in%deta_ds,   t_out%deta_ds)
 call set_this_real_val(t_in%sigma,     t_out%sigma)
 end subroutine set_this_xy_disp_struct
 

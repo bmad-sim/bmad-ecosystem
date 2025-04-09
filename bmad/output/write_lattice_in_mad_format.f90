@@ -1,6 +1,6 @@
 !+ 
 ! Subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, &
-!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+!        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 !
 ! Subroutine to write a MAD-8, or MAD-X, lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
@@ -42,13 +42,11 @@
 !   ix_branch         -- Integer, optional: Index of lattice branch to use. Default = 0.
 !
 ! Output:
-!   converted_lat     -- lat_struct, optional: Equivalent Bmad lattice with wiggler and 
-!                           sol_quad elements replaced by their respective models.
 !   err               -- logical, optional: Set True if, say a file could not be opened.
 !-
 
 subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, &
-                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, converted_lat, err)
+                    use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 
 use mad_mod, dummy2 => write_lattice_in_mad_format
 use bmad, dummy => write_lattice_in_mad_format
@@ -58,7 +56,6 @@ use ptc_interface_mod, only: taylor_inverse, concat_taylor
 implicit none
 
 type (lat_struct), target :: lat, lat_model, lat_out
-type (lat_struct), optional, target :: converted_lat
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
 type (ele_struct) :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
 type (coord_struct) orb_start, orb_end, orb_center
@@ -339,7 +336,7 @@ do
     if (ifa == entrance_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = entrance_end$
       quad_ele%value(l$) = 1d-30
-      call ele_to_taylor (quad_ele, branch_out%param, orbit_out(ie-1), orbital_taylor = taylor_ele%taylor)
+      call ele_to_taylor (quad_ele, orbit_out(ie-1), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
       call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ie = ie + 1
@@ -348,7 +345,7 @@ do
     if (ifa == exit_end$ .or. ifa == both_ends$) then
       quad_ele%value(fringe_at$) = exit_end$
       quad_ele%value(l$) = 1d-30
-      call ele_to_taylor (quad_ele, branch_out%param, orbit_out(ie), orbital_taylor = taylor_ele%taylor)
+      call ele_to_taylor (quad_ele, orbit_out(ie), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
       call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
     endif
@@ -374,7 +371,7 @@ do
     call track1 (orbit_out(ie-1), bend_ele, branch_out%param, orb_center)
 
     if (at_this_ele_end(entrance_end$, nint(ele%value(fringe_at$))) .or. ele%value(dg$) /= 0) then
-      call ele_to_taylor (bend_ele, branch_out%param, orbit_out(ie-1), orbital_taylor = taylor_a)
+      call ele_to_taylor (bend_ele, orbit_out(ie-1), orbital_taylor = taylor_a)
 
       bend_ele%value(fringe_type$) = basic_bend$
       bend_ele%value(dg$) = 0
@@ -382,7 +379,7 @@ do
       orb_start%direction = -1
       orb_start%species = antiparticle(orb_center%species)
       call track1 (orb_start, bend_ele, branch_out%param, orb_start)  ! bactrack to entrance end
-      call ele_to_taylor (bend_ele, branch_out%param, orb_start, orbital_taylor = taylor_b)
+      call ele_to_taylor (bend_ele, orb_start, orbital_taylor = taylor_b)
 
       call taylor_inverse (taylor_b, taylor_b)
       call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
@@ -401,11 +398,11 @@ do
       bend_ele%value(e1$) = 0
       call set_fringe_on_off (bend_ele%value(fringe_at$), entrance_end$, off$)
 
-      call ele_to_taylor (bend_ele, branch_out%param, orb_center, orbital_taylor = taylor_a)
+      call ele_to_taylor (bend_ele, orb_center, orbital_taylor = taylor_a)
 
       bend_ele%value(fringe_type$) = basic_bend$
       bend_ele%value(dg$) = 0
-      call ele_to_taylor (bend_ele, branch_out%param, orb_center, orbital_taylor = taylor_b)
+      call ele_to_taylor (bend_ele, orb_center, orbital_taylor = taylor_b)
       call taylor_inverse (taylor_b, taylor_b)
 
       call concat_taylor (taylor_b, taylor_a, taylor_ele%taylor)
@@ -432,7 +429,7 @@ do
     call mat6_to_taylor (drift_ele%vec0, drift_ele%mat6, taylor_a)
 
     drift_ele%value(l$) = ele%value(l$)
-    call ele_to_taylor (drift_ele, branch_out%param, orbit_out(ix_ele-1), orbital_taylor = taylor_b)
+    call ele_to_taylor (drift_ele, orbit_out(ix_ele-1), orbital_taylor = taylor_b)
     call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
     call kill_taylor (taylor_a)
     call kill_taylor (taylor_b)
@@ -816,7 +813,7 @@ do
       taylor_ptr => ele%taylor
     elseif (ele%key == match$) then
       allocate(taylor_ptr(6))
-      call ele_to_taylor (ele, branch%param, orbital_taylor = taylor_ptr)
+      call ele_to_taylor (ele, orbital_taylor = taylor_ptr)
     else
       allocate(taylor_ptr(6))
       if (.not. present(ref_orbit)) then
@@ -826,7 +823,7 @@ do
         cycle
       endif
       if (ptc_private%taylor_order_ptc /= 2) call set_ptc (taylor_order = 2) 
-      call ele_to_taylor (ele, branch%param, orbit_out(ix_ele-1), .true., orbital_taylor = taylor_ptr)
+      call ele_to_taylor (ele, orbit_out(ix_ele-1), .true., orbital_taylor = taylor_ptr)
     endif
 
     line_out = trim(ele%name) // ': matrix'
@@ -1126,21 +1123,6 @@ call out_io (s_info$, r_name, 'Written ' // trim(out_type) // ' lattice file: ' 
 
 deallocate (names)
 if (present(err)) err = .false.
-
-if (present(converted_lat)) then
-  converted_lat = lat
-  converted_lat%branch(branch%ix_branch) = branch_out
-  converted_lat%n_ele_max = converted_lat%n_ele_track
-  do ib = 0, ubound(converted_lat%branch, 1)
-    branch => converted_lat%branch(ib)
-    do i = 1, branch%n_ele_track
-      branch%ele(i)%slave_status = free$
-      branch%ele(i)%n_lord = 0
-    enddo
-  enddo
-  converted_lat%n_control_max = 0
-  converted_lat%n_ic_max = 0
-endif
 
 call deallocate_lat_pointers (lat_out)
 call deallocate_lat_pointers (lat_model)

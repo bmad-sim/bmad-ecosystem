@@ -1,7 +1,4 @@
 
-File: aperture_by_tracking/aperture_by_tracking.f90
-aperture_by_tracking
-
 File: aperture_by_tracking/aperture_by_tracking_mod.f90
 aperture_by_tracking_mod
 progress_indicator
@@ -25,6 +22,9 @@ mympi_send_result
 mympi_receive_job
 mympi_send_job
 mympi_shutdown
+
+File: aperture_by_tracking/aperture_by_tracking.f90
+aperture_by_tracking
 
 File: apisa/nsga2/nsga2.cpp
 main
@@ -62,7 +62,11 @@ read_pop
 File: apisa/spea2/spea2.cpp
 main
 
+File: apisa/spea2/spea2_io.cpp
+read_pop
+
 File: apisa/spea2/spea2_functions.cpp
+custom_assert
 initialize
 chk_malloc
 create_pop
@@ -78,32 +82,11 @@ environmentalSelection
 truncate_nondominated
 truncate_dominated
 
-File: apisa/spea2/spea2_io.cpp
-read_pop
-
 File: bbu/bbu_program.f90
 bbu_program
 
 File: code/adjust_optics.f90
 adjust_optics
-
-File: code/bbu_track_mod.f90
-bbu_track_mod
-bbu_stage_struct
-bbu_beam_struct
-bbu_current_variation_struct
-bbu_param_struct
-bbu_setup
-bbu_track_all
-bbu_track_a_stage
-bbu_add_a_bunch
-bbu_remove_head_bunch
-bbu_hom_voltage_calc
-rf_cav_names
-check_rf_freq
-write_bunch_by_bunch_info
-hom_voltage
-logical_to_python
 
 File: code/count_lines_in_file.f90
 count_lines_in_file_mod
@@ -121,6 +104,23 @@ bsim_interface
 
 File: code/insert_phase_trombone.f90
 insert_phase_trombone
+
+File: code/bbu_track_mod.f90
+bbu_track_mod
+bbu_stage_struct
+bbu_beam_struct
+bbu_param_struct
+bbu_setup
+bbu_track_all
+bbu_track_a_stage
+bbu_add_a_bunch
+bbu_remove_head_bunch
+bbu_hom_voltage_calc
+rf_cav_names
+check_rf_freq
+write_bunch_by_bunch_info
+hom_voltage
+logical_to_python
 
 File: code/set_tune_3d.f90
 set_tune_3d
@@ -234,14 +234,6 @@ sr3d_old_wall_file_format
 sr3d_associate_surface
 sr3d_read_wall_multi_section
 
-File: code_synrad3d/synrad3d_plot_mod.f90
-synrad3d_plot_mod
-sr3d_plot_diffuse_probability
-sr3d_plot_reflection_probability
-sr3d_plot_wall_vs_s
-sr3d_plot_wall_cross_sections
-sr3d_find_wall_point
-
 File: code_synrad3d/synrad3d_struct.f90
 synrad3d_struct
 sr3d_photon_wall_hit_struct
@@ -290,6 +282,14 @@ calc_this_side
 add_this_point
 calc_this_x
 
+File: code_synrad3d/synrad3d_plot_mod.f90
+synrad3d_plot_mod
+sr3d_plot_diffuse_probability
+sr3d_plot_reflection_probability
+sr3d_plot_wall_vs_s
+sr3d_plot_wall_cross_sections
+sr3d_find_wall_point
+
 File: dark_current_tracker/dark_current_tracker.f90
 dark_current_tracker
 
@@ -307,11 +307,14 @@ dark_current_tracker_parse_command_args
 File: dynamic_aperture/da_program_mod.f90
 da_program_mod
 
-File: dynamic_aperture/track_many_hook.f90
-track_many_hook
-
 File: dynamic_aperture/dynamic_aperture.f90
 dynamic_aperture_program
+
+File: dynamic_aperture/lat_make_mat6_hook.f90
+lat_make_mat6_hook
+
+File: dynamic_aperture/track_many_hook.f90
+track_many_hook
 
 File: envelope_ibs/envelope_ibs.f90
 envelope_ibs
@@ -366,10 +369,6 @@ omega_to_k2
 count_feasible_in_pop
 write_population
 
-File: modules/four_mod.f90
-four_mod
-xy_to_action
-
 File: modules/linear_aperture_mod.f90
 linear_aperture_mod
 linear_aperture
@@ -422,6 +421,10 @@ ts_init_params
 ts_track_particle
 ts_write_results
 ts_print_mpi_info
+
+File: modules/four_mod.f90
+four_mod
+xy_to_action
 
 File: modules/lt_tracking_mod.f90
 lt_tracking_mod
@@ -541,9 +544,6 @@ special_collimate_lattice_mod
 collimator_struct
 special_collimate_lattice
 
-File: touschek_background/touschek_background.f90
-touschek_background
-
 File: touschek_background/touschek_background_mod.f90
 touschek_background_mod
 orbit_data_struct
@@ -565,6 +565,9 @@ mympi_recv_job_desc
 mympi_receive_results
 mympi_send_results
 mympi_shutdown
+
+File: touschek_background/touschek_background.f90
+touschek_background
 
 File: tune_plane_res_plot/tune_plane_res_mod.f90
 tune_plane_res_mod

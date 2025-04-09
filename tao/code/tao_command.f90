@@ -47,10 +47,10 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(44) = [character(16):: &
+character(16) :: cmd_names(45) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'create', 'cut_ring', 'derivative', &
                       'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
-                      'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'reinitialize', 'reset', &
+                      'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'regression', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
                       'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale']
 character(16) :: cmd_names_old(6) = [&
@@ -538,6 +538,13 @@ case ('read')
   call tao_read_cmd (cmd_word(1), word, cmd_word(2), silent)
 
 !--------------------------------
+! REGRESSION
+! This is a private, undocumented command used to produce output for use in regression testing.
+
+case ('regression')
+  call tao_regression_test()
+
+!--------------------------------
 ! RESET
 ! This is a private, undocumented command used when debugging.
 
@@ -685,7 +692,7 @@ case ('set')
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag) 
+      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag)
     if (err_flag) return
     set_word = switch
   enddo

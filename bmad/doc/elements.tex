@@ -582,7 +582,7 @@ The rotation angle of the entrance pole face is \vn{e1} and at the exit face it 
 \vn{e1} = \vn{e2} = \vn{angle}/2 is equivalent to an \vn{rbend} with \vn{e1} = \vn{e2} = 0.  This
 formula holds for both positive and negative angles. For \vn{rbend} elements, the above discussion
 is true if \vn{fiducial_pt} is set to \vn{none} or \vn{center}. If \vn{fiducial_pt} is set to
-\vn{entrance_end}, then the face angles are measured with respect to the entrace coordinates $(s_1
+\vn{entrance_end}, then the face angles are measured with respect to the entrance coordinates $(s_1
 x_1)$.
 If the \vn{fiducial_pt} is set to \vn{exit_end}, the face angles are measured with respect to
 the exit coordinates $(s_2, x_2)$. Thus
@@ -684,7 +684,7 @@ $C_0$ and $C_1$ then
 The \vn{fiducial_pt} parameter sets a fiducial point which can be used to keep the shape of the bend
 constant when, in a program, the parameters \vn{rho}, \vn{g}, \vn{b_field} or \vn{angle} are varied.
 Varying these parameters typically happens when doing machine design. Using a fiducial point can be
-helpful when designing a machine usin bend magnets that already exist.
+helpful when designing a machine using bend magnets that already exist.
 
 The \vn{fiducial_pt} parameter
 has four possible settings:
@@ -698,7 +698,7 @@ With \vn{fiducial_pt} set to \vn{none} (the default). The bend shape is not held
 other three settings, the bend shape will be held constant as discussed in \sref{s:bend.fiducial}.
 With \vn{fiducial_pt} set to \vn{entrance_end}, the reference trajectory at the entrance end is held
 fixed in both position and orientation with respect to the bend face and \vn{g}, \vn{l} and \vn{e2},
-along with the other depdendent parameters, are adjusted to both give the desired change in what was
+along with the other dependent parameters, are adjusted to both give the desired change in what was
 varied (which is one of \vn{rho}, \vn{g}, \vn{b_field} or \vn{angle}) and to keep the shape of the
 bend unchanged. See \fig{f:bend.fid1}. Similarly, if \vn{fiducial_pt} is set to \vn{center}, the
 center of the reference trajectory is held fixed in both position and orientation and if
@@ -800,7 +800,7 @@ transformation on \vn{rbend}s:
 
 The attributes \vn{g}, \vn{angle}, and \vn{l} are mutually dependent. If any two are specified for
 an element \bmad will calculate the appropriate value for the third.  After reading in a lattice,
-\vn{angle} is considered the dependent variable so if \vn{l} or \vn{g} is veried, the value of
+\vn{angle} is considered the dependent variable so if \vn{l} or \vn{g} is varied, the value of
 \vn{angle} will be set to \vn{g * l}. if \vn{theta} is varied, \vn{l} will be set accordingly.
 
 Since internally all \vn{rbend}s are converted to \vn{sbend}s, if one wants to vary the \vn{g}
@@ -1160,13 +1160,14 @@ General \vn{crab_cavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Length                     & \ref{s:l}          \\
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
   Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
   Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
   Description strings        & \ref{s:alias}     & Superposition              & \ref{c:super}      \\
   Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\
   Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\
   Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\
+  Length                     & \ref{s:l}         &                            &                    \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -1211,7 +1212,7 @@ $V$ positive will have a positive $\Delta p_x$.
 
 In the above equations $r_q$ is the relative charge between the reference particle (set by the
 \vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
-cavity. For example, if the reference particle and and the tracked particle are the same, $r_q$ is
+cavity. For example, if the reference particle and the tracked particle are the same, $r_q$ is
 unity independent of the type of particle tracked.
 
 The equations of motion can also be derived from analysis of a TM110 cavity mode for particles near
@@ -1223,6 +1224,8 @@ fields needed for spin tracking are:
   \int \! E_s &=  \beta \, V \, \, k \, x \, \cos(k \, z + 2 \, \pi \, \phi_0) 
 \end{align}
 where $\beta = v/c$ is the normalized speed of the particle.
+
+Note: Multipoles \ref{s:multip} do not vary in time. 
 
 \newpage
 
@@ -1955,7 +1958,7 @@ either modify particle trajectories and/or modify lattice element parameters.
 
 The \vn{<list>} of lattice elements uses the standard \bmad name matching conventions as given in
 \sref{s:ele.match}. If commas are used in the \vn{<list>}, the list must be enclosed in curly
-backets \vn{\{...\}} to avoid ambiguities. Curly brackets are optional when commas are not
+brackets \vn{\{...\}} to avoid ambiguities. Curly brackets are optional when commas are not
 used. Examples:
 \begin{example}
   fff: feedback, input_ele = bpm5, 
@@ -2290,10 +2293,16 @@ Example:
 \begin{example}
   f1: foil, thickness = 1e-2, material_type = "B4C", 
           density = (2e3, 1e3), radiation_length = (5.49, 4.26)
+  f1: foil, thickness = 1e-2, material_type = "B4C", 
+          density = 9e3, radiation_length = (5.49, 4.26)  ! Same as above
 \end{example}
 Here, since \vn{material_type} is set to \vn{B4C}, there are two components: Boron and Carbon. If
-\vn{density}, \vn{area_density}, or \vn{radiation_length} are present, they must have the same
-number of values as material components. Values are set in order so, in the above example, the
+\vn{radiation_length} is used, it must have the same number of values as the number of material
+components. If \vn{density}, or \vn{area_density} is used they either must have the same number of
+values as the number of material components or they can have a single value.  If there is a single
+value, this value represents the sum of the individual component values.
+
+Values are set in order so, in the above example, the
 Carbon component has a density of 1e3 and a radiation length of 4.26.\footnote
   {
 From a computational standpoint it does not matter which parameter is associated with which component.
@@ -2343,7 +2352,7 @@ set (as opposed to setting the \vn{density}), then the \vn{thickness} must be no
 the calculation of the area density at the point where a particle passes through the foil is singular.
 
 If a \vn{foil} element is part of a lattice branch with a closed geometry, the closed orbit
-calculation will tempararily set the \vn{scatter} parameter to false since scattering is a random
+calculation will temporarily set the \vn{scatter} parameter to false since scattering is a random
 process and the closed orbit is not well defined in the presence of any random processes (similarly,
 radiation fluctuations are also turned off for the closed orbit calculation).
 
@@ -3122,16 +3131,16 @@ General \vn{lcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}     & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}      & Overlapping Fields         & \ref{s:overlap}    \\
-  Custom Attributes          & \ref{s:cust.att}  & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}     & RF Couplers                & \ref{s:rf.coupler} \\
-  Field autoscaling          & \ref{s:autoscale} & Superposition              & \ref{c:super}      \\
-  Fringe Fields              & \ref{s:fringe}    & Symplectify                & \ref{s:symp}       \\
-  Hkick \& Vkick             & \ref{s:kick}      & Field Maps                 & \ref{s:fieldmap}   \\
-  Integration settings       & \ref{s:integ}     & Tracking \& transfer map   & \ref{c:methods}    \\
-  Is_on                      & \ref{s:is.on}     & Wakes                      & \ref{s:wakes}      \\
-  Length                     & \ref{s:l}         &                            &                    \\
+  Aperture limits            & \ref{s:limit}     & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\ 
+  Custom Attributes          & \ref{s:cust.att}  & Overlapping Fields         & \ref{s:overlap}    \\ 
+  Description strings        & \ref{s:alias}     & Reference energy           & \ref{s:energy}     \\ 
+  Field autoscaling          & \ref{s:autoscale} & RF Couplers                & \ref{s:rf.coupler} \\ 
+  Fringe Fields              & \ref{s:fringe}    & Superposition              & \ref{c:super}      \\ 
+  Hkick \& Vkick             & \ref{s:kick}      & Symplectify                & \ref{s:symp}       \\ 
+  Integration settings       & \ref{s:integ}     & Field Maps                 & \ref{s:fieldmap}   \\ 
+  Is_on                      & \ref{s:is.on}     & Tracking \& transfer map   & \ref{c:methods}    \\ 
+  Length                     & \ref{s:l}         & Wakes                      & \ref{s:wakes}      \\ 
   \bottomrule
 \end{tabular}
 \end{center}
@@ -3190,7 +3199,7 @@ whether \vn{absolute time tracking} or \vn{relative time tracking} is being used
 
 In the above equation $r_q$ is the relative charge between the reference particle (set by the
 \vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
-cavity. For example, if the reference particle and and the tracked particle are the same, $r_q$ is
+cavity. For example, if the reference particle and the tracked particle are the same, $r_q$ is
 unity independent of the type of particle tracked.
 
 \vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
@@ -3264,6 +3273,8 @@ Example:
   lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6,
          tracking_method = runge_kutta, n_cell = 3, longitudinal_mode = 1
 \end{example}
+
+Note: Multipoles \ref{s:multip} do not vary in time.
 
 {\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity} elements when the velocity
 $\beta$ is significantly different from 1 can only be considered as a rough approximation. Indeed,
@@ -3473,7 +3484,7 @@ the entrance (upstream) ``element'' Twiss parameters. The parameters \vn{beta_a1
 etc. of the \vn{match} element are called the exit (downstream) ``element'' Twiss
 parameters. Similarly, \vn{c11_mat0}, etc. are the entrance components of the $\bfC$ coupling
 matrix (\sref{s:coupling}) and \vn{c11_mat1} are the exit end element values. These parameters in
-general will be different from the actual computed Twiss and coupling parametersat the ends of the
+general will be different from the actual computed Twiss and coupling parameters at the ends of the
 \vn{match} element.
 
 The \vn{matrix} switch determines how the linear $\Bf M$ matrix is calculated. Possible settings of this
@@ -3536,6 +3547,9 @@ parameters.
 Note: With \vn{match_twiss} and \vn{phase_trombone} settings the element's Twiss and coupling parameters
 are modified. With \vn{identity} and \vn{standard} the element parameters are not varied.
 
+%----------------------
+\newpage
+
 Note: There is an old notation with logical parameters \vn{match_end} and \vn{phase_trombone}
 instead of \vn{matrix} and \vn{recalc}.  The correspondence is
 \begin{example}
@@ -3549,7 +3563,7 @@ The setting of \vn{match_end} and \vn{phase_trombone} both True is not allowed.
 
 \index{x0}\index{px0}\index{y0}\index{py0}\index{z0}\index{pz0}
 \index{x1}\index{px1}\index{y1}\index{py1}\index{z1}\index{pz1}
-The setting of the \vn{kick0} paramter determines how the zeroth order transfer map vector $\Bf V$ is
+The setting of the \vn{kick0} parameter determines how the zeroth order transfer map vector $\Bf V$ is
 constructed. Possible settings of this parameter are:
 \begin{example}
   match_orbit    ! Element entrance orbit set to actual orbit to match exit end values.
@@ -3588,9 +3602,12 @@ independently of the element end Twiss parameters at the \vn{match} element.
 
 %
 \item[zero] \Newline
-The \vn{zero} setting for \vn{kick0} sets $\Bf V$ to zero independent of teh element position values.
+The \vn{zero} setting for \vn{kick0} sets $\Bf V$ to zero independent of the element position values.
 %
 \end{description}
+
+%----------------------
+\newpage
 
 Note: With the \vn{match_orbit} setting the element's entrance orbit values will be modified. With
 \vn{zero} and \vn{standard} settings the elements parameters will not be varied by \bmad.
@@ -3603,21 +3620,6 @@ The order of operations, is the effect of \vn{delta_time} is applied first and t
 transformation above is applied afterwards. Since using \vn{match_twiss} or \vn{match_orbit} with
 a finite \vn{delta_time} can be confusing, such a situation is not allowed. Use two separate
 \vn{match} elements if needed.
-
-The settings of \vn{spin_tracking_model} are:
-\begin{example}
-  off               ! Spin direction does not change (default).
-  transverse_field  ! Assumes a transverse magnetic field.
-\end{example}
-With a setting of \vn{off} (the default), the spin does not change when a particle is tracked through the element.
-With a setting of \vn{transverse_field}, it is assumed that the orbital transfer matrix is due solely to transverse
-magnetic fields so that the integrated spin rotation (\Eqs{orpt}, \eq{pqlbp1}, and \eq{pqlbp2}) can
-be related to the orbital transport via
-\begin{equation}
-  \int {\pmb\Omega}_{BMT} = \frac{1 + a \gamma}{1 + p_z} \, (-\Delta p_y, \Delta p_x, 0)
-\end{equation}
-where $\Delta p_x$ and $\Delta p_y$ are the change in $p_x$ and $p_y$ when tracking through the match element
-and the small angle approximation ($p_x, p_y \ll 1$) has been used.
 
 A \vn{match} element that is ``turned off'' (\vn{is_on} attribute set to False), is considered to be
 like a \vn{marker} element. That is, the orbit, spin, and Twiss parameters are unchanged when tracking
@@ -4322,7 +4324,7 @@ defined by specifying the curve at a number of points. The syntax is:
 \begin{example}
   energy_probability_curve = \{E1 p1, E2 p2, ..., EN pN\}
 \end{example}
-where the \vn{E p} pairs are the energy and photon emissian probability at that energy. 
+where the \vn{E p} pairs are the energy and photon emission probability at that energy. 
 The commas between \vn{E p} pairs is optional.
 The probability curve does not have to be normalized, \bmad will take care of that. \bmad will
 use cubic spline interpolation between points. 
@@ -4580,7 +4582,7 @@ In this example the \vn{k1} attribute of all those elements that have a \vn{k1} 
 controlled but something like a \vn{sextupole} element which does not have a \vn{k1} attribute will
 not be controlled.
 
-Due to the way bookkeeping is done for ramper elmeents, and unlike \vn{group} or \vn{overlay}
+Due to the way bookkeeping is done for ramper elements, and unlike \vn{group} or \vn{overlay}
 elements, it is not permitted for different \vn{ramper} elements to control the same parameter of a
 given slave element. Additionally, parameters that \vn{ramper} elements control must not be
 controlled by any \vn{overlay} (but a \vn{ramper} can control an \vn{overlay}).
@@ -4670,16 +4672,16 @@ General \vn{rfcavity} attributes are:
 \tt
 \begin{tabular}{llll} \toprule
   {\sl Attribute Class}      & Section            & {\sl Attribute Class}      & Section            \\ \midrule
-  Aperture limits            & \ref{s:limit}      & Offsets, pitches \& tilt   & \ref{s:offset}     \\
-  Chamber wall               & \ref{s:wall}       & Overlapping Fields         & \ref{s:overlap}    \\
-  Custom Attributes          & \ref{s:cust.att}   & Reference energy           & \ref{s:energy}     \\ 
-  Description strings        & \ref{s:alias}      & RF Couplers                & \ref{s:rf.coupler} \\
-  Field autoscaling          & \ref{s:autoscale}  & Superposition              & \ref{c:super}      \\
-  Fringe Fields              & \ref{s:fringe}     & Symplectify                & \ref{s:symp}       \\
-  Hkick \& Vkick             & \ref{s:kick}       & Field Maps                 & \ref{s:fieldmap}   \\
-  Integration settings       & \ref{s:integ}      & Tracking \& transfer map   & \ref{c:methods}    \\
-  Is_on                      & \ref{s:is.on}      & Wakes                      & \ref{s:wakes}      \\
-  Length                     & \ref{s:l}          &                            &                    \\
+  Aperture limits            & \ref{s:limit}      & Mag \& Elec multipoles     & \ref{s:multip}     \\
+  Chamber wall               & \ref{s:wall}       & Offsets, pitches \& tilt   & \ref{s:offset}     \\
+  Custom Attributes          & \ref{s:cust.att}   & Overlapping Fields         & \ref{s:overlap}    \\ 
+  Description strings        & \ref{s:alias}      & Reference energy           & \ref{s:energy}     \\
+  Field autoscaling          & \ref{s:autoscale}  & RF Couplers                & \ref{s:rf.coupler} \\
+  Fringe Fields              & \ref{s:fringe}     & Superposition              & \ref{c:super}      \\
+  Hkick \& Vkick             & \ref{s:kick}       & Symplectify                & \ref{s:symp}       \\
+  Integration settings       & \ref{s:integ}      & Field Maps                 & \ref{s:fieldmap}   \\
+  Is_on                      & \ref{s:is.on}      & Tracking \& transfer map   & \ref{c:methods}    \\
+  Length                     & \ref{s:l}          & Wakes                      & \ref{s:wakes}      \\
   \bottomrule
 \end{tabular}
 \end{center}
@@ -4716,7 +4718,7 @@ in \sref{s:rf.time}.
 
 In the above equation $r_q$ is the relative charge between the reference particle (set by the
 \vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
-cavity. For example, if the reference particle and and the tracked particle are the same, $r_q$ is
+cavity. For example, if the reference particle and the tracked particle are the same, $r_q$ is
 unity independent of the type of particle tracked.
 
 The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attribute of
@@ -4780,6 +4782,8 @@ Example:
   rf1: rfcav, l = 4.5, harmon = 1281, voltage = 5e6
 \end{example}
 
+Note: Multipoles \ref{s:multip} do not vary in time. 
+
 \newpage
 
 %-----------------------------------------------------------------
@@ -4787,9 +4791,8 @@ Example:
 \label{s:sad.mult}
 \index{sad_mult|hyperbf}
 
-A \vn{sad_mult} element is equivalent to a SAD\cite{b:sad} \vn{mult}
-element. This element is a combination solenoid, multipole, bend, and
-RF cavity.
+A \vn{sad_mult} element is used to emulate a SAD\cite{b:sad} \vn{MULT} element with the restriction
+that \vn{sad_mult} elements cannot be used to simulate RF cavities or bends.
 
 General \vn{sample} attributes are:
 \begin{center}
@@ -4882,13 +4885,10 @@ as opposed to \bmad's convention of referencing to the element center.
 \item
   The \bmad \vn{sad_mult} element does not have any attributes corresponding to the following
 SAD \vn{mult} element attributes:
-\vspace{1.0ex}
+\vspace{0.5ex}
 \begin{example}
   angle, harmon, freq, phi, dphi, volt, dvolt
 \end{example}
-\vspace{1.0ex}
-That is, \vn{sad_mult} elements cannot be used to simulate RF cavities or bends (but a \vn{sad_mult}
-can be used to simulate a kicker type element).
 \end{itemize}
 
 Example:
@@ -5440,6 +5440,7 @@ Attributes specific to wiggler and undulator elements are:
   n_pole     = <Real>  ! The number of poles. DEPRECATED. USE N_PERIOD INSTEAD.
   polarity   = <Real>  ! For scaling the field.
   kx         = <Real>  ! Planar wiggler horizontal wave number.
+  delta_ref_time_user_set = <Logic>  ! delta_ref_time set in lattice file.
   k1x                  ! Planar wiggler horizontal defocusing strength. Dep attribute (\sref{s:depend}).
   k1y                  ! Planar wiggler vertical focusing strength. Dep attribute (\sref{s:depend}).
   g_max                ! Maximum bending strength. Dependent attribute.
@@ -5559,9 +5560,12 @@ as if the wiggler were a \vn{map type} wiggler. This wiggler model has unphysica
 will give results that are different from the results obtained when using the \vn{bmad_standard}
 tracking method.
 
-Tracking a particle through a wiggler is always done so that if the particle starts on-axis with no
-momentum offsets, there is no change in the $z$ coordinate even though the actual trajectory through
-the wiggler does not follow the straight line reference trajectory.
+With \vn{delta_ref_time_user_set} set to \vn{False} (the default), \bmad will calculate the change
+in reference time through the element, \vn{delta_ref_time}, by tracking a particle through the wiggler
+starting the particle with zero phase-space coordinates (\sref{s:energy}). Sometimes this calculation
+does not produce a value for \vn{delta_ref_time} that is appropriate for a simulation. In this case,
+\vn{delta_ref_time_user_set} can be set to \vn{True} and \vn{delta_ref_time} can then be set in
+the lattice file.
 
 %-----------------------------------------------------
 \subsection{Map Type Wigglers}

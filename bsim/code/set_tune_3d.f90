@@ -62,7 +62,7 @@ if (logic_option(.false., use_phase_trombone)) then
   ele => branch%ele(1)
   n = branch%n_ele_track
   do i = 1, 20
-    call twiss_and_track(branch%lat, co, status, branch%ix_branch)
+    call twiss_and_track(branch%lat, co, status, branch%ix_branch, print_err = print_err)
     if (status == ok$) then
       dQ_a = target_tunes(1) - branch%ele(n)%a%phi/twopi
       dQ_b = target_tunes(2) - branch%ele(n)%b%phi/twopi

@@ -173,12 +173,10 @@ To suppress all the output when running a command file use the command:
 \begin{example}
   set global quiet = all       ! Suppress everything except errors
   set global quiet = warnings  ! Suppress just warnings.
+  set global quiet = off       ! No suppression
 \end{example}
-Note: the \vn{all} setting (but not the \vn{warnings} setting) is automatically switched to \vn{off}
-at the end when a command file exits back to the terminal level. To prevent this reset, set to
-\vn{ALL} instead. See the \vn{Tao_global_struct Structure} section (\sref{s:tao.global.struct}) for
-more details.
-
+Note: if \vn{quiet} is set in a command file, the setting will persist to the end of the file and then
+revert to what it was before the command file was run.
 
 Examples:
 \begin{example}
@@ -345,7 +343,7 @@ Format:
 \end{example}
 
 The \vn{create} command constructs various tao objects that would have
-otherwise been created in tao initialiation. 
+otherwise been created in tao initialization. 
 
 % Use the command:
 %   help create <subcommand>
@@ -589,12 +587,12 @@ does) change.
 Note to programmers: For debugging, the \vn{show internal -pipe} command will show the \vn{c_real}
 and \vn{c_integer} arrays.
 
-List of possible \vn{<what_to_print>} choices:
+Possible \vn{<subcommand>} choices are:
 \begin{example}
   beam, beam_init, branch1, bunch_comb, bunch_params, bunch1, bmad_com, 
   building_wall_list, building_wall_graph, building_wall_point, 
-  building_wall_section, constraints, da_params, da_aperture, data, 
-  data_d2_create, data_d2_destroy, data_d_array, data_d1_array,
+  building_wall_section, constraints, da_params, da_aperture, 
+  data, data_d2_create, data_d2_destroy, data_d_array, data_d1_array,
   data_d2, data_d2_array, data_set_design_value, data_parameter,
   datum_create, datum_has_ele, derivative, ele:ac_kicker, ele:cartesian_map,
   ele:chamber_wall, ele:control_var, ele:cylindrical_map, ele:elec_multipoles,
@@ -1057,7 +1055,7 @@ Also see the commands: \vn{set beam} and \vn{set particle_start}.
 Examples:
 \begin{example}
   set beam_init 3@center(2) = 0.004   ! Set px center of beam for universe 3.
-  set beam_init [1,2]@sig_e = 0.02    ! Set sig_e for universes 1 and 2.
+  set beam_init [1,2]@sig_pz = 0.02   ! Set sig_pz for universes 1 and 2.
   set beam_init track_end = q10w      ! Set track_end parameter.
 \end{example}
 
@@ -1740,14 +1738,14 @@ quadrupoles in a group is proportional to the weights.
 The \vn{-listing} option, if present, will, in addition to the tune change, generate a list of
 quadrupoles varied along with variation coefficients.
 
-It is sometimes desireable to veto from changing certain quadrupols (or overlays). The
+It is sometimes desirable to veto from changing certain quadrupoles (or overlays). The
 \vn{<veto_list>} of the \vn{-mask} option gives a list of quadrupoles {\em not} to use.
 A tilde \vn{~} in front of an element name means that the element will not be vetoed. This
 can be used to specify what quadrupoles to use (not veto). For example:
 \begin{example}
   set tune -mask *,~qf_\%\%,~qd_\% 0.23 0.45
 \end{example}
-In this example, the mask string has three ``words'' speparated by commas. The first word is
+In this example, the mask string has three ``words'' separated by commas. The first word is
 ``\vn{*}'' which will veto everything. The second word \vn{~qf_\%} reinstates all elements whose
 name starts with \vn{qf_} and has exactly two characters after the beginning \vn{qf_}. The third
 word reinstates all elements that match the wild card pattern \vn{qd_\%}. The upshot is that only
@@ -1923,17 +1921,20 @@ Format:
 \begin{example}
   show alias                   ! Show aliases \sref{s:show.alias}.
   show beam ...                ! Show beam info \sref{s:show.beam}.
+  show bmad_com                ! Old syntax for \vn{show global -bmad_com} \sref{s:show.global}.
   show branch ...              ! Show lattice branch info \sref{s:show.branch}.
   show building_wall           ! Show building wall info \sref{s:show.building}.
   show chromaticity ...        ! Show chromaticity, momentum compaction, phase slip \sref{s:show.chrom}.
   show constraints             ! Show optimization constraints \sref{s:show.constraints}.
   show control ...             ! Show lords and slaves of a given element \sref{s:show.control}.
+  show csr_param               ! Old syntax for \vn{show global -csr_param} \sref{s:show.global}.
   show curve ...               ! Show plot curve info \sref{s:show.curve}.
   show data ...                ! Show optimization data info \sref{s:show.data}.
   show derivative ...          ! Show d_data/d_var optimization info \sref{s:show.derivative}.
   show dynamic_aperture        ! Show DA info \sref{s:show.da}.
   show element ...             ! Show lattice element info \sref{s:show.element}.
   show emittance               ! Show normal mode emittances \sref{s:show.emit}.
+  show floor_plan              ! Old syntax for \vn{show plot -floor_plan} \sref{s:show.plot}.
   show field ...               ! Show EM field \sref{s:show.field}.
   show global ...              ! Show Tao global parameters \sref{s:show.global}.
   show graph ...               ! Show plot graph info \sref{s:show.graph}.
@@ -1947,9 +1948,12 @@ Format:
   show optimizer ...           ! Show optimizer info \sref{s:show.optimizer}.
   show particle ...            ! Show tracked particle beam info \sref{s:show.particle}.
   show plot ...                ! Show plot info \sref{s:show.plot}.
+  show plot_page               ! Old syntax for \vn{show plot -page} \sref{s:show.plot}.
   show ptc ...                 ! Show PTC calculated parameters \sref{s:show.ptc}.
+  show ptc_com                 ! Old syntax for \vn{show global -ptc_com}. \sref{s:show.global}.
   show radiation_integrals ... ! Show synchrotron radiation integrals \sref{s:show.rad.int}.
   show rampers                 ! Show ramper lord and slave information \sref{s:show.ramp}.
+  show space_charge_com        ! Old syntax for \vn{show global -space_charge_com} \sref{s:show.global}.
   show spin ...                ! Show information on spin simulations \sref{s:show.spin}.
   show string ...              ! Print a string \sref{s:show.string}.
   show symbolic_numbers ...    ! Show symbolic constants \sref{s:show.symbolic}.
@@ -2760,7 +2764,7 @@ is also present, the particle's phase space orbit will also be displayed.
 %
 \item[-sum_radiation_integrals] \Newline
 The \vn{-sum_radiation_integrals} switch, if present, will display the radiation integrals
-integrated from the start of the lattice to for each lattice element. See the \bmad manual for the
+integrated from the start of the lattice to each lattice element. See the \bmad manual for the
 definitions of the radiation integrals. Also see the \vn{-radiation_integrals} switch.
 %
 \item[-tracking_elements] \Newline
@@ -3052,11 +3056,11 @@ table has three rows for the three orbital modes $a$, $b$, and $c$. The columns 
   \item Col 1: Name of mode
   \item Col 2: Orbital tune.
   \item Col 3: Q_spin + Q_mode + N where N is an integer that minimizes this expression. 
-The sum resonance occures when this is zero. 
+The sum resonance occurs when this is zero. 
   \item Col 4: Sum resonance strength. This number is only accurate if the value
 of column 3 is small compared to one.
   \item Col 5: Q_spin - Q_mode + N where N is an integer that minimizes this expression. 
-The difference resonance occures when this is zero. 
+The difference resonance occurs when this is zero. 
   \item Col 6: Difference resonance strength. This number is only accurate if the value
 of column 5 is small compared to one.
 \end{Itemize}
@@ -3076,11 +3080,11 @@ be a Taylor series in the phasor's basis, i.e. $x_k = sqrt(J_k)*exp(i*phi_k)$. F
 monomial ``[1 1 0 0 0 0]'' corresponds to $J_a$, and if RF is on then ``[1 1 2 2 3 3]'' corresponds 
 to $J_a*J_b^2*J_c^3$.
 
-The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if supressing certain terms
+The \vn{-x_zero}, \vn{-y_zero}, and \vn{-z_zero} options are for testing if suppressing certain terms
 in the linear part of the spin transport map for a set of elements selected by the user will
 significantly affect the polarization. This is discussed in the section ``\vn{Linear dn/dpz
 Calculation}'' in the \bmad manual. In particular, \vn{-x_zero} will zero the $\bfq_1$ and $\bfq_2$
-terms in the $\arrowbfq$ vector (equivalent to zeroing $\bfG_x$ in the SLIM fromalism) for the spin
+terms in the $\arrowbfq$ vector (equivalent to zeroing $\bfG_x$ in the SLIM formalism) for the spin
 transport map of the chosen lattice elements. Similarly, \vn{-y_zero} and \vn{-z_zero} will zero
 vertical and longitudinal components. Element list format (\sref{s:ele.list.format}), without any
 embedded blanks, is used for the \vn{<ele_list>} list of elements to apply to.
@@ -3161,7 +3165,7 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-elements <ele_list>\} 
-            \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
+            \{-inverse\} \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
             \{-ptc\} \{-radiation\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
 \end{example}
 
@@ -3192,6 +3196,8 @@ given by \vn{loc1}
 
 If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated as a
 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
+
+If the \vn{-inverse} switch is present, the inverse of the map is displayed.
 
 The \vn{-number_format} switch, if present, overrides the default format for the displayed format.
 Examples:
@@ -3838,6 +3844,7 @@ Format:
   write derivative_matrix ...     ! \sref{s:write.deriv.matrix}
   write digested ...              ! \sref{s:write.digested}
   write elegant ...               ! \sref{s:write.elegant}
+  write field ...                 ! \sref{s:write.field}
   write gif ...                   ! \sref{s:write.gif}
   write hard                      ! \sref{s:write.hard}
   write mad8 ...                  ! \sref{s:write.mad8}
@@ -3975,7 +3982,7 @@ HDF5. The other three field description types are always stored using ASCII file
 \label{s:write.bunch.comb}
 
 The \vn{write bunch_comb} command writes to a file bunch parameters (bunch sigma matrix, etc.) at
-the ``comb'' points where these aggragrate bunch parameters are saved (\sref{s:beam.init}). Also see
+the ``comb'' points where these aggregate bunch parameters are saved (\sref{s:beam.init}). Also see
 the \vn{show beam -comb} (\sref{s:show.beam} and \vn{pipe bunch_comb} (\sref{p:bunch.comb})
 commands. Syntax:
 \begin{example}
@@ -3984,7 +3991,7 @@ commands. Syntax:
 \end{example}
 
 There are three file types described below. For all types the file will contain a table. The rows of
-the table correspond to different comb points. The columns of the table correspond to varias bunch
+the table correspond to different comb points. The columns of the table correspond to various bunch
 parameters calculated at the comb points.
 \begin{description}
 \item[-centroid] \Newline
@@ -4068,6 +4075,48 @@ Syntax:
 
 Write a lattice file in \vn{Elegant} format. The default file name is \vn{lat_\#.lte} where \vn{\#}
 is replaced by the universe number.
+
+%% write field --------------------------------------------------------------
+
+\subsection{write field}
+\label{s:write.field}
+
+The \vn{write field} command creates a file with a table of magnetic and electric 
+field values for a given lattice element. Syntax:
+\begin{example}
+    write field \{-nmax <nx_max>, <ny_max> <nz_max>\} \{-nmin <nx_min>, <ny_min> <nz_min>\}
+                \{-rmax <rx_max>, <ry_max> <rz_max>\} \{-rmin <rx_min>, <ry_min> <rz_min>\} 
+        \{-dr <dr_x> <dr_y <dr_z>\} -ele <eleID> \{<file_name>\}  
+\end{example}
+
+The default file name is \vn{field.dat}.
+
+The fiducial point for the grid is the coordinates at the entrance end of the the lattice element
+given by the \vn{-ele} switch. Laboratory (not body) coordinates are used.
+
+The field grid indexes runs from \vn{nx_min} to \vn{nx_max} for $x$,
+etc. The distance between points is set with the \vn{-dr} switch and the extent of the grid is set
+by \vn{-rmin} and \vn{rmax} switches. 
+
+If \vn{-nmin} is present, so must \vn{-nmax} be present. If \vn{-nmin} is not present but \vn{-nmax}
+is, the default values for \vn{-nmin} are [-nx_max, -ny_max, 0].
+
+If \vn{-rmin} is present, so must \vn{-rmax} be present. If \vn{-rmin} is not present but \vn{-rmax}
+is, the default values for \vn{-rmin} are [-rx_max, -ry_max, 0].
+
+\vn{-dr}, \vn{-nmax}, and \vn{-rmax} values are interdependent. For example:
+\begin{example}
+  rx_max = nx_max * dr_x
+\end{example}
+Given this, exactly two of the three needs to be present.
+
+Examples:
+\begin{example}
+  write field -ele Q1 -dr 0.01 0.02 0.05 -nmax 30 20, 200
+  write field -ele Q1 -dr 0.01 0.02 0.05 -rmax 0.3 0.4 10.0   ! Same as above
+\end{example}
+The above examples both specify the same grid which will have an index range in $x$ of $[-30, 30]$,
+and range in $y$ of $[-20, 20]$, 
 
 %% write gif --------------------------------------------------------------
 

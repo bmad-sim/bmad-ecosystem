@@ -62,7 +62,7 @@ type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor, f0, floor2
 type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
-type (wake_sr_z_struct), pointer :: srz
+type (wake_sr_z_long_struct), pointer :: srz
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
@@ -430,10 +430,11 @@ if (associated(ele%foil)) then
                           attribute_units('DENSITY'), attribute_units('AREA_DENSITY'), attribute_units('RADIATION_LENGTH')
       endif
 
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density      =', matter%density, &
-                  '  Area_Density      =', matter%area_density,      '  Radiation_Length      =', matter%radiation_length
-      nl=nl+1; write(li(nl), '(3(a, es14.6))') '  Density_Used =', matter%density_used, &
-                  '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
+      nl=nl+1; write(li(nl), '(3(a, a14))') '  Density      =', this_real(matter%density, 'es14.6', '  Not_Set'), &
+             '  Area_Density      =', this_real(matter%area_density, 'es14.6', '  Not_Set'), &
+             '  Radiation_Length      =', this_real(matter%radiation_length, 'es14.6', '  Not_Set')
+      nl=nl+1; write(li(nl), '((a, a14), 2(a, es14.6))') '  Density_Used =', this_real(matter%density_used, 'es14.6', '  Not_Used'), &
+             '  Area_Density_Used =', matter%area_density_used, '  Radiation_Length_Used =', matter%radiation_length_used
     enddo
 endif
 
@@ -1370,7 +1371,7 @@ endif
 if (associated(ele%wake)) then
 
   if (logic_option (.true., type_wake) .and. (size(ele%wake%sr%long) /= 0 .or. &
-                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z) /= 0 )) then
+                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z_long%w) /= 0 )) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
     if (ele%wake%sr%file /= '') then
@@ -1416,24 +1417,18 @@ if (associated(ele%wake)) then
     endif
   endif
 
-  if (size(ele%wake%sr%z) /= 0) then
+  if (size(ele%wake%sr%z_long%w) /= 0) then
     nl=nl+1; write (li(nl), *)
     if (logic_option (.true., type_wake)) then
-      call re_allocate (li, nl+size(ele%wake%sr%z)+100, .false.)
-      nl=nl+1; li(nl) = '  Short-Range Z-dependent wakes:'
-      do im = 1, size(ele%wake%sr%z)
-        srz => ele%wake%sr%z(im)
-        if (srz%plane == z$) then
-          nl=nl+1; li(nl) = '  #' // int_str(im) // ', plane = ' // trim(sr_z_plane_name(srz%plane))
-        else
-          nl=nl+1; li(nl) = '  #' // int_str(im) // ', plane = ' // trim(sr_z_plane_name(srz%plane)) // &
-                            ', position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
-        endif
-        nl=nl+1; li(nl) = '    ix           z             W            W'
-        do iw = 1, size(srz%w)
-          nl=nl+1; write(li(nl), '(i6, f14.9, 2es14.6)') iw, srz%w(iw)%x0, srz%w(iw)%coef(0), srz%w(iw)%coef(1)
-        enddo
-      enddo
+      call re_allocate (li, nl+size(ele%wake%sr%z_long%w)+100, .false.)
+      nl=nl+1; li(nl) = '  Short-Range Z-dependent Longitudinal wake:'
+      srz => ele%wake%sr%z_long
+      nl=nl+1; li(nl) = '    smoothing_sigma     = ' // to_str(srz%smoothing_sigma)
+      nl=nl+1; li(nl) = '    position_dependence = ' // trim(sr_transverse_position_dep_name(srz%position_dependence))
+      nl=nl+1; li(nl) = '    dz (scaled) [m]  = ' // to_str(srz%dz / ele%wake%sr%z_scale)
+      nl=nl+1; li(nl) = '    Wake range (scaled) [m]: +/-' // to_str(srz%z0 / ele%wake%sr%z_scale)
+      nl=nl+1; write (li(nl), '(a, i0)') '  # wake points: ', size(srz%w)
+
     else
      nl=nl+1; li(nl) = '  No short-range z-dependent modes.'
     endif
@@ -1623,7 +1618,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(100) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(41), parameter :: att_name(102) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1638,9 +1633,9 @@ character(41), parameter :: att_name(100) = [character(40):: 'X_PITCH', 'Y_PITCH
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
                 'F_FACTOR', 'EXACT_MULTIPOLES', 'Z_CROSSING', 'SPIN_TRACKING_MODEL', &
-                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK']
+                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX']
 
-character(41), parameter :: att2_name(100) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(41), parameter :: att2_name(102) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1655,7 +1650,7 @@ character(41), parameter :: att2_name(100) = [character(40):: 'X_PITCH_TOT', 'Y_
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
                 'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', &
-                'SPIN_DN_DPZ_Y', 'MODE_FLIP']
+                'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX']
 
 ! Exceptional cases
 
@@ -1816,5 +1811,25 @@ do im = 1, size(stack)
 enddo
 
 end subroutine print_this_stack
+
+!--------------------------------------------------------------------------
+! contains
+
+function this_real(value, fmt, garbage_str) result (out_str)
+
+real(rp) value
+character(*) fmt, garbage_str
+character(30) out_str
+
+!
+
+if (value == real_garbage$) then
+  out_str = garbage_str
+  return
+endif
+
+write (out_str, '(' // fmt // ')') value
+
+end function this_real
 
 end subroutine type_ele

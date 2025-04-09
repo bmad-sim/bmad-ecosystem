@@ -33,7 +33,7 @@ real(rp) :: mat6(6,6)
 real(rp) det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p21, rel_p2
+real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p, rel_p2
 real(rp) det_factor, deriv_rel, gamma2_c, df
 
 logical error
@@ -41,21 +41,22 @@ logical, optional :: err_flag
 
 character(*), parameter :: r_name = 'twiss_propagate1'
 
-! Beginning element bookkeeping
+! Beginning element bookkeeping. rel_p1 ~ 0 typically happens when there is an e_gun element downstream.
 
 if (ele1%key == beginning_ele$) then
   ele1%map_ref_orb_out = ele2%map_ref_orb_in
-  rel_p1 = 1 + ele1%map_ref_orb_out%vec(6)
+  rel_p = 1 + ele1%map_ref_orb_out%vec(6)
+  if (rel_p > 1e-3_rp) then
+    if (is_true(ele1%value(deta_ds_master$))) then
+      ele1%x%etap = ele1%x%deta_ds * rel_p + ele1%map_ref_orb_out%vec(2) / rel_p
+      ele1%y%etap = ele1%y%deta_ds * rel_p + ele1%map_ref_orb_out%vec(4) / rel_p
+    else
+      ele1%x%deta_ds = ele1%x%etap / rel_p - ele1%map_ref_orb_out%vec(2) / rel_p**2
+      ele1%y%deta_ds = ele1%y%etap / rel_p - ele1%map_ref_orb_out%vec(4) / rel_p**2
+    endif
 
-  if (is_true(ele1%value(deta_ds_master$))) then
-    ele1%x%etap = ele1%x%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(2) / rel_p1
-    ele1%y%etap = ele1%y%deta_ds * rel_p1 + ele1%map_ref_orb_out%vec(4) / rel_p1
-  else
-    ele1%x%deta_ds = ele1%x%etap / rel_p1 - ele1%map_ref_orb_out%vec(2) / rel_p1**2
-    ele1%y%deta_ds = ele1%y%etap / rel_p1 - ele1%map_ref_orb_out%vec(4) / rel_p1**2
+    call normal_mode_dispersion(ele1)
   endif
-
-  call normal_mode_dispersion(ele1)
 endif
 
 !
@@ -106,8 +107,6 @@ endif
 
 orb_in  => ele2%map_ref_orb_in
 orb_out => ele2%map_ref_orb_out
-rel_p1 = 1 + orb_in%vec(6)    ! Map reference momentum
-rel_p2 = 1 + orb_out%vec(6)
 
 mat6 = ele2%mat6
 
@@ -132,7 +131,7 @@ if (all(mat6(1:2,3:4) == 0)) then
 ! here if we are dealing with a coupled transfer matrix
 
 else
-  df = (1.0_rp/det_factor)**0.25
+  df = 1.0_rp/sqrt(det_factor)
   big_M   = df * mat6(1:2,1:2)
   small_m = df * mat6(1:2,3:4)
   big_N   = df * mat6(3:4,3:4)
@@ -221,7 +220,10 @@ if (geometry == closed$) eta1_vec(5) = 0
 ! mat6(6,:) terms should be all zero. However Bmad is not using proper canonical coords so the
 ! mat6(6,:) terms are forced to zero.
 
-if (rel_p1 == 0 .or. key2 == rfcavity$ .or. key2 == lcavity$) then
+rel_p1 = 1 + orb_in%vec(6)    ! Map reference momentum
+rel_p2 = 1 + orb_out%vec(6)
+
+if (rel_p1 == 0 .or. key2 == rfcavity$ .or. key2 == lcavity$ .or. ele1%value(p0c$) /= ele2%value(p0c$)) then
   dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec)
 else
   dpz2_dpz1 = rel_p1 / rel_p2

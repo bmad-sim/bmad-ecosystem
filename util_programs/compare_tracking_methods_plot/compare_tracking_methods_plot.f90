@@ -8,16 +8,18 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele
 type (all_pointer_struct), allocatable :: ptr_array(:)
+type (qp_legend_struct) :: legend = qp_legend_struct()
 
 character(40) :: input_file  = 'compare_tracking_methods_plot.bmad'
 character(40) :: output_file = 'compare_tracking_methods_plot'
 character(20) :: base_method, element_to_vary, attrib_to_vary
 character(20) :: veto_methods(10)
 
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 real(rp) :: scan_start, scan_end, step_size
 real(rp), dimension(:), allocatable   :: scan_var
 integer :: nsteps, nmethods, i, j, k, l, ix_base, id, xbox, ybox
-logical :: is_valid(n_methods$+1)
+logical :: is_valid(n_methods+1)
 logical :: err_flag
 
 type mystep           ! stores the phase space coordinates for a particular iteration of the scan
@@ -69,7 +71,7 @@ start_orb_desc = "Starting orbit: (" // trim(adjustl(convert_to_string(lat%parti
 ! Make a list of methods to use
 
 do i = 1, size(is_valid)
-  if (i /= n_methods$+1) then 
+  if (i /= n_methods+1) then 
      is_valid(i) = valid_tracking_method(ele, electron$, i)
   else
      is_valid(i) = valid_tracking_method(ele, electron$, symp_lie_ptc$)
@@ -79,7 +81,7 @@ enddo
 DO i = 1, size(veto_methods)
    call match_word (veto_methods(i), tracking_method_name(1:), j)
    if(j > 0) is_valid(j) = .false.
-   if(j == symp_lie_ptc$) is_valid(n_methods$+1) = .false.
+   if(j == symp_lie_ptc$) is_valid(n_methods+1) = .false.
 END DO
 
 is_valid(custom$) = .false.
@@ -112,7 +114,7 @@ k = 0
 DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
    k = k+1
-   if (i /= n_methods$+1) then
+   if (i /= n_methods+1) then
       method(k)%method_name = tracking_method_name(i)
       method(k)%short_method_name = short_method_name(i)
    else   
@@ -132,7 +134,7 @@ k = 0
 DO i = 1, size(is_valid)
    if (.not. is_valid(i)) cycle
    k = k+1
-   if (i /= n_methods$+1) then
+   if (i /= n_methods+1) then
       ele%tracking_method = i  
       write (1,*) "Tracking Method = ", tracking_method_name(i)
    else 
@@ -265,16 +267,17 @@ subroutine create_plot
   END DO
 
   ! Draw legend
+  legend%draw_symbol = .false.
   if (nmethods > 6) then
      if (mod(nmethods+1,2) == 1) then
-        call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:(nmethods+1)/2), text = dmethod(1:(nmethods+1)/2)%method_name, draw_symbol = .false.)
-        call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name, draw_symbol = .false.)
+        call qp_draw_curve_legend (qp_point_struct(0.09_rp, 0.99_rp, "%PAGE"), legend, lines(1:(nmethods+1)/2), text = dmethod(1:(nmethods+1)/2)%method_name)
+        call qp_draw_curve_legend (qp_point_struct(0.28_rp, 0.99_rp, "%PAGE"), legend, lines((nmethods+3)/2:(nmethods-1)), text = dmethod((nmethods+3)/2:(nmethods-1))%method_name)
      else
-        call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines(1:nmethods/2), text = dmethod(1:nmethods/2)%method_name, draw_symbol = .false.)
-        call qp_draw_curve_legend (0.28_rp, 0.99_rp, "%PAGE", line = lines(nmethods/2+1:(nmethods-1)), text = dmethod(nmethods/2+1:(nmethods-1))%method_name, draw_symbol = .false.)
+        call qp_draw_curve_legend (qp_point_struct(0.09_rp, 0.99_rp, "%PAGE"), legend, lines(1:nmethods/2), text = dmethod(1:nmethods/2)%method_name)
+        call qp_draw_curve_legend (qp_point_struct(0.28_rp, 0.99_rp, "%PAGE"), legend, lines(nmethods/2+1:(nmethods-1)), text = dmethod(nmethods/2+1:(nmethods-1))%method_name)
      end if
   else
-     call qp_draw_curve_legend (0.09_rp, 0.99_rp, "%PAGE", line = lines, text = dmethod(:)%method_name, draw_symbol = .false.)   
+     call qp_draw_curve_legend (qp_point_struct(0.09_rp, 0.99_rp, "%PAGE"), legend, lines, text = dmethod(:)%method_name)
   end if
 
   ! Write description on plot

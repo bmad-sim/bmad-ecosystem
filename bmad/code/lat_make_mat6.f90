@@ -182,7 +182,7 @@ if (i_ele < 0) then
     if (zero_orbit) then 
       call make_mat6(ele, branch%param, orb_start, err_flag = err)
     else  ! else ref_orb must be present
-      if (ref_orb(i)%state /= alive$) then
+      if (ref_orb(i)%state /= alive$ .or. ref_orb(i-1)%state /= alive$) then
         ele%mat6 = 0
         ele%vec0 = 0
         ele%map_ref_orb_in%vec = real_garbage$

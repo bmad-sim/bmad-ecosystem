@@ -9,13 +9,14 @@
 ! for wigglers and bmad_standard for everything else.
 !
 ! Input:
-!   ele_in            -- Ele_struct: Original element to slice
-!   l_slice           -- Real(rp): Length of the slice
-!   offset            -- Real(rp): Offset of entrance end of sliced_ele from entrance end of ele_in.
-!   param             -- Lat_param_struct: lattice paramters.
+!   ele_in            -- ele_struct: Original element to slice
+!   l_slice           -- real(rp): Length of the slice
+!   offset            -- real(rp): Offset of entrance end of sliced_ele from entrance end of ele_in.
+!   param             -- lat_param_struct: lattice paramters.
 !   include_upstream_end   -- Logical: Sliced_ele contains the ele's entrance end?
 !   include_downstream_end -- Logical: Sliced_ele contains the ele's exit end?
-!   old_slice         -- Logical, optional: Previous slice. If present this saves computation
+!   old_slice         -- ele_struct, optional: Previous slice or, if offset = 0, the previous element. 
+!                          If present this saves computation
 !                          time of the reference energy and time at the start of the present slice.
 !                          Also makes the ref energy continuous (there can be some small differences when
 !                          using, say, runge_kutta tracking due to tracking tolerances).
@@ -24,8 +25,8 @@
 !                         the orbit ref energy (EG space charge tracking does not keep track of ref energy through an lcavity).
 !
 ! Output:
-!   sliced_ele -- Ele_struct: Sliced_ele element with appropriate values set.
-!   err_flag   -- Logical: Set True if there is an error. False otherwise.
+!   sliced_ele -- ele_struct: Sliced_ele element with appropriate values set.
+!   err_flag   -- logical: Set True if there is an error. False otherwise.
 !-
 
 recursive subroutine create_element_slice (sliced_ele, ele_in, l_slice, offset, &
@@ -42,9 +43,9 @@ type (ele_struct) :: ele2
 type (lat_param_struct) param
 type (coord_struct) time_ref_orb_out
 
-real(rp) l_slice, offset, in_len, r, p0c_set
-integer i
-logical include_upstream_end, include_downstream_end, err_flag, err2_flag, rad_map_stale
+real(rp) l_slice, offset, in_len, r, p0c_set, a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+integer i, ix
+logical include_upstream_end, include_downstream_end, err_flag, err2_flag, rad_map_stale, has_mcache
 
 character(*), parameter :: r_name = 'create_element_slice'
 
@@ -56,13 +57,19 @@ in_len = ele_in%value(l$)
 ! Save values from old_slice if present in case the old_slice actual arg is same as sliced_ele.
 
 rad_map_stale = .true.
+has_mcache = .false.
 ele0%value(l$) = 0
 if (present(old_slice)) then
-  ele0%value(p0c$)   = old_slice%value(p0c$)
-  ele0%value(e_tot$) = old_slice%value(e_tot$)
-  ele0%ref_time      = old_slice%ref_time
-  ele0%value(l$)     = old_slice%value(l$)
-  time_ref_orb_out   = old_slice%time_ref_orb_out
+  ele0%value(p0c$)     = old_slice%value(p0c$)
+  ele0%value(e_tot$)   = old_slice%value(e_tot$)
+  ele0%ref_time        = old_slice%ref_time
+  ele0%value(l$)       = old_slice%value(l$)
+  ! Can only reuse multipole_cache if old_slice is an old slice and not the previous element in the branch.
+  if (allocated(old_slice%multipole_cache) .and. old_slice%name == ele_in%name) then
+    ele0%multipole_cache = old_slice%multipole_cache
+    has_mcache = .true.
+  endif
+  time_ref_orb_out     = old_slice%time_ref_orb_out
   if (associated(old_slice%rad_map)) rad_map_stale = old_slice%rad_map%stale
 endif
 
@@ -157,37 +164,43 @@ endif
 
 ! Use a speedier tracking method.
 
-select case (sliced_ele%tracking_method)
-case (taylor$, symp_lie_ptc$)
-  if (sliced_ele%field_calc == fieldmap$) then
-    select case (sliced_ele%key)
-    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
-    case default;                sliced_ele%tracking_method = symp_lie_ptc$
-    end select
-  else
-    select case (sliced_ele%key)
-    case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
-    case (em_field$);            sliced_ele%tracking_method = symp_lie_ptc$
-    case default;                sliced_ele%tracking_method = bmad_standard$
-    end select
-  endif
-end select
+if (sliced_ele%tracking_method == taylor$ .and. ptc_private%taylor_order_ptc == 1) then
+  sliced_ele%tracking_method = linear$
+  sliced_ele%tracking_method = auto$
 
-select case (sliced_ele%mat6_calc_method)
-case (taylor$, symp_lie_ptc$)
-  if (sliced_ele%field_calc == fieldmap$) then
-    select case (sliced_ele%key)
-    case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
-    case default;                sliced_ele%mat6_calc_method = symp_lie_ptc$
-    end select
-  else
-    select case (sliced_ele%key)
-    case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
-    case (em_field$);            sliced_ele%mat6_calc_method = symp_lie_ptc$
-    case default;                sliced_ele%mat6_calc_method = bmad_standard$
-    end select
-  endif
-end select
+else
+  select case (sliced_ele%tracking_method)
+  case (taylor$, symp_lie_ptc$)
+    if (sliced_ele%field_calc == fieldmap$) then
+      select case (sliced_ele%key)
+      case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+      case default;                sliced_ele%tracking_method = symp_lie_ptc$
+      end select
+    else
+      select case (sliced_ele%key)
+      case (wiggler$, undulator$); sliced_ele%tracking_method = symp_lie_bmad$
+      case (em_field$);            sliced_ele%tracking_method = symp_lie_ptc$
+      case default;                sliced_ele%tracking_method = bmad_standard$
+      end select
+    endif
+  end select
+
+  select case (sliced_ele%mat6_calc_method)
+  case (taylor$, symp_lie_ptc$)
+    if (sliced_ele%field_calc == fieldmap$) then
+      select case (sliced_ele%key)
+      case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
+      case default;                sliced_ele%mat6_calc_method = symp_lie_ptc$
+      end select
+    else
+      select case (sliced_ele%key)
+      case (wiggler$, undulator$); sliced_ele%mat6_calc_method = symp_lie_bmad$
+      case (em_field$);            sliced_ele%mat6_calc_method = symp_lie_ptc$
+      case default;                sliced_ele%mat6_calc_method = bmad_standard$
+      end select
+    endif
+  end select
+endif
 
 sliced_ele%field_calc = refer_to_lords$
 
@@ -254,8 +267,15 @@ if (present(orb_in)) then
   orb_in%p0c = p0c_set
 endif
 
+! Create multipole cache
+
+if (has_mcache .and. ele0%value(l$) == sliced_ele%value(l$)) then
+  sliced_ele%multipole_cache = ele0%multipole_cache
+else
+  call multipole_ele_to_ab(sliced_ele, .false., ix, a_pole, b_pole, magnetic$)
+  call multipole_ele_to_ab(sliced_ele, .false., ix, a_pole, b_pole, electric$)
+endif
+
 err_flag = .false.
 
 end subroutine create_element_slice
-
-

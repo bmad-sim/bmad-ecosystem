@@ -388,7 +388,7 @@ respect to the strong beam motion before and after the interaction. Converting t
 coordinates, the momentum kick $dp_z$ is
 \begin{equation}
   dp_{z,s} = \frac{1}{2 \, \beta_w \, (1/\beta_w + 1/\beta_s) \, (1 + p_z)} 
-    \left( dp_x \, (dp_x - 2p_{x1}) + dp_y \, (dp_y - 2p_{y1}) \right)
+    \left( dp_x \, (dp_x + 2p_{x1}) + dp_y \, (dp_y + 2p_{y1}) \right)
     \label{dpz12}
 \end{equation}
 where $dp_x$ and $dp_y$ are the transverse kicks and $p_{x1}$ and $p_{y1}$ are the initial phase
@@ -928,19 +928,19 @@ distribution parameters, the neglect of incoming particle orientation effects is
 \bmad uses the exact map for a drift
 This gives the map
 \begin{align}
-  x_2    &= x_1 + \frac{L \, p_{x1}}{(1 + p_{z1}) \, p_l} \CRNO
+  x_2    &= x_1 + \frac{L \, p_{x1}}{p_l} \CRNO
   p_{x2} &= p_{x1}  \CRNO
-  y_2    &= y_1 + \frac{L \, p_{y1}}{(1 + p_{z1}) \, p_l} \CRNO
+  y_2    &= y_1 + \frac{L \, p_{y1}}{p_l} \CRNO
   p_{y2} &= p_{y1}  \\
-  z_2    &= z_1 + \left( \frac{\beta}{\beta_\REF} - \frac{1}{p_l} \right) \, L \CRNO
+  z_2    &= z_1 + \left( \frac{\beta}{\beta_\REF} - \frac{1 + p_{z1}}{p_l} \right) \, L \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
-where $\beta$ is the normalized particle velocity, $\beta_\REF$ is 
-the reference particle's normalized velocity, and $p_l$ is the
-longitudinal momentum
+where $\beta$ is the normalized particle velocity, $\beta_\REF$ is the reference particle's
+normalized velocity, and $p_l$ is the normalized longitudinal momentum 
 \begin{equation}
-  p_l = \sqrt{1 - \frac{p_x^2 + p_y^2}{(1 + p_z)^2}}
+  p_l \equiv \frac{P_l}{P_0} = \sqrt{(1 + p_z)^2 - p_x^2 - p_y^2}
 \end{equation}
+with $P_l$ being the longitudinal momentum.
 
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------

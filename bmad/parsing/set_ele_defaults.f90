@@ -101,11 +101,11 @@ case (def_line$)
   ele%value = g
   ele%s     = g
   ele%ref_time = g
-  ele%a = twiss_struct(g, g, g, g, g, g, g, g, g, g)
-  ele%b = twiss_struct(g, g, g, g, g, g, g, g, g, g)
-  ele%z = twiss_struct(g, g, g, g, g, g, g, g, g, g)
-  ele%x = xy_disp_struct(g,g,g)
-  ele%y = xy_disp_struct(g,g,g)
+  ele%a = twiss_struct(g, g, g, g, g, g, g, g, g, g, g, g, g)
+  ele%b = twiss_struct(g, g, g, g, g, g, g, g, g, g, g, g, g)
+  ele%z = twiss_struct(g, g, g, g, g, g, g, g, g, g, g, g, g)
+  ele%x = xy_disp_struct(g, g, g, g)
+  ele%y = xy_disp_struct(g, g, g, g)
   ele%floor = floor_position_struct([g,g,g], mat3_unit$, g,g,g)
   ele%value(inherit_from_fork$) = g
 
@@ -224,7 +224,7 @@ case (match$)
   ele%value(kick0$) = standard$
   ele%value(recalc$) = true$
   ele%value(deta_ds_master$) = false$
-  ele%value(spin_tracking_model$) = off$
+  ele%spin_tracking_method = off$
 
 case (mirror$)
   ele%aperture_at = surface$
@@ -340,6 +340,7 @@ case (taylor$)   ! start with unit matrix
 case (wiggler$, undulator$) 
   ele%field_calc = int_garbage$
   ele%value(polarity$) = 1.0
+  ele%value(delta_ref_time_user_set$) = false$
 
 end select
 

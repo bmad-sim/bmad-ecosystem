@@ -61,7 +61,6 @@ end interface
 type tao_cmd_history_struct          ! Record the command history
   character(:), allocatable :: cmd   ! The command
   integer :: ix = 0                  ! Command index (1st command has ix = 1, etc.)
-  !! logical :: cmd_file = ''           ! Did command come from a command file
 end type
 
 !-----------------------------------------------------------------------
@@ -218,8 +217,6 @@ type tao_curve_struct
   integer :: ix_universe = -1            ! Universe where data is. -1 => use s%global%default_universe
   integer :: symbol_every = 1            ! Symbol every how many points.
   integer :: ix_branch = -1
-  integer :: ix_ele_ref = -1             ! Index in lattice of reference element.
-  integer :: ix_ele_ref_track = -1       ! = ix_ele_ref except for super_lord elements.
   integer :: ix_bunch = 0                ! Bunch to plot.
   integer :: n_turn = -1                 ! Used for multi_turn_orbit plotting
   logical :: use_y2 = .false.            ! Use y2 axis?
@@ -266,6 +263,7 @@ type tao_graph_struct
   type (tao_floor_plan_struct) :: floor_plan = tao_floor_plan_struct()
   type (qp_point_struct) :: text_legend_origin = qp_point_struct()
   type (qp_point_struct) :: curve_legend_origin = qp_point_struct()
+  type (qp_legend_struct) :: curve_legend = qp_legend_struct()
   type (qp_axis_struct) :: x = qp_axis_struct()              ! X-axis parameters.
   type (qp_axis_struct) :: y = qp_axis_struct()              ! Y-axis attributes.
   type (qp_axis_struct) :: x2 = qp_axis_struct()             ! X2-axis attributes (Not currently used).
@@ -350,8 +348,6 @@ type tao_plot_page_struct
   real(rp) :: axis_label_text_scale  = 1.0  ! Relative to text_height
   real(rp) :: legend_text_scale      = 0.9  ! Relative to text_height. For legends, plot_page, and lat_layout
   real(rp) :: key_table_text_scale   = 0.9  ! Relative to text_height
-  real(rp) :: curve_legend_line_len  = 30   ! Points
-  real(rp) :: curve_legend_text_offset = 6  ! Points
   real(rp) :: floor_plan_shape_scale = 1.0
   real(rp) :: floor_plan_text_scale  = 1.0     ! Scale used = floor_plan_text_scale * legend_text_scale
   real(rp) :: lat_layout_shape_scale = 1.0
@@ -394,7 +390,7 @@ type tao_spin_map_struct
 end type
 
 !-----------------------------------------------------------------------
-! The data_struct defines the fundamental data structure representing 
+! The tao_data_struct defines the fundamental data structure representing 
 ! one datum point.
 ! The universe_struct will hold an array of data_struct structures: u%data(:).
 !
@@ -490,8 +486,8 @@ end type
 
 type tao_d2_data_struct
   character(40) :: name = ''             ! Name to be used with commands.
-  character(200) :: data_file_name = ''  ! Data file name .
-  character(200) :: ref_file_name = ''   ! Reference file name.
+  character(400) :: data_file_name = ''  ! Data file name .
+  character(400) :: ref_file_name = ''   ! Reference file name.
   character(24) :: data_date = ''        ! Data measurement date.
   character(24) :: ref_date = ''         ! Reference data measurement date.
   character(80) :: descrip(10) = ''      ! Array for descriptive information.
@@ -657,6 +653,7 @@ type tao_global_struct
   integer :: default_branch = 0                  ! Default lattice branch to work with.
   integer :: n_opti_cycles = 20                  ! Number of optimization cycles
   integer :: n_opti_loops = 1                    ! Number of optimization loops
+  integer :: n_threads = 1                       ! Number of OpenMP threads for parallel calculations.
   integer :: phase_units = radians$              ! Phase units on output.
   integer :: bunch_to_plot = 1                   ! Which bunch to plot
   integer :: random_seed = -1                    ! Use system clock by default
@@ -665,7 +662,7 @@ type tao_global_struct
   integer :: datum_err_messages_max = 10         ! Maximum number of error messages per call to lattice_calc.
   integer :: srdt_sxt_n_slices = 20              ! Number times to slice sextupoles for summation RDT calculation
   logical :: srdt_use_cache = .true.             ! Create cache for SRDT calculations.  Can use lots of memory if srdt_*_n_slices large.
-  character(12) :: quiet = 'off'                 ! "all", or "output". Print I/O when running a command file?
+  character(12) :: quiet = 'off'                 ! Print I/O when running a command file?
   character(16) :: random_engine = ''            ! Non-beam random number engine
   character(16) :: random_gauss_converter = ''   ! Non-beam
   character(16) :: track_type    = 'single'      ! or 'beam'  
@@ -677,7 +674,7 @@ type tao_global_struct
   character(100) :: history_file = '~/.history_tao'
   logical :: beam_timer_on = .false.                  ! For timing the beam tracking calculation.
   logical :: box_plots = .false.                      ! For debugging plot layout issues.
-  logical :: command_file_print_on = .true.           ! Depracated. No longer used. 
+  logical :: cmd_file_abort_on_error = .true.         ! Abort open command files if there is an error?
   logical :: concatenate_maps = .false.               ! False => tracking using DA. 
   logical :: debug_on = .false.                       ! For debugging.
   logical :: derivative_recalc = .true.               ! Recalc before each optimizer run?
@@ -697,7 +694,7 @@ type tao_global_struct
   logical :: optimizer_allow_user_abort = .true.      ! See Tao manual for more details.
   logical :: optimizer_var_limit_warn = .true.        ! Warn when vars reach a limit with optimization.
   logical :: plot_on = .true.                         ! Do plotting?
-  logical :: rad_int_calc_on = .true.                 ! Radiation integrals calculation on/off.
+  logical :: rad_int_user_calc_on = .true.            ! User set radiation integrals calculation on/off.
   logical :: rf_on = .true.                           ! RFcavities on or off? Does not affect lcavities.
   logical :: single_step = .false.                    ! For debugging and demonstrations: Single step through a command file?
   logical :: stop_on_error = .true.                   ! For debugging: False prevents tao from exiting on an error.
@@ -716,10 +713,11 @@ type tao_alias_struct
 end type
 
 type tao_command_file_struct
-  character(200) :: full_name = ''
-  character(200) :: dir = './'
+  character(400) :: full_name = ''
+  character(400) :: dir = './'
   integer :: ix_unit
   character(40) :: cmd_arg(9) = ''  ! Command file arguments.
+  character(12) :: quiet = 'off'
   logical :: paused = .false.       ! Is the command file paused?
   integer :: n_line = 0             ! Current line number
   logical :: reset_at_end = .true.  ! Reset lattice_calc_on and plot_on at end of file?
@@ -742,7 +740,6 @@ integer, parameter :: n_uni_init$ = 1
 type tao_common_struct
   type (tao_alias_struct) :: alias(200) = tao_alias_struct()
   type (tao_alias_struct) :: key(100) = tao_alias_struct()
-  type (tao_universe_struct), pointer :: u_working => null()         ! Index of working universe.
   type (tao_command_file_struct), allocatable :: cmd_file(:)
   type (named_number_struct), allocatable :: symbolic_num(:)    ! Named numbers
   type (tao_plot_region_struct), allocatable :: plot_place_buffer(:)  ! Used when %external_plotting is on.
@@ -758,6 +755,7 @@ type tao_common_struct
   integer :: lev_loop = 0                       ! in do loop nest level
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   integer :: n_universes = n_uni_init$   
+  integer :: ix_beam_track_active_element = -1  ! Element being tracked through `tao_beam_track`.
   logical :: cmd_file_paused = .false.
   logical :: use_cmd_here  = .false.            ! Used for commands recalled from the cmd history stack
   logical :: cmd_from_cmd_file = .false.        ! was command from a command file?
@@ -771,19 +769,21 @@ type tao_common_struct
   logical :: init_read_lat_info    = .true.   ! Used by custom programs to control Tao init
   logical :: optimizer_running     = .false. 
   logical :: have_datums_using_expressions = .false.
-  logical :: print_to_terminal = .true.              ! Print command prompt to the terminal? For use with GUIs.
-  logical :: lattice_calc_done = .false.             ! Used by GUI for deciding when to refresh.
-  logical :: add_measurement_noise = .true.          ! Turn off to take data derivatives.
-  logical :: is_err_message_printed(2) = .false.     ! Used by tao_set_invalid
-  logical :: command_arg_has_been_executed = .false. ! Has the -command command line argument been executed?
+  logical :: print_to_terminal = .true.               ! Print command prompt to the terminal? For use with GUIs.
+  logical :: lattice_calc_done = .false.              ! Used by GUI for deciding when to refresh.
+  logical :: add_measurement_noise = .true.           ! Turn off to take data derivatives.
+  logical :: is_err_message_printed(2) = .false.      ! Used by tao_set_invalid
+  logical :: command_arg_has_been_executed = .false.  ! Has the -command command line argument been executed?
   logical :: all_merit_weights_positive = .true.  
-  logical :: multi_turn_orbit_is_plotted = .false.   ! Is a multi_turn_orbit being plotted?
-  logical :: force_chrom_calc = .false.              ! Used by a routine to force calculation
-  logical :: force_rad_int_calc = .false.            ! Used by a routine to force calculation
-  character(16) :: valid_plot_who(10) = ''           ! model, base, ref etc...
+  logical :: multi_turn_orbit_is_plotted = .false.    ! Is a multi_turn_orbit being plotted?
+  logical :: force_chrom_calc = .false.               ! Used by a routine to force a single chromaticity calculation.
+  logical :: force_rad_int_calc = .false.             ! Used by a routine to force a single radiation integrals calculation
+  logical :: rad_int_ri_calc_on = .true.              ! "Classical" radiation integrals calculation on/off.
+  logical :: rad_int_6d_calc_on = .true.              ! 6D Radiation integrals calculation on/off.
+  character(16) :: valid_plot_who(10) = ''            ! model, base, ref etc...
   character(200) :: single_mode_buffer = ''
-  character(200) :: cmd = ''                         ! Used for the cmd history
-  character(200) :: saved_cmd_line = ''              ! Saved part of command line when there are mulitple commands on a line
+  character(200) :: cmd = ''                          ! Used for the cmd history
+  character(200) :: saved_cmd_line = ''               ! Saved part of command line when there are mulitple commands on a line
 end type
 
 ! Initialization parameters
@@ -793,26 +793,26 @@ type tao_init_struct
   logical :: debug_switch = .false.                  ! Is the "-debug" switch present?
   logical :: external_plotting_switch = .false.      ! Is "-external_plotting" switch present?
   character(16) :: init_name = 'Tao'                 ! label for initialization
-  character(200) :: hook_init_file = ''              ! 
-  character(200) :: hook_lat_file = ''               ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_beam_file = ''              ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_data_file = ''              ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_plot_file = ''              ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_startup_file = ''           ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_var_file = ''               ! To be set by tao_hook_parse_command_args
-  character(200) :: hook_building_wall_file = ''     ! To be set by tao_hook_parse_command_args
-  character(200) :: init_file_arg_path = ''          ! Path part of init_tao_file
-  character(200) :: lattice_file_arg = ''            ! -lattice_file        command line argument.
-  character(200) :: hook_init_file_arg = ''          ! -hook_init_file      command line argument
-  character(200) :: init_file_arg = ''               ! -init_file           command line argument.
-  character(200) :: beam_file_arg = ''               ! -beam_file           command line argument.
-  character(200) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
+  character(400) :: hook_init_file = ''              ! 
+  character(400) :: hook_lat_file = ''               ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_beam_file = ''              ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_data_file = ''              ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_plot_file = ''              ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_startup_file = ''           ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_var_file = ''               ! To be set by tao_hook_parse_command_args
+  character(400) :: hook_building_wall_file = ''     ! To be set by tao_hook_parse_command_args
+  character(400) :: init_file_arg_path = ''          ! Path part of init_tao_file
+  character(400) :: lattice_file_arg = ''            ! -lattice_file        command line argument.
+  character(400) :: hook_init_file_arg = ''          ! -hook_init_file      command line argument
+  character(400) :: init_file_arg = ''               ! -init_file           command line argument.
+  character(400) :: beam_file_arg = ''               ! -beam_file           command line argument.
+  character(400) :: beam_init_position_file_arg = '' ! -beam_init_position_file command line argument.
   character(500) :: command_arg = ''                 ! -command             command line argument.
-  character(200) :: data_file_arg = ''               ! -data_file           command line argument.
-  character(200) :: plot_file_arg = ''               ! -plot_file           command line argument.
-  character(200) :: startup_file_arg = ''            ! -startup_file        command line argument.
-  character(200) :: var_file_arg = ''                ! -var_file            command line argument.
-  character(200) :: building_wall_file_arg = ''      ! -building_wall_file  command line argument.
+  character(400) :: data_file_arg = ''               ! -data_file           command line argument.
+  character(400) :: plot_file_arg = ''               ! -plot_file           command line argument.
+  character(400) :: startup_file_arg = ''            ! -startup_file        command line argument.
+  character(400) :: var_file_arg = ''                ! -var_file            command line argument.
+  character(400) :: building_wall_file_arg = ''      ! -building_wall_file  command line argument.
   character(16) :: geometry_arg = ''                 ! -geometry            command line argument.
   character(80) :: slice_lattice_arg = ''            ! -slice_lattice       command line argument.
   character(40) :: start_branch_at_arg = ''          ! -start_branch_at     command line argument.
@@ -939,7 +939,6 @@ type tao_lattice_branch_struct
   type (coord_struct), allocatable :: high_E_orb(:), low_E_orb(:)
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   real(rp) :: comb_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%ds_save
-  real(rp) :: comb_max_ds_save = -1                       ! Master parameter for %bunch_params_comb(:)%max_ds_save
   integer track_state
   integer :: cache_n_pts = 0
   integer ix_rad_int_cache                                ! Radiation integrals cache index.
@@ -959,10 +958,13 @@ type tao_lattice_struct
   character(8) :: name                         ! "model", "base", or "design".
   type (lat_struct) lat                        ! lattice structures
   type (lat_struct) :: high_E_lat, low_E_lat   ! For chrom calc.
-  logical :: chrom_calc_ok = .false.
   type (tao_universe_struct), pointer :: u => null()  ! Parent universe
-  type (rad_int_all_ele_struct) rad_int
+  type (rad_int_all_ele_struct) rad_int_by_ele_ri
+  type (rad_int_all_ele_struct) rad_int_by_ele_6d
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
+  logical :: chrom_calc_ok = .false.
+  logical :: rad_int_calc_ok = .false.
+  logical :: emit_6d_calc_ok = .false.
 end type
 
 ! Universe wide structure for information that does not fit anywhere else.
@@ -1006,7 +1008,7 @@ end type
 
 type tao_beam_uni_struct
   character(200) :: saved_at = ''
-  character(200) :: dump_file = ''
+  character(400) :: dump_file = ''
   character(200) :: dump_at = ''
   logical :: track_beam_in_universe = .false.    ! Beam tracking enabled in this universe?
   logical :: always_reinit = .false.
@@ -1203,11 +1205,12 @@ integer i
 
 !
 
-lat1%lat            = lat2%lat
-lat1%high_E_lat     = lat2%high_E_lat
-lat1%low_E_lat      = lat2%low_E_lat
-lat1%rad_int        = lat2%rad_int
-lat1%tao_branch     = lat2%tao_branch
+lat1%lat                = lat2%lat
+lat1%high_E_lat         = lat2%high_E_lat
+lat1%low_E_lat          = lat2%low_E_lat
+lat1%rad_int_by_ele_ri  = lat2%rad_int_by_ele_ri
+lat1%rad_int_by_ele_6d  = lat2%rad_int_by_ele_6d
+lat1%tao_branch         = lat2%tao_branch
 
 end subroutine tao_lattice_equal_tao_lattice
 

@@ -9,8 +9,6 @@ module ptc_interface_mod
 
 use taylor_mod
 use attribute_mod
-use coord_mod
-use multipole_mod
 
 interface assignment (=)
   module procedure damap_equal_bmad_taylor
@@ -2157,7 +2155,7 @@ call ptc_set_taylor_order_if_needed()
 ! and create map corresponding to ele%taylor.
 
 param%particle = positron$  ! Actually this does not matter to the calculation
-call ele_to_fibre (ele, fib, param, .true., err_flag)
+call ele_to_fibre (ele, fib, .true., err_flag)
 if (err_flag) then
   call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
   return
@@ -2480,7 +2478,7 @@ ptc_tlr = bmad_taylor
 
 ! track the map
 
-call ele_to_fibre (ele, ptc_fibre, param, .true., err_flag, ref_in = ref_in)
+call ele_to_fibre (ele, ptc_fibre, .true., err_flag, ref_in = ref_in)
 if (err_flag) then
   call out_io(s_error$, r_name, 'CANNOT USE ELEMENT WITH PTC: ' // ele_full_name(ele))
   return
@@ -3017,13 +3015,15 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
+! Subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
 !
 ! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
 !
-! Note: On ptc side bn(1) is error field when creating a fibre but 
-! is total field when fibre is being modified. This routine returns the error field.
+! Note: The multipole index uses the PTC convention of starting from 1 instead of zero.
+!
+! Note: On the PTC side bn(1) is error field when creating a fibre but 
+! is the total field when the fibre is being modified. This routine returns the error field.
 !
 ! Input:
 !   ele                 -- ele_struct: Bmad Element.
@@ -3032,9 +3032,10 @@ end subroutine bmad_patch_parameters_to_ptc
 !   bn(1:n_pole_maxx+1) -- real(rp): Normal multipole component.
 !   an(1:n_pole_maxx+1) -- real(rp): Skew multipole component.
 !   n_max               -- integer, optional: Maximum non-zero multipole component.
+!                           Set to zero if there are no multipoles.
 !-
 
-subroutine ele_to_ptc_magnetic_an_bn (ele, bn, an, n_max)
+subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
 
 implicit none
 
@@ -3050,9 +3051,13 @@ integer, optional :: n_max
 integer n, key, ix_pole_max
 logical kick_here, add_kick, add_multipoles
 
-character(*), parameter :: r_name = 'ele_to_ptc_magnetic_an_bn'
+character(*), parameter :: r_name = 'ele_to_ptc_magnetic_bn_an'
 
 !
+
+if (present(n_max)) n_max = 0
+bn = 0
+an = 0
 
 if (ele%key == taylor$) return
 if (ele%key == match$) return
@@ -3084,7 +3089,7 @@ case (crab_cavity$)
     bn(1) = 1d-9 * e_accel_field(ele, voltage$) / leng
   endif
 
-case (drift$, rfcavity$, lcavity$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
+case (rfcavity$, lcavity$, drift$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
   ! Nothing to be done
 
 case (octupole$)
@@ -3177,6 +3182,9 @@ if (add_multipoles) then
 
   select case (ele%key)
   case (hkicker$, vkicker$, kicker$)
+  case (lcavity$, rfcavity$)
+    an0 = an0 / ele%value(l_active$)
+    bn0 = bn0 / ele%value(l_active$)
   case default
     if (leng /= 0) then
       an0 = an0 / leng
@@ -3201,7 +3209,7 @@ if (present(n_max)) then
   n_max  = n
 endif
 
-end subroutine ele_to_ptc_magnetic_an_bn
+end subroutine ele_to_ptc_magnetic_bn_an
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------

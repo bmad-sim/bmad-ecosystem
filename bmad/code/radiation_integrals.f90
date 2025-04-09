@@ -164,7 +164,7 @@ if (any(branch%ele(0:branch%n_ele_track)%a%beta == 0)) then
   n = minloc(branch%ele(0:branch%n_ele_track)%a%beta, 1) - 1
   call out_io (s_error$, r_name, 'TWISS PARAMETERS HAVE NOT BEEN INITIALIZED AT ELEMENT \i0\ OF BRANCH \i0\.', &
                                  '[DUE TO UNSTABLE RING? OR MISSING CALL TO TWISS_PROPAGATE_ALL?]', &
-                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.', i_array = [n, ib])
+                                 'NO RADIATION INTEGRALS WILL BE COMPUTED.', i_array = [n, branch%ix_branch])
   return
 endif
 

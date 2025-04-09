@@ -431,8 +431,8 @@ a datum. This, combined with the setting \vn{exists}, \vn{good_meas}, \vn{good_r
 \vn{good_opt} determine the setting of \vn{useit_opt} which is the component that determines if the
 datum is used in the computation of the merit function. The settings of everything but
 \vn{good_user} is determined by \tao. The value of \vn{good_user} for a datum can be set in an
-initialization file (\sref{s:init.data}) or on the command line using the \vn{use}, (\sref{s:use}) \vn{veto} (\sref{s:veto}), or
-\vn{restore} (\sref{s:restore}) commands.
+initialization file (\sref{s:init.data}) or on the command line using the \vn{use}, (\sref{s:use})
+\vn{veto} (\sref{s:veto}), or \vn{restore} (\sref{s:restore}) commands.
 
 The \vn{exists} component is set by \tao to True if the datum exists and False otherwise. A datum
 may not exist if the type of datum requires the designation of an associated element but the
@@ -667,13 +667,13 @@ describes in detail these data types.
   \pref{alpha}            & alpha.a, .b                         & Normal-Mode alpha function                & lat         & Yes \\ \hline 
   \pref{apparent.emit}    & apparent_emit.x, .y                 & Apparent emittance                        & lat, beam   & No  \\ \hline
   \pref{beta.a}           & beta.a, .b, .c                      & Normal-mode beta function                 & lat, beam   & Yes \\ \hline 
-  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & lat, beam   & No  \\ \hline 
+  \pref{beta.x}           & beta.x, .y, .z                      & Projected beta function                   & beam        & No  \\ \hline 
   \pref{bpm.cbar}         & \begin{tabular}{@{}l}   
                               bpm_cbar.22a, .12a, \\
                               \hspace{4em} .11b, .12b
                             \end{tabular}                       & Measured coupling                         & lat         & Yes \\ \hline
   \pref{bpm.eta}          & bpm_eta.x, .y                       & Measured dispersion                       & lat         & Yes \\ \hline
-  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat         & Yes \\ \hline
+  \pref{bpm.orbit}        & bpm_orbit.x, .y                     & Measured orbit                            & lat, beam   & Yes \\ \hline
   \pref{bpm.phase}        & bpm_phase.a, .b                     & Measured betatron phase                   & lat         & Yes \\ \hline
   \pref{bpm.k}            & \begin{tabular}{@{}l}   
                               bpm_k.22a, .12a, \\
@@ -826,10 +826,11 @@ describes in detail these data types.
                               slip_factor_ptc.$N$ \\
                               \hspace{3em} $N = 0, 1, 2, \ldots$
                             \end{tabular}                       & Slip factor Taylor terms                  & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate.                 & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate.                   & lat        & No  \\ \hline
-  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit.                  & lat        & No  \\ \hline
-  \pref{spin}             & spin.x, .y, .z                      & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.pol}         & spin.depolarization_rate            & Spin depolarization rate                  & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_rate              & Spin polarization rate                    & lat        & No  \\ \hline
+  \pref{spin.pol}         & spin.polarization_limit             & Spin polarization limit                   & lat        & No  \\ \hline
+  \pref{spin}             & spin.x, .y, .z .amp                 & Particle spin                             & lat, beam  & No  \\ \hline 
+  \pref{spin.dn.dpz}      & spin_dn_dpz.x, .y, .z               & Spin dn/dpz components                    & lat        & No  \\ \hline
   \pref{spin.g.matrix}    & \begin{tabular}{@{}l}
                               spin_g_matrix.$ij$ \\
                               \hspace{10pt} $1 \le i \le 2$, $1 \le j \le 6$ 
@@ -843,6 +844,7 @@ describes in detail these data types.
                               spin_map_ptc.$ijklmn$, \\
                               \hspace{4em} $i,j,k,l,m,n$ are digits
                             \end{tabular}                       & Spin Map Taylor terms                     & lat        & no  \\ \hline
+  \pref{spin.tune}        & spin_tune                           & Spin tune                                 & lat        & no  \\ \hline
   \pref{spin.tune.ptc}    & \begin{tabular}{@{}l}
                               spin_tune_ptc.$N$, \\
                               \hspace{10pt} $N = 0, 1, \ldots$
@@ -1011,8 +1013,9 @@ $(1/\beta_{a,b})\partial\beta_{a,b}/\partial p_z$. Unlike the standard chromatic
 and \vn{chrom.b}, the these chromaticities are evaluated at individual elements. The calculation uses
 finite differences with the variation of $pz$ being set by \vn{global%delta_e_chrom}.
 
-Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
-In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
+Chromaticities and the W-function will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set in the lattice file by setting
+\vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]}, \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]}.
 
   %----------------------
   \item[chrom.deta.x, .deta.y] \Newline \hlabel{chrom.deta}
@@ -1039,8 +1042,9 @@ chromaticities,\vn{chrom.a} and \vn{chrom.b}, these chromaticities are evaluated
 elements. The calculation uses finite differences with the variation of $pz$ being set by
 \vn{global%delta_e_chrom}.
 
-Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
-In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
+Chromaticities and the W-function will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set in the lattice file by setting
+\vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]}, \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]}.
 
   %----------------------
   \item[chrom.w.a, chrom.w.b] \Newline \hlabel{chrom.w}
@@ -1058,9 +1062,11 @@ where
   B = \frac{1}{\beta} \, \frac{\partial\beta}{\partial p_z}
 \end{equation}
 
-Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
-In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch will be assumed to be zero.
-And $p_z$ is the local $p_z$ at the evaluation point (as opposed to the $p_z$ at the start of the lattice).
+Chromaticities and the W-function will be calculated even if the geometry of the lattice branch has an open geometry.
+In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set in the lattice file by setting
+\vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]}, \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]}.
+
+Note: $p_z$ is the local $p_z$ at the evaluation point (as opposed to the $p_z$ at the start of the lattice).
 
   %----------------------
   \item[chrom_ptc.a.$N$, chrom_ptc.b.$N$, $N = 0, 1, 2, \ldots$] \Newline \hlabel{chrom.ptc}
@@ -1784,6 +1790,11 @@ manual. For a lattice with a closed geometry, the calculated spin is the closed 
 with the amplitude of the spin set at unity.
 
   %----------------------
+  \item[spin_dn_dpz.x, .y, .z] \Newline \hlabel{spin.dn.dpz}
+This datum gives the $x$, $y$, and $z$ components of the $d\bfn/dp_z$ vector where $\bfn$ if the invarient
+spin field and $p_z$ is the sixth component of the particle's phase space coordinates.
+
+  %----------------------
   \item[spin_g_matrix.$ij$ \hspace{0.2in} $1 \le i \le 2, \quad 1 \le j \le 6$] \Newline \hlabel{spin.g.matrix}
 The $\bfG$-matrix is the $2\times6$ sub-matrix of the $8\times8$ spin-orbital transfer matrix $\wt\bfM$
 that describes the coupling between orbital motion and spin precession as discussed in the section
@@ -1823,6 +1834,10 @@ a rotation angle equal to the spin tune.
 Spin resonance values. \vn{.a.sum}, \vn{.a.diff} are the sum and difference resonance values for the
 $a$-mode, etc. The \vn{show spin -ele ...} command will print the values. If not present, the
 evaluation element for the datum is the beginning element of the lattice branch.
+
+  %----------------------
+  \item[spin_tune] \Newline \hlabel{spin.tune}
+Spin tune as calculated by Bmad and not using PTC code. Also see \vn{spin_tune_ptc}.
 
   %----------------------
   \item[spin_map_ptc.$ijklmn$, where $i,j,k,l,m, n$ are 6 digits] \Newline \hlabel{spin.map.ptc}

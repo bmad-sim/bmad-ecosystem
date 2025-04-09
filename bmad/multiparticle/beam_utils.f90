@@ -2,7 +2,6 @@ module beam_utils
 
 use beam_file_io
 use wake_mod
-use coord_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
@@ -55,7 +54,7 @@ character(*), parameter :: r_name = 'track1_bunch_hom'
 
 branch => pointer_to_branch(ele)
 bunch%particle%direction = integer_option(1, direction)
-if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele, branch%param)
+if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele)
 thread_safe = (ele%tracking_method /= symp_lie_ptc$ .and. global_com%mp_threading_is_safe)
 
 call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
@@ -106,7 +105,7 @@ else
     return
   endif
 
-  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele, branch%param)
+  if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele)
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele, err_flag)
   !$OMP parallel do if (thread_safe)
@@ -151,6 +150,10 @@ enddo
 !$OMP end parallel do
 
 bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+if (bunch%charge_live == 0) then
+  call out_io (s_info$, r_name, 'Note: Wakes are on but bunch charge is zero!')
+endif
+
 call save_a_bunch_step (ele, bunch, bunch_track, ele%value(l$))
 
 end subroutine track1_bunch_hom
@@ -466,7 +469,7 @@ if (b_init%full_6D_coupling_calc) then
   abz_tunes(2) = mod(ele%branch%ele(ele%branch%n_ele_track)%b%phi,twopi)
   abz_tunes(3) = ele%branch%z%tune
   call normal_mode3_calc(t6, tunes, G6mat, V6mat, .true., abz_tunes)
-  call mat_inverse(G6mat, G6inv, ok)
+  call mat_inverse(G6mat, G6inv, ok = ok)
   do i = 1, size(bunch%particle)
     p => bunch%particle(i)
     p%vec = matmul(G6inv, p%vec)
@@ -1408,6 +1411,9 @@ call convert_pc_to (average_pc, species, beta = bunch_params%centroid%beta)
 if (bunch_params%n_particle_live < 6) return
 
 call calc_emittances_and_twiss_from_sigma_matrix (bunch_params%sigma, bunch_params, error, print_err, n_mat)
+if (error .and. logic_option(.true., print_err)) then
+  if (present(ele)) call out_io(s_blank$, r_name, 'This at element: ' // ele_full_name(ele))
+endif
 
 end subroutine calc_bunch_params
 

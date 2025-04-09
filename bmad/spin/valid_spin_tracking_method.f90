@@ -29,37 +29,49 @@ select case (ele%key)
 
 case (ab_multipole$)
   select case (spin_tracking_method)
-  case (tracking$, custom$)
+  case (off$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (ac_kicker$)
   select case (spin_tracking_method)
-  case (tracking$, custom$)
+  case (off$, tracking$, custom$)
     is_valid = .true.
   end select
 
-case (capillary$, crystal$, mirror$, multilayer_mirror$, taylor$)
+case (capillary$, crystal$, mirror$, multilayer_mirror$)
   ! Always False
+
+case (taylor$)
+  select case (spin_tracking_method)
+  case (off$, tracking$, transverse_kick$)
+    is_valid = .true.
+  end select
 
 case (crab_cavity$)
   select case (spin_tracking_method)
-  case (tracking$, custom$)
+  case (off$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (custom$, rf_bend$)
   select case (spin_tracking_method)
-  case (tracking$, custom$)
+  case (off$, tracking$, custom$)
     is_valid = .true.
   end select
 
 case (hybrid$)
   ! Always False
 
+case (match$)
+  select case (spin_tracking_method)
+  case (off$, transverse_kick$)
+    is_valid = .true.
+  end select
+
 case (sad_mult$, patch$)
   select case (spin_tracking_method)
-  case (custom$, symp_lie_ptc$)
+  case (off$, tracking$, custom$, symp_lie_ptc$)
     is_valid = .true.
   end select
 
@@ -69,19 +81,19 @@ case (group$, overlay$, girder$, ramper$, null_ele$)
 case (sbend$, quadrupole$, solenoid$, sextupole$, octupole$, drift$, thick_multipole$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
   select case (spin_tracking_method)
-  case (custom$, symp_lie_ptc$, tracking$, sprint$)
+  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$)
     is_valid = .true.
   end select
 
 case (rfcavity$)
   select case (spin_tracking_method)
-  case (custom$, symp_lie_ptc$, tracking$, sprint$)
+  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$)
     is_valid = .true.
   end select
 
 case default
   select case (spin_tracking_method)
-  case (custom$, symp_lie_ptc$, tracking$)
+  case (off$, custom$, symp_lie_ptc$, tracking$)
     is_valid = .true.
   end select
 end select

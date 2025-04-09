@@ -47,10 +47,10 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   private alloc_c_damap,c_DPEKMAP,c_DPOKMAP,kill_c_damap,kill_c_spinmatrix,c_etcct,c_spinmatrix_mul_cray
   private EQUALspinmatrix,c_trxtaylor,powmap,POWMAPs,alloc_c_vector_field,kill_c_vector_field,kill_c_damaps
   private alloc_c_normal_form,kill_c_normal_form,c_EQUALVEC,c_spinmatrix_spinmatrix,c_IdentityEQUALVEC,qua_ql
-  private liebraquaternion,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
+  private liebraquaternion,liebraso3,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
-  private NO,ND,ND2,NP,NDPT,NV,ndptb,rf
-  private c_concat_c_uni_ray,c_concat_c_uni_rays
+  private NO,ND,ND2,NP,NDPT,NV,ndptb,rf,c_real_spinmatrix,c_taylor_spinmatrix
+  private c_concat_c_uni_ray,c_concat_c_uni_rays,c_EQUALVECqua
   integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf
   private nd_used
   integer nd_used
@@ -76,6 +76,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
  private c_expflo_fac_inv,c_logc,c_complex_spinor,c_real_spinor,GETORDERSPINMATRIX,c_pri_spinor
  private c_spinor_cmap,c_adjoint_vec,c_adjoint,c_trxtaylor_da,c_spinmatrix_sub_spinmatrix,c_spinor_cmap_tpsa
  PRIVATE CUTORDERMAP,CUTORDERspin,CUTORDERspinor,c_concat_tpsa,c_concat_spinor_ray,GETORDERquaternion
+ private unarySUB_spinmatrix,spinmatrix_spinmatrix
   type(C_dalevel) c_scratchda(ndumt)   !scratch levels of DA using linked list
 integer, private,target :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
 !integer, private, parameter :: ndim2t=10
@@ -113,8 +114,8 @@ private EQUAL_probe_3_by_3,equalc_cspinor_spinor,EQUAL_3_by_3_c_spinmatrix
 private EQUALq_r,EQUALq_8_c,EQUALq_c_8,EQUALq,POWq,c_invq,subq,mulq,addq,alloc_c_quaternion,kill_c_quaternion
 private c_pri_quaternion,CUTORDERquaternion,c_trxquaternion,EQUALq_c_r,EQUALq_r_c,mulcq,c_exp_quaternion
 private equalc_quaternion_c_spinor,equalc_spinor_c_quaternion,unarySUB_q,c_trxquaternion_tpsa
-private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,addql,subql,mulqdiv,powql
-private copy_tree_into_tree_zhe,absq2,absq,c_MAP_VEC,printcomplex,printpoly,print6
+private c_exp_vectorfield_on_quaternion,c_vector_field_quaternion,c_vector_field_so3,addql,subql,mulqdiv,powql
+private copy_tree_into_tree_zhe,absq2,absq,c_MAP_VEC,c_VEC_MAP,printcomplex,printpoly,print6
 !private equal_map_real8,equal_map_complex8,equal_real8_map,equal_complex8_map
 real(dp) dts
 real(dp), private :: sj(6,6)
@@ -139,7 +140,7 @@ integer i_alloc
 integer, private :: nmono
 integer  nmono_from_moment
 real(dp), private  :: tiny =1e-20_dp
-    logical :: sagan_gen =.false.
+    logical :: sagan_gen =.false.,symplectify_map=.false.
 integer mf_,n1_,n2_
 logical :: do_damping=.false.,do_spin=.false.,use_radiation_inverse = .true.
 logical :: force_spin_input_normal=.false.
@@ -152,8 +153,10 @@ private compute_lattice_functions_1,compute_lattice_functions_2
 private A_opt_c_vector,K_OPT_c_vector,r_field_for_demin,clean_c_universal_taylor
 logical :: old_phase_calculation=.false.
 logical :: new_cycle=.true.
- 
-
+private EQUAL_arrayreal_arraytaylor,EQUAL_arraycomplex_arraytaylor
+private  EQUAL_arraytaylor_arrayreal,EQUAL_arraytaylor_arraycomplex
+private quaternion_to_spinmatrix,makeso3_equal
+logical :: correct_quaternion_field=.true.
 !  These routines computes lattice functions a la Ripken-Forest-Wolski
 !type c_lattice_function
 ! real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0 ! E : moments, K : Invariants
@@ -215,6 +218,7 @@ logical :: new_cycle=.true.
      MODULE PROCEDURE equalt_c
      MODULE PROCEDURE c_EQUALMAP  !#  c_damap=c_damap
      MODULE PROCEDURE c_MAP_VEC
+     MODULE PROCEDURE c_VEC_MAP
     MODULE PROCEDURE c_IdentityEQUALMAP
     MODULE PROCEDURE c_IdentityEQUALSPIN
     MODULE PROCEDURE c_IdentityEQUALSPINOR   !# c_spinor = 0,1,2, or 3
@@ -245,6 +249,7 @@ logical :: new_cycle=.true.
       MODULE PROCEDURE equalc_cvec_vec
 
       MODULE PROCEDURE c_EQUALVEC   !# c_vector_field=c_vector_field
+      MODULE PROCEDURE   c_EQUALVECqua  ! quaternion vector field into SO(3) vector field
       MODULE PROCEDURE equalc_cspinor_cspinor
       MODULE PROCEDURE equalc_ray_r6
       MODULE PROCEDURE equalc_ray_r6r
@@ -263,6 +268,10 @@ logical :: new_cycle=.true.
       MODULE PROCEDURE equal_real8_map
       MODULE PROCEDURE equal_complex8_map   ! replaces c_dpekmap
       MODULE PROCEDURE copy_tree_into_tree_zhe
+      MODULE PROCEDURE EQUAL_arrayreal_arraytaylor 
+        MODULE PROCEDURE  EQUAL_arraycomplex_arraytaylor
+        MODULE PROCEDURE  EQUAL_arraytaylor_arrayreal
+        MODULE PROCEDURE  EQUAL_arraytaylor_arraycomplex
   end  INTERFACE
 
      ! UNIVERSAL_TAYLOR
@@ -317,6 +326,7 @@ logical :: new_cycle=.true.
      MODULE PROCEDURE unarySUB_vec
      MODULE PROCEDURE unarySUB_q
      MODULE PROCEDURE unarySUB_spinor
+     MODULE PROCEDURE unarySUB_spinmatrix
      MODULE PROCEDURE c_spinor_sub_spinor
      MODULE PROCEDURE c_spinmatrix_sub_spinmatrix
      MODULE PROCEDURE c_sub_vf
@@ -357,6 +367,7 @@ logical :: new_cycle=.true.
      MODULE PROCEDURE c_bra_v_dm     !# c_damap=(F.grad +q ) c_damap     !T = F* A
      MODULE PROCEDURE c_vector_field_quaternion  !# (f.grad + q)quaternion   q'=F*q
                                                  !  bra_v_q(f,quaternion) = f.grad quaternion
+     MODULE PROCEDURE c_vector_field_so3
      MODULE PROCEDURE map_mul_vec_q  !   c_damap * c_vector_field means "transform field by map" 
 !     G=AF   is the same as G=AFA^(-1)
 !    SO(3) stuff : used only these days on the ISF once computed via quaternions
@@ -369,7 +380,8 @@ logical :: new_cycle=.true.
      MODULE PROCEDURE c_spinmatrix_spinor  !# c_spinor = matrix * c_spinor    s' =S2 s
      MODULE PROCEDURE c_spinor_cmap        !# c_spinor =c_spinor * c_damap substitution 
      MODULE PROCEDURE c_trxspinmatrix    !# c_spinmatrix=  c_spinmatrix * c_damap
-
+     MODULE PROCEDURE c_real_spinmatrix
+     MODULE PROCEDURE c_taylor_spinmatrix
   END INTERFACE
 
   INTERFACE OPERATOR (.o.) 
@@ -534,6 +546,8 @@ logical :: new_cycle=.true.
   !  The Lie bracket of two vector field. 
      MODULE PROCEDURE liebra    !#  F=<G,H> includes spin now 
      MODULE PROCEDURE liebraquaternion !# used by liebra mostly private (not to be used alone)
+     MODULE PROCEDURE liebraso3 !# used by liebra mostly private (not to be used alone)
+
   END INTERFACE
 
  ! INTERFACE getvf
@@ -637,7 +651,7 @@ logical :: new_cycle=.true.
 !  F is of type c_factor_lie
      MODULE PROCEDURE c_expflo_fac  ! T=exp(F,M)  => T=exp(F_1.grad)...exp(F_no.grad)M or T=exp(F_no.grad)...exp(F_1.grad)M
      MODULE PROCEDURE c_exp_spinmatrix   ! obsolescent
-     MODULE PROCEDURE c_exp_vectorfield_on_quaternion    ! internal use
+   !  MODULE PROCEDURE c_exp_vectorfield_on_quaternion    ! internal use   etienne_remove
      MODULE PROCEDURE c_exp_quaternion  ! internal use
 
 ! same as  map_mul_vec_q in (*)    If G=exp(G.grad)I   same as G*F=exp(<G,>)F 
@@ -657,7 +671,13 @@ logical :: new_cycle=.true.
      MODULE PROCEDURE quaternion_to_matrix_in_c_damap
 !!      call MAKESO3(Ml,m) uses the quaternion in the linear map  
      MODULE PROCEDURE c_linear_map_to_matrix
+     MODULE PROCEDURE quaternion_to_spinmatrix
   END INTERFACE
+
+  INTERFACE assignment (=)
+     MODULE PROCEDURE makeso3_equal
+  END INTERFACE
+
 
   INTERFACE AVERAGE
      MODULE PROCEDURE c_AVERAGE   !2000.12.25
@@ -1095,6 +1115,9 @@ end subroutine c_get_indices
 
     if(use_quaternion)   THEN
      unarySUB_vec%q=-s1%q
+    else
+!     unarySUB_vec%h=-s1%h
+      unarySUB_vec%L=-s1%L
     endif
     unarySUB_vec%nrmax=s1%nrmax
     unarySUB_vec%eps=s1%eps
@@ -1151,6 +1174,31 @@ end subroutine c_get_indices
     c_master=localmaster
 
   END FUNCTION unarySUB_spinor
+
+  FUNCTION unarySUB_spinmatrix( S1 )
+    implicit none
+    TYPE (c_spinmatrix) unarySUB_spinmatrix
+    TYPE (c_spinmatrix), INTENT (IN) :: S1
+    integer localmaster,i,j
+
+    IF(.NOT.C_STABLE_DA) then
+     unarySUB_spinmatrix%s(1,1)%i=0
+    endif
+    localmaster=c_master
+
+
+    call c_ass_spinmatrix(unarySUB_spinmatrix)
+    
+    do i=1,3
+    do j=1,3
+     unarySUB_spinmatrix%s(i,j)=-s1%s(i,j)
+    enddo
+    enddo
+
+
+    c_master=localmaster
+
+  END FUNCTION unarySUB_spinmatrix
 
  subroutine normalise_spinor(n1) 
 !#general: manipulation
@@ -1565,7 +1613,9 @@ end subroutine c_get_indices
     call alloc(s1%v,n)
 
     call alloc(s1%q)
-
+!    call alloc(s1%h)
+    call alloc(s1%L)
+ 
     do i=n+1,size(s1%v)
      s1%v(i)%i=0
     enddo
@@ -1721,7 +1771,8 @@ end subroutine c_get_indices
     call kill(s1%v,s1%n)
 
     call kill(s1%q)
-
+    call kill(s1%L)
+ !   call kill(s1%h)
  
     s1%n=0
 
@@ -2405,6 +2456,63 @@ end subroutine c_get_indices
  
   END SUBROUTINE EQUAL
 
+
+  SUBROUTINE  EQUAL_arraytaylor_arrayreal(S2,S1)
+!*
+    implicit none
+    type (c_taylor),INTENT(inOUT)::S2(:)
+    real(dp),INTENT(IN)::S1(:)
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+
+    do i=1,size(s1)
+     s2(i)=s1(i)
+    enddo
+ 
+  end SUBROUTINE  EQUAL_arraytaylor_arrayreal
+
+  SUBROUTINE  EQUAL_arrayreal_arraytaylor(S2,S1)
+!*
+    implicit none
+    real(dp),INTENT(inOUT)::S2(:)
+    type (c_taylor),INTENT(IN)::S1(:)
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+
+    do i=1,size(s1)
+     s2(i)=s1(i)
+    enddo
+ 
+  end SUBROUTINE  EQUAL_arrayreal_arraytaylor
+
+  SUBROUTINE  EQUAL_arraytaylor_arraycomplex(S2,S1)
+!*
+    implicit none
+    type (c_taylor),INTENT(inOUT)::S2(:)
+    complex(dp),INTENT(IN)::S1(:)
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+
+    do i=1,size(s1)
+     s2(i)=s1(i)
+    enddo
+ 
+  end SUBROUTINE  EQUAL_arraytaylor_arraycomplex
+
+  SUBROUTINE  EQUAL_arraycomplex_arraytaylor(S2,S1)
+!*
+    implicit none
+    complex(dp),INTENT(inOUT)::S2(:)
+    type (c_taylor),INTENT(IN)::S1(:)
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+
+    do i=1,size(s1)
+     s2(i)=s1(i)
+    enddo
+ 
+  end SUBROUTINE  EQUAL_arraycomplex_arraytaylor
+
   SUBROUTINE  equal_map_real8(S2,S1)
 !*
     implicit none
@@ -2746,7 +2854,10 @@ end  SUBROUTINE  flatten_c_factored_lie_r
     do j=1,s1%n
 if(use_quaternion)   THEN
        s2%q=s2%q+s1%f(j)%q
- 
+ else
+!       s2%h=s2%h+s1%f(j)%h
+       s2%L=s2%L+s1%f(j)%L
+
 endif
 
 
@@ -2759,106 +2870,7 @@ endif
    call kill(s2)
   END SUBROUTINE flatten_c_factored_lie
 
-! etienne1
-  FUNCTION c_logf_spin( s1,h,epso,n,tpsa )
-    implicit none
-    TYPE (c_vector_field) c_logf_spin
-    TYPE (c_vector_field) , optional :: h
-    TYPE (c_damap), INTENT (INOUT) :: S1
-     real(dp), optional :: epso
-     integer, optional :: n
-     logical, optional :: tpsa
-     logical da
-    integer localmaster,k,i
-    TYPE (c_vector_field) t,t2
-    type(c_damap) mt,t_1,e2,s1t
-    real(dp) xnorm1,epsone,xn,xnorm2,r
-    IF(.NOT.C_STABLE_DA) then
-     c_logf_spin%v%i=0
-     RETURN
-    endif
-!    da=.not.s1%tpsa
-    da=.true.
-    if(present(tpsa)) da=.not.tpsa
-    localmaster=c_master
-    t%n=s1%n;t2%n=s1%n;mt%n=s1%n;t_1%n=s1%n;e2%n=s1%n;s1t%n=s1%n;
-    call alloc(t);call alloc(t2);call alloc(mt,t_1,e2,s1t);
 
-    c_logf_spin%n=s1%n
-    call c_ass_vector_field(c_logf_spin)
-    c_logf_spin=0
-     if(present(h)) c_logf_spin=h
-    s1t=s1
-    xnorm1=0.0_dp
-if(use_quaternion) then
-   call c_full_norm_quaternion(s1t%q,k,xnorm1)
-else
- xnorm1=1.d0
-  !write(6,*) "log no longer available for SO(3) "
- !stop 1959
-endif
-    do i=1,s1t%n
-       if(da) then
-         s1t%v(i)=s1t%v(i)-(s1t%v(i).sub.'0')
-        endif
-       r=full_abs(s1t%v(i))
-       xnorm1=xnorm1+r
-    enddo
-
-    if(present(epso)) then
-     epsone= epso
-    else
-     epsone= xnorm1/epso_factor
-    endif
-       if(lielib_print(3)==1) write(6,*) epsone,xnorm1
-!     eps=abs(epsone)/2  !1.d5
-    xn=1e36_dp
-
-    k=1000
-  if(present(n)) k=n
-    do i=1,k
-
-      mt=exp(-c_logf_spin,s1t)
-
-      t=c_1_vf_q(mt)   !  extracts mt-1 as a vector field including spin
- 
-      t_1=1
-      t_1=mt-t_1     !  same as a map
-      e2=(t*t_1)
- 
-      t2=(-0.5e0_dp)*c_1_vf_q(e2,0)
-      t=t+t2
- 
-      call c_full_norm_vector_field(t,xnorm1)
-      if(lielib_print(3)==1) write(6,*) i,xn,xnorm1
-
- 
-    if(xnorm1.lt.epsone) then !.and.i>=10) then
-     call c_full_norm_vector_field(t2,xnorm2)
- 
-      c_logf_spin=c_logf_spin+t+0.5e0_dp*(c_logf_spin.lb.t)
-      if(xnorm1>=xn.and.(.not.present(n))) exit
-      xn=xnorm1
-    else
-      c_logf_spin=c_logf_spin+t
-      xn=xnorm1
-    endif
-
-   enddo
-   if(i>k-10.and.(.not.present(n))) then
-     write(6,*) " no convergence in c_logf_spin "
-   !  stop 1984
-   endif
-    call kill(t);call kill(t2);call kill(mt,t_1,e2,s1t);
-!     call c_flofacg(s1,c_logf_spin,epso,n)
-  if(complex_extra_order==1.and.special_extra_order_1) c_logf_spin=c_logf_spin.cut.no
-    c_master=localmaster
-   if(.not.c_stable_da) then
-      write(6,*) "Unstable in c_logf_spin"
-      write(6,*) "Perhaps map to far from Identity"
-    endif
-    
-  END FUNCTION c_logf_spin
 
 ! etienne2
   FUNCTION c_logf( s1,h,epso,n,tpsa )
@@ -3288,13 +3300,49 @@ FUNCTION cpbbra( S1, S2 )
  
      call c_ass_quaternion(liebraquaternion)
  
+     if(correct_quaternion_field) then
 
-    liebraquaternion=s1*s2-s2*s1
+       liebraquaternion=s2*s1-s1*s2
 
+      else
+       liebraquaternion=s1*s2-s2*s1
 
+      endif
     c_master=localmaster
 
   END FUNCTION liebraquaternion
+
+  FUNCTION liebraso3( S1, S2 )
+    implicit none
+    TYPE (c_spinmatrix) liebraso3
+    TYPE (c_spinmatrix), INTENT (IN) :: S1, S2
+    integer localmaster
+
+    IF(.NOT.C_STABLE_DA) then
+     liebraso3%s(1,1)%i=0
+     RETURN
+    endif
+
+    localmaster=c_master
+
+
+ 
+     call c_ass_spinmatrix(liebraso3)
+ 
+
+     if(correct_quaternion_field) then
+
+
+
+       liebraso3=s2*s1-s1*s2
+
+      else
+       liebraso3=s1*s2-s2*s1
+
+      endif
+    c_master=localmaster
+
+  END FUNCTION liebraso3
 
   FUNCTION liebra( S1, S2 )
     implicit none
@@ -3321,10 +3369,17 @@ FUNCTION cpbbra( S1, S2 )
 
     if(use_quaternion)   THEN
  
-     liebra%q=s2%q*s1%q-s1%q*s2%q
+      liebra%q=s1%q.lb.s2%q 
  
      liebra%q=liebra%q+c_bra_v_q(s1,s2%q)-c_bra_v_q(s2,s1%q)
    ! c_bra_v_q
+     else
+ 
+!      liebra%h=s1%h.lb.s2%h
+      liebra%L=s1%L.lb.s2%L
+ 
+!     liebra%h=liebra%h+c_bra_v_so3(s1,s2%h)-c_bra_v_so3(s2,s1%h)
+     liebra%L=liebra%L+c_bra_v_so3(s1,s2%L)-c_bra_v_so3(s2,s1%L)
     endif
          if(complex_extra_order==1.and.special_extra_order_1) liebra=liebra.cut.no
     c_master=localmaster
@@ -3461,7 +3516,7 @@ endif
     TYPE (c_vector_field) GETORDERVEC
     TYPE (c_vector_field), INTENT (IN) :: S1
     INTEGER, INTENT (IN) :: S2
-    INTEGER I,s22
+    INTEGER I,j,s22,k
     integer localmaster
     IF(.NOT.C_STABLE_DA) then
      GETORDERVEC%v%i=0
@@ -3478,9 +3533,16 @@ endif
     ENDDO
     
     if(s2<0) s22=s22-1
-
-     GETORDERVEC%q=GETORDERVEC%q.SUB.S22
-  
+     if(use_quaternion) then
+       GETORDERVEC%q=GETORDERVEC%q.SUB.S22
+     else
+      do i=1,3
+       do j=1,3
+       GETORDERVEC%L%S(i,j)=GETORDERVEC%L%S(i,j).SUB.S22
+!       GETORDERVEC%h%v(i)=GETORDERVEC%h%v(i).SUB.S22
+      enddo
+      enddo
+     endif
 
  
 
@@ -3657,7 +3719,7 @@ endif
     TYPE (c_vector_field) CUTORDERVEC
     TYPE (c_vector_field), INTENT (IN) :: S1
     INTEGER, INTENT (IN) ::  S2
-    integer localmaster,I,s22
+    integer localmaster,I,s22,J
     IF(.NOT.C_STABLE_DA) then
      CUTORDERVEC%v%i=0
      RETURN
@@ -3675,10 +3737,18 @@ endif
       CUTORDERVEC%V(I)=CUTORDERVEC%V(I).CUT.S22
      ENDDO
      if(s2<0) s22=s22-1
-     DO I=0,3
-      CUTORDERVEC%q%x(I)= CUTORDERVEC%q%x(I).CUT.s22
+     if(use_quaternion) then
+      DO I=0,3
+       CUTORDERVEC%q%x(I)= CUTORDERVEC%q%x(I).CUT.s22
+      ENDDO
+     else
+      DO I=1,3
+      DO j=1,3
+!       CUTORDERVEC%h%v(I)= CUTORDERVEC%h%v(I).CUT.s22
+       CUTORDERVEC%L%S(I,J)= CUTORDERVEC%L%S(I,J).CUT.s22
+      ENDDO
      ENDDO
-
+    ENDIF
     c_master=localmaster
 
   END FUNCTION CUTORDERVEC
@@ -6310,6 +6380,39 @@ m%q=p%q
 
     end subroutine  quaternion_to_matrix_in_c_damap
 
+
+  subroutine  quaternion_to_spinmatrix(q,p)
+    implicit none
+    TYPE(c_quaternion), INTENT(IN) :: q
+    TYPE(c_spinmatrix), INTENT(INOUT) :: p
+    type(c_quaternion) s,sf
+    integer i,j
+
+     call alloc(s)
+     call alloc(sf)
+
+    do i=1,3
+     s=0.0_dp
+     s%x(i)=1.0_dp
+     sf=q*s*q**(-1)
+     do j=1,3
+      p%s(j,i)=sf%x(j)
+     enddo
+    enddo
+     call kill(s)
+     call kill(sf)
+
+    end subroutine  quaternion_to_spinmatrix
+
+
+  subroutine  makeso3_equal(p,q)
+    implicit none
+    TYPE(c_quaternion), INTENT(IN) :: q
+    TYPE(c_spinmatrix), INTENT(INOUT) :: p
+      call quaternion_to_spinmatrix(q,p)
+    end subroutine  makeso3_equal
+
+
   subroutine  c_linear_map_to_matrix (q_lin,m)
     implicit none
     TYPE(c_spinmatrix), INTENT(INOUT) :: m
@@ -7745,7 +7848,7 @@ endif
  
 
     if(dos) then
- 
+      if(use_quaternion) then
         call c_full_norm_quaternion(s1%q,k,norm)
         if(k==-1) then
           write(mfi,*) " Quaternion  "
@@ -7757,9 +7860,19 @@ endif
         if(k==1) then
          write(mfi,*) " c_quaternion is identity "
         endif
- 
+      else
+    !      call  c_full_norm_spinor(S1%h,norm)
+    !       write(mfi,*) " Spinor  " 
+    !       call c_pri_spinor(S1%h,MFILE,prec=deps)  
+  !        call  c_full_norm_spinor(S1%h,norm)
+  !         write(mfi,*) " Spinor  " 
+  !        call c_pri_spinor(S1%h,MFILE,prec=deps)  
+       write(mfi,*) " Spinor in matrix form " 
+       call  c_full_norm_spinMATRIX(S1%L,norm)
+       call c_pri_spinmatrix(S1%L,MFILE,prec=deps) 
+      endif
     else
-         write(mfi,*) " c_quaternion is not printed per user's request "
+         write(mfi,*) " Spin  is not printed per user's request "
     endif
 
  
@@ -8549,7 +8662,7 @@ if(present(mfile)) mfi=mfile
 !*
     implicit none
     TYPE (c_vector_field) s1
-    integer i
+    integer i,J
 
     select case(c_master)
     case(0:c_ndumt-1)
@@ -8569,6 +8682,20 @@ if(present(mfile)) mfi=mfile
        call c_ass0(s1%q%x(i))
        s1%q%x(i)=0.0_dp
       enddo
+
+  !    do i=1,3
+  !     call c_ass0(s1%h%v(i))
+  !     s1%h%v(i)=0.0_dp
+  !    enddo
+
+      do i=1,3
+      do J=1,3
+       call c_ass0(s1%L%s(i,j))
+       s1%L%s(i,j)=0.0_dp
+      enddo
+      enddo
+
+
     s1%eps   = eps_tpsalie
     s1%nrmax = nrmax
 
@@ -9030,7 +9157,7 @@ if(rel) deallocate(norm)
     type (c_vector_field),INTENT(INOUT)::S2
     type (c_vector_field), intent(INOUT):: s1
     real(dp) prec
-    integer i
+    integer i,j
     logical, optional :: relative
 
 
@@ -9041,6 +9168,17 @@ if(rel) deallocate(norm)
     do i=0,3
        call c_clean_taylor(s1%q%x(i),s2%q%x(i),prec,relative)
     enddo
+
+ !   do i=1,3
+ !      call c_clean_taylor(s1%h%v(i),s2%h%v(i),prec,relative)
+!    enddo
+
+    do i=1,3
+    do j=1,3
+       call c_clean_taylor(s1%L%s(i,j),s2%L%s(i,j),prec,relative)
+    enddo
+    enddo
+
 
   END SUBROUTINE c_clean_vector_field
 
@@ -9621,7 +9759,7 @@ endif
      enddo
     endif
  
- if(newspin) then
+ if(use_quaternion) then
  rad1=assume_da_map
   
      t1%q = t1%q*t2
@@ -9957,7 +10095,6 @@ endif
       enddo
      enddo
      
-        if(complex_extra_order==1.and.special_extra_order_1) c_spinmatrix_spinmatrix=c_spinmatrix_spinmatrix.cut.no
 
     c_master=localmaster
 
@@ -10052,11 +10189,42 @@ endif
       enddo
      enddo
      
-         if(complex_extra_order==1.and.special_extra_order_1) c_spinmatrix_spinor=c_spinmatrix_spinor.cut.no
-
     c_master=localmaster
 
   END FUNCTION c_spinmatrix_spinor
+
+ FUNCTION spinmatrix_spinmatrix(S1,S2) ! spin routine function
+    implicit none
+    TYPE (c_spinmatrix) spinmatrix_spinmatrix 
+    TYPE (c_spinmatrix), INTENT (IN) :: S1
+    TYPE (c_spinmatrix), INTENT (IN) :: S2
+    integer localmaster
+    integer i,j,k
+
+     IF(.NOT.C_STABLE_DA) then
+     spinmatrix_spinmatrix%s(1,1)%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+    call c_ass_spinmatrix(spinmatrix_spinmatrix)
+
+ 
+    spinmatrix_spinmatrix=0
+
+     do i=1,3
+      do j=1,3
+      do k=1,3
+          spinmatrix_spinmatrix%s(i,k)=spinmatrix_spinmatrix%s(i,k)+  s1%s(i,j)*s1%s(j,k)
+      enddo
+      enddo
+     enddo
+     
+ 
+    c_master=localmaster
+
+  END FUNCTION spinmatrix_spinmatrix
+
 
   FUNCTION c_transpose(S1)
     implicit none
@@ -10293,7 +10461,31 @@ endif
 
   END FUNCTION c_spinor_sub_spinor
 
+ FUNCTION c_taylor_spinmatrix(S1,S2) ! spin routine function
+    implicit none
+    TYPE (c_spinmatrix) c_taylor_spinmatrix 
+    TYPE (c_spinmatrix), INTENT (IN) ::  S2
+    TYPE (c_taylor), INTENT (IN) :: S1
+    integer i,j
 
+    integer localmaster
+     IF(.NOT.C_STABLE_DA) then
+     c_taylor_spinmatrix%s(i,j)%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+    call c_ass_spinmatrix(c_taylor_spinmatrix)
+
+     do i=1,3
+     do j=1,3
+          c_taylor_spinmatrix%s(i,j) =s1*s2%s(i,j) 
+     enddo
+     enddo
+     
+    c_master=localmaster
+
+  END FUNCTION c_taylor_spinmatrix
 
  FUNCTION c_taylor_spinor(S1,S2) ! spin routine function
     implicit none
@@ -10368,6 +10560,32 @@ endif
     c_master=localmaster
 
   END FUNCTION c_real_spinor
+
+FUNCTION c_real_spinmatrix(S1,S2) ! spin routine function
+    implicit none
+    TYPE (c_spinmatrix) c_real_spinmatrix 
+    TYPE (c_spinmatrix), INTENT (IN) ::  S2
+    real(dp), INTENT (IN) :: S1
+    integer i,j
+
+    integer localmaster
+     IF(.NOT.C_STABLE_DA) then
+     c_real_spinmatrix%S(I,J)%i=0
+     RETURN
+     endif
+    localmaster=c_master
+
+    call c_ass_spinMATRIX(c_real_spinmatrix)
+
+     do i=1,3
+     do j=1,3
+          c_real_spinmatrix%S(I,J)=s1*s2%S(I,J) 
+     enddo
+     enddo
+    
+    c_master=localmaster
+
+  END FUNCTION c_real_spinmatrix
 
  FUNCTION c_spinor_spinor(S1,S2) ! spin routine function
     implicit none
@@ -10865,7 +11083,41 @@ endif
     c_master=localmaster
 
     END FUNCTION c_bra_v_q
+
+  
+    FUNCTION c_bra_v_so3( S1, S2 )
+    implicit none
+    TYPE (c_spinmatrix) c_bra_v_so3
+    TYPE (c_vector_field), INTENT (IN) :: S1
+    TYPE (c_spinmatrix), INTENT (IN) ::  S2
+    integer i,j,k
+    integer localmaster
     
+     IF(.NOT.C_STABLE_DA) then
+     c_bra_v_so3%s(1,1)%i=0 
+     RETURN
+     endif
+    localmaster=c_master
+
+     localmaster=c_master
+    call c_ass_spinmatrix(c_bra_v_so3)
+
+ 
+      c_bra_v_so3=0
+
+     do i=1,s1%n
+      do j=1,3
+      do k=1,3
+        c_bra_v_so3%s(j,k)=c_bra_v_so3%s(j,k) + s1%v(i)*(s2%s(j,k).d.i)
+      enddo
+      enddo
+     enddo
+ 
+ 
+    c_master=localmaster
+
+    END FUNCTION c_bra_v_so3
+ 
  FUNCTION c_bra_v_dm( S1, S2 )
     implicit none
     TYPE (c_damap) c_bra_v_dm
@@ -10905,6 +11157,8 @@ endif
 !etienne
     if(use_quaternion) then
      s22%q=s1*s2%q
+    else
+     s22%s=s1*s2%s
     endif
 
     if(complex_extra_order==1.and.special_extra_order_1) c_bra_v_dm=c_bra_v_dm.cut.no
@@ -11251,9 +11505,35 @@ s11%x0=0
     do i=1,min(s1%n,s2%n)
        s2%v(i)=s1%v(i)
     enddo
-
+     if(use_quaternion) then
+      s2%q=s1%q
+     else
+       write(6,*) " Cannot store spinor in map "
+      stop 777
+    endif
   END SUBROUTINE c_MAP_VEC
 
+ SUBROUTINE  c_VEC_MAP(S2,S1)
+!*
+    implicit none
+    type (c_damap),INTENT(in)::S1
+    type (c_vector_field),INTENT(INOUT)::S2
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+    
+    call c_check_snake
+
+    S2=0
+    do i=1,min(s1%n,s2%n)
+       s2%v(i)=s1%v(i)
+    enddo
+     if(use_quaternion) then
+       s2%q=s1%q
+     else
+       write(6,*) " Cannot store map  in spinor "
+      stop 777
+     endif
+  END SUBROUTINE c_VEC_MAP
 
  SUBROUTINE  c_EQUALVEC(S2,S1)
 !*
@@ -11270,16 +11550,41 @@ s11%x0=0
     enddo
 
  
+    if(use_quaternion) then
+     do i=0,3
+        s2%q%x(i)=s1%q%x(i)
+     enddo
+    else
+!        s2%h=s1%h
+        s2%L=s1%L
+    endif
 
-    do i=0,3
-       s2%q%x(i)=s1%q%x(i)
-    enddo
 
      s2%n=s1%n 
      s2%nrmax=s1%nrmax 
      s2%eps=s1%eps
 
   END SUBROUTINE c_EQUALVEC
+
+ SUBROUTINE  c_EQUALVECqua(S2,S1)
+!*   
+!    fills  the quaternion into SO(3)  %L  equivalent
+    implicit none
+    type (c_vector_field),INTENT(inOUT)::S2
+    type (c_quaternion),INTENT(IN)::S1
+    integer i
+    IF(.NOT.C_STABLE_DA) RETURN
+    
+    call c_check_snake
+ 
+        s2%L%s(3,2)= 2.0_dp*s1%x(1)
+        s2%L%s(2,3)=-2.0_dp*s1%x(1)
+        s2%L%s(2,1)= 2.0_dp*s1%x(3)
+        s2%L%s(1,2)=-2.0_dp*s1%x(3)
+        s2%L%s(1,3)= 2.0_dp*s1%x(2)
+        s2%L%s(3,1)=-2.0_dp*s1%x(2)
+
+  END SUBROUTINE c_EQUALVECqua
 
 SUBROUTINE  c_EQUALcray(S2,S1)
 !*
@@ -11415,9 +11720,14 @@ SUBROUTINE  c_EQUALcray(S2,S1)
         s2%v(i)=(0.0_dp,0.0_dp)
      enddo
 
- 
+     if(use_quaternion) then
         s2%q=0.0_dp
-     
+     else
+  !     do i=1,3
+  !      s2%h%v(i)=0.0_dp
+  !     enddo
+     S2%L=S1
+     endif
   END SUBROUTINE c_IdentityEQUALVEC
 
 
@@ -13373,7 +13683,7 @@ endif
 
    END SUBROUTINE c_kernel 
 
-   SUBROUTINE C_AVERAGE(F,A,F_FLOQUET) 
+   SUBROUTINE C_AVERAGE(F,A,F_FLOQUET,ergodic) 
 !#internal: normal
 !# This routine averages a function F using the canonical trnsformation A.
 !# This is explained in Sec.2.2.1 of my Springer book.
@@ -13382,12 +13692,16 @@ endif
     TYPE(c_damap) A
     TYPE(c_TAYLOR) F,F_FLOQUET,FQ
     complex(dp) v
-    INTEGER I
+    INTEGER I,n_ergodic
     logical(lp) removeit
+    logical,optional  :: ergodic
     integer, allocatable :: je(:)
 
+     n_ergodic=A%n
     allocate(je(nv))  
-         
+         if(present(ergodic) ) then
+         n_ergodic =A%n - 2
+        endif
      call alloc(fq)
     
     F_FLOQUET=(F*A)*TO_PHASOR(-1) 
@@ -13395,18 +13709,41 @@ endif
     i=1
     do while(.true.) 
      call  c_cycle(F_FLOQUET,i,v ,je); if(i==0) exit;   
-     call check_kernel(0,A%n,je,removeit) 
+
+     call check_kernel(0,n_ergodic,je,removeit) 
      if(.not.removeit) then
        fq=fq+(v.cmono.je)
      endif
     enddo
-     
     f_floquet=fq
     call kill(fq)
 
     deallocate(je)
 
    END SUBROUTINE C_AVERAGE 
+
+    subroutine check_kernel_ergodic(n,je,removeit)
+!#internal: normal
+!# This routine identifies terms in an orbital vector field that
+!# are not in the kernel of a complete normalisation.
+!# Namely it preserves generators of rotation.
+!# Due to the vagueries of accelerator physics,
+!# it leaves non-linear generators of rotations even in the
+!# case of a damped oscillator.
+    implicit none
+    logical(lp) removeit
+    integer i,n,je(:),t,o
+
+      removeit=my_true
+      t=0
+      do i=1,n,2
+         if(coast(i)) cycle 
+       t=t+abs(je(i)-je(i+1))
+      enddo
+        if(t==0) removeit=my_false
+
+    end subroutine check_kernel_ergodic
+
 
 
   function c_expflo_fac(h,x)   !,eps,nrmax)
@@ -13552,11 +13889,121 @@ endif
 
  
 
+  FUNCTION c_logf_spin( s1,h,epso,n,tpsa )
+    implicit none
+    TYPE (c_vector_field) c_logf_spin
+    TYPE (c_vector_field) , optional :: h
+    TYPE (c_damap), INTENT (INOUT) :: S1
+     real(dp), optional :: epso
+     integer, optional :: n
+     logical, optional :: tpsa
+     logical da
+    integer localmaster,k,i
+    TYPE (c_vector_field) t,t2
+    type(c_damap) mt,t_1,e2,s1t
+    real(dp) xnorm1,epsone,xn,xnorm2,r,r1(3)
+
+ 
+    IF(.NOT.C_STABLE_DA) then
+     c_logf_spin%v%i=0
+     RETURN
+    endif
+!    da=.not.s1%tpsa
+    da=.true.
+    if(present(tpsa)) da=.not.tpsa
+    localmaster=c_master
+    t%n=s1%n;t2%n=s1%n;mt%n=s1%n;t_1%n=s1%n;e2%n=s1%n;s1t%n=s1%n;
+    call alloc(t);call alloc(t2);call alloc(mt,t_1,e2,s1t);
+
+    c_logf_spin%n=s1%n
+    call c_ass_vector_field(c_logf_spin)
+    c_logf_spin=0
+     if(present(h)) c_logf_spin=h
+    s1t=s1
+    xnorm1=0.0_dp
+if(use_quaternion) then
+   call c_full_norm_quaternion(s1t%q,k,xnorm1)
+else
+ xnorm1=1.d0
+   call c_full_norm_spin(s1t%s,k,xnorm1)
+endif
+    do i=1,s1t%n
+       if(da) then
+         s1t%v(i)=s1t%v(i)-(s1t%v(i).sub.'0')
+        endif
+       r=full_abs(s1t%v(i))
+       xnorm1=xnorm1+r
+    enddo
+
+    if(present(epso)) then
+     epsone= epso
+    else
+     epsone= xnorm1/epso_factor
+    endif
+       if(lielib_print(3)==1) write(6,*) epsone,xnorm1
+!     eps=abs(epsone)/2  !1.d5
+    xn=1e36_dp
+
+    k=1000
+  if(present(n)) k=n
+    do i=1,k
+
+
+      mt=exp(-c_logf_spin,s1t)
+
+      t=c_1_vf_q(mt)   !  extracts mt-1 as a vector field including spin
+
+
+      t_1=1
+      t_1=mt-t_1     !  same as a map
+ 
+
+     ! e2=(t*t_1)
+ 
+    !  t2=(-0.5e0_dp)*c_1_vf_q(e2,0)
+     ! t=t+t2
+ 
+      call c_full_norm_vector_field(t,xnorm1)
+      if(lielib_print(3)==1) write(6,*) i,xn,xnorm1
+
+ 
+
+    if(xnorm1.lt.epsone) then !.and.i>=10) then
+     call c_full_norm_vector_field(t2,xnorm2)
+ 
+      c_logf_spin=c_logf_spin+t   +0.5e0_dp*(c_logf_spin.lb.t)
+
+      if(xnorm1>=xn.and.(.not.present(n))) exit
+      xn=xnorm1
+    else
+      c_logf_spin=c_logf_spin+t
+      xn=xnorm1
+    endif
+
+   enddo
+   if(i>k-10.and.(.not.present(n))) then
+     write(6,*) " no convergence in c_logf_spin "
+   !  stop 1984
+   endif
+!write(6,*) " i",i
+    call kill(t);call kill(t2);call kill(mt,t_1,e2,s1t);
+!     call c_flofacg(s1,c_logf_spin,epso,n)
+ ! if(complex_extra_order==1.and.special_extra_order_1) c_logf_spin=c_logf_spin.cut.no
+    c_master=localmaster
+   if(.not.c_stable_da) then
+      write(6,*) "Unstable in c_logf_spin"
+      write(6,*) "Perhaps map to far from Identity"
+    endif
+    
+  END FUNCTION c_logf_spin
+
+
+
 
       function c_1_vf_q(s1,c)   !,eps,nrmax)
     implicit none
   !  extracts mt-1 as a vector field including spin
-    integer i,localmaster,ci,k
+    integer i,localmaster,ci,k,j
     type(c_vector_field) c_1_vf_q
     type(c_damap), intent(in):: s1
     type(c_taylor) tt
@@ -13574,18 +14021,46 @@ endif
       c_1_vf_q%v(i)=tt
     enddo
     
-    call c_full_norm_quaternion(s1%q,i,norm)
-    if(i/=0) then
-     do k=1,3
-     c_1_vf_q%q%x(k)=s1%q%x(k)
-    enddo
-     c_1_vf_q%q%x(0)=0.0_dp  !s1%q%x(0)-1.0_dp
+    if(use_quaternion) then
+     call c_full_norm_quaternion(s1%q,i,norm)
+     if(i/=0) then
+      do k=1,3
+      c_1_vf_q%q%x(k)=s1%q%x(k)
+     enddo
+      c_1_vf_q%q%x(0)=0.0_dp  !s1%q%x(0)-1.0_dp
+    endif
+    else
+!     call c_full_norm_spinor(c_1_vf_q%h,norm)
+      
+!   c_1_vf_q%h%v(1)=-(s1%s%s(3,2)-s1%s%s(2,3))/2.0_dp
+!   c_1_vf_q%h%v(2)=-(s1%s%s(1,3)-s1%s%s(3,1))/2.0_dp
+!   c_1_vf_q%h%v(3)=-(s1%s%s(2,1)-s1%s%s(1,2))/2.0_dp
+
+!if(.not.correct_quaternion_field) c_1_vf_q%h=-c_1_vf_q%h
+    ! do k=1,3
+    !  c_1_vf_q%h%v(k)=s1%h%v(k)
+    ! enddo
+ !call c_full_norm_spinMATRIX(c_1_vf_q%L,norm)
+    DO I=1,3
+    DO j=1,3
+    if(i==j) then
+      c_1_vf_q%L%S(I,j)=s1%s%s(I,J)-1.0_DP
+    else
+      c_1_vf_q%L%S(I,j)=s1%s%s(I,J) 
+    endif
+    ENDDO
+    ENDDO
 
     endif
-    
+ 
     c_master=localmaster
  call kill(tt)
   end function c_1_vf_q
+
+
+ 
+
+ 
 
       function c_1_map(s1,c)   !,eps,nrmax)
     implicit none
@@ -13639,9 +14114,12 @@ endif
       tt=s1%v(i)+ s2%v(i) 
       c_add_vf%v(i)=tt
     enddo
- 
-    c_add_vf%q=s1%q+s2%q 
-
+    if(use_quaternion) then
+     c_add_vf%q=s1%q+s2%q 
+    else
+!     c_add_vf%h=s1%h+s2%h 
+     c_add_vf%L=s1%L+s2%L
+    endif
      
     c_add_vf%nrmax=max(s1%nrmax,s2%nrmax)
     c_add_vf%eps=min(s1%eps,s2%eps)
@@ -13668,9 +14146,12 @@ endif
       tt=s1%v(i)- s2%v(i) 
       c_sub_vf%v(i)=tt
     enddo
- 
-    c_sub_vf%q=s1%q-s2%q 
-
+    if(use_quaternion) then
+     c_sub_vf%q=s1%q-s2%q 
+    else
+!     c_sub_vf%h=s1%h-s2%h
+     c_sub_vf%L=s1%L-s2%L
+    endif
      
     c_sub_vf%nrmax=max(s1%nrmax,s2%nrmax)
     c_sub_vf%eps=min(s1%eps,s2%eps)
@@ -13775,11 +14256,14 @@ endif
     enddo
 
  
-
-    do i=0,3
-     real_mul_vec%q%x(i)=r*s1%q%x(i)
-    enddo
-
+    if(use_quaternion) then
+     do i=0,3
+      real_mul_vec%q%x(i)=r*s1%q%x(i)
+     enddo
+    else
+     ! real_mul_vec%h=r*s1%h
+      real_mul_vec%L=r*s1%L
+    endif
  
 
     real_mul_vec%nrmax=s1%nrmax
@@ -13811,12 +14295,17 @@ endif
     enddo
 
  
-
-    do i=0,3
-     complex_mul_vec%q%x(i)=r*s1%q%x(i)
-    enddo
-
-  
+    if(use_quaternion) then
+     do i=0,3
+      complex_mul_vec%q%x(i)=r*s1%q%x(i)
+     enddo
+    else
+   !  complex_mul_vec%h=r*complex_mul_vec%h
+     complex_mul_vec%L=r*complex_mul_vec%L
+    endif
+!      do i=1,3
+!     complex_mul_vec%q%x(i)=r*s1%q%x(i)
+ !   enddo
 
     complex_mul_vec%nrmax=s1%nrmax
     complex_mul_vec%eps=s1%eps
@@ -13847,12 +14336,14 @@ endif
     enddo
 
  
-
+   if(use_quaternion) then
     do i=0,3
      c_taylor_mul_vec%q%x(i)=r*s1%q%x(i)
     enddo
-
-  
+   else
+    ! c_taylor_mul_vec%h=r*c_taylor_mul_vec%h
+     c_taylor_mul_vec%L=r*c_taylor_mul_vec%L
+   endif
 
     c_taylor_mul_vec%nrmax=s1%nrmax
     c_taylor_mul_vec%eps=s1%eps
@@ -13870,6 +14361,7 @@ endif
     integer localmaster,i,k
     TYPE (c_vector_field) f_orb
     TYPE (c_quaternion) alpha_inv
+    TYPE (c_spinmatrix) A_inv
     IF(.NOT.C_STABLE_DA) then
      map_mul_vec_q%v%i=0
      RETURN
@@ -14075,13 +14567,13 @@ prec=1.d-8
 
   
 
-
+!eeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
 
   function c_expflo_map(h,x)   !,eps,nrmax)
     implicit none
     ! DOES EXP( \VEC{H} ) X = Y
 
-    integer i,j,localmaster,jj
+    integer i,j,localmaster,jj,k
     type(c_damap) c_expflo_map
     type(c_damap), optional, intent(in):: x
     type(c_vector_field), intent(in) :: h
@@ -14128,9 +14620,17 @@ mtemp=((1.d0/coe)*(h*mtemp))
        r=full_abs(mtemp%v(j))+r
      enddo
 !!!! added in 2024.8.10
+    if(use_quaternion) then
      do j=0,3
        r=full_abs(mtemp%q%x(j))+r
      enddo
+     else
+      do j=1,3
+      do k=1,3
+        r=full_abs(mtemp%s%s(j,k))+r
+        enddo
+        enddo
+     endif
 !!!! added in 2024.8.10
 
        if(more) then
@@ -14959,12 +15459,52 @@ function c_vector_field_quaternion(h,ds) ! spin routine
         c_vector_field_quaternion%x(i)=h*ds%x(i)
       enddo
   ! order reversed for compositional map considerations
- 
+      if(correct_quaternion_field)  then
        c_vector_field_quaternion=c_vector_field_quaternion+ (ds*h%q) 
- 
+      else
+       c_vector_field_quaternion=c_vector_field_quaternion+ ( h%q*ds) 
+      endif
      c_master=localmaster
 
    end function c_vector_field_quaternion
+
+function c_vector_field_so3(h,ds) ! spin routine
+    implicit none
+    TYPE(c_spinmatrix) c_vector_field_so3
+    TYPE(c_spinmatrix), INTENT(IN) :: DS
+    TYPE(c_vector_field), INTENT(IN) :: h
+    integer  nmax
+    integer i,j,localmaster 
+    TYPE(c_spinmatrix) sh
+    IF(.NOT.C_STABLE_DA) then
+     c_vector_field_so3%s(1,1)%i=0
+     RETURN
+     endif
+
+     localmaster=c_master
+
+      call c_ass_spinmatrix(c_vector_field_so3)
+      call alloc(sh)
+      do i=1,3
+       do j=1,3
+        c_vector_field_so3%s(i,j)=h*ds%s(i,j)
+      enddo
+      enddo
+  ! order reversed for compositional map considerations
+     
+
+ 
+ 
+     if(correct_quaternion_field) then
+             c_vector_field_so3= ds*h%L + c_vector_field_so3
+     else
+             c_vector_field_so3= h%L*ds + c_vector_field_so3
+     endif
+     c_master=localmaster
+
+      call kill(sh)
+
+   end function c_vector_field_so3
 
 
 
@@ -15319,6 +15859,9 @@ function c_vector_field_quaternion(h,ds) ! spin routine
     norms=0.0_dp
     if(use_quaternion) then
      call c_full_norm_quaternion(s%q,k,norms) 
+    else
+     call c_full_norm_spinmatrix(s%L,norms) 
+ !    call c_full_norm_spinor(s%h,norms) 
     endif
     norm=norm+norms
   end subroutine c_full_norm_vector_field
@@ -18866,10 +19409,13 @@ END FUNCTION FindDet
 
     call alloc(L_r , N_r , N_s , L_s)
     
-     if(.not.sagan_gen) call symplectify_for_zhe(ma,L_r , N_r, L_s , N_s )
+     if(.not.sagan_gen.or.symplectify_map) call symplectify_for_zhe(ma,L_r , N_r, L_s , N_s )
 
      
-
+      if(symplectify_map) then
+       L_r=1
+       N_r=1
+      endif
 
 
 !    np=ma%n+18
@@ -18902,7 +19448,7 @@ END FUNCTION FindDet
      mg(i)=0.e0_dp
     enddo
 
-if(.not.sagan_gen) then
+if(.not.sagan_gen.or.symplectify_map) then
       L_r = L_r*N_r
 else
    !   T(x)=T0 +L(x) + T2(x)
@@ -18911,7 +19457,7 @@ else
  
 endif
 
-if(.not.sagan_gen) then
+if(.not.sagan_gen.or.symplectify_map) then
 
      do i=1,L_r%n
       m(i)=L_r%v(i)   ! orbital part
@@ -18956,7 +19502,7 @@ endif
      call alloc(ms)
 
 
-if(.not.sagan_gen) then
+if(.not.sagan_gen.or.symplectify_map) then
       
        ms=n_s
 
@@ -18999,7 +19545,7 @@ endif
 
 
 !     write(6,*) " mul ",mul
-      if(.not.sagan_gen) then
+      if(.not.sagan_gen.or.symplectify_map) then
         t(3)%rad=L_s
       else
            t(3)%rad=L_s
@@ -19264,13 +19810,10 @@ end subroutine fill_tree_element_line_zhe_outside_map
 
 subroutine create_taylor_vector(t,v,vc)   ! fix0 is the initial condition for the maps
 implicit none
- 
- 
- 
 complex(dp) w
 integer  je(6),i,k,j
  real(dpn),optional::  v(:)
- complex(dp),optional::  vc(:)
+ complex(dpn),optional::  vc(:)
 type(c_taylor) t
  
 if(present(v))   v=0
@@ -19288,6 +19831,109 @@ if(present(vc))  vc=0
 
 end subroutine create_taylor_vector
 
+subroutine create_vector_taylor(v,vc,w)   ! fix0 is the initial condition for the maps
+implicit none
+ 
+ 
+ real(dpn),optional::  v(:)
+ complex(dpn),optional::  vc(:)
+complex(dp) vcc
+type(c_taylor) t,w
+integer i
+
+
+call alloc(t)
+w=0
+   
+ 
+do i=1,nmono
+ 
+     t=  dz_c(1)**in1(i)
+     t=t*dz_c(2)**in2(i)
+   if(c_%nd>1) then
+     t= dz_c(3)**in3(i)
+     t=t*dz_c(4)**in4(i)
+   endif
+   if(c_%nd>2) then
+     t= dz_c(5)**in5(i)
+     t=t*dz_c(6)**in6(i)
+   endif
+ if(present(v)) then
+   w=t*v(i)+w
+ elseif(present(vc)) then
+vcc=vc(i)
+    w=t*vcc+w
+ else
+
+  write(6,*) "error in create_vector_taylor "
+  stop 476
+ endif
+enddo
+ 
+call kill(t)
+
+ 
+end subroutine create_vector_taylor
+
+subroutine create_vector_field(finput,f)   ! fix0 is the initial condition for the maps
+implicit none
+ 
+ 
+complex(dp)v
+integer i1,i2,i3,i4,i5,i6,je(6),k !,mi,nz,noo,no1
+ 
+complex(dp)   coe ,eps
+!complex(dpn) r2
+complex(dpn) f(:,:) 
+type(c_vector_field) finput  
+type(c_taylor) t
+integer  i,inf,j,nd1 
+ 
+ 
+ nd1=c_%nd
+ 
+ 
+ nmono=size(in1)
+ 
+
+ 
+f=0
+ 
+call alloc(t)
+ 
+ f=0
+ 
+    
+ 
+   do i=1,nmono
+    
+     t=  dz_c(1)**in1(i)
+     t=t*dz_c(2)**in2(i)
+   if(nd1>1) then
+     t= dz_c(3)**in3(i)
+     t=t*dz_c(4)**in4(i)
+   endif
+   if(nd1>2) then
+     t= dz_c(5)**in5(i)
+     t=t*dz_c(6)**in6(i)
+   endif
+
+  t=finput*t
+
+       j=1
+
+        do while(.true.)
+
+          call  c_cycle(t,j,v ,je); if(j==0) exit;
+            k=hash(je(1),je(2),je(3),je(4),je(5),je(6))
+            f(k,i)=v+f(k,i)
+        enddo
+   enddo
+
+call kill(t)
+ 
+
+end subroutine create_vector_field 
 
 
   subroutine init_moment_map(NO1,nd11)  !,spin
@@ -19492,7 +20138,7 @@ enddo
 
 
 
-subroutine create_moment_map_one(mtotal,minput,sig,nd11,fin)   ! fix0 is the initial condition for the maps
+subroutine create_moment_map_one(mtotal,minput,sig,nd11,fin)  !,equilibrium_moments)   ! fix0 is the initial condition for the maps
 implicit none
  
  
@@ -19506,6 +20152,7 @@ type(c_damap) m,minput,mtotal
 type(c_taylor) t
 integer  i,inf,j,nd1,nd11
  logical,optional :: fin
+!real(dp),optional :: equilibrium_moments(:)
 logical ende
 
 ende=.false.
@@ -19750,65 +20397,6 @@ call kill(t)
 end subroutine create_moment_map_one
 
 
-subroutine create_vector_field(finput,f)   ! fix0 is the initial condition for the maps
-implicit none
- 
- 
-complex(dp)v
-integer i1,i2,i3,i4,i5,i6,je(6),k !,mi,nz,noo,no1
- 
-complex(dp)   coe ,eps
-!complex(dpn) r2
-complex(dpn) f(:,:) 
-type(c_vector_field) finput  
-type(c_taylor) t
-integer  i,inf,j,nd1 
- 
- 
- nd1=c_%nd
- 
- 
- nmono=size(in1)
- 
-
- 
-f=0
- 
-call alloc(t)
- 
- f=0
- 
-    
- 
-   do i=1,nmono
-    
-     t=  dz_c(1)**in1(i)
-     t=t*dz_c(2)**in2(i)
-   if(nd1>1) then
-     t= dz_c(3)**in3(i)
-     t=t*dz_c(4)**in4(i)
-   endif
-   if(nd1>2) then
-     t= dz_c(5)**in5(i)
-     t=t*dz_c(6)**in6(i)
-   endif
-
-  t=finput*t
-
-       j=1
-
-        do while(.true.)
-
-          call  c_cycle(t,j,v ,je); if(j==0) exit;
-            k=hash(je(1),je(2),je(3),je(4),je(5),je(6))
-            f(k,i)=v+f(k,i)
-        enddo
-   enddo
-
-call kill(t)
- 
-
-end subroutine create_vector_field 
 
 subroutine create_moment_map_one_complex(minput,nd11)   ! fix0 is the initial condition for the maps
 implicit none
@@ -20825,7 +21413,9 @@ end subroutine symplectify_for_zhe
      endif
     enddo
     if(i>nrmax-10) then
-     write(6,*) i, a, "did not converge in orthonormalisep"
+     write(6,*) i, a, "did not converge in orthonormalisep 1"
+     read(5,*) i
+
      ! stop
     endif
     deallocate(rt)

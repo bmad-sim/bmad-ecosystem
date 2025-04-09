@@ -261,6 +261,18 @@ case ('curly_h')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
+case ('deta_ds')
+  select case (d_type)
+  case ('deta_ds.a');           value = ele%a%deta_ds
+  case ('deta_ds.b');           value = ele%b%deta_ds
+  case ('deta_ds.x');           value = ele%x%deta_ds
+  case ('deta_ds.y');           value = ele%y%deta_ds
+  case default
+    err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
+    if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
+  end select
+
 case ('e_curl', 'e0_curl')
   orb = orbit
   if (prefix == 'e0_curl') then

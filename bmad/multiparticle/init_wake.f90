@@ -7,7 +7,7 @@
 ! Input:
 !   n_sr_long           -- Integer: Number of terms: wake%sr%long.
 !   n_sr_trans          -- Integer: Number of terms: wake%sr%trans.
-!   n_sr_z           -- Integer: Number of terms: wake%sr%z.
+!   n_sr_z              -- Integer: Number of terms: wake%sr%z.
 !   n_lr_mode           -- Integer: Number of terms: wake%lr%mode.
 !   always_allocate     -- logical, optional: If present and True then allways allocate wake
 !                           even if n_lr_mode, etc. are all 0. Default is False.
@@ -47,9 +47,9 @@ if (associated (wake)) then
     allocate (wake%sr%trans(n_sr_trans))
   endif
 
-  if (size(wake%sr%z) /= n_sr_z) then
-    deallocate (wake%sr%z)
-    allocate (wake%sr%z(n_sr_z))
+  if (size(wake%sr%z_long%w) /= n_sr_z) then
+    deallocate (wake%sr%z_long%w, wake%sr%z_long%fw, wake%sr%z_long%fbunch, wake%sr%z_long%w_out)
+    allocate (wake%sr%z_long%w(n_sr_z), wake%sr%z_long%fw(n_sr_z), wake%sr%z_long%fbunch(n_sr_z), wake%sr%z_long%w_out(n_sr_z))
   endif
 
   if (size(wake%lr%mode) /= n_lr_mode) then
@@ -61,7 +61,7 @@ else
   allocate (wake)
   allocate (wake%sr%long(n_sr_long))
   allocate (wake%sr%trans(n_sr_trans))
-  allocate (wake%sr%z(n_sr_z))
+  allocate (wake%sr%z_long%w(n_sr_z), wake%sr%z_long%fw(n_sr_z), wake%sr%z_long%fbunch(n_sr_z), wake%sr%z_long%w_out(n_sr_z))
   allocate (wake%lr%mode(n_lr_mode))
 endif
 

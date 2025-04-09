@@ -1960,10 +1960,8 @@ do i = 1, nc
   if (.not. curve%draw_symbols) symbol(i)%type = ''  ! Do not draw
 enddo
 
-if (graph%draw_curve_legend .and. nc > 1) then
-  call qp_draw_curve_legend (graph%curve_legend_origin%x, graph%curve_legend_origin%y, &
-            graph%curve_legend_origin%units, line, s%plot_page%curve_legend_line_len, &
-            symbol, text, s%plot_page%curve_legend_text_offset)
+if (graph%draw_curve_legend .and. (nc > 1 .or. .not. graph%x%draw_label)) then
+  call qp_draw_curve_legend (graph%curve_legend_origin, graph%curve_legend, line, symbol, text)
 endif
 
 

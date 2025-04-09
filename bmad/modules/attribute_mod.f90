@@ -457,10 +457,14 @@ elseif (ix_att <= 0 .or. ix_att > num_ele_attrib_extended$) then
   attrib_name = '!BAD INDEX'
 
 else
-  if (attrib_array(key, ix_att)%state == private$ .and. .not. logic_option(.false., show_private)) then
-    attrib_name = null_name$
+  if (attrib_array(key, ix_att)%state == private$) then
+    if (logic_option(.false., show_private)) then
+      attrib_name = upcase(attrib_array(key, ix_att)%name)
+    else
+      attrib_name = null_name$
+    endif
   else
-    attrib_name = upcase(attrib_array(key, ix_att)%name)
+    attrib_name = attrib_array(key, ix_att)%name
   endif
 endif
 
@@ -788,10 +792,6 @@ do i = 1, n_key$
   case (crystal$, multilayer_mirror$, mirror$, sample$, diffraction_plate$, detector$)
     call init_attribute_name1 (i, p89$, 'DISPLACEMENT')
     call init_attribute_name1 (i, p90$, 'SEGMENTED')
-    call init_attribute_name1 (i, spherical_curvature$, 'SPHERICAL_CURVATURE')
-    call init_attribute_name1 (i, elliptical_curvature_x$, 'ELLIPTICAL_CURVATURE_X')
-    call init_attribute_name1 (i, elliptical_curvature_y$, 'ELLIPTICAL_CURVATURE_Y')
-    call init_attribute_name1 (i, elliptical_curvature_z$, 'ELLIPTICAL_CURVATURE_Z')
     num = a0$ - 1
     do ix = 0, ubound(curv%xy, 1)
     do iy = 0, ubound(curv%xy, 2)
@@ -811,7 +811,7 @@ do i = 1, n_key$
   select case (i)
   case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, &
-         hkicker$, vkicker$, sad_mult$, thick_multipole$)
+         hkicker$, vkicker$, sad_mult$, thick_multipole$, rfcavity$, lcavity$, crab_cavity$)
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
@@ -907,6 +907,10 @@ call init_attribute_name1 (beginning_ele$, beta_a$,                      'BETA_A
 call init_attribute_name1 (beginning_ele$, beta_b$,                      'BETA_B')
 call init_attribute_name1 (beginning_ele$, alpha_a$,                     'ALPHA_A')
 call init_attribute_name1 (beginning_ele$, alpha_b$,                     'ALPHA_B')
+call init_attribute_name1 (beginning_ele$, dbeta_dpz_a$,                 'DBETA_DPZ_A')
+call init_attribute_name1 (beginning_ele$, dbeta_dpz_b$,                 'DBETA_DPZ_B')
+call init_attribute_name1 (beginning_ele$, dalpha_dpz_a$,                'DALPHA_DPZ_A')
+call init_attribute_name1 (beginning_ele$, dalpha_dpz_b$,                'DALPHA_DPZ_B')
 call init_attribute_name1 (beginning_ele$, eta_x$,                       'ETA_X')
 call init_attribute_name1 (beginning_ele$, eta_y$,                       'ETA_Y')
 call init_attribute_name1 (beginning_ele$, eta_z$,                       'ETA_Z')
@@ -1296,7 +1300,6 @@ call init_attribute_name1 (match$, c12_mat1$,                       'C12_MAT1')
 call init_attribute_name1 (match$, c21_mat1$,                       'C21_MAT1')
 call init_attribute_name1 (match$, c22_mat1$,                       'C22_MAT1')
 call init_attribute_name1 (match$, mode_flip1$,                     'MODE_FLIP1')
-call init_attribute_name1 (match$, spin_tracking_model$,            'SPIN_TRACKING_MODEL')
 
 call init_attribute_name1 (pickup$, num_steps$,                     'NUM_STEPS')
 call init_attribute_name1 (pickup$, ds_step$,                       'DS_STEP')
@@ -1691,7 +1694,9 @@ call init_attribute_name1 (wiggler$, cylindrical_map$,              'CYLINDRICAL
 call init_attribute_name1 (wiggler$, gen_grad_map$,                 'GEN_GRAD_MAP')
 call init_attribute_name1 (wiggler$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (wiggler$, ptc_canonical_coords$,         'PTC_CANONICAL_COORDS')
-call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE')
+call init_attribute_name1 (wiggler$, osc_amplitude$,                'OSC_AMPLITUDE', dependent$)
+call init_attribute_name1 (wiggler$, delta_ref_time_user_set$,      'DELTA_REF_TIME_USER_SET')
+call init_attribute_name1 (wiggler$, delta_ref_time$,               'DELTA_REF_TIME', override = .true.)
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
@@ -1930,7 +1935,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
-      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', &
+      'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', 'DELTA_REF_TIME_USER_SET', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', 'DETA_DS_MASTER', &
@@ -1951,7 +1956,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
       'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', &
-      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT', 'SPIN_TRACKING_MODEL')
+      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2017,7 +2022,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'N_PARTICLE', &
       'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
-      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', &
+      'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', 'DALPHA_DPZ_A', 'DALPHA_DPZ_B', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
@@ -2036,7 +2041,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'BETA_A', 'BETA_A0', 'BETA_A1', 'BETA_B', 'BETA_B0', 'BETA_B1', 'BETA_A_STRONG', 'BETA_B_STRONG', &
       'D1_THICKNESS', 'D2_THICKNESS', 'DEFAULT_DS_STEP', 'OSC_AMPLITUDE', 'R_SOLENOID', &
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
-      'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', &
+      'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', 'DBETA_DPZ_A', 'DBETA_DPZ_B', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
       'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
       'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_ACTIVE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
@@ -2500,12 +2505,6 @@ case ('SLAVE_STATUS')
   
 case ('SPACE_CHARGE_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, space_charge_method_name, lbound(space_charge_method_name, 1), name_list)
-  if (present(is_default)) then
-    is_default = (ix_attrib_val == off$)
-  endif
-
-case ('SPIN_TRACKING_MODEL')
-  call get_this_attrib_name (attrib_val_name, ix_attrib_val, spin_tracking_model_name, lbound(spin_tracking_model_name, 1), name_list)
   if (present(is_default)) then
     is_default = (ix_attrib_val == off$)
   endif

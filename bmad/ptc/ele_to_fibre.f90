@@ -1,5 +1,5 @@
 !+                                
-! Subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
+! Subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
 !
 ! Routine to convert a Bmad element to a PTC fibre element.
 !
@@ -10,7 +10,6 @@
 !
 ! Input:
 !   ele             -- Ele_struct: Bmad element.
-!   param           -- lat_param_struct: 
 !   use_offsets     -- Logical: Does ptc_fibre include element offsets, pitches and tilt?
 !   integ_order     -- Integer, optional: Order for the 
 !                        sympletic integrator. Possibilities are: 2, 4, or 6
@@ -28,7 +27,7 @@
 !   ptc_fibre       -- Fibre: PTC fibre element.
 !+
 
-subroutine ele_to_fibre (ele, ptc_fibre, param, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
+subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
 
 use ptc_interface_mod, dummy => ele_to_fibre
 use madx_ptc_module, pi_dum => pi, pi2_dum => twopi
@@ -37,7 +36,6 @@ use dabnew_pancake
 implicit none
 
 type (ele_struct), target :: ele
-type (lat_param_struct) param
 type (coord_struct), optional :: ref_in
 type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
@@ -62,13 +60,14 @@ real(rp) beta0, beta1, ref0(6), ref1(6), fh, dz_offset, ff, z0, z, dz_step, vec(
 real(rp), pointer :: val(:)
 real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
+real(rp) an_ptc(n_pole_maxx+1), bn_ptc(n_pole_maxx+1)
 real(rp) ld, hd, lc, hc, angc, xc, dc
 real(rp), parameter :: dz_pan7(0:6) = [0.0_rp, 1.0_rp/9.0_rp, 1.0_rp/6.0_rp, 1.0_rp/3.0_rp, 1.0_rp/2.0_rp, 2.0_rp/3.0_rp, 5.0_rp/6.0_rp]
 
 complex(rp) k_0
 
 integer, optional :: integ_order, steps
-integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map
+integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map, n_mult
 integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(8)
 integer, allocatable :: pancake_field(:,:)
 
@@ -131,7 +130,8 @@ if (n_map > 1) then
 endif
 
 use_taylor = (n_map == 0 .and. (key == wiggler$ .or. key == undulator$) .and. ele%field_calc == helical_model$)
-use_taylor = use_taylor .or. (ele%tracking_method == taylor$ .and. associated(ele%spin_taylor(1)%term))
+use_taylor = use_taylor .or. (ele%tracking_method == taylor$ .and. &
+                        associated(ele%spin_taylor(1)%term) .and. associated(ele%taylor(1)%term))
 if (use_taylor) key = match$
 
 ! 
@@ -158,10 +158,11 @@ if (key == sbend$ .and. val(g$) + val(dg$) == 0 .and. ptc_key%model /= 'DRIFT_KI
   !          'BEND WITH ZERO NET BENDING FIELD WILL USE PTC_INTEGRATION_TYPE OF DRIFT_KICK: ' // ele%name)
 endif
 
+
 if (present(ref_in)) then
-  rel_charge = charge_of(ref_in%species) / charge_of(param%particle)
+  rel_charge = charge_of(ref_in%species) / charge_of(ele%ref_species)
 else
-  rel_charge = charge_of(default_tracking_species(param)) / charge_of(param%particle)
+  rel_charge = 1
 endif
 
 leng = val(l$)
@@ -503,8 +504,15 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
 endif
 
 ! Magnetic multipole components
+! Set for lcavity and rfcavity is after fibre is instantiated.
 
-call ele_to_ptc_magnetic_an_bn (ele, ptc_key%list%k, ptc_key%list%ks, ptc_key%list%nmul)
+call ele_to_ptc_magnetic_bn_an (ele, bn_ptc, an_ptc, n_mult)
+
+if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) then
+  ptc_key%list%k  = bn_ptc
+  ptc_key%list%ks = an_ptc
+  ptc_key%list%nmul = n_mult
+endif
 
 ! Cylindrical_map
 
@@ -685,6 +693,15 @@ endif
 
 !----------------------------------------------
 
+if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
+  do i = n_mult, 1, -1
+    call add_to_cavity(ptc_fibre, i, 0, bn_ptc(i))
+    call add_to_cavity(ptc_fibre, -i, 0, an_ptc(i))
+  enddo
+endif
+
+!----------------------------------------------
+
 if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   call init_pancake (max_order+1, 2)
 
@@ -822,7 +839,7 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
   endif
-  fh = 1d-9 * sign_of(charge_of(param%particle)) / VOLT_C
+  fh = 1d-9 * sign_of(charge_of(ele%ref_species)) / VOLT_C
   if (key == sbend$ .and. nint(ele%value(exact_multipoles$)) == vertically_pure$ .and. ele%value(g$) /= 0) then
     call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$, include_kicks$)
     ! Notice that a_pole and b_pole are reversed for electric fields.
@@ -992,7 +1009,7 @@ if (key == taylor$ .or. key == match$) then
   ! onemap = T means do not split.
   ! At this point in time there is no splitting allowed.
 
-  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele, param)
+  if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele)
 
   onemap = .true.
 
@@ -1128,6 +1145,6 @@ endif
 
 err_flag = .false.
 
-if (associated(ele_to_fibre_hook_ptr)) call ele_to_fibre_hook_ptr (ele, ptc_fibre, param, use_offsets, err_flag)
+if (associated(ele_to_fibre_hook_ptr)) call ele_to_fibre_hook_ptr (ele, ptc_fibre, use_offsets, err_flag)
 
 end subroutine ele_to_fibre

@@ -99,13 +99,34 @@ Overrides the \vn{design_lattice} lattice file specified in the \tao initializat
 \begin{example}
   tao -init my.init -lat slac.bmad
 \end{example}
-If there is more than one universe and the universes have different lattices, separate the different
-lattice names using a "|" character.  Do not put any spaces in between. Example:
+If there is more than one universe with different lattices, separate the different
+lattice file names using a "|" character. The general form is
+\begin{example}
+  tao -lat <file_name_uni1><file_name_uni2>...<file_name_uniN>
+\end{example}
+ Do not put any spaces in between. Example:
 \begin{example}
   tao -lat slac.bmad|cesr.bmad
 \end{example}
+In this example, \vn{slac.bmad} would be used as the lattice file for universe 1 and \vn{cesr.bmad}
+would be used as the lattice file for universe 2
+
+If secondary lattice files (\sref{s:init.lat}) are to be specified, separate the primary lattice file from
+the secondary ones using commas (and no spaces). Example:
+\begin{example}
+  tao -lat primary.bmad,secondary.bmad,another_secondary.bmad
+\end{example}
+
+The \vn{file_name} can encode what line to use (instead of the using the line specified in
+the last \vn{use} statement in the lattice file) and whether to read the digested (binary) lattice file
+or the normal ASCII lattice file. The syntax for \vn{<file_name>} is
+\begin{example}
+  \{<parser>::\}<lattice_file>\{@<use_line1>@<use_line2>...@<use_lineN>\}
+\end{example}
+See section \sref{s:init.lat} for details.
+
 %
-\item[-log_startup]
+\item[-log_startup] \Newline
 If there is a problem with starting \tao, \vn{-log_startup} can be used to create a log file of the
 initialization process.
 %
@@ -134,34 +155,37 @@ Overrides the \vn{plot_file} (\sref{s:init.begin}) specified in the \tao initial
 Sets the prompt string color to Blue. For different colors, use the \vn{set global prompt_color}
 command (\sref{s:set}).
 %
-\item[-reverse]
+\item[-quiet <level>] \Newline
+Supress warning messages. For details, see the documentation for the \vn{call} command (\sref{s:call}).
+%
+\item[-reverse] \Newline
 Reverses the order of the lattice elements. Equivalent to setting
-\vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}. If both \vn{-reverse} and 
+\vn{design_lattice(N)%reverse_lattice} to True (\sref{s:init.lat}). If both \vn{-reverse} and 
 \vn{design_lattice(N)%reverse_lattice} are set, they negate each other and the lattice will not
 be reversed.
 %
-\item[-rf_on]
+\item[-rf_on] \Newline
 Leaves \vn{rfcavity} elements on. RF on is currently the default so using \vn{-rf_on} will not do
 anything.  To turn the cavities off, use the negation (see below) \vn{-{}-rf_on}. Note: If you want
 to see orbit changes with RF frequency changes then you will need to set
 \vn{parameter[absolute_time_tracking]} to True. See the ``Relative Versus Absolute Time Tracking''
 section in the\bmad manual for more details.
 %
-\item[-slice_lattice <element_list>]
+\item[-slice_lattice <element_list>] \Newline
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
 Overrides the setting of \vn{design_lattice(N)%slice_lattice}. Note: A \vn{slice_lattice} command
 may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
-\item[-start_branch_at <element>]
+\item[-start_branch_at <element>] \Newline
 If present, shift the starting point of a lattice branch while keeping the relative order of the
 elements the same. This is useful, for example, in storage rings. Note A \vn{start_branch_at}
 command may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
-\item[-startup_file <file_name>]
+\item[-startup_file <file_name>] \Newline
 Overrides the \vn{startup_file} (\sref{s:init.begin}) specified in the
 \tao initialization file.
 %
-\item[-symbol_import]
+\item[-symbol_import] \Newline
 Import symbolic constants defined in any lattice files? (the default is not to). Symbols are
 imported lower cased. Also see \vn{global%symbol_import} (\sref{s:tao.global.struct}) for more
 details.
@@ -405,32 +429,47 @@ namelist are:
     n_universes        = <integer>      ! Number of universes. Default = 1.
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
-    design_lattice(N) = "<lattice_file>", \{"<lattice2_file>"\}
+    design_lattice(N) = "<lattice_file>", \{"<lattice2_files>"\}
     design_lattice(N)%one_turn_map_calc = <logical>     ! Default = False
     design_lattice(N)%dynamic_aperture_calc = <logical> ! Default = False
     design_lattice(N)%reverse_lattice = <logical>      ! Default = False
     design_lattice(N)%slice_lattice = "<element_list>"             
   /
 \end{example}
-
 \vn{n_universes} is the number of universes to be created. The default is 1.  \vn{design_lattice(N)}
-gives the lattice file name for universe \vn{i}. The syntax for \vn{<lattice_file>} is:
+gives the lattice file name for universe \vn{i}. 
+
+The syntax for \vn{<lattice_file>} is:
 \begin{example}
-  \{<parser>::\}<lattice_file>\{@<use_line>\}
+  \{<parser>::\}<lattice_file>\{@<use_line1>@<use_line2>...@<use_lineN>\}
 \end{example}
 Possible choices for the <parser> are:
 \index{bmad}\index{digested}
 \begin{example}
-  bmad      ! For a standard bmad lattice file. This is the default.
-  digested  ! For a digested BMAD file.
+  bmad      ! For a standard ASCII Bmad lattice file. This is the default.
+  digested  ! For a digested Bmad file.
 \end{example}
-The \vn{@<use_line>} optional suffix is used to specify what \vn{line} in the lattice file to use as
-a basis for constructing the lattice. This overrides the \vn{use} statement in the lattice file.
-Note: If the \vn{lattice_file} parameter is not set for the N\Th universe, the parameters for the 
-previous universe are used.
+The \vn{@<use_line1>@<use_line2>...@<use_lineN>} optional suffix is used to specify what \vn{line}
+or lines in the lattice file to use as a basis for constructing the lattice. This overrides the
+\vn{use} statement in the lattice file. Example:
+\begin{example}
+  design_lattice(1) = "cesr.bmad@ln1@ln2"
+\end{example}
+is equivalent to putting \vn{use ln1,ln2} as the use statement in the \vn{cesr.bmad} lattice file.
+
+Note: If the \vn{lattice_file} parameter is not set for the N\Th
+universe, the parameters for the previous universe are used.
+
+The optional \vn{<lattice2_file>} specifies ``secondary'' lattice files that are parsed after
+the ``primary'' lattice file specified by \vn{lattice_file}. The secondary lattice
+files must only have statements that are valid post lattice expansion.  See the \bmad manual manual
+for a discussion of lattice expansion. If there is more than one secondary file, separate them
+using commas. Note: If a \vn{%slice_lattice} parameter is used with a
+secondary lattice file then the paring specified by \vn{%slice_lattice} is applied before the
+secondary lattice file is parsed.
 
 If the \vn{%reverse_lattice} logical is present, the lattice will be reversed. That is, the elements
-will be in reversed order. The sign of the charge of the tracked particle will be reversed for
+will be in reversed order. The sign of the tracked particle will be set to the anti-particle for
 proper tracking. This is useful for simulating beams that go in the backward direction. Note: If
 there are any electric fields, the orbit in the reversed lattice will not be the reverse of the
 trajectory in the unreversed lattice. Currently, lattice reversal only works if the lattice has a
@@ -463,10 +502,7 @@ Example:
 In this example, the lattice of universe 1 is given by the file \vn{this.lat} and the lattice of
 universe 2 is given by the file \vn{that.lat}. \vn{design_lattice(2)} in the example also specifies
 a ``secondary lattice file'' called \vn{floor_coords.bmad} which will be parsed after the
-``primary'' \vn{that.lat} file is read. This secondary lattice file must only have statements that
-are valid post lattice expansion.  See the \bmad manual manual for a discussion of lattice
-expansion. Note: If a \vn{%slice_lattice} parameter is used with a secondary lattice file then the
-paring specified by \vn{%slice_lattice} is applied before the secondary lattice file is parsed.
+``primary'' \vn{that.lat} file is read.
 
 If there is no \vn{design_lattice} specified for a given universe then the last \vn{design_lattice}
 is used. Thus, in the above example, universes 4 use the same lattice as universe 3.
@@ -600,9 +636,9 @@ The \vn{tao_global_struct} structure contains \tao global parameters. The compon
 \begin{example}
 type tao_global_struct:
   beam_dead_cutoff = 0.99          ! Dead particle cutoff for stopping beam tracking.
-  lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
+  lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
   lmdif_eps = 1e-12                ! Tolerance for lmdif optimizer.
   lmdif_negligible_merit = 1d-30   ! lmdif stops if merit is smaller.
   svd_cutoff = 1e-5                ! SVD singular value cutoff limit.
@@ -627,8 +663,9 @@ type tao_global_struct:
   optimizer     = "de"             ! optimizer to use.
   print_command = "lpr"
   var_out_file  = "var#.out"
-  history_file = "\~/.history_tao"  ! Command history file.
+  history_file = "\(\sim\)/.history_tao"  ! Command history file.
   beam_timer_on = F                ! For timing the beam tracking calculation.
+  cmd_file_abort_on_error = T      ! Close all open command files when there is an error?
   concatenate_maps = F             ! False => tracking using DA.
   derivative_recalc = T            ! Recalc derivatives before each optimizer loop?
   derivative_uses_design = F       ! Derivative matrix uses the design lattice?
@@ -663,15 +700,20 @@ value using the \vn{set} command (\sref{s:set}).
   \item{\vn{global%beam_dead_cutoff}} \Newline
 Percentage of dead particles at which beam tracking is stopped.
 %
+  \item{\vn{global%cmd_file_abort_on_error}} \Newline
+The default is \vn{True}. With this setting, if there is an error, any open command files (and there
+can be multiple ones since command files can call other files), are closed if a command in a command
+file generates an error. If this parameter is set \vn{False}, most errors will not result in any
+open command files being closed. The exception is if infinite command file recursion is detected.
+%
   \item{\vn{global%concatenate_maps}} \Newline
-When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps} =
-False, is to use Differential Algebra (DA) to integrate the map from the starting point to the
-ending point.  Alternatively, with \vn{global%concatenate_maps} = True, if an element within the
+When constructing transfer Taylor maps the default method, used with \vn{global%concatenate_maps}
+set to False, is to use Differential Algebra (DA) to integrate the map from the starting point to
+the ending point.  Alternatively, with \vn{global%concatenate_maps} = True, if an element within the
 integration region has an associated map, that map is concatenated with the map under construction.
-This saves time but the potential drawback is a loss of accuracy. Note that a lattice element
-will only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components
-of the lattice element are such that a map is needed for tracking (see the \bmad manual for more
-details).
+This saves time but the potential drawback is a loss of accuracy. Note that a lattice element will
+only have an associate map if the \vn{tracking_method} or \vn{make_mat6_method} components of the
+lattice element are such that a map is needed for tracking (see the \bmad manual for more details).
 %
   \item{\vn{global%datum_err_messages_max}} \Newline
 Sets the maximum number of error messages per cycle generated when evaluating all datums. A
@@ -753,14 +795,12 @@ the optimizer will not do any checking.
 For use with command files. May be set to one of:
 \begin{example}
   off       ! Normal verbose output
-  all       ! Suppress command echo and other output.
-  ALL       ! Suppress command echo and other output.
-  warnings  ! Suppress warnings.
+  all       ! Suppress output except errors.
+  warnings  ! Suppress warnings only.
 \end{example}
-If set to \vn{all}, output to the terminal during command file running will be suppressed (except
-for warning and error messages) until the command file (or files) returns to the command line level
-at which point \vn{global%quiet} is automatically reset to \vn{off}. That is, \vn{global%quiet}
-must be set each time it is desired to run a command file(s) silently.
+If set to \vn{all}, output to the terminal will be suppressed except
+for error messages. If set in a command file, the setting will revert to what it was
+at the end of the command file.
 %
   \item{\vn{global%random_engine}} \Newline
 \vn{global%random_engine} selects the algorithm used for generating the random
@@ -1014,12 +1054,12 @@ The syntax of the \vn{tao_beam_init} namelist is:
 \index{tao_beam_init}\index{ix_universe}
 \index{beam_init}\index{beam_init!a_norm_emit}
 \index{beam_init!b_norm_emit}
-\index{beam_init!dPz_dZ}\index{beam_init!center}\index{beam_init!sig_e}
+\index{beam_init!dPz_dZ}\index{beam_init!center}\index{beam_init!sig_pz}
 \index{beam_init!sig_z}\index{beam_init!n_bunch}\index{beam_init!dt_bunch}
 \index{beam_init!n_particle}\index{beam_init!bunch_charge}
 \index{beam_init!renorm_center}\index{beam_init!renorm_sigma}
 \index{beam_init!center_jitter}\index{beam_init!emit_jitter}
-\index{beam_init!sig_z_jitter}\index{beam_init!sig_e_jitter}
+\index{beam_init!sig_z_jitter}\index{beam_init!sig_pz_jitter}
 \index{beam_init!polarization}\index{beam_track_start}\index{beam_track_end}
 \begin{example}
   &tao_beam_init
@@ -1044,7 +1084,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%dPz_dZ          = <real>        ! Energy-Z correlation
     beam_init%center          = <real>*6      ! Bunch center offset relative to
                                               !   reference particle (BMAD coords)
-    beam_init%sig_e           = <real>        ! e_sigma in dE/E0
+    beam_init%sig_pz          = <real>        ! e_sigma in dE/E0
     beam_init%sig_z           = <real>        ! Z sigma in m
     beam_init%n_bunch         = <integer>     ! Number of bunches
     beam_init%dt_bunch        = <real>        ! Time between bunches (meters)
@@ -1055,7 +1095,7 @@ The syntax of the \vn{tao_beam_init} namelist is:
     beam_init%center_jitter   = <real>*6      ! Bunch center rms jitter (meters)
     beam_init%emit_jitter     = <real>*2      ! Emittance rms jitter (\(d\epsilon/\epsilon\)) 
     beam_init%sig_z_jitter    = <real>        ! bunch length rms jitter (dz/z)
-    beam_init%sig_e_jitter    = <real>        ! bunch energy spread rms jitter (dE/E)
+    beam_init%sig_pz_jitter   = <real>        ! bunch energy spread rms jitter (dE/E)
     beam_init%spin(3)         = <real>*3      ! (x, y, z) spin components.
     beam_init%init_spin       = <logical>     ! Initialize the spin (default: False)
     beam_init%random_engine   = ""            ! random number engine to use
@@ -1546,9 +1586,9 @@ individual datums in a single line. For example
     !           data_      ele_ref  ele_start ele     merit    meas   weight good
     !           type       name     name      name    type     value         user ..
     datum( 1) = "beta.a"   "S:2.3"  ""       "Q16_1"  "max"     30    0.1     T  ...
-    datum( 2) = "phase.b"  "Q09_1"  "B22"    "Q16##2" "max"     30    0.1     T  ...
-    datum( 3) = "floor.x"  ""        ""      "end"    "target"   3    0.01    T  ...     
-    datum( 4) = "floor.x"  "B1"      ""      "1>>32"  "target"   3    0.01    T  ...     
+    datum( 2) = "eta.x"    ""       "B22"    "Q16##2" "max"     30    0.1     T  ...
+    datum( 3) = "floor.x"  ""       ""       "end"    "target"   3    0.01    T  ...     
+    datum( 4) = "floor.x"  "B1"     ""       "1>>32"  "target"   3    0.01    T  ...     
     ... etc. ...
   /
 \end{example}
@@ -1620,8 +1660,8 @@ using branch/element index notation and on input the datum's \vn{ele_start_name}
 \vn{ix_ele_ref} set to the appropriate element indexes.
 
 A range of elements can be specified by giving an \vn{ele_start_name} that is not a blank string.
-Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal beta in the range
-between the end of element \vn{B22} to the end of element \vn{Q16_1}. Elements can be specified by
+Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal dispersion in the range
+between the end of element \vn{B22} to the end of element \vn{Q16\#\#2}. Elements can be specified by
 name (Eg: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
 will match to the element whose longitudinal position at the exit end is closest to
 \vn{<s_distance>}.
@@ -1662,7 +1702,14 @@ exception (\sref{s:data.types}) The \vn{n0} axis must be specified. If \vn{l} is
 \vn{m} will be appropriately calculated such that the axes form a right handed coordinate system. If
 \vn{m} is also specified, \vn{l} will be appropriately calculated. If neither \vn{l} nor \vn{m} is
 specified, \vn{l} and \vn{m} will be calculated somewhat arbitrarily to form a right handed
-coordinate system.
+coordinate system. Note: the axis vectors will be normalized to unity. Example:
+\begin{example}
+  &tao_d1_data
+    ...
+    datum(2)%n0 = 0, 1, 0
+    datum(2)%l = 1, 0, 0
+    ...
+\end{example}
 %
 \index{datum%weight}
 \item[datum(N)\%weight] \Newline
@@ -2199,11 +2246,10 @@ and \vn{%border%x2}) are the right and left border widths and the offsets \vn{y1
 black (corresponding to \vn{%border%y1} and \vn{%border%y2}) are the bottom and top border widths
 respectively. The rectangle within this border is called the \vn{plot area}.
 %
-\item[plot_page\%curve_legend_line_len] \Newline
-Sets the length, in points, of lines drawn for the curve legend (\sref{s:plot.def}). Default is 30.
-%
-\item[plot_page\%curve_legend_text_offset] \Newline
-Sets the space, in points, between the line and text in the curve legend. Default is 6.
+\item[plot_page\%curve_legend] \Newline
+Sets parameters for the curve legend (\sref{s:plot.def}). \vn{%curve_legend} is an instance of a
+\vn{qp_legend_struct} (\sref{s:qp.legend.str}). Note: When drawing a curve legend for a particular
+graph, the placement of the legened is given by \vn{graph%curve_legend_origin}.
 %
 \item[plot_page\%delete_overlapping_plots] \Newline
 When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using
@@ -2707,7 +2753,7 @@ corner of the legend is. The default is:
   graph%curve_legend_origin%units = "POINTS/GRAPH/LT"
 \end{example}
 The \vn{%curve_legend_origin} is of type \vn{qp_point_struct}. See \sref{s:qp.point} for details on this
-structure. Also see \vn{graph%draw_curve_legend}
+structure. Also see \vn{graph%draw_curve_legend} and \vn{plot_page%curve_legend}.
 %
 \item[graph\%draw_axes] \Newline
 Draw the graph axes? Default is \vn{True}. 

@@ -25,6 +25,7 @@ real(rp) v_mat(4,4), v_inv_mat(4,4), eta_vec(4), orb_vec(4), rel_p
 logical, optional :: reverse
 
 ! Normal mode to x,y
+! Note: rel_p = 0 can happen at or near an e_gun element.
 
 if (logic_option(.false., reverse)) then
 
@@ -36,11 +37,17 @@ if (logic_option(.false., reverse)) then
 
   ele%x%eta     = eta_vec(1)
   ele%x%etap    = eta_vec(2)
-  ele%x%deta_ds = eta_vec(2) / rel_p - orb_vec(2) / rel_p**2
 
   ele%y%eta     = eta_vec(3)
   ele%y%etap    = eta_vec(4)
-  ele%y%deta_ds = eta_vec(4) / rel_p - orb_vec(4) / rel_p**2
+
+  if (rel_p < 1e-3) then
+    ele%x%deta_ds = 0
+    ele%y%deta_ds = 0
+  else
+    ele%x%deta_ds = eta_vec(2) / rel_p - orb_vec(2) / rel_p**2
+    ele%y%deta_ds = eta_vec(4) / rel_p - orb_vec(4) / rel_p**2
+  endif
 
 ! x,y to normal mode
 
@@ -53,11 +60,18 @@ else
 
   ele%a%eta     = eta_vec(1)
   ele%a%etap    = eta_vec(2)
-  ele%a%deta_ds = eta_vec(2) / rel_p - orb_vec(2) / rel_p**2
 
   ele%b%eta     = eta_vec(3)
   ele%b%etap    = eta_vec(4)
-  ele%b%deta_ds = eta_vec(4) / rel_p - orb_vec(4) / rel_p**2
+
+  if (rel_p < 1e-3) then
+    ele%a%deta_ds = 0
+    ele%b%deta_ds = 0
+  else
+    ele%a%deta_ds = eta_vec(2) / rel_p - orb_vec(2) / rel_p**2
+    ele%b%deta_ds = eta_vec(4) / rel_p - orb_vec(4) / rel_p**2
+  endif
+
 endif
 
 end subroutine

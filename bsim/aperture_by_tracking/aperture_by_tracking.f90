@@ -397,6 +397,9 @@ IF(master) THEN
       write(templun,'(es15.7)', advance = 'NO')  angle(k)
     enddo
     write(templun,'(es15.7)', advance = 'YES')  angle(n_apertures) 
+  else
+    write(templun,'(a1,a14,2a15)') "#", "s(m)", "-pz aperture", "+pz aperture"
+    write(templun,'(a)') "# Units of aperture are units of vec(6), Delta P/P"
   endif
   
   DO i=1,n_slices

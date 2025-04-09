@@ -62,9 +62,9 @@ call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole)
 ! If element has zero length then the SAD ignores f1 and f2.
 
 if (length == 0) then
-  call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
   call ab_multipole_kicks (a_pole, b_pole, ix_pole_max, ele, orbit, magnetic$, 1.0_rp, mat6, make_matrix)
-  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
   orbit%s = ele%s
   orbit%location = downstream_end$
@@ -78,7 +78,7 @@ k1 = charge_dir * k1 / ele%value(l$)
 ks = rel_tracking_charge_to_mass(orbit, param%particle) * ele%value(ks$)
 sol_center = rot_2d ([ele%value(x_offset_mult$), ele%value(y_offset_mult$)], -ele%value(tilt$))
 
-call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%vec(2) = orbit%vec(2) + 0.5_rp * sol_center(2) * ks
 orbit%vec(4) = orbit%vec(4) - 0.5_rp * sol_center(1) * ks
@@ -125,7 +125,7 @@ call apply_element_edge_kick(orbit, fringe_info, ele, param, .false., mat6, make
 orbit%vec(2) = orbit%vec(2) - 0.5_rp * sol_center(2) * ks
 orbit%vec(4) = orbit%vec(4) + 0.5_rp * sol_center(1) * ks
 
-call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
+if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 orbit%t = t_start + length * ele%value(E_tot$) / (c_light * ele%value(p0c$)) - (orbit%vec(5) - z_start) / (orbit%beta * c_light)
 

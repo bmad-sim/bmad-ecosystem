@@ -1,6 +1,10 @@
+
+
+
 program hdf5_test
 
 use beam_mod
+use hdf5_openpmd_mod
 
 implicit none
 
@@ -11,13 +15,66 @@ type (beam_struct) beam, beam2
 type (beam_init_struct) beam_init
 type (ele_struct) ele
 type (grid_field_struct), pointer :: gf1(:), gf0(:)
+type (pmd_unit_struct) unit
 
 integer i, j, n_part
+integer h5_err
+integer(HID_T) f_id, r_id, complex_t
+
+complex(rp) c1_in(2), c1_out(2), c2_in(2,3), c2_out(2,3), c3_in(2,3,4), c3_out(2,3,4)
+
 logical error, good1(10), good2(10), g1, g2, ignore_beta
+
+character(8), allocatable :: strs(:)
 
 !
 
 open (1, file = 'output.now', recl = 200)
+
+!---------------------
+! General Write/Read
+
+call hdf5_open_file ('general.h5', 'WRITE', f_id, error)
+call pmd_init_compound_complex(complex_t)
+
+call H5Gcreate_f(f_id, '/data', r_id, h5_err) 
+
+call hdf5_write_attribute_string(r_id, 'attrib_name', [character(8):: 'Val1', 'Bval2', 'X'], error)
+
+c1_in = [cmplx(1.0_rp, 2.0_rp), cmplx(3.0_rp, 4.0_rp)]
+do i = 1, ubound(c2_in,2)
+  c2_in(:,i) = i * c1_in
+  do j = 1, ubound(c3_in, 3)
+    c3_in(:,i,j) = (i + 10*j) * c1_in
+  enddo
+enddo
+
+call pmd_write_complex_to_dataset(r_id, 'complex_rank1', complex_t, "", unit, c1_in, error)
+call pmd_write_complex_to_dataset(r_id, 'complex_rank2', complex_t, "", unit, c2_in, error)
+call pmd_write_complex_to_dataset(r_id, 'complex_rank3', complex_t, "", unit, c3_in, error)
+
+call H5Gclose_f(r_id, h5_err)
+call H5fclose_f(f_id, h5_err)
+
+!
+
+call hdf5_open_file ('general.h5', 'READ', f_id, error)
+r_id = hdf5_open_group(f_id, 'data', error, .true.)
+
+call hdf5_read_attribute_string(r_id, 'attrib_name', strs, error, .true.)
+
+call pmd_read_complex_dataset(r_id, 'complex_rank3', complex_t, 1.0_rp, '', c3_out, error)
+call pmd_read_complex_dataset(r_id, 'complex_rank2', complex_t, 1.0_rp, '', c2_out, error)
+call pmd_read_complex_dataset(r_id, 'complex_rank1', complex_t, 1.0_rp, c1_out, error)
+
+call H5Gclose_f(r_id, h5_err)
+call H5fclose_f(f_id, h5_err)
+
+!
+
+write (1, '(a, 10a8)') '"Strs" STR', (quote(strs(i)), i = 1, size(strs))
+
+call pmd_kill_compound_complex(complex_t)
 
 !---------------------
 ! Beam Read/Write
@@ -73,7 +130,20 @@ write (1, '(a, 10l1, a)') '"Bunch1" STR "', good1, '"'
 write (1, '(a, 10l1, a)') '"Bunch2" STR "', good2, '"'
 
 !---------------------
-! Ascii
+! Bunch old format
+
+call hdf5_read_beam('bunch_old.h5', beam, error)
+
+do i = 1, n_part
+  good1(i) = coord_is_equal(bunch1%particle(i), beam%bunch(1)%particle(i))
+  good2(i) = coord_is_equal(bunch2%particle(i), beam%bunch(2)%particle(i))  
+enddo
+
+write (1, '(a, 10l1, a)') '"Old-Bunch1" STR "', good1, '"'
+write (1, '(a, 10l1, a)') '"Old-Bunch2" STR "', good2, '"'
+
+!---------------------
+! Bunch ASCII
 
 call write_beam_file ('bunch.ascii', beam)
 call read_beam_file ('bunch.ascii', beam2, beam_init_struct(), error)
@@ -107,6 +177,14 @@ call hdf5_read_grid_field  ('grid_field.h5', ele, gf1, error)
 
 write (1, '(a, l1, a)') '"Grid1" STR "', grid_field_is_equal (gf0(1), gf1(1)), '"'
 write (1, '(a, l1, a)') '"Grid2" STR "', grid_field_is_equal (gf0(2), gf1(2)), '"'
+
+!---------------------
+! Old Grid_Field Read
+
+call hdf5_read_grid_field  ('grid_field_old.h5', ele, gf1, error)
+
+write (1, '(a, l1, a)') '"Old-Grid1" STR "', grid_field_is_equal (gf0(1), gf1(1)), '"'
+write (1, '(a, l1, a)') '"Old-Grid2" STR "', grid_field_is_equal (gf0(2), gf1(2)), '"'
 
 close (1)
 

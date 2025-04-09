@@ -21,6 +21,7 @@
 !   LOGIC       ! Logical: "T" or "F".
 !   INUM        ! Integer whose allowed values can be obtained using the "pipe inum" command.
 !   ENUM        ! String whose allowed values can be obtained using the "pipe enum" command.
+!   ENUM_ARR    ! Array of enums.
 !   FILE        ! Name of file.
 !   CRYSTAL     ! Crystal name string. EG: "Si(111)"
 !   DAT_TYPE    ! Data type string. EG: "orbit.x"
@@ -51,7 +52,7 @@ subroutine tao_pipe_cmd (input_str)
 use tao_interface, dummy => tao_pipe_cmd
 use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
-use wall3d_mod, only: calc_wall_radius
+use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
@@ -158,7 +159,7 @@ real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy,
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
-real(rp) mat6(6,6), vec0(6), array(7)
+real(rp) mat6(6,6), vec0(6), array(7), perp(3), origin(3), r_wall
 real(rp), allocatable :: real_arr(:), value_arr(:)
 
 type (tao_spin_map_struct), pointer :: sm
@@ -174,7 +175,7 @@ integer, target :: nl
 integer, pointer :: nl_ptr
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok, no_slaves, index_order, ok
+logical first_time, found_one, calc_ok, no_slaves, index_order, ok, not
 logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
@@ -257,15 +258,15 @@ call match_word (cmd, [character(40) :: &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
-          'wave'], ix, matched_name = command)
+          'wall3d_radius', 'wave'], ix, matched_name = command)
 
 if (ix == 0) then
-  call out_io (s_error$, r_name, 'pipe what? "What" not recognized: ' // command)
+  call out_io (s_error$, r_name, 'pipe what? ' // quote(cmd) // ' is not recognized.')
   return
 endif
 
 if (ix < 0) then
-  call out_io (s_error$, r_name, 'pipe what? Ambiguous command: ' // command)
+  call out_io (s_error$, r_name, 'pipe what? ' // quote(cmd) // ' is an ambiguous command.')
   return
 endif
 
@@ -334,13 +335,10 @@ case ('beam')
   nl=incr(nl); write (li(nl), amt) 'track_start;STR;T;',               trim(u%model_branch(ix_branch)%beam%track_start)
   nl=incr(nl); write (li(nl), amt) 'track_end;STR;T;',                 trim(u%model_branch(ix_branch)%beam%track_end)
   nl=incr(nl); write (li(nl), rmt) 'comb_ds_save;REAL;T;',             u%model%tao_branch(ix_branch)%comb_ds_save
-  nl=incr(nl); write (li(nl), rmt) 'comb_max_ds_save;REAL;T;',         u%model%tao_branch(ix_branch)%comb_max_ds_save
   if (allocated(u%model%tao_branch(ix_branch)%bunch_params_comb)) then
     nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  u%model%tao_branch(ix_branch)%bunch_params_comb(1)%ds_save
-    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              u%model%tao_branch(ix_branch)%bunch_params_comb(1)%max_ds_save
   else
     nl=incr(nl); write (li(nl), rmt) 'ds_save;REAL;F;',                  -1.0_rp
-    nl=incr(nl); write (li(nl), rmt) 'max_ds_save;REAL;F;',              -1.0_rp
   endif
 
 !------------------------------------------------------------------------------------------------
@@ -383,7 +381,7 @@ case ('beam_init')
   ix_branch = parse_branch(line, u, .false., err); if (err) return
   beam_init => u%model_branch(ix_branch)%beam%beam_init
 
-!!  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',           (';', trim(beam_init%distribution_type(k)), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'distribution_type;STR_ARR;T',              (';', trim(beam_init%distribution_type(k)), k = 1, 3)
   nl=incr(nl); write (li(nl), amt) 'position_file;FILE;T;',                    trim(beam_init%position_file)
   nl=incr(nl); write (li(nl), rmt) 'sig_z_jitter;REAL;T;',                     beam_init%sig_z_jitter
   nl=incr(nl); write (li(nl), rmt) 'sig_pz_jitter;REAL;T;',                    beam_init%sig_pz_jitter
@@ -403,7 +401,7 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), rmt) 'dt_bunch;REAL;T;',                         beam_init%dt_bunch
   nl=incr(nl); write (li(nl), rmt) 't_offset;REAL;T;',                         beam_init%t_offset
   nl=incr(nl); write (li(nl), amt) 'center;REAL_ARR;T',                        (';', re_str(beam_init%center(k), 8), k = 1, 6)
-  nl=incr(nl); write (li(nl), amt) 'spin;REAL_ARR;T',                           (';', re_str(beam_init%spin(k), 10), k = 1, 3)
+  nl=incr(nl); write (li(nl), amt) 'spin;REAL_ARR;T',                          (';', re_str(beam_init%spin(k), 10), k = 1, 3)
   nl=incr(nl); write (li(nl), rmt) 'sig_z;REAL;T;',                            beam_init%sig_z
   nl=incr(nl); write (li(nl), rmt) 'sig_pz;REAL;T;',                           beam_init%sig_pz
   nl=incr(nl); write (li(nl), rmt) 'bunch_charge;REAL;T;',                     beam_init%bunch_charge
@@ -541,14 +539,15 @@ case ('branch1')
 !
 ! Where:
 !   {flags} are optional switches:
-!       -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+!       -array_out : If present, the output will be available in the 
+!              tao_c_interface_com%c_real array.
 !   {ix_uni} is a universe index. Defaults to s%global%default_universe.
 !   {ix_branch} is a branch index. Defaults to s%global%default_branch.
 !   {ix_bunch} is the bunch index. Defaults to 1.
 !   {who} is one of:
 !       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
-!       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, eta, etap,
-!                                                                 sigma, sigma_p, emit, norm_emit
+!       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
+!                                       eta, etap, sigma, sigma_p, emit, norm_emit
 !     sigma.IJ where I, J in range [1,6]
 !     rel_min.I, rel_max.I where I in range [1,6]
 !     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
@@ -769,11 +768,12 @@ case ('bunch_params')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {ix_bunch} is the bunch index.
-!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", "state", "ix_ele"
+!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", 
+!                                                                 "state", "ix_ele"
 !
 ! For example, if {coordinate} = "px", the phase space px coordinate of each particle
-! of the bunch is displayed. The "state" of a particle is an integer. A value of 1 means
-! alive and any other value means the particle has been lost.
+! of the bunch is displayed. The "state" of a particle is an integer. 
+! A value of 1 means alive and any other value means the particle has been lost.
 !
 ! Parameters
 ! ----------
@@ -944,7 +944,8 @@ case ('building_wall_graph')
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^{z_center}^^{x_center}
+!   pipe building_wall_point {ix_section}^^{ix_point}^^{z}^^{x}^^{radius}^^
+!                                                               {z_center}^^{x_center}
 !
 ! Where:
 !   {ix_section}    -- Section index.
@@ -1594,8 +1595,10 @@ case ('data_d2_array')
 !   {d2_name} is the name of the d2_data structure to create.
 !   {n_d1_data} is the number of associated d1 data structures.
 !   {d_data_arrays_name_min_max} has the form
-!     {name1}^^{lower_bound1}^^{upper_bound1}^^....^^{nameN}^^{lower_boundN}^^{upper_boundN}
-!   where {name} is the data array name and {lower_bound} and {upper_bound} are the bounds of the array.
+!     {name1}^^{lower_bound1}^^{upper_bound1}^^....
+!                                            ^^{nameN}^^{lower_boundN}^^{upper_boundN}
+!   where {name} is the data array name and 
+!   {lower_bound} and {upper_bound} are the bounds of the array.
 ! 
 ! Example:
 !   pipe data_d2_create 2@orbit^^2^^x^^0^^45^^y^^1^^47
@@ -2002,9 +2005,10 @@ case ('data_set_design_value')
 ! 
 ! Note: The 3 values for spin_axis%n0, as a group, are optional. 
 !       Also the 3 values for spin_axis%l are, as a group, optional.
-! Note: Use the "data_d2_create" first to create a d2 structure with associated d1 arrays.
-! Note: After creating all your datums, use the "data_set_design_value" routine to 
-!       set the design (and model) values.
+! Note: Use the "pipe data_d2_create" command first to create a d2 structure 
+!       with associated d1 arrays.
+! Note: After creating all your datums, use the "pipe data_set_design_value" routine
+!       to set the design (and model) values.
 ! 
 ! Parameters
 ! ----------
@@ -2339,10 +2343,10 @@ case ('ele:cartesian_map')
   case ('base')
     nl=incr(nl); write (li(nl), amt) 'file;FILE;T;',                          trim(ct_map%ptr%file)
     nl=incr(nl); write (li(nl), rmt) 'field_scale;REAL;T;',                   ct_map%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', ct_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', ct_map%r0(i), i = 1, 3)
     name = attribute_name(ele, ct_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',         trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(ct_map%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(ct_map%field_type))
 
@@ -2447,7 +2451,7 @@ case ('ele:chamber_wall')
 !
 ! Example:
 !   pipe ele:control_var 3@1>>7|model
-! This gives element number 7 in branch 1 of universe 3.
+! This gives control info on element number 7 in branch 1 of universe 3.
 ! 
 ! Parameters
 ! ----------
@@ -2474,6 +2478,11 @@ case ('ele:control_var')
 
   if (.not. associated(ele%control)) then
     call invalid ('ele%control not allocated')
+    return
+  endif
+
+  if (.not. allocated(ele%control%var)) then
+    call invalid ('ele%control%var not allocated')
     return
   endif
 
@@ -2616,9 +2625,9 @@ case ('ele:elec_multipoles')
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T', ele%multipoles_on
+  nl=incr(nl); write (li(nl), lmt) 'multipoles_on;LOGIC;T;', ele%multipoles_on
   if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T', ele%scale_multipoles
+    nl=incr(nl); write (li(nl), lmt) 'scale_multipoles;LOGIC;T;', ele%scale_multipoles
   endif
 
   can_vary = (which == 'model')
@@ -2655,10 +2664,10 @@ case ('ele:elec_multipoles')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {where} is an optional argument which, if present, is one of
-!     beginning  ! Upstream end
-!     center     ! Middle of element
-!     end        ! Downstream end (default)
-! Note: {where} ignored for photonic elements crystal, mirror, and multilayer_mirror.
+!     beginning  ! Upstream end.
+!     center     ! Middle of the element. This is the surface of element when used 
+!                !  with photonic reflecting elements such as crystal and mirror elements.
+!     end        ! Downstream end (default).
 !
 ! Example:
 !   pipe ele:floor 3@1>>7|model
@@ -2694,25 +2703,17 @@ case ('ele:floor')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
-
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  if (tail_str == '') tail_str = 'end'
+  call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
+  if (loc == 0) then
+    call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
+    return
+  endif
+
   can_vary = (ele%ix_ele == 0 .and. which == 'model')
-
-  select case (ele%key)
-  case (crystal$, mirror$, multilayer_mirror$)
-    call write_this_floor(ele%floor, 'Reference', can_vary)
-    call write_this_floor(ele_geometry_with_misalignments (ele, 0.5_rp), 'Actual', .false.)
-
-  case default
-    if (tail_str == '') tail_str = 'end'
-    call match_word (tail_str, [character(12):: 'beginning', 'center', 'end'], loc)
-    if (loc == 0) then
-      call invalid ('BAD "where" SWITCH. SHOULD BE ONE OF "", "beginning", "center", or "end".')
-      return
-    endif
-
-    call write_this_ele_floor(ele, loc, can_vary, '')
-  end select
+  call write_this_ele_floor(ele, loc, can_vary, '')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -2780,6 +2781,10 @@ case ('ele:gen_attribs')
       nl=incr(nl); write (li(nl), '(2a, l1, 2a)') trim(a_name), ';ENUM;', free, ';', trim(name)
     end select
   enddo
+
+  nl=incr(nl); write (li(nl), amt) 'lord_status;ENUM;F;', trim(control_name(ele%lord_status))
+  nl=incr(nl); write (li(nl), amt) 'slave_status;ENUM;F;', trim(control_name(ele%slave_status))
+  
 
   if (attribute_name(ele, aperture_at$) == 'APERTURE_AT') then
     nl=incr(nl); write (li(nl), amt) 'aperture_at;ENUM;T;', trim(aperture_at_name(ele%aperture_at))
@@ -2853,7 +2858,7 @@ case ('ele:gen_grad_map')
   case ('base')
     nl=incr(nl); write (li(nl), amt)  'file;FILE;T;',                          trim(gg_map%file)
     nl=incr(nl); write (li(nl), rmt)  'field_scale;REAL;T;',                   gg_map%field_scale
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', gg_map%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', gg_map%r0(i), i = 1, 3)
     nl=incr(nl); write (li(nl), rmt)  'dz;REAL;T;',                            gg_map%dz
     name = attribute_name(ele, gg_map%master_parameter)
     if (name(1:1) == '!') name = '<None>'
@@ -2935,10 +2940,10 @@ case ('ele:grid_field')
   select case (tail_str)
   case ('base')
     nl=incr(nl); write (li(nl), ramt) 'dr;REAL_ARR;T',                        (';', g_field%dr(i), i = 1, 3)
-    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                         (';', g_field%r0(i), i = 1, 3)
+    nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T',                        (';', g_field%r0(i), i = 1, 3)
     name = attribute_name(ele, g_field%master_parameter)
     if (name(1:1) == '!') name = '<None>'
-    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
+    nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',         trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(g_field%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'field_type;ENUM;T;',                    trim(em_field_type_name(g_field%field_type))
     nl=incr(nl); write (li(nl), amt) 'grid_field^geometry;ENUM;T;',           trim(grid_field_geometry_name(g_field%geometry))
@@ -3087,9 +3092,11 @@ case ('ele:head')
 ! This gives lord and slave info on element number 7 in branch 1 of universe 3.
 ! Note: The lord/slave info is independent of the setting of {which}.
 ! 
-! The output is a number of lines, each line giving information on an element (element index, etc.).
+! The output is a number of lines.
+! Each line gives information on an element (element index, etc.).
 ! Some lines begin with the word "Element". 
-! After each "Element" line, there are a number of lines (possibly zero) that begin with the word "Slave or "Lord".
+! After each "Element" line, there are a number of lines (possibly zero) 
+! that begin with the word "Slave or "Lord".
 ! These "Slave" and "Lord" lines are the slaves and lords of the "Element" element.
 ! 
 ! Parameters
@@ -3558,17 +3565,17 @@ case ('ele:photon')
 
   case ('material')
     if (ele%key == multilayer_mirror$) then
-      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',      cmplx_str(ph%material%f0_m1)
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+      nl=incr(nl); write (li(nl), amt) 'F0_m1;COMPLEX;F',          cmplx_str(ph%material%f0_m1)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',          cmplx_str(ph%material%f0_m2)
     else
-      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',      cmplx_str(ph%material%f0_m2)
+      nl=incr(nl); write (li(nl), amt) 'F0_m2;COMPLEX;F',          cmplx_str(ph%material%f0_m2)
     endif
     nl=incr(nl); write (li(nl), amt) 'F_H;COMPLEX;F',              cmplx_str(ph%material%f_h)
     nl=incr(nl); write (li(nl), amt) 'F_Hbar;COMPLEX;F',           cmplx_str(ph%material%f_hbar)
     nl=incr(nl); write (li(nl), amt) 'Sqrt(F_H*F_Hbar);COMPLEX;F', cmplx_str(ph%material%f_hkl)
 
   case ('curvature')
-    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T', ph%curvature%spherical
+    nl=incr(nl); write (li(nl), rmt) 'spherical_curvature;REAL;T;',      ph%curvature%spherical
     nl=incr(nl); write (li(nl), ramt) 'elliptical_curvature;REAL_ARR;T', (';', ph%curvature%elliptical(i), i = 1, 3)
     do i = 0, ubound(ph%curvature%xy, 2)
       nl=incr(nl); write (li(nl), ramt) 'xy(' // int_str(i) // ',:);REAL_ARR;T', (';', ph%curvature%xy(i,j), j = 0, ubound(ph%curvature%xy, 1))
@@ -3796,17 +3803,17 @@ case ('ele:wake')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',             wake%sr%z_max
-    nl=incr(nl); write (li(nl), rmt) 'sr%amp_scale;REAL;T;',         wake%sr%amp_scale
-    nl=incr(nl); write (li(nl), rmt) 'sr%z_scale;REAL;T;',           wake%sr%z_scale
-    nl=incr(nl); write (li(nl), lmt) 'sr%scale_with_length;REAL;T;', wake%sr%scale_with_length
-    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',       wake%lr%freq_spread
-    nl=incr(nl); write (li(nl), rmt) 'lr%amp_scale;REAL;T;',         wake%lr%amp_scale
-    nl=incr(nl); write (li(nl), rmt) 'lr%time_scale;REAL;T;',        wake%lr%time_scale
-    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;REAL;T;',      wake%lr%self_wake_on
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',         allocated(wake%sr%long)
-    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',        allocated(wake%sr%trans)
-    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',         allocated(wake%lr%mode)
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_max;REAL;T;',              wake%sr%z_max
+    nl=incr(nl); write (li(nl), rmt) 'sr%amp_scale;REAL;T;',          wake%sr%amp_scale
+    nl=incr(nl); write (li(nl), rmt) 'sr%z_scale;REAL;T;',            wake%sr%z_scale
+    nl=incr(nl); write (li(nl), lmt) 'sr%scale_with_length;LOGIC;T;', wake%sr%scale_with_length
+    nl=incr(nl); write (li(nl), rmt) 'lr%freq_spread;REAL;T;',        wake%lr%freq_spread
+    nl=incr(nl); write (li(nl), rmt) 'lr%amp_scale;REAL;T;',          wake%lr%amp_scale
+    nl=incr(nl); write (li(nl), rmt) 'lr%time_scale;REAL;T;',         wake%lr%time_scale
+    nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;LOGIC;T;',      wake%lr%self_wake_on
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',          allocated(wake%sr%long)
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',         allocated(wake%sr%trans)
+    nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',          allocated(wake%lr%mode)
 
   case ('sr_long')
     nl=incr(nl); write (li(nl), rmt) 'z_ref;REAL;T;',   wake%sr%z_ref_long
@@ -3856,7 +3863,8 @@ case ('ele:wake')
 ! Where: 
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   {index} is the index number in the ele%wall3d(:) array (size obtained from "ele:head").
+!   {index} is the index number in the ele%wall3d(:) array 
+!             The size of this array is obtained from "pipe ele:head".
 !   {who} is one of: "base", or "table".
 ! Example:
 !   pipe ele:wall3d 3@1>>7|model 2 base
@@ -3898,31 +3906,31 @@ case ('ele:wall3d')
 
   select case (tail_str)
   case ('base')
-    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                   trim(wall3d%name)
-    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',         trim(anchor_pt_name(wall3d%ele_anchor_pt))
+    nl=incr(nl); write (li(nl), amt) 'name;STR;T;',                    trim(wall3d%name)
+    nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',          trim(anchor_pt_name(wall3d%ele_anchor_pt))
     select case (ele%key)
     case (capillary$)
     case (diffraction_plate$, mask$)
-      nl=incr(nl); write (li(nl), rmt) 'thickness;REAL;T',            wall3d%thickness
-      nl=incr(nl); write (li(nl), amt) 'clear_material;REAL;T',       trim(wall3d%clear_material)
-      nl=incr(nl); write (li(nl), amt) 'opaque_material;REAL;T',      trim(wall3d%opaque_material)
+      nl=incr(nl); write (li(nl), rmt) 'thickness;REAL;T;',            wall3d%thickness
+      nl=incr(nl); write (li(nl), amt) 'clear_material;SPECIES;T;',    trim(wall3d%clear_material)
+      nl=incr(nl); write (li(nl), amt) 'opaque_material;SPECIES;T;',   trim(wall3d%opaque_material)
     case default
-      nl=incr(nl); write (li(nl), lmt) 'superimpose;REAL;T',          wall3d%superimpose
+      nl=incr(nl); write (li(nl), lmt) 'superimpose;LOGIC;T;',         wall3d%superimpose
     end select
 
   case ('table')
     do i = 1, size(wall3d%section)
       sec => wall3d%section(i)
-      nl=incr(nl); write (li(nl), imt) 'section;INT;F;',    i
-      nl=incr(nl); write (li(nl), rmt) 's;REAL;T;',         sec%s
-      nl=incr(nl); write (li(nl), ramt) 'r0;REAL_ARR;T;',    (';', sec%r0(j), j = 1, size(sec%r0))
+      nl=incr(nl); write (li(nl), imt)   'section;INT;F;',    i
+      nl=incr(nl); write (li(nl), rmt)   's;REAL;T;',         sec%s
+      nl=incr(nl); write (li(nl), ramt)  'r0;REAL_ARR;T',    (';', sec%r0(j), j = 1, size(sec%r0))
       if (ele%key /= capillary$) then
         nl=incr(nl); write (li(nl), amt) 'wall3d_section^type;ENUM;T;',    trim(wall3d_section_type_name(sec%type))
       endif
-      nl=incr(nl); write (li(nl), imt) 'vertex;INT;F;',    i
+      nl=incr(nl); write (li(nl), imt)   'vertex;INT;F;',    i
       do j = 1, size(sec%v)
-        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(i)%x, ';', sec%v(i)%y, ';', &
-                                              sec%v(i)%radius_x, ';', sec%v(i)%radius_y, ';', sec%v(i)%tilt
+        nl=incr(nl); write (li(nl), '(i0, 5(a, es22.14))') j, ';', sec%v(j)%x, ';', sec%v(j)%y, ';', &
+                                              sec%v(j)%radius_x, ';', sec%v(j)%radius_y, ';', sec%v(j)%tilt
       enddo
     enddo
 
@@ -3944,7 +3952,8 @@ case ('ele:wall3d')
 !
 ! Where:
 !   Optional {flags} are:
-!       -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
+!       -array_out : If present, the output will be available in the 
+!                     tao_c_interface_com%c_real array.
 !   {expression} is expression to be evaluated.
 !
 ! Example:
@@ -4010,7 +4019,8 @@ case ('evaluate')
 !   {which} is one of: "model", "base" or "design"
 !   {x}, {y}  -- Transverse coords.
 !   {z}       -- Longitudinal coord with respect to entrance end of element.
-!   {t_or_z}  -- time or phase space z depending if lattice is setup for absolute time tracking.
+!   {t_or_z}  -- time or phase space z depending if lattice is setup for 
+!             --   absolute time tracking.
 ! 
 ! Parameters
 ! ----------
@@ -4122,6 +4132,11 @@ case ('enum')
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_source_name(i))
     enddo
 
+  case ('distribution_type')
+    do i = 1, size(beam_distribution_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(beam_distribution_type_name(i))
+    enddo
+
   case ('floor_plan_view_name')
     do i = 1, size(tao_floor_plan_view_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_floor_plan_view_name(i))
@@ -4136,6 +4151,16 @@ case ('enum')
     do i = 1, size(qp_line_pattern_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
     enddo
+
+  case ('lord_status')
+    nl=incr(nl); li(nl) = '4;Group_Lord'
+    nl=incr(nl); li(nl) = '5;Super_Lord' 
+    nl=incr(nl); li(nl) = '6;Overlay_Lord' 
+    nl=incr(nl); li(nl) = '7;Girder_Lord' 
+    nl=incr(nl); li(nl) = '8;Multipass_Lord'
+    nl=incr(nl); li(nl) = '10;Not_a_Lord' 
+    nl=incr(nl); li(nl) = '12;Control_Lord' 
+    nl=incr(nl); li(nl) = '13;Ramper_Lord'
 
   case ('optimizer')
     do i = 1, size(tao_optimizer_name)
@@ -4168,6 +4193,13 @@ case ('enum')
     do i = 1, size(tao_shape_shape_name)
       nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
     enddo
+
+  case ('slave_status')
+    nl=incr(nl); li(nl) = '1;Minor_Slave'
+    nl=incr(nl); li(nl) = '2;Super_Slave' 
+    nl=incr(nl); li(nl) = '3;Free' 
+    nl=incr(nl); li(nl) = '9;Multipass_Slave' 
+    nl=incr(nl); li(nl) = '11;Slice_Slave' 
 
   case ('fill_pattern')
     do i = 1, size(qp_symbol_fill_pattern_name)
@@ -4477,6 +4509,7 @@ case ('global')
   nl=incr(nl); write (li(nl), amt) 'phase_units;ENUM;T;',                     trim(angle_units_name(s%global%phase_units))
   nl=incr(nl); write (li(nl), imt) 'bunch_to_plot;INT;T;',                    s%global%bunch_to_plot
   nl=incr(nl); write (li(nl), imt) 'random_seed;INT;T;',                      s%global%random_seed
+  nl=incr(nl); write (li(nl), imt) 'n_threads;INT;T;',                        s%global%n_threads
   nl=incr(nl); write (li(nl), imt) 'n_top10_merit;INT;T;',                    s%global%n_top10_merit
   nl=incr(nl); write (li(nl), imt) 'n_opti_loops;INT;T;',                     s%global%n_opti_loops
   nl=incr(nl); write (li(nl), imt) 'n_opti_cycles;INT;T;',                    s%global%n_opti_cycles
@@ -4834,11 +4867,14 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !
 ! Where:
 !  Optional {flags} are:
-!   -no_slaves : If present, multipass_slave and super_slave elements will not be matched to.
-!   -track_only : If present, lord elements will not be matched to.
-!   -index_order : If present, order elements by element index instead of the standard s-position.
-!   -array_out : If present, the output will be available in the tao_c_interface_com%c_real or
-!     tao_c_interface_com%c_integer arrays. See the code below for when %c_real vs %c_integer is used.
+!   -no_slaves   - If present, multipass_slave and super_slave elements will not 
+!                -   be matched to.
+!   -track_only  - If present, lord elements will not be matched to.
+!   -index_order - If present, order elements by element index instead of the 
+!                -   standard s-position.
+!   -array_out   - If present, the output will be available in the 
+!     tao_c_interface_com%c_real or tao_c_interface_com%c_integer arrays. 
+!     See the code below for when %c_real vs %c_integer is used.
 !     Note: Only a single {who} item permitted when -array_out is present.
 !
 !   {which} is one of: "model", "base" or "design"
@@ -4860,9 +4896,10 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !     ele.e_tot, ele.p0c
 !     ele.mat6      ! Output: mat6(1,:), mat6(2,:), ... mat6(6,:)
 !     ele.vec0      ! Output: vec0(1), ... vec0(6)
-!     ele.{attribute} Where {attribute} is a Bmad syntax element attribute. (EG: ele.beta_a, ele.k1, etc.)
 !     ele.c_mat     ! Output: c_mat11, c_mat12, c_mat21, c_mat22.
 !     ele.gamma_c   ! Parameter associated with coupling c-matrix.
+!     ele.XXX       ! Where XXX is a Bmad syntax element attribute. 
+!                   !   EG: ele.beta_a, ele.k1, etc.
 ! 
 !   {elements} is a string to match element names to.
 !     Use "*" to match to all elements.
@@ -4910,8 +4947,6 @@ case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
 !    elements: Q* 
 !    which: design
 !    who: ele.ix_ele
-!
-!
 
 case ('lat_list')
 
@@ -5114,7 +5149,8 @@ case ('lat_param_units')
 !   {ele1_id} is the start element.
 !   {ele2_id} is the end element.
 ! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
-! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+! Note: {ele2_id} should just be an element name or index without universe, 
+!       branch, or model/base/design specification.
 !
 ! Example:
 !   pipe matrix 2@1>>q01w|design q02w
@@ -5196,11 +5232,13 @@ case ('merit')
 !   pipe orbit_at_s {ix_uni}@{ele}->{s_offset}|{which}
 !
 ! Where:
-!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
-!   {ele} is an element name or index. Default at the Beginning element at start of branch 0.
-!   {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
-!      If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
-!   {which} is one of: "model", "base" or "design".
+!   {ix_uni}   - Universe index. Defaults to s%global%default_universe.
+!   {ele}      - Element name or index. 
+!                  Default at the Beginning element at start of branch 0.
+!   {s_offset} - Offset of the evaluation point from the downstream end of ele. 
+!                  Default is 0. If {s_offset} is present, the preceeding "->" sign
+!                  must be present. EG: Something like "23|model" will {which} is 
+!                  one of: "model", "base" or "design".
 !
 ! Example:
 !   pipe orbit_at_s Q10->0.4|model   ! Orbit at 0.4 meters from Q10 element exit end in model lattice.
@@ -5320,8 +5358,6 @@ case ('plot_curve')
   nl=incr(nl); write (li(nl), imt) 'ix_universe;INUM;T;',                     c%ix_universe
   nl=incr(nl); write (li(nl), imt) 'symbol_every;INT;T;',                     c%symbol_every
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_branch;INUM;T;',              c%ix_branch
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref;INT;I;',                       c%ix_ele_ref
-  nl=incr(nl); write (li(nl), imt) 'ix_ele_ref_track;INT;I;',                 c%ix_ele_ref_track
   nl=incr(nl); write (li(nl), jmt) ix_uni, '^ix_bunch;INUM;T;',               c%ix_bunch
   nl=incr(nl); write (li(nl), lmt) 'use_y2;LOGIC;T;',                         c%use_y2
   nl=incr(nl); write (li(nl), lmt) 'draw_line;LOGIC;T;',                      c%draw_line
@@ -5533,7 +5569,7 @@ case ('plot_histogram')
   nl=incr(nl); write (li(nl), rmt) 'maximum;REAL;T;',                      c%hist%maximum
   nl=incr(nl); write (li(nl), rmt) 'width;REAL;T;',                        c%hist%width
   nl=incr(nl); write (li(nl), rmt) 'center;REAL;T;',                       c%hist%center
-  nl=incr(nl); write (li(nl), imt) 'number;REAL;T;',                       c%hist%number
+  nl=incr(nl); write (li(nl), imt) 'number;INT;T;',                        c%hist%number
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -5675,12 +5711,15 @@ case ('plot_list')
 !                          {n_graph}^^{graph_names}
 !
 ! Where:
-!   {template_location} is the location to place or delete a template plot. Use "@Tnnn" syntax for the location.
-!   {template_name} is the name of the template plot. If deleting a plot this name is immaterial.
-!   {n_graph} is the number of associated graphs. If set to -1 then any existing template plot is deleted.
-!   {graph_names} are the names of the graphs.  graph_names should be in the form:
-!      graph1_name^^graph2_name^^...^^graphN_name
-!   for N=n_graph names
+!   {template_location} - Location to place or delete a template plot. 
+!                           Use "@Tnnn" syntax for the location.
+!   {template_name}     - The name of the template plot. 
+!                           If deleting a plot this name is immaterial.
+!   {n_graph}           - The number of associated graphs. 
+!                           If set to -1 then any existing template plot is deleted.
+!   {graph_names}       - Names of the graphs. graph_names should be in the form:
+!                             graph1_name^^graph2_name^^...^^graphN_name
+!                           where N=n_graph names
 !
 ! Parameters
 ! ----------
@@ -5910,13 +5949,13 @@ case ('plot_graph_manage')
 !   pipe plot_line {region_name}.{graph_name}.{curve_name} {x_or_y}
 !
 ! Optional {x-or-y} may be set to "x" or "y" to get the smooth line points x or y 
-! component put into the real array buffer.
+! component put into the tao_c_interface_com%c_real array buffer.
 ! Note: The plot must come from a region, and not a template, since no template plots 
 !       have associated line data.
 ! Examples:
 !   pipe plot_line r13.g.a   ! String array output.
-!   pipe plot_line r13.g.a x ! x-component of line points loaded into the real array buffer.
-!   pipe plot_line r13.g.a y ! y-component of line points loaded into the real array buffer.
+!   pipe plot_line r13.g.a x ! x-component of line points put in array buffer.
+!   pipe plot_line r13.g.a y ! y-component of line points put in array buffer.
 ! 
 ! Parameters
 ! ----------
@@ -6311,10 +6350,10 @@ case ('ring_general')
   endif
 
   call chrom_calc (branch%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
-                                                  pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch)
+                                  pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch, orb0 = tao_branch%orbit(0))
   call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
-  call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, mat6, tao_branch%orbit)
+  call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, mat6, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
   n = branch%n_ele_track
   time1 = branch%ele(n)%ref_time
   gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
@@ -6803,7 +6842,7 @@ case ('space_charge_com')
   nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
 
   nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'space_charge_mesh_size;INT_ARR;T', (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
-  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',       (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',        (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
   nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
   nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
   nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
@@ -6811,7 +6850,7 @@ case ('space_charge_com')
 
   nl=incr(nl); write(li(nl), lmt) 'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
 
-  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            quote(space_charge_com%diagnostic_output_file)
+  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            trim(space_charge_com%diagnostic_output_file)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -6909,15 +6948,16 @@ case ('species_to_str')
 !   pipe spin_invariant {flags} {who} {ix_uni}@{ix_branch}|{which}
 !
 ! Where:
-!   {flags} are optional switches:
-!       -array_out : If present, the output will be available in the tao_c_interface_com%c_real.
-!   {who} is one of: l0, n0, or m0
-!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
-!   {ix_branch} is a branch index. Defaults to s%global%default_branch.
-!   {which} is one of:
-!     model
-!     base
-!     design
+!   {flags}       - Optional flags (currently there is only one):
+!                     -array_out  If present, the output will be available in 
+!                                                 the tao_c_interface_com%c_real.
+!   {who}         - One of: l0, n0, or m0
+!   {ix_uni}      - A universe index. Defaults to s%global%default_universe.
+!   {ix_branch}   - A branch index. Defaults to s%global%default_branch.
+!   {which}       - Switch which is one of:
+!                      model
+!                      base
+!                      design
 !
 ! Example:
 !   pipe spin_invariant 1@0|model
@@ -7062,7 +7102,7 @@ case ('spin_polarization')
   tao_branch => tao_lat%tao_branch(ix_branch)
   branch => tao_lat%lat%branch(ix_branch)
 
-  if (.not. tao_branch%spin%valid) call tao_spin_polarization_calc (branch, tao_branch)
+  call tao_spin_polarization_calc (branch, tao_branch)
 
   z = anomalous_moment_of(branch%param%particle) * branch%ele(0)%value(e_tot$) / mass_of(branch%param%particle)
   nl=incr(nl); write (li(nl), rmt) 'anom_moment_times_gamma;REAL;F;',           z
@@ -7102,8 +7142,10 @@ case ('spin_polarization')
 !   {ref_ele} is an element name or index.
 ! This will return a string_list with the following fields:
 !   spin_tune                   -- Spin tune
-!   dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference Q_spin-Q_mode for modes X = a, b, and c.
-!   xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance strengths for X = a, b, and c modes.  
+!   dq_X_sum, dq_X_diff         -- Tune sum Q_spin+Q_mode and tune difference 
+!                                    Q_spin-Q_mode for modes X = a, b, and c.
+!   xi_res_X_sum, xi_res_X_diff -- The linear spin/orbit sum and difference resonance 
+!                                    strengths for X = a, b, and c modes.  
 !
 ! Parameters
 ! ----------
@@ -7204,12 +7246,14 @@ case ('super_universe')
 !   pipe taylor_map {ele1_id} {ele2_id} {order}
 !
 ! Where:
-!   {ele1_id} is the start element.
-!   {ele2_id} is the end element.
-!   {order} is the map order. Default is order set in the lattice file. {order} cannot be larger than 
-!         what is set by the lattice file. 
+!   {ele1_id}   - The start element.
+!   {ele2_id}   - The end element.
+!   {order}     - The map order. Default is order set in the lattice file. 
+!                   {order} cannot be larger than what is set by the lattice file. 
+!
 ! If {ele2_id} = {ele1_id}, the 1-turn transfer map is computed.
-! Note: {ele2_id} should just be an element name or index without universe, branch, or model/base/design specification.
+! Note: {ele2_id} should just be an element name or index without universe, 
+!       branch, or model/base/design specification.
 ! Example:
 !   pipe taylor_map 2@1>>q01w|design q02w  2
 ! 
@@ -7285,11 +7329,11 @@ case ('taylor_map')
 !   pipe twiss_at_s {ix_uni}@{ele}->{s_offset}|{which}
 !
 ! Where:
-!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
-!   {ele} is an element name or index. Default at the Beginning element at start of branch 0.
-!   {s_offset} is the offset of the evaluation point from the downstream end of ele. Default is 0.
-!      If {s_offset} is present, the preceeding "->" sign must be present. EG: Something like "23|model" will
-!   {which} is one of: "model", "base" or "design".
+!   {ix_uni}    - A universe index. Defaults to s%global%default_universe.
+!   {ele}       - An element name or index. Default is the Beginning element of branch 0.
+!   {s_offset}  - Evaluation point offset from the downstream end of ele. Default is 0.
+!                   If {s_offset} is present, "->" must also be present. 
+!   {which}     - One of: "model", "base" or "design".
 ! 
 ! Parameters
 ! ----------
@@ -7699,16 +7743,10 @@ case ('var_v1_array')
 ! This example creates a v1 var structure called "quad_k1" with an associated
 ! variable array that has the range [0, 45].
 ! 
-! Use the "set variable" command to set a created variable parameters.
-! In particular, to slave a lattice parameter to a variable use the command:
-!   set {v1_name}|ele_name = {lat_param}
-! where {lat_param} is of the form {ix_uni}@{ele_name_or_location}{param_name}]
-! Examples:
-!   set quad_k1[2]|ele_name = 2@q01w[k1]
-!   set quad_k1[2]|ele_name = 2@0>>10[k1]
-! Note: When setting multiple variable parameters, 
-!       temporarily toggle s%global%lattice_calc_on to False
-!   ("set global lattice_calc_on = F") to prevent Tao trying to evaluate the 
+! Use the "pipe var_create" and "set variable" commands to set variable parameters.
+! Note: When setting multiple variable parameters, first set
+!   set global lattice_calc_on = F")
+! to prevent Tao trying to evaluate the 
 ! partially created variable and generating unwanted error messages.
 ! 
 ! Parameters
@@ -7815,6 +7853,74 @@ case ('var_v1_destroy')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% wall3d_radius
+!
+! Output vaccum chamber wall radius for given s-position and angle in (x,y) plane.
+! The radius is with respect to the local wall origin which may not be the (x,y) = (0,0) origin.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe wall3d_radius {ix_uni}@{ix_branch} {s_position} {angle}
+!
+! Where:
+!   {ix_uni} is a universe index. Defaults to s%global%default_universe.
+!   {ix_branch} is a lattice branch index. 
+!   {s_position} is the s-position to evaluate at.
+!   {angle} is the angle to evaluate at.
+!
+! Parameters
+! ----------
+! ix_uni : ""
+! ix_branch : ""
+! s_position
+! angle
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+
+case ('wall3d_radius')
+
+  u => s%u(s%global%default_universe)
+  if (index(line, '@') /= 0) then
+    u => point_to_uni(line, .true., err); if (err) return
+  endif
+
+  ix_branch = parse_branch(line, u, .false., err); if (err) return
+  branch => u%model%lat%branch(ix_branch)
+  call split_this_line (line, name1, 2, err, space_sep = .true.); if (err) return
+  s_here = parse_real(name1(1), err); if (err) return
+  angle  = parse_real(name1(2), err); if (err) return
+
+  !
+
+  ele => pointer_to_element_at_s (branch, s_here, .true., err)
+  if (err) then
+    call invalid ('Bad s-position')
+    return
+  endif
+
+  vec0 = [cos(angle), 0.0_rp, sin(angle), 0.0_rp, s_here - ele%s_start, 1.0_rp]
+
+  value =  wall3d_d_radius(vec0, ele, 1, perp, ix, not, origin, r_wall, err)
+  if (not) then
+    call invalid ('No Wall3D here')
+    return
+  elseif (err) then
+    call invalid ('Error in radius calc. Please report this.')
+    return
+  endif
+
+  nl=incr(nl); write (li(nl), rmt)  'wall_radius;REAL;F;',            r_wall
+  nl=incr(nl); write (li(nl), ramt) 'origin;REAL_ARR;F',              (';', origin(i), i = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'perpendicular;REAL_ARR;F',       (';', perp(i), i = 1, 3)
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% wave
 !
 ! Output Wave analysis info.
@@ -7858,31 +7964,31 @@ case ('wave')
 
     select case (s%wave%data_type)
     case ('orbit.x', 'orbit.y', 'eta.x', 'eta.y', 'beta.a', 'beta.b', 'ping_a.amp_x', 'ping_b.amp_y')
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_a
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_b
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F', s%wave%rms_rel_k
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F', s%wave%rms_phi
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_b
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F;', s%wave%rms_rel_k
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F;', s%wave%rms_phi
 
     case ('phase.a', 'phase.b', 'ping_a.phase_x', 'ping_b.phase_y')
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_a
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F', s%wave%rms_rel_b
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F', s%wave%rms_rel_k
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F', s%wave%rms_phi
-      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_C [Figure of Merit];REAL;F', s%wave%chi_c
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_Fit/Amp_Fit;REAL;F;', s%wave%rms_rel_b
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_Kick/Kick;REAL;F;', s%wave%rms_rel_k
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi;REAL;F;', s%wave%rms_phi
+      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_C [Figure of Merit];REAL;F;', s%wave%chi_c
 
     case ('ping_a.amp_sin_rel_y', 'ping_a.amp_cos_rel_y', 'ping_b.amp_sin_rel_x', 'ping_b.amp_cos_rel_x', &
           'ping_a.amp_sin_y', 'ping_a.amp_cos_y', 'ping_b.amp_sin_x', 'ping_b.amp_cos_x', 'cbar.11', 'cbar.12', 'cbar.22')
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+;REAL;F', s%wave%rms_rel_as
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-;REAL;F', s%wave%rms_rel_ar
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+;REAL;F', s%wave%rms_rel_bs
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_-/Amp_-;REAL;F', s%wave%rms_rel_br
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_+/Amp_+;REAL;F;', s%wave%rms_rel_as
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'A Region Sigma_-/Amp_-;REAL;F;', s%wave%rms_rel_ar
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_+/Amp_+;REAL;F;', s%wave%rms_rel_bs
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'B Region Sigma_-/Amp_-;REAL;F;', s%wave%rms_rel_br
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Kick |K+|', 2*s%wave%amp_ba_s
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_K+/K+', 2*s%wave%rms_rel_ks
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Kick |K-|', 2*s%wave%amp_ba_r
       nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_K-/K-', 2*s%wave%rms_rel_kr
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi+;REAL;F', s%wave%rms_phi_s
-      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi-;REAL;F', s%wave%rms_phi_r
-      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_a [Figure of Merit];REAL;F', s%wave%chi_a
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi+;REAL;F;', s%wave%rms_phi_s
+      nl=incr(nl); write(li(nl), '(a, f8.3)') 'Sigma_phi-;REAL;F;', s%wave%rms_phi_r
+      nl=incr(nl); write(li(nl), '(a, f8.3, a)') 'Chi_a [Figure of Merit];REAL;F;', s%wave%chi_a
     end select
 
   !
@@ -7973,11 +8079,14 @@ contains
 
 subroutine end_stuff(li, nl)
 
-
+type (out_io_output_direct_struct) out_dir_state
 character(n_char_show), allocatable :: li(:)
 integer nl, i
 
 !
+
+call output_direct (get = out_dir_state)
+call output_direct(print_and_capture = .true.)
 
 if (doprint) then
   call out_io (s_blank$, r_name, li(1:nl))
@@ -7989,6 +8098,8 @@ if (opened) then
   enddo
   close (iu_write)
 endif
+
+call output_direct (get = out_dir_state)
 
 end subroutine
 
@@ -8186,6 +8297,8 @@ if (has_separator) then
 elseif (len_trim(line) /= 0) then
   read (line, *, iostat = ios) ix_branch
   if (ios /= 0) ix_branch = -999
+  call string_trim(line, line, ix)
+  call string_trim(line(ix+1:), line, ix)
 endif
 
 if (ix_branch < 0 .or. ix_branch > ubound(u%design%lat%branch, 1)) then

@@ -1,7 +1,6 @@
 module bookkeeper_mod
 
 use wall3d_mod
-use multipole_mod
 use equality_mod
 use expression_mod
 use changed_attribute_bookkeeper
@@ -286,11 +285,13 @@ if (ele%lord_status == super_lord$ .and. a_ptr%r < 0) then
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD1 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
+    return
   elseif (attrib_name == 'LORD_PAD2') then
     call out_io (s_error$, r_name, 'GROUP ELEMENT: ' // lord%name, &
                                    'CONTROLS SUPER_LORD: ' // ele%name, &
                                    'AND LORD_PAD2 IS NOW NEGATIVE: \f8.3\ ', r_array = [a_ptr%r])
     err_flag = .true.
+    return
   endif
 endif
 
@@ -481,7 +482,7 @@ slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 slave%symplectify                 = lord%symplectify
 slave%is_on = lord%is_on
 slave%csr_method                  = lord%csr_method
-slave%space_charge_method         = lord%space_charge_method
+!! slave%space_charge_method         = lord%space_charge_method
 
 ! Handled by set_flags_for_changed_attribute
 
@@ -608,9 +609,12 @@ ix_lord = 1  ! Index of major lord or first lord
 n_major_lords = 0
 do j = 1, slave%n_lord
   lord => pointer_to_lord (slave, j)
-  if (lord%key == pipe$) cycle
-  n_major_lords = n_major_lords + 1
-  ix_lord = j
+  select case (lord%key)
+  case (pipe$, instrument$, monitor$, ecollimator$, rcollimator$)
+  case default
+    n_major_lords = n_major_lords + 1
+    ix_lord = j
+  end select
 enddo
 
 if (n_major_lords < 2) then
@@ -656,7 +660,7 @@ if (n_major_lords < 2) then
     slave%value(bl_vkick$) = slave%value(bl_vkick$) + lord%value(bl_vkick$)
   enddo
 
-  if (any(slave%value /= old_value)) call set_ele_status_stale (slave, attribute_group$)
+  if (any(slave%value /= old_value)) call attribute_bookkeeper (slave, .true.)
 
   return
 endif
@@ -723,7 +727,8 @@ do j = 1, slave%n_lord
     call out_io (s_abort$, r_name, &
             'SUPERPOSITION OF ELEMENTS WITH WAKES NOT YET IMPLEMENTED!', &
             'SUPER_LORD: ' // lord%name)
-    if (global_com%exit_on_error) call err_exit
+    err_flag = .true.
+    return
   endif
 
   ! Physically, the lord length cannot be less than the slave length.
@@ -780,7 +785,9 @@ do j = 1, slave%n_lord
     endif
   endif
 
-  if (lord%key /= pipe$) then
+  select case (lord%key)
+  case (pipe$, instrument$, monitor$, ecollimator$, rcollimator$)
+  case default
     if (n_major_lords > 0) then
  
      if (slave%mat6_calc_method /= lord%mat6_calc_method) then
@@ -825,7 +832,7 @@ do j = 1, slave%n_lord
     endif
 
     n_major_lords = n_major_lords + 1
-  endif
+  end select
 
   ! descriptive strings.
 
@@ -1580,7 +1587,8 @@ do i = 1, slave%n_lord
   if (lord%lord_status == multipass_lord$) cycle
   if (lord%key == group$) cycle
 
-  if (lord%key == girder$ .and. has_orientation_attributes(slave)) then
+  if (lord%key == girder$) then
+    if (.not. has_orientation_attributes(slave)) cycle   ! Example: Match element does not have orientation.
     v => lord%value
     vs => slave%value
 
@@ -1626,17 +1634,17 @@ do i = 1, slave%n_lord
       vs(z_offset_tot$) = l_slave_off_tot(3)
     endif
 
+    slave%bookkeeping_state%has_misalign = .true.
     on_an_offset_girder = .true.
 
     cycle
   endif
 
   if (lord%key /= overlay$) then
-    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY \i\ ', ix_slave)
-    call type_ele (slave, .true., 0, .false., 0)
-    if (global_com%exit_on_error) call err_exit
-  endif     
-
+    call out_io (s_abort$, r_name, 'THE LORD IS NOT AN OVERLAY: ', lord%name)
+    err_flag = .true.
+    return
+  endif
 
   ! overlay lord
 
@@ -1965,14 +1973,15 @@ ele0 => ele
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) ele0 => pointer_to_lord(ele0, 1)
 ele%value(check_sum$) = 0
 
-if (associated(ele%a_pole)) then
+if (associated(ele0%a_pole)) then
   do i = 0, ubound(ele%a_pole, 1)
     ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole(i)) + fraction(ele0%b_pole(i))
     ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole(i)) + exponent(fraction(ele0%b_pole(i)))) / 10
   enddo
 endif
 
-if (associated(ele%a_pole_elec)) then
+
+if (associated(ele0%a_pole_elec)) then
   do i = 0, ubound(ele%a_pole_elec, 1)
     ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole_elec(i)) + fraction(ele0%b_pole_elec(i))
     ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole_elec(i)) + exponent(fraction(ele0%b_pole_elec(i)))) / 10

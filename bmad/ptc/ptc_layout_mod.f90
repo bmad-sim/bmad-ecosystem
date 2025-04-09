@@ -114,7 +114,7 @@ do ie = 0, branch%n_ele_track
     ele_inserted_in_layout = .false.
   endif
 
-  call ele_to_fibre (ele, ele%ptc_fibre, branch%param, .true., err_flag, for_layout = .true.)
+  call ele_to_fibre (ele, ele%ptc_fibre, .true., err_flag, for_layout = .true.)
 
   ele_inserted_in_layout = .true.
   ix_pass0 = ix_pass
