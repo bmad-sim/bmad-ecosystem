@@ -8,7 +8,6 @@
 module ptc_layout_mod
 
 use ptc_interface_mod
-use changed_attribute_bookkeeper
 
 implicit none
 

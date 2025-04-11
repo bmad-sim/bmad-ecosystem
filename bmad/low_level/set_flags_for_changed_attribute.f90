@@ -1,66 +1,3 @@
-module changed_attribute_bookkeeper
-
-use equal_mod
-
-implicit none
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!+
-! Subroutine set_flags_for_changed_attribute (...)
-!
-! Routine to mark an element or lattice as modified for use with "intelligent" bookkeeping.
-! Also will do some dependent variable bookkeeping when a particular attribute has 
-! been altered.
-!
-! This routine should be called after the attribute has been set.
-!
-! set_flags_for_changed_attribute is an overloaded name for:
-!   set_flags_for_changed_lat_attribute (lat, set_dependent)
-!   set_flags_for_changed_real_attribute (ele, real_attrib, set_dependent)
-!   set_flags_for_changed_inteter_attribute (ele, int_attrib, set_dependent)
-!   set_flags_for_changed_logical_attribute (ele, logic_attrib, set_dependent)
-!   set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
-!
-! The set_flags_for_changed_lat_attribute (lat) routine is used when one
-! does not know what has changed and wants a complete bookkeeping done.
-!
-! NOTE: The attribute argument MUST be the component that was changed. For example:
-!     ele%value(x_offset$) = off_value
-!     call set_flags_for_changed_attribute (ele, ele%value(x_offset$))
-! And NOT:
-!     call set_flags_for_changed_attribute (ele, off_value)  ! WRONG
-!
-! Input:
-!   lat           -- lat_struct: Lattice being modified.
-!   ele           -- ele_struct, Element being modified.
-!   real_attrib   -- real(rp), optional: Attribute that has been changed.
-!                      For example: ele%value(hkick$).
-!                      If not present then assume everything has potentially changed.
-!   int_attrib    -- integer: Attribute that has been changed.
-!                      For example: ele%mat6_calc_method.
-!   logic_attrib  -- logical; Attribute that has been changed.
-!                      For example: ele%is_on.
-!   all_attrib    -- all_pointer_struct: Pointer to attribute.
-!   set_dependent -- logical, optional: If False then dependent parameter bookkeeping will not be done.
-!                     False is used, for example, during parsing when dependent bookkeepin is not wanted.
-!                     Default is True. Do not set False unless you know what you are doing.
-!
-! Output:
-!   lat  -- lat_struct: Lattice with appropriate changes.
-!-
-
-interface set_flags_for_changed_attribute
-  module procedure set_flags_for_changed_real_attribute 
-  module procedure set_flags_for_changed_integer_attribute 
-  module procedure set_flags_for_changed_logical_attribute 
-  module procedure set_flags_for_changed_all_attribute 
-  module procedure set_flags_for_changed_lat_attribute 
-end interface
-
-contains
-
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -74,6 +11,10 @@ contains
 !-
 
 subroutine set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
+
+use bmad_routine_interface, dummy => set_flags_for_changed_all_attribute
+
+implicit none
 
 type (ele_struct), target :: ele
 type (all_pointer_struct) all_attrib
@@ -101,6 +42,10 @@ end subroutine set_flags_for_changed_all_attribute
 
 subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
 
+use bmad_routine_interface, dummy => set_flags_for_changed_integer_attribute
+
+implicit none
+
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave, lord
 
@@ -108,13 +53,13 @@ integer, target :: attrib
 integer, pointer :: a_ptr
 integer i, ix_pass
 
-real(rp) dummy
+real(rp) real_dummy
 
 logical, optional :: set_dependent
 
 ! This will set some generic flags
 
-call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
+call set_flags_for_changed_real_attribute (ele, real_dummy, set_dependent)
 
 !
 
@@ -192,12 +137,16 @@ end subroutine set_flags_for_changed_integer_attribute
 
 subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
 
+use bmad_routine_interface, dummy => set_flags_for_changed_logical_attribute
+
+implicit none
+
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave
 
 integer i
 
-real(rp) dummy, f
+real(rp) real_dummy, f
 
 logical, target :: attrib
 logical, pointer :: a_ptr
@@ -236,7 +185,7 @@ if (associated(a_ptr, ele%field_master)) then
   endif
 
 else
-  call set_flags_for_changed_real_attribute (ele, dummy, set_dependent)
+  call set_flags_for_changed_real_attribute (ele, real_dummy, set_dependent)
 endif
 
 ! Set independent stuff in multipass lord
@@ -271,6 +220,10 @@ end subroutine set_flags_for_changed_logical_attribute
 
 subroutine set_flags_for_changed_lat_attribute (lat, set_dependent)
 
+use bmad_routine_interface, dummy => set_flags_for_changed_lat_attribute
+
+implicit none
+
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 
@@ -302,6 +255,10 @@ end subroutine set_flags_for_changed_lat_attribute
 !-
 
 subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
+
+use bmad_routine_interface, dummy => set_flags_for_changed_real_attribute
+
+implicit none
 
 type (ele_struct), target :: ele
 type (branch_struct), pointer :: branch
@@ -462,19 +419,19 @@ endif
 
 !
 
-if (associated(a_ptr, ele%value(ds_step$))) then
+if (associated(a_ptr, ele%value(ds_step$)) .or. associated(a_ptr, ele%value(num_steps$))) then
+  if (dep_set .and. ele%value(num_steps$) /= 0 .and. associated(a_ptr, ele%value(num_steps$))) then
+     ele%value(ds_step$) = abs(ele%value(l$)) / ele%value(num_steps$)
+  endif
+
   if (ele%key == e_gun$ .or. ele%key == lcavity$ .or. &
                       (ele%key == em_field$ .and. is_false(ele%value(constant_ref_energy$)))) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
-  return
-endif
 
-if (associated(a_ptr, ele%value(num_steps$))) then
-  if (dep_set .and. ele%value(num_steps$) /= 0) ele%value(ds_step$) = abs(ele%value(l$)) / ele%value(num_steps$)
-  if (ele%key == e_gun$ .or. ele%key == lcavity$ .or. &
-                      (ele%key == em_field$ .and. is_false(ele%value(constant_ref_energy$)))) then
-    call set_ele_status_stale (ele, ref_energy_group$)
+  if (ele%lord_status == multipass_lord$) then
+    call this_multipass_slave_xfer(ele, num_steps$)
+    call this_multipass_slave_xfer(ele, ds_step$)
   endif
   return
 endif
@@ -863,6 +820,25 @@ end select
 !--------------------------------------------------------------
 contains
 
+subroutine this_multipass_slave_xfer(lord, ix_attrib)
+
+type (ele_struct) lord
+type (ele_struct), pointer :: slave
+
+integer ix_attrib, i
+
+!
+
+do i = 1, lord%n_slave
+  slave => pointer_to_slave(lord, i)
+  slave%value(ix_attrib) = lord%value(ix_attrib)
+enddo
+
+end subroutine this_multipass_slave_xfer
+
+!--------------------------------------------------------------
+! contains
+
 subroutine bend_g_fiducial(ele, dep2_set, p0c_factor)
 
 type (ele_struct) ele
@@ -983,5 +959,3 @@ call bend_g_fiducial2(ele, factor, e_edge, len_out, angle0)
 end subroutine bend_angle_fiducial2
 
 end subroutine set_flags_for_changed_real_attribute
-
-end module

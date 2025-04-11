@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ October 15, 2024}
+\date{David Sagan \\ April 10, 2025}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -362,7 +362,10 @@ Maps are saved to a file for use if the program is rerun. For linear maps, an AS
 can be produced by setting \vn{ltt%map_ascii_output_file}.
 
 %------------------------------------------------------------------
-\Section{Tuning Map and PTC Tracking Parameters}
+\Section{Simulation Hints and Pointers}
+
+%------------------------------------------------------------------
+\subsection{Tuning Map and PTC Tracking Parameters}
 \label{s:map.tuning}
 
 When tracking using maps or element-by-element with PTC there are a few points to keep in
@@ -393,23 +396,36 @@ in tracking halo particles, you probably should not be using a single map.
 In terms of speed, using maps will be the fastest, using standard Bmad tracking will be much
 slower, and using PTC element-by-element tracking will be slowest.
 
-In terms of symplecticity, PTC tracking is symplectic, and map tracking is symplectic if 
-\vn{ltt%symplectic_map_tracking} is set to True. Bmad tracking is not symplectic but the deviation from 
-symplecticity is generally fairly small. If the radiation effects are large enough, the radiative 
-stochastic noise will negate any non-symplectic effects and standard Bmad tracking can be used. 
-A very rough rule of thumb is that if the damping times or the number of turns tracked are under 
-100,000 turns then Bmad standard tracking can be used.
+In terms of symplecticity, PTC tracking is symplectic, and map tracking is symplectic if the
+parameter \vn{ltt%symplectic_map_tracking} is set to True. Bmad tracking is not symplectic but the
+deviation from symplecticity is generally fairly small. If the radiation effects are large enough,
+the radiative stochastic noise will negate any non-symplectic effects and standard Bmad tracking can
+be used.  A very rough rule of thumb is that if the damping times or the number of turns tracked are
+under 100,000 turns then Bmad standard tracking can be used.
 
 PTC element-by-element tracking cannot be done when using the MPI version of the \ltt program.
 
 %------------------------------------------------------------------
-\Section{Correcting the Orbit when Radiation is Present}
+\subsection{Correcting the Orbit when Radiation is Present}
 
 In storage rings, When radiation damping is simulated, the orbit that is flat when there is no
 radiation will show a ``sawtooth" pattern'' in a plot of beam energy versus position. This will lead
 to a nonzero orbit. In an actual ring, the non-zero orbit will be compensated using steerings. Thus,
 to simulate the actual ring, compensating steerings should be added to the simulated lattice as
 well. How to do this is covered in the Bmad and Tao Cookbook available from the Bmad web site.
+
+%------------------------------------------------------------------
+\subsection{Using Absolute Time Tracking}
+\label{s:abs.time}
+
+It is recommended that \vn{absolute time} tracking be used since with relative time tracking
+there can be RF phase shifts that can lead to unphysical results. The Bmad manual has a discussion
+of relative versus absolute time tracking. 
+
+Relative time tracking is the default mode. To turn on absolute time tracking, set in the lattice file
+\begin{code}
+bmad_com[absolute_time_tracking] = True
+\end{code}
 
 %------------------------------------------------------------------
 \Section{Time Ramping --- Time Varying Element Parameters}
@@ -915,8 +931,13 @@ The starting (offset) time used to set \vn{ramper} elements. This enables simula
 of a ramp cycle. Default is 0.
 %
 \item[ltt\%random_seed] \Newline
-The random number seed used by the random number generator. If set to 0, the
-system clock will be used. That is, if set to 0, the output results will vary from run to run.
+The random number seed used by the random number generator. If set to 0, the system clock will be
+used. That is, if set to 0, the output results will vary from run to run.  Setting the seed will
+affect particle distributions if the distributions are formed using the random number
+generator. Particle distributions read from a file are not affected. Additionally, this seed will
+not affect lattice parameters even if the lattice is formed using random numbers (for example, to
+misalign elements). To set the random number seed for the lattice, set the \vn{parameter[ran_seed]}
+parameter in the lattice file.
 %
 \item[ltt\%rfcavity_on] \Newline
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.

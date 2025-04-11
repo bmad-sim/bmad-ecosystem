@@ -3,7 +3,6 @@ module bookkeeper_mod
 use wall3d_mod
 use equality_mod
 use expression_mod
-use changed_attribute_bookkeeper
 use attribute_mod
 
 implicit none
@@ -477,19 +476,20 @@ endif
 ! Methods
 
 if (attribute_index(slave, 'FIELD_MASTER') /= 0) slave%field_master = .true.
-slave%ptc_integration_type        = lord%ptc_integration_type
 slave%taylor_map_includes_offsets = lord%taylor_map_includes_offsets
 slave%symplectify                 = lord%symplectify
-slave%is_on = lord%is_on
-slave%csr_method                  = lord%csr_method
-!! slave%space_charge_method         = lord%space_charge_method
+slave%is_on                       = lord%is_on
 
-! Handled by set_flags_for_changed_attribute
+! The following is handled by set_flags_for_changed_attribute
 
-!! slave%aperture_at      = lord%aperture_at
-!! slave%aperture_type    = lord%aperture_type
-!! slave%mat6_calc_method = lord%mat6_calc_method
-!! slave%tracking_method  = lord%tracking_method
+!! slave%ptc_integration_type = lord%ptc_integration_type
+!! slave%csr_method           = lord%csr_method
+!! slave%space_charge_method  = lord%space_charge_method
+!! slave%aperture_at          = lord%aperture_at
+!! slave%aperture_type        = lord%aperture_type
+!! slave%mat6_calc_method     = lord%mat6_calc_method
+!! slave%tracking_method      = lord%tracking_method
+!! slave%spin_tracking_method = lord%spin_tracking_method
 
 end subroutine makeup_multipass_slave
 

@@ -13,7 +13,7 @@
 
 module element_modeling_mod
 
-use changed_attribute_bookkeeper
+use bmad_routine_interface
 
 type wiggler_modeling_common_struct
   real(rp) :: integral_g2_wgt = 1d4

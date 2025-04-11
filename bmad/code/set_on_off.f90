@@ -41,7 +41,7 @@
 
 subroutine set_on_off (key, lat, switch, orb, use_ref_orb, ix_branch, saved_values, attribute, set_val)
 
-use changed_attribute_bookkeeper, dummy => set_on_off
+use bmad_routine_interface, dummy => set_on_off
 
 implicit none
 
