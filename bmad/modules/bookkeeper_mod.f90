@@ -491,6 +491,11 @@ slave%is_on                       = lord%is_on
 !! slave%tracking_method      = lord%tracking_method
 !! slave%spin_tracking_method = lord%spin_tracking_method
 
+! A multipass_slave is allowed to have num_steps and ds_step set different from the lord.
+
+slave%value(ds_step$)   = slave_val(ds_step$)
+slave%value(num_steps$) = slave_val(num_steps$)
+
 end subroutine makeup_multipass_slave
 
 !--------------------------------------------------------------------------
