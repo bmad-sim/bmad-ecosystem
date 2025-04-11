@@ -246,6 +246,95 @@ end interface
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
+!+
+! Subroutine set_flags_for_changed_attribute (...)
+!
+! Routine to mark an element or lattice as modified for use with "intelligent" bookkeeping.
+! Also will do some dependent variable bookkeeping when a particular attribute has 
+! been altered.
+!
+! This routine should be called after the attribute has been set.
+!
+! set_flags_for_changed_attribute is an overloaded name for:
+!   set_flags_for_changed_lat_attribute (lat, set_dependent)
+!   set_flags_for_changed_real_attribute (ele, real_attrib, set_dependent)
+!   set_flags_for_changed_inteter_attribute (ele, int_attrib, set_dependent)
+!   set_flags_for_changed_logical_attribute (ele, logic_attrib, set_dependent)
+!   set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
+!
+! The set_flags_for_changed_lat_attribute (lat) routine is used when one
+! does not know what has changed and wants a complete bookkeeping done.
+!
+! NOTE: The attribute argument MUST be the component that was changed. For example:
+!     ele%value(x_offset$) = off_value
+!     call set_flags_for_changed_attribute (ele, ele%value(x_offset$))
+! And NOT:
+!     call set_flags_for_changed_attribute (ele, off_value)  ! WRONG
+!
+! Input:
+!   lat           -- lat_struct: Lattice being modified.
+!   ele           -- ele_struct, Element being modified.
+!   real_attrib   -- real(rp), optional: Attribute that has been changed.
+!                      For example: ele%value(hkick$).
+!                      If not present then assume everything has potentially changed.
+!   int_attrib    -- integer: Attribute that has been changed.
+!                      For example: ele%mat6_calc_method.
+!   logic_attrib  -- logical; Attribute that has been changed.
+!                      For example: ele%is_on.
+!   all_attrib    -- all_pointer_struct: Pointer to attribute.
+!   set_dependent -- logical, optional: If False then dependent parameter bookkeeping will not be done.
+!                     False is used, for example, during parsing when dependent bookkeepin is not wanted.
+!                     Default is True. Do not set False unless you know what you are doing.
+!
+! Output:
+!   lat  -- lat_struct: Lattice with appropriate changes.
+!-
+
+interface set_flags_for_changed_attribute
+  subroutine set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    type (all_pointer_struct) all_attrib
+    logical, optional :: set_dependent
+  end subroutine
+
+  subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    integer, target :: attrib
+    logical, optional :: set_dependent
+  end subroutine
+
+  subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    logical, target :: attrib
+    logical, optional :: set_dependent
+  end subroutine
+
+  subroutine set_flags_for_changed_lat_attribute (lat, set_dependent)
+    import
+    implicit none
+    type (lat_struct), target :: lat
+    logical, optional :: set_dependent
+  end subroutine
+
+  subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
+    import
+    implicit none
+    type (ele_struct), target :: ele
+    real(rp), optional, target :: attrib
+    logical, optional :: set_dependent
+  end subroutine
+end interface
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
 
 interface
 
