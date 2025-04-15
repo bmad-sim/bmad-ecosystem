@@ -1,7 +1,6 @@
 program multipole_test
 
 use multipole_mod
-use changed_attribute_bookkeeper
 
 implicit none
 
