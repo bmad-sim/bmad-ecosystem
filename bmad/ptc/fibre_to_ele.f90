@@ -26,7 +26,7 @@
 subroutine fibre_to_ele (ptc_fibre, branch, ix_ele, err_flag, from_mad)
 
 use madx_ptc_module, ptc_pi => pi, ptc_twopi => twopi
-use bmad, except_dummy => fibre_to_ele
+use bmad_routine_interface, except_dummy => fibre_to_ele
 
 implicit none
 

@@ -14,7 +14,7 @@
 
 subroutine apply_all_rampers (lat, err_flag)
 
-use bmad, except_dummy => apply_all_rampers
+use bmad_routine_interface, except_dummy => apply_all_rampers
 
 implicit none
 

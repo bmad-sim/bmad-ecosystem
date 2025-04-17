@@ -13,7 +13,7 @@
 
 function master_parameter_value (master_parameter, ele) result (value)
 
-use bmad, dummy => master_parameter_value
+use bmad_routine_interface, dummy => master_parameter_value
 
 implicit none
 

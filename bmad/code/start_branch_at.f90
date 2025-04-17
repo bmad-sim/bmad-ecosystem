@@ -19,7 +19,7 @@
 
 subroutine start_branch_at (lat, ele_start, move_end_marker, error)
 
-use bmad, dummy => start_branch_at
+use bmad_routine_interface, dummy => start_branch_at
 
 implicit none
 

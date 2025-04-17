@@ -35,7 +35,7 @@
 subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, &
                     use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 
-use bmad, dummy => write_lattice_in_elegant_format
+use taylor_mod, dummy => write_lattice_in_elegant_format
 use write_lattice_file_mod, dummy3 => write_lattice_in_elegant_format
 use ptc_interface_mod, only: taylor_inverse, concat_taylor
 

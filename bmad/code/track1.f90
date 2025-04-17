@@ -42,7 +42,7 @@
 
 recursive subroutine track1 (start_orb, ele, param, end_orb, track, err_flag, ignore_radiation, make_map1, init_to_edge)
 
-use bmad, except_dummy1 => track1
+use bmad_routine_interface, except_dummy1 => track1
 use mad_mod, only: track1_mad
 use high_energy_space_charge_mod, only: track1_high_energy_space_charge
 use radiation_mod, only: track1_radiation

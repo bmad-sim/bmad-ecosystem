@@ -49,7 +49,7 @@ subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit,
                     use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 
 use mad_mod, dummy2 => write_lattice_in_mad_format
-use bmad, dummy => write_lattice_in_mad_format
+use bmad_routine_interface, dummy => write_lattice_in_mad_format
 use write_lattice_file_mod, dummy3 => write_lattice_in_mad_format
 use ptc_interface_mod, only: taylor_inverse, concat_taylor
 
