@@ -6748,7 +6748,7 @@ if (string(1:1) == '-' .or. ix == 0) then
   fmt = dflt_fmt
 else
   fmt = string(1:ix)
-  call string_trim(string, string, ix)
+  call string_trim(string(ix+1:), string, ix)
 endif
 
 err = .false.
