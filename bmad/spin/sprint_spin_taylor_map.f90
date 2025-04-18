@@ -14,7 +14,7 @@
 
 subroutine sprint_spin_taylor_map (ele, start_orbit)
 
-use bmad, dummy => sprint_spin_taylor_map
+use bmad_interface, dummy => sprint_spin_taylor_map
 
 implicit none
 

@@ -499,7 +499,7 @@ end subroutine track_a_bend
 
 subroutine sbend_body_with_k1_map (ele, dg, b1, param, n_step, orbit, mat6, make_matrix)
 
-use bmad, except_dummy => sbend_body_with_k1_map
+use bmad_routine_interface, except_dummy => sbend_body_with_k1_map
 
 implicit none
 
