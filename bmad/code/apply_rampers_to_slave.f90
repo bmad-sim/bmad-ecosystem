@@ -13,7 +13,7 @@
 
 recursive subroutine apply_rampers_to_slave (slave, err_flag)
 
-use bmad, except_dummy => apply_rampers_to_slave
+use bmad_routine_interface, except_dummy => apply_rampers_to_slave
 
 implicit none
 

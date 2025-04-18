@@ -14,7 +14,7 @@
 subroutine write_lattice_in_julia(julia_file, lat, err_flag)
 
 use write_lattice_file_mod, dummy => write_lattice_in_julia
-use bmad,  dummy2 => write_lattice_in_julia
+use bmad_routine_interface,  dummy2 => write_lattice_in_julia
 
 implicit none
 

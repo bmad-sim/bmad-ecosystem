@@ -32,7 +32,7 @@
 
 subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
 
-use bmad, dummy => slice_lattice
+use twiss_and_track_mod, dummy => slice_lattice
 
 implicit none
 

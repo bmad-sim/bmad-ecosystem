@@ -23,7 +23,7 @@
 
 subroutine taper_mag_strengths (lat, ref_lat, except, err_flag)
 
-use bmad, dummy => taper_mag_strengths
+use bmad_interface, dummy => taper_mag_strengths
 
 implicit none
 

@@ -4,14 +4,20 @@ use File::Find;
 
 $found_one = 0;
 
-find (\&searchit, './modules');
+find (\&searchit, './code');
 find (\&searchit, './custom');
-find (\&searchit, './parsing');
-find (\&searchit, './photon');
+find (\&searchit, './geometry');
+find (\&searchit, './hdf5');
 find (\&searchit, './interface');
 find (\&searchit, './low_level');
-find (\&searchit, './code');
+find (\&searchit, './modules');
 find (\&searchit, './multiparticle');
+find (\&searchit, './output');
+find (\&searchit, './parsing');
+find (\&searchit, './photon');
+find (\&searchit, './ptc');
+find (\&searchit, './space_charge');
+find (\&searchit, './spin');
 
 #foreach $module (keys %table) {
 #  print "\n$module\n"; 
