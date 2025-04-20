@@ -811,8 +811,8 @@ ENDIF
 !-  property flagged as lost.
 !--------------------------------------------------------------------------
 IF(.not. master) THEN
-  DO i=1,lat%n_ele_track
-    lat%ele(i)%aperture_at = continuous$
+  DO i=1,lat%n_ele_max
+    if (lat%ele(i)%aperture_at /= lord_defined$) lat%ele(i)%aperture_at = continuous$
   ENDDO
 ENDIF
 
