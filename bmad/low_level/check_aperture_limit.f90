@@ -62,11 +62,13 @@ endif
 
 if (.not. bmad_com%aperture_limit_on) return
 
-! Super_slave elements have the aperture info stored in the lord(s).
+! Super_slave and slice_slave elements have the aperture info stored in the lord(s).
+! In such cases, query the lord element(s).
+! Note: Somethimes a program will modify ele%aperture_at or ele%aperture_type so check both.
 
 physical_end = physical_ele_end (particle_at, orb, ele%orientation)
 
-if (ele%slave_status == super_slave$) then
+if (ele%aperture_at == lord_defined$ .or. ele%aperture_type == lord_defined$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
@@ -315,7 +317,7 @@ case (wall3d$)
   endif
 
 case default
-  call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE FOR ELEMENT: ' // ele%name)
+  call out_io (s_fatal$, r_name, 'UNKNOWN APERTURE_TYPE WITH APERTURE_AT = WALL_TRANSITION FOR ELEMENT: ' // ele%name)
   if (global_com%exit_on_error) call err_exit
 end select
 

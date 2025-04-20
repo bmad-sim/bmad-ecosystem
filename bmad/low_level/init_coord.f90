@@ -132,7 +132,11 @@ if (present(ele)) then
     p0c = ele%value(p0c$)
     e_tot = ele%value(e_tot$)
     orb%s = real_option(ele%s, s_pos)
-    ref_time = (ele%value(ref_time_start$) * (ele%s - orb%s) + ele%ref_time * (orb%s - ele%s_start)) / ele%value(l$)
+    if (ele%value(l$) == 0) then
+      ref_time = ele%value(ref_time_start$)
+    else
+      ref_time = (ele%value(ref_time_start$) * (ele%s - orb%s) + ele%ref_time * (orb%s - ele%s_start)) / ele%value(l$)
+    endif
   endif
 endif
 
