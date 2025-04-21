@@ -12,7 +12,7 @@
 
 function spinor_to_vec (spinor) result (vec)
 
-use equal_mod, dummy_except => spinor_to_vec
+use bmad_routine_interface, dummy_except => spinor_to_vec
 
 implicit none
 

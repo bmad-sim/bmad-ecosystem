@@ -13,7 +13,7 @@
 
 function polar_to_vec (polar) result (vec)
 
-use equal_mod, dummy_except => polar_to_vec
+use bmad_routine_interface, dummy_except => polar_to_vec
 
 implicit none
 

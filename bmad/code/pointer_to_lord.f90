@@ -46,7 +46,7 @@
 
 function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
 
-use equal_mod, except_dummy => pointer_to_lord
+use bmad_routine_interface, except_dummy => pointer_to_lord
 
 implicit none
 

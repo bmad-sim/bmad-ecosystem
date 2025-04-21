@@ -21,7 +21,7 @@
 
 subroutine multipole_kick_mat (knl, tilt, ref_species, ele, orbit, factor, mat6)
 
-use equal_mod, dummy => multipole_kick_mat
+use bmad_routine_interface, dummy => multipole_kick_mat
 
 implicit none
 

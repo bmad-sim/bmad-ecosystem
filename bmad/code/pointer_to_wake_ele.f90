@@ -17,7 +17,7 @@
 
 function pointer_to_wake_ele (ele, delta_s) result (wake_ele)
 
-use equal_mod, except_dummy => pointer_to_wake_ele
+use bmad_routine_interface, except_dummy => pointer_to_wake_ele
 
 implicit none
 

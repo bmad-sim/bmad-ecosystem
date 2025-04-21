@@ -1,6 +1,6 @@
 module element_at_s_mod
 
-use equal_mod
+use bmad_routine_interface
 
 !+
 ! Function element_at_s (...) result (ix_ele)

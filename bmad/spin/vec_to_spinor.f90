@@ -17,7 +17,7 @@
 
 function vec_to_spinor (vec, phase) result (spinor)
 
-use equal_mod, dummy_except => vec_to_spinor
+use bmad_routine_interface, dummy_except => vec_to_spinor
 
 implicit none
 

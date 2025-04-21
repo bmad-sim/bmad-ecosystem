@@ -16,7 +16,7 @@
 
 subroutine rotate_spin_a_step (orbit, field, ele, ds)
 
-use equal_mod, dummy_except => rotate_spin_a_step
+use bmad_routine_interface, dummy_except => rotate_spin_a_step
 
 implicit none
 

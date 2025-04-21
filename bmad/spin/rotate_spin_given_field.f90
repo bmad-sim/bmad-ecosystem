@@ -20,7 +20,7 @@
 
 subroutine rotate_spin_given_field (orbit, sign_z_vel, BL, EL, qrot)
 
-use equal_mod, dummy_except => rotate_spin_given_field
+use bmad_routine_interface, dummy_except => rotate_spin_given_field
 
 implicit none
 

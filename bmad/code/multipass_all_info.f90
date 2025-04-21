@@ -15,7 +15,7 @@
 
 subroutine multipass_all_info (lat, info)
 
-use equal_mod, except_dummy => multipass_all_info
+use bmad_routine_interface, except_dummy => multipass_all_info
 
 implicit none
 

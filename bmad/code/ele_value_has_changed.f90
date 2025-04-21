@@ -18,7 +18,7 @@
 
 function ele_value_has_changed (ele, list, abs_tol, set_old) result (has_changed)
 
-use equal_mod, dummy => ele_value_has_changed
+use bmad_routine_interface, dummy => ele_value_has_changed
 
 implicit none
 

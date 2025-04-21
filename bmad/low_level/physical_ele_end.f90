@@ -19,7 +19,7 @@
 
 function physical_ele_end (track_end, orbit, ele_orientation, return_stream_end) result (physical_end)
 
-use equal_mod, dummy => physical_ele_end
+use bmad_routine_interface, dummy => physical_ele_end
 
 implicit none
 

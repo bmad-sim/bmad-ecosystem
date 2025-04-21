@@ -13,7 +13,7 @@
 
 subroutine reallocate_bunch (bunch, n_particle, save)
 
-use equal_mod, except_dummy => reallocate_bunch
+use bmad_routine_interface, except_dummy => reallocate_bunch
 
 implicit none
 

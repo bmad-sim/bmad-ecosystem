@@ -133,7 +133,10 @@ lat_rev%ic(1:n) = ix_con(lat_rev%ic(1:n))
 
 call set_flags_for_changed_attribute(lat_rev)
 call s_calc(lat_rev)
+call create_lat_ele_nametable(lat_rev, lat_rev%nametable)
+
 call lat_sanity_check (lat_rev, err_flag)
+
 call lattice_bookkeeper (lat_rev)
 call deallocate_lat_pointers(lat_temp)
 

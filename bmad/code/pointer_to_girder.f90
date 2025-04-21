@@ -14,7 +14,7 @@
 
 function pointer_to_girder (ele, ix_slave_back) result (girder)
 
-use equal_mod, dummy => pointer_to_girder
+use bmad_routine_interface, dummy => pointer_to_girder
 
 implicit none
 

@@ -14,7 +14,7 @@
 
 function vec_to_polar (vec, phase) result (polar)
 
-use equal_mod, dummy_except => vec_to_polar
+use bmad_routine_interface, dummy_except => vec_to_polar
 
 implicit none
 
