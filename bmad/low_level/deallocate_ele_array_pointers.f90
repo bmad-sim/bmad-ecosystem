@@ -16,7 +16,7 @@
 
 subroutine deallocate_ele_array_pointers (eles)
 
-use equal_mod, dummy => deallocate_ele_array_pointers
+use bmad_routine_interface, dummy => deallocate_ele_array_pointers
 
 implicit none
 

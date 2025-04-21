@@ -21,7 +21,7 @@
 
 subroutine mat_symp_decouple(t0, stat, U, V, Ubar, Vbar, G,  twiss1, twiss2, gamma, type_out)
 
-use equal_mod, dummy => mat_symp_decouple
+use bmad_routine_interface, dummy => mat_symp_decouple
 
 implicit none
 

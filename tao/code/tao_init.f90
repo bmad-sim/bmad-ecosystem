@@ -3,9 +3,8 @@
 !
 ! Subroutine to initialize the tao structures.
 !
-! Input:
-!
 ! Output:
+!   err_flag  -- logical: Set Treu if there is an error. False otherwise.
 !-
 
 subroutine tao_init (err_flag)
@@ -34,7 +33,7 @@ type (tao_lattice_struct), pointer :: tao_lat
 type (branch_struct), pointer :: branch
 type (tao_lattice_branch_struct), pointer :: tao_branch
 
-real(rp) value, sigma(6,6)
+real(rp) value, sigma(6,6), merit
 real(rp), pointer :: ptr_attrib
 
 character(100) line, line2
@@ -448,6 +447,8 @@ err_flag = .false.
 
 if (iu_log > 0) write (iu_log, '(a)') '*Init: And done.'
 if (iu_log > 0) close (iu_log)
+
+merit = tao_merit()  ! To calc initial merit contributions to the merit function.
 
 !------------------------------------------------------------------------------
 contains

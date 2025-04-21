@@ -24,7 +24,7 @@
 
 recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
 
-use equal_mod, dummy => set_ele_status_stale
+use bmad_routine_interface, dummy => set_ele_status_stale
 
 implicit none
 

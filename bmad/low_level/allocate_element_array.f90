@@ -19,7 +19,7 @@
 
 subroutine allocate_element_array (ele, upper_bound)
 
-use equal_mod, dummy => allocate_element_array
+use bmad_routine_interface, dummy => allocate_element_array
 
 implicit none
 

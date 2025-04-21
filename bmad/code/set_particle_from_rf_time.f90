@@ -15,7 +15,7 @@
 
 subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit)
 
-use equal_mod, dummy_except => set_particle_from_rf_time
+use bmad_routine_interface, dummy_except => set_particle_from_rf_time
 use attribute_mod, only: has_attribute
 
 implicit none

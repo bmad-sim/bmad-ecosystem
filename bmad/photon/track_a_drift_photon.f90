@@ -15,7 +15,7 @@
 
 subroutine track_a_drift_photon (orb, length, phase_relative_to_ref)
 
-use equal_mod, except_dummy => track_a_drift_photon
+use bmad_routine_interface, except_dummy => track_a_drift_photon
 
 implicit none
 

@@ -24,7 +24,7 @@
 
 subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
 
-use equal_mod, dummy => track1_spin
+use bmad_routine_interface, dummy => track1_spin
   
 implicit none
 

@@ -27,7 +27,7 @@
 
 subroutine mat6_add_offsets (ele, param)
 
-use equal_mod, except_dummy => mat6_add_offsets
+use bmad_routine_interface, except_dummy => mat6_add_offsets
 
 implicit none
 

@@ -28,7 +28,7 @@
 
 function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic) result (time)
 
-use equal_mod, dummy_except => particle_rf_time
+use bmad_routine_interface, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
 
 implicit none

@@ -31,7 +31,7 @@
 
 subroutine calc_next_fringe_edge (track_ele, s_edge_body, fringe_info, orbit, init_needed, time_tracking)
 
-use equal_mod, dummy => calc_next_fringe_edge
+use bmad_routine_interface, dummy => calc_next_fringe_edge
 
 implicit none
 

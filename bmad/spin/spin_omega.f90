@@ -27,7 +27,7 @@
 
 function spin_omega (field, orbit, sign_z_vel, phase_space_coords) result (omega)
 
-use equal_mod, dummy_except => spin_omega
+use bmad_routine_interface, dummy_except => spin_omega
 
 implicit none
 

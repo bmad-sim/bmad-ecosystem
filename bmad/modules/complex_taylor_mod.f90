@@ -9,7 +9,7 @@
 
 module complex_taylor_mod
 
-use equal_mod
+use bmad_routine_interface
 
 !
 
