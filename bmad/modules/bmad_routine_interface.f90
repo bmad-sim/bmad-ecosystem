@@ -2023,18 +2023,6 @@ subroutine converter_distribution_parser (ele, delim, delim_found, err_flag)
   logical delim_found, err_flag
 end subroutine
 
-subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
-  use bmad_parser_struct, only: parser_ele_struct
-  import
-  implicit none
-  type (ele_struct), target :: ele
-  type (parser_ele_struct), optional :: pele
-  integer how
-  character(1) delim
-  logical, target :: delim_found, err_flag
-  logical, optional :: check_free, heterogeneous_ele_list, set_field_master
-end subroutine
-
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
   import
   implicit none

@@ -35,7 +35,7 @@
 subroutine set_ele_attribute (ele, set_string, err_flag, err_print_flag, set_lords, err_id)
 
 use bmad_interface, dummy => set_ele_attribute
-use bmad_parser_struct, only: bp_com, bp_com2, stack_file_struct, bp_common_struct, redef$
+use parser_set_attribute_mod, dummy2 => set_ele_attribute
 
 implicit none
 
