@@ -3231,6 +3231,14 @@ subroutine track1_spin_integration (start_orb, ele, param, end_orb)
   type (coord_struct) :: end_orb
 end subroutine
 
+subroutine track1_spin_magnus (start_orb, ele, param, end_orb)
+  import
+  implicit none
+  type (coord_struct) :: start_orb, end_orb
+  type (ele_struct) ele
+  type (lat_param_struct) :: param
+end subroutine
+
 subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
   import
   implicit none

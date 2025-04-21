@@ -63,7 +63,7 @@ end type
 
 integer, parameter :: bmad_standard$ = 1, symp_lie_ptc$ = 2, runge_kutta$ = 3 
 integer, parameter :: linear$ = 4, tracking$ = 5, time_runge_kutta$ = 6
-integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10
+integer, parameter :: fixed_step_runge_kutta$ = 9, symp_lie_bmad$ = 10, magnus$ = 11
 integer, parameter :: Auto$ = 12, sprint$ = 12, fixed_step_time_runge_kutta$ = 13, mad$ = 14
 integer, parameter :: transverse_kick$ = 3, spin_integration$ = 99
 
@@ -76,7 +76,7 @@ character(28), parameter :: tracking_method_name(0:14) = [character(28) :: &
 character(16), parameter :: spin_tracking_method_name(0:12) = [ &
       'GARBAGE!        ', 'Off             ', 'Symp_Lie_PTC    ', 'Transverse_Kick ', &
       'GARBAGE!        ', 'Tracking        ', 'GARBAGE!        ', 'Custom          ', &
-      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', &
+      'GARBAGE!        ', 'GARBAGE!        ', 'GARBAGE!        ', 'Magnus          ', &
       'Sprint          ']
 
 character(24), parameter :: mat6_calc_method_name(0:14) = [character(24):: 'GARBAGE!', &

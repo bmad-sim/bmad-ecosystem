@@ -101,6 +101,9 @@ case (symp_lie_ptc$)
 case (taylor$, sprint$)
   call track1_spin_taylor (start_orb, ele, param, end_orb)
 
+case (magnus$)
+  call track1_spin_magnus (start_orb, ele, param, end_orb)
+
 case default
   call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // spin_tracking_method_name(ele%spin_tracking_method), &
                                  'FOR ELEMENT: ', ele%name)
