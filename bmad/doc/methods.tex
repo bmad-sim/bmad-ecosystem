@@ -453,6 +453,9 @@ Possible \vn{spin_tracking_method} settings are:
 This method will call a routine \vn{track1_spin_custom} which must be supplied by the programmer
 implementing the custom spin tracking calculation. See \vn{s:custom.ele} for more details.
 %
+\item[\vn{Magnus}] \Newline
+... In construction ...
+%
 \item[\vn{Off}] \Newline
 No spin tracking is done and the spin at the end of the element is the same as at the beginning.
 %
@@ -521,42 +524,43 @@ Example:
 \rule{0pt}{80pt} &
 \begin{sideways}\vn{Off}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
+\begin{sideways}\vn{Magnus}\end{sideways} &
 \begin{sideways}\vn{Sprint}\end{sideways} &
 \begin{sideways}\vn{Symp_Lie_PTC}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \begin{sideways}\vn{Transverse_Kick}\end{sideways} &
 \\ \midrule
-%                                      O   C  Spt SLP Trk TK
-  \vn{ab_multipole and multipole}    & X & X &   &   & D &   \\  
-  \vn{ac_kicker}                     & X & X &   &   & D &   \\  
-  \vn{beambeam}                      & X & X &   &   & D &   \\  
-  \vn{bends: rbend and sbend}        & X & X & X & X & D &   \\ 
-  \vn{converter}                     & X & X &   &   & D &   \\  
-  \vn{crab_cavity}                   & X & X &   &   & D &   \\  
-  \vn{custom}                        & X & D &   &   & X &   \\  
-  \vn{drift}                         & X & X & X & X & D &   \\  
-  \vn{e_gun}                         & X & X &   &   & D &   \\  
-  \vn{ecollimator and rcollimator}   & X & X & X & X & D &   \\  
-  \vn{elseparator}                   & X & X &   & X & D &   \\  
-  \vn{em_field}                      & X & X &   &   & D &   \\  
-  \vn{fiducial}                      & X & X &   & X & D &   \\  
-  \vn{floor_shift}                   & X & X &   & X & D &   \\  
-  \vn{hkicker}                       & X & X & X & X & D &   \\  
-  \vn{instrument, monitor and pipe}  & X & X & X & X & D &   \\  
-  \vn{kicker}                        & X & X & X & X & D &   \\  
-  \vn{lcavity and rfcavity}          & X & X &   & X & D &   \\  
-  \vn{marker}                        & X & X &   & X & D &   \\  
-  \vn{match}                         & D &   &   &   &   & X \\  
-  \vn{octupole}                      & X & X & X & X & D &   \\ 
-  \vn{patch}                         & X & X &   & X & D &   \\ 
-  \vn{quadrupole}                    & X & X & X & X & D &   \\ 
-  \vn{sad_mult}                      & X & X &   &   & D &   \\  
-  \vn{sextupole}                     & X & X & X & X & D &   \\ 
-  \vn{solenoid}                      & X & X & X & X & D &   \\ 
-  \vn{sol_quad}                      & X & X &   & X & D & X \\ 
-  \vn{taylor}                        & X &   &   &   & D &   \\ 
-  \vn{vkicker}                       & X & X & X & X & D &   \\ 
-  \vn{wiggler}                       & X & X &   & X & D &   \\ 
+%                                      O   C   M  Spt SLP Trk TK
+  \vn{ab_multipole and multipole}    & X & X &   &   &   & D &   \\  
+  \vn{ac_kicker}                     & X & X &   &   &   & D &   \\  
+  \vn{beambeam}                      & X & X &   &   &   & D &   \\  
+  \vn{bends: rbend and sbend}        & X & X &   & X & X & D &   \\ 
+  \vn{converter}                     & X & X &   &   &   & D &   \\  
+  \vn{crab_cavity}                   & X & X &   &   &   & D &   \\  
+  \vn{custom}                        & X & D &   &   &   & X &   \\  
+  \vn{drift}                         & X & X &   & X & X & D &   \\  
+  \vn{e_gun}                         & X & X &   &   &   & D &   \\  
+  \vn{ecollimator and rcollimator}   & X & X &   & X & X & D &   \\  
+  \vn{elseparator}                   & X & X &   &   & X & D &   \\  
+  \vn{em_field}                      & X & X &   &   &   & D &   \\  
+  \vn{fiducial}                      & X & X &   &   & X & D &   \\  
+  \vn{floor_shift}                   & X & X &   &   & X & D &   \\  
+  \vn{hkicker}                       & X & X &   & X & X & D &   \\  
+  \vn{instrument, monitor and pipe}  & X & X &   & X & X & D &   \\  
+  \vn{kicker}                        & X & X &   & X & X & D &   \\  
+  \vn{lcavity and rfcavity}          & X & X &   &   & X & D &   \\  
+  \vn{marker}                        & X & X &   &   & X & D &   \\  
+  \vn{match}                         & D &   &   &   &   &   & X \\  
+  \vn{octupole}                      & X & X &   & X & X & D &   \\ 
+  \vn{patch}                         & X & X &   &   & X & D &   \\ 
+  \vn{quadrupole}                    & X & X &   & X & X & D &   \\ 
+  \vn{sad_mult}                      & X & X &   &   &   & D &   \\  
+  \vn{sextupole}                     & X & X &   & X & X & D &   \\ 
+  \vn{solenoid}                      & X & X &   & X & X & D &   \\ 
+  \vn{sol_quad}                      & X & X &   &   & X & D & X \\ 
+  \vn{taylor}                        & X &   &   &   &   & D &   \\ 
+  \vn{vkicker}                       & X & X &   & X & X & D &   \\ 
+  \vn{wiggler}                       & X & X &   &   & X & D &   \\ 
   \bottomrule
 \end{tabular}
 }

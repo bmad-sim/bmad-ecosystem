@@ -5566,8 +5566,8 @@ case ('track')
     s_pos = s1 + (i - 1) * (s2 - s1) / max(1, (n_print - 1))
     call twiss_and_track_at_s (lat, s_pos, ele0, tao_branch%orbit, orbit, branch%ix_branch, err, (i /= 1), .false.)
 
-    write (line1, '(i5)') i
-    i1 = 5
+    write (line1, '(i7)') i
+    i1 = 7
 
     call write_track_info (line1, i1, s_fmt, [s_pos], err);  if (err) return
     call write_track_info (line1, i1, t_fmt, [orbit%t], err);  if (err) return

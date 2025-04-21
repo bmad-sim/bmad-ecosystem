@@ -81,7 +81,7 @@ case (group$, overlay$, girder$, ramper$, null_ele$)
 case (sbend$, quadrupole$, solenoid$, sextupole$, octupole$, drift$, thick_multipole$, &
       rcollimator$, ecollimator$, monitor$, instrument$, pipe$, kicker$, hkicker$, vkicker$)
   select case (spin_tracking_method)
-  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$)
+  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$, magnus$)
     is_valid = .true.
   end select
 
