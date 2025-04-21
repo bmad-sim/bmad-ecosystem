@@ -1,5 +1,15 @@
+module parser_set_attribute_mod
+
+use bmad_parser_mod
+
+contains
+
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
 !+
-! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
+! Subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, 
+!                                                                 heterogeneous_ele_list, set_field_master)
 !
 ! Subroutine used by bmad_parser and bmad_parser2 to get the value of
 ! an attribute from the input file and set the appropriate value in an element.
@@ -7,8 +17,8 @@
 ! This subroutine is not intended for general use.
 !
 ! Input:
-!   how              -- integer: Either def$ if the element is being construct from scratch or redef$ if the element has
-!                         already been formed and this is part of a "ele_name[attrib_name] = value" construct.
+!   how              -- integer: Either def$ if the element is being construct from scratch or redef$ if the element 
+!                         has already been formed and this is part of a "ele_name[attrib_name] = value" construct.
 !   ele              -- ele_struct: Element whose attribute this is.
 !   check_free       -- logical, optional: If present and True then an error will be generated
 !                          if the attribute is not free to vary. Used by bmad_parser2.
@@ -28,9 +38,9 @@
 !                       information that cannot be stored in the ele argument.
 !-
 
-subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, heterogeneous_ele_list, set_field_master)
+subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, check_free, &
+                                                                 heterogeneous_ele_list, set_field_master)
 
-use bmad_parser_mod, dummy => parser_set_attribute
 use photon_reflection_mod, only: finalize_reflectivity_table
 
 implicit none
@@ -2436,3 +2446,4 @@ end subroutine get_logical_real
 
 end subroutine parser_set_attribute 
 
+end module

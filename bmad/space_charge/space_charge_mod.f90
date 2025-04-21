@@ -1,6 +1,6 @@
 module space_charge_mod
 
-use bmad
+use csr_and_space_charge_mod
 
 contains
 
@@ -25,8 +25,6 @@ contains
 !-
 
 subroutine sc_field_calc (bunch, branch, include_image, t_end, sc_field, bunch_params)
-
-use csr_and_space_charge_mod
 
 implicit none
 
@@ -196,8 +194,6 @@ end subroutine sc_field_calc
 !-
 
 subroutine sc_step(bunch, ele, include_image, t_end, sc_field, n_emit)
-
-use beam_utils
 
 implicit none
 
