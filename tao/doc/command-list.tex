@@ -3165,12 +3165,15 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-elements <ele_list>\} 
-            \{-inverse\} \{-lattice_format\} \{-number_format <fmt>\} \{-order <n_order>\} 
-            \{-ptc\} \{-radiation\} \{-s\} \{-universe\} \{loc1 \{loc2\}\}
+                    \{-inverse\} \{-lattice_format\} \{-number_format <fmt>\} 
+                    \{-order <n_order>\} \{-ptc\} \{-radiation\} \{-s\} 
+                    \{-scibmad <suffix>\} \{-universe <uni>\} \{loc1 \{loc2\}\}
 \end{example}
 
-Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by
-\vn{set default universe}). See also \vn{show matrix}.
+Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by \vn{set
+default universe}). Maps are computed about the particle orbit. Not the
+zero orbit. Also see \vn{write matrix}. Note: the \vn{show matrix} command is equivalent to the
+\vn{show taylor -order 1} command.
 
 If the \vn{-elements} switch is present, other switches are ignored except \vn{-order} and the
 individual element transfer maps are printed for each element specified by \vn{<ele_list>}. The
@@ -3194,6 +3197,10 @@ or indexes. The map will be from the exit end of the \vn{loc1} element to the ex
 \vn{loc2} element. In this case, if \vn{loc2} is not present, the map will be the for the element
 given by \vn{loc1}
 
+Expressions can be used for all real quantities (that is, \vn{loc1} and \vn{loc2} if \vn{-s} is
+present). An expression must be quoted if it contains any blank spaces or, simpler, any blank spaces
+can be removed.
+
 If the \vn{-eigen_modes} switch is present, the first order part of the map will be treated as a
 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
 
@@ -3212,11 +3219,13 @@ maximum order of the map is limited to the order set by the lattice file.
 The \vn{-ptc} switch is used with \vn{-order 1}. By default, order 1 maps (matrices) are calculated
 using native Bmad code. If the \vn{-ptc} switch is present, the matrix is calculated using the
 \vn{PTC} code (see the \bmad manual for details on PTC). Since PTC is always used to calculate maps
-of order higher than 1, the \vn{-ptc} switch is ignored for higher orders. If used with the
-\vn{-radiation} switch, the \vn{-ptc} switch 
+of order higher than 1, the \vn{-ptc} switch is ignored for higher orders. 
 
-The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
-for using in a \bmad lattice file.
+If used with the
+\vn{-radiation} switch, the \vn{-ptc} switch will cause the radiation to be calculated around the
+closed orbit as calculated from PTC as opposed to the orbit calculated by Bmad native code.
+This is used as a check that the Bmad and PTC closed orbits are not significantly different
+from one another.
 
 If the the \vn{-radiation} switch is present, displayed will be the linear map with radiation
 damping and excitation. See the \vn{Synchrotron Radiation} chapter in the \bmad manual for how the
@@ -3239,16 +3248,16 @@ radiation excitation will not affect the reference orbit or transfer matrix).
 
 The \vn{-angle_coordinates} switch, if present, causes the output to be displayed using ``angle''
 phase space coordinates $(x, x', y, y', z, p_z)$ in place of the standard \bmad canonical
-coordinates $(x, p_x, y, p_y, z, p_z)$.\footnote
-  {
-The conversion between the two coordinate systems is given in the Bmad manual.
-  }
+coordinates $(x, p_x, y, p_y, z, p_z)$. (Note: The conversion between the two coordinate systems is
+given in the Bmad manual.
 
-Maps are computed about the particle orbit. Not the zero orbit. Also see \vn{write matrix}.
+The \vn{-lattice_format} switch, if present, causes the output to be displayed in a format suitable
+for using in a \bmad lattice file.
 
-Expressions can be used for all real quantities (that is, \vn{loc1} and \vn{loc2} if \vn{-s} is
-present). An expression must be quoted if it contains any blank spaces or, simpler, any blank spaces
-can be removed.
+The \vn{-scibmad <suffix>} switch, if present, causes the output to be displayed in SciBmad
+format. The \vn{<suffix>} string is used to form the name of the variable holding the Taylor
+map. The variable name uses the string \vn{v_} as the prefix. For example, if the \vn{<suffix>} is
+\vn{z2}, the variable name will be \vn{v_z2}.
 
 Examples:
 \begin{example}
