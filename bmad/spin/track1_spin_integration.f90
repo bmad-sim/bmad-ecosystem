@@ -135,7 +135,6 @@ endif
   
 
 !----------
-!print *, "spin:", temp_end%spin
 
 if (fringe_info%has_fringe .and. fringe_info%particle_at == second_track_edge$) then
   call apply_element_edge_kick (temp_end, fringe_info, ele, param, .true.)
@@ -282,28 +281,35 @@ type (ele_struct) ele
 type (lat_param_struct) param
 
 real(rp) entrance_orb(6), body_orb(6), exit_orb(6), quat(4), quat_entrance(4), quat_exit(4), omega_vec(3)
-real(rp) m, e, gma, anom, q, l, chi, xi
-real(rp) ks, c, s, a, b, cc, zeta, sc, omega, ch, sh, e1, e2, k0, kx, g, k1, t, omegax, sx, cx, shx, chx, theta
+real(rp) m, e, gma, anom, q, l, chi, xi, rel_p, x0, px0, y0, py0, k2, alpha, taux, tauy, xc, omegay, pr
+real(rp) ks, c, s, a, b, cc, zeta, sc, omega, e1, e2, k0, kx, g, k1, t, omegax, sx, cx, sy, cy, sh, ch
 logical spin_fringe
-integer key
+integer key, fringe
 
 ! Constants
 
-m = mass_of(ele%ref_species)
-e = ele%value(e_tot$)
+m = mass_of(start_orb%species)
+rel_p = 1.0_rp + start_orb%vec(6)
+e = start_orb%p0c * rel_p / start_orb%beta
 gma = e/m
-anom = anomalous_moment_of(ele%ref_species)
-q = charge_of(ele%ref_species)
+anom = anomalous_moment_of(start_orb%species)
+q = charge_of(start_orb%species)
 l = ele%value(l$)
 
 chi = 1.0_rp + anom*gma
 xi = anom*(gma - 1.0_rp)
 
+fringe = ele%value(fringe_at$)
 spin_fringe = is_true(ele%value(spin_fringe_on$))
 
 entrance_orb = no_fringe_start%vec
 body_orb = start_orb%vec
 exit_orb = end_orb%vec
+
+x0 = body_orb(1)
+px0 = body_orb(2)
+y0 = body_orb(3)
+py0 = body_orb(4)
 
 ! Spin tracking
 
@@ -323,44 +329,58 @@ quat_exit(3) = 0.0_rp
 quat_exit(4) = 0.0_rp
 
 key = ele%key
+if (key == sbend$ .and. abs(ele%value(g$)) < 1d-20 .and. abs(ele%value(dg$)) < 1d-20) key = quadrupole$
 if (key == quadrupole$ .and. abs(ele%value(k1$)) < 1d-20) key = pipe$
 
 select case (key)
 
-case (pipe$)
+case (pipe$, drift$, monitor$, instrument$, kicker$, hkicker$, vkicker$, rfcavity$)
   quat = quat
   
 ! Solenoid
 
 case (solenoid$)
   ks = ele%value(ks$)
+  
+  pr = sqrt(rel_p**2-(px0+y0*ks/2.0_rp)**2-(py0-x0*ks/2.0_rp)**2)
 
-  c = cos(ks*l)
-  s = sin(ks*l)
+  c = cos(ks*L/pr)
+  s = sin(ks*L/pr)
 
   if (spin_fringe) then
-    a = -0.25_rp*chi*ks*entrance_orb(1)
-    b = -0.25_rp*chi*ks*entrance_orb(3)
-    zeta = sqrt(a**2 + b**2)
-    sc = sinc(zeta)
+    if (fringe == entrance_end$ .or. fringe == both_ends$) then
+      a = -0.25_rp*chi*ks/rel_p*entrance_orb(1)
+      b = -0.25_rp*chi*ks/rel_p*entrance_orb(3)
+      zeta = sqrt(a**2 + b**2)
+      sc = sinc(zeta)
    
-    quat_entrance(1) = -cos(zeta)
-    quat_entrance(2) = a*sc
-    quat_entrance(3) = b*sc
+      quat_entrance(1) = -cos(zeta)
+      quat_entrance(2) = a*sc
+      quat_entrance(3) = b*sc
+    endif
     
-    a = 0.25_rp*chi*ks*exit_orb(1)
-    b = 0.25_rp*chi*ks*exit_orb(3)
-    zeta = sqrt(a**2 + b**2)
-    sc = sinc(zeta)
+    if (fringe == exit_end$ .or. fringe == both_ends$) then
+      a = 0.25_rp*chi*ks/rel_p*exit_orb(1)
+      b = 0.25_rp*chi*ks/rel_p*exit_orb(3)
+      zeta = sqrt(a**2 + b**2)
+      sc = sinc(zeta)
     
-    quat_exit(1) = -cos(zeta)
-    quat_exit(2) = a*sc
-    quat_exit(3) = b*sc
+      quat_exit(1) = -cos(zeta)
+      quat_exit(2) = a*sc
+      quat_exit(3) = b*sc
+    endif
   endif
   
-  a = -0.5_rp*xi*(s*body_orb(2)+(1.0_rp-c)*body_orb(4))
-  b = -0.5_rp*xi*((c-1.0_rp)*body_orb(2)+s*body_orb(4))
-  cc = -0.5_rp*(1.0_rp+anom)*ks*l*(body_orb(6)-1.0_rp)
+  a = 2.0_rp*pr*(c-1.0_rp)*py0-2.0_rp*pr*s*px0+ks**2*L*y0
+  a = a - ks*(2.0_rp*L*px0+(c-1.0_rp)*pr*x0+pr*s*y0)
+  a = a * xi/(8.0_rp*rel_p**2)
+  
+  b = ks*L*(2.0_rp*py0+ks*x0)
+  b = b + pr*(2.0_rp*(c-1.0_rp)*x0+2.0_rp*s*py0+c*ks*y0-ks*(s*x0+y0))
+  b = -b * xi/(8.0_rp*rel_p**2)
+  
+  cc = 0.5_rp*(1.0_rp+anom)*ks/rel_p*L
+  
   zeta = sqrt(a**2 + b**2 + cc**2)
   sc = sinc(zeta)
   
@@ -379,39 +399,71 @@ case (sbend$)
   g = ele%value(g$)
   k0 = g + ele%value(dg$)
   kx = k1+g*k0
+  omegay = sqrt(abs(k1)/rel_p)
+  omegax = sqrt(abs(kx)/rel_p)
+  
+  if (abs(kx) > 0) then
+    xc = (g*rel_p-k0)/kx
+  else
+    xc = 0.0_rp
+  endif
+  
+  if (kx > 0) then
+    cx = cos(omegax*L)
+    sx = sin(omegax*L)/omegax
+    taux = -1.0_rp
+  elseif (kx < 0) then
+    cx = cosh(omegax*L)
+    sx = sinh(omegax*L)/omegax
+    taux = 1.0_rp
+  else
+    cx = 1.0_rp
+    sx = 0.0_rp
+    taux = 0.0_rp
+  endif
 
 
   if (spin_fringe) then
-    t = tan(e1)
+    if (fringe == entrance_end$ .or. fringe == both_ends$) then
+      t = tan(e1)
     
-    a = -0.5_rp*chi*k0*t*entrance_orb(3)
-    b = -0.5_rp*chi*k0*t*entrance_orb(1)
-    zeta = sqrt(a**2 + b**2)
-    sc = sinc(zeta)
+      a = -0.5_rp*chi*k0/rel_p*t*entrance_orb(3)
+      b = -0.5_rp*chi*k0/rel_p*t*entrance_orb(1)
+      zeta = sqrt(a**2 + b**2)
+      sc = sinc(zeta)
     
-    quat_entrance(1) = -cos(zeta)
-    quat_entrance(2) = a*sc
-    quat_entrance(3) = b*sc
+      quat_entrance(1) = -cos(zeta)
+      quat_entrance(2) = a*sc
+      quat_entrance(3) = b*sc
+    endif
     
-    t = tan(e2)
-    a = -0.5_rp*chi*k0*t*exit_orb(3)
-    b = -0.5_rp*chi*k0*t*exit_orb(1)
-    zeta = sqrt(a**2 + b**2)
-    sc = sinc(zeta)
+    if (fringe == exit_end$ .or. fringe == both_ends$) then
+      t = tan(e2)
+      a = -0.5_rp*chi*k0/rel_p*t*exit_orb(3)
+      b = -0.5_rp*chi*k0/rel_p*t*exit_orb(1)
+      zeta = sqrt(a**2 + b**2)
+      sc = sinc(zeta)
     
-    quat_exit(1) = -cos(zeta)
-    quat_exit(2) = a*sc
-    quat_exit(3) = b*sc
+      quat_exit(1) = -cos(zeta)
+      quat_exit(2) = a*sc
+      quat_exit(3) = b*sc
+    endif
     
   endif
 
   if (k1 == 0) then
-    theta = k0*l
-    c = cos(theta)
-    s = sin(theta)
-    a = -theta/(2.0_rp*gma)*(gma+(anom+gma)*body_orb(6))
-    a = a + 0.5_rp*chi*(k0*s*body_orb(1)+(1.0_rp-c)*body_orb(2)-s*body_orb(6)+(1.0_rp+body_orb(6))*theta)
-    b = -0.5_rp*xi*theta*body_orb(4)
+    if (g == 0) then
+      a = 0.5_rp*chi*L*k0/rel_p
+      b = -0.5_rp*xi*L*k0/rel_p*py0/rel_p
+    else
+      alpha = taux*(cx-1.0_rp)*g*px0
+      alpha = alpha + rel_p*omegax**2*(L*(1.0_rp+g*xc)+g*sx*(x0-xc))
+      alpha = alpha * k0/(2.0_rp*rel_p**2*omegax**2)
+    
+      a = chi*alpha - 0.5_rp*g*L
+      b = -xi*py0*alpha/rel_p
+    endif
+    
     zeta = sqrt(a**2 + b**2)
     sc = sinc(zeta)
     
@@ -420,74 +472,84 @@ case (sbend$)
     quat(4) = b*sc
     
   else
-    omega = sqrt(abs(k1))
-    c = cos(omega*l)
-    ch = cosh(omega*l)
-    s = sin(omega*l)
-    sh = sinh(omega*l)
-    
-    omegax = sqrt(abs(kx))
-    cx = cos(omegax*l)
-    chx = cosh(omegax*l)
-    sx = sin(omegax*l)
-    shx = sinh(omegax*l)
-    
-    if (k1 > 0 .and. kx > 0) then
-      a = 0.5_rp*chi*(sh*omega*body_orb(3)+(ch-1.0_rp)*body_orb(4))
-      b = -chi*omega**2/(2.0_rp*omegax**3)*(omegax*cx*body_orb(2)+sx*(k0*body_orb(6)-omegax**2*body_orb(1)))
-      b = b + 0.5_rp*(chi*omega**2/(omegax**2)*(body_orb(2)+k0*l*body_orb(6))-k0*l/gma*(anom*body_orb(6)+gma*(1.0_rp+body_orb(6)-chi)))
-      cc = -0.5_rp*k0*xi*((ch-1.0_rp)*body_orb(3)+sh/omega*body_orb(4))
-    else if (k1 < 0 .and. kx > 0) then
-      a = 0.5_rp*chi*(-s*omega*body_orb(3)+(c-1.0_rp)*body_orb(4))
-      b = chi*omega**2/(2.0_rp*omegax**3)*(omegax*cx*body_orb(2)+sx*(k0*body_orb(6)-omegax**2*body_orb(1)))
-      b = b + 0.5_rp*(-chi*omega**2/(omegax**2)*(body_orb(2)+k0*l*body_orb(6))-k0*l/gma*(anom*body_orb(6)+gma*(1.0_rp+body_orb(6)-chi)))
-      cc = -0.5_rp*k0*xi*((c-1.0_rp)*body_orb(3)+s/omega*body_orb(4))
-    else ! (k1 < 0 .and. kx > 0)
-      a = 0.5_rp*chi*(-s*omega*body_orb(3)+(c-1.0_rp)*body_orb(4))
-      b = -chi*omega**2/(2.0_rp*omegax**3)*(-omegax*chx*body_orb(2)-sx*(k0*body_orb(6)+omegax**2*body_orb(1)))
-      b = b + 0.5_rp*(-chi*omega**2/(omegax**2)*(body_orb(2)+k0*l*body_orb(6))-k0*l/gma*(anom*body_orb(6)+gma*(1.0_rp+body_orb(6)-chi)))
-      cc = -0.5_rp*k0*xi*((c-1.0_rp)*body_orb(3)+s/omega*body_orb(4))
+    if (k1 > 0) then
+      cy = cosh(omegay*L)
+      sy = sinh(omegay*L)/omegay
+      tauy = 1.0_rp
+    else
+      cy = cos(omegay*L)
+      sy = sin(omegay*L)/omegay
+      tauy = -1.0_rp
     endif
     
-    zeta = sqrt(a**2 + b**2 + cc**2)
+    a = 0.5_rp*chi*k1/rel_p*(sy*y0+tauy*(cy-1.0_rp)/omegay**2*py0/rel_p)
+    b = 0.5_rp*chi*L*k0/rel_p-0.5_rp*g*L+0.5_rp*chi*kx/rel_p*(sx*(x0-xc)+L*xc+taux*(cx-1.0_rp)/omegax**2*px0/rel_p)
+    c = 0.5_rp*(1.0_rp+anom)*k0/rel_p*((cy-1.0_rp)*y0+sy*py0/rel_p)
+    
+    zeta = sqrt(a**2 + b**2 + c**2)
     sc = sinc(zeta)
     
     quat(1) = -cos(zeta)
     quat(2) = a*sc
     quat(3) = b*sc
-    quat(4) = cc*sc
+    quat(4) = c*sc
     
   endif 
   
 ! Quadrupole
 
 case (quadrupole$)
-  k1 = ele%value(k1$)
+  k1 = ele%value(k1$)/rel_p
 
   omega = sqrt(abs(k1))
   
-  c = cos(omega*l)
-  ch = cosh(omega*l)
-  s = sin(omega*l)
-  sh = sinh(omega*l)
-  
+  s = sin(omega*L)
+  sh = sinh(omega*L)
+  c = cos(omega*L)
+  ch = cosh(omega*L)
+ 
   if (k1 > 0) then
-    a = 0.5_rp*chi*(body_orb(4)*(ch-1.0_rp)+body_orb(3)*omega*sh)
-    b = 0.5_rp*chi*(body_orb(2)*(1.0_rp-c)+body_orb(1)*omega*s)
+   cx = (1.0_rp-c)/omega**2
+   sx = s/omega
+   cy = (-1.0_rp+ch)/omega**2
+   sy = sh/omega
   else
-    a = 0.5_rp*chi*(body_orb(4)*(c-1.0_rp)-body_orb(3)*omega*s)
-    b = 0.5_rp*chi*(body_orb(2)*(1.0_rp-ch)-body_orb(1)*omega*sh)
+   cy = (1.0_rp-c)/omega**2
+   sy = s/omega
+   cx = (-1.0_rp+ch)/omega**2
+   sx = sh/omega
   endif
+ 
+  a = 0.5_rp*chi*k1*(sy*y0+cy*py0/rel_p)
+  b = 0.5_rp*chi*k1*(sx*x0+cx*px0/rel_p)
   
   zeta = sqrt(a**2 + b**2)
   sc = sinc(zeta)
-  
   
   quat(1) = -cos(zeta)
   quat(2) = a*sc
   quat(3) = b*sc
 
+! Sextupole
+
+case (sextupole$)
+  k2 = ele%value(k2$)
   
+  a = L*py0*(2.0_rp*L*px0+3.0_rp*rel_p*x0)
+  a = a + 3.0_rp*rel_p*y0*(L*px0+2.0_rp*rel_p*x0)
+  a = a * k2*L*chi/(12.0_rp*rel_p**3)
+  
+  b = L**2*(px0**2-py0**2)
+  b = b + 3.0_rp*rel_p**2*(x0**2-y0**2)
+  b = b + 3.0_rp*L*rel_p*(px0*x0-py0*y0)
+  b = b * k2*L*chi/(12.0_rp*rel_p**3)
+  
+  zeta = sqrt(a**2 + b**2)
+  sc = sinc(zeta)
+  
+  quat(1) = -cos(zeta)
+  quat(2) = a*sc
+  quat(3) = b*sc
 
 
 case default

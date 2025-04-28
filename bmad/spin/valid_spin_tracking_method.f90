@@ -78,14 +78,14 @@ case (sad_mult$, patch$)
 case (group$, overlay$, girder$, ramper$, null_ele$)
   ! No valid methods
   
-case (sbend$, quadrupole$, solenoid$, pipe$)
+case (sbend$, quadrupole$, solenoid$, pipe$, drift$, sextupole$, monitor$, kicker$, hkicker$, vkicker$, instrument$)
   select case (spin_tracking_method)
   case (off$, custom$, symp_lie_ptc$, tracking$, sprint$, magnus$)
     is_valid = .true.
   end select
 
-case (sextupole$, octupole$, drift$, thick_multipole$, &
-      rcollimator$, ecollimator$, monitor$, instrument$, kicker$, hkicker$, vkicker$)
+case (octupole$, thick_multipole$, &
+      rcollimator$, ecollimator$)
   select case (spin_tracking_method)
   case (off$, custom$, symp_lie_ptc$, tracking$, sprint$)
     is_valid = .true.
@@ -94,7 +94,7 @@ case (sextupole$, octupole$, drift$, thick_multipole$, &
 
 case (rfcavity$)
   select case (spin_tracking_method)
-  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$)
+  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$, magnus$)
     is_valid = .true.
   end select
 
