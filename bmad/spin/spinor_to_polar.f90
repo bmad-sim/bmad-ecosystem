@@ -12,7 +12,7 @@
 
 function spinor_to_polar (spinor) result (polar)
 
-use equal_mod, dummy_except => spinor_to_polar
+use bmad_routine_interface, dummy_except => spinor_to_polar
 
 implicit none
 

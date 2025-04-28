@@ -17,7 +17,7 @@
 
 function rf_ref_time_offset (ele) result (time)
 
-use equal_mod, dummy => rf_ref_time_offset
+use bmad_routine_interface, dummy => rf_ref_time_offset
 implicit none
 
 type (ele_struct) ele

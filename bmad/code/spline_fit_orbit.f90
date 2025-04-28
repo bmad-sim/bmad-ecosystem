@@ -18,7 +18,7 @@
 
 subroutine spline_fit_orbit (start_orb, end_orb, spline_x, spline_y)
 
-use equal_mod, dummy_except => spline_fit_orbit
+use bmad_routine_interface, dummy_except => spline_fit_orbit
 
 implicit none
 

@@ -4,6 +4,10 @@ parameter[lattice]                = g_2
 parameter[particle]               = antimuon
 parameter[geometry] = open
 parameter[p0c]                    = 3.094353005E9
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
 particle_start[px] = 1.5e-3
 
 infa:    drift,  l=2,
@@ -30,5 +34,18 @@ rc: rcollimator, px_aperture_width2 = 0.01, px_aperture_center = 0.01,
                  x1_limit = 1e-10, x2_limit = 0.02,
                  y_limit = 0.015
 
-ring: line=(dd, infa, ec, rc)
-use, ring
+line1: line=(dd, infa, ec, rc)
+
+!----------------
+
+d1: pipe, l = 10, aperture_at = continuous, x_limit = 0.1
+d2: pipe, l = 10, aperture_at = both_ends, x_limit = 0.1
+q1: quadrupole, l = 1, superimpose, ref = d1, aperture_at = both_ends, x_limit = 0.01
+q2: quadrupole, l = 1, superimpose, ref = d2, aperture_at = both_ends, x_limit = 0.01
+
+line2: line = (d1, d2)
+line2[geometry] = open
+line2[beta_a] = 10
+line2[beta_b] = 10
+
+use, line1, line2

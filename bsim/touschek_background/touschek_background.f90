@@ -67,6 +67,8 @@ END TYPE col_hash_struct
 ! Declare variables
 !-----------------------------------------------------------------------------------
 
+character(100) line
+
 !-----------------------------------------
 !- Variables that manage program execution
 !-----------------------------------------
@@ -75,7 +77,7 @@ INTEGER templun
 INTEGER part_offset
 INTEGER n_sent
 INTEGER n_received
-INTEGER i, j, k, h, m
+INTEGER i, j, k, h, m, ios
 INTEGER outer_i
 INTEGER slix
 INTEGER eleix
@@ -524,8 +526,13 @@ IF(master) THEN
   !if master, then need to know slice locations and momentum aperture
   !read in slice locations and momentum aperture
   OPEN(79,FILE=TRIM(aperture_file),STATUS="OLD")
-  DO i=1, n_slices
-    READ(79,*) aperture_by_slice(i)%s, aperture_by_slice(i)%negative_aperture, aperture_by_slice(i)%positive_aperture
+  i = 0
+  DO while (i < n_slices)
+    READ(79, '(a)', iostat = ios) line
+    if (ios < 0) exit
+    if (line(1:1) == '#') cycle
+    i = i + 1
+    READ(line, *) aperture_by_slice(i)%s, aperture_by_slice(i)%negative_aperture, aperture_by_slice(i)%positive_aperture
     slices(i)=aperture_by_slice(i)%s
     if (slices(i) > lat%param%total_length .or. slices(i) < 0) then
       print '(a, f13.3)', 'APERTURE S-POSITION FROM APERTURE_FILE OUT-OF-BOUNDS:', slices(i)
@@ -557,8 +564,13 @@ IF(master) THEN
 ELSE
   !if slave, then all we need to know is the slice locations
   OPEN(79,FILE=TRIM(aperture_file),STATUS="OLD")
-  DO i=1, n_slices
-    READ(79, *) slices(i), r_bucket, r_bucket
+  i = 0
+  DO while (i < n_slices)
+    READ(79, '(a)', iostat = ios) line
+    if (ios < 0) exit
+    if (line(1:1) == '#') cycle
+    i = i + 1
+    READ(line, *) slices(i), r_bucket, r_bucket
   ENDDO
   CLOSE(79)
 ENDIF
@@ -811,8 +823,8 @@ ENDIF
 !-  property flagged as lost.
 !--------------------------------------------------------------------------
 IF(.not. master) THEN
-  DO i=1,lat%n_ele_track
-    lat%ele(i)%aperture_at = continuous$
+  DO i=1,lat%n_ele_max
+    if (lat%ele(i)%aperture_at /= lord_defined$) lat%ele(i)%aperture_at = continuous$
   ENDDO
 ENDIF
 

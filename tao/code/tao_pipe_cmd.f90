@@ -247,7 +247,7 @@ call match_word (cmd, [character(40) :: &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
           'ele:twiss', 'ele:wake', 'ele:wall3d', 'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
-          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_general', 'lat_list', 'lat_param_units', &
+          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_header', 'lat_list', 'lat_param_units', &
           'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_curve_manage', 'plot_graph', 'plot_graph_manage', 'plot_histogram', &
           'plot_lat_layout', 'plot_line', 'plot_list', &
@@ -4172,6 +4172,11 @@ case ('enum')
     nl=incr(nl); li(nl) = '2;design'
     nl=incr(nl); li(nl) = '3;base'
 
+  case ('photon_type')
+    do i = 1, size(photon_type_name)
+      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(photon_type_name(i))
+    enddo
+
   case ('plot^type')
     nl=incr(nl); li(nl) = '1;normal'
     nl=incr(nl); li(nl) = '2;wave'
@@ -4817,6 +4822,46 @@ case ('lat_ele_list')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% lat_header
+!
+! Output lattice "header" info like the lattice and machine names.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe lat_header {ix_uni}
+! 
+! Output syntax is parameter list form. See documentation at the beginning of this file.
+! 
+! Parameters
+! ----------
+! ix_uni : optional
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
+!  args:
+!    ix_uni: 1
+
+case ('lat_header') 
+
+  u => point_to_uni(line, .false., err); if (err) return
+  lat => u%model%lat
+
+  nl=incr(nl); write (li(nl), amt) 'use_name;STR;T;',                   trim(lat%use_name)
+  nl=incr(nl); write (li(nl), amt) 'lattice;STR;T;',                    trim(lat%lattice)
+  nl=incr(nl); write (li(nl), amt) 'machine;STR;T;',                    trim(lat%machine)
+  nl=incr(nl); write (li(nl), amt) 'input_file_name;STR;T;',            trim(lat%input_file_name)
+  nl=incr(nl); write (li(nl), amt) 'title;STR;T;',                      trim(lat%title)
+  nl=incr(nl); write (li(nl), amt) 'photon_type;ENUM;T;',               trim(photon_type_name(lat%photon_type))
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% lat_branch_list
 !
 ! Output lattice branch list
@@ -4844,7 +4889,7 @@ case ('lat_ele_list')
 !  args:
 !    ix_uni: 1
 
-case ('lat_branch_list', 'lat_general')  ! lat_general is deprecated.
+case ('lat_branch_list')  ! lat_general is deprecated.
 
   u => point_to_uni(line, .false., err); if (err) return
   lat => u%model%lat

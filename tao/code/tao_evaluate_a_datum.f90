@@ -746,32 +746,20 @@ case ('chrom.')
   
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  if (branch%param%geometry == open$) then
-    select case (data_type)
-    case ('chrom.dtune.a', 'chrom.a', 'chrom.dtune.b', 'chrom.b')
-      call tao_set_invalid (datum, 'Cannot calc ' // trim(data_type) // ' with an open geometry.', why_invalid)
-      return
-    end select
-  endif
-
+  ! Can happen with a command like "show lat -attribute chrom.a" that the chromaticity has not been computed.
+  ! So try to compute it if needed.
   if (.not. tao_lat%chrom_calc_ok) then
-    ! Can happen with a command like "show lat -attribute chrom.a" that the chromaticity has not been computed.
-    ! So try to compute it.
     ok = .false.
     if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
       s%com%force_chrom_calc = .true.
       s%u%calc%lattice = .true.
       call tao_lattice_calc(ok)
     endif
+  endif
 
-    if (.not. ok .or. .not. tao_lat%chrom_calc_ok) then
-      call tao_set_invalid (datum, 'Chrom calc failed.', why_invalid)
-      return
-    endif
-
-  elseif (.not. allocated(tao_lat%low_E_lat%branch)) then
+  if (.not. allocated(tao_lat%low_E_lat%branch) .or. .not. tao_lat%chrom_calc_ok) then
     if (branch%param%unstable_factor == 0) then
-      call tao_set_invalid (datum, 'Chrom bookkeeping problem. Please contact DCS.', why_invalid)
+      call tao_set_invalid (datum, 'Chrom calculation problem.', why_invalid)
     else
       call tao_set_invalid (datum, 'Unstable lattice.', why_invalid)
     endif

@@ -14,7 +14,7 @@
 
 subroutine ele_to_spin_taylor(ele, param, orb0)
 
-use bmad, dummy => ele_to_spin_taylor
+use bmad_routine_interface, dummy => ele_to_spin_taylor
 
 implicit none
 

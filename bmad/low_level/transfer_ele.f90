@@ -23,7 +23,10 @@
 
 subroutine transfer_ele (ele1, ele2, nullify_pointers)
 
-use bmad_routine_interface, dummy => transfer_ele
+! Important! The use statement here is constructed to  avoid the use of 
+! the overloaded equal sign for ele_structs in bmad_routine_interface.
+
+use bmad_routine_interface, only: ele_struct, deallocate_ele_pointers, logic_option
 
 implicit none
 

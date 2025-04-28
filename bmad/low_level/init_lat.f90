@@ -14,7 +14,7 @@
 
 subroutine init_lat (lat, n, init_beginning_ele)
 
-use equal_mod, dummy => init_lat
+use bmad_routine_interface, dummy => init_lat
 
 implicit none
 

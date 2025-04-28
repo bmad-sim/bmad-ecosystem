@@ -74,7 +74,7 @@ dependencies.
 First, create a build environment:
 
 ```
-conda create -n bmad-build -f .github/bmad-build-env.yaml
+conda env create -n bmad-build -f .github/bmad-build-env.yaml
 conda activate bmad-build
 ```
 

@@ -17,7 +17,7 @@
 
 function angle_between_polars (polar1, polar2) result (angle)
 
-use equal_mod, dummy_except => angle_between_polars
+use bmad_routine_interface, dummy_except => angle_between_polars
 
 implicit none
 

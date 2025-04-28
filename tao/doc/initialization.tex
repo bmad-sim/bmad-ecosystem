@@ -94,7 +94,7 @@ is actually not needed. If no \tao initialization file is used, the use of the \
 switch is mandatory and \tao will use a set of default plot templates for plotting.
 %
 \item[-lattice_file <file_name>] \Newline
-Overrides the \vn{design_lattice} lattice file specified in the \tao initialization file
+Overrides the \vn{design_lattice} (\sref{s:init.lat}) lattice file specified in the \tao initialization file
 (\sref{s:init.lat}). Example:
 \begin{example}
   tao -init my.init -lat slac.bmad
@@ -173,13 +173,17 @@ section in the\bmad manual for more details.
 %
 \item[-slice_lattice <element_list>] \Newline
 If present, discard from the lattice all lattice elements that are not in the \vn{<element_list>}.
-Overrides the setting of \vn{design_lattice(N)%slice_lattice}. Note: A \vn{slice_lattice} command
+Overrides the setting of \vn{design_lattice(N)%slice_lattice} (\sref{s:init.lat}). 
+Note: A \vn{slice_lattice} command
 may also be put directly in the lattice file. See the \bmad manual for more documentation.
 %
 \item[-start_branch_at <element>] \Newline
+Overrides the setting of \vn{design_lattice(N)%start_branch_at} (\sref{s:init.lat}).
 If present, shift the starting point of a lattice branch while keeping the relative order of the
-elements the same. This is useful, for example, in storage rings. Note A \vn{start_branch_at}
-command may also be put directly in the lattice file. See the \bmad manual for more documentation.
+elements the same. Elements that are, before the shift, before the starting element are shifted
+to the end of the branch. See the \bmad manual for more documentation.
+This is useful, for example, in storage rings. Note A \vn{start_branch_at}
+command may also be put directly in the lattice file.
 %
 \item[-startup_file <file_name>] \Newline
 Overrides the \vn{startup_file} (\sref{s:init.begin}) specified in the
@@ -430,10 +434,11 @@ namelist are:
     unique_name_suffix = "<string>"
     combine_consecutive_elements_of_like_name = <logical>
     design_lattice(N) = "<lattice_file>", \{"<lattice2_files>"\}
-    design_lattice(N)%one_turn_map_calc = <logical>     ! Default = False
-    design_lattice(N)%dynamic_aperture_calc = <logical> ! Default = False
-    design_lattice(N)%reverse_lattice = <logical>      ! Default = False
-    design_lattice(N)%slice_lattice = "<element_list>"             
+    design_lattice(N)%one_turn_map_calc     = <logical>      ! Default = False
+    design_lattice(N)%dynamic_aperture_calc = <logical>      ! Default = False
+    design_lattice(N)%reverse_lattice       = <logical>      ! Default = False
+    design_lattice(N)%slice_lattice         = "<element_list>"
+    design_lattice(N)%start_branch_at =     = "<element>"
   /
 \end{example}
 \vn{n_universes} is the number of universes to be created. The default is 1.  \vn{design_lattice(N)}
@@ -457,8 +462,8 @@ or lines in the lattice file to use as a basis for constructing the lattice. Thi
 \end{example}
 is equivalent to putting \vn{use ln1,ln2} as the use statement in the \vn{cesr.bmad} lattice file.
 
-Note: If the \vn{lattice_file} parameter is not set for the N\Th
-universe, the parameters for the previous universe are used.
+Note: If the \vn{lattice_file} parameter is not set for the N\Th universe, the parameters for the
+previous universe are used.
 
 The optional \vn{<lattice2_file>} specifies ``secondary'' lattice files that are parsed after
 the ``primary'' lattice file specified by \vn{lattice_file}. The secondary lattice
@@ -476,7 +481,7 @@ trajectory in the unreversed lattice. Currently, lattice reversal only works if 
 single branch. Lattice reversal can also be done using the \vn{-reverse} option at startup
 (\sref{s:command.line}).
 
-The \vn{%slice_lattice} parameter specifies a list of elements to be used to pare down the lattice
+The \vn{%slice_lattice} parameter, if set, specifies a list of elements to be used to pare down the lattice
 so that the only elements that appear in the list are kept in the lattice.  In addition, any lord
 elements that control elements in the list are also retained. This is identical to putting a
 \vn{slice_lattice} command directly in the lattice file. For example:
@@ -487,6 +492,9 @@ In this example, everything outside of the range from element \vn{Q1} to the ele
 will be discarded.  See the \bmad manual for more details about the \vn{slice_lattice} command.
 Note: There is also a \vn{-slice_lattice} initialization argument (\sref{s:command.line}) that can be
 used.
+
+The \vn{%start_branch_at} parameter, if set, shifts the starting point of a lattice branch while
+keeping the relative order of the elements the same.
 
 Example:
 \begin{example}

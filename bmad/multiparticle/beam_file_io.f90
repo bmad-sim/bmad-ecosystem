@@ -1,6 +1,6 @@
 module beam_file_io
 
-use equal_mod
+use bmad_routine_interface
 
 implicit none
 

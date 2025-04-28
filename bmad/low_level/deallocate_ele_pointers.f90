@@ -23,7 +23,7 @@
 
 subroutine deallocate_ele_pointers (ele, nullify_only, nullify_branch, dealloc_poles)
 
-use equal_mod, dummy => deallocate_ele_pointers
+use bmad_routine_interface, dummy => deallocate_ele_pointers
 
 implicit none
 

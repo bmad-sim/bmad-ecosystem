@@ -1,5 +1,5 @@
 !+
-! Subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag,
+! Subroutine chrom_calc (lat, delta_e, chrom_a, chrom_b, err_flag,
 !                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch, orb0)
 !
 ! Subroutine to calculate the chromaticities by computing the tune change when the energy (actually pz) is changed.
@@ -16,8 +16,8 @@
 !
 ! Output:
 !   delta_e       -- real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
-!   chrom_x       -- real(rp): Horizontal chromaticity.
-!   chrom_y       -- real(rp): Vertical chromaticity.
+!   chrom_a       -- real(rp): a-mode chromaticity.
+!   chrom_b       -- real(rp): b-mode chromaticity.
 !   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
 !   low_E_lat     -- lat_struct, optional: Lattice with RF off and matrices computed at E_lat +pz - delta_e
 !   high_E_lat    -- lat_struct, optional: Lattice with RF off and matrices computed at E_lat +pz + delta_e
@@ -25,7 +25,7 @@
 !   high_E_orb(:) -- coord_struct, allocatable, optional: Orbit computed at E_lat + pz + delta_e.
 !-
 
-subroutine chrom_calc (lat, delta_e, chrom_x, chrom_y, err_flag, &
+subroutine chrom_calc (lat, delta_e, chrom_a, chrom_b, err_flag, &
                        pz, low_E_lat, high_E_lat, low_E_orb, high_E_orb, ix_branch, orb0)
 
 use bmad_interface, except_dummy => chrom_calc
@@ -44,7 +44,7 @@ type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, ele2
 
 real(rp) :: high_tune_x, high_tune_y, low_tune_x, low_tune_y
-real(rp) :: pz0, delta_e, chrom_x, chrom_y
+real(rp) :: pz0, delta_e, chrom_a, chrom_b
 real(rp), optional :: pz
 real time0, time1
 
@@ -193,8 +193,8 @@ high_tune_y = branch2%ele(nt)%b%phi / twopi
 
 ! compute the chrom
 
-chrom_x = (high_tune_x - low_tune_x) / (2 * delta_e)
-chrom_y = (high_tune_y - low_tune_y) / (2 * delta_e)
+chrom_a = (high_tune_x - low_tune_x) / (2 * delta_e)
+chrom_b = (high_tune_y - low_tune_y) / (2 * delta_e)
 
 branch%ele(i0:)%a%dbeta_dpz  = (branch2%ele(i0:)%a%beta  - branch%ele(i0:)%a%dbeta_dpz) / (2 * delta_e)
 branch%ele(i0:)%b%dbeta_dpz  = (branch2%ele(i0:)%b%beta  - branch%ele(i0:)%b%dbeta_dpz) / (2 * delta_e)

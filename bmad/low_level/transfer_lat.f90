@@ -16,6 +16,9 @@
 
 subroutine transfer_lat (lat1, lat2)
 
+! Important! The use statement here is constructed to avoid
+! the overloaded equal sign for lat_structs in bmad_routine_interface.
+
 use bmad_struct
 
 implicit none

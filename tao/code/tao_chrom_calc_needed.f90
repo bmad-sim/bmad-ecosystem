@@ -14,12 +14,14 @@ implicit none
 character(*) data_type, data_source
 logical do_chrom
 
-!
+! Note: The data_type may be an expression.
 
 do_chrom = .false.
 
 if (data_source /= 'lat') return
 if (len(data_type) < 6) return
-if (data_type(1:6)  == 'chrom.') do_chrom = .true. 
+if (index(data_type, 'chrom.') /= 0) do_chrom = .true. 
+if (index(data_type, 'dalpha_dpz') /= 0) do_chrom = .true. 
+if (index(data_type, 'dbeta_dpz') /= 0) do_chrom = .true. 
 
 end function tao_chrom_calc_needed

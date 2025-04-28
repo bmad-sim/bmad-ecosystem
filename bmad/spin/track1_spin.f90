@@ -24,7 +24,7 @@
 
 subroutine track1_spin (start_orb, ele, param, end_orb, make_quaternion)
 
-use equal_mod, dummy => track1_spin
+use bmad_routine_interface, dummy => track1_spin
   
 implicit none
 
@@ -100,6 +100,9 @@ case (symp_lie_ptc$)
 
 case (taylor$, sprint$)
   call track1_spin_taylor (start_orb, ele, param, end_orb)
+
+case (magnus$)
+  call track1_spin_magnus (start_orb, ele, param, end_orb)
 
 case default
   call out_io (s_fatal$, r_name, 'BAD SPIN_TRACKING_METHOD: ' // spin_tracking_method_name(ele%spin_tracking_method), &

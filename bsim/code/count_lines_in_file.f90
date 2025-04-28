@@ -10,17 +10,15 @@ IMPLICIT NONE
 CHARACTER(*), INTENT(IN) :: file_name
 INTEGER, INTENT(OUT) :: lines
 
-CHARACTER*266 bitbucket
+CHARACTER(266) bitbucket
 INTEGER i, read_status
 
 OPEN(100, FILE=file_name,STATUS='OLD',ACTION='READ')
 i = 0
 read_status = 0
-DO WHILE (read_status .eq. 0)
+DO WHILE (read_status == 0)
   READ(100,FMT='(A)',IOSTAT=read_status) bitbucket
-    IF (read_status .eq. 0) THEN
-      i = i+1
-    ENDIF
+  IF (read_status == 0 .and. bitbucket(1:1) /= '#') i = i+1
 ENDDO
 CLOSE(100)
 

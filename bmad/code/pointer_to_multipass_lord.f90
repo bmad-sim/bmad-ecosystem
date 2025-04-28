@@ -25,7 +25,7 @@
 
 function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord)
 
-use equal_mod, except_dummy => pointer_to_multipass_lord
+use bmad_routine_interface, except_dummy => pointer_to_multipass_lord
 
 implicit none
 

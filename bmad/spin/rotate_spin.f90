@@ -14,7 +14,7 @@
 
 subroutine rotate_spin (rot_vec, spin, qrot)
 
-use equal_mod, dummy_except => rotate_spin
+use bmad_routine_interface, dummy_except => rotate_spin
 
 implicit none
 

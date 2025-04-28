@@ -14,7 +14,7 @@
 
 recursive function ele_has_constant_ds_dt_ref (ele) result (is_const)
 
-use bmad, except_dummy => ele_has_constant_ds_dt_ref
+use bmad_routine_interface, except_dummy => ele_has_constant_ds_dt_ref
 
 implicit none
 

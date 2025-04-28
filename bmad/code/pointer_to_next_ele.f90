@@ -33,7 +33,7 @@
 
 function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
 
-use equal_mod, dummy => pointer_to_next_ele
+use bmad_routine_interface, dummy => pointer_to_next_ele
 
 implicit none
 

@@ -16,7 +16,7 @@
 
 subroutine track_a_pickup (orbit, ele, param, err_flag, mat6, make_matrix)
 
-use equal_mod, except_dummy => track_a_pickup
+use bmad_routine_interface, except_dummy => track_a_pickup
 
 implicit none
 

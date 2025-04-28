@@ -39,7 +39,7 @@
 
 subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele, s_start, s_end)
 
-use equal_mod, except_dummy => element_slice_iterator
+use bmad_routine_interface, except_dummy => element_slice_iterator
 
 implicit none
 

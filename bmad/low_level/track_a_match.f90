@@ -16,7 +16,7 @@
 
 subroutine track_a_match (orbit, ele, param, err_flag, mat6, make_matrix)
 
-use equal_mod, except_dummy => track_a_match
+use bmad_routine_interface, except_dummy => track_a_match
 
 implicit none
 
