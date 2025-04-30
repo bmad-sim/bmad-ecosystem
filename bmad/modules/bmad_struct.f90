@@ -1,4 +1,4 @@
-\!+
+!+
 ! Bmad_struct holds the structure definitions for Bmad routines.
 !-
 
