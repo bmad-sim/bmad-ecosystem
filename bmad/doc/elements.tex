@@ -3715,12 +3715,33 @@ When an \vn{multipole} is superimposed (\sref{c:super}) on a lattice, it is
 treated as a zero length element and in this case it is an error for the length
 of the \vn{multipole} to be set to a nonzero value.
 
-Like a \mad \vn{multipole}, a \bmad \vn{multipole} will affect the
-reference orbit if there is a dipole component. 
 Example:
 \begin{example}
   m1: multipole, k1l = 0.034e-2, t1, k3sl = 4.5, t3 = 0.31*pi
 \end{example}
+
+NOTE! Originally, for compatibility with MAD, a \bmad \vn{Multipole} with a finite \vn{K0L} would
+act as a zero length bend with a change in reference orbit (\sref{s:ref}) commensurate with the
+value of \vn{K0L}. This was problematical for several reasons. For one, \vn{PTC} does not do this so
+there were differences between Bmad tracking and tracking with maps. An additional consideration is
+that all of this can be very confusing to Users.
+
+%Additionally, there is the
+%issue that radiation effects due to a multipole are ignored. This is done since the amount of
+%radiation emitted from a true zero length element would be infinite so there is no good way to
+%calculate what the radiation would be. This is generally a reasonable approximation for, say, a zero
+%length quadrupole, however ignoring radiation in dipoles can be problematical since dipole radiation
+%is often significant.
+
+As a result of these considerations, it was decided to disallow the setting of K0L for a Multipole
+and, if K0L is set, an error message will be issued.\footnote
+  {
+One possibility that was considered was to simply treat \vn{K0L} as a kick without any change in reference orbit.
+This was rejected since it could be confusing to compare MAD and \bmad computations with lattices that had
+a finite \vn{K0L}.
+  }
+If a zero length kick element is needed, there
+is always the \vn{kicker} element. 
 
 \newpage
 

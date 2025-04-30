@@ -22,7 +22,7 @@
 !                          ix_pole_max is set independent of a nonzero b1 (if present).
 !   a(0:n_pole_maxx)  -- real(rp): Array of scalled multipole values.
 !   b(0:n_pole_maxx)  -- real(rp): Array of scalled multipole values.
-!   b1                -- real(rp), optional: If present and True then b1 is set to the value of the b(1) component
+!   b1                -- real(rp), optional: If present, b1 is set to the value of the b(1) component
 !                         of the b(:) array and b(1) is set to zero. Also ix_pole_max is ajusted as needed.
 !                         This is used by routines that want to handle b(1) in a special way in tracking.
 !-
@@ -77,7 +77,8 @@ endif
 ! Multipole ele 
 
 if (ele%key == multipole$) then
-  if (p_type == electric$) then
+  ! Not associated %a_pole if multipole element does not have any non-zero multipoles.
+  if (p_type == electric$ .or. .not. associated(ele%a_pole)) then
     a = 0;  b = 0
     if (present(b1)) b1 = 0
     return
