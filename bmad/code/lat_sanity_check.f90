@@ -825,6 +825,18 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
+    ! K0L for a multipole is problematic so disallow
+
+    if (ele%key == multipole$ .and. associated(ele%a_pole)) then
+      if (ele%a_pole(0) /= 0) then
+        call out_io (s_fatal$, r_name, &
+                  'MULTIPOLE: ' // ele_full_name(ele, '@N (&#)'), &
+                  'CANNOT HAVE A FINITE K0L VALUE. SEE THE BMAD MANUAL FOR DETAILS.')
+        err_flag = .true.
+      endif
+    endif
+
+
     ! photonic element surface consistancy check
 
     if (associated(ele%photon)) then

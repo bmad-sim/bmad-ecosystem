@@ -88,10 +88,6 @@ bbu_program
 File: code/adjust_optics.f90
 adjust_optics
 
-File: code/count_lines_in_file.f90
-count_lines_in_file_mod
-count_lines_in_file
-
 File: code/longitudinal_beta.f90
 longitudinal_beta
 
@@ -124,6 +120,10 @@ logical_to_python
 
 File: code/set_tune_3d.f90
 set_tune_3d
+
+File: code/count_lines_in_file.f90
+count_lines_in_file_mod
+count_lines_in_file
 
 File: code_synrad/break_wall_into_segments.f90
 break_wall_into_segments
