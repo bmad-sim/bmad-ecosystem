@@ -22,7 +22,7 @@ use tao_interface, dummy => tao_hook_data_sanity_check
 
 implicit none
 
-type (tao_hook_data_struct) datum
+type (tao_data_struct) datum
 type (tao_universe_struct), optional, target :: uni
 type (branch_struct), pointer :: branch
 type (tao_universe_struct), pointer :: u

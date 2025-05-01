@@ -1007,14 +1007,14 @@ function tao_hook_curve_s_pt_def (s_default, ix_now, x1, x2, n_pts, tao_lat, cur
   integer ix_now, n_pts
 end function
 
-function tao_hook_data_sanity_check (found, datum, print_err, default_data_type, uni) result (is_valid)
+function tao_hook_data_sanity_check_def (found, datum, print_err, default_data_type, uni) result (is_valid)
   import
   implicit none
-  type (tao_hook_data_struct) datum
+  type (tao_data_struct) datum
   type (tao_universe_struct), optional, target :: uni
   logical found, print_err, is_valid
   character(*) default_data_type
-end funtion
+end function
 
 subroutine tao_hook_draw_floor_plan_def (plot, graph)
   import
