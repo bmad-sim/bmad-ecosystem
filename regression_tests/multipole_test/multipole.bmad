@@ -19,7 +19,7 @@ bb: sbend, l = 1e-3, g = 1e-2, k1 = 0.1, k2 = 0.2, ref_tilt = pi/2,
       b0_elec = 1e-3, b1_elec = 2e-3, b2_elec = 3e-3, b3_elec = 4e-3, b4_elec = 5e-3, b5_elec = 6e-3
 
 mm: multipole,
-      k0l = 1, k1l = 2, k2l = 3, k3l = 4, k4l = 5, k5l = 6,
+      k6l = 1, k1l = 2, k2l = 3, k3l = 4, k4l = 5, k5l = 6,
       t0 = 0.1, t1 = 0.2, t2 = 0.3, t3 = 0.4, t4 = 0.5, t5 = 0.6
 
 ee: elseparator, l = 2e-3, hkick = 1e-3, vkick = 2e-3, tilt = pi/2, 
