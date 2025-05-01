@@ -27,10 +27,17 @@ type (branch_struct), pointer :: branch
 type (tao_universe_struct), pointer :: u
 
 integer has_associated_ele
-logical print_err, is_valid
+logical print_err, is_valid, found
 character(40) d_type
 character(*) default_data_type
 character(*), parameter :: r_name = 'tao_data_sanity_check'
+
+! For custom data.
+
+if (associated(tao_hook_data_sanity_check_ptr)) then
+  is_valid = tao_hook_data_sanity_check_ptr(found, datum, print_err, default_data_type, uni)
+  if (found) return
+endif
 
 !
 

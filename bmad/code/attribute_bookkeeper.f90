@@ -603,6 +603,15 @@ case (e_gun$)
   val(voltage_tot$)  = val(voltage$)  + val(voltage_err$)
   val(gradient_tot$) = val(gradient$) + val(gradient_err$)
 
+case (multipole$)
+  if (associated(ele%a_pole)) then
+    if (ele%a_pole(0) /= 0) then
+      call out_io(s_error$, r_name, 'MULTIPOLE: ' // ele_full_name(ele, '@N (&#)'), &
+                                    'CANNOT HAVE A FINITE K0L VALUE. WILL SET TO ZERO. SEE THE BMAD MANUAL FOR DETAILS.')
+      ele%a_pole(0) = 0
+    endif
+  endif
+
 ! Elseparator
 
 case (elseparator$)

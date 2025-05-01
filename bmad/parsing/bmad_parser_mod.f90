@@ -5186,6 +5186,16 @@ case (crab_cavity$)
 
 !------------------
 
+case (multipole$)
+  if (associated(ele%a_pole)) then
+    if (ele%a_pole(0) /= 0) then
+      call parser_error ('MULTIPOLE: ' // ele%name, &
+                         'CANNOT HAVE A FINITE K0L VALUE. SEE THE BMAD MANUAL FOR DETAILS.')
+    endif
+  endif
+
+!------------------
+
 case (rfcavity$) 
 
   if (ele%value(rf_frequency$) /= 0 .and. ele%value(harmon$) /= 0) call parser_error &
