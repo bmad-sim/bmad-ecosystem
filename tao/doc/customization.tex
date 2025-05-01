@@ -117,10 +117,13 @@ called \vn{tao/hook/<hook_routine_name>.f90}. See these files for subroutine hea
 comments throughout the dummy code to aid in the modification of these subroutines.
 
 %-----------------------------------------------------------------
-\subsection{tao_hook_graph_setup}
-\index{customizing!tao_hook_graph_data_setup}
+\subsection{tao_hook_branch_calc}
+\index{customizing!tao_hook_branch_calc}
 
-Use this to setup custom graph data for a plot.
+This hook routine is called by tao_lattice_calc when tracking, twiss calculations, etc are done.
+
+This subroutine can be used, for example, to do custom calculations on a lattice branch.
+Also see tao_hook_lattice_calc.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_command}\index{customizing!tao_hook_commad}
@@ -138,6 +141,27 @@ The only thing needed to be called at the end of a custom command is \vn{tao_cmd
 will perform all of the steps listed in Section~\sref{s:lat.calc}.
 
 See Sec.~\sref{s:cust.read.example} for an example of how to use this hook.
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_data_sanity_check}
+\index{customizing!tao_hook_data_sanity_check}
+
+Hook routine to check if a custom datum is internally consistent.
+This routine is called by tao_data_sanity_check. See this routine for more details.
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_draw_floor_plan}
+\index{customizing!tao_hook_draw_floor_plan}
+
+Routine to customize the plotting of the floor_plan.
+Also see: tao_hook_draw_graph.
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_draw_graph}
+\index{customizing!tao_hook_draw_graph}
+
+This will customize the plotting of a graph. See the \tao module \vn{tao_plot_mod} for details on
+what it normally done. You will also need to know how \vn{quick_plot} works (See the \bmad manual).
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_evaluate_a_datum}
@@ -162,6 +186,17 @@ The \vn{found} logical argument should be set to \vn{True} for datums that are h
 routine and \vn{found} should be set to \vn{False} for all other datums.
 
 %-----------------------------------------------------------------
+\subsection{tao_hook_graph_postsetup}
+\index{customizing!tao_hook_graph_postsetup}
+
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_graph_setup}
+\index{customizing!tao_hook_graph_data_setup}
+
+Use this to setup custom graph data for a plot.
+
+%-----------------------------------------------------------------
 \subsection{tao_hook_init1 and tao_hook_init2}
 \label{s:hook.init}
 \index{customizing!tao_hook_init}
@@ -177,8 +212,20 @@ values different from design variable values since when \vn{tao_hook_init1} is c
 lattice has not yet been initialized.
 
 %-----------------------------------------------------------------
-\subsection{tao_hook_init_design_lattice}
-\index{customizing!tao_hook_init_design_lattice}
+\subsection{tao_hook_init_beam}
+\index{customizing!tao_hook_init_beam}
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_init_data}
+\index{customizing!tao_hook_init_data}
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_init_global}
+\index{customizing!tao_hook_init_global}
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_init_lattice_post_parse}
+\index{customizing!tao_hook_init_lattice_post_parse}
 
 This will do a custom lattice initialization. The standard lattice initialization just calls
 \vn{bmad_parser}. If anything more complex needs to be done then do it here. This is also where any
@@ -190,6 +237,19 @@ data structures use the element index for each element associated with the datum
 indexes shift then the data structures will break. If new elements need to be inserted then modify
 this routine and recompile. You can alternatively create a custom initialization file used by this
 routine that reads in any elements to be inserted.
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_init_plotting}
+\index{customizing!tao_hook_init_plotting}
+
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_init_read_lattice_info}
+\index{customizing!tao_hook_init_read_lattice_info}
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_init_var}
+\index{customizing!tao_hook_init_read_lattice_info}
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_lattice_calc}
@@ -240,20 +300,16 @@ Note that if an initialization file name is given on the command line or in the 
 initialization file, that name will supersede the hook name.
 
 %-----------------------------------------------------------------
-\subsection{tao_hook_plot_graph}
-\index{customizing!tao_hook_plot_graph}
-
-This will customize the plotting of a graph. See the \tao module \vn{tao_plot_mod} for details on
-what it normally done. You will also need to know how \vn{quick_plot} works (See the \bmad manual).
-
-%-----------------------------------------------------------------
-\subsection{tao_hook_plot_data_setup}
-\index{customizing!tao_hook_plot_data_setup}
+\subsection{tao_hook_plot_setup}
+\index{customizing!tao_hook_plot_setup}
 
 Use this routine to override the \vn{tao_plot_data_setup} routine which essentially transfers the
 information from the \vn{s%u(:)%data} arrays to the
 \vn{s%plot_page%region(:)%plot%graph(:)%curve(:)} arrays. This may be useful if you want to make a
 plot that isn't simply the information in a data or variable array.
+
+
+
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_post_process_data}
@@ -262,6 +318,10 @@ plot that isn't simply the information in a data or variable array.
 Here can be placed anything that needs to be done after the data arrays are loaded. This routine is
 called immediately after the data arrays are called and before the optimizer or plotting is done, so
 any final modifications to the lattice or data can be performed here.
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_show_cmd}
+\index{customizing!tao_hook_show_cmd}
 
 %-----------------------------------------------------------------
 %\chapter{Plotting}

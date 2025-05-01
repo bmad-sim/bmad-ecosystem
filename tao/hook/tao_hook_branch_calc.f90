@@ -1,7 +1,10 @@
 !+
 ! Subroutine tao_hook_branch_calc (u, tao_lat, branch)
 !
-! Subroutine to do custom calculations on a lattice branch.
+! This hook routine is called by tao_lattice_calc when tracking, twiss calculations, etc are done.
+!
+! This subroutine can be used, for example, to do custom calculations on a lattice branch.
+! Also see tao_hook_lattice_calc.
 !
 ! Input:
 !   u       -- tao_universe_struct:
