@@ -35,7 +35,7 @@ character(*), parameter :: r_name = 'tao_data_sanity_check'
 ! For custom data.
 
 if (associated(tao_hook_data_sanity_check_ptr)) then
-  is_valid = tao_hook_data_sanity_check(found, datum, print_err, default_data_type, uni)
+  is_valid = tao_hook_data_sanity_check_ptr(found, datum, print_err, default_data_type, uni)
   if (found) return
 endif
 
