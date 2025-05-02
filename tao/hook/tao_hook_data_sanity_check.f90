@@ -18,7 +18,7 @@
 
 function tao_hook_data_sanity_check (found, datum, print_err, default_data_type, uni) result (is_valid)
 
-use tao_interface, dummy => tao_hook_data_sanity_check
+use tao_interface
 
 implicit none
 
