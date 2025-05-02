@@ -280,11 +280,10 @@ type (coord_struct) no_fringe_start, start_orb, end_orb
 type (ele_struct) ele
 type (lat_param_struct) param
 
-real(rp) entrance_orb(6), body_orb(6), exit_orb(6), quat(4), quat_entrance(4), quat_exit(4), omega_vec(3)
+real(rp) entrance_orb(6), body_orb(6), exit_orb(6), quat(4), omega_vec(3)
 real(rp) m, e, gma, anom, q, l, chi, xi, rel_p, x0, px0, y0, py0, k2, alpha, taux, tauy, xc, omegay, pr
 real(rp) ks, c, s, a, b, cc, zeta, sc, omega, e1, e2, k0, kx, g, k1, t, omegax, sx, cx, sy, cy, sh, ch
-logical spin_fringe
-integer key, fringe
+integer key
 
 ! Constants
 
@@ -299,9 +298,6 @@ l = ele%value(l$)
 chi = 1.0_rp + anom*gma
 xi = anom*(gma - 1.0_rp)
 
-fringe = ele%value(fringe_at$)
-spin_fringe = is_true(ele%value(spin_fringe_on$))
-
 entrance_orb = no_fringe_start%vec
 body_orb = start_orb%vec
 exit_orb = end_orb%vec
@@ -313,20 +309,10 @@ py0 = body_orb(4)
 
 ! Spin tracking
 
-quat_entrance(1) = 1.0_rp
-quat_entrance(2) = 0.0_rp
-quat_entrance(3) = 0.0_rp
-quat_entrance(4) = 0.0_rp
-
 quat(1)= 1.0_rp
 quat(2) = 0.0_rp
 quat(3) = 0.0_rp
 quat(4) = 0.0_rp
-
-quat_exit(1) = 1.0_rp
-quat_exit(2) = 0.0_rp
-quat_exit(3) = 0.0_rp
-quat_exit(4) = 0.0_rp
 
 key = ele%key
 if (key == sbend$ .and. abs(ele%value(g$)) < 1d-20 .and. abs(ele%value(dg$)) < 1d-20) key = quadrupole$
@@ -346,30 +332,6 @@ case (solenoid$)
 
   c = cos(ks*L/pr)
   s = sin(ks*L/pr)
-
-  if (spin_fringe) then
-    if (fringe == entrance_end$ .or. fringe == both_ends$) then
-      a = -0.25_rp*chi*ks/rel_p*entrance_orb(1)
-      b = -0.25_rp*chi*ks/rel_p*entrance_orb(3)
-      zeta = sqrt(a**2 + b**2)
-      sc = sinc(zeta)
-   
-      quat_entrance(1) = -cos(zeta)
-      quat_entrance(2) = a*sc
-      quat_entrance(3) = b*sc
-    endif
-    
-    if (fringe == exit_end$ .or. fringe == both_ends$) then
-      a = 0.25_rp*chi*ks/rel_p*exit_orb(1)
-      b = 0.25_rp*chi*ks/rel_p*exit_orb(3)
-      zeta = sqrt(a**2 + b**2)
-      sc = sinc(zeta)
-    
-      quat_exit(1) = -cos(zeta)
-      quat_exit(2) = a*sc
-      quat_exit(3) = b*sc
-    endif
-  endif
   
   a = 2.0_rp*pr*(c-1.0_rp)*py0-2.0_rp*pr*s*px0+ks**2*L*y0
   a = a - ks*(2.0_rp*L*px0+(c-1.0_rp)*pr*x0+pr*s*y0)
@@ -420,35 +382,6 @@ case (sbend$)
     cx = 1.0_rp
     sx = 0.0_rp
     taux = 0.0_rp
-  endif
-
-
-  if (spin_fringe) then
-    if (fringe == entrance_end$ .or. fringe == both_ends$) then
-      t = tan(e1)
-    
-      a = -0.5_rp*chi*k0/rel_p*t*entrance_orb(3)
-      b = -0.5_rp*chi*k0/rel_p*t*entrance_orb(1)
-      zeta = sqrt(a**2 + b**2)
-      sc = sinc(zeta)
-    
-      quat_entrance(1) = -cos(zeta)
-      quat_entrance(2) = a*sc
-      quat_entrance(3) = b*sc
-    endif
-    
-    if (fringe == exit_end$ .or. fringe == both_ends$) then
-      t = tan(e2)
-      a = -0.5_rp*chi*k0/rel_p*t*exit_orb(3)
-      b = -0.5_rp*chi*k0/rel_p*t*exit_orb(1)
-      zeta = sqrt(a**2 + b**2)
-      sc = sinc(zeta)
-    
-      quat_exit(1) = -cos(zeta)
-      quat_exit(2) = a*sc
-      quat_exit(3) = b*sc
-    endif
-    
   endif
 
   if (k1 == 0) then
@@ -557,10 +490,6 @@ case default
   return
 
 end select
-
-if (spin_fringe) then
-  quat = quat_mul(quat_exit,quat,quat_entrance)
-endif
 
 omega_vec = quat_to_omega(quat/norm2(quat))
 
