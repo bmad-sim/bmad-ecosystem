@@ -206,18 +206,23 @@ do ia = 1, num_ele_attrib$
   attrib2 = ele_attribute_struct()
 
   select case (a_name)
+  case ('SPECIES_STRONG'); attrib2 = ele_attribute_struct('BETA_STRONG', &
+                              dependent$, is_real$, '', -1, ele%value(pc_strong$) / ele%value(E_tot_strong$))
   case ('LONGITUDINAL_MODE')
-    if (ele%key == rfcavity$) attrib2 = &
-          ele_attribute_struct('RF_BUCKET_LENGTH', dependent$, is_real$, 'm', -1, ele%value(rf_wavelength$) * ele%value(p0c$) / ele%value(E_tot$))
+    if (ele%key == rfcavity$) attrib2 = ele_attribute_struct('RF_BUCKET_LENGTH', &
+                                dependent$, is_real$, 'm', -1, ele%value(rf_wavelength$) * ele%value(p0c$) / ele%value(E_tot$))
   case ('P0C')
     if (particle == photon$) then
       attrib2 = ele_attribute_struct('REF_WAVELENGTH', dependent$, is_real$, 'm', -1, c_light * h_planck / ele%value(p0c$))
     else
       attrib2 = ele_attribute_struct('BETA', dependent$, is_real$, '', -1, ele%value(p0c$) / ele%value(e_tot$))
     endif
-  case ('E_TOT'); if (particle /= photon$) attrib2 = ele_attribute_struct('GAMMA', dependent$, is_real$, '', -1, ele%value(e_tot$) / mass_of(particle))
-  case ('P0C_START');       attrib2 = ele_attribute_struct('BETA_START', dependent$, is_real$, '', -1, ele%value(p0c_start$) / ele%value(e_tot_start$))
-  case ('E_TOT_START');     attrib2 = ele_attribute_struct('DELTA_E', dependent$, is_real$, 'eV', -1, ele%value(e_tot$) - ele%value(e_tot_start$))
+  case ('E_TOT'); if (particle /= photon$) attrib2 = ele_attribute_struct('GAMMA', &
+                                             dependent$, is_real$, '', -1, ele%value(e_tot$) / mass_of(particle))
+  case ('P0C_START'); attrib2 = ele_attribute_struct('BETA_START', &
+                                  dependent$, is_real$, '', -1, ele%value(p0c_start$) / ele%value(e_tot_start$))
+  case ('E_TOT_START'); attrib2 = ele_attribute_struct('DELTA_E', &
+                                        dependent$, is_real$, 'eV', -1, ele%value(e_tot$) - ele%value(e_tot_start$))
   case ('DARWIN_WIDTH_SIGMA', 'DARWIN_WIDTH_PI')
     attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'eV', -1, ele%value(ia) / ele%value(dbragg_angle_de$))
   case ('DBRAGG_ANGLE_DE'); attrib2 = ele_attribute_struct(a_name, dependent$, is_real$, 'deg/eV', -1, ele%value(ia) * 180 / pi)
@@ -1618,7 +1623,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(41), parameter :: att_name(102) = [character(40):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(42), parameter :: att_name(103) = [character(42):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1633,9 +1638,9 @@ character(41), parameter :: att_name(102) = [character(40):: 'X_PITCH', 'Y_PITCH
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
                 'F_FACTOR', 'EXACT_MULTIPOLES', 'Z_CROSSING', 'SPIN_TRACKING_MODEL', &
-                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX']
+                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX', 'PC_STRONG']
 
-character(41), parameter :: att2_name(102) = [character(40):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(42), parameter :: att2_name(103) = [character(42):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1650,7 +1655,7 @@ character(41), parameter :: att2_name(102) = [character(40):: 'X_PITCH_TOT', 'Y_
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
                 'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', &
-                'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX']
+                'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX', 'E_TOT_STRONG']
 
 ! Exceptional cases
 

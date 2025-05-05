@@ -5001,6 +5001,18 @@ case (taylor$)
   endif
 
 !------------------
+
+case (beambeam$)
+
+if (ele%value(species_strong$) /= real_garbage$) then
+  if (ele%value(pc_strong$) >= 0) then
+    call convert_pc_to(ele%value(pc_strong$), nint(ele%value(species_strong$)), E_tot = ele%value(E_tot_strong$))
+  elseif (ele%value(E_tot_strong$) > 0) then
+    call convert_total_energy_to(ele%value(E_tot_strong$), nint(ele%value(species_strong$)), pc = ele%value(pc_strong$))
+  endif
+endif
+
+!------------------
 ! Note: Dispersion will be handled by twiss_propagate1.
 
 case (beginning_ele$)

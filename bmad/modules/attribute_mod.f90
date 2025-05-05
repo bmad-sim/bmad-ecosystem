@@ -889,6 +889,7 @@ call init_attribute_name1 (beambeam$, repetition_frequency$,        'REPETITION_
 call init_attribute_name1 (beambeam$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
 call init_attribute_name1 (beambeam$, species_strong$,              'SPECIES_STRONG')
 call init_attribute_name1 (beambeam$, e_tot_strong$,                'E_TOT_STRONG')
+call init_attribute_name1 (beambeam$, pc_strong$,                   'PC_STRONG')
 
 call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
@@ -2103,7 +2104,7 @@ case ('DBRAGG_ANGLE_DE')
 
 case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
       'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2', &
-      'PC_OUT_MIN', 'PC_OUT_MAX', 'E_TOT_STRONG')
+      'PC_OUT_MIN', 'PC_OUT_MAX', 'E_TOT_STRONG', 'PC_STRONG')
   attrib_units = 'eV'
 
 case ('DELTA_REF_TIME', 'REF_TIME', 'REF_TIME_START', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX')

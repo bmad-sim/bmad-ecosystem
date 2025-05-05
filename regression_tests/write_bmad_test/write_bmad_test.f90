@@ -46,19 +46,23 @@ type (ele_struct) ele, ele2
 real(rp) val(num_ele_attrib$), val2(num_ele_attrib$)
 integer i
 character(40) attrib_name
+logical good
 
 !
 
 val = ele%value
 val2 = ele2%value
+good = .true.
 
 do i = 1, num_ele_attrib$
   attrib_name = attribute_name(ele, i)
   if (attrib_name(1:1) == '!') cycle  ! Note a valid attribute
-  if (.not. is_real_matched(val(i), val2(i), ele, attrib_name)) cycle
+  if (is_real_matched(val(i), val2(i), ele, attrib_name)) cycle
+  write (1, '(3a)') quote(trim(ele%name)), ' STR ', quote(attrib_name)
+  good = .false.
 enddo
 
-write (1, '(3a)') quote(trim(ele%name)), ' STR  "GOOD"'
+if (good) write (1, '(3a)') quote(trim(ele%name)), ' STR  "GOOD"'
 
 end subroutine compare_eles
 
@@ -77,7 +81,6 @@ logical is_matched
 is_matched = .true.
 if (val1 == 0 .and. val2 == 0) return
 if (abs(val1 - val2) < 1d-14 * (abs(val1) + abs(val2))) return
-write (1, '(3a)') quote(trim(ele%name)), ' STR ', quote(name)
 is_matched = .false.
 
 end function is_real_matched
