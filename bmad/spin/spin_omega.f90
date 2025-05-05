@@ -47,7 +47,7 @@ anomalous_moment = anomalous_moment_of(orbit%species)
 mc2 = mass_of(orbit%species)
 
 if (logic_option(.true., phase_space_coords)) then
-  rel_p = 1 + orbit%vec(6)
+  rel_p = 1.0_rp + orbit%vec(6)
   e_particle = orbit%p0c * rel_p / orbit%beta
   gamma = e_particle / mc2
   bz2 = rel_p**2 - orbit%vec(2)**2 - orbit%vec(4)**2
