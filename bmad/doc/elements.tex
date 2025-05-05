@@ -305,7 +305,8 @@ Attributes specific to a \vn{beambeam} element are:
   crab_x5        = <Real>    ! Crabbing 5th order coefficient.
   crab_tilt      = <Real>    ! Crabbing tilt.
   species_strong = <Species> ! Strong beam species
-  E_tot_strong   = <Real>    ! Strong beam particle energy
+  E_tot_strong   = <Real>    ! Strong beam particle energy.
+  pc_strong      = <Real>    ! Strong beam momentum.
   beta_a_strong  = <Real>    ! Strong beam $a$-mode beta Twiss parameter
   alpha_a_strong = <Real>    ! Strong beam $a$-mode alpha Twiss parameter 
   beta_b_strong  = <Real>    ! Strong beam $b$-mode beta Twiss parameter
@@ -403,9 +404,11 @@ and the linear beam--beam tune shift is
   dQ_y &= C_{bbi} \, \beta_y / \sigma_y \CRNO
 \end{align}
 
-The \vn{species_strong} and \vn{E_tot_strong} give the particle species and particle energy of the
-strong beam. This is only relevant if the velocity of the strong beam is not equal to the velocity
-of the weak beam.
+The \vn{species_strong}, \vn{pc_strong}, and \vn{E_tot_strong} give the particle species, momentum
+and energy of the strong beam. This is only relevant if the velocity of the strong beam is
+not equal to the velocity of the weak beam. Only one of \vn{pc_strong} or \vn{E_tot_strong} needs
+to be set as one will be calculated from the other. If both are set, the setting of \vn{pc_strong}
+will be used.
 
 The \vn{z_crossing} parameter sets where the center of the strong beam is relative to the plane of the
 beambeam element (the IP) at the time when a weak particle with $z = 0$ is at the IP. For example,

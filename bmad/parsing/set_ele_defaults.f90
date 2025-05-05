@@ -54,6 +54,8 @@ case (beambeam$)
   ele%value(charge$) = -1
   ele%value(n_slice$) = 1
   ele%value(species_strong$) = real_garbage$
+  ele%value(E_tot_strong$) = -1
+  ele%value(pc_strong$) = -1
 
 case (beginning_ele$)
   ele%value(e_tot$) = -1
