@@ -1,7 +1,7 @@
 !+
 ! Subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
 !
-! Routine used by the Runge-Kutta tracking routine to save the trajectory through an element.
+! Routine to save the particle trajectory at one point.
 !
 ! Notes:
 !   * If local_ref_fram = True then orb%vec (and bbi coords) will be converted to laboratory coords.
@@ -17,8 +17,8 @@
 !   param           -- lat_param_struct: Lattice parameters.
 !   local_ref_frame -- Logical: If True then coordinates are wrt the frame of ref of the element.
 !   orb             -- coord_struct: trajectory at s with respect to element coordinates.
-!   s_rel           -- real(rp): Longitudinal position wrt the element. Lab coords if local_ref_frame = F
-!                       and body coords if local_ref_fram = T
+!   s_rel           -- real(rp): Longitudinal position wrt the element. If local_ref_frame = F: Lab coords.
+!                       If local_ref_frame = T: body coords. 
 !   save_field      -- logical, optional: Save electric and magnetic field values? Default is False.
 !   mat6(6,6)       -- real(rp), optional: Matrix to store.
 !   make_matrix     -- logical, optional: Is mat6 a valid matrix? Default is False.
@@ -28,7 +28,7 @@
 !   strong_beam     -- strong_beambeam_struct, optional: Strong beam info if tracking through a beambeam element.
 !
 ! Ouput:
-!   track           -- track_struct: Track with current trajectory info appended on.
+!   track           -- track_struct: Track with current position appended on.
 !-
 
 subroutine save_a_step (track, ele, param, local_ref_frame, orb, s_rel, save_field, mat6, make_matrix, rf_time, strong_beam)
@@ -88,13 +88,14 @@ else
 endif
 
 if (local_ref_frame) then
+  tp%s_body = s_rel
   call offset_particle (ele, unset$, tp%orb, drift_to_edge = no$, set_hvkicks = .false., &
-                                                  s_pos = s_rel, s_out = s_lab, mat6 = tp%mat6, make_matrix = make_matrix)
+                                                  s_pos = s_rel, s_out = tp%s_lab, mat6 = tp%mat6, make_matrix = make_matrix)
 else
-  s_lab = s_rel
+  tp%s_lab = s_rel
+  call offset_particle (ele, set$, orb, drift_to_edge = no$, set_hvkicks = .false., s_pos = s_rel, s_out = tp%s_body)
 endif
 
-tp%s_body = s_lab
 tp%orb%ix_ele = ele%ix_ele
 
 if (logic_option(.false., save_field)) then

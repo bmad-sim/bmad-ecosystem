@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ April 10, 2025}
+\date{David Sagan \\ May 10, 2025}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -729,69 +729,69 @@ program. The master input file must contain a single namelist (\sref{s:namelist}
 Example:
 \begin{code}
 &params
-  ltt%lat_file   =  "lat.bmad"       ! Bmad lattice file
-  ltt%ramping_on = F
-  ltt%ramp_update_each_particle = F
+  ltt%lat_file                       =  "lat.bmad" ! Bmad lattice file
+  ltt%ramping_on                     = F
+  ltt%ramp_update_each_particle      = F
   ltt%ramp_particle_energy_without_rf = F
-  ltt%ramping_start_time        = 0
-  ltt%extraction_method         = ""
-  ltt%simulation_mode           = "BEAM"
-  ltt%tracking_method           = "BMAD"
-  ltt%ele_start                 = ""
-  ltt%ele_stop                  = ""      ! Used for "CHECK" simulation_mode.
-  ltt%ele_write_at              = ""      ! Used with extraction lines.
-  ltt%n_turns                   = 1000
-  ltt%ix_turn_start             = 0
-  ltt%ix_turn_end               = -1
-  ltt%map_order                 = 5
-  ltt%rfcavity_on               = T
-  ltt%timer_print_dtime         = 300
-  ltt%random_seed               = 0
-  ltt%ptc_aperture              = 0.1, 0.1
-  ltt%exclude_from_maps         = "beambeam::*"
+  ltt%ramping_start_time             = 0
+  ltt%extraction_method              = ""
+  ltt%simulation_mode                = "BEAM"
+  ltt%tracking_method                = "BMAD"
+  ltt%ele_start                      = ""
+  ltt%ele_stop                       = ""  ! Used for "CHECK" simulation_mode.
+  ltt%ele_write_at                   = ""  ! Used with extraction lines.
+  ltt%n_turns                        = 1000
+  ltt%ix_turn_start                  = 0
+  ltt%ix_turn_end                    = -1
+  ltt%map_order                      = 5
+  ltt%rfcavity_on                    = T
+  ltt%timer_print_dtime              = 300
+  ltt%random_seed                    = 0
+  ltt%ptc_aperture                   = 0.1, 0.1
+  ltt%exclude_from_maps              = "beambeam::*"
   ltt%action_angle_calc_uses_1turn_matrix = F
   ltt%split_bends_for_stochastic_rad = F
-  ltt%symplectic_map_tracking   = F
-  ltt%set_beambeam_z_crossing   = F
-  ltt%use_rf_clock              = F
-  ltt%dead_cutoff               = 0.99
-  ltt%b_emittance               = 1e-9       ! Used with space charge calc.
-  ltt%debug                     = F
-  bmad_com%spin_tracking_on     = T       ! See Bmad manual for 
-  bmad_com%radiation_damping_on = F   !    bmad_com parameters.
+  ltt%symplectic_map_tracking        = F
+  ltt%set_beambeam_crossing_time     = F
+  ltt%use_rf_clock                   = F
+  ltt%dead_cutoff                    = 0.99
+  ltt%b_emittance                    = 1e-9 ! Used with space charge calc.
+  ltt%debug                          = F
+  bmad_com%spin_tracking_on          = T   ! See Bmad manual for 
+  bmad_com%radiation_damping_on      = F   !    bmad_com parameters.
   bmad_com%radiation_fluctuations_on = F 
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = T
-  beam_init%position_file = ""    ! Set this to use a beam file.
-  beam_init%use_particle_start = F
-  beam_init%center = 0, 0, 0, 0, 0, 0
-  beam_init%n_particle = 10
-  beam_init%spin = 0, 0, 0        ! See Bmad manual for complete list
-  beam_init%a_emit = 1e-8         !    of beam_init_struct parameters.
-  beam_init%b_emit = 1e-8
-  beam_init%sig_z = 1e-4
-  beam_init%sig_pz = 1e-4
+  beam_init%position_file           = ""    ! Set this to use a beam file.
+  beam_init%use_particle_start      = F
+  beam_init%center                  = 0, 0, 0, 0, 0, 0
+  beam_init%n_particle              = 10
+  beam_init%spin                    = 0, 0, 0  ! See Bmad manual for complete list
+  beam_init%a_emit                  = 1e-8     !    of beam_init_struct parameters.
+  beam_init%b_emit                  = 1e-8
+  beam_init%sig_z                   = 1e-4
+  beam_init%sig_pz                  = 1e-4
 
   ! Output parameters
-  ltt%phase_space_output_file = ""
-  ltt%action_angle_output_file = ""
-  ltt%beam_output_file = "beam.h5"
-  ltt%averages_output_file = "average.dat"
-  ltt%custom_output_file = ""
-  ltt%per_particle_output_file = ""
+  ltt%phase_space_output_file       = ""
+  ltt%action_angle_output_file      = ""
+  ltt%beam_output_file              = "beam.h5"
+  ltt%averages_output_file          = "average.dat"
+  ltt%custom_output_file            = ""
+  ltt%per_particle_output_file      = ""
   ltt%averages_output_every_n_turns = 200
   ltt%particle_output_every_n_turns = 200
-  ltt%beam_output_every_n_turns = 200
-  ltt%output_only_last_turns = -1
-  ltt%output_combined_bunches = T
-  ltt%only_live_particles_out = T
-  ltt%core_emit_cutoff   = 0.2, 0.5
-  ltt%core_emit_combined_calc = T
-  ltt%print_on_dead_loss = -1
-  ltt%map_file_prefix = "ltt"
-  ltt%map_ascii_output_file = ""
-  ltt%print_info_messages = T
+  ltt%beam_output_every_n_turns     = 200
+  ltt%output_only_last_turns        = -1
+  ltt%output_combined_bunches       = T
+  ltt%only_live_particles_out       = T
+  ltt%core_emit_cutoff              = 0.2, 0.5
+  ltt%core_emit_combined_calc       = T
+  ltt%print_on_dead_loss            = -1
+  ltt%map_file_prefix               = "ltt"
+  ltt%map_ascii_output_file         = ""
+  ltt%print_info_messages           = T
 
   ltt%column(1) = "n_turn", "N_turn", "i7"
   ltt%column(2) = "rf0##1[voltage]", "Volt", "f10.0"
@@ -942,10 +942,12 @@ parameter in the lattice file.
 \item[ltt\%rfcavity_on] \Newline
 If set to \vn{False}, the voltage on all RF cavity elements will be turned off. Default is \vn{True}.
 %
-\item[ltt\%set_beambeam_z_crossing] \Newline
-If True (default is false), set the \vn{z_crossing} parameter of any \vn{beambeam} element in the
+\item[ltt\%set_beambeam_crossing_time] \Newline
+If True (default is false), set the \vn{crossing_time} parameter of any \vn{beambeam} element in the
 lattice to the phase space $z$ value of the closed orbit? See the Bmad manual for a discussion of
-the \vn{z_crossing} parameter. Generally, \vn{ltt%set_beambeam_z_crossing} should be set True.
+the \vn{crossing_time} parameter. Generally, \vn{ltt%set_beambeam_crossing_time} should be set True.
+Note: This parameter was originally called \vn{%set_beambeam_z_crossing} and was changed when
+the \vn{z_crossing} parameter of \vn{beambeam} elements was changed to \vn{crossing_time}.
 %
 \item[ltt\%simulation_mode] \Newline
 Sets the simulation mode for the program. See Section~\sref{s:sim.modes} for more details.

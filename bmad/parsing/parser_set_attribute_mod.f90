@@ -309,6 +309,10 @@ if (ele%key == beambeam$) then
   case ('BETA_B');    word = 'BETA_B_STRONG'
   case ('ALPHA_A');   word = 'ALPHA_A_STRONG'
   case ('ALPHA_B');   word = 'ALPHA_B_STRONG'
+  case ('Z_CROSSING')
+    call parser_error('THE Z_CROSSING ATTRIBUTE IS NOW NO LONGER USED FOR ELEMENT: ' // ele%name, &
+                      'USE THE CROSSING_TIME ATTRIBUTE INSTEAD.', &
+                      'SEE THE BMAD MANUAL SECTION ON THE BEAMBEAM ELEMENT FOR CONVERSION DETAILS.')
   end select
 endif
 

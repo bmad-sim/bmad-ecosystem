@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 331
+integer, parameter :: bmad_inc_version$ = 332
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1775,7 +1775,7 @@ integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id
                       l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
                       mean_excitation_energy$ = 31, fiducial_pt$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32, init_needed$ = 32
-integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, z_crossing$ = 33, x_kick$ = 33
+integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, crossing_time$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
 integer, parameter :: y_pitch$ = 35, y_kick$ = 35
 integer, parameter :: x_offset$ = 36, py_kick$ = 36
@@ -1995,7 +1995,8 @@ type strong_beam_struct
 end type
 
 type track_point_struct
-  real(rp) s_body                                 ! Longitudinal coords within the element body.
+  real(rp) s_lab                                  ! Longitudinal lab coord with respect to the upstream end.
+  real(rp) s_body                                 ! Longitudinal body coord with respect to the entrance end.
   type (coord_struct) orb                         ! An array of track points indexed from 0 (%orb(0:)).
   type (em_field_struct) field                    ! An array of em fields indexed from 0 (%field(0:)).
   type (strong_beam_struct) strong_beam           ! Strong beam info for beambeam element.
