@@ -1637,7 +1637,7 @@ character(42), parameter :: att_name(103) = [character(42):: 'X_PITCH', 'Y_PITCH
                 'C11_MAT0', 'C12_MAT0', 'C21_MAT0', 'C22_MAT0', 'HARMON', 'FINAL_CHARGE', &
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
-                'F_FACTOR', 'EXACT_MULTIPOLES', 'Z_CROSSING', 'SPIN_TRACKING_MODEL', &
+                'F_FACTOR', 'EXACT_MULTIPOLES', 'CROSSING_TIME', 'SPIN_TRACKING_MODEL', &
                 'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX', 'PC_STRONG']
 
 character(42), parameter :: att2_name(103) = [character(42):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &

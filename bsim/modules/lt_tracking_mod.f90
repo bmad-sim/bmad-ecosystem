@@ -91,6 +91,7 @@ type ltt_params_struct
   logical :: use_rf_clock = .false.
   logical :: debug = .false.
   logical :: regression_test = .false.          ! Only used for regression testing. Not of general interest.
+  logical :: set_beambeam_crossing_time = .false.
   logical :: set_beambeam_z_crossing = .false.
   logical :: print_info_messages = .true.          ! Informational messages printed?
   !
@@ -516,7 +517,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (rad_map_ele_struct), pointer :: ri
 
-real(rp) closed_orb(6), f_tol, time
+real(rp) closed_orb(6), f_tol, time, ff
 
 integer i, iv, n, ix_branch, ib, n_slice, ie, ir, info, n_rf_included, n_rf_excluded
 
@@ -622,14 +623,22 @@ if (lttp%tracking_method == 'PTC' .or. lttp%simulation_mode == 'CHECK') then
   if (bmad_com%spin_tracking_on) ltt_com%ptc_state = ltt_com%ptc_state + SPIN0
 endif
 
+
 if (lttp%set_beambeam_z_crossing) then
+  call out_io(s_error$, r_name, '"lttp%set_beambeam_z_crossing" is now "lttp%set_beambeam_crossing_time".', &
+                              'Please change your init file.')
+  stop
+endif
+
+if (lttp%set_beambeam_crossing_time) then
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
     if (ele%key /= beambeam$) cycle
+    ff = -1.0_rp / (c_light * ltt_com%bmad_closed_orb(ie)%beta)
     if (lttp%tracking_method == 'PTC') then
-      ele%value(z_crossing$) = ltt_com%bmad_closed_orb(ie)%vec(5) + (ltt_com%ptc_closed_orb(5) - ltt_com%bmad_closed_orb(0)%vec(5))
+      ele%value(crossing_time$) = ff * (ltt_com%bmad_closed_orb(ie)%vec(5) + (ltt_com%ptc_closed_orb(5) - ltt_com%bmad_closed_orb(0)%vec(5)))
     else
-      ele%value(z_crossing$) = ltt_com%bmad_closed_orb(ie)%vec(5)
+      ele%value(crossing_time$) = ff * ltt_com%bmad_closed_orb(ie)%vec(5)
     endif
   enddo
 endif
@@ -912,7 +921,7 @@ call ltt_write_line('# ltt%output_combined_bunches             = ' // logic_str(
 call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramp_particle_energy_without_rf     = ' // logic_str(lttp%ramp_particle_energy_without_rf), lttp, iu, print_this)
 call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%set_beambeam_z_crossing             = ' // logic_str(lttp%set_beambeam_z_crossing), lttp, iu, print_this)
+call ltt_write_line('# ltt%set_beambeam_crossing_time          = ' // logic_str(lttp%set_beambeam_crossing_time), lttp, iu, print_this)
 call ltt_write_line('# ltt%random_seed                         = ' // int_str(lttp%random_seed), lttp, iu, print_this)
 
 if (lttp%random_seed == 0) then
