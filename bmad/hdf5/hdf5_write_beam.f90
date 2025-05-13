@@ -195,7 +195,7 @@ do ib = 1, size(bunches)
     rvec = -p(:)%vec(5) / (p(:)%beta * c_light)  ! t - t_ref
   endif
   call pmd_write_real_to_dataset(b2_id, 'time', 't - t_ref', unit_sec, rvec, err)
-  call pmd_write_real_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, p(:)%t - rvec, err)
+  call pmd_write_real_to_dataset(b2_id, 'timeOffset', 't_ref', unit_sec, real(p(:)%t, rp) - rvec, err)
 
   !-----------------
   ! Position. 

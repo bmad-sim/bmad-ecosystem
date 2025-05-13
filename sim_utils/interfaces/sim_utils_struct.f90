@@ -44,6 +44,7 @@ end type
 
 type all_pointer_struct
   real(rp), pointer :: r => null()
+  real(qp), pointer :: q => null()
   integer, pointer :: i => null()
   logical, pointer :: l => null()
   real(rp), pointer :: r1(:) => null()

@@ -1817,14 +1817,14 @@ logical is_time
 ! Time coords uses a different basis for the sigma matrix.
 
 if (.not. is_time) then
-  vec = [particle%vec, particle%t]
+  vec = [real(rp):: particle%vec, particle%t]
   return
 endif
 
 p = particle
 call convert_particle_coordinates_t_to_s(p, ele)
-vec = [p%vec(1), p%vec(2) * p%p0c / p0c_avg, p%vec(3), p%vec(4) * p%p0c / p0c_avg, &
-                                      p%s, (p%vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg, p%t]
+vec = [real(rp):: p%vec(1), p%vec(2) * p%p0c / p0c_avg, p%vec(3), p%vec(4) * p%p0c / p0c_avg, &
+                                                p%s, (p%vec(6)*p%p0c + p%p0c - p0c_avg) / p0c_avg, p%t]
 
 end function to_basis_coords
 

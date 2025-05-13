@@ -1799,7 +1799,7 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, F%t, fvec2vec(F%spin, 3), fvec2vec(F%field, 2), &
+call coord_to_c2 (C, fvec2vec(F%vec, 6), F%s, real(F%t, rp), fvec2vec(F%spin, 3), fvec2vec(F%field, 2), &
     fvec2vec(F%phase, 2), F%charge, F%dt_ref, F%r, F%p0c, F%e_potential, F%beta, F%ix_ele, &
     F%ix_branch, F%ix_turn, F%ix_user, F%state, F%direction, F%time_dir, F%species, F%location)
 

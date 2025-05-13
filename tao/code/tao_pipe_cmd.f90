@@ -693,7 +693,7 @@ case ('bunch_comb')
     call real_array_out (comb1%pt%rel_max(i), use_real_array_buffer, 0, n)
 
   case ('s');                       call real_array_out(comb1%pt%centroid%s, use_real_array_buffer, 0, n)
-  case ('t');                       call real_array_out(comb1%pt%centroid%t, use_real_array_buffer, 0, n)
+  case ('t');                       call real_array_out(real(comb1%pt%centroid%t, rp), use_real_array_buffer, 0, n)
   case ('p0c');                     call real_array_out(comb1%pt%centroid%p0c, use_real_array_buffer, 0, n)
   case ('beta');                    call real_array_out(comb1%pt%centroid%beta, use_real_array_buffer, 0, n)
   case ('charge_live');             call real_array_out(comb1%pt%charge_live, use_real_array_buffer, 0, n)

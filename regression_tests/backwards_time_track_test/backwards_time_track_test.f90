@@ -70,7 +70,7 @@ do ie = 1, lat%n_ele_track-1, 2
   d%p0c  =  start2_orb%p0c  - start_orb%p0c
   d%beta =  start2_orb%beta - start_orb%beta
   loc_equal = (start2_orb%location == start_orb%location)
-  merit = maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
+  merit = maxval([real(rp):: abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
 
   str = trim(key_name(ele%key)) // ':' // trim(key_name(ele2%key))
 
@@ -145,7 +145,7 @@ do ib = 0, ubound(lat%branch,1)
       d%p0c  =  start2_orb%p0c  - start_orb%p0c
       d%beta =  start2_orb%beta - start_orb%beta
       loc_equal = (start2_orb%location == start_orb%location)
-      merit = maxval([abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
+      merit = maxval([real(rp):: abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
 
       write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '                ABS 2e-12', end_orb%vec, c_light*beta*end_orb%t
       write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '           ABS 2e-12', end_orb%spin - start_orb%spin

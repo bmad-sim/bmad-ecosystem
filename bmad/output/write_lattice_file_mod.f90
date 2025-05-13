@@ -19,6 +19,11 @@ end type
 
 logical, save :: write_lat_debug_flag = .false.
 
+interface re_str
+  module procedure re_str_rp
+  module procedure re_str_qp
+end interface
+
 contains
 
 !-------------------------------------------------------
@@ -176,7 +181,7 @@ end subroutine write_line_element
 !-------------------------------------------------------
 !-------------------------------------------------------
 
-function re_str(rel) result (str_out)
+function re_str_rp(rel) result (str_out)
 
 implicit none
 
@@ -191,7 +196,28 @@ else
   write(str_out, '(es25.17e3)') rel
 endif
 
-end function re_str
+end function re_str_rp
+
+!-------------------------------------------------------
+!-------------------------------------------------------
+!-------------------------------------------------------
+
+function re_str_qp(rel) result (str_out)
+
+implicit none
+
+real(qp) rel
+character(25) :: str_out
+
+!
+
+if (write_lat_debug_flag) then
+  write(str_out, '(es13.5)') rel
+else
+  write(str_out, '(es25.17e3)') rel
+endif
+
+end function re_str_qp
 
 !-------------------------------------------------------
 !-------------------------------------------------------

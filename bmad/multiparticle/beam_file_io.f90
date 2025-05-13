@@ -839,7 +839,7 @@ type (bunch_struct), pointer :: bunch
 type (coord_struct), pointer :: p
 type (coord_struct) p0
 
-real(rp) charge_tot
+real(rp) charge_tot, tim
 
 integer iu, ic, ip, np, ix, ios, n_particle, n_bunch, n_col, n_line
 
@@ -989,7 +989,7 @@ do
       case ('phase_x');          call read_component(acol, p%phase(1), line, n_line, ix, err); if (err) return
       case ('phase_y');          call read_component(acol, p%phase(2), line, n_line, ix, err); if (err) return
       case ('s', 's_position');  call read_component(acol, p%s, line, n_line, ix, err); if (err) return
-      case ('t', 'time');        call read_component(acol, p%t, line, n_line, ix, err); if (err) return
+      case ('t', 'time');        call read_component(acol, tim, line, n_line, ix, err); if (err) return; p%t = tim
       case ('charge');           call read_component(acol, p%charge, line, n_line, ix, err); if (err) return
       case ('dt_ref');           call read_component(acol, p%dt_ref, line, n_line, ix, err); if (err) return
       case ('r');                call read_component(acol, p%r, line, n_line, ix, err); if (err) return

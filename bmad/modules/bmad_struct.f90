@@ -529,12 +529,10 @@ real(rp), parameter :: vec0$(6) = 0
 type coord_struct                 ! Particle coordinates at a single point
   real(rp) :: vec(6) = 0          ! (x, px, y, py, z, pz). Generally phase space for charged particles. See Bmad manual.
   real(rp) :: s = 0               ! Longitudinal position 
-  real(rp) :: t = 0               ! Absolute time (not relative to reference). If bmad_private%rf_clock_frequency is
-                                  ! set, %t will be the RF clock time in the range [0, 1/rf_clock_freq] 
+  real(qp) :: t = 0               ! Absolute time (not relative to reference). Note: Quad precision!
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
-  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y). phase(1) is also used with 
-                                  !   RF-time tracking to record the number of RF cycles.
+  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y).
   real(rp) :: charge = 0          ! Macroparticle weight (which is different from particle species charge). 
                                   !   For some space charge calcs the weight is in Coulombs.
   real(rp) :: dt_ref = 0          ! Used in:
@@ -2269,7 +2267,6 @@ type (bmad_common_struct), save, target :: bmad_com
 ! For communication between Bmad routines and Bmad based programs.
 
 type bmad_private_struct
-  real(rp) :: rf_clock_period = 0     ! The RF clock is used by the long_term_tracking program to avoid time round-off errors.
   logical :: random_on = .true.       ! Temporarily turned off, for example, with the closed orbit calc.
 end type
 
