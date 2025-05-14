@@ -228,6 +228,17 @@ do ib = 0, ubound(lat%branch, 1)
                                                               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
     endif
+    
+    if (valid_spin_tracking_method(ele, magnus$)) then
+      ele%spin_tracking_method = magnus$
+      ele%tracking_method = bmad_standard$
+      if (associated(ele%spin_taylor(0)%term)) deallocate (ele%spin_taylor(0)%term)
+      call track1 (start_orb, ele, branch%param, end_orb)
+      out_str = trim(ele%name) // ': Magnus dSpin'
+      isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
+                                                              end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+      if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+    endif
 
     if (isn == 0) cycle
 

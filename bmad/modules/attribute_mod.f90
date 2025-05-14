@@ -883,12 +883,13 @@ call init_attribute_name1 (beambeam$, crab_x3$,                     'CRAB_X3')
 call init_attribute_name1 (beambeam$, crab_x4$,                     'CRAB_X4')
 call init_attribute_name1 (beambeam$, crab_x5$,                     'CRAB_X5')
 call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
-call init_attribute_name1 (beambeam$, z_crossing$,                  'Z_CROSSING')
+call init_attribute_name1 (beambeam$, crossing_time$,               'CROSSING_TIME')
 call init_attribute_name1 (beambeam$, s_twiss_ref$,                 'S_TWISS_REF')
 call init_attribute_name1 (beambeam$, repetition_frequency$,        'REPETITION_FREQUENCY')
 call init_attribute_name1 (beambeam$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
 call init_attribute_name1 (beambeam$, species_strong$,              'SPECIES_STRONG')
 call init_attribute_name1 (beambeam$, e_tot_strong$,                'E_TOT_STRONG')
+call init_attribute_name1 (beambeam$, pc_strong$,                   'PC_STRONG')
 
 call init_attribute_name1 (beginning_ele$, l$,                           'l', private$)
 call init_attribute_name1 (beginning_ele$, delta_ref_time$,              'delta_ref_time', private$)
@@ -2052,7 +2053,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
-      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'Z_CROSSING', &
+      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', &
       'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', 'L_RECTANGLE', 'S_TWISS_REF', &
       'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB')
   attrib_units = 'm'
@@ -2103,10 +2104,10 @@ case ('DBRAGG_ANGLE_DE')
 
 case ('DELTA_E', 'ENERGY', 'E_CENTER', 'E2_CENTER', 'E_LOSS', 'E_PHOTON', 'E_TOT', 'E_TOT_OFFSET', 'E_TOT_START', &
       'P0C', 'P0C_START', 'PC', 'P0C_SET', 'E_TOT_SET', 'AUTOSCALE_AMP_ABS_TOL', 'DELTA_E_REF', 'SIG_E', 'SIG_E2', &
-      'PC_OUT_MIN', 'PC_OUT_MAX', 'E_TOT_STRONG')
+      'PC_OUT_MIN', 'PC_OUT_MAX', 'E_TOT_STRONG', 'PC_STRONG')
   attrib_units = 'eV'
 
-case ('DELTA_REF_TIME', 'REF_TIME', 'REF_TIME_START', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX')
+case ('DELTA_REF_TIME', 'REF_TIME', 'REF_TIME_START', 'T', 'T_OFFSET', 'DELTA_TIME', 'DT_MAX', 'CROSSING_TIME')
   attrib_units = 'sec'
 
 case ('EMITTANCE_A', 'EMITTANCE_B', 'EMITTANCE_Z')

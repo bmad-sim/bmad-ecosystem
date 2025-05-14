@@ -109,6 +109,8 @@ endif
 mode = normal_modes_struct()
 sigma_mat = 0
 
+if (branch%param%total_length == 0) return   ! Test lattices can have zero length.
+
 if (present(rad_int_by_ele)) then
   ri_branch => rad_int_by_ele%branch(branch%ix_branch)
   call rad_damp_and_stoc_mats (ele_ref, ele_ref, include_opening_angle, rmap, mode, xfer_nodamp_mat, &

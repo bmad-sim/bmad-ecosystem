@@ -466,6 +466,21 @@ case (beambeam$)
     elseif (associated(a_ptr, ele%value(bs_field$))) then
       ele%value(ks$) = ele%value(bs_field$) / p0c_factor
     endif
+
+    if (associated(a_ptr, ele%value(species_strong$))) then
+      if (ele%value(pc_strong$) >= 0) then
+        call convert_pc_to(ele%value(pc_strong$), nint(ele%value(species_strong$)), E_tot = ele%value(E_tot_strong$))
+      elseif (ele%value(E_tot_strong$) > 0) then
+        call convert_total_energy_to(ele%value(E_tot_strong$), nint(ele%value(species_strong$)), pc = ele%value(pc_strong$))
+      endif
+
+    elseif (ele%value(species_strong$) /= real_garbage$) then
+      if (associated(a_ptr, ele%value(E_tot_strong$))) then
+        call convert_total_energy_to(ele%value(E_tot_strong$), nint(ele%value(species_strong$)), pc = ele%value(pc_strong$))
+      elseif (associated(a_ptr, ele%value(pc_strong$))) then
+        call convert_pc_to(ele%value(pc_strong$), nint(ele%value(species_strong$)), E_tot = ele%value(E_tot_strong$))
+      endif
+    endif
   endif
 
 ! Beginning_ele

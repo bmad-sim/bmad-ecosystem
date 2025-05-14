@@ -41,10 +41,10 @@ real(rp), optional :: mat6(6,6)
 real(rp) sigma(2), dsigma_ds(2), ff, ds_slice
 real(rp) xmat(6,6), del_s, bbi_const, dx, dy, dcoef, z, d, coef, ds
 real(rp) om(3), quat(0:3), beta_strong, s_body_save, p_rel, nk(2), dnk(2,2)
-real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, s0
+real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, s0, s00, s0_factor
 real(rp), allocatable :: z_slice(:)
-real(rp), target :: slice_center(3), s_body, s_lab
-real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr ! To get around ifort bug.
+real(rp), target :: slice_center(3), s_body, s_lab, part_time0, part_time1
+real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr, part_time0_ptr, part_time1_ptr ! To get around ifort bug.
 
 integer i, n_slice, status
 
@@ -59,6 +59,8 @@ center_ptr => slice_center
 s_body_ptr => s_body
 s_lab_ptr => s_lab
 orb_ptr => orbit
+part_time0_ptr => part_time0
+part_time1_ptr => part_time1
 
 if (logic_option(.false., make_matrix)) call mat_make_unit(mat6)
 
@@ -71,7 +73,6 @@ if (ele%value(sig_x$) == 0 .or. ele%value(sig_y$) == 0) then
 endif
 
 s_lab = 0    ! Begin at the IP
-if (present(track)) call save_a_step(track, ele, param, .false., orbit, s_lab, strong_beam = strong_beam_struct())
 
 if (ele%value(species_strong$) /= real_garbage$ .and. ele%value(e_tot_strong$) > 0) then
   call convert_total_energy_to(ele%value(e_tot_strong$), nint(ele%value(species_strong$)), beta = beta_strong)
@@ -79,7 +80,14 @@ else
   beta_strong = ele%value(p0c$) / ele%value(E_tot$)
 endif
 
+part_time0 = particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$))
+part_time1 = particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$), abs_time = .true.)
+
+s0_factor = orbit%beta / (orbit%beta + beta_strong)
+s00 = (ele%value(z_offset_tot$) + (ele%value(crossing_time$) - part_time0) * (c_light * orbit%beta)) * s0_factor
+
 call offset_particle (ele, set$, orbit, s_pos = s_lab, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+if (present(track)) call save_a_step(track, ele, param, .true., orbit, s_body, strong_beam = strong_beam_struct())
 
 n_slice = max(1, nint(ele%value(n_slice$)))
 allocate(z_slice(n_slice))
@@ -93,8 +101,8 @@ do i = 1, n_slice
   final_calc = .false.; make_mat = .false.
   s_body_save = s_body
   orb_save = orbit
-  s0 = 0.5_rp * (orbit%vec(5) + ele%value(z_offset_tot$) - ele%value(z_crossing$) + slice_center(3))
-  ds = abs(s_body - 0.5_rp * slice_center(3)) + 0.5_rp * abs(orbit%vec(5) - ele%value(z_crossing$) - ele%value(z_offset$))
+  s0 = s00 + slice_center(3) * s0_factor
+  ds = 1.0_rp
   s_lab = super_zbrent(at_slice_func, s0-ds, s0+ds, 1e-12_rp, 1e-12_rp, status)
 
   final_calc = .true.; make_mat = logic_option(.false., make_matrix)
@@ -182,31 +190,44 @@ if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, 
 contains
 
 !+
-! Start in body frame
-! Convert to lab frame
-! Move to s_lab_target
-! Convert back to body frame
-! Return ds_slice which is the distance between the particle and the strong slice.
+! function at_slice_func(s_lab_target, status) result (ds)
+!
+! Routine to propagate the weak particle to s-position s_lab_target and return the difference between the particle and the strong slice 
+! 
+! Input:
+!   s_lab_target    -- real(rp): Particle s-position in lab frame
+! 
+! Output:
+!   ds              -- real(rp): difference in s-position between particle and slice in the body frame.
 !-
 
-function at_slice_func(s_lab_target, status) result (ds_slice)
+function at_slice_func(s_lab_target, status) result (ds)
 
 real(rp), intent(in) :: s_lab_target
-real(rp) ds_slice
-real(rp) s_body_target, s_lab_slice, del_s, s_lab, s_beam_center_strong, s_weak
+real(rp) ds
+real(rp) del_s, s_lab, s_slice, dpart_time
 integer status
 
-! 
+! Calc particle s-position...
 
+! Convert from body to lab coords
 call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
+! del_s = distance to propagate in lab coords. Note: Solenoid field is always defined in lab coords.
 del_s = s_lab_target - s_lab
+! Propagate in lab coords
 call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_mat)
+! Convert back from lab coords to body coords
 call offset_particle(ele, set$, orbit, s_pos = s_lab_target, s_out = s_body, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
 
-s_weak = -c_light * orbit%beta * particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$)) 
-s_beam_center_strong = (s_weak - ele%value(z_crossing$) - s_lab_target) * beta_strong / orbit%beta
-s_body_target = 0.5_rp * (s_beam_center_strong + slice_center(3) + s_body)
-ds_slice = s_body - s_body_target
+! Calc slice s-position...
+! part_time is the time the weak particle is at s_body.
+
+dpart_time = particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$), abs_time = .true.) - part_time1
+s_slice = slice_center(3) + (ele%value(crossing_time$) - (part_time0 + dpart_time)) * beta_strong * c_light
+
+! Difference between particle and slice s-positions
+
+ds = s_body - s_slice
 
 end function at_slice_func
 

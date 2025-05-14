@@ -305,7 +305,8 @@ Attributes specific to a \vn{beambeam} element are:
   crab_x5        = <Real>    ! Crabbing 5th order coefficient.
   crab_tilt      = <Real>    ! Crabbing tilt.
   species_strong = <Species> ! Strong beam species
-  E_tot_strong   = <Real>    ! Strong beam particle energy
+  E_tot_strong   = <Real>    ! Strong beam particle energy.
+  pc_strong      = <Real>    ! Strong beam momentum.
   beta_a_strong  = <Real>    ! Strong beam $a$-mode beta Twiss parameter
   alpha_a_strong = <Real>    ! Strong beam $a$-mode alpha Twiss parameter 
   beta_b_strong  = <Real>    ! Strong beam $b$-mode beta Twiss parameter
@@ -315,7 +316,7 @@ Attributes specific to a \vn{beambeam} element are:
   bs_field       = <Real>    ! Solenoid field strength.
   field_master   = <T/F>     ! Is ks or bs_field value the master (\sref{s:field.master})?
   s_beta_ref     = <Real>    ! Reference position of strong beam Twiss.
-  z_crossing     = <Real>    ! Weak particle phase space z when strong beam center reaches IP.
+  crossing_time  = <Real>    ! Time when strong beam center reaches IP.
   repetition_frequency = <Real>  ! Strong beam repetition rate.
 \end{example}
 
@@ -403,22 +404,24 @@ and the linear beam--beam tune shift is
   dQ_y &= C_{bbi} \, \beta_y / \sigma_y \CRNO
 \end{align}
 
-The \vn{species_strong} and \vn{E_tot_strong} give the particle species and particle energy of the
-strong beam. This is only relevant if the velocity of the strong beam is not equal to the velocity
-of the weak beam.
+The \vn{species_strong}, \vn{pc_strong}, and \vn{E_tot_strong} give the particle species, momentum
+and energy of the strong beam. This is only relevant if the velocity of the strong beam is
+not equal to the velocity of the weak beam. Only one of \vn{pc_strong} or \vn{E_tot_strong} needs
+to be set as one will be calculated from the other. If both are set, the setting of \vn{pc_strong}
+will be used.
 
-The \vn{z_crossing} parameter sets where the center of the strong beam is relative to the plane of the
-beambeam element (the IP) at the time when a weak particle with $z = 0$ is at the IP. For example,
-if tracking is done with radiation damping on, the (weak beam) closed orbit will have a finite phase
-space $z$ value at the \vn{beambeam} element. To have the weak beam and strong beam centers cross
-the plane of the \vn{beambeam} element at the same time, the value of \vn{z_crossing} should be set
-to the value of the weak beam closed orbit $z$ at the IP.
+The \vn{crossing_time} parameter sets when, relative to the reference time, the center of the strong
+beam crosses the plane of the beambeam element (the IP).  For example, if tracking is done with
+radiation damping on, the (weak beam) closed orbit at the IP will shift in time. To have the weak
+beam and strong beam centers cross the plane of the \vn{beambeam} element at the same time, the
+value of \vn{crossing_time} should be set to the value $-z/c\beta$ at the IP where $z$ is the closed
+orbit phase space $z$ and $\beta$ is the closed orbit velocity.
 
-When with absolute time tracking (\sref{s:rf.time}) is in use, the \vn{repetition_frequency}
-parameter (along with the \vn{z_crossing} parameter) is used to calculate the time that the strong
+When absolute time tracking (\sref{s:rf.time}) is in use, the \vn{repetition_frequency}
+parameter (along with the \vn{crossing_time} parameter) is used to calculate the time that the strong
 bunch crosses the plane of the \vn{beambeam} element. Generally, this frequency should be set equal
 to the fundamental RF frequency or some harmonic thereof. If this frequency is zero (the default),
-\bmad will assume that the repetition frequency is a harmonic of the reference particle oscillation
+\bmad will assume that the repetition period is a harmonic of the reference particle oscillation
 time so that in this case a particle's phase space $z$ coordinate will be used.
 
 Example:
@@ -3736,12 +3739,12 @@ that all of this can be very confusing to Users.
 As a result of these considerations, it was decided to disallow the setting of K0L for a Multipole
 and, if K0L is set, an error message will be issued.\footnote
   {
-One possibility that was considered was to simply treat \vn{K0L} as a kick without any change in reference orbit.
-This was rejected since it could be confusing to compare MAD and \bmad computations with lattices that had
-a finite \vn{K0L}.
+One possibility that was considered was to simply treat \vn{K0L} as a kick without any change in
+reference orbit.  This was rejected since it could be confusing to compare MAD and \bmad
+computations with lattices that had a finite \vn{K0L}.
   }
-If a zero length kick element is needed, there
-is always the \vn{kicker} element. 
+In \bmad, an equivalent to a multipole with \vn{K0L} is a \vn{patch} element with finite
+\vn{x_pitch} or \vn{y_pitch} along with a \vn{kicker} element with the appropriate kick.
 
 \newpage
 

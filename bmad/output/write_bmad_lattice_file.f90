@@ -844,6 +844,7 @@ do ib = 0, ubound(lat%branch, 1)
 
       if (attrib%name == 'E_TOT') cycle        ! Will use p0c instead.
       if (attrib%name == 'E_TOT_START') cycle  ! Will use p0c_start instead.
+      if (attrib%name == 'E_TOT_STRONG') cycle  ! Will use pc_strong instead.
       if (attrib%name == null_name$) then
         call out_io (s_error$, r_name, 'ELEMENT: ' // ele%name, 'HAS AN UNKNOWN ATTRIBUTE INDEX: \i0\ ', i_array = [j])
         if (global_com%exit_on_error) call err_exit

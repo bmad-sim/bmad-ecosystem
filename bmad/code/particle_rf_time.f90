@@ -1,5 +1,5 @@
 !+
-! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic) result (time)
+! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic, abs_time) result (time)
 !
 ! Routine to return the reference time used to calculate the phase of
 ! time-dependent EM fields.
@@ -18,15 +18,18 @@
 !                         region with non-zero field) as the reference point.
 !   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
 !                         Needed for relative time tracking when the particle is inside the element. Default is 0.
-!   time_coords       -- logical, optional: Default False. If True then orbit is using time based coordinates.
-!   rf_freq           -- real(rp), optional: If present and non-zero, returned time will be in the range [-1/2*rf_freq, 1/2*rf_freq].
-!   rf_clock_harmonic -- integer: Used with the rf clock in cases where an element has multiple frequencies.
+!   time_coords       -- logical, optional: Default False. If True then orbit is using time based phase space coordinates.
+!   rf_freq           -- real(rp), optional: If present and non-zero, the returned time shifted by an integer multiple
+!                          of 1/rf_freq to be in the range [-1/2*rf_freq, 1/2*rf_freq].
+!   rf_clock_harmonic -- integer, optional: Used with the rf clock in cases where an element has multiple frequencies.
+!   abs_time          -- real(rp), optional: If False (default) use setting of bmad_com%absolute_time_tracking.
+!                           If True, use absolute time instead of relative time.
 !
 ! Ouput:
 !   time      -- Real(rp): Current time.
 !-
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic, abs_time) result (time)
 
 use bmad_routine_interface, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
@@ -42,8 +45,7 @@ real(rp), optional :: s_rel, rf_freq
 real(rp) time, s_hard_offset, beta0, freq
 integer, optional :: rf_clock_harmonic
 integer n, ix_pass, n_links, harmonic
-logical abs_time
-logical, optional :: reference_active_edge, time_coords
+logical, optional :: reference_active_edge, time_coords, abs_time
 
 character(*), parameter :: r_name = 'particle_rf_time'
 
@@ -69,7 +71,7 @@ if (ix_pass > 1) ref_ele => chain(1)%ele
 ! Note: An e_gun always uses absolute time tracking to get around the problem when orbit%beta = 0.
 ! Note: beambeam element with repitition_rate = 0 always uses relative time tracking.
 
-if (absolute_time_tracking(ele)) then
+if (absolute_time_tracking(ele) .or. logic_option(.false., abs_time)) then
 
   if (bmad_private%rf_clock_period > 0) then
     harmonic = integer_option (int(ele%value(rf_clock_harmonic$)), rf_clock_harmonic)

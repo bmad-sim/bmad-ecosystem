@@ -5534,16 +5534,16 @@ case ('track')
     call track1 (tao_branch%orbit(ele%ix_ele-1), ele, ele%branch%param, orb2, track, err)
     call re_allocate(lines, nl+track%n_pt+10)
 
-    nl=nl+1; lines(nl) = '           |                 Tracked particle (Laboratory Coordinates)                     |         Strong Beam (Lab Coords)                            | Particle - Beam distance'
-    nl=nl+1; lines(nl) = '    s_body |       x            px           y            py           z            pz     | slice     x_center     y_center      x_sigma      y_sigma   |         dx           dy'
+    nl=nl+1; lines(nl) = '                      |                 Tracked particle (Laboratory Coordinates)                     |         Strong Beam (Lab Coords)                            | Particle - Beam distance'
+    nl=nl+1; lines(nl) = '     s_lab     s_body |       x            px           y            py           z            pz     | slice     x_center     y_center      x_sigma      y_sigma   |         dx           dy'
 
     do i = 0, track%n_pt
       tp => track%pt(i)
       sb => tp%strong_beam
       if (sb%ix_slice == 0) then
-        nl=nl+1; write (lines(nl), '(f11.6, 1x, 6es13.5)') tp%s_body, tp%orb%vec
+        nl=nl+1; write (lines(nl), '(2f11.6, 1x, 6es13.5)') tp%s_lab, tp%s_body, tp%orb%vec
       else
-        nl=nl+1; write (lines(nl), '(f11.6, 1x, 6es13.5, i8, 2x, 4es13.5, 2x, 2es13.5)') tp%s_body, tp%orb%vec, &
+        nl=nl+1; write (lines(nl), '(2f11.6, 1x, 6es13.5, i8, 2x, 4es13.5, 2x, 2es13.5)') tp%s_lab, tp%s_body, tp%orb%vec, &
                                   sb%ix_slice, sb%x_center, sb%y_center, sb%x_sigma, sb%y_sigma, sb%dx, sb%dy
       endif
     enddo
@@ -5555,17 +5555,17 @@ case ('track')
   if (print_header_lines) then
     line1 = '#   Ix'
     i1 = 7
-    call write_track_header (line1, i1, s_fmt, ['S'], err); if (err) return
-    call write_track_header (line1, i1, t_fmt, ['Time'], err); if (err) return
+    call write_track_header (line1, i1, s_fmt,        ['S'], err); if (err) return
+    call write_track_header (line1, i1, t_fmt,        ['Time'], err); if (err) return
     call write_track_header (line1, i1, position_fmt, ['X', 'Y', 'Z'], err); if (err) return
     call write_track_header (line1, i1, velocity_fmt, ['Vx/c', 'Vy/c', 'Vs/c'], err); if (err) return
     call write_track_header (line1, i1, momentum_fmt, ['px', 'py', 'pz'], err); if (err) return
-    call write_track_header (line1, i1, energy_fmt, ['E_tot'], err); if (err) return
-    call write_track_header (line1, i1, twiss_fmt, ['Beta_a ', 'Alpha_a', 'Beta_b ', 'Alpha_b'], err); if (err) return
-    call write_track_header (line1, i1, disp_fmt, ['Eta_x ', 'Etap_x', 'Eta_y ', 'Etap_y'], err); if (err) return
-    call write_track_header (line1, i1, spin_fmt, ['Spin_x', 'Spin_y', 'Spin_z'], err); if (err) return
-    call write_track_header (line1, i1, b_field_fmt, ['Bx', 'By', 'Bz'], err); if (err) return
-    call write_track_header (line1, i1, e_field_fmt, ['Ex', 'Ey', 'Ez'], err); if (err) return
+    call write_track_header (line1, i1, energy_fmt,   ['E_tot'], err); if (err) return
+    call write_track_header (line1, i1, twiss_fmt,    ['Beta_a ', 'Alpha_a', 'Beta_b ', 'Alpha_b'], err); if (err) return
+    call write_track_header (line1, i1, disp_fmt,     ['Eta_x ', 'Etap_x', 'Eta_y ', 'Etap_y'], err); if (err) return
+    call write_track_header (line1, i1, spin_fmt,     ['Spin_x', 'Spin_y', 'Spin_z'], err); if (err) return
+    call write_track_header (line1, i1, b_field_fmt,  ['Bx', 'By', 'Bz'], err); if (err) return
+    call write_track_header (line1, i1, e_field_fmt,  ['Ex', 'Ey', 'Ez'], err); if (err) return
     nl=nl+1; lines(nl) = line1
   endif
 

@@ -315,6 +315,7 @@ endif
  
 if (do_spin_tracking) call track1_spin (start2_orb, ele, param, end_orb, make_map1)
 
+
 ! Radiation damping and/or fluctuations for the last half of the element
 
 if ((bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) .and. &

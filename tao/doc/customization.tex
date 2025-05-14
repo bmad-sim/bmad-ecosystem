@@ -78,11 +78,10 @@ customization.
 %----------------------------------------------------------------
 \section{Implementing a Hook Routine in Tao}
 
-Function pointers are used by \tao to call customized hook routines. \tao uses the same system as \bmad
-where an abstract interface with a \vn{_def} suffix in the name is defined along with a function
-pointer with a \vn{_ptr} suffix. See the section ``Custom and Hook Routines'' in the \bmad manual
-for more details. For example, the \vn{tao_hook_command} routine has the function pointer (defined
-in \vn{/tao/code/tao_interface.f90}):
+Function pointers are used by \tao to call customized hook routines. \tao uses the same system as
+\bmad where an abstract interface with a \vn{_def} suffix in the name is defined along with a
+function pointer with a \vn{_ptr} suffix. For example, the \vn{tao_hook_command} routine has
+the function pointer (defined in \vn{/tao/code/tao_interface.f90}):
 \begin{example}
   procedure(tao_hook_command_def), pointer :: tao_hook_command_ptr => null()
 \end{example}
@@ -91,6 +90,8 @@ To use a customized \vn{tao_hook_command} routine, the following can be put in t
 \begin{example}
   tao_hook_command_ptr => tao_hook_command
 \end{example}
+{\bf Important:} To not duplicate documentation, full details on setting up a hook routine is in the
+section ``Custom and Hook Routines'' in the \bmad manual. Please read this.
 
 %----------------------------------------------------------------
 \section{Initializing Hook Routines}

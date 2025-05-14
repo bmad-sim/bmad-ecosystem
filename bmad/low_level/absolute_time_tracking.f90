@@ -4,7 +4,7 @@
 ! Routine to return a logical indicating whether the tracking through an
 ! element should use absolute time or time relative to the reference particle.
 !
-! Note: e_gun elements always use aboslute time tracking to get around
+! Note: e_gun elements always use absolute time tracking to get around
 ! the problem when the particle velocity is zero.
 !
 ! Input:
