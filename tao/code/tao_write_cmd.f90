@@ -54,7 +54,7 @@ character(*) what
 character(1) delim
 character(20) action, name, lat_type, which, last_col, b_name
 character(40), allocatable :: z(:)
-character(100) str, ele_name
+character(100) str, ele_name, c1, c2
 character(200) line, switch, header1, header2, aname
 character(200) file_name0, file_name, what2
 character(200) :: word(40)
@@ -1080,9 +1080,15 @@ case ('plot_commands')
       cycle
     endif
 
-    if (index(line, 'set curve') == 1 .or. index(line, 'set floor_plan') == 1 .or. index(line, 'set graph') == 1 .or. &
-        index(line, 'set key') == 1 .or. index(line, 'set lat_layout') == 1 .or. index(line, 'set plot') == 1 .or. &
-        index(line, 'set plot_page') == 1 .or. index(line, 'set region') == 1) then
+    c1 = aline(1:ix)
+    call string_trim(aline(ix+1:), aline, ix)
+    c2 = aline(1:ix)
+
+    if (c1 == 'set' .and. (index('curve', trim(c2)) == 1 .or. index('floor_plan', trim(c2)) == 1 .or. &
+        index('graph', trim(c2)) == 1 .or. index('key', trim(c2)) == 1 .or. index('lat_layout', trim(c2)) == 1 .or. &
+        index('plot', trim(c2)) == 1 .or. index('plot_page', trim(c2)) == 1 .or. index('region', trim(c2)) == 1) .or. &
+        index('scale', trim(c1)) == 1 .or. index('x_axis', trim(c1)) == 1 .or. index('x_scale', trim(c1)) == 1 .or. &
+        index('xy_scale', trim(c1)) == 1) then
       write (iu, '(a)') s%history(n)%cmd
       found_plot_command = .true.
     else

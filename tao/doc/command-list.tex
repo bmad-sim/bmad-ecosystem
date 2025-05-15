@@ -4249,7 +4249,7 @@ default) will result in no scaling, 2.0 will double the size, etc.
 %% write plot_commands --------------------------------------------------------------
 
 \subsection{write plot_commands}
-\label{s:write.plot_commands}
+\label{s:write.plot.cmds}
 
 The \vn{write plot_commands} command writes all the plotting commands that have been issued since
 \tao was started. The syntax of this command is:
@@ -4261,7 +4261,7 @@ If \vn{file_name} is not set, the default file name is \vn{plot_commands.tao}.
 Plot commands are commands that effect how plots look. For example:
 \begin{example}
   set graph r11 component = model - design
-\begin{example}
+\end{example}
 Commands that effect values of the data being plot are not considered to be plot commands. For
 example, A command to change lattice element magnet strengths, which changes, Twiss values, is
 not considered a plot command.
@@ -4275,7 +4275,6 @@ Example:
 \begin{example}
   write plot p1.tao   ! Write plotting commands to p1.tao.
 \end{example}
-
 
 %% write ps --------------------------------------------------------------
 
@@ -4445,7 +4444,7 @@ The \vn{x_axis} command sets the data type used for the x-axis coordinate. Forma
   x_axis <where> <axis_type>
 \end{example}
 
-\vskip 7pt 
+\vskip 7pt
 
 The \vn{x_axis} command sets the \vn{plot%x_axis_type}. This determines what data is used
 for the horizontal axis. Possibilities for \vn{<axis_type>} are:
