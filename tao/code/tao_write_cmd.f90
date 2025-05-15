@@ -84,7 +84,7 @@ call match_word (action, [character(20):: &
               '3d_model', 'beam', 'bmad', 'blender', 'bunch_comb', 'covariance_matrix', 'curve', &
               'derivative_matrix', 'digested', 'elegant', 'field', &
               'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
-              'namelist', 'opal', 'pdf', 'pdf-l', 'ps', 'ps-l', 'ptc', &
+              'namelist', 'opal', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
               'sad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
               ix, .true., matched_name = action)
 
@@ -1036,6 +1036,15 @@ case ('namelist')
   end select
 
   close (iu)
+
+!---------------------------------------------------
+! plot_commands
+
+case ('plot_commands')
+
+  do i = 1, size(s%history)
+    n = i + s%com%ix_history
+    
 
 !---------------------------------------------------
 ! ps

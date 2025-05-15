@@ -2536,10 +2536,10 @@ case ('history')
   !
 
   if (n_print < 1) return
-  n_ele = max(1, s%com%ix_history - n_print + 1)
-
   n_count = n_print - s%com%ix_history
-  if (n_count > 0 .and. show_all) then
+
+  ! If commands from previous sessions wanted...
+  if (n_count > 0 .and. show_all) then  
     iu = lunget()
     call fullfilename(s%global%history_file, file_name)
     open (iu, file = file_name, status = 'old', iostat = ios)
@@ -2561,21 +2561,23 @@ case ('history')
       endif
     enddo
 
-  !
-  else
+  ! Here if commands from previous sessions not printed. 
+  else 
+    ix = max(1, s%com%ix_history - n_print + 1)
+
     do
-      if (n_ele > s%com%ix_history) exit
+      if (ix > s%com%ix_history) exit
       if (nl >= size(lines)) call re_allocate (lines, 2*size(lines))
 
-      if (s%history(n_ele)%ix /= 0) then
+      if (s%history(ix)%ix /= 0) then
         if (show_labels) then
-          nl=nl+1; write (lines(nl), '(i5, 2a)') s%history(n_ele)%ix, ': ', trim(s%history(n_ele)%cmd)
+          nl=nl+1; write (lines(nl), '(i5, 2a)') s%history(ix)%ix, ': ', trim(s%history(ix)%cmd)
         else
-          nl=nl+1; write (lines(nl), '(a)') s%history(n_ele)%cmd
+          nl=nl+1; write (lines(nl), '(a)') s%history(ix)%cmd
         endif
       endif
 
-      n_ele = n_ele + 1
+      ix = ix + 1
     enddo
 
     nl=nl+1; lines(nl) = ''
