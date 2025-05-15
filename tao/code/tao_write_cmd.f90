@@ -54,10 +54,11 @@ character(*) what
 character(1) delim
 character(20) action, name, lat_type, which, last_col, b_name
 character(40), allocatable :: z(:)
-character(100) str, ele_name
+character(100) str, ele_name, c1, c2
 character(200) line, switch, header1, header2, aname
 character(200) file_name0, file_name, what2
 character(200) :: word(40)
+character(1000) :: aline
 character(*), parameter :: r_name = 'tao_write_cmd'
 
 real(rp) dr(3), r_max(3), r_min(3), rr(3)
@@ -69,7 +70,7 @@ integer i_min, i_max, n_len, len_d_type, ix_branch, ix_bunch, n_loc
 
 logical is_open, ok, err, good_opt_only, at_switch, new_file, append, write_floor
 logical write_data_source, write_data_type, write_merit_type, write_weight, write_attribute, write_step
-logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found
+logical write_high_lim, write_low_lim, tao_format, eq_d_type, delim_found, found_plot_command
 
 !
 
@@ -84,7 +85,7 @@ call match_word (action, [character(20):: &
               '3d_model', 'beam', 'bmad', 'blender', 'bunch_comb', 'covariance_matrix', 'curve', &
               'derivative_matrix', 'digested', 'elegant', 'field', &
               'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
-              'namelist', 'opal', 'pdf', 'pdf-l', 'ps', 'ps-l', 'ptc', &
+              'namelist', 'opal', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
               'sad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
               ix, .true., matched_name = action)
 
@@ -1036,6 +1037,66 @@ case ('namelist')
   end select
 
   close (iu)
+
+!---------------------------------------------------
+! plot_commands
+
+case ('plot_commands')
+
+  file_name = ''
+
+  do 
+    call tao_next_switch (what2, [character(16):: '-XXX'], .true., switch, err)
+    if (err) return
+    if (switch == '') exit
+
+    select case (switch)
+    case ('-XXX')
+
+    case default
+      if (file_name /= '') then
+        call out_io (s_error$, r_name, 'EXTRA STUFF ON THE COMMAND LINE. NOTHING DONE.')
+        return
+      endif
+      file_name = switch
+    end select
+  enddo
+
+  if (file_name == '') file_name = 'plot_commands.tao'
+  call fullfilename (file_name, file_name)
+  open (iu, file = file_name)
+
+  !
+
+  found_plot_command = .false.
+
+  do i = 1, size(s%history)
+    n = modulo(i - 1 + s%com%ix_history, size(s%history)) + 1
+    if (n > s%com%ix_history .and. size(s%history) - n + s%com%ix_history >= s%com%n_history) cycle
+
+    call string_trim(s%history(n)%cmd, aline, ix)
+    if (aline(1:1) == '!') then ! Is command read from command file.
+      if (found_plot_command) write (iu, '(a)') s%history(n)%cmd
+      cycle
+    endif
+
+    c1 = aline(1:ix)
+    call string_trim(aline(ix+1:), aline, ix)
+    c2 = aline(1:ix)
+
+    if (c1 == 'set' .and. (index('curve', trim(c2)) == 1 .or. index('floor_plan', trim(c2)) == 1 .or. &
+        index('graph', trim(c2)) == 1 .or. index('key', trim(c2)) == 1 .or. index('lat_layout', trim(c2)) == 1 .or. &
+        index('plot', trim(c2)) == 1 .or. index('plot_page', trim(c2)) == 1 .or. index('region', trim(c2)) == 1) .or. &
+        index('scale', trim(c1)) == 1 .or. index('x_axis', trim(c1)) == 1 .or. index('x_scale', trim(c1)) == 1 .or. &
+        index('xy_scale', trim(c1)) == 1) then
+      write (iu, '(a)') s%history(n)%cmd
+      found_plot_command = .true.
+    else
+      found_plot_command = .false.
+    endif
+  enddo
+
+  call out_io (s_info$, r_name, 'Written: ' // file_name)
 
 !---------------------------------------------------
 ! ps

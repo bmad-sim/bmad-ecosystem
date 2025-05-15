@@ -26,6 +26,41 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Function nint_chk (re_val) result (int_val)
+!
+! Returns the nearest integer to re_val.
+! Also does out-of-bounds error checking.
+! Used with bmad parsing.
+!
+! Input:
+!   re_val        -- real(rp): Input real number.
+!
+! Output:
+!   int_val       -- integer: Output nearest integer.
+!-
+
+function nint_chk (re_val) result (int_val)
+
+implicit none
+
+real(rp), intent(in) :: re_val
+integer int_val
+
+!
+
+if (abs(re_val) > huge(int_val) + 0.5_rp) then
+  call parser_error('NUMBER: ' // real_str(re_val, n_decimal = 0) // ' IS LARGER THAN THE RANGE OF INTEGER*4 VARIABLES.')
+  int_val = int_garbage$
+else
+  int_val = nint(re_val)
+endif
+
+end function nint_chk
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! This subroutine is used by bmad_parser and bmad_parser2.
 ! This subroutine is not intended for general use.
 !-
