@@ -666,7 +666,7 @@ character(*), parameter :: r_name = 'kick_vector_calc'
 ! Exception: pipe element.
 
 if ((ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) .and. ele%key /= pipe$) then
-  ele0 => pointer_to_lord(ele, 1)
+  ele0 => pointer_to_super_lord(ele)
 else
   ele0 => ele
 endif

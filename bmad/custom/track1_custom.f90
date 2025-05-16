@@ -64,7 +64,7 @@ orbit%s = ele%s
 ! The entire element will be the lord:
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-  lord => pointer_to_lord(ele, 1)
+  lord => pointer_to_super_lord(ele)
   ! Now [lord%s_start, lord%s] is the position of the entire element.
 endif
 

@@ -1,37 +1,21 @@
 !+
-! Function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
+! Function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
 !
-! Function to point to a lord of a slave.
-!
-! If lord_type = all$ (the default), the range for ix_lord is:
-!   1                       to %n_lord                                 for non-overlap and non-ramper lords.
-!   %n_lord+1               to %n_lord+%n_lord_field                   for field overlap lords.
-!   %n_lord+%n_lord_field+1 to %n_lord+%n_lord_field+%n_lord_ramper    for ramper lords
-!
-! If lord_type = field_lord$, only the field overlap lords may be accessed and the range for ix_lord is:
-!   1 to slave%n_lord_field  
-!
-! If lord_type = ramper_lord$, only the ramper lords may be accessed and the range for ix_lord is:
-!   1 to slave%n_lord_ramper  
+! Function to point to the super_lord of a super_slave or the lord of a slick_slave.
 !
 ! If slave arg is a slice_slave with control chain:
 !   super_lord -> super_slave -> slice_slave
-! Then pointer_to_lord will point to the super_lord and not the super_slave. 
+! Then pointer_to_super_lord will point to the super_lord and not the super_slave. 
 ! Access to the super_slave is via slave%lord.
 !
-! Note: Ramper lords do not return control, ix_slave_back, and ix_ic args.
-!
 ! Also see:
-!   pointer_to_super_lord
+!   pointer_to_lord
 !   pointer_to_slave
 !   pointer_to_ele
 !   num_lords
 !
 ! Input:
 !   slave            -- ele_struct: Slave element.
-!   ix_lord          -- integer: Index of the lord.
-!   lord_type        -- integer, optional: See above.
-!
 !
 ! Output:
 !   lord_ptr        -- ele_struct, pointer: Pointer to the lord.
@@ -45,9 +29,9 @@
 !   ix_ic           -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_lord (slave, ix_lord, control, ix_slave_back, lord_type, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
 
-use bmad_routine_interface, except_dummy => pointer_to_lord
+use bmad_routine_interface, except_dummy => pointer_to_super_lord
 
 implicit none
 
@@ -57,10 +41,10 @@ type (control_struct), pointer :: ctl
 type (ele_struct), pointer :: lord_ptr
 type (lat_struct), pointer :: lat
 
-integer, optional :: ix_slave_back, lord_type, ix_control, ix_ic
-integer i, ix_lord, icon, ixl, n_lord_reg, ixr, ix
+integer, optional :: ix_slave_back, ix_control, ix_ic
+integer i, icon, ixl, n_lord_reg, ixr, ix
 
-character(*), parameter :: r_name = 'pointer_to_lord'
+character(*), parameter :: r_name = 'pointer_to_super_lord'
 
 ! Case where there is no lord
 
@@ -127,5 +111,5 @@ if (present(ix_control)) ix_control = icon
 if (present(ix_ic)) ix_ic = slave%ic1_lord + ixl - 1
 if (present(ix_slave_back)) ix_slave_back = icon - lord_ptr%ix1_slave + 1
 
-end function pointer_to_lord
+end function pointer_to_super_lord
 

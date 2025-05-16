@@ -37,7 +37,7 @@ character(*), parameter :: r_name = 'ac_kicker_amp'
 !
 
 ref_ele => ele
-if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord (ref_ele, 1)
+if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_super_lord (ref_ele)
 
 ac_amp = 1
 if (ele%key /= ac_kicker$) return

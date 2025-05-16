@@ -2615,6 +2615,7 @@ end function is_attribute
 !
 ! Also see:
 !   pointer_to_lord
+!   pointer_to_super_lord
 !   pointer_to_ele
 !   num_lords
 !
