@@ -72,18 +72,7 @@ if (ix_pass > 1) ref_ele => chain(1)%ele
 ! Note: beambeam element with repitition_rate = 0 always uses relative time tracking.
 
 if (absolute_time_tracking(ele) .or. logic_option(.false., abs_time)) then
-
-  if (bmad_private%rf_clock_period > 0) then
-    harmonic = integer_option (int(ele%value(rf_clock_harmonic$)), rf_clock_harmonic)
-    if (harmonic /= 0) then
-      time = orbit%t + modulo(int(orbit%phase(1)), harmonic) * bmad_private%rf_clock_period
-    else
-      time = orbit%t + orbit%phase(1) * bmad_private%rf_clock_period
-    endif
-  else
-    time = orbit%t
-  endif
-
+  time = orbit%t
   if (bmad_com%absolute_time_ref_shift) time = time - ref_ele%value(ref_time_start$)
 
 else

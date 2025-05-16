@@ -137,7 +137,12 @@ IF (${ACC_ENABLE_MPI})
   EXEC_PROGRAM (mpifort ARGS --showme:libs OUTPUT_VARIABLE MPI_LIBS)
   EXEC_PROGRAM (mpifort ARGS --showme:version OUTPUT_VARIABLE MPI_FORT_VERSION)
   # The preprocessor option flag "-DACC_MPI" was requested and tested in RT#31494 but not implemented until RT#58944
-  SET (MPI_COMPILE_FLAGS "-DACC_MPI ${MPI_COMPILE_FLAGS}")
+  # The -fallow-argument-mismatch flag allows, for mpi routines, actual argument type mismatch which is not an error.
+  IF (${CMAKE_Fortran_COMPILER} STREQUAL "ifort")
+    SET (MPI_COMPILE_FLAGS "-DACC_MPI ${MPI_COMPILE_FLAGS}")
+  ELSE ()
+    SET (MPI_COMPILE_FLAGS "-DACC_MPI -fallow-argument-mismatch ${MPI_COMPILE_FLAGS}")
+  ENDIF ()
 ENDIF ()
 
 #----------------------------------------------------------------

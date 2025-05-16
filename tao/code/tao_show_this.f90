@@ -5590,7 +5590,7 @@ case ('track')
     i1 = 7
 
     call write_track_info (line1, i1, s_fmt, [s_pos], err);  if (err) return
-    call write_track_info (line1, i1, t_fmt, [orbit%t], err);  if (err) return
+    call write_track_info (line1, i1, t_fmt, [real(rp):: orbit%t], err);  if (err) return
     call write_track_info (line1, i1, position_fmt, orbit%vec(1:5:2), err);  if (err) return
 
     if (orbit%beta == 0) then

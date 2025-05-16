@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ May 10, 2025}
+\date{David Sagan \\ May 13, 2025}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -753,7 +753,6 @@ Example:
   ltt%split_bends_for_stochastic_rad = F
   ltt%symplectic_map_tracking        = F
   ltt%set_beambeam_crossing_time     = F
-  ltt%use_rf_clock                   = F
   ltt%dead_cutoff                    = 0.99
   ltt%b_emittance                    = 1e-9 ! Used with space charge calc.
   ltt%debug                          = F
@@ -978,34 +977,8 @@ String switch which sets how particles are tracked when the \vn{simulation_mode}
 See sections \sref{s:map} and \sref{s:track.methods} for more details.
 %
 \item[ltt\%use_rf_clock] \Newline
-The \vn{ltt%use_rf_clock} logical is only relavent if Bmad tracking is being used in conjunction with
-absolute time tracking and the discussion here assumes Bmad tracking with absolute time tracking.\footnote
-  {
-See the Bmad manual for a discussion of absolute versus relative time tracking.
-  }
-If \vn{ltt%use_rf_clock} is set to False (the default), the time used to calculate the phase of any
-varying fields is the absolute time which increases turn-by-turn. Over many turns this may lead to
-round-off error. For example, with a 10~GHz cavity, if the phase needs to be measured to one part in
-$10^5$, it will not be possible to run a simulation past 10~seconds since the double precision
-numbers used in the code have an accuracy of $10^{-16}$. 
-
-There are several possible ways to avoid this round-off problem. If all the frequencies of all the time
-varying fields are commensurate with the length of the lattice, relative time tracking can be used
-which uses the particle's $z$ phase space coordinate as the effective clock.\footnote
-  {
-Note: Absolute time tracking is not available with PTC. That is, any PTC based tracking is relative
-time tracking.
-  }
-If all frequencies are commensurate with each other, but are not commensurate with the lattice
-length, time patches (patch elements that shift the reference time) can be used with relative time
-tracking.  Finally, if all the frequencies are commensurate, the ``\vn{RF clock}'' can be used with
-absolute time tracking by setting \vn{ltt%use_rf_clock} to True. The RF clock is simply a clock whose
-time is reset periodically to be in the range $[0, t_{rf}]$ where $t_{rf}$ is a time period chosen by
-Bmad to be commensurate with the frequencies of the time varying fields.\footnote
-  {
-If not all the frequencies are commensurate, Bmad will make a best choice and the fields that have
-frequencies that are not commensurate with the RF clock will use the standard clock instead.
-  }
+The \vn{ltt%use_rf_clock} logical is no longer used. If this parameter is present in the init file,
+it should be removed.
 \end{description}
 
 %----------------------------------------------------

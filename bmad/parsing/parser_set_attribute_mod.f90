@@ -468,7 +468,7 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     a_ptrs(1)%r = value
 
     ! This is done so init_coord will use %t to set %vec(5) and not vice versa.
-    if (associated(a_ptrs(1)%r, lat%particle_start%t)) lat%particle_start%vec(5) = real_garbage$
+    if (associated(a_ptrs(1)%q, lat%particle_start%t)) lat%particle_start%vec(5) = real_garbage$
 
     if (associated(a_ptrs(1)%r, bmad_com%max_aperture_limit))              bp_com%extra%max_aperture_limit_set          = .true.
     if (associated(a_ptrs(1)%r, bmad_com%default_ds_step))                 bp_com%extra%default_ds_step_set             = .true.
