@@ -67,8 +67,6 @@ k_rf = twopi * ele%value(rf_frequency$) / c_light
 h = mass_of(orbit%species)/ele%value(p0c$)
 
 ! Track through slices.
-! Note: phi0_autoscale is not used here since bmad_standard tracking by design gives the correct energy change.
-! In fact, using phi0_autoscale would be a mistake if, say, tracking_method = runge_kutta, mat6_calc_method = bmad_standard.
 
 call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
 
