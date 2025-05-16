@@ -49,7 +49,7 @@ real(rp), optional :: pz
 real time0, time1
 
 integer, optional :: ix_branch
-integer nt, stat, ix_br, ie, i0
+integer nt, nm, stat, ix_br, ie, i0
 
 logical, optional, intent(out) :: err_flag
 logical err, used_this_lat
@@ -69,6 +69,7 @@ if (delta_e <= 0) delta_e = 1.0d-4
 pz0 = real_option(0.0_rp, pz)
 
 nt = branch%n_ele_track
+nm = branch%n_ele_max
 
 ! lower energy tune
 
@@ -129,10 +130,10 @@ call twiss_propagate_all (lat2, ix_br)
 low_tune_x = branch2%ele(nt)%a%phi / twopi
 low_tune_y = branch2%ele(nt)%b%phi / twopi
 
-branch%ele(i0:)%a%dbeta_dpz  = branch2%ele(i0:)%a%beta
-branch%ele(i0:)%b%dbeta_dpz  = branch2%ele(i0:)%b%beta
-branch%ele(i0:)%a%dalpha_dpz = branch2%ele(i0:)%a%alpha
-branch%ele(i0:)%b%dalpha_dpz = branch2%ele(i0:)%b%alpha
+branch%ele(i0:nm)%a%dbeta_dpz  = branch2%ele(i0:nm)%a%beta
+branch%ele(i0:nm)%b%dbeta_dpz  = branch2%ele(i0:nm)%b%beta
+branch%ele(i0:nm)%a%dalpha_dpz = branch2%ele(i0:nm)%a%alpha
+branch%ele(i0:nm)%b%dalpha_dpz = branch2%ele(i0:nm)%b%alpha
 
 ! higher energy tune
 
@@ -196,12 +197,11 @@ high_tune_y = branch2%ele(nt)%b%phi / twopi
 chrom_a = (high_tune_x - low_tune_x) / (2 * delta_e)
 chrom_b = (high_tune_y - low_tune_y) / (2 * delta_e)
 
-branch%ele(i0:)%a%dbeta_dpz  = (branch2%ele(i0:)%a%beta  - branch%ele(i0:)%a%dbeta_dpz) / (2 * delta_e)
-branch%ele(i0:)%b%dbeta_dpz  = (branch2%ele(i0:)%b%beta  - branch%ele(i0:)%b%dbeta_dpz) / (2 * delta_e)
-branch%ele(i0:)%a%dalpha_dpz = (branch2%ele(i0:)%a%alpha - branch%ele(i0:)%a%dalpha_dpz) / (2 * delta_e)
-branch%ele(i0:)%b%dalpha_dpz = (branch2%ele(i0:)%b%alpha - branch%ele(i0:)%b%dalpha_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%a%dbeta_dpz  = (branch2%ele(i0:nm)%a%beta  - branch%ele(i0:nm)%a%dbeta_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%b%dbeta_dpz  = (branch2%ele(i0:nm)%b%beta  - branch%ele(i0:nm)%b%dbeta_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%a%dalpha_dpz = (branch2%ele(i0:nm)%a%alpha - branch%ele(i0:nm)%a%dalpha_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%b%dalpha_dpz = (branch2%ele(i0:nm)%b%alpha - branch%ele(i0:nm)%b%dalpha_dpz) / (2 * delta_e)
 
 if (present(err_flag)) err_flag = .false.
-
 
 end subroutine
