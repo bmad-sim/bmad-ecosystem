@@ -230,7 +230,7 @@ case ('PARTICLE_START')
   case (field_y$);                       ptr_array(1)%r => lat%particle_start%field(2)
   case (phase_x$);                       ptr_array(1)%r => lat%particle_start%phase(1)
   case (phase_y$);                       ptr_array(1)%r => lat%particle_start%phase(2)
-  case (t$);                             ptr_array(1)%r => lat%particle_start%t
+  case (t$);                             ptr_array(1)%q => lat%particle_start%t    ! Quad precision
   case (e_photon$);                      ptr_array(1)%r => lat%particle_start%p0c
   case (spin_x$);                        ptr_array(1)%r => lat%particle_start%spin(1)
   case (spin_y$);                        ptr_array(1)%r => lat%particle_start%spin(2)

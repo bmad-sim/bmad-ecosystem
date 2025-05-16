@@ -57,10 +57,13 @@ interface assignment (=)
 end interface
 
 !---------
+! Command history single record
+! The 
 
 type tao_cmd_history_struct          ! Record the command history
   character(:), allocatable :: cmd   ! The command
   integer :: ix = 0                  ! Command index (1st command has ix = 1, etc.)
+                                     !  Note: Commands from command files will be assigned an index.
 end type
 
 !-----------------------------------------------------------------------
@@ -750,8 +753,8 @@ type tao_common_struct
   integer :: n_alias = 0
   integer :: cmd_file_level = 0                 ! For nested command files. 0 -> no command file.
   integer :: ix_key_bank = 0                    ! For single mode.
-  integer :: ix_history = 0                     ! present index to command history array
-  integer :: n_history = 0                      ! present history index
+  integer :: ix_history = 0                     ! Index to latest command in the history circular buffer.
+  integer :: n_history = 0                      ! Number of commands issued from beginning of starting Tao.
   integer :: lev_loop = 0                       ! in do loop nest level
   integer :: n_err_messages_printed = 0         ! Used by tao_set_invalid to limit number of messages.
   integer :: n_universes = n_uni_init$   

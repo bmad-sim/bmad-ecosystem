@@ -3027,9 +3027,9 @@ case ('srdt.')
 
 case ('time')
   if (data_source == 'beam') then
-    call tao_load_this_datum (bunch_params%centroid%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
+    call tao_load_this_datum (real(bunch_params%centroid%t, rp), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%n_particle_live > 0)
   else
-    call tao_load_this_datum (orbit(:)%t, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+    call tao_load_this_datum (real(orbit(:)%t, rp), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
   endif
 
 !-----------

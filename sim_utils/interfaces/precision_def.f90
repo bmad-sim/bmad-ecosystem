@@ -1,8 +1,10 @@
 module precision_def
 
-integer, parameter :: rp = selected_real_kind(11)
-integer, parameter :: sp = kind(1e0)
-integer, parameter :: dp = selected_real_kind(2*precision(1e0_sp))
+integer, parameter :: rp = selected_real_kind(11)    ! "Real precision" is double precision
+integer, parameter :: quadp = selected_real_kind(20) ! Quad precision
+integer, parameter :: qp = quadp                     ! Define qp so that in an emergency Bmad can be compiled with qp = rp.
+integer, parameter :: sp = kind(1e0)                 ! Single precision
+integer, parameter :: dp = selected_real_kind(2*precision(1e0_sp))  ! Double precision
 integer, parameter :: i4_b = selected_int_kind(9)  ! Equiv to NR I4B
 
 type global_common_struct

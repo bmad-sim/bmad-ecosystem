@@ -160,7 +160,7 @@ type(bunch_struct), target :: bunch
 type (coord_struct), pointer :: p
 
 real(rp) charge_factor, f_ev, p0c_initial, p0c_final
-real(rp), allocatable :: dt(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_off(:)
+real(rp), allocatable :: dt(:), t0(:), tot_mom(:), mom_x_off(:), mom_y_off(:), mom_z_off(:)
 real(rp), allocatable :: pos_x_off(:), pos_y_off(:), pos_z_off(:)
 
 integer(hid_t), value :: root_id
@@ -212,7 +212,7 @@ endif
 
 !
 
-allocate (dt(n), charge_state(n), tot_mom(n), mom_x_off(n), mom_y_off(n), mom_z_off(n))
+allocate (dt(n), t0(n), charge_state(n), tot_mom(n), mom_x_off(n), mom_y_off(n), mom_z_off(n))
 allocate (pos_x_off(n), pos_y_off(n), pos_z_off(n))
 
 momentum_warning_printed = .false.
@@ -222,6 +222,7 @@ tot_mom = real_garbage$
 charge_state = 0
 mom_x_off = 0;  mom_y_off = 0;  mom_z_off = 0
 pos_x_off = 0;  pos_y_off = 0;  pos_z_off = 0
+t0 = 0; dt = 0
 
 call reallocate_bunch(bunch, n)
 bunch%particle = coord_struct()
@@ -316,7 +317,7 @@ do idx = 0, n_links-1
   case ('time')
     call pmd_read_real_dataset(g2_id, name, 1.0_rp, dt, error)
   case ('timeOffset')
-    call pmd_read_real_dataset(g2_id, name, 1.0_rp, bunch%particle%t, error)
+    call pmd_read_real_dataset(g2_id, name, 1.0_rp, t0, error)
   case ('totalMomentum')
     call pmd_read_real_dataset(g2_id, name, f_ev, tot_mom, error)
   case ('totalMomentumOffset')
@@ -375,7 +376,7 @@ bunch%particle%vec(6) = bunch%particle%vec(6) + mom_z_off
 
 do ip = 1, size(bunch%particle)
   p => bunch%particle(ip)
-  p%t = p%t + dt(ip)
+  p%t = t0(ip) + dt(ip)
 
   if (species == photon$) then
     p%species = species

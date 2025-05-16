@@ -9,7 +9,7 @@ on:
 #
 
 env:
-  EXTERNAL_DEPS_VERSION: main
+  EXTERNAL_PACKAGES_VERSION: main
 
 # secrets.DCS_PUSH allows the ci.yml workflow to be triggered by this workflow. Documentation at:
 #		https://github.com/peter-evans/create-pull-request/blob/main/docs/concepts-guidelines.md#triggering-further-workflow-runs

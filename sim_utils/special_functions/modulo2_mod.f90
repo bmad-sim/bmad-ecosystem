@@ -21,6 +21,7 @@ use precision_def
 interface modulo2
   module procedure modulo2_sp 
   module procedure modulo2_dp
+  module procedure modulo2_qp
   module procedure modulo2_int
 end interface
 
@@ -90,6 +91,42 @@ elemental function modulo2_dp (x, amp) result (mod2)
 
   real(rp), intent(in) :: x, amp
   real(rp) mod2
+
+!
+
+  mod2 = modulo (x, 2*amp)
+  if (mod2 >= amp) mod2 = mod2 - 2*amp
+
+end function
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function modulo2_qp (x, amp) result (mod2)
+!
+! Function to return
+!     mod2 = x + 2 * n * amp
+! where n is an integer chosen such that
+!    -amp <= mod2 < amp
+!
+! Input:
+!   x    -- Real(rp): 
+!   amp  -- Real(rp): Must be positive.
+!
+! Output:
+!   mod2 -- Real(rp): Result
+!-
+
+elemental function modulo2_qp (x, amp) result (mod2)
+
+
+  use precision_def
+
+  implicit none
+
+  real(quadp), intent(in) :: x, amp
+  real(quadp) mod2
 
 !
 

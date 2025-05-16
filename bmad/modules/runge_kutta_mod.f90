@@ -363,7 +363,7 @@ do
     rel_tol = bmad_com%rel_tol_adaptive_tracking / sqrt_N
     abs_tol = bmad_com%abs_tol_adaptive_tracking / sqrt_N
     pol = 1.0_rp  ! Spin scale
-    r_scal(:) = abs([orb%vec(:), orb%t, pol, pol, pol]) + abs(ds*dr_ds(1:10)) + TINY
+    r_scal(:) = abs([real(rp):: orb%vec(:), 1e-9_rp, pol, pol, pol]) + abs(ds*dr_ds(1:10)) + TINY
     err_max = maxval(abs(r_err(1:10)/(r_scal(:)*rel_tol + abs_tol)))
     if (err_max <=  1.0) exit
     ds_temp = safety * ds * (err_max**p_shrink)

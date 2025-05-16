@@ -320,7 +320,7 @@ if (orb%beta < 1e-4) then
     call out_io (s_error$, r_name, 'TOO MANY STEPS WHILE TRACKING THROUGH: ' // ele%name, &
                                    'DUE TO VELOCITY BEING TOO SMALL.', &
                                    'AT (X,Y,Z,T) POSITION FROM ENTRANCE: \4F12.7\ ', &
-                                   r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+                                   r_array = [real(rp):: orb%vec(1), orb%vec(3), s_body, orb%t])
   endif
   err_flag = .false.
 
@@ -330,7 +330,7 @@ else
                                  'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
                                  '[OFTEN TIMES THE FIELD IS NOT EVEN BE CONTINUOUS IN THIS CASE!]', &
                                  'THE PARTICLE WILL BE MARKED AS LOST.', &
-                                 r_array = [orb%vec(1), orb%vec(3), s_body, orb%t])
+                                 r_array = [real(rp):: orb%vec(1), orb%vec(3), s_body, orb%t])
 endif
 
 orb%location = inside$
@@ -471,7 +471,7 @@ do
                                    'TYPICALLY THIS IS DUE TO THE FIELD NOT OBEYING MAXWELL''S EQUATIONS.', &
                                    'OFTEN TIMES THE FIELD IS NOT EVEN CONTINUOUS!', &
                                    'THE PARTICLE WILL BE MARKED AS LOST.', &
-                                   r_array = [orb%vec(1), orb%vec(3), orb%vec(5), orb%t])
+                                   r_array = [real(rp):: orb%vec(1), orb%vec(3), orb%vec(5), orb%t])
     err_flag = .true.
     orb%location = inside$
     orb%state = lost$

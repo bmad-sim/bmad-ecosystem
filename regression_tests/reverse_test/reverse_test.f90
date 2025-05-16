@@ -314,15 +314,15 @@ end if
 
 str = '"' // trim(ele%name) // '@' // trim(tracking_method_name(ele%tracking_method)) // ':'
 
-write (1, '(a)') trim(line_out(str, 'dorb_r_orient"', [dorb_r_orient%vec, c_light * dorb_r_orient%t]))
-if (backwards) write (1, '(a)') trim(line_out(str, 'dorb_b_track" ', [dorb_b_track%vec, c_light * dorb_b_track%t]))
+write (1, '(a)') trim(line_out(str, 'dorb_r_orient"', [real(rp):: dorb_r_orient%vec, c_light * dorb_r_orient%t]))
+if (backwards) write (1, '(a)') trim(line_out(str, 'dorb_b_track" ', [real(rp):: dorb_b_track%vec, c_light * dorb_b_track%t]))
 write (1, '(a)') trim(line_out(str, 'xmat_r"', [maxval(abs(dmat_r))]))
 if (backwards) write (1, '(a)') trim(line_out(str, 'xmat_b"', [maxval(abs(dmat_b))]))
 write (1, '(a)') trim(line_out(str, 'dspin_r_orient"', dspin_r_orient))
 if (backwards) write (1, '(a)') trim(line_out(str, 'dspin_b_track"', dspin_b_track))
 
-diff_vec_r = maxval([abs(dorb_r_orient%vec), abs(dorb_r_orient%t)])
-if (backwards) diff_vec_b = maxval([abs(dorb_b_track%vec), abs(dorb_b_track%t)])
+diff_vec_r = maxval([real(rp):: abs(dorb_r_orient%vec), abs(dorb_r_orient%t)])
+if (backwards) diff_vec_b = maxval([real(rp):: abs(dorb_b_track%vec), abs(dorb_b_track%t)])
 diff_mat  = max(maxval(abs(dmat_r)), maxval(abs(dvec0_r)))
 if (backwards) diff_spin = max(maxval(abs(dspin_r_orient)), maxval(abs(dspin_b_track)))
 diff_spin = maxval(abs(dspin_r_orient))
