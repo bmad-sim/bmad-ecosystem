@@ -2040,6 +2040,8 @@ case ('field')
       cycle
     endif
 
+    if (size(lines) < nl + 20) call re_allocate (lines, nl + 100) 
+
     !
 
     call init_coord (orb, orb, ele, downstream_end$)
