@@ -34,16 +34,6 @@ character(80) line
 
 logical abort
 
-interface
-  function merit_wrapper (var_vec, status, iter_count) result (merit)
-    use precision_def
-    real(rp) var_vec(:)           ! Input: trial solution.
-    integer status
-    integer iter_count
-    real(rp) merit                ! Output: Merit value corresponting to vec.
-  end function
-end interface
-
 ! setup
 
 abort = .false.
@@ -84,7 +74,7 @@ call out_io (s_blank$, r_name, line)
 
 if (status /= 0) abort = .true.
 
-end subroutine tao_de_optimizer
+contains
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -183,3 +173,5 @@ endif
 iter_count = mod(iter_count, 1000) + 1
 
 end function merit_wrapper
+
+end subroutine tao_de_optimizer
