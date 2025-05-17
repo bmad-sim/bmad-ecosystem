@@ -99,7 +99,7 @@ endif
 tp%orb%ix_ele = ele%ix_ele
 
 if (logic_option(.false., save_field)) then
-  call em_field_calc (ele, param, s_lab, orb, local_ref_frame, tp%field, .false., rf_time = rf_time)
+  call em_field_calc (ele, param, tp%s_lab, orb, local_ref_frame, tp%field, .false., rf_time = rf_time)
 endif
 
 ! beambeam
@@ -109,7 +109,7 @@ if (present(strong_beam)) then
   if (local_ref_frame) then
     orb0 = orb
     orb0%vec = [strong_beam%x_center, 0.0_rp, strong_beam%y_center, 0.0_rp, 0.0_rp, 0.0_rp]
-    call offset_particle (ele, unset$, orb0, drift_to_edge = no$, set_hvkicks = .false., s_pos = s_rel, s_out = s_lab)
+    call offset_particle (ele, unset$, orb0, drift_to_edge = no$, set_hvkicks = .false., s_pos = s_rel)
     tp%strong_beam%x_center = orb0%vec(1)
     tp%strong_beam%y_center = orb0%vec(3)
   endif
