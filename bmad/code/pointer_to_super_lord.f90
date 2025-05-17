@@ -3,7 +3,7 @@
 !
 ! Function to point to the super_lord of a super_slave or the lord of a slick_slave.
 !
-! If slave arg is a slice_slave with control chain:
+! If slave is a slice_slave with a control chain:
 !   super_lord -> super_slave -> slice_slave
 ! Then pointer_to_super_lord will point to the super_lord and not the super_slave. 
 ! Access to the super_slave is via slave%lord.
@@ -38,11 +38,11 @@ implicit none
 type (ele_struct), target :: slave
 type (control_struct), pointer, optional :: control
 type (control_struct), pointer :: ctl
-type (ele_struct), pointer :: lord_ptr
+type (ele_struct), pointer :: lord_ptr, ele_ptr
 type (lat_struct), pointer :: lat
 
 integer, optional :: ix_slave_back, ix_control, ix_ic
-integer i, icon, ixl, n_lord_reg, ixr, ix
+integer icon, ix
 
 character(*), parameter :: r_name = 'pointer_to_super_lord'
 
@@ -54,61 +54,48 @@ if (present(ix_control)) ix_control = -1
 if (present(ix_ic)) ix_ic = -1
 nullify(lord_ptr)
 
-n_lord_reg = slave%n_lord + slave%n_lord_field
-
-select case (integer_option(all$, lord_type))
-case (all$)
-  if (ix_lord > n_lord_reg+slave%n_lord_ramper .or. ix_lord < 1) return
-  ixl = ix_lord
-
-case (field_lord$)
-  if (ix_lord > slave%n_lord_field .or. ix_lord < 1) return
-  ixl = ix_lord + slave%n_lord
-  
-case (ramper_lord$)
-  if (ix_lord > slave%n_lord_ramper .or. ix_lord < 1) return
-  ixl = ix_lord + n_lord_reg
-
-case default
-  call out_io (s_fatal$, r_name, 'BAD LORD_TYPE ARGUMENT: ' // int_str(lord_type))
-  stop
-end select
+lat => slave%branch%lat
 
 ! If a slice_ele is a slave of a super_slave, return a lord of the super_slave.
 
-lat => slave%branch%lat
-
 if (slave%slave_status == slice_slave$) then
-  lord_ptr => slave%lord
-  if (lord_ptr%slave_status == super_slave$) then
-    icon = lat%ic(slave%ic1_lord + ixl - 1)
-    ctl => lat%control(icon)
-    lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
+  ele_ptr => slave%lord
+  if (ele_ptr%slave_status /= super_slave$) then
+    lord_ptr => ele_ptr
+    return
   endif
+else
+  ele_ptr => slave
+endif
 
+!
+
+if (ele_ptr%slave_status /= super_slave$) then
+  call out_io (s_fatal$, r_name, 'Routine is being called with lattice element ' // ele_full_name(slave), &
+                                 'that is not a super_slave nor a slice_slave!')
+  if (global_com%exit_on_error) call err_exit
   return
 endif
 
-! Ramper lords are different from others.
-! There are no associated control, ix_slave_back, control and ix_ic values.
+do ix = 1, ele_ptr%n_lord
+  lord_ptr => pointer_to_lord(ele_ptr, ix)
+  if (lord_ptr%key /= pipe$) exit
+  if (ix == ele_ptr%n_lord) exit
+enddo
 
-if (ixl > n_lord_reg) then
-  ixr = ixl - n_lord_reg
-  ix = slave%control%ramper_lord(ixr)%ix_ele
-  lord_ptr => lat%ele(ix)
-  if (present(ix_control)) ix_control = slave%control%ramper_lord(ixr)%ix_con
-  return
-endif
+if (lord_ptr%lord_status /= super_lord$) then  ! Can happen with group or overlay lords present.
+  ix = ix - 1
+  lord_ptr => pointer_to_lord(ele_ptr, ix)
+endif  
 
-! Point to the non-ramper lord
 
-icon = lat%ic(slave%ic1_lord + ixl - 1)
+icon = lat%ic(slave%ic1_lord + ix - 1)
 ctl => lat%control(icon)
 lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
 
 if (present(control)) control => ctl
 if (present(ix_control)) ix_control = icon
-if (present(ix_ic)) ix_ic = slave%ic1_lord + ixl - 1
+if (present(ix_ic)) ix_ic = slave%ic1_lord + ix - 1
 if (present(ix_slave_back)) ix_slave_back = icon - lord_ptr%ix1_slave + 1
 
 end function pointer_to_super_lord
