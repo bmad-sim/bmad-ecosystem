@@ -84,12 +84,6 @@ if (ele%key == multipole$) then
     return
   endif
 
-  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-    lord => pointer_to_lord(ele, 1)
-  else
-    lord => ele
-  endif
-
   call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
   call multipole_kt_to_ab (a_pole, ksl_pole, b_pole, a, b)
   ix_pole_max = max_nonzero(0, a, b)

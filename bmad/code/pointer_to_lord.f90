@@ -22,6 +22,7 @@
 ! Note: Ramper lords do not return control, ix_slave_back, and ix_ic args.
 !
 ! Also see:
+!   pointer_to_super_lord
 !   pointer_to_slave
 !   pointer_to_ele
 !   num_lords
