@@ -56,7 +56,7 @@ iq = 0
 
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
-  if (ele%slave_status == super_slave$) ele => pointer_to_lord(ele, 1)
+  if (ele%slave_status == super_slave$) ele => pointer_to_super_lord(ele)
   if (.not. ele%select) cycle
   ele%select = .false.   ! To avoid super_lord duplicates.
 

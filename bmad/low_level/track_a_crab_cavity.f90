@@ -45,7 +45,7 @@ call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$,
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 ref_ele => ele
-if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_lord(ele, 1)
+if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_super_lord(ele)
 dt_ref = ele%s_start - ref_ele%s_start
 
 !

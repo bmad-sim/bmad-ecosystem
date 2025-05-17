@@ -780,11 +780,10 @@ describes in detail these data types.
   \pref{phase}            & phase.a, .b                         & Betatron phase                            & lat         & Yes \\ \hline 
   \pref{phase.frac}       & phase_frac.a, .b                    & \begin{tabular}{@{}l}
                                                                     Fractional betatron phase \\       
-                                                                    $-\pi < \phi_{\mbox{frac}} < \pi$ 
                                                                   \end{tabular}                             & lat         & No  \\ \hline 
   \pref{phase.frac.diff}  & phase_frac_diff                     & \begin{tabular}{@{}l}
-                                                                    Phase difference \\
-                                                                    between $a$ and $b$ modes
+                                                                    $a$ - $b$ mode phase difference \\
+                                                                    $-\pi < \phi_{\mbox{frac}} < \pi$ 
                                                                   \end{tabular}                             & lat         & No  \\ \hline 
   \pref{photon.intens}    & photon.intensity                    & Photon total intensity                    & lat, beam   & No  \\ \hline 
   \pref{photon.intens.x}  & \begin{tabular}{@{}l}
@@ -1530,8 +1529,8 @@ Fractional betatron phase. Also see the discussion under \vn{phase.a, .b}.
 
   %----------------------
   \item[phase_frac_diff] \Newline \hlabel{phase.frac.diff}
-Fractional betatron phase difference between the $a$ and $b$ normal modes. 
-$-\pi < d\phi_{\mbox{frac}} < \pi$
+Fractional betatron phase difference $a$-mode minus $b$-mode with the difference in the region 
+$-\pi < d\phi_{\mbox{frac}} < \pi$.
 
   %----------------------
   \item[photon.intensity] \Newline \hlabel{photon.intens}

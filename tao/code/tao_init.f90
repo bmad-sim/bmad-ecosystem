@@ -316,12 +316,12 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
     call tao_single_track (tao_lat, this_calc_ok, ib)
 
     if (branch%param%particle /= photon$ .and. this_calc_ok) then
-      call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
+      if (s%global%rad_int_user_calc_on) call radiation_integrals (tao_lat%lat, tao_branch%orbit, &
                                   tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ib, tao_lat%rad_int_by_ele_ri)
 
       if (tao_branch%track_state == moving_forward$) then
-        call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
-        call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
+        if (s%global%rad_int_user_calc_on) call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
+        if (s%global%rad_int_user_calc_on) call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, tao_branch%orbit(0)%vec(6), &
                               tao_lat%low_E_lat, tao_lat%high_E_lat, tao_branch%low_E_orb, tao_branch%high_E_orb, ib, tao_branch%orbit(0))
       endif

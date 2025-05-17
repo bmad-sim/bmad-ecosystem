@@ -548,7 +548,7 @@ case (quadrupole$)
 case (sad_mult$)
   ! Slice slaves and super slaves have their associated multipoles stored in the lord
   if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-    m_ele => pointer_to_lord(ele, 1)
+    m_ele => pointer_to_super_lord(ele)
   else
     m_ele => ele
   endif

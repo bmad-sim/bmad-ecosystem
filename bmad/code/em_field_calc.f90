@@ -1287,7 +1287,7 @@ case(fieldmap$)
         return
       endif
 
-      call gen_grad_add_em_field (ele, gg_map, [x,y,z], field)
+      call gen_grad_add_em_field (ele, gg_map, [x,y,z], s_body, field)
     enddo
   endif
 
@@ -1593,14 +1593,14 @@ end subroutine restore_curvilinear_field
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine gen_grad_add_em_field (ele, gg_map, r_pos, field)
+subroutine gen_grad_add_em_field (ele, gg_map, r_pos, s_body, field)
 
 type (ele_struct) ele
 type (gen_grad_map_struct), target :: gg_map
 type (gen_grad1_struct), pointer :: gg
 type (em_field_struct) field
 
-real(rp) r_pos(3), z_rel, theta, rho
+real(rp) r_pos(3), z_rel, theta, rho, s_body
 real(rp), allocatable :: d0(:), d1(:), der(:)
 integer iz0, j, id, nd
 

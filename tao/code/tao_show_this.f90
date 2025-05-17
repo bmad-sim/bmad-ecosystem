@@ -2040,6 +2040,8 @@ case ('field')
       cycle
     endif
 
+    if (size(lines) < nl + 20) call re_allocate (lines, nl + 100) 
+
     !
 
     call init_coord (orb, orb, ele, downstream_end$)
@@ -3342,9 +3344,9 @@ case ('lattice')
 
   else
     select case (where)
-    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element (Girder at ref point):'
-    case ('middle');    line1 = '# Values shown are for the Center of each Element (Girder at ref point):'
-    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element (Girder at ref point):'
+    case ('exit');      line1 = '# Values shown are for the Downstream End of each Element (Girder elements shown at ref point):'
+    case ('middle');    line1 = '# Values shown are for the Center of each Element (Girder elements shown at ref point):'
+    case ('beginning'); line1 = '# Values shown are for the Upstream of each Element (Girder elements shown at ref point):'
     end select
 
     if (size(lat%branch) > 1) line1 = '# Branch ' // int_str(branch%ix_branch) // '.' // line1(2:)
