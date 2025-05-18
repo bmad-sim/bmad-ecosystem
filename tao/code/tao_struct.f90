@@ -914,7 +914,7 @@ end type
 ! For caching lattice calculations associated with plotting.
 
 type tao_plot_cache_struct
-  type (ele_struct) ele
+  type (ele_struct) ele_to_s     ! Integrated element from branch beginning. Will be marked as a hybrid element.
   type (coord_struct) orbit
   logical err
 end type
@@ -1169,7 +1169,7 @@ integer i
 if (.not. allocated(plot_cache)) return
 
 do i = 1, size(plot_cache)
-  call deallocate_ele_pointers(plot_cache(i)%ele)
+  call deallocate_ele_pointers(plot_cache(i)%ele_to_s)
 enddo
 
 deallocate(plot_cache)

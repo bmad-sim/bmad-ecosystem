@@ -1301,7 +1301,7 @@ endif
 
 if (source == 'at_ele') then
   call re_allocate(stack%value, 1)
-  stack%value(1) = tao_param_value_at_s (str, dflt_ele, dflt_orbit, err_flag)
+  stack%value(1) = tao_param_value_at_s (str, dflt_ele, dflt_ele, dflt_orbit, err_flag)
   call tao_re_allocate_expression_info (stack%info, 1)
   stack%info%good = (.not. err_flag)
   return
@@ -1538,7 +1538,7 @@ if (substr(datum%data_type,1,2) == 'r.') then
   orb_at_s = orbit(ix_ref)
   call mat6_from_s_to_s (branch%lat, ele_at_s%mat6, ele_at_s%vec0, s_eval_ref, datum%s, &
                                                        orbit(ele%ix_ele), orb2, branch%ix_branch, .true.)
-  value = tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
+  value = tao_param_value_at_s (datum%data_type, ele_at_s, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
     return
@@ -1552,7 +1552,7 @@ else
     return
   endif
 
-  value = tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
+  value = tao_param_value_at_s (datum%data_type, ele_at_s, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
   if (err) then
     err_str = 'CANNOT EVALUATE DATUM AT OFFSET POSITION.'
     return
@@ -1566,7 +1566,7 @@ else
       return
     endif
 
-    value = value - tao_param_value_at_s (datum%data_type, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
+    value = value - tao_param_value_at_s (datum%data_type, ele_at_s, ele_at_s, orb_at_s, err, bad_datum = bad_datum)
     if (err) then
       err_str = 'CANNOT EVALUATE DATUM AT REFERENCE POSITION.'
       return

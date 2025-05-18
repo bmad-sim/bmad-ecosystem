@@ -180,7 +180,7 @@ if (ele%field_calc == refer_to_lords$) then
 
   enddo lord_loop
 
-  if (local_ref_frame) call convert_field_ele_to_lab(ele, s_lab, .false., field)
+  if (local_ref_frame) call convert_field_ele_to_lab(ele, s_lab, .false., field, calc_dfield, calc_potential)
   return
 endif
 
@@ -1479,10 +1479,10 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
   call rotate_em_field (lord_field, transpose(w_ele_mat), transpose(w_ele_mat))
 
   if (local_ref_frame) then
-    call convert_field_ele_to_lab (ele, s_lab, .false., lord_field)  ! lab -> ele
+    call convert_field_ele_to_lab (ele, s_lab, .false., lord_field, calc_dfield, calc_potential)  ! lab -> ele
     field = field + lord_field
   else
-    call convert_field_ele_to_lab (ele, s_body, .true., field)
+    call convert_field_ele_to_lab (ele, s_body, .true., field, calc_dfield, calc_potential)
     field = field + lord_field
   endif
 
@@ -1491,7 +1491,7 @@ endif
 
 ! Final
 
-if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., field)
+if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., field, calc_dfield, calc_potential)
 
 if (do_df_calc .and. .not. dfield_computed) then
   call em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, field, grid_allow_s_out_of_bounds, rf_time)
@@ -1518,47 +1518,6 @@ do i = 1, size(x)
 enddo
 
 end function rb_field
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-! contains
-
-! Convert fields: ele to lab coords
-
-subroutine convert_field_ele_to_lab (ele, s_here, forward_transform, field)
-
-type (ele_struct) ele
-type (em_field_struct) field
-
-real(rp) s_here, w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
-real(rp) theta
-logical forward_transform
-
-!
-
-if (ele%key == sbend$ .or. ele%key == rf_bend$) then
-  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat)
-  theta = ele%value(g$) * s_here - ele%value(angle$)/2
-  w_s = w_mat_for_x_pitch (theta)
-  if (ele%value(ref_tilt_tot$) == 0) then
-    w_mat = matmul(matmul(w_s, w_mat), transpose(w_s))
-  else
-    w_rt = w_mat_for_tilt (ele%value(ref_tilt_tot$))
-    w_rt_inv = w_mat_for_tilt (ele%value(ref_tilt_tot$), .true.)
-    w_mat = matmul(matmul(matmul(matmul(matmul(w_rt, w_s), w_rt_inv), w_mat), w_rt), transpose(w_s))
-  endif
-  w_inv = transpose(w_mat)
-else
-  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat, w_inv)
-endif
-
-if (forward_transform) then
-  call rotate_em_field (field, w_mat, w_inv, calc_dfield, calc_potential)
-else
-  call rotate_em_field (field, w_inv, w_mat, calc_dfield, calc_potential)
-endif
-
-end subroutine convert_field_ele_to_lab
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
