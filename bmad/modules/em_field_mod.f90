@@ -597,7 +597,7 @@ end function field_interpolate_3d
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
-! Subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, grid_allow_s_out_of_bounds, rf_time)
+! Subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield, grid_allow_s_out_of_bounds, rf_time)
 !
 ! Routine to calculate field derivatives.
 ! In theory this should be handled by em_filed_calc. In practice, em_field_calc is currently incomplete.
@@ -605,7 +605,7 @@ end function field_interpolate_3d
 ! Input
 !   ele             -- Ele_struct: Element
 !   param           -- lat_param_struct: Lattice parameters.
-!   z_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
+!   s_pos           -- Real(rp): Longitudinal position relative to the upstream edge of the element.
 !   time            -- Real(rp): Particle time.
 !                       For absolute time tracking this is the absolute time.
 !                       For relative time tracking this is relative to the reference particle entering the element.
@@ -622,29 +622,38 @@ end function field_interpolate_3d
 !   dfield       -- em_field_struct: E and B field derivatives. dfield%E and dfield%B are not touched.
 !-
 
-subroutine em_field_derivatives (ele, param, z_pos, orbit, local_ref_frame, dfield, grid_allow_s_out_of_bounds, rf_time)
+subroutine em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, dfield, grid_allow_s_out_of_bounds, rf_time)
 
 type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (em_field_struct) :: dfield, f0, f1
-type (coord_struct) :: orbit, orb
+type (coord_struct) :: orbit, orb, local_orb
 
 real(rp), optional :: rf_time
-real(rp) z_pos, s0, s1, del
+real(rp) s_pos, s0, s1, del, s_body
 logical local_ref_frame
 logical, optional :: grid_allow_s_out_of_bounds
 
 !
 
-orb = orbit
+local_orb = orbit
+if (local_ref_frame) then
+  s_body = s_pos
+else
+  call offset_particle (ele, set$, local_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_body)
+endif
+
+!
+
+orb = local_orb
 del = bmad_com%d_orb(1)
 
-orb%vec(1) = orbit%vec(1) - del
-call em_field_calc (ele, param, z_pos, orb, .true., f0, &
+orb%vec(1) = local_orb%vec(1) - del
+call em_field_calc (ele, param, s_pos, orb, .true., f0, &
                             grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
-orb%vec(1) = orbit%vec(1) + del
-call em_field_calc (ele, param, z_pos, orb, .true., f1, &
+orb%vec(1) = local_orb%vec(1) + del
+call em_field_calc (ele, param, s_pos, orb, .true., f1, &
                             grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
 dfield%dB(:,1) = (f1%B - f0%B) / (2 * del)
@@ -652,15 +661,15 @@ dfield%dE(:,1) = (f1%E - f0%E) / (2 * del)
 
 !
 
-orb = orbit
+orb = local_orb
 del = bmad_com%d_orb(3)
 
-orb%vec(3) = orbit%vec(3) - del
-call em_field_calc (ele, param, z_pos, orb, .true., f0, &
+orb%vec(3) = local_orb%vec(3) - del
+call em_field_calc (ele, param, s_pos, orb, .true., f0, &
                             grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
-orb%vec(3) = orbit%vec(3) + del
-call em_field_calc (ele, param, z_pos, orb, .true., f1, &
+orb%vec(3) = local_orb%vec(3) + del
+call em_field_calc (ele, param, s_pos, orb, .true., f1, &
                             grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
 dfield%dB(:,2) = (f1%B - f0%B) / (2 * del)
@@ -668,21 +677,25 @@ dfield%dE(:,2) = (f1%E - f0%E) / (2 * del)
 
 !
 
-orb = orbit
+orb = local_orb
 del = bmad_com%d_orb(5)
 
-s0 = max(0.0_rp, z_pos-del)
-s1 = min(ele%value(l$), z_pos+del)
+s0 = max(0.0_rp, s_pos-del)
+s1 = min(ele%value(l$), s_pos+del)
 if (s1 == s0) return  ! Cannot calc if zero length
 
-call em_field_calc (ele, param, s0, orbit, .true., f0, &
+call em_field_calc (ele, param, s0, local_orb, .true., f0, &
                             grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
-call em_field_calc (ele, param, s1, orbit, .true., f1, &
+call em_field_calc (ele, param, s1, local_orb, .true., f1, &
                             grid_allow_s_out_of_bounds = grid_allow_s_out_of_bounds, rf_time = rf_time)
 
 dfield%dB(:,3) = (f1%B - f0%B) / (s1 - s0)
 dfield%dE(:,3) = (f1%E - f0%E) / (s1 - s0)
+
+!
+
+if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., dfield, .true.)
 
 end subroutine em_field_derivatives
 
@@ -760,5 +773,61 @@ do id = 0, gg%n_deriv_max
 enddo
 
 end function
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Subroutine convert_field_ele_to_lab (ele, s_here, forward_transform, field, calc_dfield, calc_potential)
+!
+! Convert fields: ele to lab coords
+!
+! Input:
+!   ele                 -- Ele_struct: Lattice element.
+!   s_here              -- real(rp) S-position.
+!   forward_transform   -- Transform foward (to lab) or reverse.
+!   calc_dfield         -- Logical, optional: If present and True then calculate the field derivatives.
+!   calc_potential      -- logical, optional: Calc electric and magnetic potentials? Default is false. 
+!                         This is experimental and only implemented for wigglers at present.
+!
+! Output:
+!   field               -- em_field_struct: EM field.
+!-
+
+subroutine convert_field_ele_to_lab (ele, s_here, forward_transform, field, calc_dfield, calc_potential)
+
+type (ele_struct) ele
+type (em_field_struct) field
+
+real(rp) s_here, w_mat(3,3), w_inv(3,3), w_s(3,3), w_rt(3,3), w_rt_inv(3,3)
+real(rp) theta
+logical forward_transform
+logical, optional :: calc_dfield, calc_potential
+
+!
+
+if (ele%key == sbend$ .or. ele%key == rf_bend$) then
+  call floor_angles_to_w_mat (ele%value(x_pitch$), ele%value(y_pitch$), ele%value(roll$), w_mat)
+  theta = ele%value(g$) * s_here - ele%value(angle$)/2
+  w_s = w_mat_for_x_pitch (theta)
+  if (ele%value(ref_tilt_tot$) == 0) then
+    w_mat = matmul(matmul(w_s, w_mat), transpose(w_s))
+  else
+    w_rt = w_mat_for_tilt (ele%value(ref_tilt_tot$))
+    w_rt_inv = w_mat_for_tilt (ele%value(ref_tilt_tot$), .true.)
+    w_mat = matmul(matmul(matmul(matmul(matmul(w_rt, w_s), w_rt_inv), w_mat), w_rt), transpose(w_s))
+  endif
+  w_inv = transpose(w_mat)
+else
+  call floor_angles_to_w_mat (ele%value(x_pitch_tot$), ele%value(y_pitch_tot$), ele%value(tilt_tot$), w_mat, w_inv)
+endif
+
+if (forward_transform) then
+  call rotate_em_field (field, w_mat, w_inv, calc_dfield, calc_potential)
+else
+  call rotate_em_field (field, w_inv, w_mat, calc_dfield, calc_potential)
+endif
+
+end subroutine convert_field_ele_to_lab
 
 end module

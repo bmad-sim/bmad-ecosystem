@@ -583,10 +583,10 @@ subroutine tao_pointer_to_universes (name_in, unis, err, name_out, explicit_uni,
   logical, optional :: explicit_uni
 end subroutine
 
-function tao_param_value_at_s (dat_name, ele, orbit, err_flag, why_invalid, print_err, bad_datum) result (value)
+function tao_param_value_at_s (dat_name, ele_to_s, ele_here, orbit, err_flag, why_invalid, print_err, bad_datum) result (value)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct) ele_to_s, ele_here
   type (coord_struct) orbit
   real(rp) value
   character(*) dat_name

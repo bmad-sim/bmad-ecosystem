@@ -219,7 +219,7 @@ if (where /= anchor_end$ .and. ixe /= 0) then
     case default
       call twiss_and_track_intra_ele (branch%ele(ixe), lat%param, 0.0_rp, branch%ele(ixe)%value(l$)/2, &
                                                                     .true., .false., orb0, orb, ele0, ele3, err)
-      values(n_tot) = tao_param_value_at_s (parameter, ele3, orb, err)
+      values(n_tot) = tao_param_value_at_s (parameter, ele3, ele3, orb, err)
     end select
 
     if (err) then
@@ -229,7 +229,7 @@ if (where /= anchor_end$ .and. ixe /= 0) then
     endif
 
   else
-    values(n_tot) = tao_param_value_at_s (parameter, ele0, orb0, err)
+    values(n_tot) = tao_param_value_at_s (parameter, ele0, ele0, orb0, err)
     if (err) then
       call pointer_to_attribute (ele0, parameter, .true., a_ptr, err, print_err)
       if (err) return
@@ -259,7 +259,7 @@ else
     end select
 
   else
-    values(n_tot) = tao_param_value_at_s (parameter, branch%ele(ixe), tao_branch%orbit(ixe), err, print_err = print_err)
+    values(n_tot) = tao_param_value_at_s (parameter, branch%ele(ixe), branch%ele(ixe), tao_branch%orbit(ixe), err, print_err = print_err)
     if (err) then
       call pointer_to_attribute (branch%ele(ixe), parameter, .true., a_ptr, err, print_err)
       if (err) return
