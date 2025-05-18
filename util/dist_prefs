@@ -75,7 +75,7 @@ export ACC_PLOT_DISPLAY_TYPE="X"
 #       http://macports.org
 #       
 #-----------------------------------------------------------
-export ACC_ENABLE_OPENMP="Y"
+export ACC_ENABLE_OPENMP="N"
 
 
 #-----------------------------------------------------------
