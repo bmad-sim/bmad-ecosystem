@@ -1491,11 +1491,11 @@ endif
 
 ! Final
 
-if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., field, calc_dfield, calc_potential)
-
 if (do_df_calc .and. .not. dfield_computed) then
-  call em_field_derivatives (ele, param, s_pos, orbit, local_ref_frame, field, grid_allow_s_out_of_bounds, rf_time)
+  call em_field_derivatives (ele, param, s_pos, orbit, .true., field, grid_allow_s_out_of_bounds, rf_time)
 endif
+
+if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., field, calc_dfield, calc_potential)
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
