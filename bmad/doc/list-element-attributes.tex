@@ -84,25 +84,25 @@ field_overlaps                   & offset_moves_aperture            & tilt_tot [
  \label{s:list.beambeam}
  
  \begin{tabular}{llll} \toprule
-alias                            & crab_x4 [1/m$^3$]                & ref_origin                       & x2_limit [m]                     \\
-alpha_a_strong                   & crab_x5 [1/m$^4$]                & ref_time_start [sec]             & x_limit [m]                      \\
-alpha_b_strong                   & create_jumbo_slave               & reference                        & x_offset [m]                     \\
-aperture [m]                     & delta_ref_time [sec]             & repetition_frequency [Hz]        & x_offset_tot [m]                 \\
-aperture_at                      & descrip                          & s_twiss_ref [m]                  & x_pitch [rad]                    \\
-aperture_type                    & e_tot [eV]                       & sig_x [m]                        & x_pitch_tot [rad]                \\
-bbi_constant                     & e_tot_strong [eV]                & sig_y [m]                        & y1_limit [m]                     \\
-beta_a_strong [m]                & ele_origin                       & sig_z [m]                        & y2_limit [m]                     \\
-beta_b_strong [m]                & field_calc                       & species_strong                   & y_limit [m]                      \\
-bs_field [T]                     & is_on                            & spin_tracking_method             & y_offset [m]                     \\
-charge                           & ks [1/m]                         & superimpose                      & y_offset_tot [m]                 \\
-cmat_11                          & l [m]                            & symplectify                      & y_pitch [rad]                    \\
-cmat_12                          & mat6_calc_method                 & tilt [rad]                       & y_pitch_tot [rad]                \\
-cmat_21                          & n_particle                       & tilt_tot [rad]                   & z_crossing [m]                   \\
-cmat_22                          & n_slice                          & tracking_method                  & z_offset [m]                     \\
-crab_tilt [rad]                  & offset [m]                       & type                             & z_offset_tot [m]                 \\
-crab_x1                          & offset_moves_aperture            & wall                             &                                  \\
-crab_x2 [1/m]                    & p0c [eV]                         & wrap_superimpose                 &                                  \\
-crab_x3 [1/m$^2$]                & ptc_integration_type             & x1_limit [m]                     &                                  \\
+alias                            & crab_x4 [1/m$^3$]                & pc_strong [eV]                   & wrap_superimpose                 \\
+alpha_a_strong                   & crab_x5 [1/m$^4$]                & ptc_integration_type             & x1_limit [m]                     \\
+alpha_b_strong                   & create_jumbo_slave               & ref_origin                       & x2_limit [m]                     \\
+aperture [m]                     & crossing_time [sec]              & ref_time_start [sec]             & x_limit [m]                      \\
+aperture_at                      & delta_ref_time [sec]             & reference                        & x_offset [m]                     \\
+aperture_type                    & descrip                          & repetition_frequency [Hz]        & x_offset_tot [m]                 \\
+bbi_constant                     & e_tot [eV]                       & s_twiss_ref [m]                  & x_pitch [rad]                    \\
+beta_a_strong [m]                & e_tot_strong [eV]                & sig_x [m]                        & x_pitch_tot [rad]                \\
+beta_b_strong [m]                & ele_origin                       & sig_y [m]                        & y1_limit [m]                     \\
+bs_field [T]                     & field_calc                       & sig_z [m]                        & y2_limit [m]                     \\
+charge                           & is_on                            & species_strong                   & y_limit [m]                      \\
+cmat_11                          & ks [1/m]                         & spin_tracking_method             & y_offset [m]                     \\
+cmat_12                          & l [m]                            & superimpose                      & y_offset_tot [m]                 \\
+cmat_21                          & mat6_calc_method                 & symplectify                      & y_pitch [rad]                    \\
+cmat_22                          & n_particle                       & tilt [rad]                       & y_pitch_tot [rad]                \\
+crab_tilt [rad]                  & n_slice                          & tilt_tot [rad]                   & z_offset [m]                     \\
+crab_x1                          & offset [m]                       & tracking_method                  & z_offset_tot [m]                 \\
+crab_x2 [1/m]                    & offset_moves_aperture            & type                             &                                  \\
+crab_x3 [1/m$^2$]                & p0c [eV]                         & wall                             &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -112,15 +112,16 @@ crab_x3 [1/m$^2$]                & ptc_integration_type             & x1_limit [
  \label{s:list.beginning}
  
  \begin{tabular}{llll} \toprule
-alpha_a                          & dalpha_dpz_b                     & etap_y                           & ref_time [sec]                   \\
-alpha_b                          & dbeta_dpz_a [m]                  & inherit_from_fork                & s [m]                            \\
-beta_a [m]                       & dbeta_dpz_b [m]                  & mode_flip                        & spin_dn_dpz_x                    \\
-beta_b [m]                       & e_tot [eV]                       & p0c [eV]                         & spin_dn_dpz_y                    \\
-cmat_11                          & e_tot_start [eV]                 & p0c_start [eV]                   & spin_dn_dpz_z                    \\
-cmat_12                          & eta_x [m]                        & phi_a [rad]                      & theta_position [rad]             \\
-cmat_21                          & eta_y [m]                        & phi_b [rad]                      & x_position [m]                   \\
-cmat_22                          & eta_z [m]                        & phi_position [rad]               & y_position [m]                   \\
-dalpha_dpz_a                     & etap_x                           & psi_position [rad]               & z_position [m]                   \\
+alpha_a                          & dbeta_dpz_a [m]                  & eta_z [m]                        & psi_position [rad]               \\
+alpha_b                          & dbeta_dpz_b [m]                  & etap_x                           & ref_time [sec]                   \\
+beta_a [m]                       & deta_dpz_x [m]                   & etap_y                           & s [m]                            \\
+beta_b [m]                       & deta_dpz_y [m]                   & inherit_from_fork                & spin_dn_dpz_x                    \\
+cmat_11                          & detap_dpz_x                      & mode_flip                        & spin_dn_dpz_y                    \\
+cmat_12                          & detap_dpz_y                      & p0c [eV]                         & spin_dn_dpz_z                    \\
+cmat_21                          & e_tot [eV]                       & p0c_start [eV]                   & theta_position [rad]             \\
+cmat_22                          & e_tot_start [eV]                 & phi_a [rad]                      & x_position [m]                   \\
+dalpha_dpz_a                     & eta_x [m]                        & phi_b [rad]                      & y_position [m]                   \\
+dalpha_dpz_b                     & eta_y [m]                        & phi_position [rad]               & z_position [m]                   \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -543,22 +544,22 @@ ele_origin                       & ref_time_start [sec]             & x1_limit [
  \label{s:list.foil}
  
  \begin{tabular}{llll} \toprule
-alias                            & final_charge                     & scatter_test                     & x_offset_tot [m]                 \\
-aperture [m]                     & is_on                            & spin_tracking_method             & x_pitch [rad]                    \\
-aperture_at                      & l [m]                            & superimpose                      & x_pitch_tot [rad]                \\
-aperture_type                    & mat6_calc_method                 & thickness [m]                    & y1_edge [m]                      \\
-area_density [kg/m$^2$]          & material_type                    & tilt [rad]                       & y1_limit [m]                     \\
-area_density_used [kg/m$^2$]     & num_steps                        & tilt_tot [rad]                   & y2_edge [m]                      \\
-atomic_weight [???]              & offset [m]                       & tracking_method                  & y2_limit [m]                     \\
+alias                            & is_on                            & spin_tracking_method             & x_pitch [rad]                    \\
+aperture [m]                     & l [m]                            & superimpose                      & x_pitch_tot [rad]                \\
+aperture_at                      & mat6_calc_method                 & thickness [m]                    & y1_edge [m]                      \\
+aperture_type                    & material_type                    & tilt [rad]                       & y1_limit [m]                     \\
+area_density [kg/m$^2$]          & num_steps                        & tilt_tot [rad]                   & y2_edge [m]                      \\
+area_density_used [kg/m$^2$]     & offset [m]                       & tracking_method                  & y2_limit [m]                     \\
 create_jumbo_slave               & offset_moves_aperture            & type                             & y_limit [m]                      \\
 delta_ref_time [sec]             & p0c [eV]                         & wall                             & y_offset [m]                     \\
 density [kg/m$^3$]               & ptc_integration_type             & wrap_superimpose                 & y_offset_tot [m]                 \\
 density_used [kg/m$^3$]          & radiation_length [kg/m$^2$]      & x1_edge [m]                      & y_pitch [rad]                    \\
 descrip                          & radiation_length_used [kg/m$^2$] & x1_limit [m]                     & y_pitch_tot [rad]                \\
-dthickness_dx [???]              & ref_origin                       & x2_edge [m]                      & z_offset [m]                     \\
+dthickness_dx                    & ref_origin                       & x2_edge [m]                      & z_offset [m]                     \\
 e_tot [eV]                       & ref_time_start [sec]             & x2_limit [m]                     & z_offset_tot [m]                 \\
 ele_origin                       & reference                        & x_limit [m]                      &                                  \\
-f_factor [???]                   & scatter_method                   & x_offset [m]                     &                                  \\
+f_factor                         & scatter_method                   & x_offset [m]                     &                                  \\
+final_charge                     & scatter_test                     & x_offset_tot [m]                 &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -795,17 +796,18 @@ l [m]                            & superimpose                      & x_offset_t
  \label{s:list.line}
  
  \begin{tabular}{llll} \toprule
-alpha_a                          & dbeta_dpz_b [m]                  & inherit_from_fork                & s [m]                            \\
-alpha_b                          & default_tracking_species         & live_branch                      & spin_dn_dpz_x                    \\
-beta_a [m]                       & e_tot [eV]                       & mode_flip                        & spin_dn_dpz_y                    \\
-beta_b [m]                       & e_tot_start [eV]                 & p0c [eV]                         & spin_dn_dpz_z                    \\
-cmat_11                          & eta_x [m]                        & p0c_start [eV]                   & theta_position [rad]             \\
-cmat_12                          & eta_y [m]                        & particle                         & x_position [m]                   \\
-cmat_21                          & eta_z [m]                        & phi_a [rad]                      & y_position [m]                   \\
-cmat_22                          & etap_x                           & phi_b [rad]                      & z_position [m]                   \\
-dalpha_dpz_a                     & etap_y                           & phi_position [rad]               &                                  \\
-dalpha_dpz_b                     & geometry                         & psi_position [rad]               &                                  \\
-dbeta_dpz_a [m]                  & high_energy_space_charge_on      & ref_time [sec]                   &                                  \\
+alpha_a                          & default_tracking_species         & geometry                         & ref_time [sec]                   \\
+alpha_b                          & deta_dpz_x [m]                   & high_energy_space_charge_on      & s [m]                            \\
+beta_a [m]                       & deta_dpz_y [m]                   & inherit_from_fork                & spin_dn_dpz_x                    \\
+beta_b [m]                       & detap_dpz_x                      & live_branch                      & spin_dn_dpz_y                    \\
+cmat_11                          & detap_dpz_y                      & mode_flip                        & spin_dn_dpz_z                    \\
+cmat_12                          & e_tot [eV]                       & p0c [eV]                         & theta_position [rad]             \\
+cmat_21                          & e_tot_start [eV]                 & p0c_start [eV]                   & x_position [m]                   \\
+cmat_22                          & eta_x [m]                        & particle                         & y_position [m]                   \\
+dalpha_dpz_a                     & eta_y [m]                        & phi_a [rad]                      & z_position [m]                   \\
+dalpha_dpz_b                     & eta_z [m]                        & phi_b [rad]                      &                                  \\
+dbeta_dpz_a [m]                  & etap_x                           & phi_position [rad]               &                                  \\
+dbeta_dpz_b [m]                  & etap_y                           & psi_position [rad]               &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
