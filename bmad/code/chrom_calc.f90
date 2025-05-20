@@ -123,6 +123,18 @@ else
   ele2%b%beta  = ele%b%beta  - delta_e * ele%b%dbeta_dpz
   ele2%a%alpha = ele%a%alpha - delta_e * ele%a%dalpha_dpz
   ele2%b%alpha = ele%b%alpha - delta_e * ele%b%dalpha_dpz
+
+  ele2%a%eta   = ele%a%eta   - delta_e * ele%a%deta_dpz
+  ele2%b%eta   = ele%b%eta   - delta_e * ele%b%deta_dpz
+  ele2%x%eta   = ele%x%eta   - delta_e * ele%x%deta_dpz
+  ele2%y%eta   = ele%y%eta   - delta_e * ele%y%deta_dpz
+  ele2%z%eta   = ele%z%eta   - delta_e * ele%z%deta_dpz
+
+  ele2%a%etap  = ele%a%etap  - delta_e * ele%a%detap_dpz
+  ele2%b%etap  = ele%b%etap  - delta_e * ele%b%detap_dpz
+  ele2%x%etap  = ele%x%etap  - delta_e * ele%x%detap_dpz
+  ele2%y%etap  = ele%y%etap  - delta_e * ele%y%detap_dpz
+  ele2%z%etap  = ele%z%etap  - delta_e * ele%z%detap_dpz
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -185,6 +197,18 @@ else
   ele2%b%beta  = ele%b%beta  + delta_e * ele%b%dbeta_dpz
   ele2%a%alpha = ele%a%alpha + delta_e * ele%a%dalpha_dpz
   ele2%b%alpha = ele%b%alpha + delta_e * ele%b%dalpha_dpz
+
+  ele2%a%eta   = ele%a%eta   + delta_e * ele%a%deta_dpz
+  ele2%b%eta   = ele%b%eta   + delta_e * ele%b%deta_dpz
+  ele2%x%eta   = ele%x%eta   + delta_e * ele%x%deta_dpz
+  ele2%y%eta   = ele%y%eta   + delta_e * ele%y%deta_dpz
+  ele2%z%eta   = ele%z%eta   + delta_e * ele%z%deta_dpz
+
+  ele2%a%etap  = ele%a%etap  + delta_e * ele%a%detap_dpz
+  ele2%b%etap  = ele%b%etap  + delta_e * ele%b%detap_dpz
+  ele2%x%etap  = ele%x%etap  + delta_e * ele%x%detap_dpz
+  ele2%y%etap  = ele%y%etap  + delta_e * ele%y%detap_dpz
+  ele2%z%etap  = ele%z%etap  + delta_e * ele%z%detap_dpz
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -201,6 +225,18 @@ branch%ele(i0:nm)%a%dbeta_dpz  = (branch2%ele(i0:nm)%a%beta  - branch%ele(i0:nm)
 branch%ele(i0:nm)%b%dbeta_dpz  = (branch2%ele(i0:nm)%b%beta  - branch%ele(i0:nm)%b%dbeta_dpz) / (2 * delta_e)
 branch%ele(i0:nm)%a%dalpha_dpz = (branch2%ele(i0:nm)%a%alpha - branch%ele(i0:nm)%a%dalpha_dpz) / (2 * delta_e)
 branch%ele(i0:nm)%b%dalpha_dpz = (branch2%ele(i0:nm)%b%alpha - branch%ele(i0:nm)%b%dalpha_dpz) / (2 * delta_e)
+
+branch%ele(i0:nm)%a%deta_dpz  = (branch2%ele(i0:nm)%a%eta  - branch%ele(i0:nm)%a%eta) / (2 * delta_e)
+branch%ele(i0:nm)%b%deta_dpz  = (branch2%ele(i0:nm)%b%eta  - branch%ele(i0:nm)%b%eta) / (2 * delta_e)
+branch%ele(i0:nm)%x%deta_dpz  = (branch2%ele(i0:nm)%x%eta  - branch%ele(i0:nm)%x%eta) / (2 * delta_e)
+branch%ele(i0:nm)%y%deta_dpz  = (branch2%ele(i0:nm)%y%eta  - branch%ele(i0:nm)%y%eta) / (2 * delta_e)
+branch%ele(i0:nm)%z%deta_dpz  = (branch2%ele(i0:nm)%z%eta  - branch%ele(i0:nm)%z%eta) / (2 * delta_e)
+
+branch%ele(i0:nm)%a%detap_dpz = (branch2%ele(i0:nm)%a%etap - branch%ele(i0:nm)%a%etap) / (2 * delta_e)
+branch%ele(i0:nm)%b%detap_dpz = (branch2%ele(i0:nm)%b%etap - branch%ele(i0:nm)%b%etap) / (2 * delta_e)
+branch%ele(i0:nm)%x%detap_dpz = (branch2%ele(i0:nm)%x%etap - branch%ele(i0:nm)%x%etap) / (2 * delta_e)
+branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y%etap) / (2 * delta_e)
+branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%etap) / (2 * delta_e)
 
 if (present(err_flag)) err_flag = .false.
 

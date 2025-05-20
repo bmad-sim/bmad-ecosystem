@@ -1024,18 +1024,22 @@ in the lattice file by setting \vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_
 
   %----------------------
   \item[chrom.deta.x, .deta.y] \Newline \hlabel{chrom.deta}
-The chromatic dispersion $\partial\eta_{x,y}/\partial p_z$. Unlike the standard
-chromaticities,\vn{chrom.a} and \vn{chrom.b}, These chromaticities are evaluated at individual
-elements. The calculation uses finite differences with the variation of $pz$ being set by
+The chromatic dispersion $\partial\eta_{x,y}/\partial p_z$. 
+This is the same as \bmad \vn{deta_dpz_x} and \vn{deta_dpz_y}.
+If the geometry of the lattice branch has an open geometry, the values of these parameter
+at the start of the branch by setting \vn{beginning[deta_dpz_x]} and \vn{beginning[deta_dpz_y]}.
+The calculation uses finite differences with the variation of $pz$ being set by
 \vn{global%delta_e_chrom}.
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
 
   %----------------------
   \item[chrom.detap.x, .detap.y] \Newline \hlabel{chrom.detap}
-The chromatic momentum dispersion derivatives $\partial\eta'_{x,y}/\partial p_z$. Unlike the
-standard chromaticities,\vn{chrom.a} and \vn{chrom.b}, these chromaticities are evaluated at
-individual elements. The calculation uses finite differences with the variation of $pz$ being set by
+The chromatic momentum dispersion derivatives $\partial\eta'_{x,y}/\partial p_z$. 
+This is the same as \bmad \vn{detap_dpz_x} and \vn{detap_dpz_y}.
+If the geometry of the lattice branch has an open geometry, the values of these parameter
+at the start of the branch by setting \vn{beginning[detap_dpz_x]} and \vn{beginning[detap_dpz_y]}.
+The calculation uses finite differences with the variation of $pz$ being set by
 \vn{global%delta_e_chrom}.
 
 Chromaticities will be calculated even if the geometry of the lattice branch has an open geometry.
