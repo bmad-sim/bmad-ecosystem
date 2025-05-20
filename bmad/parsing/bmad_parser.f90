@@ -1433,6 +1433,8 @@ call set_this_real_val(t_in%emit,       t_out%emit)
 call set_this_real_val(t_in%norm_emit,  t_out%norm_emit)
 call set_this_real_val(t_in%dbeta_dpz,  t_out%dbeta_dpz)
 call set_this_real_val(t_in%dalpha_dpz, t_out%dalpha_dpz)
+call set_this_real_val(t_in%deta_dpz,  t_out%deta_dpz)
+call set_this_real_val(t_in%detap_dpz,  t_out%detap_dpz)
 end subroutine set_this_twiss_struct
 
 !---------------------------------------------------------------------
