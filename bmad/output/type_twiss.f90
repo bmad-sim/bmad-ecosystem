@@ -35,7 +35,7 @@
 !
 ! Output:
 !   lines(:)     -- Character(*), optional :: Character array to hold the output.
-!                     The string length should be at least 120 characters. 8 lines are needed for the verbose form.
+!                     The string length should be at least 120 characters. 13 lines are needed for the verbose form.
 !                     If not present, the information is printed to the terminal.
 !   n_lines      -- Integer, optional: Number of lines in lines(:) that hold valid output.
 !                     n_lines must be present if lines(:) is. 
@@ -56,7 +56,7 @@ integer i, nl
 real(rp) coef, cbar(2,2), a1, a2, b1, b2
 
 character(*), optional :: lines(:)
-character(200) li(11)
+character(200) li(20)
 character(80) fmt, str, freq_str
 
 logical, optional :: compact_format
@@ -108,25 +108,25 @@ else
                                               'Gamma (1/m) ', v(ele%a%gamma), v(ele%b%gamma), '  |', 'Gamma_c =', v2(ele%gamma_c), 'Mode_Flip = ', ele%mode_flip
 
   if (ele%a%beta == 0 .or. ele%b%beta == 0) then
-    nl=nl+1; write (li(nl), '(2x, a12, 5a)')           'dBeta/dpz   ', v(ele%a%dbeta_dpz), v(ele%b%dbeta_dpz)
-    nl=nl+1; write (li(nl), '(2x, a12, 5a)')           'dAlpha/dpz  ', v(ele%a%dalpha_dpz), v(ele%b%dalpha_dpz)
+    nl=nl+1; write (li(nl), '(2x, a12, 5a)')       'dBeta/dpz   ', v(ele%a%dbeta_dpz), v(ele%b%dbeta_dpz)
+    nl=nl+1; write (li(nl), '(2x, a12, 5a)')       'dAlpha/dpz  ', v(ele%a%dalpha_dpz), v(ele%b%dalpha_dpz)
   else
     b1 = ele%a%dbeta_dpz / ele%a%beta
     a1 = ele%a%dalpha_dpz - ele%a%alpha * b1
     b2 = ele%b%dbeta_dpz / ele%b%beta
     a2 = ele%b%dalpha_dpz - ele%b%alpha * b2
-    nl=nl+1; write (li(nl), '(2x, a12, 2a, 2a)')   'dBeta/dpz   ', v(ele%a%dbeta_dpz), v(ele%b%dbeta_dpz),   '  |', 'W_a =', v(sqrt(a1*a1 + b1*b1))
-    nl=nl+1; write (li(nl), '(2x, a12, 2a, 2a)')   'dAlpha/dpz  ', v(ele%a%dalpha_dpz), v(ele%b%dalpha_dpz), '  |', 'W_b =', v(sqrt(a2*a2 + b2*b2))
+    nl=nl+1; write (li(nl), '(2x, a12, 5a)')       'dBeta/dpz   ', v(ele%a%dbeta_dpz), v(ele%b%dbeta_dpz),   '  |', '   W_a =', v(sqrt(a1*a1 + b1*b1))
+    nl=nl+1; write (li(nl), '(2x, a12, 5a)')       'dAlpha/dpz  ', v(ele%a%dalpha_dpz), v(ele%b%dalpha_dpz), '  |', '   W_b =', v(sqrt(a2*a2 + b2*b2))
   endif
 
   nl=nl+1; write (li(nl), '(2x, a12, 2a, 12x, a, 3(14x, a))') freq_str, v(ele%a%phi*coef), v(ele%b%phi*coef), 'X', 'Y', 'Z'
-  nl=nl+1; write (li(nl), '(2x, a12, 5a)')             'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
-  nl=nl+1; write (li(nl), '(2x, a12, 5a)')             'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
-  nl=nl+1; write (li(nl), '(2x, a12, 5a)')             'dEta/ds     ', v(ele%a%deta_ds), v(ele%b%deta_ds), v(ele%x%deta_ds), v(ele%y%deta_ds), v(ele%z%deta_ds)
-  nl=nl+1; write (li(nl), '(2x, a12, 5a)')             'dEta/dpz    ', v(ele%a%deta_dpz), v(ele%b%deta_dpz), v(ele%x%deta_dpz), v(ele%y%deta_dpz), v(ele%z%deta_dpz)
-  nl=nl+1; write (li(nl), '(2x, a12, 5a)')             'dEtap/dpz   ', v(ele%a%detap_dpz), v(ele%b%detap_dpz), v(ele%x%detap_dpz), v(ele%y%detap_dpz), v(ele%z%detap_dpz)
+  nl=nl+1; write (li(nl), '(2x, a12, 5a)')         'Eta (m)     ', v(ele%a%eta),  v(ele%b%eta),  v(ele%x%eta),  v(ele%y%eta),  v(ele%z%eta)
+  nl=nl+1; write (li(nl), '(2x, a12, 5a)')         'Etap        ', v(ele%a%etap), v(ele%b%etap), v(ele%x%etap), v(ele%y%etap), v(ele%z%etap)
+  nl=nl+1; write (li(nl), '(2x, a12, 5a)')         'dEta/ds     ', v(ele%a%deta_ds), v(ele%b%deta_ds), v(ele%x%deta_ds), v(ele%y%deta_ds), v(ele%z%deta_ds)
+  nl=nl+1; write (li(nl), '(2x, a12, 5a)')         'dEta/dpz    ', v(ele%a%deta_dpz), v(ele%b%deta_dpz), v(ele%x%deta_dpz), v(ele%y%deta_dpz), v(ele%z%deta_dpz)
+  nl=nl+1; write (li(nl), '(2x, a12, 5a)')         'dEtap/dpz   ', v(ele%a%detap_dpz), v(ele%b%detap_dpz), v(ele%x%detap_dpz), v(ele%y%detap_dpz), v(ele%z%detap_dpz)
   if (ele%a%sigma /= 0 .or. ele%b%sigma /= 0) then
-    nl=nl+1; write (li(nl), '(2x, a12, 5a)')           'Sigma       ', v(ele%a%sigma), v(ele%b%sigma), v(ele%x%sigma), v(ele%y%sigma)
+    nl=nl+1; write (li(nl), '(2x, a12, 5a)')       'Sigma       ', v(ele%a%sigma), v(ele%b%sigma), v(ele%x%sigma), v(ele%y%sigma)
   endif
 endif
 
