@@ -1208,6 +1208,32 @@ Note that the above transport equations are only symplectic on-axis There are se
 the transverse coordinates that are missing. To obtain a proper symplectic matrix, the
 \vn{symplectify} attribute of an \vn{lcavity} element (\sref{s:symp}) can be set to True.
 
+%-----------------------------------------------------------------------------------------
+\section{Magnus Spin Tracking}
+\label{s:magnus}
+\index{magnus spin tracking}
+
+The \vn{magnus} spin tracking method uses an analytical Magnus expansion of the T-BMT equation to track spins. 
+Currently, the supported lattice elements are bends (including bends with $k_1 \neq 0$), quadrupoles, solenoids, and sextupoles.
+Many other elements are treated as drifts \sref{s:spin.methods}.
+
+One way to obtain approximate spin-transfer maps is to truncate the flow of the T-BMT equation to a given order in the entrance phase-space coordinates.
+The SPRINT method \sref{s:sprint.std} uses this idea at first order. The resulting map will generally not be a rotation, e.g., if quaternions are used, the map will
+not have unit norm. The idea behind the Magnus expansion is to find an approximate map which is also a rotation. Since the exact solution must be an
+element of the Lie group SU(2), it can be written as $\exp(F)$, where $F$ belongs to the Lie algebra of SU(2). The Magnus expansion provides a power
+expansion of $F$ which belongs to the Lie algebra of SU(2) at every order~\cite{b:magnus}.
+
+In SU(2), the T-BMT equation is given by Eq.~\eqref{tbmt-spinor}. This can be written in the standard form $\Psi'(s)=A(s)\Psi(s)$. The Magnus expansion gives the second-order solution as $\Psi(L)=\exp(F_1+F_2)\Psi(0)$, where
+\begin{equation}
+F_1 = \int_0^LA(s)\,ds \quad \mathrm{and} \quad F_2=\frac{1}{2}\int_0^Lds_1\int_0^{s_1}ds_2\,[A(s_1),A(s_2)].
+\end{equation}
+Once the trajectory through a magnet is known, $A(s)$ is known as well. We then expand $A(s)$ as a power series in the entrance coordinates which change through the magnet (i.e, all orders of $p_z$ are retained in magnetic elements and all orders of $p_y$ are retained in a pure bend). The truncation to first- and second-order will be written as $A^{(1)}(s)$ and $A^{(2)}(s)$, respectively. The truncation of the exponent $F$ to second-order is then
+\begin{equation}
+F^{(2)}=\int_0^LA^{(2)}(s)\,ds+\frac{1}{2}\int_0^Lds_1\int_0^{s_1}ds_2\,[A^{(1)}(s_1),A^{(1)}(s_2)].
+\end{equation}
+The spin-transfer map is found by exponentiating $F^{(2)}$, which yields an element of SU(2) by nature of the Magnus expansion.
+
+
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{Octupole Tracking}
