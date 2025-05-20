@@ -98,7 +98,7 @@ call init_bmad_parser_common(lat)
 n_max => lat%n_ele_max
 n_def_ele = 7 + size(lat%branch)
 call allocate_plat (plat, n_def_ele)
-if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100)
+if (ubound(lat%ele, 1) < n_max + n_def_ele) call allocate_lat_ele_array(lat, n_max+n_def_ele+100, do_ramper_slave_setup = .true.)
 
 ele => lat%ele(n_max+1)  ! Important: def_parameter comes after def_mad_beam.
 call init_ele(ele, def_mad_beam$, 0, n_max+1, lat%branch(0))
@@ -805,6 +805,7 @@ do i = 1, lat%n_ele_max
 enddo
 
 call remove_eles_from_lat(lat)
+call ramper_slave_setup(lat)
 
 ! Some bookkeeping
 

@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 333
+integer, parameter :: bmad_inc_version$ = 334
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -180,7 +180,7 @@ character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND',
 type twiss_struct
   real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
   real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
-  real(rp) :: dbeta_dpz = 0, dalpha_dpz = 0
+  real(rp) :: dbeta_dpz = 0, dalpha_dpz = 0, deta_dpz = 0, detap_dpz = 0
 end type
 
 ! Misc parameters
@@ -842,7 +842,7 @@ type high_energy_space_charge_struct
 end type    
 
 type xy_disp_struct
-  real(rp) :: eta = 0, etap = 0, deta_ds = 0, sigma = 0
+  real(rp) :: eta = 0, etap = 0, deta_ds = 0, sigma = 0, deta_dpz = 0, detap_dpz = 0
 end type
 
 ! Structure to hold the information of where an individual element is in the lattice.
@@ -1762,7 +1762,7 @@ integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, e
                       py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27, pc_strong$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
-                      rf_clock_harmonic$ = 28, b_field_tot$ = 28, atomic_weight$ = 28
+                      rf_clock_harmonic$ = 28, b_field_tot$ = 28
 integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, &
                       cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, &
                       x_dispersion_calib$ = 29, z_aperture_center$ = 29, f_factor$ = 29
@@ -1831,11 +1831,11 @@ integer, parameter :: lr_freq_spread$ = 85, y_ref$ = 85, etap_y$ = 85, &
 integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ = 86, &
                       area_density_used$ = 86, output_ele$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
-integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88
-integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89, radiation_length_used$ = 89
+integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88, deta_dpz_x$ = 88
+integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89, radiation_length_used$ = 89, deta_dpz_y$ = 89
 
-integer, parameter :: pz_ref$ = 90, space_charge_method$ = 90, p90$ = 90
-integer, parameter :: mat6_calc_method$ = 91
+integer, parameter :: pz_ref$ = 90, space_charge_method$ = 90, p90$ = 90, detap_dpz_x$ = 90
+integer, parameter :: mat6_calc_method$ = 91, detap_dpz_y$ = 91
 integer, parameter :: tracking_method$  = 92, s_long$ = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
 integer, parameter :: spin_tracking_method$ = 94, eta_a$ = 94

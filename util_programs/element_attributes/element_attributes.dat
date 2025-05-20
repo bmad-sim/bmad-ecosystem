@@ -1,15 +1,15 @@
- 2024-01-05 21:56:35 
+ 2025-05-19 19:39:33 
  
    1   Drift                 20   !Bmad_Com
-   2   Sbend                 29   !Line
+   2   SBend                 29   !Line
    3   Quadrupole            21   !Mad_Beam
    4   Group                 63   !PTC_Com
    5   Sextupole             26   !Parameter
    6   Overlay               39   !Particle_Start
    7   Custom                60   !Space_Charge_Com
    8   Taylor                22   AB_multipole
-   9   RFcavity              58   AC_Kicker
-  10   ELseparator           11   BeamBeam
+   9   RFCavity              58   AC_Kicker
+  10   ELSeparator           11   BeamBeam
   11   BeamBeam              28   Beginning_Ele
   12   Wiggler               45   Capillary
   13   Sol_Quad              38   Converter
@@ -17,56 +17,58 @@
   15   Kicker                43   Crystal
   16   Hybrid                 7   Custom
   17   Octupole              55   Detector
-  18   Rbend                 52   Diffraction_Plate
+  18   RBend                 52   Diffraction_Plate
   19   Multipole              1   Drift
-  20   !Bmad_Com             10   ELseparator
-  21   !Mad_Beam             48   EM_Field
-  22   AB_multipole          47   E_Gun
-  23   Solenoid              36   Ecollimator
-  24   Patch                 50   Fiducial
-  25   Lcavity               49   Floor_Shift
-  26   !Parameter            66   Foil
-  27   Null_Ele              41   Fork
-  28   Beginning_Ele         65   GKicker
-  29   !Line                 37   Girder
-  30   Match                  4   Group
-  31   Monitor               33   HKicker
-  32   Instrument            16   Hybrid
-  33   HKicker               32   Instrument
-  34   VKicker               15   Kicker
-  35   Rcollimator           25   Lcavity
-  36   Ecollimator           59   Lens
-  37   Girder                14   Marker
-  38   Converter             57   Mask
-  39   !Particle_Start       30   Match
-  40   Photon_Fork           42   Mirror
-  41   Fork                  31   Monitor
-  42   Mirror                46   Multilayer_Mirror
-  43   Crystal               19   Multipole
-  44   Pipe                  27   Null_Ele
-  45   Capillary             17   Octupole
-  46   Multilayer_Mirror      6   Overlay
-  47   E_Gun                 24   Patch
-  48   EM_Field              40   Photon_Fork
-  49   Floor_Shift           53   Photon_Init
-  50   Fiducial              44   Pipe
-  51   Undulator              3   Quadrupole
-  52   Diffraction_Plate     64   RF_Bend
-  53   Photon_Init            9   RFcavity
-  54   Sample                62   Ramper
-  55   Detector              18   Rbend
-  56   Sad_Mult              35   Rcollimator
-  57   Mask                  56   Sad_Mult
-  58   AC_Kicker             54   Sample
-  59   Lens                   2   Sbend
-  60   !Space_Charge_Com      5   Sextupole
-  61   Crab_Cavity           13   Sol_Quad
-  62   Ramper                23   Solenoid
-  63   !PTC_Com               8   Taylor
-  64   RF_Bend               67   Thick_Multipole
-  65   GKicker               51   Undulator
-  66   Foil                  34   VKicker
-  67   Thick_Multipole       12   Wiggler
+  20   !Bmad_Com             36   ECollimator
+  21   !Mad_Beam             10   ELSeparator
+  22   AB_multipole          48   EM_Field
+  23   Solenoid              47   E_Gun
+  24   Patch                 69   Feedback
+  25   Lcavity               50   Fiducial
+  26   !Parameter            49   Floor_Shift
+  27   Null_Ele              66   Foil
+  28   Beginning_Ele         41   Fork
+  29   !Line                 65   GKicker
+  30   Match                 37   Girder
+  31   Monitor                4   Group
+  32   Instrument            33   HKicker
+  33   HKicker               16   Hybrid
+  34   VKicker               32   Instrument
+  35   RCollimator           15   Kicker
+  36   ECollimator           25   Lcavity
+  37   Girder                59   Lens
+  38   Converter             14   Marker
+  39   !Particle_Start       57   Mask
+  40   Photon_Fork           30   Match
+  41   Fork                  42   Mirror
+  42   Mirror                31   Monitor
+  43   Crystal               46   Multilayer_Mirror
+  44   Pipe                  19   Multipole
+  45   Capillary             27   Null_Ele
+  46   Multilayer_Mirror     17   Octupole
+  47   E_Gun                  6   Overlay
+  48   EM_Field              24   Patch
+  49   Floor_Shift           40   Photon_Fork
+  50   Fiducial              53   Photon_Init
+  51   Undulator             68   Pickup
+  52   Diffraction_Plate     44   Pipe
+  53   Photon_Init            3   Quadrupole
+  54   Sample                18   RBend
+  55   Detector              35   RCollimator
+  56   Sad_Mult               9   RFCavity
+  57   Mask                  64   RF_Bend
+  58   AC_Kicker             62   Ramper
+  59   Lens                   2   SBend
+  60   !Space_Charge_Com     56   Sad_Mult
+  61   Crab_Cavity           54   Sample
+  62   Ramper                 5   Sextupole
+  63   !PTC_Com              13   Sol_Quad
+  64   RF_Bend               23   Solenoid
+  65   GKicker                8   Taylor
+  66   Foil                  67   Thick_Multipole
+  67   Thick_Multipole       51   Undulator
+  68   Pickup                34   VKicker
+  69   Feedback              12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -75,6 +77,7 @@
  29  !Line               
          1  l                                         [private]
          2  INHERIT_FROM_FORK                       
+         3  deta_ds_master                            [private]
          6  ix_branch                                 [private]
          7  SPIN_DN_DPZ_X                           
          8  SPIN_DN_DPZ_Y                           
@@ -113,6 +116,10 @@
        107  PSI_POSITION                            
        108  BETA_A                                  
        109  BETA_B                                  
+       110  DBETA_DPZ_A                             
+       111  DBETA_DPZ_B                             
+       113  DALPHA_DPZ_A                            
+       114  DALPHA_DPZ_B                            
        116  PHI_B                                   
        132  PARTICLE                                
  
@@ -334,6 +341,7 @@
          1  L                                       
          2  TILT                                    
          3  REPETITION_FREQUENCY                    
+         4  S_TWISS_REF                             
          5  KS                                      
          7  BBI_CONSTANT                            
          8  CHARGE                                  
@@ -348,12 +356,13 @@
         24  ALPHA_B_STRONG                          
         25  SPECIES_STRONG                          
         26  E_TOT_STRONG                            
+        27  PC_STRONG                               
         28  rf_clock_harminic                         [private]
         29  CMAT_11                                 
         30  CMAT_12                                 
         31  CMAT_21                                 
         32  CMAT_22                                 
-        33  Z_CROSSING                              
+        33  CROSSING_TIME                           
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -413,6 +422,7 @@
  28  Beginning_Ele       
          1  l                                         [private]
          2  INHERIT_FROM_FORK                       
+         3  deta_ds_master                            [private]
          7  SPIN_DN_DPZ_X                           
          8  SPIN_DN_DPZ_Y                           
          9  SPIN_DN_DPZ_Z                           
@@ -446,6 +456,10 @@
        107  PSI_POSITION                            
        108  BETA_A                                  
        109  BETA_B                                  
+       110  DBETA_DPZ_A                             
+       111  DBETA_DPZ_B                             
+       113  DALPHA_DPZ_A                            
+       114  DALPHA_DPZ_B                            
        116  PHI_B                                   
  
  !---------------------------------
@@ -614,6 +628,7 @@
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
         85  LR_FREQ_SPREAD                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_METHOD                              
@@ -635,6 +650,7 @@
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
+       113  SCALE_MULTIPOLES                        
        114  SR_WAKE                                 
        115  LR_WAKE                                 
        117  TYPE                                    
@@ -653,6 +669,7 @@
        130  End_Edge                                  [private]
        131  S_Position                                [private]
        133  WRAP_SUPERIMPOSE                        
+       140  A0                                      
  
  !---------------------------------
  43  Crystal             
@@ -709,11 +726,7 @@
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
-        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
-        84  ELLIPTICAL_CURVATURE_X                  
-        85  ELLIPTICAL_CURVATURE_Y                  
-        86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
         88  H_MISALIGN                              
         89  DISPLACEMENT                            
@@ -875,11 +888,7 @@
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
-        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
-        84  ELLIPTICAL_CURVATURE_X                  
-        85  ELLIPTICAL_CURVATURE_Y                  
-        86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
         88  PIXEL                                   
         89  DISPLACEMENT                            
@@ -937,11 +946,7 @@
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
-        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
-        84  ELLIPTICAL_CURVATURE_X                  
-        85  ELLIPTICAL_CURVATURE_Y                  
-        86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
         89  DISPLACEMENT                            
         90  SEGMENTED                               
@@ -1039,7 +1044,96 @@
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
- 10  ELseparator         
+ 36  ECollimator         
+         1  L                                       
+         2  TILT                                    
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        17  STATIC_LINEAR_MAP                       
+        24  PX_APERTURE_WIDTH2                      
+        25  PX_APERTURE_CENTER                      
+        26  PY_APERTURE_WIDTH2                      
+        27  PY_APERTURE_CENTER                      
+        28  Z_APERTURE_WIDTH2                       
+        29  Z_APERTURE_CENTER                       
+        30  PZ_APERTURE_WIDTH2                      
+        31  PZ_APERTURE_CENTER                      
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
+        64  REF_TIME_START                          
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
+ 10  ELSeparator         
          1  L                                       
          2  TILT                                    
          8  VOLTAGE                                 
@@ -1327,93 +1421,13 @@
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
- 36  Ecollimator         
-         1  L                                       
-         2  TILT                                    
-        10  FRINGE_TYPE                             
-        11  FRINGE_AT                               
-        13  SPIN_FRINGE_ON                          
-        17  STATIC_LINEAR_MAP                       
-        24  PX_APERTURE_WIDTH2                      
-        25  PX_APERTURE_CENTER                      
-        26  PY_APERTURE_WIDTH2                      
-        27  PY_APERTURE_CENTER                      
-        28  Z_APERTURE_WIDTH2                       
-        29  Z_APERTURE_CENTER                       
-        30  PZ_APERTURE_WIDTH2                      
-        31  PZ_APERTURE_CENTER                      
-        34  X_PITCH                                 
-        35  Y_PITCH                                 
-        36  X_OFFSET                                
-        37  Y_OFFSET                                
-        38  Z_OFFSET                                
-        39  HKICK                                   
-        40  VKICK                                   
-        41  BL_HKICK                                
-        42  BL_VKICK                                
-        50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
-        52  e_tot_start                               [private]
-        53  P0C                                     
-        54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                      [private]
-        63  dispatch                                  [private]
-        64  REF_TIME_START                          
-        65  INTEGRATOR_ORDER                        
-        66  NUM_STEPS                               
-        67  DS_STEP                                 
-        68  CSR_DS_STEP                             
-        69  LORD_PAD1                               
-        70  LORD_PAD2                               
-        71  X1_LIMIT                                
-        72  X2_LIMIT                                
-        73  Y1_LIMIT                                
-        74  Y2_LIMIT                                
+ 69  Feedback            
         75  check_sum                                 [private]
         82  ALIAS                                   
-        83  LR_SELF_WAKE_ON                         
-        84  LR_WAKE_FILE                            
-        85  LR_FREQ_SPREAD                          
-        87  APERTURE_TYPE                           
-        88  TAYLOR_MAP_INCLUDES_OFFSETS             
-        89  CSR_METHOD                              
-        90  SPACE_CHARGE_METHOD                     
-        91  MAT6_CALC_METHOD                        
-        92  TRACKING_METHOD                         
-        93  PTC_INTEGRATION_TYPE                    
-        94  SPIN_TRACKING_METHOD                    
-        95  APERTURE                                
-        96  X_LIMIT                                 
-        97  Y_LIMIT                                 
-        98  OFFSET_MOVES_APERTURE                   
-       100  SR_WAKE_FILE                            
-       103  SYMPLECTIFY                             
-       105  IS_ON                                   
-       106  FIELD_CALC                              
-       107  WALL                                    
-       108  APERTURE_AT                             
-       110  FIELD_OVERLAPS                          
+        85  INPUT_ELE                               
+        86  OUTPUT_ELE                              
        112  DESCRIP                                 
-       114  SR_WAKE                                 
-       115  LR_WAKE                                 
        117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
-       127  CREATE_JUMBO_SLAVE                      
-       128  Accordion_Edge                            [private]
-       129  Start_Edge                                [private]
-       130  End_Edge                                  [private]
-       131  S_Position                                [private]
-       133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
  50  Fiducial            
@@ -1502,17 +1516,15 @@
          1  L                                       
          2  TILT                                    
          3  FINAL_CHARGE                            
-         4  RADIATION_LENGTH                        
-         5  RADIATION_LENGTH_USED                   
-         6  DENSITY                                 
-         7  DENSITY_USED                            
-         8  AREA_DENSITY                            
-         9  AREA_DENSITY_USED                       
-        21  SCATTER                                 
+        21  SCATTER_TEST                            
         22  X1_EDGE                                 
         23  X2_EDGE                                 
         24  Y1_EDGE                                 
         25  Y2_EDGE                                 
+        26  DTHICKNESS_DX                           
+        28  ATOMIC_WEIGHT                           
+        29  F_FACTOR                                
+        30  SCATTER_METHOD                          
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -1532,13 +1544,20 @@
         63  dispatch                                  [private]
         64  REF_TIME_START                          
         65  THICKNESS                               
+        66  NUM_STEPS                               
         71  X1_LIMIT                                
         72  X2_LIMIT                                
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
         82  ALIAS                                   
+        83  DENSITY                                 
+        84  DENSITY_USED                            
+        85  AREA_DENSITY                            
+        86  AREA_DENSITY_USED                       
         87  APERTURE_TYPE                           
+        88  RADIATION_LENGTH                        
+        89  RADIATION_LENGTH_USED                   
         91  MAT6_CALC_METHOD                        
         92  TRACKING_METHOD                         
         93  PTC_INTEGRATION_TYPE                    
@@ -2089,6 +2108,7 @@
         83  LR_SELF_WAKE_ON                         
         84  LR_WAKE_FILE                            
         85  LR_FREQ_SPREAD                          
+        86  MULTIPOLES_ON                           
         87  APERTURE_TYPE                           
         88  TAYLOR_MAP_INCLUDES_OFFSETS             
         89  CSR_METHOD                              
@@ -2110,6 +2130,7 @@
        110  FIELD_OVERLAPS                          
        111  FIELD_MASTER                            
        112  DESCRIP                                 
+       113  SCALE_MULTIPOLES                        
        114  SR_WAKE                                 
        115  LR_WAKE                                 
        117  TYPE                                    
@@ -2128,6 +2149,7 @@
        130  End_Edge                                  [private]
        131  S_Position                                [private]
        133  WRAP_SUPERIMPOSE                        
+       140  A0                                      
  
  !---------------------------------
  59  Lens                
@@ -2431,11 +2453,7 @@
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
-        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
-        84  ELLIPTICAL_CURVATURE_X                  
-        85  ELLIPTICAL_CURVATURE_Y                  
-        86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
         89  DISPLACEMENT                            
         90  SEGMENTED                               
@@ -2597,11 +2615,7 @@
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
-        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
-        84  ELLIPTICAL_CURVATURE_X                  
-        85  ELLIPTICAL_CURVATURE_Y                  
-        86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
         89  DISPLACEMENT                            
         90  SEGMENTED                               
@@ -2972,6 +2986,62 @@
        133  WRAP_SUPERIMPOSE                        
  
  !---------------------------------
+ 68  Pickup              
+         1  L                                       
+         2  TILT                                    
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        63  dispatch                                  [private]
+        64  REF_TIME_START                          
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        87  APERTURE_TYPE                           
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       105  IS_ON                                   
+       107  WALL                                    
+       108  APERTURE_AT                             
+       112  DESCRIP                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
  44  Pipe                
          1  L                                       
          2  TILT                                    
@@ -3167,230 +3237,7 @@
        140  A0                                      
  
  !---------------------------------
- 64  RF_Bend             
-         1  L                                       
-         2  ROLL                                    
-         3  REF_TILT                                
-         4  HARMON                                  
-         5  HARMON_MASTER                           
-         6  G                                       
-         7  DG                                        [private]
-         9  RHO                                     
-        10  FRINGE_TYPE                             
-        11  FRINGE_AT                               
-        13  SPIN_FRINGE_ON                          
-        15  RF_FREQUENCY                            
-        16  RF_WAVELENGTH                           
-        17  STATIC_LINEAR_MAP                       
-        24  PHI0                                    
-        26  PHI0_MULTIPASS                          
-        28  rf_clock_harminic                         [private]
-        29  L_SAGITTA                               
-        30  L_CHORD                                 
-        33  ANGLE                                   
-        34  X_PITCH                                 
-        35  Y_PITCH                                 
-        36  X_OFFSET                                
-        37  Y_OFFSET                                
-        38  Z_OFFSET                                
-        39  HKICK                                   
-        40  VKICK                                   
-        41  BL_HKICK                                
-        42  BL_VKICK                                
-        43  B_FIELD                                 
-        44  DB_FIELD                                  [private]
-        50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
-        52  e_tot_start                               [private]
-        53  P0C                                     
-        54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  ROLL_TOT                                
-        61  REF_TILT_TOT                            
-        62  MULTIPASS_REF_ENERGY                      [private]
-        63  dispatch                                  [private]
-        64  REF_TIME_START                          
-        65  INTEGRATOR_ORDER                        
-        66  NUM_STEPS                               
-        67  DS_STEP                                 
-        68  CSR_DS_STEP                             
-        69  LORD_PAD1                               
-        70  LORD_PAD2                               
-        71  X1_LIMIT                                
-        72  X2_LIMIT                                
-        73  Y1_LIMIT                                
-        74  Y2_LIMIT                                
-        75  check_sum                                 [private]
-        82  ALIAS                                   
-        83  LR_SELF_WAKE_ON                         
-        84  LR_WAKE_FILE                            
-        85  LR_FREQ_SPREAD                          
-        87  APERTURE_TYPE                           
-        88  TAYLOR_MAP_INCLUDES_OFFSETS             
-        89  CSR_METHOD                              
-        90  SPACE_CHARGE_METHOD                     
-        91  MAT6_CALC_METHOD                        
-        92  TRACKING_METHOD                         
-        93  PTC_INTEGRATION_TYPE                    
-        94  SPIN_TRACKING_METHOD                    
-        95  APERTURE                                
-        96  X_LIMIT                                 
-        97  Y_LIMIT                                 
-        98  OFFSET_MOVES_APERTURE                   
-       100  SR_WAKE_FILE                            
-       103  SYMPLECTIFY                             
-       105  IS_ON                                   
-       106  FIELD_CALC                              
-       107  WALL                                    
-       108  APERTURE_AT                             
-       110  FIELD_OVERLAPS                          
-       111  FIELD_MASTER                            
-       112  DESCRIP                                 
-       114  SR_WAKE                                 
-       115  LR_WAKE                                 
-       117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
-       125  GRID_FIELD                              
-       127  CREATE_JUMBO_SLAVE                      
-       128  Accordion_Edge                            [private]
-       129  Start_Edge                                [private]
-       130  End_Edge                                  [private]
-       131  S_Position                                [private]
-       133  WRAP_SUPERIMPOSE                        
- 
- !---------------------------------
-  9  RFcavity            
-         1  L                                       
-         2  TILT                                    
-         4  HARMON                                  
-         5  HARMON_MASTER                           
-         6  GRADIENT                                
-         7  gradient_err                              [private]
-         8  VOLTAGE                                 
-         9  voltage_err                               [private]
-        10  FRINGE_TYPE                             
-        11  FRINGE_AT                               
-        13  SPIN_FRINGE_ON                          
-        15  RF_FREQUENCY                            
-        16  RF_WAVELENGTH                           
-        17  STATIC_LINEAR_MAP                       
-        18  LONGITUDINAL_MODE                       
-        19  AUTOSCALE_AMPLITUDE                     
-        20  AUTOSCALE_PHASE                         
-        22  CAVITY_TYPE                             
-        23  phi0_max                                  [private]
-        24  PHI0                                    
-        25  phi0_err                                  [private]
-        26  PHI0_MULTIPASS                          
-        27  PHI0_AUTOSCALE                          
-        28  rf_clock_harminic                         [private]
-        29  FIELD_AUTOSCALE                         
-        31  L_ACTIVE                                
-        33  N_CELL                                  
-        34  X_PITCH                                 
-        35  Y_PITCH                                 
-        36  X_OFFSET                                
-        37  Y_OFFSET                                
-        38  Z_OFFSET                                
-        39  HKICK                                   
-        40  VKICK                                   
-        41  BL_HKICK                                
-        42  BL_VKICK                                
-        44  COUPLER_PHASE                           
-        45  COUPLER_ANGLE                           
-        46  COUPLER_STRENGTH                        
-        47  COUPLER_AT                              
-        50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
-        52  e_tot_start                               [private]
-        53  P0C                                     
-        54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  TILT_TOT                                
-        62  MULTIPASS_REF_ENERGY                      [private]
-        63  dispatch                                  [private]
-        64  REF_TIME_START                          
-        65  INTEGRATOR_ORDER                        
-        66  NUM_STEPS                               
-        67  DS_STEP                                 
-        68  CSR_DS_STEP                             
-        69  LORD_PAD1                               
-        70  LORD_PAD2                               
-        71  X1_LIMIT                                
-        72  X2_LIMIT                                
-        73  Y1_LIMIT                                
-        74  Y2_LIMIT                                
-        75  check_sum                                 [private]
-        82  ALIAS                                   
-        83  LR_SELF_WAKE_ON                         
-        84  LR_WAKE_FILE                            
-        85  LR_FREQ_SPREAD                          
-        87  APERTURE_TYPE                           
-        88  TAYLOR_MAP_INCLUDES_OFFSETS             
-        89  CSR_METHOD                              
-        90  SPACE_CHARGE_METHOD                     
-        91  MAT6_CALC_METHOD                        
-        92  TRACKING_METHOD                         
-        93  PTC_INTEGRATION_TYPE                    
-        94  SPIN_TRACKING_METHOD                    
-        95  APERTURE                                
-        96  X_LIMIT                                 
-        97  Y_LIMIT                                 
-        98  OFFSET_MOVES_APERTURE                   
-       100  SR_WAKE_FILE                            
-       103  SYMPLECTIFY                             
-       105  IS_ON                                   
-       106  FIELD_CALC                              
-       107  WALL                                    
-       108  APERTURE_AT                             
-       110  FIELD_OVERLAPS                          
-       112  DESCRIP                                 
-       114  SR_WAKE                                 
-       115  LR_WAKE                                 
-       117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
-       123  CARTESIAN_MAP                           
-       124  CYLINDRICAL_MAP                         
-       125  GRID_FIELD                              
-       126  GEN_GRAD_MAP                            
-       127  CREATE_JUMBO_SLAVE                      
-       128  Accordion_Edge                            [private]
-       129  Start_Edge                                [private]
-       130  End_Edge                                  [private]
-       131  S_Position                                [private]
-       133  WRAP_SUPERIMPOSE                        
- 
- !---------------------------------
- 62  Ramper              
-         8  INTERPOLATION                           
-        75  check_sum                                 [private]
-        81  X_KNOT                                  
-        82  ALIAS                                   
-        83  Y_KNOT                                  
-        84  SLAVE                                   
-        89  VAR                                     
-       105  IS_ON                                   
-       112  DESCRIP                                 
-       117  TYPE                                    
- 
- !---------------------------------
- 18  Rbend               
+ 18  RBend               
          1  L                                       
          2  ROLL                                    
          3  REF_TILT                                
@@ -3415,9 +3262,12 @@
         24  HGAPX                                   
         25  H1                                      
         26  H2                                      
+        27  L_RECTANGLE                             
         28  B_FIELD_TOT                             
         29  L_SAGITTA                               
         30  L_CHORD                                 
+        31  FIDUCIAL_PT                             
+        32  init_needed                               [private]
         33  ANGLE                                   
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3509,7 +3359,7 @@
        140  A0                                      
  
  !---------------------------------
- 35  Rcollimator         
+ 35  RCollimator         
          1  L                                       
          2  TILT                                    
         10  FRINGE_TYPE                             
@@ -3596,6 +3446,357 @@
        130  End_Edge                                  [private]
        131  S_Position                                [private]
        133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
+  9  RFCavity            
+         1  L                                       
+         2  TILT                                    
+         4  HARMON                                  
+         5  HARMON_MASTER                           
+         6  GRADIENT                                
+         7  gradient_err                              [private]
+         8  VOLTAGE                                 
+         9  voltage_err                               [private]
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
+        17  STATIC_LINEAR_MAP                       
+        18  LONGITUDINAL_MODE                       
+        19  AUTOSCALE_AMPLITUDE                     
+        20  AUTOSCALE_PHASE                         
+        22  CAVITY_TYPE                             
+        23  phi0_max                                  [private]
+        24  PHI0                                    
+        25  phi0_err                                  [private]
+        26  PHI0_MULTIPASS                          
+        27  PHI0_AUTOSCALE                          
+        28  rf_clock_harminic                         [private]
+        29  FIELD_AUTOSCALE                         
+        31  L_ACTIVE                                
+        33  N_CELL                                  
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        44  COUPLER_PHASE                           
+        45  COUPLER_ANGLE                           
+        46  COUPLER_STRENGTH                        
+        47  COUPLER_AT                              
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  TILT_TOT                                
+        62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
+        64  REF_TIME_START                          
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        86  MULTIPOLES_ON                           
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       112  DESCRIP                                 
+       113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       123  CARTESIAN_MAP                           
+       124  CYLINDRICAL_MAP                         
+       125  GRID_FIELD                              
+       126  GEN_GRAD_MAP                            
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+       140  A0                                      
+ 
+ !---------------------------------
+ 64  RF_Bend             
+         1  L                                       
+         2  ROLL                                    
+         3  REF_TILT                                
+         4  HARMON                                  
+         5  HARMON_MASTER                           
+         6  G                                       
+         7  DG                                        [private]
+         9  RHO                                     
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        15  RF_FREQUENCY                            
+        16  RF_WAVELENGTH                           
+        17  STATIC_LINEAR_MAP                       
+        24  PHI0                                    
+        26  PHI0_MULTIPASS                          
+        27  L_RECTANGLE                             
+        28  rf_clock_harminic                         [private]
+        29  L_SAGITTA                               
+        30  L_CHORD                                 
+        31  FIDUCIAL_PT                             
+        32  init_needed                               [private]
+        33  ANGLE                                   
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        43  B_FIELD                                 
+        44  DB_FIELD                                  [private]
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  ROLL_TOT                                
+        61  REF_TILT_TOT                            
+        62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
+        64  REF_TIME_START                          
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       111  FIELD_MASTER                            
+       112  DESCRIP                                 
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       125  GRID_FIELD                              
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
+ 62  Ramper              
+         8  INTERPOLATION                           
+        75  check_sum                                 [private]
+        81  X_KNOT                                  
+        82  ALIAS                                   
+        83  Y_KNOT                                  
+        84  SLAVE                                   
+        89  VAR                                     
+       105  IS_ON                                   
+       112  DESCRIP                                 
+       117  TYPE                                    
+ 
+ !---------------------------------
+  2  SBend               
+         1  L                                       
+         2  ROLL                                    
+         3  REF_TILT                                
+         4  K1                                      
+         5  K2                                      
+         6  G                                       
+         7  DG                                      
+         8  G_TOT                                   
+         9  RHO                                     
+        10  FRINGE_TYPE                             
+        11  FRINGE_AT                               
+        13  SPIN_FRINGE_ON                          
+        14  EXACT_MULTIPOLES                        
+        15  R0_ELEC                                 
+        16  R0_MAG                                  
+        17  STATIC_LINEAR_MAP                       
+        19  E1                                      
+        20  E2                                      
+        21  FINT                                    
+        22  FINTX                                   
+        23  HGAP                                    
+        24  HGAPX                                   
+        25  H1                                      
+        26  H2                                      
+        27  L_RECTANGLE                             
+        28  B_FIELD_TOT                             
+        29  L_SAGITTA                               
+        30  L_CHORD                                 
+        31  FIDUCIAL_PT                             
+        32  init_needed                               [private]
+        33  ANGLE                                   
+        34  X_PITCH                                 
+        35  Y_PITCH                                 
+        36  X_OFFSET                                
+        37  Y_OFFSET                                
+        38  Z_OFFSET                                
+        39  HKICK                                   
+        40  VKICK                                   
+        41  BL_HKICK                                
+        42  BL_VKICK                                
+        43  B_FIELD                                 
+        44  DB_FIELD                                
+        45  B1_GRADIENT                             
+        46  B2_GRADIENT                             
+        47  PTC_CANONICAL_COORDS                    
+        48  PTC_FRINGE_GEOMETRY                     
+        49  PTC_FIELD_GEOMETRY                      
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        55  X_PITCH_TOT                             
+        56  Y_PITCH_TOT                             
+        57  X_OFFSET_TOT                            
+        58  Y_OFFSET_TOT                            
+        59  Z_OFFSET_TOT                            
+        60  ROLL_TOT                                
+        61  REF_TILT_TOT                            
+        62  MULTIPASS_REF_ENERGY                      [private]
+        63  dispatch                                  [private]
+        64  REF_TIME_START                          
+        65  INTEGRATOR_ORDER                        
+        66  NUM_STEPS                               
+        67  DS_STEP                                 
+        68  CSR_DS_STEP                             
+        69  LORD_PAD1                               
+        70  LORD_PAD2                               
+        71  X1_LIMIT                                
+        72  X2_LIMIT                                
+        73  Y1_LIMIT                                
+        74  Y2_LIMIT                                
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        83  LR_SELF_WAKE_ON                         
+        84  LR_WAKE_FILE                            
+        85  LR_FREQ_SPREAD                          
+        86  MULTIPOLES_ON                           
+        87  APERTURE_TYPE                           
+        88  TAYLOR_MAP_INCLUDES_OFFSETS             
+        89  CSR_METHOD                              
+        90  SPACE_CHARGE_METHOD                     
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
+        95  APERTURE                                
+        96  X_LIMIT                                 
+        97  Y_LIMIT                                 
+        98  OFFSET_MOVES_APERTURE                   
+       100  SR_WAKE_FILE                            
+       103  SYMPLECTIFY                             
+       105  IS_ON                                   
+       106  FIELD_CALC                              
+       107  WALL                                    
+       108  APERTURE_AT                             
+       110  FIELD_OVERLAPS                          
+       111  FIELD_MASTER                            
+       112  DESCRIP                                 
+       113  SCALE_MULTIPOLES                        
+       114  SR_WAKE                                 
+       115  LR_WAKE                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       123  CARTESIAN_MAP                           
+       124  CYLINDRICAL_MAP                         
+       125  GRID_FIELD                              
+       126  GEN_GRAD_MAP                            
+       127  CREATE_JUMBO_SLAVE                      
+       128  Accordion_Edge                            [private]
+       129  Start_Edge                                [private]
+       130  End_Edge                                  [private]
+       131  S_Position                                [private]
+       133  WRAP_SUPERIMPOSE                        
+       140  A0                                      
  
  !---------------------------------
  56  Sad_Mult            
@@ -3708,11 +3909,7 @@
         73  Y1_LIMIT                                
         74  Y2_LIMIT                                
         75  check_sum                                 [private]
-        81  SPHERICAL_CURVATURE                     
         82  ALIAS                                   
-        84  ELLIPTICAL_CURVATURE_X                  
-        85  ELLIPTICAL_CURVATURE_Y                  
-        86  ELLIPTICAL_CURVATURE_Z                  
         87  APERTURE_TYPE                           
         89  DISPLACEMENT                            
         90  SEGMENTED                               
@@ -3742,125 +3939,6 @@
        131  S_Position                                [private]
        133  WRAP_SUPERIMPOSE                        
        140  CURVATURE_X0_Y2                         
- 
- !---------------------------------
-  2  Sbend               
-         1  L                                       
-         2  ROLL                                    
-         3  REF_TILT                                
-         4  K1                                      
-         5  K2                                      
-         6  G                                       
-         7  DG                                      
-         8  G_TOT                                   
-         9  RHO                                     
-        10  FRINGE_TYPE                             
-        11  FRINGE_AT                               
-        13  SPIN_FRINGE_ON                          
-        14  EXACT_MULTIPOLES                        
-        15  R0_ELEC                                 
-        16  R0_MAG                                  
-        17  STATIC_LINEAR_MAP                       
-        19  E1                                      
-        20  E2                                      
-        21  FINT                                    
-        22  FINTX                                   
-        23  HGAP                                    
-        24  HGAPX                                   
-        25  H1                                      
-        26  H2                                      
-        28  B_FIELD_TOT                             
-        29  L_SAGITTA                               
-        30  L_CHORD                                 
-        33  ANGLE                                   
-        34  X_PITCH                                 
-        35  Y_PITCH                                 
-        36  X_OFFSET                                
-        37  Y_OFFSET                                
-        38  Z_OFFSET                                
-        39  HKICK                                   
-        40  VKICK                                   
-        41  BL_HKICK                                
-        42  BL_VKICK                                
-        43  B_FIELD                                 
-        44  DB_FIELD                                
-        45  B1_GRADIENT                             
-        46  B2_GRADIENT                             
-        47  PTC_CANONICAL_COORDS                    
-        48  PTC_FRINGE_GEOMETRY                     
-        49  PTC_FIELD_GEOMETRY                      
-        50  DELTA_REF_TIME                          
-        51  p0c_start                                 [private]
-        52  e_tot_start                               [private]
-        53  P0C                                     
-        54  E_TOT                                   
-        55  X_PITCH_TOT                             
-        56  Y_PITCH_TOT                             
-        57  X_OFFSET_TOT                            
-        58  Y_OFFSET_TOT                            
-        59  Z_OFFSET_TOT                            
-        60  ROLL_TOT                                
-        61  REF_TILT_TOT                            
-        62  MULTIPASS_REF_ENERGY                      [private]
-        63  dispatch                                  [private]
-        64  REF_TIME_START                          
-        65  INTEGRATOR_ORDER                        
-        66  NUM_STEPS                               
-        67  DS_STEP                                 
-        68  CSR_DS_STEP                             
-        69  LORD_PAD1                               
-        70  LORD_PAD2                               
-        71  X1_LIMIT                                
-        72  X2_LIMIT                                
-        73  Y1_LIMIT                                
-        74  Y2_LIMIT                                
-        75  check_sum                                 [private]
-        82  ALIAS                                   
-        83  LR_SELF_WAKE_ON                         
-        84  LR_WAKE_FILE                            
-        85  LR_FREQ_SPREAD                          
-        86  MULTIPOLES_ON                           
-        87  APERTURE_TYPE                           
-        88  TAYLOR_MAP_INCLUDES_OFFSETS             
-        89  CSR_METHOD                              
-        90  SPACE_CHARGE_METHOD                     
-        91  MAT6_CALC_METHOD                        
-        92  TRACKING_METHOD                         
-        93  PTC_INTEGRATION_TYPE                    
-        94  SPIN_TRACKING_METHOD                    
-        95  APERTURE                                
-        96  X_LIMIT                                 
-        97  Y_LIMIT                                 
-        98  OFFSET_MOVES_APERTURE                   
-       100  SR_WAKE_FILE                            
-       103  SYMPLECTIFY                             
-       105  IS_ON                                   
-       106  FIELD_CALC                              
-       107  WALL                                    
-       108  APERTURE_AT                             
-       110  FIELD_OVERLAPS                          
-       111  FIELD_MASTER                            
-       112  DESCRIP                                 
-       113  SCALE_MULTIPOLES                        
-       114  SR_WAKE                                 
-       115  LR_WAKE                                 
-       117  TYPE                                    
-       118  REF_ORIGIN                              
-       119  ELE_ORIGIN                              
-       120  SUPERIMPOSE                             
-       121  OFFSET                                  
-       122  REFERENCE                               
-       123  CARTESIAN_MAP                           
-       124  CYLINDRICAL_MAP                         
-       125  GRID_FIELD                              
-       126  GEN_GRAD_MAP                            
-       127  CREATE_JUMBO_SLAVE                      
-       128  Accordion_Edge                            [private]
-       129  Start_Edge                                [private]
-       130  End_Edge                                  [private]
-       131  S_Position                                [private]
-       133  WRAP_SUPERIMPOSE                        
-       140  A0                                      
  
  !---------------------------------
   5  Sextupole           
@@ -4334,6 +4412,7 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         47  PTC_CANONICAL_COORDS                    
+        49  DELTA_REF_TIME_USER_SET                 
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -4524,6 +4603,7 @@
         41  BL_HKICK                                
         42  BL_VKICK                                
         47  PTC_CANONICAL_COORDS                    
+        49  DELTA_REF_TIME_USER_SET                 
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -4600,15 +4680,15 @@
  !---------------------------------
  Index usage:
     Ix Count
-     1    57
-     2    55
-     3    23
+     1    58
+     2    56
+     3    25
      4    22
-     5    29
-     6    26
-     7    23
-     8    30
-     9    17
+     5    28
+     6    25
+     7    22
+     8    29
+     9    16
     10    30
     11    32
     12     3
@@ -4625,19 +4705,19 @@
     23    20
     24    23
     25    19
-    26    27
-    27    18
-    28    22
-    29    26
-    30    23
-    31    19
-    32    11
+    26    28
+    27    22
+    28    23
+    29    27
+    30    24
+    31    22
+    32    14
     33    11
-    34    49
-    35    49
-    36    51
-    37    51
-    38    51
+    34    50
+    35    50
+    36    52
+    37    52
+    38    52
     39    27
     40    28
     41    26
@@ -4648,98 +4728,98 @@
     46     7
     47    20
     48     5
-    49     7
-    50    56
-    51    56
-    52    56
-    53    58
-    54    58
-    55    46
-    56    45
-    57    47
-    58    47
-    59    47
-    60    47
+    49     9
+    50    57
+    51    57
+    52    57
+    53    59
+    54    59
+    55    47
+    56    46
+    57    48
+    58    48
+    59    48
+    60    48
     61     7
     62    29
-    63    46
-    64    56
+    63    47
+    64    57
     65    31
-    66    29
-    67    29
+    66    31
+    67    30
     68    30
     69    30
     70    36
-    71    53
-    72    53
-    73    53
-    74    53
-    75    61
+    71    54
+    72    54
+    73    54
+    74    54
+    75    63
     76     0
     77     0
     78     0
     79     0
     80     0
-    81    11
-    82    62
-    83    36
-    84    40
-    85    37
-    86    26
-    87    56
-    88    32
-    89    40
+    81     5
+    82    64
+    83    37
+    84    35
+    85    33
+    86    25
+    87    57
+    88    33
+    89    41
     90    37
-    91    54
-    92    56
-    93    56
-    94    54
-    95    53
-    96    54
-    97    53
-    98    53
+    91    55
+    92    57
+    93    57
+    94    55
+    95    54
+    96    55
+    97    54
+    98    54
     99     5
    100    33
    101    10
    102     4
    103    34
    104     3
-   105    48
+   105    49
    106    33
-   107    50
-   108    55
+   107    51
+   108    56
    109     6
-   110    29
-   111    23
-   112    59
-   113    15
-   114    28
+   110    31
+   111    25
+   112    61
+   113    20
+   114    30
    115    29
    116     6
-   117    59
-   118    55
-   119    55
-   120    55
-   121    55
-   122    55
+   117    61
+   118    56
+   119    56
+   120    56
+   121    56
+   122    56
    123    20
    124    20
    125    21
    126    20
-   127    53
-   128    40
-   129    40
-   130    40
-   131    40
+   127    54
+   128    41
+   129    41
+   130    41
+   131    41
    132     6
-   133    55
+   133    56
    134     0
    135     0
    136     0
    137     0
    138     0
    139     0
-   140    24
+   140    27
    141     0
    142     0
    143     0
@@ -4877,13 +4957,13 @@
  !---------------------------------
 Index: 1
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -4891,7 +4971,7 @@ Index: 1
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -4904,8 +4984,8 @@ Index: 1
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     !Particle_Start     
@@ -4933,24 +5013,25 @@ Index: 1
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 2
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     !Mad_Beam           
     AB_multipole        
@@ -4965,8 +5046,8 @@ Index: 2
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     !Particle_Start     
@@ -4991,15 +5072,18 @@ Index: 2
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 3
-    Sbend               
+    SBend               
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Solenoid            
     !Parameter          
+    Beginning_Ele       
+    !Line               
     Match               
     Monitor             
     Instrument          
@@ -5020,14 +5104,15 @@ Index: 3
  
  !---------------------------------
 Index: 4
-    Sbend               
+    SBend               
     Quadrupole          
-    RFcavity            
+    RFCavity            
+    BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
-    Rbend               
+    RBend               
     Patch               
     Match               
     Monitor             
@@ -5041,19 +5126,18 @@ Index: 4
     Detector            
     Crab_Cavity         
     RF_Bend             
-    Foil                
  
  !---------------------------------
 Index: 5
-    Sbend               
+    SBend               
     Sextupole           
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -5073,16 +5157,15 @@ Index: 5
     Lens                
     Crab_Cavity         
     RF_Bend             
-    Foil                
  
  !---------------------------------
 Index: 6
-    Sbend               
-    RFcavity            
+    SBend               
+    RFCavity            
     Wiggler             
     Marker              
     Octupole            
-    Rbend               
+    RBend               
     Lcavity             
     !Parameter          
     Null_Ele            
@@ -5102,16 +5185,15 @@ Index: 6
     Mask                
     Crab_Cavity         
     RF_Bend             
-    Foil                
  
  !---------------------------------
 Index: 7
-    Sbend               
-    RFcavity            
+    SBend               
+    RFCavity            
     BeamBeam            
     Wiggler             
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     Beginning_Ele       
     !Line               
@@ -5128,22 +5210,21 @@ Index: 7
     Undulator           
     Detector            
     RF_Bend             
-    Foil                
  
  !---------------------------------
 Index: 8
-    Sbend               
+    SBend               
     Group               
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Marker              
     Hybrid              
-    Rbend               
+    RBend               
     Lcavity             
     Beginning_Ele       
     !Line               
@@ -5161,16 +5242,15 @@ Index: 8
     AC_Kicker           
     Crab_Cavity         
     Ramper              
-    Foil                
  
  !---------------------------------
 Index: 9
-    Sbend               
-    RFcavity            
-    ELseparator         
+    SBend               
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
-    Rbend               
+    RBend               
     Lcavity             
     Beginning_Ele       
     !Line               
@@ -5181,21 +5261,20 @@ Index: 9
     Undulator           
     Sad_Mult            
     RF_Bend             
-    Foil                
  
  !---------------------------------
 Index: 10
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
@@ -5203,8 +5282,8 @@ Index: 10
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     !Particle_Start     
     Crystal             
     Pipe                
@@ -5219,18 +5298,18 @@ Index: 10
  !---------------------------------
 Index: 11
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
@@ -5238,8 +5317,8 @@ Index: 11
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     !Particle_Start     
     Crystal             
     Pipe                
@@ -5260,16 +5339,16 @@ Index: 12
  !---------------------------------
 Index: 13
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
@@ -5277,8 +5356,8 @@ Index: 13
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     !Particle_Start     
     Crystal             
     Pipe                
@@ -5292,26 +5371,26 @@ Index: 13
  
  !---------------------------------
 Index: 14
-    Sbend               
+    SBend               
     BeamBeam            
-    Rbend               
+    RBend               
     Match               
     Crystal             
     Photon_Init         
  
  !---------------------------------
 Index: 15
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
@@ -5326,17 +5405,17 @@ Index: 15
  
  !---------------------------------
 Index: 16
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
@@ -5353,17 +5432,17 @@ Index: 16
  !---------------------------------
 Index: 17
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
@@ -5371,8 +5450,8 @@ Index: 17
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -5386,7 +5465,7 @@ Index: 17
  
  !---------------------------------
 Index: 18
-    RFcavity            
+    RFCavity            
     Lcavity             
     Match               
     EM_Field            
@@ -5394,10 +5473,10 @@ Index: 18
  
  !---------------------------------
 Index: 19
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
-    Rbend               
+    RFCavity            
+    RBend               
     Lcavity             
     Match               
     !Particle_Start     
@@ -5409,12 +5488,12 @@ Index: 19
  
  !---------------------------------
 Index: 20
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     !Parameter          
     !Line               
@@ -5432,13 +5511,13 @@ Index: 20
  
  !---------------------------------
 Index: 21
-    Sbend               
+    SBend               
     Custom              
-    ELseparator         
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     Match               
     Monitor             
@@ -5456,13 +5535,13 @@ Index: 21
  
  !---------------------------------
 Index: 22
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Wiggler             
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     Match               
     Monitor             
@@ -5480,14 +5559,14 @@ Index: 22
  
  !---------------------------------
 Index: 23
-    Sbend               
+    SBend               
     Quadrupole          
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Wiggler             
     Marker              
-    Rbend               
+    RBend               
     Match               
     Monitor             
     Instrument          
@@ -5503,19 +5582,19 @@ Index: 23
  
  !---------------------------------
 Index: 24
-    Sbend               
+    SBend               
     Quadrupole          
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Crystal             
     Pipe                
     E_Gun               
@@ -5529,18 +5608,18 @@ Index: 24
  
  !---------------------------------
 Index: 25
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Crystal             
     Pipe                
     E_Gun               
@@ -5551,18 +5630,18 @@ Index: 25
  
  !---------------------------------
 Index: 26
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Crystal             
     Pipe                
@@ -5578,18 +5657,22 @@ Index: 26
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 27
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
+    BeamBeam            
     Marker              
+    RBend               
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Crystal             
     Pipe                
@@ -5599,22 +5682,23 @@ Index: 27
     Photon_Init         
     Detector            
     Crab_Cavity         
+    RF_Bend             
  
  !---------------------------------
 Index: 28
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Patch               
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Pipe                
     E_Gun               
@@ -5624,15 +5708,16 @@ Index: 28
     Detector            
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 29
-    Sbend               
+    SBend               
     Custom              
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Patch               
     Lcavity             
     Beginning_Ele       
@@ -5640,8 +5725,8 @@ Index: 29
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Crystal             
     Pipe                
@@ -5653,14 +5738,15 @@ Index: 29
     Detector            
     Crab_Cavity         
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 30
-    Sbend               
+    SBend               
     Custom              
     BeamBeam            
     Marker              
-    Rbend               
+    RBend               
     Patch               
     Lcavity             
     Beginning_Ele       
@@ -5668,8 +5754,8 @@ Index: 30
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Crystal             
     Pipe                
@@ -5679,13 +5765,16 @@ Index: 30
     Photon_Init         
     Detector            
     RF_Bend             
+    Foil                
  
  !---------------------------------
 Index: 31
     Drift               
-    RFcavity            
+    SBend               
+    RFCavity            
     BeamBeam            
     Marker              
+    RBend               
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -5693,18 +5782,21 @@ Index: 31
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Crystal             
     Pipe                
     Fiducial            
     Photon_Init         
     Detector            
+    RF_Bend             
  
  !---------------------------------
 Index: 32
+    SBend               
     BeamBeam            
+    RBend               
     Patch               
     Beginning_Ele       
     !Line               
@@ -5715,13 +5807,14 @@ Index: 32
     Fiducial            
     Photon_Init         
     AC_Kicker           
+    RF_Bend             
  
  !---------------------------------
 Index: 33
-    Sbend               
-    RFcavity            
+    SBend               
+    RFCavity            
     BeamBeam            
-    Rbend               
+    RBend               
     Lcavity             
     Beginning_Ele       
     !Line               
@@ -5733,20 +5826,20 @@ Index: 33
  !---------------------------------
 Index: 34
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -5755,8 +5848,8 @@ Index: 34
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -5781,24 +5874,25 @@ Index: 34
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 35
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -5807,8 +5901,8 @@ Index: 35
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -5833,24 +5927,25 @@ Index: 35
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 36
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -5861,8 +5956,8 @@ Index: 36
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -5887,24 +5982,25 @@ Index: 36
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 37
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -5915,8 +6011,8 @@ Index: 37
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -5941,24 +6037,25 @@ Index: 37
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 38
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -5969,8 +6066,8 @@ Index: 38
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -5995,27 +6092,28 @@ Index: 38
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 39
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     !Particle_Start     
     Crystal             
     Pipe                
@@ -6028,25 +6126,25 @@ Index: 39
  
  !---------------------------------
 Index: 40
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     !Particle_Start     
     Pipe                
     E_Gun               
@@ -6059,24 +6157,24 @@ Index: 40
  
  !---------------------------------
 Index: 41
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     !Particle_Start     
     Pipe                
     E_Gun               
@@ -6088,23 +6186,23 @@ Index: 41
  
  !---------------------------------
 Index: 42
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
+    RFCavity            
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Match               
     Monitor             
     Instrument          
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     Undulator           
     AC_Kicker           
@@ -6114,10 +6212,10 @@ Index: 42
  
  !---------------------------------
 Index: 43
-    Sbend               
-    ELseparator         
+    SBend               
+    ELSeparator         
     BeamBeam            
-    Rbend               
+    RBend               
     !Parameter          
     !Line               
     Match               
@@ -6127,10 +6225,10 @@ Index: 43
  
  !---------------------------------
 Index: 44
-    Sbend               
-    RFcavity            
+    SBend               
+    RFCavity            
     BeamBeam            
-    Rbend               
+    RBend               
     Lcavity             
     !Parameter          
     Match               
@@ -6138,36 +6236,36 @@ Index: 44
  
  !---------------------------------
 Index: 45
-    Sbend               
+    SBend               
     Quadrupole          
-    RFcavity            
+    RFCavity            
     Sol_Quad            
-    Rbend               
+    RBend               
     Lcavity             
     !Parameter          
  
  !---------------------------------
 Index: 46
-    Sbend               
+    SBend               
     Sextupole           
-    RFcavity            
-    Rbend               
+    RFCavity            
+    RBend               
     Lcavity             
     !Parameter          
     !Line               
  
  !---------------------------------
 Index: 47
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -6181,32 +6279,34 @@ Index: 47
  
  !---------------------------------
 Index: 48
-    Sbend               
+    SBend               
     Octupole            
-    Rbend               
+    RBend               
     Patch               
     Match               
  
  !---------------------------------
 Index: 49
-    Sbend               
+    SBend               
     BeamBeam            
+    Wiggler             
     Sol_Quad            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
+    Undulator           
     Sad_Mult            
  
  !---------------------------------
 Index: 50
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -6214,7 +6314,7 @@ Index: 50
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6227,8 +6327,8 @@ Index: 50
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -6255,17 +6355,18 @@ Index: 50
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 51
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -6273,7 +6374,7 @@ Index: 51
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6286,8 +6387,8 @@ Index: 51
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -6314,17 +6415,18 @@ Index: 51
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 52
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -6332,7 +6434,7 @@ Index: 52
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6345,8 +6447,8 @@ Index: 52
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -6373,17 +6475,18 @@ Index: 52
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 53
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -6391,7 +6494,7 @@ Index: 53
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     !Mad_Beam           
     AB_multipole        
@@ -6406,8 +6509,8 @@ Index: 53
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -6434,17 +6537,18 @@ Index: 53
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 54
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -6452,7 +6556,7 @@ Index: 54
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     !Mad_Beam           
     AB_multipole        
@@ -6467,8 +6571,8 @@ Index: 54
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -6495,24 +6599,25 @@ Index: 54
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 55
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     !Parameter          
@@ -6520,8 +6625,8 @@ Index: 55
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -6544,32 +6649,33 @@ Index: 55
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 56
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -6592,24 +6698,25 @@ Index: 56
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 57
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6618,8 +6725,8 @@ Index: 57
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -6642,24 +6749,25 @@ Index: 57
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 58
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6668,8 +6776,8 @@ Index: 58
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -6692,24 +6800,25 @@ Index: 58
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 59
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6718,8 +6827,8 @@ Index: 59
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -6742,24 +6851,25 @@ Index: 59
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 60
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6768,8 +6878,8 @@ Index: 60
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Mirror              
@@ -6792,11 +6902,12 @@ Index: 60
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 61
-    Sbend               
-    Rbend               
+    SBend               
+    RBend               
     Girder              
     Mirror              
     Crystal             
@@ -6806,25 +6917,25 @@ Index: 61
  !---------------------------------
 Index: 62
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -6838,20 +6949,20 @@ Index: 62
  !---------------------------------
 Index: 63
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6860,8 +6971,8 @@ Index: 63
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Mirror              
     Crystal             
@@ -6883,17 +6994,18 @@ Index: 63
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 64
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -6901,7 +7013,7 @@ Index: 64
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -6914,8 +7026,8 @@ Index: 64
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -6942,29 +7054,30 @@ Index: 64
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 65
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Crystal             
     Pipe                
     E_Gun               
@@ -6980,25 +7093,25 @@ Index: 65
  !---------------------------------
 Index: 66
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -7007,30 +7120,32 @@ Index: 66
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 67
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -7040,21 +7155,22 @@ Index: 67
     Crab_Cavity         
     RF_Bend             
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 68
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -7062,8 +7178,8 @@ Index: 68
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -7077,26 +7193,26 @@ Index: 68
  !---------------------------------
 Index: 69
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -7110,26 +7226,26 @@ Index: 69
  !---------------------------------
 Index: 70
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Mirror              
     Crystal             
     Pipe                
@@ -7149,13 +7265,13 @@ Index: 70
  !---------------------------------
 Index: 71
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7163,7 +7279,7 @@ Index: 71
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7174,8 +7290,8 @@ Index: 71
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7201,17 +7317,18 @@ Index: 71
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 72
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7219,7 +7336,7 @@ Index: 72
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7230,8 +7347,8 @@ Index: 72
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7257,17 +7374,18 @@ Index: 72
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 73
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7275,7 +7393,7 @@ Index: 73
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7286,8 +7404,8 @@ Index: 73
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7313,17 +7431,18 @@ Index: 73
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 74
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7331,7 +7450,7 @@ Index: 74
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7342,8 +7461,8 @@ Index: 74
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7369,19 +7488,20 @@ Index: 74
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 75
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7389,7 +7509,7 @@ Index: 75
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7403,8 +7523,8 @@ Index: 75
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Photon_Fork         
@@ -7433,6 +7553,8 @@ Index: 75
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
+    Feedback            
  
  !---------------------------------
 Index: 76
@@ -7455,26 +7577,20 @@ Index: 81
     Overlay             
     Taylor              
     Converter           
-    Mirror              
-    Crystal             
-    Multilayer_Mirror   
-    Diffraction_Plate   
-    Sample              
-    Detector            
     Ramper              
  
  !---------------------------------
 Index: 82
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7482,7 +7598,7 @@ Index: 82
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7496,8 +7612,8 @@ Index: 82
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Photon_Fork         
@@ -7527,24 +7643,26 @@ Index: 82
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
+    Feedback            
  
  !---------------------------------
 Index: 83
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     !Parameter          
@@ -7554,8 +7672,8 @@ Index: 83
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Pipe                
     E_Gun               
@@ -7565,25 +7683,26 @@ Index: 83
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    Foil                
     Thick_Multipole     
  
  !---------------------------------
 Index: 84
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7592,39 +7711,34 @@ Index: 84
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
-    Mirror              
-    Crystal             
+    RCollimator         
+    ECollimator         
     Pipe                
-    Multilayer_Mirror   
     E_Gun               
     EM_Field            
     Undulator           
-    Diffraction_Plate   
-    Sample              
-    Detector            
     AC_Kicker           
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    Foil                
     Thick_Multipole     
  
  !---------------------------------
 Index: 85
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -7633,62 +7747,57 @@ Index: 85
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
-    Mirror              
-    Crystal             
+    RCollimator         
+    ECollimator         
     Pipe                
-    Multilayer_Mirror   
     E_Gun               
     EM_Field            
     Undulator           
-    Diffraction_Plate   
-    Sample              
-    Detector            
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Foil                
     Thick_Multipole     
+    Feedback            
  
  !---------------------------------
 Index: 86
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Taylor              
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     AB_multipole        
     Solenoid            
+    Lcavity             
     !Parameter          
     Beginning_Ele       
     !Line               
     HKicker             
     VKicker             
-    Mirror              
-    Crystal             
-    Multilayer_Mirror   
     Undulator           
-    Diffraction_Plate   
-    Sample              
-    Detector            
     AC_Kicker           
+    Crab_Cavity         
+    Foil                
     Thick_Multipole     
+    Feedback            
  
  !---------------------------------
 Index: 87
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7696,7 +7805,7 @@ Index: 87
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7710,8 +7819,8 @@ Index: 87
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7737,30 +7846,31 @@ Index: 87
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 88
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Crystal             
     Pipe                
     E_Gun               
@@ -7771,25 +7881,26 @@ Index: 88
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Foil                
     Thick_Multipole     
  
  !---------------------------------
 Index: 89
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -7797,8 +7908,8 @@ Index: 89
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Mirror              
     Crystal             
     Pipe                
@@ -7814,23 +7925,24 @@ Index: 89
     Crab_Cavity         
     Ramper              
     RF_Bend             
+    Foil                
     Thick_Multipole     
  
  !---------------------------------
 Index: 90
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -7838,8 +7950,8 @@ Index: 90
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Mirror              
     Crystal             
     Pipe                
@@ -7859,13 +7971,13 @@ Index: 90
  !---------------------------------
 Index: 91
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7873,7 +7985,7 @@ Index: 91
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7884,8 +7996,8 @@ Index: 91
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7912,17 +8024,18 @@ Index: 91
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 92
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7930,7 +8043,7 @@ Index: 92
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -7943,8 +8056,8 @@ Index: 92
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -7971,17 +8084,18 @@ Index: 92
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 93
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -7989,7 +8103,7 @@ Index: 93
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8002,8 +8116,8 @@ Index: 93
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8030,17 +8144,18 @@ Index: 93
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 94
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8048,7 +8163,7 @@ Index: 94
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8059,8 +8174,8 @@ Index: 94
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8087,17 +8202,18 @@ Index: 94
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 95
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8105,7 +8221,7 @@ Index: 95
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8116,8 +8232,8 @@ Index: 95
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8143,17 +8259,18 @@ Index: 95
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 96
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8161,7 +8278,7 @@ Index: 96
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8173,8 +8290,8 @@ Index: 96
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8200,17 +8317,18 @@ Index: 96
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 97
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8218,7 +8336,7 @@ Index: 97
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8229,8 +8347,8 @@ Index: 97
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8256,17 +8374,18 @@ Index: 97
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 98
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8274,7 +8393,7 @@ Index: 98
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8285,8 +8404,8 @@ Index: 98
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8312,6 +8431,7 @@ Index: 98
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 99
@@ -8323,18 +8443,18 @@ Index: 99
  
  !---------------------------------
 Index: 100
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     !Parameter          
@@ -8344,8 +8464,8 @@ Index: 100
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -8380,19 +8500,19 @@ Index: 102
  !---------------------------------
 Index: 103
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Beginning_Ele       
@@ -8401,8 +8521,8 @@ Index: 103
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     Capillary           
     E_Gun               
@@ -8422,22 +8542,22 @@ Index: 104
  
  !---------------------------------
 Index: 105
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8449,8 +8569,8 @@ Index: 105
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Photon_Fork         
@@ -8470,22 +8590,23 @@ Index: 105
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 106
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Patch               
     Lcavity             
@@ -8495,8 +8616,8 @@ Index: 106
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -8510,20 +8631,20 @@ Index: 106
  !---------------------------------
 Index: 107
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8535,8 +8656,8 @@ Index: 107
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Mirror              
     Crystal             
@@ -8559,17 +8680,18 @@ Index: 107
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 108
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8577,7 +8699,7 @@ Index: 108
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8590,8 +8712,8 @@ Index: 108
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8617,6 +8739,7 @@ Index: 108
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 109
@@ -8629,25 +8752,27 @@ Index: 109
  
  !---------------------------------
 Index: 110
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Photon_Fork         
     Fork                
     Pipe                
@@ -8661,20 +8786,22 @@ Index: 110
  
  !---------------------------------
 Index: 111
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    ELseparator         
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
     Lcavity             
+    Beginning_Ele       
+    !Line               
     HKicker             
     VKicker             
     Photon_Fork         
@@ -8688,15 +8815,15 @@ Index: 111
  !---------------------------------
 Index: 112
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8704,7 +8831,7 @@ Index: 112
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8716,8 +8843,8 @@ Index: 112
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Photon_Fork         
@@ -8746,47 +8873,56 @@ Index: 112
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
+    Feedback            
  
  !---------------------------------
 Index: 113
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
+    Lcavity             
+    Beginning_Ele       
+    !Line               
     HKicker             
     VKicker             
     Undulator           
     AC_Kicker           
+    Crab_Cavity         
     Thick_Multipole     
  
  !---------------------------------
 Index: 114
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -8798,27 +8934,27 @@ Index: 114
  
  !---------------------------------
 Index: 115
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Marker              
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     Monitor             
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Pipe                
     E_Gun               
     EM_Field            
@@ -8840,15 +8976,15 @@ Index: 116
  !---------------------------------
 Index: 117
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Overlay             
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8856,7 +8992,7 @@ Index: 117
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8868,8 +9004,8 @@ Index: 117
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Girder              
     Converter           
     Photon_Fork         
@@ -8898,17 +9034,19 @@ Index: 117
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
+    Feedback            
  
  !---------------------------------
 Index: 118
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8916,7 +9054,7 @@ Index: 118
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8928,8 +9066,8 @@ Index: 118
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -8956,17 +9094,18 @@ Index: 118
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 119
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -8974,7 +9113,7 @@ Index: 119
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -8986,8 +9125,8 @@ Index: 119
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -9014,17 +9153,18 @@ Index: 119
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 120
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -9032,7 +9172,7 @@ Index: 120
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9044,8 +9184,8 @@ Index: 120
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -9072,17 +9212,18 @@ Index: 120
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 121
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -9090,7 +9231,7 @@ Index: 121
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9102,8 +9243,8 @@ Index: 121
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -9130,17 +9271,18 @@ Index: 121
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 122
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -9148,7 +9290,7 @@ Index: 122
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9160,8 +9302,8 @@ Index: 122
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -9188,19 +9330,20 @@ Index: 122
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 123
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     HKicker             
@@ -9214,16 +9357,16 @@ Index: 123
  
  !---------------------------------
 Index: 124
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     HKicker             
@@ -9237,16 +9380,16 @@ Index: 124
  
  !---------------------------------
 Index: 125
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     HKicker             
@@ -9261,16 +9404,16 @@ Index: 125
  
  !---------------------------------
 Index: 126
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Solenoid            
     Lcavity             
     HKicker             
@@ -9285,13 +9428,13 @@ Index: 126
  !---------------------------------
 Index: 127
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -9299,7 +9442,7 @@ Index: 127
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9310,8 +9453,8 @@ Index: 127
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -9337,24 +9480,25 @@ Index: 127
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 128
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9364,8 +9508,8 @@ Index: 128
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Pipe                
     E_Gun               
@@ -9380,24 +9524,25 @@ Index: 128
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 129
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9407,8 +9552,8 @@ Index: 129
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Pipe                
     E_Gun               
@@ -9423,24 +9568,25 @@ Index: 129
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 130
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9450,8 +9596,8 @@ Index: 130
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Pipe                
     E_Gun               
@@ -9466,24 +9612,25 @@ Index: 130
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 131
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Group               
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9493,8 +9640,8 @@ Index: 131
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Pipe                
     E_Gun               
@@ -9509,6 +9656,7 @@ Index: 131
     RF_Bend             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 132
@@ -9522,13 +9670,13 @@ Index: 132
  !---------------------------------
 Index: 133
     Drift               
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
     Custom              
     Taylor              
-    RFcavity            
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     BeamBeam            
     Wiggler             
     Sol_Quad            
@@ -9536,7 +9684,7 @@ Index: 133
     Kicker              
     Hybrid              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
@@ -9548,8 +9696,8 @@ Index: 133
     Instrument          
     HKicker             
     VKicker             
-    Rcollimator         
-    Ecollimator         
+    RCollimator         
+    ECollimator         
     Converter           
     Photon_Fork         
     Fork                
@@ -9576,6 +9724,7 @@ Index: 133
     GKicker             
     Foil                
     Thick_Multipole     
+    Pickup              
  
  !---------------------------------
 Index: 134
@@ -9597,18 +9746,20 @@ Index: 139
  
  !---------------------------------
 Index: 140
-    Sbend               
+    SBend               
     Quadrupole          
     Sextupole           
-    ELseparator         
+    RFCavity            
+    ELSeparator         
     Wiggler             
     Sol_Quad            
     Kicker              
     Octupole            
-    Rbend               
+    RBend               
     Multipole           
     AB_multipole        
     Solenoid            
+    Lcavity             
     HKicker             
     VKicker             
     Mirror              
@@ -9620,4 +9771,5 @@ Index: 140
     Detector            
     Sad_Mult            
     AC_Kicker           
+    Crab_Cavity         
     Thick_Multipole     
