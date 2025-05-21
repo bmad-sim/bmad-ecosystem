@@ -147,7 +147,7 @@ do ib = 0, ubound(lat%branch,1)
       loc_equal = (start2_orb%location == start_orb%location)
       merit = maxval([real(rp):: abs(d%vec), abs(d%t), abs(d%s), abs(d%spin), abs(d%beta), abs(d%p0c)])
 
-      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '                ABS 2e-12', end_orb%vec, c_light*beta*end_orb%t
+      write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '                ABS 2e-12', end_orb%vec, 1d-3*c_light*beta*end_orb%t
       write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '           ABS 2e-12', end_orb%spin - start_orb%spin
       write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '               ABS 2e-12', d%vec
       write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '              ABS 2e-12', d%spin
@@ -156,7 +156,7 @@ do ib = 0, ubound(lat%branch,1)
 
       if (debug_mode) then
         print *
-        print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 2e-12', end_orb%vec, c_light*beta*end_orb%t
+        print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 2e-12', end_orb%vec, 1d-3*c_light*beta*end_orb%t
         print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '           ABS 2e-12', end_orb%spin - start_orb%spin
         print '(a)', '------------------------------------------------------------------------------------'
         print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '               ABS 2e-12', d%vec
