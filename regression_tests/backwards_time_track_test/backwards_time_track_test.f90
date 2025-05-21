@@ -74,7 +74,7 @@ do ie = 1, lat%n_ele_track-1, 2
 
   str = trim(key_name(ele%key)) // ':' // trim(key_name(ele2%key))
 
-  write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '                ABS 1e-9', end_orb%vec, c_light*beta*end_orb%t
+  write (1, '(2a, 7es18.10)')    quote(trim(str) // '-end'), '                ABS 1e-9', end_orb%vec, 1e-3*c_light*beta*end_orb%t
   write (1, '(2a, 7es18.10)')    quote(trim(str) // '-dendSpin'), '           ABS 1e-9', end_orb%spin - start_orb%spin
   write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dOrb'), '               ABS 1e-9', d%vec
   write (1, '(2a, 6es18.10)')    quote(trim(str) // '-dSpin'), '              ABS 1e-9', d%spin
@@ -83,7 +83,7 @@ do ie = 1, lat%n_ele_track-1, 2
 
   if (debug_mode) then
     print *
-    print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 1e-9', end_orb%vec, c_light*beta*end_orb%t
+    print '(2a, 7es18.10)',    quote(trim(str) // '-end'), '                ABS 1e-9', end_orb%vec, 1e-3*c_light*beta*end_orb%t
     print '(2a, 7es18.10)',    quote(trim(str) // '-dendSpin'), '           ABS 1e-9', end_orb%spin - start_orb%spin
     print '(a)', '------------------------------------------------------------------------------------'
     print '(2a, 6es18.10)',    quote(trim(str) // '-dOrb'), '               ABS 1e-9', d%vec
