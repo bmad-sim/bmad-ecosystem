@@ -818,7 +818,7 @@ case ('chrom.')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%eta)/ dpz
+        value_vec(i) = tao_lat%lat%ele(i)%x%deta_dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -827,7 +827,7 @@ case ('chrom.')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%eta - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%eta)/ dpz
+        value_vec(i) = tao_lat%lat%ele(i)%y%deta_dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -836,7 +836,7 @@ case ('chrom.')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%x%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%x%etap)/ dpz
+        value_vec(i) = tao_lat%lat%ele(i)%x%detap_dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
@@ -845,7 +845,7 @@ case ('chrom.')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%y%etap - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%y%etap)/ dpz
+        value_vec(i) = tao_lat%lat%ele(i)%y%detap_dpz
       end do
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif

@@ -409,12 +409,13 @@ subroutine allocate_element_array (ele, upper_bound)
   integer, optional :: upper_bound
 end subroutine
 
-subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch)
+subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch, do_ramper_slave_setup)
   import
   implicit none
   type (lat_struct), target :: lat
   integer, optional :: upper_bound
   integer, optional :: ix_branch
+  logical, optional :: do_ramper_slave_setup
 end subroutine
 
 subroutine aml_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)

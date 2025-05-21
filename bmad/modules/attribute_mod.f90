@@ -912,6 +912,10 @@ call init_attribute_name1 (beginning_ele$, dbeta_dpz_a$,                 'DBETA_
 call init_attribute_name1 (beginning_ele$, dbeta_dpz_b$,                 'DBETA_DPZ_B')
 call init_attribute_name1 (beginning_ele$, dalpha_dpz_a$,                'DALPHA_DPZ_A')
 call init_attribute_name1 (beginning_ele$, dalpha_dpz_b$,                'DALPHA_DPZ_B')
+call init_attribute_name1 (beginning_ele$, deta_dpz_x$,                  'DETA_DPZ_X')
+call init_attribute_name1 (beginning_ele$, deta_dpz_y$,                  'DETA_DPZ_Y')
+call init_attribute_name1 (beginning_ele$, detap_dpz_x$,                 'DETAP_DPZ_X')
+call init_attribute_name1 (beginning_ele$, detap_dpz_y$,                 'DETAP_DPZ_Y')
 call init_attribute_name1 (beginning_ele$, eta_x$,                       'ETA_X')
 call init_attribute_name1 (beginning_ele$, eta_y$,                       'ETA_Y')
 call init_attribute_name1 (beginning_ele$, eta_z$,                       'ETA_Z')
@@ -1056,7 +1060,6 @@ call init_attribute_name1 (foil$, x2_edge$,                         'X2_EDGE')
 call init_attribute_name1 (foil$, y1_edge$,                         'Y1_EDGE')
 call init_attribute_name1 (foil$, y2_edge$,                         'Y2_EDGE')
 call init_attribute_name1 (foil$, dthickness_dx$,                   'DTHICKNESS_DX')
-call init_attribute_name1 (foil$, atomic_weight$,                   'ATOMIC_WEIGHT')
 call init_attribute_name1 (foil$, f_factor$,                        'F_FACTOR')
 call init_attribute_name1 (foil$, num_steps$,                       'NUM_STEPS')
 
@@ -2020,14 +2023,14 @@ case ('AREA_DENSITY', 'AREA_DENSITY_USED', 'RADIATION_LENGTH', 'RADIATION_LENGTH
   attrib_units = 'kg/m^2'
 
 case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', 'ALPHA_B1', &
-      'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'N_PARTICLE', &
-      'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', &
+      'BBI_CONSTANT', 'B_PARAM', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'N_PARTICLE', 'DTHICKNESS_DX', &
+      'CHARGE', 'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'COUPLER_STRENGTH', 'DE_ETA_MEAS', 'F_FACTOR', &
       'ELECTRIC_DIPOLE_MOMENT', 'ETAP_X', 'ETAP_X0', 'ETAP_X1', 'ETAP_Y', 'ETAP_Y0', 'ETAP_Y1', &
       'ETAP_X_OUT', 'ETAP_Y_OUT', 'EMIT_FRACTION', 'Y_KNOT', 'SLAVE', 'DALPHA_DPZ_A', 'DALPHA_DPZ_B', &
       'FIELD_AUTOSCALE', 'FIELD_SCALE_FACTOR', 'FIELD_X', 'FIELD_Y', 'FINT', 'FINTX', 'GAP', 'HARMON', 'HKICK', &
       'KICK', 'MAX_NUM_RUNGE_KUTTA_STEP', 'NOISE', 'N_PART', 'N_PERIOD', 'N_SAMPLE', 'N_SLICE_SPLINE', &
       'POLARITY', 'PX', 'PX0', 'PX1', 'PX_REF', 'PY', 'PY0', 'PY1', 'PY_REF', 'PZ', 'PZ0', 'PZ1', 'PZ_REF', &
-      'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', &
+      'RAN_SEED', 'REF_CAP_GAMMA', 'REL_TOL_ADAPTIVE_TRACKING', 'REL_TOL_TRACKING', 'SIG_PZ', 'DETAP_DPZ_X', 'DETAP_DPZ_Y', &
       'SPIN_X', 'SPIN_Y', 'SPIN_Z', 'TRANSVERSE_SIGMA_CUT', 'VKICK', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', &
       'AUTOSCALE_AMP_REL_TOL', 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'SPIN_DN_DPZ_X', 'SPIN_DN_DPZ_Y', 'SPIN_DN_DPZ_Z', &
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
@@ -2044,7 +2047,7 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
       'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', 'DBETA_DPZ_A', 'DBETA_DPZ_B', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
-      'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
+      'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', 'DETA_DPZ_X', 'DETA_DPZ_Y', &
       'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_ACTIVE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
       'MIN_DS_ADAPTIVE_TRACKING', 'OFFSET', 'PENDELLOSUNG_PERIOD_PI', 'PENDELLOSUNG_PERIOD_SIGMA', 'R0_ELEC', 'R0_MAG', &
       'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &

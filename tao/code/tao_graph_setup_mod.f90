@@ -2195,7 +2195,7 @@ type (bunch_params_struct) :: bunch_params
 type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
-type (ele_struct), target :: ele
+type (ele_struct), target :: ele_to_s
 type (ele_struct), pointer :: ele_last, ele_here, ele_ref, this_ele, ele0
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
@@ -2359,32 +2359,6 @@ do ii = 1, size(curve%x_line)
   endif
 
   !-----------------------------
-  ! Fields at constant transverse position do not need tracking and should not be affected by lost particles.
-
-  select case (data_type_select)
-  case ('b0_field', 'b0_curve', 'b0_div', 'e0_field', 'e0_curve', 'e0_div')
-    orbit = ele_here%time_ref_orb_in
-    orbit%vec(1:5:2) = [curve%orbit%x, curve%orbit%y, 0.0_rp]
-    orbit%t = curve%orbit%t
-    orbit%s = s_now
-    value = tao_param_value_at_s (data_type, ele_here, orbit, err_flag, why_invalid)
-    if (err_flag) then
-      call tao_set_curve_invalid(curve, why_invalid, .true.)
-      good = .false.
-      bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
-      if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false.
-      ok = .false.
-      return
-    endif
-
-    curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
-    s_last = s_now
-    if (cache_status == loading_cache$) tao_branch%plot_cache_valid = .false. ! The cache is not getting loaded.
-    cycle
-  end select
-
-
-  !-----------------------------
 
   select case (curve%data_source)
   case ('beam')
@@ -2436,41 +2410,41 @@ do ii = 1, size(curve%x_line)
 
   case ('lat')
     if (cache_status == using_cache$) then
-      ele       = tao_branch%plot_cache(ii)%ele
+      ele_to_s  = tao_branch%plot_cache(ii)%ele_to_s
       orbit     = tao_branch%plot_cache(ii)%orbit
-      mat6      = tao_branch%plot_cache(ii)%ele%mat6
-      vec0      = tao_branch%plot_cache(ii)%ele%vec0
+      mat6      = tao_branch%plot_cache(ii)%ele_to_s%mat6
+      vec0      = tao_branch%plot_cache(ii)%ele_to_s%vec0
       err_flag  = tao_branch%plot_cache(ii)%err
 
     else
       ! Note: first_time may be set True when a Taylor or Hybrid element is encountered.
       if (first_time) then
-        call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
+        call twiss_and_track_at_s (lat, s_now, ele_to_s, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
         call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, s_now, orb(0), ix_branch = ix_branch)
-        ele%vec0 = vec0
-        ele%mat6 = mat6
+        ele_to_s%vec0 = vec0
+        ele_to_s%mat6 = mat6
         orbit_end = orbit
         first_time = .false.
 
       else
-        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele, ele, err_flag, &
-                                                                    compute_floor_coords = .true., compute_twiss = .false.)
+        call twiss_and_track_from_s_to_s (branch, orbit, s_now, orbit_end, ele_to_s, ele_to_s, err_flag, &
+                                                               compute_floor_coords = .true., compute_twiss = .false.)
         orbit = orbit_end
-        vec0 = matmul(ele%mat6, vec0) + ele%vec0
-        mat6 = matmul(ele%mat6, mat6)  ! Matrix from beginning of branch.
-        ele%vec0 = vec0
-        ele%mat6 = mat6
-        ele%key = hybrid$                  ! So twiss_propagate1 does not get confused.
-        call twiss_propagate1(branch%ele(0), ele, err_flag)
+        vec0 = matmul(ele_to_s%mat6, vec0) + ele_to_s%vec0
+        mat6 = matmul(ele_to_s%mat6, mat6)  ! Matrix from beginning of branch.
+        ele_to_s%vec0 = vec0
+        ele_to_s%mat6 = mat6
+        ele_to_s%key = hybrid$                  ! So twiss_propagate1 does not get confused.
+        call twiss_propagate1(branch%ele(0), ele_to_s, err_flag)
         ! Correct phase that can be off by factors of twopi
         ele0 => branch%ele(ele_here%ix_ele-1)
-        ele%a%phi = ele%a%phi + twopi * nint((0.5_rp *(ele0%a%phi + ele_here%a%phi) - ele%a%phi) / twopi)
-        ele%b%phi = ele%b%phi + twopi * nint((0.5_rp *(ele0%b%phi + ele_here%b%phi) - ele%b%phi) / twopi)
+        ele_to_s%a%phi = ele_to_s%a%phi + twopi * nint((0.5_rp *(ele0%a%phi + ele_here%a%phi) - ele_to_s%a%phi) / twopi)
+        ele_to_s%b%phi = ele_to_s%b%phi + twopi * nint((0.5_rp *(ele0%b%phi + ele_here%b%phi) - ele_to_s%b%phi) / twopi)
       endif
 
 
       if (cache_status == loading_cache$) then
-        tao_branch%plot_cache(ii)%ele      = ele
+        tao_branch%plot_cache(ii)%ele_to_s = ele_to_s
         tao_branch%plot_cache(ii)%orbit    = orbit
         tao_branch%plot_cache(ii)%err      = err_flag
       endif
@@ -2499,7 +2473,7 @@ do ii = 1, size(curve%x_line)
   end select
 
   call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                            tao_branch, orbit, lat, branch, ele, ele_ref, mat6, err_flag);  if (err_flag) return
+                          tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
@@ -2521,7 +2495,7 @@ if (curve%ele_ref_name /= '') then
 
     ele_ref => tao_curve_ele_ref(curve, .false.)
     s_now = ele_ref%s
-    call twiss_and_track_at_s (lat, s_now, ele, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
+    call twiss_and_track_at_s (lat, s_now, ele_to_s, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
 
     if (err_flag) then
       tao_branch%plot_cache(ii:)%err = .true.
@@ -2541,7 +2515,7 @@ if (curve%ele_ref_name /= '') then
     endif
 
     call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                  tao_branch, orbit, lat, branch, ele, ele_ref, mat6, err_flag);  if (err_flag) return
+                  tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2554,11 +2528,11 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 contains
 
 subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                                   tao_branch, orbit, lat, branch, ele, ele_ref, mat6, err_flag)
+                                   tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag)
 
 type (coord_struct) orbit, orb_end
 type (tao_lattice_branch_struct) :: tao_branch
-type (ele_struct), target :: ele, ele_ref, ele_dum, high_ele, low_ele
+type (ele_struct), target :: ele_to_s, ele_ref, ele_dum, high_ele, low_ele, ele_here
 type (lat_struct) lat
 type (lat_struct), pointer :: this_lat
 type (branch_struct) branch
@@ -2579,18 +2553,18 @@ case ('apparent_emit', 'norm_apparent_emit')
   select case (data_type)
   case ('apparent_emit.x', 'norm_apparent_emit.x')
     if (curve%data_source == 'beam') then
-      value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele, bunch_params)
+      value = tao_beam_emit_calc (x_plane$, apparent_emit$, ele_to_s, bunch_params)
     else
-      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele, tao_branch%modes_6d)
+      value = tao_lat_emit_calc (x_plane$, apparent_emit$, ele_to_s, tao_branch%modes_6d)
     endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    if (data_type_select(1:4) == 'norm') value = value * ele_to_s%value(E_tot$) / mass_of(branch%param%particle)
   case ('apparent_emit.y', 'norm_apparent_emit.y')
     if (curve%data_source == 'beam') then
-      value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele, bunch_params)
+      value = tao_beam_emit_calc (y_plane$, apparent_emit$, ele_to_s, bunch_params)
     else
-      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele, tao_branch%modes_6d)
+      value = tao_lat_emit_calc (y_plane$, apparent_emit$, ele_to_s, tao_branch%modes_6d)
     endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    if (data_type_select(1:4) == 'norm') value = value * ele_to_s%value(E_tot$) / mass_of(branch%param%particle)
   case default
     goto 9000  ! Error message & Return
   end select
@@ -2598,7 +2572,7 @@ case ('apparent_emit', 'norm_apparent_emit')
 case ('chrom')
   dE = 2 * s%global%delta_e_chrom  ! Actually this is the change in pz
   ds = s_now - ele_here%s_start
-  i = ix_ele_here
+  i = ele_here%ix_ele
 
   this_lat => tao_lat%high_E_lat
   this_branch => this_lat%branch(ix_branch)
@@ -2613,11 +2587,11 @@ case ('chrom')
   if (data_type == 'chrom.w.a') then
     z2 => high_ele%a
     z1 => low_ele%a
-    Z0 => ele%a
+    Z0 => ele_to_s%a
   else
     z2 => high_ele%b
     z1 => low_ele%b
-    z0 => ele%b
+    z0 => ele_to_s%b
   endif
 
   dalpha = (z2%alpha - z1%alpha) / dE
@@ -2644,22 +2618,22 @@ case ('emit')
     if (curve%data_source == 'beam') then
       value = bunch_params%x%emit
     else
-      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele, tao_branch%modes_6d)
+      value = tao_lat_emit_calc (x_plane$, projected_emit$, ele_to_s, tao_branch%modes_6d)
     endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    if (data_type_select(1:4) == 'norm') value = value * ele_to_s%value(E_tot$) / mass_of(branch%param%particle)
   case ('emit.y', 'norm_emit.y')
     if (curve%data_source == 'beam') then
       value = bunch_params%y%emit
     else
-      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele, tao_branch%modes_6d)
+      value = tao_lat_emit_calc (y_plane$, projected_emit$, ele_to_s, tao_branch%modes_6d)
     endif
-    if (data_type_select(1:4) == 'norm') value = value * ele%value(E_tot$) / mass_of(branch%param%particle)
+    if (data_type_select(1:4) == 'norm') value = value * ele_to_s%value(E_tot$) / mass_of(branch%param%particle)
   case default
     goto 9000  ! Error message & Return
   end select
 
 case ('expression')
-  this_ele => ele  ! Need a pointer to an ele
+  this_ele => ele_to_s  ! Need a pointer to an ele_to_s
   call tao_evaluate_expression (data_type(12:), 1, .false., val_arr, err_flag, .true., &
             dflt_source = 'at_ele', dflt_ele = this_ele, dflt_uni = tao_lat%u%ix_uni, &
             dflt_orbit = orbit);  if (err_flag) goto 9000  ! Error message & Return
@@ -2672,7 +2646,7 @@ case ('momentum_compaction')
   one_pz = 1 + orb_ref%vec(6)
   eta_vec(2) = eta_vec(2) * one_pz + orb_ref%vec(2) / one_pz
   eta_vec(4) = eta_vec(4) * one_pz + orb_ref%vec(4) / one_pz
-  ds = ele%s - branch%ele(0)%s
+  ds = ele_to_s%s - branch%ele(0)%s
   if (ds == 0) then
     value = 0
   else
@@ -2751,7 +2725,7 @@ case ('t', 'tt')
   value = taylor_coef (t_map(i), expnt)
 
 case default
-  value = tao_param_value_at_s (data_type, ele, orbit, err_flag, why_invalid)
+  value = tao_param_value_at_s (data_type, ele_to_s, ele_here, orbit, err_flag, why_invalid)
   if (err_flag) then
     call tao_set_curve_invalid(curve, why_invalid, .true.)
     goto 9100  ! Cleanup & Return

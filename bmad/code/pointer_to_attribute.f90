@@ -497,21 +497,37 @@ case ('GAMMA_A');         a_ptr%r => ele%a%gamma
 case ('GAMMA_B');         a_ptr%r => ele%b%gamma
 case ('PHI_A');           a_ptr%r => ele%a%phi
 case ('PHI_B');           a_ptr%r => ele%b%phi
+
 case ('ETA_A');           a_ptr%r => ele%a%eta
 case ('ETA_B');           a_ptr%r => ele%b%eta
 case ('ETA_X');           a_ptr%r => ele%x%eta
 case ('ETA_Y');           a_ptr%r => ele%y%eta
 case ('ETA_Z');           a_ptr%r => ele%z%eta
+
 case ('ETAP_A');          a_ptr%r => ele%a%etap
 case ('ETAP_B');          a_ptr%r => ele%b%etap
 case ('ETAP_X');          a_ptr%r => ele%x%etap
 case ('ETAP_Y');          a_ptr%r => ele%y%etap
 case ('ETAP_Z');          a_ptr%r => ele%z%etap
+
 case ('DETA_A_DS');       a_ptr%r => ele%a%deta_ds
 case ('DETA_B_DS');       a_ptr%r => ele%b%deta_ds
 case ('DETA_X_DS');       a_ptr%r => ele%x%deta_ds
 case ('DETA_Y_DS');       a_ptr%r => ele%y%deta_ds
 case ('DETA_Z_DS');       a_ptr%r => ele%z%deta_ds
+
+case ('DETA_DPZ_A');      a_ptr%r => ele%a%deta_dpz
+case ('DETA_DPZ_B');      a_ptr%r => ele%b%deta_dpz
+case ('DETA_DPZ_X');      a_ptr%r => ele%x%deta_dpz
+case ('DETA_DPZ_Y');      a_ptr%r => ele%y%deta_dpz
+case ('DETA_DPZ_Z');      a_ptr%r => ele%z%deta_dpz
+
+case ('DETAP_DPZ_A');      a_ptr%r => ele%a%detap_dpz
+case ('DETAP_DPZ_B');      a_ptr%r => ele%b%detap_dpz
+case ('DETAP_DPZ_X');      a_ptr%r => ele%x%detap_dpz
+case ('DETAP_DPZ_Y');      a_ptr%r => ele%y%detap_dpz
+case ('DETAP_DPZ_Z');      a_ptr%r => ele%z%detap_dpz
+
 case ('DBETA_DPZ_A');     a_ptr%r => ele%a%dbeta_dpz
 case ('DBETA_DPZ_B');     a_ptr%r => ele%b%dbeta_dpz
 case ('DALPHA_DPZ_A');    a_ptr%r => ele%a%dalpha_dpz
