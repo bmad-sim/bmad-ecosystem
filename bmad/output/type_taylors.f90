@@ -166,9 +166,9 @@ elseif (style == 'BMAD') then
       li(nl) = trim(li(nl)) // ' {'
 
       if (nt == 4) then
-        li(nl) = trim(li(nl)) // spin_out(i) // ': ' // real_str(tt%coef, 14)
+        li(nl) = trim(li(nl)) // spin_out(i) // ': ' // real_str(tt%coef, 16)
       else
-        li(nl) = trim(li(nl)) // int_str(i) // ': ' // real_str(tt%coef, 14)
+        li(nl) = trim(li(nl)) // int_str(i) // ': ' // real_str(tt%coef, 16)
       endif
 
       if (any(tt%expn > 6) .or. sum(tt%expn) > 10) then
@@ -203,14 +203,14 @@ else
 
   write (li(1), '(a)') ' Taylor Terms:'
   if (style == 'SPIN') then
-    write (li(2), '(a)') ' Out      Coef             Exponents           Order'
+    write (li(2), '(a)') ' Out      Coef               Exponents           Order'
   else
-    write (li(2), '(a)') ' Out      Coef             Exponents           Order       Reference'
+    write (li(2), '(a)') ' Out      Coef               Exponents           Order       Reference'
   endif
   nl = 2
 
-  fmt1 = '(a, f20.12,  1x, 6i3, i9, f18.9)'
-  fmt2 = '(a, es20.11, 1x, 6i3, i9, f18.9)'
+  fmt1 = '(a, f22.14,  1x, 6i3, i9, f18.9)'
+  fmt2 = '(a, es22.13, 1x, 6i3, i9, f18.9)'
 
   do i = 1, nt
     nl=nl+1; li(nl) = ' ---------------------------------------------------'
@@ -249,7 +249,7 @@ else
           if (sum(tt%expn) > max_order) cycle
         endif
 
-        if (abs(tt%coef) < 1d5) then
+        if (1d-6 < abs(tt%coef) .and. abs(tt%coef) < 1d5) then
           fmt = fmt1
         else
           fmt = fmt2
