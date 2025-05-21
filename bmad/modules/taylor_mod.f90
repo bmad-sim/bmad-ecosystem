@@ -34,7 +34,7 @@ implicit none
 
 type (taylor_struct), intent(inout) :: bmad_taylor
 type (taylor_struct) t2
-real(rp), parameter :: eps = 1d-10, ps_bound = 0.1
+real(rp), parameter :: eps = 1d-12, ps_bound = 0.2
 integer i, n
 
 

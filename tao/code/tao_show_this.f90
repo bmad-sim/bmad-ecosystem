@@ -192,7 +192,7 @@ integer, allocatable :: ix_c(:), ix_remove(:)
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip, show_energy
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
-logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc
+logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc, clean
 logical print_ptc, force_use_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms, do_inverse
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
@@ -5026,6 +5026,7 @@ case ('taylor_map', 'matrix')
   angle_units = .false.
   force_use_ptc = .false.
   do_inverse = .false.
+  clean = .true.
   output_type = 'TAYLOR_STANDARD'  ! "BMAD_LATTICE_FORMAT", "SCIBMAD", "RADIATION", "MATRIX", "TAYLOR_STANDARD"
   fmt = ''
   ele1_name = ''
@@ -5041,13 +5042,16 @@ case ('taylor_map', 'matrix')
   do
     call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-elements', &
               '-lattice_format', '-universe', '-angle_coordinates', '-number_format', '-inverse', &
-              '-radiation', '-scibmad'], .true., switch, err)
+              '-radiation', '-scibmad', '-noclean'], .true., switch, err)
     if (err) return
     if (switch == '') exit
 
     select case (switch)
     case ('-angle_coordinates')
       angle_units = .true.
+
+    case ('-noclean')
+      clean = .false.
 
     case ('-eigen_modes')
       print_eigen = .true.
@@ -5344,7 +5348,7 @@ case ('taylor_map', 'matrix')
         call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch)
         if (do_inverse) call taylor_inverse(taylor, taylor)
         call truncate_taylor_to_order (taylor, n_order, taylor)
-        call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = .true., out_var_suffix = var_name)
+        call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name)
         do j = 1, n
           nl=nl+1; lines(nl) = alloc_lines(j)
         enddo
@@ -5355,12 +5359,12 @@ case ('taylor_map', 'matrix')
     if (output_type /= 'MATRIX') then
       if (angle_units) call map_to_angle_coords (taylor, taylor)
       if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
-      call type_taylors (taylor, n_order, lines, n_lines = nl, out_style = style, clean = .true., out_var_suffix = var_name)
+      call type_taylors (taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, out_var_suffix = var_name)
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
 
     elseif (output_type == 'BMAD_LATTICE_FORMAT') then
       call mat6_to_taylor (vec0, mat6, taylor, ref_vec)
-      call type_taylors (taylor, n_order, lines, nl, out_style = style, clean = .true., out_var_suffix = var_name)
+      call type_taylors (taylor, n_order, lines, nl, out_style = style, clean = clean, out_var_suffix = var_name)
 
     else
       if (angle_units) then

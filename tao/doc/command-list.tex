@@ -3165,9 +3165,9 @@ Examples:
 Syntax:
 \begin{example}
   show taylor_map \{-angle_coordinates\} \{-eigen_modes\} \{-elements <ele_list>\} 
-                    \{-inverse\} \{-lattice_format\} \{-number_format <fmt>\} 
-                    \{-order <n_order>\} \{-ptc\} \{-radiation\} \{-s\} 
-                    \{-scibmad <suffix>\} \{-universe <uni>\} \{loc1 \{loc2\}\}
+                \{-inverse\} \{-lattice_format\} \{-noclean\} \{-number_format <fmt>\} 
+                \{-order <n_order>\} \{-ptc\} \{-radiation\} \{-s\} 
+                \{-scibmad <suffix>\} \{-universe <uni>\} \{loc1 \{loc2\}\}
 \end{example}
 
 Shows the Taylor transfer map for the \vn{model} lattice of the default universe (set by \vn{set
@@ -3205,6 +3205,9 @@ If the \vn{-eigen_modes} switch is present, the first order part of the map will
 1-turn matrix and the corresponding eigen values and eigen vectors will be printed.
 
 If the \vn{-inverse} switch is present, the inverse of the map is displayed.
+
+The \vn{-noclean} switch, if present, prevents \tao from ``cleaning'' the Taylor map. Cleaning
+is the process of dropping terms that are very small.
 
 The \vn{-number_format} switch, if present, overrides the default format for the displayed format.
 Examples:
