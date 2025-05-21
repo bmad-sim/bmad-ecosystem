@@ -631,7 +631,7 @@
 "muon"                       STR   "TTTTT"
 "pion-"                      STR   "TTTTT"
 "anti_deuteron"              STR   "TTTTT"
-"dMag-Deuteron"   ABS 1E-36     1.074762E-39
-"dMag-Proton"   ABS 1E-36    -3.158128E-36
-"dMag-Electron"   ABS 1E-33     2.065054E-33
-"dMag-Muon"   ABS 1E-35     4.863434E-35
+"dMag-Deuteron"   ABS 1E-36     1.390276E-36
+"dMag-Proton"   ABS 1E-36    -3.151427E-36
+"dMag-Electron"   ABS 1E-33     2.008635E-33
+"dMag-Muon"   ABS 1E-35     1.230407E-35
