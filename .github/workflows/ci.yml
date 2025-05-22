@@ -8,7 +8,7 @@ on:
   push:
 
   # Run on pull requests
-  ## pull_request:  # In practice this duplicates run on push.
+  pull_request:  # In practice this duplicates run on push.
 
   ## Future Ideas:
   ## PR make it 10 or less
