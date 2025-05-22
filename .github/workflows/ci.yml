@@ -19,13 +19,17 @@ on:
   ##   types:
   ##     - "published"
 
+
+# To see how ${{ github.head_ref || github.ref_name }} is evaluated:
+#   https://stackoverflow.com/questions/58033366/how-to-get-the-current-branch-within-github-actions/58035262#58035262
+
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
 # Configuration for the version of external packages
 # We do this so we can cache them and avoid checking out that big
 # repository at all times.
-
-concurrency:
-  group: ci-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   EXTERNAL_PACKAGES_VERSION: main
@@ -57,9 +61,10 @@ jobs:
 
       - name: ID
         run: 
-          echo "github.ref ${{ github.ref }}"
-          echo "github.ref_name ${{ github.ref_name }}"
-          echo "github.base_ref ${{ github.base_ref }}"
+          echo "github.ref ${{ github.ref }}\n"
+          echo "github.ref_name ${{ github.ref_name }}\n"
+          echo "github.base_ref ${{ github.base_ref }}\n"
+          echo "github.head_ref ${{ github.head_ref }}\n"
 
       - name: Build Bmad
         env:
