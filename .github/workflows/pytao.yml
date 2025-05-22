@@ -5,6 +5,12 @@ on:
   pull_request:
   workflow_dispatch:
 
+# Cancel duplicates in case PR is done immediately after push
+concurrency:
+  group: ${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+
 jobs:
   build:
     name: ${{ matrix.os }} Python ${{ matrix.python-version }}
