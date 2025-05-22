@@ -51,6 +51,9 @@ jobs:
       # Check out the code from GitHub
       - uses: actions/checkout@v4
 
+      - name: ID
+	  echo "github.ref: ${{ github.ref }}"
+
       - uses: ./.github/actions/setup-dependencies
         with:
           external-packages-version: ${{ env.EXTERNAL_PACKAGES_VERSION }}
