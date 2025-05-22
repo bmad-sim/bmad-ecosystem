@@ -380,7 +380,7 @@ case (sbend$)
     xc = 0.0_rp
   endif
   
-  xd = x0-xc
+  xd = x0 - xc
   
   if (kx > 0) then
     cx = cos(omegax*L)
@@ -405,20 +405,24 @@ case (sbend$)
     pry = sqrt(rel_p**2-py0**2)
     if (g == 0) then
       a = -0.5_rp*k0*py0*xi*(L*px0-0.5_rp*k0*L**2)/(rel_p**2*pry)
-      b = -0.5_rp*k0*(L*px0**2-k0*L**2*px0+k0**2*L**3/3.0_rp)*upsilon/(2.0_rp*rel_p**2*pry**3)-0.5_rp*k0*L*upsilon/(rel_p**2*pry)
+      b = -0.5_rp*k0*(L*px0**2-k0*L**2*px0+k0**2*L**3/3.0_rp)*upsilon/(2.0_rp*rel_p**2*pry**3) &
+      -0.5_rp*k0*L*upsilon/(rel_p**2*pry)
       cc = -0.5_rp*k0*py0*xi*L/(rel_p**2)
     elseif (k0 == 0) then
       a = 0.0_rp
       b = -0.5_rp*g*L
       cc = 0.0_rp
     else
-      sigma = rel_p*sx*(x0-3.0_rp*xc)*xd+L*(-(rel_p*xd*(x0-(2.0_rp+cx)*xc))+px0*(sx*xc+taux*px0/(rel_p*omegax**2)))-px0*(px0*sx+2.0_rp*(cx-1.0_rp)*rel_p*xc)*taux/(rel_p*omegax**2)
+      sigma = rel_p*sx*(x0-3.0_rp*xc)*xd+L*(-(rel_p*xd*(x0-(2.0_rp+cx)*xc))+px0*(sx*xc+taux*px0/(rel_p*omegax**2))) &
+      -px0*(px0*sx+2.0_rp*(cx-1.0_rp)*rel_p*xc)*taux/(rel_p*omegax**2)
       
-      a = -k0*py0*sx2*xi*(g*px0*sx*omegax+rel_p*(2+g*(x0*(1.0_rp+cx)+xc*(1.0_rp-cx)))*omegax)*(cx2*px0+rel_p*sx2*xd*taux*omegax)/(2.0_rp*rel_p**3*omegax**2*pry)
+      a = -k0*py0*sx2*xi*(g*px0*sx*omegax+rel_p*(2+g*(x0*(1.0_rp+cx)+xc*(1.0_rp-cx)))*omegax)*(cx2*px0+rel_p*sx2*xd* &
+      taux*omegax)/(2.0_rp*rel_p**3*omegax**2*pry)
       
       b = -k0*L*upsilon/(2.0_rp*rel_p**2*pry)
       b = b + (-g*k0*upsilon*(sx*xd+L*xc+(cx-1.0_rp)*px0*taux/(rel_p*omegax**2))/(2.0_rp*rel_p**2*pry))
-      b = b + (-k0*upsilon*(cx**2*px0*rel_p*xd+px0*rel_p*xd*taux*(-taux+sx**2*omegax**2)+L*(px0**2-rel_p**2*xd**2*taux*omegax**2)+cx*sx*(px0**2+rel_p**2*xd**2*taux*omegax**2))/(8.0_rp*rel_p**2*pry**3))
+      b = b + (-k0*upsilon*(cx**2*px0*rel_p*xd+px0*rel_p*xd*taux*(-taux+sx**2*omegax**2)+L*(px0**2-rel_p**2*xd**2*taux* &
+      omegax**2)+cx*sx*(px0**2+rel_p**2*xd**2*taux*omegax**2))/(8.0_rp*rel_p**2*pry**3))
       b = b + (sigma*g*k0**2*py0**2*xi**2/(4.0_rp*rel_p**4*pry))
       b = b - 0.5_rp*g*L
       
@@ -448,142 +452,195 @@ case (sbend$)
     c = cx*cy - 1.0_rp
 
     if (kx > 0 .and. k1 > 0) then
-      a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)-(cx*px0*py0*sy+c*px0*rel_p*y0+px0*rel_p*sx*sy*y0*omegax**2-rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
-      a = a + k1*chi*((cy-1.0_rp)*py0*rel_p*(1.0_rp+g*xc)*eta+g*py0*(px0*(cy*sx-cx*sy)+cx*cy*rel_p*xd+rel_p*xd*(sx*sy*omegax**2-1.0_rp))*omegay**2+rel_p*y0*omegay**2*(rel_p*sy*eta+g*px0*(sx*sy*omegay**2-c)+ &
+      a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)-(cx*px0*py0*sy+c*px0*rel_p*y0+px0*rel_p*sx*sy*y0*omegax**2- &
+      rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
+      a = a + k1*chi*((cy-1.0_rp)*py0*rel_p*(1.0_rp+g*xc)*eta+g*py0*(px0*(cy*sx-cx*sy)+cx*cy*rel_p*xd+rel_p*xd*(sx*sy*omegax**2-1.0_rp))*omegay**2+ &
+      rel_p*y0*omegay**2*(rel_p*sy*eta+g*px0*(sx*sy*omegay**2-c)+ &
       g*rel_p*(sy*xc*eta+cy*sx*xd*omegax**2+cx*sy*xd*omegay**2)))
       a = a * 0.5_rp/(rel_p**3*eta*omegay**2)
       
       b = 2.0_rp*g*px0*(k1*L*px0-2.0_rp*(cx-1.0_rp)*k0*rel_p+k1*(rel_p*(x0+3.0_rp*xc)-cx*(px0*sx+4.0_rp*rel_p*xc)-cx**2*rel_p*xd))*chi
-      b = b + k0*py0*(L*py0+cy*py0*sy+(cy**2-1.0_rp)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p*(4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1* &
-      (x0**2-2.0_rp*x0*xc+3.0_rp*xc**2))*chi))*omegax**2
-      b = b + 4.0_rp*k1*rel_p*chi*(px0*(1.0_rp-cx)+rel_p*(L*xc+sx*xd)*omegax**2)+k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi*(8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+ &
-      (cx**2-1.0_rp)*px0*rel_p*xd*omegax-px0*rel_p*sx**2*xd*omegax**3+rel_p**3*(L-cx*sx)*xd**2*omegax**4)-rel_p**2*(L-cy*sy)*y0**2*nu*omegay**2+py0*y0*nu*((cy**2-1.0_rp)*(rel_p-1.0_rp)+rel_p*sy**2*omegay**2))
+      b = b + k0*py0*(L*py0+cy*py0*sy+(cy**2-1.0_rp)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p* &
+      (4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc+3.0_rp*xc**2))*chi))*omegax**2
+      b = b + 4.0_rp*k1*rel_p*chi*(px0*(1.0_rp-cx)+rel_p*(L*xc+sx*xd)*omegax**2)+k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi* &
+      (8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+(cx**2-1.0_rp)*px0*rel_p*xd*omegax-px0*rel_p*sx**2*xd*omegax**3+ &
+      rel_p**3*(L-cx*sx)*xd**2*omegax**4)-rel_p**2*(L-cy*sy)*y0**2*nu*omegay**2+py0*y0*nu*((cy**2-1.0_rp)* &
+      (rel_p-1.0_rp)+rel_p*sy**2*omegay**2))
       b = b/(8.0_rp*rel_p**3*omegax**2)
       
       cc = k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(cy-1.0_rp)*rel_p*y0)*eta+kx*py0*(-c*px0+cy*rel_p*sx*xd*omegax**2)
       cc = cc + kx*(px0*py0*sx*sy+px0*rel_p*(cy*sx-cx*sy)*y0+rel_p*xd*(cx*py0*sy+cx*cy*rel_p*y0+rel_p*y0*(sx*sy*omegax**2-1.0_rp)))*omegay**2
-      cc = cc + k1*(px0*(py0*(c+sx*sy*omegax**2)+rel_p*y0*(cy*sx*omegax**2+cx*sy*omegay**2))+rel_p*(py0*(sy*xc*eta-cy*sx*xd*omegax**3+cx*sy*xd*omegax**3)+rel_p*y0*((cy-1.0_rp)*xc*eta+xd*omegax**3*(c-sx*sy*omegay**2))))
+      cc = cc + k1*(px0*(py0*(c+sx*sy*omegax**2)+rel_p*y0*(cy*sx*omegax**2+cx*sy*omegay**2))+rel_p*(py0*(sy*xc*eta-cy*sx*xd*omegax**3+cx*sy*xd*omegax**3)+ &
+      rel_p*y0*((cy-1.0_rp)*xc*eta+xd*omegax**3*(c-sx*sy*omegay**2))))
       cc = -0.5_rp*cc*xi/(rel_p**3*eta)
       
-      a2 = rel_p*y0*omegay**2*((px0-rel_p*(L*xc-2.0_rp*sy*xc+sx*xd)*eta)*omegax**2+cx*px0*(eta-cy*omegax**2)+px0*(-1.0_rp+2.0_rp*sx*sy*omegax**2)*omegay**2+cx*(cy*px0+2.0_rp*rel_p*sy*xd*omegax**2)*omegay**2+cy* &
+      a2 = rel_p*y0*omegay**2*((px0-rel_p*(L*xc-2.0_rp*sy*xc+sx*xd)*eta)*omegax**2+cx*px0*(eta-cy*omegax**2)+px0*(-1.0_rp+2.0_rp*sx*sy*omegax**2)* &
+      omegay**2+cx*(cy*px0+2.0_rp*rel_p*sy*xd*omegax**2)*omegay**2+cy* &
       (-px0*eta+rel_p*omegax**2*(-L*xc*eta+sx*xd*mu)))
-      a2 = a2 + py0*(-(rel_p*xc*omegax**2*(eta-2.0_rp*cy*eta+omegax**2+L*sy*eta*omegay**2))+omegay**2*(-(rel_p*omegax**2*(x0+xd-2.0_rp*cx*cy*xd-sx*sy*xd*mu))+px0*(2.0_rp*cy*sx*omegax**2-sy*(eta+cx*mu))))
+      a2 = a2 + py0*(-(rel_p*xc*omegax**2*(eta-2.0_rp*cy*eta+omegax**2+L*sy*eta*omegay**2))+omegay**2*(-(rel_p*omegax**2* &
+      (x0+xd-2.0_rp*cx*cy*xd-sx*sy*xd*mu))+px0*(2.0_rp*cy*sx*omegax**2-sy*(eta+cx*mu))))
       a2 = 0.25_rp*a2*k0*kx*xi*chi/(rel_p**4*eta*omegax**2*omegay**2)
       
       b2 = k0*k1*(L-sy)*xi*chi*(py0**2-rel_p**2*y0**2*omegay**2)/(4.0_rp*rel_p**4*omegay**2)
       
-      cc2 = px0*(py0*((cx-cy-1.0_rp)*eta+cx*cy*omegay**2+omegax**2*(2.0_rp-cx*cy+2.0_rp*sx*sy*omegay**2))+rel_p*y0*omegay**2*(2.0_rp*cy*sx*omegax**2-sy*(eta+cx*mu)))
-      cc2 = cc2 - rel_p*omegax**2*(L*xc*eta*((cy+1.0_rp)*py0+rel_p*sy*y0*omegay**2)+py0*(-2.0_rp*sy*(xc*eta+cx*xd*omegay**2)+sx*xd*(eta-cy*mu))+rel_p*y0*(2.0_rp*xc*omegax**2-2.0_rp*cy*(xc*eta+cx*xd*omegay**2)+ &
-      omegay**2*(2.0_rp*x0-sx*sy*xd*mu)))
+      cc2 = px0*(py0*((cx-cy-1.0_rp)*eta+cx*cy*omegay**2+omegax**2*(2.0_rp-cx*cy+2.0_rp*sx*sy*omegay**2))+rel_p*y0*omegay**2* &
+      (2.0_rp*cy*sx*omegax**2-sy*(eta+cx*mu)))
+      cc2 = cc2 - rel_p*omegax**2*(L*xc*eta*((cy+1.0_rp)*py0+rel_p*sy*y0*omegay**2)+py0*(-2.0_rp*sy*(xc*eta+cx*xd*omegay**2)+ &
+      sx*xd*(eta-cy*mu))+rel_p*y0*(2.0_rp*xc*omegax**2-2.0_rp*cy*(xc*eta+cx*xd*omegay**2)+omegay**2*(2.0_rp*x0-sx*sy*xd*mu)))
       cc2 = 0.25_rp*cc2*k1*kx*chi**2/(rel_p**4*eta*omegax**2*omegay**2)
     elseif (kx > 0 .and. k1 < 0) then
       if (abs(mu) > 1d-20) then
-        a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)+(cx*px0*py0*sy+c*px0*rel_p*y0+px0*rel_p*sx*sy*y0*omegax**2-rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
-        a = a + k1*chi*(-((-1.0_rp+cy)*py0*rel_p*(1.0_rp+g*xc)*omegax**2)+(rel_p*y0*(-c*g*px0+rel_p*(sy+g*sy*xc+cy*g*sx*xd)*omegax**2)+py0*(-rel_p-cx*g*px0*sy+cy*(rel_p+g*(rel_p-1.0_rp)*(xc+cx*xd)+g*(px0*sx+xc+cx*xd))- &
-        g*rel_p*(xc+xd-sx*sy*xd*omegax**2)))*omegay**2-rel_p*sy*(rel_p+g*(rel_p-1.0_rp)*(xc+cx*xd)+g*(px0*sx+xc+cx*xd))*y0*omegay**4)
+        a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)+(cx*px0*py0*sy+c*px0*rel_p*y0+px0*rel_p*sx*sy*y0*omegax**2- &
+        rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
+        a = a + k1*chi*(-((-1.0_rp+cy)*py0*rel_p*(1.0_rp+g*xc)*omegax**2)+(rel_p*y0*(-c*g*px0+rel_p*(sy+g*sy*xc+cy*g*sx*xd)*omegax**2)+ &
+        py0*(-rel_p-cx*g*px0*sy+cy*(rel_p+g*(rel_p-1.0_rp)*(xc+cx*xd)+g*(px0*sx+xc+cx*xd))-g*rel_p*(xc+xd-sx*sy*xd*omegax**2)))*omegay**2- &
+        rel_p*sy*(rel_p+g*(rel_p-1.0_rp)*(xc+cx*xd)+g*(px0*sx+xc+cx*xd))*y0*omegay**4)
         a = 0.5_rp*a/(rel_p**3*mu*omegay**2)
       
-        cc = -k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(-1.0_rp+cy)*rel_p*y0)*mu+kx*(c*px0*py0+px0*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegay**2+rel_p*xd*(-cy*py0*sx*omegax**2+(cx*py0*sy+cx*cy*rel_p*y0+rel_p*y0*(-1.0_rp+sx*sy*omegax**2))*omegay**2))
-        cc = cc - k1*(px0*(py0*(c+sx*sy*omegax**2)+rel_p*y0*(cy*sx*omegax**2-cx*sy*omegay**2))+rel_p*(py0*omegax**2*(-cy*sx*xd*omegax+sy*(xc+cx*xd*omegax))-py0*sy*xc*omegay**2+rel_p*y0*((-1.0_rp+cy)*xc*mu+xd*omegax**3*(-c+sx*sy*omegay**2))))
+        cc = -k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(-1.0_rp+cy)*rel_p*y0)*mu+kx*(c*px0*py0+px0*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegay**2+ &
+        rel_p*xd*(-cy*py0*sx*omegax**2+(cx*py0*sy+cx*cy*rel_p*y0+rel_p*y0*(-1.0_rp+sx*sy*omegax**2))*omegay**2))
+        cc = cc - k1*(px0*(py0*(c+sx*sy*omegax**2)+rel_p*y0*(cy*sx*omegax**2-cx*sy*omegay**2))+rel_p*(py0*omegax**2* &
+        (-cy*sx*xd*omegax+sy*(xc+cx*xd*omegax))-py0*sy*xc*omegay**2+rel_p*y0*((-1.0_rp+cy)*xc*mu+xd*omegax**3*(-c+sx*sy*omegay**2))))
         cc = 0.5_rp*cc*xi/(rel_p**3*mu)
       
-        a2 = -(rel_p*y0*omegay**2*((1.0_rp+cx)*(-1.0_rp+cy)*px0*omegax**2+px0*((-1.0_rp+cx)*(1.0_rp+cy)+2.0_rp*sx*sy*omegax**2)*omegay**2+rel_p*omegax**2*(((1.0_rp+cy)*L*xc-2.0_rp*sy*xc+sx*xd-cy*sx*xd)*omegax**2-((1.0_rp+cy)*L*xc+(1.0_rp+cy)* &
+        a2 = -(rel_p*y0*omegay**2*((1.0_rp+cx)*(-1.0_rp+cy)*px0*omegax**2+px0*((-1.0_rp+cx)*(1.0_rp+cy)+2.0_rp*sx*sy*omegax**2)*omegay**2+rel_p*omegax**2* &
+        (((1.0_rp+cy)*L*xc-2.0_rp*sy*xc+sx*xd-cy*sx*xd)*omegax**2-((1.0_rp+cy)*L*xc+(1.0_rp+cy)* &
         sx*xd-2.0_rp*sy*(xc+cx*xd))*omegay**2)))
-        a2 = a2 + py0*(-(rel_p*xc*omegax**2*mu*(-2.0_rp+2.0_rp*cy+L*sy*omegay**2))+omegay**2*(2.0_rp*cy*(px0*sx+cx*rel_p*xd)*omegax**2-px0*sy*((1.0_rp+cx)*omegax**2+(-1.0_rp+cx)*omegay**2)+rel_p*xd*omegax**2*(-2.0_rp+sx*sy*eta)))
+        a2 = a2 + py0*(-(rel_p*xc*omegax**2*mu*(-2.0_rp+2.0_rp*cy+L*sy*omegay**2))+omegay**2*(2.0_rp*cy*(px0*sx+cx*rel_p*xd)*omegax**2- &
+        px0*sy*((1.0_rp+cx)*omegax**2+(-1.0_rp+cx)*omegay**2)+rel_p*xd*omegax**2*(-2.0_rp+sx*sy*eta)))
         a2 = 0.25_rp*a2*k0*kx*xi*chi/(rel_p**4*omegax**2*omegay**2*mu)
       
-        cc2 = px0*((1.0_rp+cx)*(-1.0_rp+cy)*py0*omegax**2+py0*((-1.0_rp+cx)*(1.0_rp+cy)+2.0_rp*sx*sy*omegax**2)*omegay**2+rel_p*y0*omegay**2*((2.0_rp*cy*sx-(1.0_rp+cx)*sy)*omegax**2-(-1.0_rp+cx)*sy*omegay**2))
-        cc2 = cc2 - rel_p*omegax**2*(py0*(2.0_rp*sy*xc+(-1.0_rp+cy)*sx*xd)*omegax**2+py0*((1.0_rp+cy)*sx*xd-2.0_rp*sy*(xc+cx*xd))*omegay**2+L*xc*mu*(-((1.0_rp+cy)*py0)+rel_p*sy*y0*omegay**2)+rel_p*y0*(2.0_rp*(-1.0_rp+cy)*xc*omegax**2+ &
+        cc2 = px0*((1.0_rp+cx)*(-1.0_rp+cy)*py0*omegax**2+py0*((-1.0_rp+cx)*(1.0_rp+cy)+2.0_rp*sx*sy*omegax**2)*omegay**2+rel_p*y0*omegay**2* &
+        ((2.0_rp*cy*sx-(1.0_rp+cx)*sy)*omegax**2-(-1.0_rp+cx)*sy*omegay**2))
+        cc2 = cc2 - rel_p*omegax**2*(py0*(2.0_rp*sy*xc+(-1.0_rp+cy)*sx*xd)*omegax**2+py0*((1.0_rp+cy)*sx*xd-2.0_rp*sy*(xc+cx*xd))*omegay**2+ &
+        L*xc*mu*(-((1.0_rp+cy)*py0)+rel_p*sy*y0*omegay**2)+rel_p*y0*(2.0_rp*(-1.0_rp+cy)*xc*omegax**2+ &
         (x0+xc-2.0_rp*cy*xc+xd-2.0_rp*cx*cy*xd-sx*sy*xd*omegax**2)*omegay**2-sx*sy*xd*omegay**4))
         cc2 = 0.25_rp*cc2*k1*kx*chi**2/(rel_p**4*omegax**2*omegay**2*mu)
       else
-        a = k0*xi*omegax**2*(-cx**2*rel_p*(px0*y0+py0*xd*omegax)+rel_p*(px0*y0+py0*xd*omegax)*(1.0_rp+sx**2*omegax**2)+2.0_rp*cx*sx*(-px0*py0+rel_p**2*xd*y0*omegax**3)-2.0_rp*L*(px0*py0+rel_p**2*xd*y0*omegax**3))
-        a = a + k1*chi*(rel_p*y0*(-((-1.0_rp+cx**2)*g*px0)+(g*px0*sx**2+2.0_rp*g*L*rel_p*xd+2.0_rp*rel_p*sx*(2.0_rp+2.0_rp*g*xc+cx*g*xd))*omegax**2)+py0*(4.0_rp+2.0_rp*g*L*px0+4.0_rp*(rel_p-1.0_rp)-2.0_rp*cx* &
+        a = k0*xi*omegax**2*(-cx**2*rel_p*(px0*y0+py0*xd*omegax)+rel_p*(px0*y0+py0*xd*omegax)*(1.0_rp+sx**2*omegax**2)+ &
+        2.0_rp*cx*sx*(-px0*py0+rel_p**2*xd*y0*omegax**3)-2.0_rp*L*(px0*py0+rel_p**2*xd*y0*omegax**3))
+        a = a + k1*chi*(rel_p*y0*(-((-1.0_rp+cx**2)*g*px0)+(g*px0*sx**2+2.0_rp*g*L*rel_p*xd+2.0_rp*rel_p*sx*(2.0_rp+2.0_rp*g*xc+cx*g*xd))*omegax**2)+ &
+        py0*(4.0_rp+2.0_rp*g*L*px0+4.0_rp*(rel_p-1.0_rp)-2.0_rp*cx* &
         (2.0_rp*rel_p+g*px0*sx+2.0_rp*g*rel_p*xc)-cx**2*g*rel_p*xd+g*rel_p*(4.0_rp*xc+xd+sx**2*xd*omegax**2)))
         a = a/(8.0_rp*rel_p**3*omegax**2)
         
-        cc = c*kx*px0*py0-(kx*py0*(px0*sx**2+2.0_rp*rel_p*(L+cx*sx)*xd)+kx*rel_p*(-2.0_rp*L*px0+2.0_rp*cx*px0*sx+c*rel_p*xd)*y0+4.0_rp*k0*rel_p*(1.0_rp+g*xc)*(py0*sx+(-1.0_rp+cx)*rel_p*y0))*omegax**2
-        cc = cc + kx*rel_p**2*sx**2*xd*y0*omegax**4+k1*(c*px0*py0-px0*(py0*sx**2+2.0_rp*rel_p*(L+cx*sx)*y0)*omegax**2+rel_p*omegax**2*(-4.0_rp*py0*sx*xc+2.0_rp*py0*(L-cx*sx)*xd*omegax-rel_p*y0*(4.0_rp*(-1.0_rp+cx)*xc+xd*omegax*(c-sx**2*omegax**2))))
+        cc = c*kx*px0*py0-(kx*py0*(px0*sx**2+2.0_rp*rel_p*(L+cx*sx)*xd)+kx*rel_p*(-2.0_rp*L*px0+2.0_rp*cx*px0*sx+c*rel_p*xd)*y0+ &
+        4.0_rp*k0*rel_p*(1.0_rp+g*xc)*(py0*sx+(-1.0_rp+cx)*rel_p*y0))*omegax**2
+        cc = cc + kx*rel_p**2*sx**2*xd*y0*omegax**4+k1*(c*px0*py0-px0*(py0*sx**2+2.0_rp*rel_p*(L+cx*sx)*y0)*omegax**2+ &
+        rel_p*omegax**2*(-4.0_rp*py0*sx*xc+2.0_rp*py0*(L-cx*sx)*xd*omegax-rel_p*y0*(4.0_rp*(-1.0_rp+cx)*xc+xd*omegax*(c-sx**2*omegax**2))))
         cc = cc*xi/(8.0_rp*rel_p**3*omegax**2)
         
-        a2 = L*px0*py0-px0*py0*sx-L*rel_p*(py0*sx*xc+rel_p*(-x0+(2.0_rp+cx)*xc)*y0)*omegax**2+rel_p*(-2.0_rp*(-1.0_rp+cx)*py0*xc-rel_p*sx*(x0-3.0_rp*xc)*y0*omegax**2)
+        a2 = L*px0*py0-px0*py0*sx-L*rel_p*(py0*sx*xc+rel_p*(-x0+(2.0_rp+cx)*xc)*y0)*omegax**2+rel_p*(-2.0_rp*(-1.0_rp+cx)*py0*xc- &
+        rel_p*sx*(x0-3.0_rp*xc)*y0*omegax**2)
         a2 = 0.25_rp*a2*k0*kx*xi*chi/(rel_p**4*omegax**2)
         
         cc2 = -py0*sx*(x0-3.0_rp*xc)+px0*sx*y0+2.0_rp*(-1.0_rp+cx)*rel_p*xc*y0+L*(py0*(x0-(2.0_rp+cx)*xc)-px0*y0+rel_p*sx*xc*y0*omegax**2)
         cc2 = -0.25_rp*cc2*k1*kx*chi**2/(rel_p**3*omegax**2)
       endif
       b = 2.0_rp*g*px0*(k1*L*px0-2.0_rp*(-1.0_rp+cx)*k0*rel_p+k1*(rel_p*(x0+3.0_rp*xc)-cx*(px0*sx+4.0_rp*rel_p*xc)-cx**2*rel_p*xd))*chi
-      b = b + k0*py0*(L*py0+cy*py0*sy+(cy**2-1.0_rp)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p*(4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc+3.0_rp*xc**2))*chi))*omegax**2
-      b = b + 4.0_rp*k1*rel_p*chi*(px0*(1.0_rp-cx)+rel_p*(L*xc+sx*xd)*omegax**2)+k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi*(8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+(-1.0_rp+cx**2)*px0*rel_p*xd*omegax- &
-      px0*rel_p*sx**2*xd*omegax**3+rel_p**2*(L-cx*sx)*xd**2*omegax**4)+rel_p**2*(L-cy*sy)*y0**2*nu*omegay**2+py0*y0*nu*((-1.0_rp+cy**2)*(rel_p-1.0_rp)-rel_p*sy**2*omegay**2))
+      b = b + k0*py0*(L*py0+cy*py0*sy+(cy**2-1.0_rp)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p* &
+      (4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc+3.0_rp*xc**2))*chi))*omegax**2
+      b = b + 4.0_rp*k1*rel_p*chi*(px0*(1.0_rp-cx)+rel_p*(L*xc+sx*xd)*omegax**2)+k0*omegax**2*(L*(4.0_rp+px0**2)*chi+ &
+      chi*(8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+(-1.0_rp+cx**2)*px0*rel_p*xd*omegax- &
+      px0*rel_p*sx**2*xd*omegax**3+rel_p**2*(L-cx*sx)*xd**2*omegax**4)+rel_p**2*(L-cy*sy)*y0**2*nu*omegay**2+py0*y0*nu* &
+      ((-1.0_rp+cy**2)*(rel_p-1.0_rp)-rel_p*sy**2*omegay**2))
       b = b/(8.0_rp*rel_p**3*omegax**2)  
       
       b2 = -k0*k1*(L-sy)*xi*chi*(py0**2+rel_p**2*y0**2*omegay**2)/(4.0_rp*rel_p**4*omegay**2)
     elseif (kx < 0 .and. k1 > 0) then
       if (abs(mu) > 1d-20) then
-        a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)+(cx*px0*py0*sy+c*px0*rel_p*y0-px0*rel_p*sx*sy*y0*omegax**2+rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
-        a = a + k1*chi*((-1.0_rp+cy)*py0*rel_p*(1.0_rp+g*xc)*omegax**2+(rel_p*y0*(c*g*px0+rel_p*(sy+g*sy*xc+cy*g*sx*xd)*omegax**2)+py0*(rel_p-cy*(rel_p+g*px0*sx+g*rel_p*xc+cx*g*rel_p*xd)+g*(cx*px0*sy+rel_p*(xc+xd+sx*sy*xd*omegax**2))))*omegay**2-rel_p*sy*(rel_p+g*px0*sx+g*rel_p*xc+cx*g*rel_p*xd)*y0*omegay**4)
+        a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)+(cx*px0*py0*sy+c*px0*rel_p*y0-px0*rel_p*sx*sy*y0*omegax**2+ &
+        rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
+        a = a + k1*chi*((-1.0_rp+cy)*py0*rel_p*(1.0_rp+g*xc)*omegax**2+(rel_p*y0*(c*g*px0+rel_p*(sy+g*sy*xc+cy*g*sx*xd)*omegax**2)+py0* &
+        (rel_p-cy*(rel_p+g*px0*sx+g*rel_p*xc+cx*g*rel_p*xd)+g*(cx*px0*sy+rel_p*(xc+xd+sx*sy*xd*omegax**2))))*omegay**2- &
+        rel_p*sy*(rel_p+g*px0*sx+g*rel_p*xc+cx*g*rel_p*xd)*y0*omegay**4)
         a = 0.5_rp*a/(rel_p**3*mu*omegay**2)
       
-        cc = kx*py0*(-px0*c-cy*rel_p*sx*xd*omegax**2)+kx*(px0*py0*sx*sy+px0*rel_p*(cy*sx-cx*sy)*y0+rel_p*xd*(cx*py0*sy+cx*cy*rel_p*y0-rel_p*y0*(1.0_rp+sx*sy*omegax**2)))*omegay**2
-        cc = cc - k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(-1.0_rp+cy)*rel_p*y0)*mu+k1*(px0*(py0*(c-sx*sy*omegax**2)-rel_p*y0*(cy*sx*omegax**2-cx*sy*omegay**2))+rel_p*(py0*omegax**2*(cy*sx*xd*omegax-sy*(xc+cx*xd*omegax))+py0*sy*xc*omegay**2+rel_p*y0*(-((-1.0_rp+cy)*xc*mu)+xd*omegax**3*(-c+sx*sy*omegay**2))))
+        cc = kx*py0*(-px0*c-cy*rel_p*sx*xd*omegax**2)+kx*(px0*py0*sx*sy+px0*rel_p*(cy*sx-cx*sy)*y0+rel_p*xd*(cx*py0*sy+cx*cy*rel_p*y0- &
+        rel_p*y0*(1.0_rp+sx*sy*omegax**2)))*omegay**2
+        cc = cc - k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(-1.0_rp+cy)*rel_p*y0)*mu+k1*(px0*(py0*(c-sx*sy*omegax**2)- &
+        rel_p*y0*(cy*sx*omegax**2-cx*sy*omegay**2))+rel_p*(py0*omegax**2*(cy*sx*xd*omegax-sy*(xc+cx*xd*omegax))+py0*sy*xc*omegay**2+ &
+        rel_p*y0*(-((-1.0_rp+cy)*xc*mu)+xd*omegax**3*(-c+sx*sy*omegay**2))))
         cc = 0.5_rp*cc*xi/(rel_p**3*mu)
       
-        a2 = rel_p*y0*omegay**2*((1.0_rp+cx)*(-1.0_rp+cy)*px0*omegax**2+px0*((-1.0_rp+cx)*(1.0_rp+cy)-2.0_rp*sx*sy*omegax**2)*omegay**2+rel_p*omegax**2*((2.0_rp*sy*xc+(-1.0_rp+cy)*sx*xd)*omegax**2+((1.0_rp+cy)*sx*xd-2.0_rp*sy*(xc+cx*xd))*omegay**2-(1.0_rp+cy)*L*xc*mu))
-        a2 = a2 + py0*(-((rel_p*xc*omegax**2*mu*(2.0_rp*(1.0_rp-cy)+L*sy*omegay**2))+omegay**2*(-2.0_rp*cy*(px0*sx+cx*rel_p*xd)*omegax**2+px0*sy*((1.0_rp+cx)*omegax**2+(-1.0_rp+cx)*omegay**2)+rel_p*xd*omegax**2*(2.0_rp+sx*sy*eta))))
+        a2 = rel_p*y0*omegay**2*((1.0_rp+cx)*(-1.0_rp+cy)*px0*omegax**2+px0*((-1.0_rp+cx)*(1.0_rp+cy)-2.0_rp*sx*sy*omegax**2)*omegay**2+ &
+        rel_p*omegax**2*((2.0_rp*sy*xc+(-1.0_rp+cy)*sx*xd)*omegax**2+((1.0_rp+cy)*sx*xd-2.0_rp*sy*(xc+cx*xd))*omegay**2-(1.0_rp+cy)*L*xc*mu))
+        a2 = a2 + py0*(-((rel_p*xc*omegax**2*mu*(2.0_rp*(1.0_rp-cy)+L*sy*omegay**2))+omegay**2*(-2.0_rp*cy*(px0*sx+cx*rel_p*xd)*omegax**2+ &
+        px0*sy*((1.0_rp+cx)*omegax**2+(-1.0_rp+cx)*omegay**2)+rel_p*xd*omegax**2*(2.0_rp+sx*sy*eta))))
         a2 = 0.25_rp*a2*k0*kx*xi*chi/(rel_p**4*omegax**2*omegay**2*mu)
       
-        cc2 = px0*((1.0_rp+cx)*(-1.0_rp+cy)*py0*omegax**2+((-1.0_rp+cx)*(1.0_rp+cy)*py0+(-2.0_rp*py0*sx*sy+rel_p*(-2.0_rp*cy*sx+sy+cx*sy)*y0)*omegax**2)*omegay**2+(-1.0_rp+cx)*rel_p*sy*y0*omegay**4)
-        cc2 = cc2 + rel_p*omegax**2*(py0*(2.0_rp*sy*xc+(-1.0_rp+cy)*sx*xd)*omegax**2+py0*((1.0_rp+cy)*sx*xd-2.0_rp*sy*(xc+cx*xd))*omegay**2-L*xc*mu*((1.0_rp+cy)*py0+rel_p*sy*y0*omegay**2)+ &
+        cc2 = px0*((1.0_rp+cx)*(-1.0_rp+cy)*py0*omegax**2+((-1.0_rp+cx)*(1.0_rp+cy)*py0+(-2.0_rp*py0*sx*sy+rel_p* &
+        (-2.0_rp*cy*sx+sy+cx*sy)*y0)*omegax**2)*omegay**2+(-1.0_rp+cx)*rel_p*sy*y0*omegay**4)
+        cc2 = cc2 + rel_p*omegax**2*(py0*(2.0_rp*sy*xc+(-1.0_rp+cy)*sx*xd)*omegax**2+py0*((1.0_rp+cy)*sx*xd-2.0_rp*sy* &
+        (xc+cx*xd))*omegay**2-L*xc*mu*((1.0_rp+cy)*py0+rel_p*sy*y0*omegay**2)+ &
         rel_p*y0*(2.0_rp*(-1.0_rp+cy)*xc*omegax**2+(x0+xc-2.0_rp*cy*xc+xd-2.0_rp*cx*cy*xd+sx*sy*xd*omegax**2)*omegay**2+sx*sy*xd*omegay**4))
         cc2 = 0.25_rp*cc2*k1*kx*chi**2/(rel_p**4*omegax**2*omegay**2*mu)
       else
-        a = k0*xi*omegax**2*(-cx**2*rel_p*(px0*y0+py0*xd*omegax)-rel_p*(px0*y0+py0*xd*omegax)*(-1.0_rp+sx**2*omegax**2)-2.0_rp*cx*sx*(px0*py0+rel_p**2*xd*y0*omegax**3)+L*(-2.0_rp*px0*py0+2.0_rp*rel_p**2*xd*y0*omegax**3))
-        a = a + k1*chi*(rel_p*y0*(c*g*px0+(g*px0*sx**2+2.0_rp*g*L*rel_p*xd+2.0_rp*rel_p*sx*(2.0_rp+2.0_rp*g*xc+cx*g*xd))*omegax**2)+py0*(-2.0_rp*g*L*px0-4.0_rp*rel_p+2.0_rp*cx*(2.0_rp*rel_p+g*px0*sx+2.0_rp*g*rel_p*xc)+cx**2*g*rel_p*xd-g*rel_p*(x0+3.0_rp*xc-sx**2*xd*omegax**2)))
+        a = k0*xi*omegax**2*(-cx**2*rel_p*(px0*y0+py0*xd*omegax)-rel_p*(px0*y0+py0*xd*omegax)*(-1.0_rp+sx**2*omegax**2)- &
+        2.0_rp*cx*sx*(px0*py0+rel_p**2*xd*y0*omegax**3)+L*(-2.0_rp*px0*py0+2.0_rp*rel_p**2*xd*y0*omegax**3))
+        a = a + k1*chi*(rel_p*y0*(c*g*px0+(g*px0*sx**2+2.0_rp*g*L*rel_p*xd+2.0_rp*rel_p*sx*(2.0_rp+2.0_rp*g*xc+cx*g*xd))* &
+        omegax**2)+py0*(-2.0_rp*g*L*px0-4.0_rp*rel_p+2.0_rp*cx*(2.0_rp*rel_p+g*px0*sx+2.0_rp*g*rel_p*xc)+cx**2*g*rel_p*xd- &
+        g*rel_p*(x0+3.0_rp*xc-sx**2*xd*omegax**2)))
         a = a/(8.0_rp*rel_p**3*omegax**2)
         
-        cc = c*kx*px0*py0+(kx*py0*(px0*sx**2+2.0_rp*rel_p*(L+cx*sx)*xd)+kx*rel_p*(-2.0_rp*L*px0+2.0_rp*cx*px0*sx+c*rel_p*xd)*y0+4.0_rp*k0*rel_p*(1.0_rp+g*xc)*(py0*sx+(-1.0_rp+cx)*rel_p*y0))*omegax**2
-        cc = cc + kx*rel_p**2*sx**2*xd*y0*omegax**4+k1*(c*px0*py0+px0*(py0*sx**2+2.0_rp*rel_p*(L+cx*sx)*y0)*omegax**2+rel_p*omegax**2*(2.0_rp*py0*(2.0_rp*sx*xc-L*xd*omegax+cx*sx*xd*omegax)+rel_p*y0*(4.0_rp*(-1.0_rp+cx)*xc+xd*omegax*(c+sx**2*omegax**2))))
+        cc = c*kx*px0*py0+(kx*py0*(px0*sx**2+2.0_rp*rel_p*(L+cx*sx)*xd)+kx*rel_p*(-2.0_rp*L*px0+2.0_rp*cx*px0*sx+c*rel_p*xd)*y0+ &
+        4.0_rp*k0*rel_p*(1.0_rp+g*xc)*(py0*sx+(-1.0_rp+cx)*rel_p*y0))*omegax**2
+        cc = cc + kx*rel_p**2*sx**2*xd*y0*omegax**4+k1*(c*px0*py0+px0*(py0*sx**2+2.0_rp*rel_p*(L+cx*sx)*y0)*omegax**2+rel_p*omegax**2* &
+        (2.0_rp*py0*(2.0_rp*sx*xc-L*xd*omegax+cx*sx*xd*omegax)+rel_p*y0*(4.0_rp*(-1.0_rp+cx)*xc+xd*omegax*(c+sx**2*omegax**2))))
         cc = -cc*xi/(8.0_rp*rel_p**3*omegax**2)
         
-        a2 = L*px0*py0-px0*py0*sx+L*rel_p*(py0*sx*xc+rel_p*(-x0+(2.0_rp+cx)*xc)*y0)*omegax**2+rel_p*(-2.0_rp*(-1.0_rp+cx)*py0*xc+rel_p*sx*(x0-3.0_rp*xc)*y0*omegax**2)
+        a2 = L*px0*py0-px0*py0*sx+L*rel_p*(py0*sx*xc+rel_p*(-x0+(2.0_rp+cx)*xc)*y0)*omegax**2+rel_p*(-2.0_rp*(-1.0_rp+cx)*py0*xc+ &
+        rel_p*sx*(x0-3.0_rp*xc)*y0*omegax**2)
         a2 = -a2*k0*kx*xi*chi/(4.0_rp*rel_p**4*omegax**2)
         
         cc2 = -py0*sx*(x0-3.0_rp*xc)+L*py0*(x0-(2.0_rp+cx)*xc)+px0*sx*y0+2.0_rp*(-1.0_rp+cx)*rel_p*xc*y0-L*y0*(px0+rel_p*sx*xc*omegax**2)
         cc2 = 0.25_rp*cc2*k1*kx*chi**2/(rel_p**3*omegax**2)
       endif
       b = 2.0_rp*g*px0*(2.0_rp*(-1.0_rp+cx)*k0*rel_p-k1*(L*px0-cx*px0*sx+rel_p*x0)+(-3.0_rp+4.0_rp*cx)*k1*rel_p*xc+cx**2*k1*rel_p*xd)*chi
-      b = b + k0*py0*(L*py0+cy*py0*sy+(cy**2-1.0_rp)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p*(4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc+3.0_rp*xc**2))*chi))*omegax**2
-      b = b + 4.0_rp*k1*rel_p*chi*((-1.0_rp+cx)*px0+rel_p*(L*xc+sx*xd)*omegax**2)+k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi*(8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+(-1.0_rp+cx**2)*px0*rel_p*xd*omegax+px0*rel_p*sx**2*xd &
-      *omegax**3-rel_p**2*(L-cx*sx)*xd**2*omegax**4)-rel_p**2*(L-cy*sy)*y0**2*nu*omegay**2+py0*y0*nu*((-1.0_rp+cy**2)*(rel_p-1.0_rp)+rel_p*sy**2*omegay**2))
+      b = b + k0*py0*(L*py0+cy*py0*sy+(cy**2-1.0_rp)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1* &
+      rel_p*(4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc+3.0_rp*xc**2))*chi))*omegax**2
+      b = b + 4.0_rp*k1*rel_p*chi*((-1.0_rp+cx)*px0+rel_p*(L*xc+sx*xd)*omegax**2)+k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi* &
+      (8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+(-1.0_rp+cx**2)*px0*rel_p*xd*omegax+px0*rel_p*sx**2*xd &
+      *omegax**3-rel_p**2*(L-cx*sx)*xd**2*omegax**4)-rel_p**2*(L-cy*sy)*y0**2*nu*omegay**2+py0*y0*nu*((-1.0_rp+cy**2)*(rel_p-1.0_rp)+ &
+      rel_p*sy**2*omegay**2))
       b = b/(8.0_rp*rel_p**3*omegax**2)
       
       b2 = k0*k1*(L-sy)*xi*chi*(py0**2-rel_p**2*y0**2*omegay**2)/(4.0_rp*rel_p**4*omegay**2)     
     else
-      a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)-(cx*px0*py0*sy+c*px0*rel_p*y0-px0*rel_p*sx*sy*y0*omegax**2+rel_p*xd*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
-      a = a + k1*chi*(-((-1.0_rp+cy)*py0*rel_p*(1.0_rp+g*xc)*eta)+g*py0*(cx*px0*sy-cy*(px0*sx+cx*rel_p*xd)+rel_p*xd*(1.0_rp+sx*sy*omegax**2))*omegay**2+rel_p*y0*omegay**2*(rel_p*sy*eta+g*px0*(c+sx*sy*omegay**2)+g*rel_p* &
+      a = k0*xi*omegay**2*(py0*omegax**2*(-cy*px0*sx-c*rel_p*xd*omegax)-(cx*px0*py0*sy+c*px0*rel_p*y0-px0*rel_p*sx*sy*y0*omegax**2+rel_p*xd* &
+      (py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegax**3)*omegay**2)
+      a = a + k1*chi*(-((-1.0_rp+cy)*py0*rel_p*(1.0_rp+g*xc)*eta)+g*py0*(cx*px0*sy-cy*(px0*sx+cx*rel_p*xd) &
+      +rel_p*xd*(1.0_rp+sx*sy*omegax**2))*omegay**2+rel_p*y0*omegay**2*(rel_p*sy*eta+g*px0*(c+sx*sy*omegay**2)+g*rel_p* &
       (sy*xc*eta+cy*sx*xd*omegax**2+cx*sy*xd*omegay**2)))
       a = 0.5_rp*a/(rel_p**3*eta*omegay**2)
       
       b = 2.0_rp*g*px0*(2.0_rp*(-1.0_rp+cx)*k0*rel_p-k1*(L*px0-cx*px0*sx+x0+(rel_p-1.0_rp)*x0)+(-3.0_rp+4.0_rp*cx)*k1*rel_p*xc+cx**2*k1*rel_p*xd)*chi
-      b = b + k0*py0*(L*py0+cy*py0*sy+(-1.0_rp+cy**2)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p*(4.0_rp*xc+cx*xd))*chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc*3.0_rp*xc**2))*chi))* &
+      b = b + k0*py0*(L*py0+cy*py0*sy+(-1.0_rp+cy**2)*y0)*nu*omegax**2-2.0_rp*g*rel_p*(-sx*xd*(2.0_rp*k0*rel_p+k1*px0*sx+k1*rel_p*(4.0_rp*xc+cx*xd)) &
+      *chi+L*rel_p*(2.0_rp*rel_p-(2.0_rp*k0*xc+k1*(x0**2-2.0_rp*x0*xc*3.0_rp*xc**2))*chi))* &
       omegax**2+4.0_rp*k1*rel_p*chi*((-1.0_rp+cx)*px0+rel_p*(L*xc+sx*xd)*omegax**2)
-      b = b + k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi*(8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx+(-1.0_rp+cx**2)*px0*rel_p*xd*omegax+px0*rel_p*sx**2*xd*omegax**3-rel_p**2*(L-cx*sx)*xd**2*omegax**4)+rel_p**2*(L-cy*sy)* &
+      b = b + k0*omegax**2*(L*(4.0_rp+px0**2)*chi+chi*(8.0_rp*L*(rel_p-1.0_rp)+4.0_rp*L*(rel_p-1.0_rp)**2+cx*px0**2*sx &
+      +(-1.0_rp+cx**2)*px0*rel_p*xd*omegax+px0*rel_p*sx**2*xd*omegax**3-rel_p**2*(L-cx*sx)*xd**2*omegax**4)+rel_p**2*(L-cy*sy)* &
       y0**2*nu*omegay**2+py0*y0*nu*((-1.0_rp+cy**2)*(rel_p-1.0_rp)-rel_p*sy**2*omegay**2))
       b = b/(8.0_rp*rel_p**3*omegax**2)
       
-      cc = -k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(-1.0_rp+cy)*rel_p*y0)*eta-kx*(c*px0*py0+px0*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegay**2+rel_p*xd*(cy*py0*sx*omegax**2+(cx*py0*sy+cx*cy*rel_p*y0-rel_p*y0*(1.0_rp+sx*sy*omegax**2))*omegay**2))
-      cc = cc + k1*(px0*(py0*(c-sx*sy*omegax**2)-rel_p*y0*(cy*sx*omegax**2+cx*sy*omegay**2))+rel_p*(-py0*sy*xc*eta+py0*(cy*sx-cx*sy)*xd*omegax**3-rel_p*y0*((-1.0_rp+cy)*xc*eta+xd*omegax**3*(c+sx*sy*omegay**2))))
+      cc = -k0*rel_p*(1.0_rp+g*xc)*(py0*sy+(-1.0_rp+cy)*rel_p*y0)*eta-kx*(c*px0*py0+px0*(py0*sx*sy+rel_p*(cy*sx-cx*sy)*y0)*omegay**2+ &
+      rel_p*xd*(cy*py0*sx*omegax**2+(cx*py0*sy+cx*cy*rel_p*y0-rel_p*y0*(1.0_rp+sx*sy*omegax**2))*omegay**2))
+      cc = cc + k1*(px0*(py0*(c-sx*sy*omegax**2)-rel_p*y0*(cy*sx*omegax**2+cx*sy*omegay**2))+rel_p*(-py0*sy*xc*eta+py0*(cy*sx-cx*sy)* &
+      xd*omegax**3-rel_p*y0*((-1.0_rp+cy)*xc*eta+xd*omegax**3*(c+sx*sy*omegay**2))))
       cc = 0.5_rp*cc*xi/(rel_p**3*eta)
       
-      a2 = rel_p*y0*omegay**2*(px0*((1.0_rp+cx-cy)*eta-cx*cy*omegax**2+(-2.0_rp+cx*cy-2.0_rp*sx*sy*omegax**2)*omegay**2)+rel_p*omegax**2*((1.0_rp+cy)*L*xc*eta+sx*xd*(eta-cy*mu)-2.0_rp*sy*(xc*eta+cx*xd*omegay**2)))
-      a2 = a2 + py0*(rel_p*xc*eta*omegax**2*(-2.0_rp+2.0_rp*cy+L*sy*omegay**2)+omegay**2*(2.0_rp*cy*px0*sx*omegax**2-px0*sy*(eta+cx*mu)+rel_p*xd*omegax**2*(2.0_rp*c-sx*sy*mu)))
+      a2 = rel_p*y0*omegay**2*(px0*((1.0_rp+cx-cy)*eta-cx*cy*omegax**2+(-2.0_rp+cx*cy-2.0_rp*sx*sy*omegax**2)*omegay**2)+rel_p*omegax**2* &
+      ((1.0_rp+cy)*L*xc*eta+sx*xd*(eta-cy*mu)-2.0_rp*sy*(xc*eta+cx*xd*omegay**2)))
+      a2 = a2 + py0*(rel_p*xc*eta*omegax**2*(-2.0_rp+2.0_rp*cy+L*sy*omegay**2)+omegay**2*(2.0_rp*cy*px0*sx*omegax**2-px0*sy*(eta+cx*mu)+ &
+      rel_p*xd*omegax**2*(2.0_rp*c-sx*sy*mu)))
       a2 = -0.25_rp*a2*k0*kx*xi*chi/(rel_p**4*eta*omegax**2*omegay**2)
       
       b2 = -k0*k1*(L-sy)*xi*chi*(py0**2+rel_p**2*y0**2*omegay**2)/(4.0_rp*rel_p**4*omegay**2)
       
-      cc2 = px0*(py0*((1.0_rp+cx-cy)*eta-cx*cy*omegax**2+(-2.0_rp+cx*cy-2.0_rp*sx*sy*omegax**2)*omegay**2)+rel_p*y0*omegay**2*(-2.0_rp*cy*sx*omegax**2+sy*(eta+cx*mu)))
-      cc2 = cc2 + rel_p*omegax**2*(L*xc*eta*((1.0_rp+cy)*py0-rel_p*sy*y0*omegay**2)+py0*(sx*xd*(eta-cy*omegax**2+cy*omegay**2)-2.0_rp*sy*(xc*eta+cx*xd*omegay**2))-rel_p*y0*(2.0_rp*(-1.0_rp+cy)*xc*eta+xd*omegay**2*(2.0_rp*c-sx*sy*mu)))
+      cc2 = px0*(py0*((1.0_rp+cx-cy)*eta-cx*cy*omegax**2+(-2.0_rp+cx*cy-2.0_rp*sx*sy*omegax**2)*omegay**2)+rel_p*y0*omegay**2* &
+      (-2.0_rp*cy*sx*omegax**2+sy*(eta+cx*mu)))
+      cc2 = cc2 + rel_p*omegax**2*(L*xc*eta*((1.0_rp+cy)*py0-rel_p*sy*y0*omegay**2)+py0*(sx*xd*(eta-cy*omegax**2+cy*omegay**2)- &
+      2.0_rp*sy*(xc*eta+cx*xd*omegay**2))-rel_p*y0*(2.0_rp*(-1.0_rp+cy)*xc*eta+xd*omegay**2*(2.0_rp*c-sx*sy*mu)))
       cc2 = 0.25_rp*cc2*k1*kx*chi**2/(rel_p**4*eta*omegax**2*omegay**2)
     endif
     
