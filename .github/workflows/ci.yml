@@ -56,7 +56,10 @@ jobs:
           external-packages-version: ${{ env.EXTERNAL_PACKAGES_VERSION }}
 
       - name: ID
-        run: echo "github.ref ${{ github.ref }}"
+        run: 
+          echo "github.ref ${{ github.ref }}"
+          echo "github.ref_name ${{ github.ref_name }}"
+          echo "github.base_ref ${{ github.base_ref }}"
 
       - name: Build Bmad
         env:
