@@ -15,7 +15,6 @@ type (ele_struct), pointer :: ele
 type (coord_struct) orbit, orb0
 type (branch_struct), pointer :: branch
 
-real(rp) :: vec0(6) = [0.1_rp, 0.02_rp, 0.3_rp, 0.04_rp, 0.5_rp, -0.01_rp]
 real(rp) s_out, s_pos, diff_sum(8)
 
 integer ie, nargs
@@ -39,13 +38,12 @@ open (1, file = 'output.now')
 
 !
 
-vec0 = lat%particle_start%vec
 diff_sum = 0
 
 branch => lat%branch(2)
 do ie = 1, branch%n_ele_track-1
   ele => branch%ele(ie)
-  call init_coord (orb0, vec0, ele, upstream_end$)
+  call init_coord (orb0, lat%particle_start, ele, upstream_end$)
   orb0%t = 0
 
   call offset_track_drift(orb0, ele,  1,  1, diff_sum)
@@ -61,7 +59,7 @@ enddo
 
 !
 
-orb0%vec = vec0
+orb0%vec = lat%particle_start%vec
 orbit = orb0
 call canonical_to_angle_coords(orbit)
 call angle_to_canonical_coords(orbit)
@@ -186,7 +184,7 @@ orb1%direction = dir
 ele%orientation = orient
 ele2 = ele; call zero_ele_offsets(ele2)
 name = trim(ele%name) // ':O:' // int_str(orient) // ':D:' // int_str(dir) // ':Static'
-s_pos = lat%particle_start%vec(5)
+s_pos = 0.5_rp
 
 if (debug_mode) print *
 call write_orbit(trim(name) // '-Start', orb1, s_pos)

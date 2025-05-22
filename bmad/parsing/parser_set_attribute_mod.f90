@@ -462,7 +462,14 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     return
   endif
 
-  if (associated(a_ptrs(1)%r)) then
+  if (associated(a_ptrs(1)%q)) then
+    call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele) 
+    if (err_flag) return
+    a_ptrs(1)%q = value
+    ! This is done so init_coord will use %t to set %vec(5) and not vice versa.
+    if (associated(a_ptrs(1)%q, lat%particle_start%t)) lat%particle_start%vec(5) = real_garbage$
+
+  elseif (associated(a_ptrs(1)%r)) then
     call parse_evaluate_value (err_str, value, lat, delim, delim_found, err_flag, ele = ele) 
     if (err_flag) return
     a_ptrs(1)%r = value
