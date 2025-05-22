@@ -7,7 +7,7 @@ on:
 
 # Cancel duplicates in case PR is done immediately after push
 concurrency:
-  group: ${{ github.head_ref || github.ref_name }}
+  group: pytao-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 
