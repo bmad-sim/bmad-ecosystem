@@ -1,13 +1,13 @@
-"spin-tune" ABS 1E-9  7.8680758427E-02
-"Polarization Limit ST" REL 1E-9                    8.2401772695E-01
-"Polarization Limit DK" REL 1E-9                     3.0639976557E-01
-"Polarization Limits DK (a,b,c-modes)" REL 1E-9      8.4610268984E-01  7.7430731662E-01  3.1362070667E-01
-"Polarization Limits DK (bc,ac,ab-modes)" REL 1E-9   2.6156335961E-01  3.6466666252E-01  8.0652175994E-01
-"Polarization Rate BKS" REL 1E-9  2.5298438208E-03
-"Depolarization Rate" REL 1E-9  1.4282072832E-03
-"Depolarization Rate" REL 1E-9  4.2702606701E-05  2.2922955017E-05  1.3881174922E-03
-"Depolarization Rate" REL 1E-9  1.7549445179E-03  1.0919736600E-03  3.5032159237E-05
-"Integral g^3 * b_hat * n_0" REL 1E-9           2.0501003099E-10
-"Integral g^3 * b_hat * dn/ddelta" REL 1E-9     8.5744575383E-11
-"Integral g^3 (1 - 2(n * s_hat)/9)" REL 1E-9    2.2982534032E-10
-"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1E-9  1.2974643818E-10
+"spin-tune" ABS 1E-9  7.8680758432E-02
+"Polarization Limit ST" REL 1E-9                    8.2401772698E-01
+"Polarization Limit DK" REL 1E-9                     3.0639976582E-01
+"Polarization Limits DK (a,b,c-modes)" REL 1E-9      8.4610268987E-01  7.7430731666E-01  3.1362070692E-01
+"Polarization Limits DK (bc,ac,ab-modes)" REL 1E-9   2.6156335984E-01  3.6466666279E-01  8.0652175998E-01
+"Polarization Rate BKS" REL 1E-9  2.5298437975E-03
+"Depolarization Rate" REL 1E-9  1.4282072687E-03
+"Depolarization Rate" REL 1E-9  4.2702606295E-05  2.2922954803E-05  1.3881174781E-03
+"Depolarization Rate" REL 1E-9  1.7549445002E-03  1.0919736487E-03  3.5032158902E-05
+"Integral g^3 * b_hat * n_0" REL 1E-9           2.0501003097E-10
+"Integral g^3 * b_hat * dn/ddelta" REL 1E-9     8.5744575323E-11
+"Integral g^3 (1 - 2(n * s_hat)/9)" REL 1E-9    2.2982534029E-10
+"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 1E-9  1.2974643804E-10

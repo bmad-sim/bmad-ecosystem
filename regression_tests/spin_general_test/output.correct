@@ -34,10 +34,10 @@
 "Polarization Limit DK" ABS 1e-8                     0.02292325
 "Polarization Limits DK (a,b,c-modes)" ABS 1e-8      0.02549038  0.71982778  0.86183295
 "Polarization Limits DK (bc,ac,ab-modes)" ABS 1e-8   0.82079023  0.02569182  0.02263463
-"Polarization Rate BKS" REL 1e-8         1.44802509E-05
-"Depolarization Rate" REL 1e-8           5.69044334E-04
-"Depolarization Rate Partial" REL 1e-8   5.10277794E-04  4.10236457E-06  1.04048639E-06
-"Depolarization Rate Partial2" REL 1e-8  1.81658388E-06  5.06163317E-04  5.76485078E-04
+"Polarization Rate BKS" REL 1e-8         1.44802508E-05
+"Depolarization Rate" REL 1e-8           5.69044329E-04
+"Depolarization Rate Partial" REL 1e-8   5.10277789E-04  4.10236453E-06  1.04048638E-06
+"Depolarization Rate Partial2" REL 1e-8  1.81658386E-06  5.06163312E-04  5.76485072E-04
 "Integral g^3 * b_hat * n_0" REL 1e-8           1.34575854E-02
 "Integral g^3 * b_hat * dn/ddelta" ABS 5E-17    2.71191375E-18
 "Integral g^3 (1 - 2(n * s_hat)/9)" REL 1e-8    1.34575854E-02

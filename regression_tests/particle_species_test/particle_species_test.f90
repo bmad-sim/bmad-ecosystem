@@ -59,9 +59,9 @@ call check_fundamental('muon', muon$, m_muon, -1, anomalous_mag_moment_muon, ant
 call check_fundamental('pion-', pion_minus$, m_pion_charged, -1, 0.0_rp, pion_plus$)
 call check_fundamental('anti_deuteron', anti_deuteron$, m_deuteron, -1, anomalous_mag_moment_deuteron, deuteron$)
 
-call magnetic_moment(deuteron$, 1.0_rp, 4.330735094d-27)
-call magnetic_moment(proton$, 0.5_rp, 1.41060679736d-26)
-call magnetic_moment(electron$, 0.5_rp, -9.2847647043d-24)
+call magnetic_moment(deuteron$, 1.0_rp, 4.330735087d-27)
+call magnetic_moment(proton$, 0.5_rp, 1.41060679545d-26)
+call magnetic_moment(electron$, 0.5_rp, -9.2847646917d-24)
 call magnetic_moment(muon$, 0.5_rp, -4.49044830d-26)
 
 !---------------------------------------------------------------------------
