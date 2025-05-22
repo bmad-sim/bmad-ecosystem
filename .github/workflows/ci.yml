@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: ID
-	  echo "github.ref: ${{ github.ref }}"
+	  run: echo "github.ref: ${{ github.ref }}"
 
       - uses: ./.github/actions/setup-dependencies
         with:
