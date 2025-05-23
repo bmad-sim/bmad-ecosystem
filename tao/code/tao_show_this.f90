@@ -3303,11 +3303,11 @@ case ('lattice')
     if (name(1:7) == 'ele::#[' .and. index(name, ']') /= 0) then
       ix = index(name, ']')-1
       col_info(i)%attrib_name = upcase(name(8:ix))
-      col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
     else
       col_info(i)%attrib_name = upcase(name)
-      col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
     endif
+
+    col_info(i)%attrib_type = attribute_type(col_info(i)%attrib_name)
   enddo
 
   !

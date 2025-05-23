@@ -19,7 +19,6 @@ subroutine tao_command (command_line, err_flag, err_is_fatal)
 use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc, tao_change_tune, tao_change_z_tune
 use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch, tao_next_word
-use tao_data_and_eval_mod, only: tao_to_real
 use tao_scale_mod, only: tao_scale_cmd
 use tao_wave_mod, only: tao_wave_cmd
 use tao_x_scale_mod, only: tao_x_scale_cmd

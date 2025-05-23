@@ -96,6 +96,8 @@ default_source = ''
 if (present(dflt_source)) default_source = dflt_source
 
 phrase = expression
+if (present(dflt_ele)) call tao_expression_hash_substitute(phrase, ele_full_name(dflt_ele, '!#'))
+
 if (len(phrase) > 11) then
   if (phrase(1:11) == 'expression:') phrase = phrase(12:)
 endif

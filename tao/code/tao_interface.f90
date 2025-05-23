@@ -189,6 +189,12 @@ subroutine tao_data_check (err)
   logical err
 end subroutine
 
+subroutine tao_data_coupling_init (branch)
+  import
+  implicit none
+  type (branch_struct) branch
+end subroutine
+
 function tao_data_sanity_check (datum, print_err, default_data_type, uni) result (is_valid)
   import
   type (tao_data_struct) datum
@@ -893,6 +899,14 @@ subroutine tao_taper_cmd(except, uni_names)
   import
   implicit none
   character(*) except, uni_names
+end subroutine
+
+subroutine tao_to_real (expression, value, err_flag)
+  import
+  implicit none
+  character(*) :: expression
+  real(rp) value
+  logical err_flag
 end subroutine
 
 subroutine tao_top_level (command, errcode)
