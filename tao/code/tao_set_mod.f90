@@ -1374,7 +1374,13 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     ! Set value
 
-    a_ptr(1)%r = set_val(1)
+    if (associated(a_ptr(1)%r)) then
+      a_ptr(1)%r = set_val(1)
+    elseif (associated(a_ptr(1)%q)) then ! Time is quad precision
+      a_ptr(1)%q = set_val(1)
+    else
+      call out_io(s_error$, r_name, 'Bad particle_start component: ' // who2)
+    endif
   endif
 
   call tao_set_flags_for_changed_attribute (u, 'PARTICLE_START', who = who2)
