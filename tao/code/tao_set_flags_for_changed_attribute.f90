@@ -45,6 +45,7 @@ if (ele_name == 'PARTICLE_START') then
   select case (who)
   case ('PZ');        lat%particle_start%p0c = 0
   case ('E_PHOTON');  lat%particle_start%vec(6) = 0
+  case ('T');         lat%particle_start%vec(5) = real_garbage$   ! So time is used instead of z.
   end select
   return
 endif

@@ -235,7 +235,7 @@ type (all_pointer_struct), allocatable :: d_ptr(:), m_ptr(:)
 type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp), allocatable :: change_number(:), old_value(:)
-real(rp) new_merit, old_merit, new_value, delta, max_val
+real(rp) new_merit, old_merit, delta, max_val, new_value, design_value
 
 integer i, ix, iu, nl, len_name, nd
 integer, parameter :: len_lines = 200
@@ -331,23 +331,24 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   do i = 1, nd
     if (.not. free(i)) cycle
 
-    old_value(i) = m_ptr(i)%r
+    old_value(i) = value_of_all_ptr(m_ptr(i))
+    design_value = value_of_all_ptr(d_ptr(i))
 
     if (abs_or_rel == '@') then
-      m_ptr(i)%r = change_number(i)
+      call set_all_ptr(m_ptr(i), change_number(i), value_set = new_value)
     elseif (abs_or_rel == 'd') then
-      m_ptr(i)%r = d_ptr(i)%r + change_number(i)
+      call set_all_ptr(m_ptr(i), design_value + change_number(i), value_set = new_value)
     elseif (abs_or_rel == '%') then
-      m_ptr(i)%r = m_ptr(i)%r * (1 + 0.01 * change_number(i))
+      call set_all_ptr(m_ptr(i), old_value(i) * (1 + 0.01 * change_number(i)), value_set = new_value)
     else
-      m_ptr(i)%r = m_ptr(i)%r + change_number(i)
+      call set_all_ptr(m_ptr(i), change_number(i), delta = .true., value_set = new_value)
     endif
 
-    delta = m_ptr(i)%r - old_value(i)
+    delta = new_value - old_value(i)
 
     call tao_set_flags_for_changed_attribute(u, e_name, eles(i)%ele, m_ptr(i), who = a_name)
 
-    max_val = max(abs(old_value(i)), abs(m_ptr(i)%r), abs(d_ptr(1)%r)) 
+    max_val = max(abs(old_value(i)), abs(new_value), abs(design_value)) 
     str = real_num_fortran_format(max_val, 14, 2)
     fmt = '(5' // trim(str) // ', 4x, a)'
 
@@ -356,9 +357,8 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     if (nl < 11) then
       name = 'PARTICLE_START'
       if (associated(eles(i)%ele)) name = eles(i)%ele%name
-      nl=nl+1; write (lines(nl), fmt) old_value(i), m_ptr(i)%r, &
-                              old_value(i)-d_ptr(i)%r, m_ptr(i)%r-d_ptr(i)%r, &
-                              m_ptr(i)%r-old_value(i), trim(name)
+      nl=nl+1; write (lines(nl), fmt) old_value(i), new_value, old_value(i)-design_value, &
+                                                    new_value-design_value, delta, trim(name)
     else
       if (.not. etc_added) then
         nl=nl+1; lines(nl) = '   ... etc ...'

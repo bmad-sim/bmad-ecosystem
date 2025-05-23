@@ -51,6 +51,8 @@ if (associated(a_ptr%r)) then
   a_ptr%r = value
 elseif (associated(a_ptr%i)) then
   a_ptr%i = nint(value)
+elseif (associated(a_ptr%q)) then
+  a_ptr%q = nint(value)
 else
   if (logic_option(.true., err_print_flag)) then
     call out_io (s_error$, r_name, 'BAD ATTRIBUTE: ' // a_name)

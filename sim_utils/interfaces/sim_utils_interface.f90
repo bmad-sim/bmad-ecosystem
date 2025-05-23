@@ -957,6 +957,15 @@ subroutine word_read (in_str, delim_list, word, ix_word, delim, delim_found, out
   logical, optional :: ignore_interior
 end subroutine
 
+subroutine set_all_ptr (a_ptr, value, delta, value_set)
+  import
+  implicit none
+  type (all_pointer_struct) a_ptr
+  real(rp) value
+  real(rp), optional :: value_set
+  logical, optional :: delta
+end subroutine
+
 subroutine str_substitute (string, str_match, str_replace, do_trim, ignore_escaped)
   implicit none
   character(*) string
@@ -993,6 +1002,13 @@ subroutine string_trim (in_string, out_string, word_len)
   character(*) in_string, out_string
   integer word_len
 end subroutine string_trim
+
+function value_of_all_ptr (a_ptr) result (value)
+  import
+  implicit none
+  type (all_pointer_struct) a_ptr
+  real(rp) value
+end function value_of_all_ptr
 
 function virtual_memory_usage() result (usage)
   implicit none
