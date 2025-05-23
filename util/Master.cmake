@@ -494,13 +494,16 @@ SET (MASTER_INC_DIRS
 )
 
 # If we use system HDF5 libraries, search for include directories
-find_package(HDF5 COMPONENTS Fortran)
+find_package(HDF5 COMPONENTS Fortran HL)
 foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
   list(FIND CMAKE_Fortran_IMPLICIT_INCLUDE_DIRECTORIES "${h5dir}" h5found)
   if (h5found EQUAL -1)
     list(APPEND MASTER_INC_DIRS "${h5dir}")
   endif()
 endforeach()
+if (HDF5_FOUND)
+  list(APPEND ACC_BMAD_LINK_LIBS ${HDF5_Fortran_HL_LIBRARIES})
+endif()
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist

@@ -13,7 +13,7 @@ else
 fi
 
 # Set base Bmad Library Linker Flags as updated by dcs16 in RT#56661 and RT#60825
-export ACC_BMAD_LINK_LIBS="xrlf03;xrl;forest;fgsl;gsl;gslcblas;lapack95;lapack;blas;hdf5_hl_fortran;hdf5_hl;hdf5_fortran;hdf5;fftw3;fftw3_omp"
+export ACC_BMAD_LINK_LIBS="xrlf03;xrl;forest;fgsl;gsl;gslcblas;lapack95;lapack;blas;fftw3;fftw3_omp"
 
 if [ "${ACC_CONDA_BUILD}" != "Y" ] ; then
     # Set base Linker Flags for C++ stdc++, as per RT#58127
