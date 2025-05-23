@@ -502,7 +502,7 @@ foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
   endif()
 endforeach()
 if (HDF5_FOUND)
-  list(APPEND ACC_BMAD_LINK_LIBS ${HDF5_Fortran_HL_LIBRARIES})
+  set(SHARED_LINK_LIBS ${HDF5_Fortran_HL_LIBRARIES} ${SHARED_LINK_LIBS})
 endif()
 
 #------------------------------------------------------
