@@ -40,7 +40,7 @@ SET (SRC_DIRS
 
 SET (SHARED_DEPS
   sim_utils
-  ${ACC_BMAD_LINK_LIBS}
+  $ENV{ACC_BMAD_LINK_LIBS}
   X11
   readline
 )
