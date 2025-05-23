@@ -80,8 +80,8 @@ character(*), optional :: why_invalid
 character(6) expn_str
 character(16) constraint
 character(20) :: r_name = 'tao_evaluate_a_datum'
-character(40) head_data_type, sub_data_type, data_source, name, dflt_dat_index
-character(100) data_type, str
+character(40) data_source, name, dflt_dat_index
+character(100) data_type, head_data_type, sub_data_type, str
 character(:), allocatable :: e_str
 
 logical, optional :: called_from_lat_calc
