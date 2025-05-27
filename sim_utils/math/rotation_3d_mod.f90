@@ -6,15 +6,72 @@ use modulo2_mod
 
 implicit none
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function quat_conj (q_in) result (q_out)
+!
+! Overloaded name to create the conjugate of a quaternian.
+! Overloaded functions are:
+!   Function quat_conj_real (q_in) result (q_out)
+!   Function quat_conj_complex (q_in) result (q_out)
+!
+! Input:
+!   q_in(0:3)     -- real(rp) or complex(rp): Quaternion input.
+!
+! Output:
+!   q_out(0:3)    -- real(rp) or complex(rp): Conjugate quaternion.
+!-
+
 interface quat_conj
   module procedure quat_conj_real
   module procedure quat_conj_complex
 end interface
 
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function quat_mul_real (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
+!
+! Overloaded name to multiply quaternions q_out = q1 * q2 * q3 * q4 * ...
+! Note: q_out = q1 * q2 represents a rotation of q2 first followed by q1.
+! Overloaded functions are:
+!   Function quat_mul_real (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
+!   Function quat_mul_real (q1, q2, q3, q4, q5, q6, q7, q8, q9) result (q_out)
+!
+! Input:
+!   q1(0:3), q2(0:3)        -- real(rp) or complex(rp): Quaternions.
+!   q3(0:3), ..., q9(0:3)   -- real(rp) or complex(rp), optional: More quaternions.
+!
+! Output:
+!   q_out(0:3)              -- real(rp) or complex(rp): Resultant q1 * q2
+!-
+
 interface quat_mul
   module procedure quat_mul_real
   module procedure quat_mul_complex
 end interface
+
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!+
+! Function quat_rotate (quat, vec_in) result (vec_out)
+!
+! Overloaded name to rotate a vector using a quaternion..
+! Overloaded functions are:
+!   Function quat_rotate_real (quat, vec_in) result (vec_out)
+!   Function quat_rotate_complex (quat, vec_in) result (vec_out)
+!
+! Input:
+!   quat(0:3 )  -- real(rp) or complex(rp): Quaternion to rotate with. Does not have to be normalized.
+!   vec_in(3)   -- real(rp) or complex(rp): Initial vector.
+!
+! Output:
+!   vec_out(3)  -- real(rp) or complex(rp): Final vector.
+!-
 
 interface quat_rotate
   module procedure quat_rotate_real

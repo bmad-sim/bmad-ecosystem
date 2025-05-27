@@ -3,8 +3,9 @@
 !
 ! Spin tracking through a single element by integrating the spin rotation vector omega.
 !
-! Note: spin tracking through a patch element is handled in track_a_patch since
-! this is needed by runge_kutta tracking.
+! Note: spin tracking through the following elements are handled by the orbital tracking code:
+!   patch, beambeam, crab_cavity
+! 
 !
 ! Input :
 !   start_orb  -- Coord_struct: Starting coords.
@@ -40,48 +41,9 @@ logical magnus_tracking
 
 character(*), parameter :: r_name = 'track1_spin_integration'
 
+!
+
 magnus_tracking = (ele%spin_tracking_method == magnus$)
-
-! Spin tracking handled by track_a_patch for patch elements.
-
-if (ele%key == patch$) return
-
-! Beambeam
-! This is used when *not* integrating.
-
-if (ele%key == beambeam$) then
-  fc = start_orb%p0c / ((1.0_rp + start_orb%beta**2) * charge_of(start_orb%species))
-  dxp = (end_orb%vec(2) - start_orb%vec(2)) * fc
-  dyp = (end_orb%vec(4) - start_orb%vec(4)) * fc
-  field%E = [dxp,  dyp, 0.0_rp]
-  field%B = [dyp, -dxp, 0.0_rp] / c_light
-  om = spin_omega (field, end_orb, +1)
-  quat = omega_to_quat(om)
-  end_orb%spin = quat_rotate(quat, start_orb%spin)
-  return
-endif
-
-! crab_cavity
-
-if (ele%key == crab_cavity$) then
-  ave_orb = start_orb
-  ave_orb%vec  = (start_orb%vec  + end_orb%vec) / 2
-  ave_orb%t    = (start_orb%t    + end_orb%t) / 2
-  ave_orb%beta = (start_orb%beta + end_orb%beta) / 2
-
-  voltage = e_accel_field(ele, voltage$) * rel_tracking_charge_to_mass(ave_orb, param%particle)
-  k_rf = twopi * ele%value(rf_frequency$) / c_light
-  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) - &
-          (particle_rf_time (ave_orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
-
-  field%B(2) = -voltage * sin(phase) / c_light
-  field%E(3) = voltage * k_rf * ave_orb%beta * ave_orb%vec(1) * cos(phase)
-
-  omega = spin_omega(field, ave_orb, start_orb%direction * ele%orientation) * start_orb%time_dir
-  call rotate_spin(omega, end_orb%spin)
-
-  return
-endif
 
 ! A slice_slave may or may not span a fringe. calc_next_fringe_edge will figure this out.
 

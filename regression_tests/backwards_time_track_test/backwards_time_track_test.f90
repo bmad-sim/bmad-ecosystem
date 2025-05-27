@@ -44,6 +44,8 @@ open (1, file = 'output.now')
 !   * radiation
 !   * track_from_s_to_s
 
+call bmad_parser (slat_file, lat, .false.)
+
 if (debug_mode) then
   print '(a, t36, 7es18.10)', 'Start:', lat%particle_start%vec
   print '(a, t36, 7es18.10)', 'Spin:', lat%particle_start%spin
@@ -52,11 +54,10 @@ endif
 
 !
 
-call bmad_parser (slat_file, lat, .false.)
 do ie = 1, lat%n_ele_track-1, 2
   ele => lat%ele(ie); ele2 => lat%ele(ie+1)
   s1 = 0.5_rp * (ele%s_start + ele%s) + 0.1_rp
-  s2 = 0.5_rp * (ele2%s_start + ele2%s) + 0.1_rp
+  s2 = min(0.5_rp * (ele2%s_start + ele2%s) + 0.1_rp, lat%param%total_length)
   call init_coord (start_orb, lat%particle_start, ele, inside$, s_pos = s1)
   call track_from_s_to_s (lat, s1, s2, start_orb, end_orb)
   end_orb%time_dir = -1

@@ -230,7 +230,7 @@ case (bmad_standard$)
     call track1_bmad (end_orb, ele, param, err, track, mat6 = ele%mat6, make_matrix = make_map1)
 
     select case (ele%key)
-    case (beambeam$);  do_spin_tracking = .false.
+    case (beambeam$, crab_cavity$, patch$);  do_spin_tracking = .false.
     end select
   endif
   if (err) return
@@ -241,6 +241,9 @@ case (runge_kutta$, fixed_step_runge_kutta$)
 
 case (linear$) 
   call track1_linear (end_orb, ele, param)
+  select case (ele%key)
+  case (beambeam$, crab_cavity$, patch$);  do_spin_tracking = .false.
+  end select
 
 case (taylor$) 
   call track1_taylor (end_orb, ele)
