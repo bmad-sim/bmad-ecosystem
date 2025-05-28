@@ -1,0 +1,24 @@
+no_digested
+parameter[geometry] = Open            
+
+parameter[p0c]                      =  5.97820040422691870E+006
+parameter[particle]                 = Electron
+
+beginning[beta_a]    =  1.39449126865854395E-001
+beginning[alpha_a]   =  9.51137732365840982E-001
+beginning[beta_b]    =  3.65359641740668428E-001
+beginning[alpha_b]   =  1.99621756285904550E+000
+
+!parameter[absolute_time_tracking] = T
+!-------------------------------------------------------
+
+L0AF: Lcavity, 
+L =  3.09524400000000011E+000, GRADIENT =  1.87562776115461513E+007,
+   RF_FREQUENCY =  2.85600000000000000E+009,
+   DS_STEP =  6.19048800000000024E-002
+
+LAT: line = ( L0AF)
+
+use, LAT
+
+
