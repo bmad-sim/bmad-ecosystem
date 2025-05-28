@@ -41,7 +41,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) sigma(2), dsigma_ds(2), ff, ds_slice
 real(rp) xmat(6,6), del_s, bbi_const, dx, dy, dcoef, z, d, coef, ds
 real(rp) om(3), quat(0:3), beta_strong, s_body_save, p_rel, nk(2), dnk(2,2)
-real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, s0, s00, s0_factor
+real(rp) f_factor, new_beta, px_old, py_old, e_factor, ds_dz, s0, s00, s0_factor, qrot(0:3)
 real(rp), allocatable :: z_slice(:)
 real(rp), target :: slice_center(3), s_body, s_lab, part_time0, part_time1
 real(rp), pointer :: center_ptr(:), s_body_ptr, s_lab_ptr, part_time0_ptr, part_time1_ptr ! To get around ifort bug.
@@ -86,7 +86,12 @@ part_time1 = particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequen
 s0_factor = orbit%beta / (orbit%beta + beta_strong)
 s00 = (ele%value(z_offset_tot$) + (ele%value(crossing_time$) - part_time0) * (c_light * orbit%beta)) * s0_factor
 
-call offset_particle (ele, set$, orbit, s_pos = s_lab, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, set$, orbit, s_pos = s_lab, s_out = s_body, set_spin = .true., mat6 = mat6, make_matrix = make_matrix, spin_qrot = qrot)
+if (logic_option(.false., make_matrix)) then
+  ele%spin_q = 0
+  ele%spin_q(:,0) = qrot
+endif
+
 if (present(track)) call save_a_step(track, ele, param, .true., orbit, s_body, strong_beam = strong_beam_struct())
 
 n_slice = max(1, nint(ele%value(n_slice$)))
@@ -176,12 +181,20 @@ do i = 1, n_slice
     field%E = [nk(1),  nk(2), 0.0_rp] * (orbit%p0c / (ff * charge_of(orbit%species)))
     field%B = [nk(2), -nk(1), 0.0_rp] * (orbit%p0c * orbit%beta / (ff * c_light * charge_of(orbit%species)))
     om = spin_omega (field, orbit, +1)
-    quat = omega_to_quat(om)
-    orbit%spin = quat_rotate(quat, orbit%spin)
+    if (logic_option(.false., make_matrix)) then
+      call rotate_spin(om, orbit%spin, qrot)
+      ele%spin_q(:,0) = quat_mul(qrot, ele%spin_q(:,0))
+    else
+      call rotate_spin(om, orbit%spin)
+    endif
   endif
 enddo
 
-call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix)
+call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = .true., mat6 = mat6, make_matrix = make_matrix, spin_qrot = qrot)
+if (bmad_com%spin_tracking_on) then
+  ele%spin_q(:,0) = quat_mul(qrot, ele%spin_q(:,0))
+endif
+
 call solenoid_track_and_mat (ele, -s_lab, param, orbit, orbit, mat6, make_matrix)
 
 if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, strong_beam = strong_beam_struct())

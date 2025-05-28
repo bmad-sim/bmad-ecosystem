@@ -22,7 +22,6 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) :: start_orb, end_orb, s_orb
-type (taylor_struct) bmad_taylor(6), spin_taylor(0:3)
 
 real(rp) dtime_ref, quat(0:3)
 
@@ -30,19 +29,18 @@ real(rp) dtime_ref, quat(0:3)
 
 s_orb = start_orb
 
-call ele_to_taylor(ele, start_orb, .true., orbital_taylor = bmad_taylor, spin_taylor = spin_taylor)
-call taylor_to_mat6 (bmad_taylor, start_orb%vec, ele%vec0, ele%mat6)
-
+call ele_to_taylor(ele, start_orb, .true., spin_taylor = ele%spin_taylor)
+call taylor_to_mat6 (ele%taylor, start_orb%vec, ele%vec0, ele%mat6)
 end_orb = start_orb
 
 if (bmad_com%spin_tracking_on) then
-  quat = track_taylor (start_orb%vec, spin_taylor, bmad_taylor%ref)
+  quat = track_taylor (start_orb%vec, ele%spin_taylor, ele%taylor%ref)
   end_orb%spin = quat_rotate(quat/norm2(quat), start_orb%spin)
-  call kill_taylor (spin_taylor)
 endif
 
-end_orb%vec = track_taylor (end_orb%vec, bmad_taylor)
-call kill_taylor (bmad_taylor)
+end_orb%vec = track_taylor (end_orb%vec, ele%taylor)
+
+ele%spin_q = spin_taylor_to_linear(ele%spin_taylor, .true., end_orb%vec - start_orb%vec, .true.)
 
 ! Time change of particle
 

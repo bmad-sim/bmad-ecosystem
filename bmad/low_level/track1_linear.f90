@@ -93,4 +93,17 @@ else
   orbit%s = ele%s_start
 endif
 
+! These elements have spin tracking integrated into the orbital tracking so the spin has to be applied here.
+
+if (bmad_com%spin_tracking_on) then
+  select case(ele%key)
+  case (beambeam$, crab_cavity$)
+    if (orbit%time_dir == 1) then
+      orbit%spin = quat_rotate(ele%spin_q(:,0), orbit%spin)
+    else
+      orbit%spin = quat_rotate(quat_conj(ele%spin_q(:,0)), orbit%spin)
+    endif
+  end select
+endif
+
 end subroutine

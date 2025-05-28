@@ -64,18 +64,19 @@ if (debug_mode) then
                             'Name: Tracking_Method', 'x', 'px', 'y', 'py', 'z', 'pz', 'dz-d(v*(t_ref-t)) Alive?'
 endif
 
-call track_it (lat, 1, 1)
+call track_it (lat, 1, 1, .false.)
+call track_it (lat, 1, 1, .true.)
 if (debug_mode) stop
-call track_it (lat,  1, -1)
-call track_it (lat, -1,  1)
-call track_it (lat, -1, -1)
+call track_it (lat,  1, -1, .false.)
+call track_it (lat, -1,  1, .false.)
+call track_it (lat, -1, -1, .false.)
 
 close(1)
 
 !------------------------------------------------
 contains
 
-subroutine track_it(lat, ele_o_sign, orb_dir_sign)
+subroutine track_it(lat, ele_o_sign, orb_dir_sign, abs_time)
 
 type (lat_struct), target :: lat
 type (coord_struct) start_orb, end_orb, end_bs, end_ptc
@@ -85,6 +86,7 @@ type (track_struct) track
 real(rp) del
 integer ele_o_sign, orb_dir_sign
 integer ib, i, j, isn
+logical abs_time
 character(46) :: out_str
 
 !
@@ -95,6 +97,16 @@ do ib = 0, ubound(lat%branch, 1)
 
   do i = 1, branch%n_ele_max - 1
     ele => branch%ele(i)
+
+    ! Only need to run with absolute time for elements that have time varying fields.
+    ! Note: e_gun always uses absolute time so do not need to duplicate tracking.
+    if (abs_time) then
+      select case (ele%key)
+      case (rfcavity$, lcavity$, ac_kicker$, crab_cavity$, rf_bend$)
+      case default
+        cycle
+      end select
+    endif
 
     if (ele_o_sign == -1 .and. ele%key == e_gun$) cycle
     if ((ele_o_sign == -1 .or. orb_dir_sign == -1) .and. ele%key == beambeam$) cycle
@@ -147,9 +159,22 @@ do ib = 0, ubound(lat%branch, 1)
       start_orb = lat%particle_start
 
       if (orb_dir_sign == -1 .and. .not. debug_mode) then
-        start_orb%direction = -1
         bmad_com%absolute_time_tracking = .true.
+        start_orb%direction = -1
+      elseif (abs_time) then
+        bmad_com%absolute_time_tracking = .true.
+        select case (j)
+        case (bmad_standard$, runge_kutta$, symp_lie_ptc$)
+        case default
+          cycle
+        end select
+      else
+        bmad_com%absolute_time_tracking = .false.
       endif
+
+      
+
+
 
       start_orb%species = default_tracking_species(branch%param)
       if (start_orb%direction*ele%orientation == -1) start_orb%species = antiparticle(start_orb%species)
@@ -166,7 +191,11 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (orb_dir_sign == 1 .and. ele_o_sign == 1) then
-        out_str = trim(ele%name) // ': ' // trim(tracking_method_name(j))
+        if (abs_time) then
+          out_str = trim(ele%name) // '-Abs_Time: ' // trim(tracking_method_name(j))
+        else
+          out_str = trim(ele%name) // ': ' // trim(tracking_method_name(j))
+        endif
       elseif (orb_dir_sign == 1 .and. ele_o_sign == -1) then
         out_str = trim(ele%name) // '-Anti_O: ' // trim(tracking_method_name(j))
       elseif (orb_dir_sign == -1 .and. ele_o_sign == 1) then
@@ -216,7 +245,9 @@ do ib = 0, ubound(lat%branch, 1)
       if (branch%param%particle == photon$) then
         write (1, '(3a, t50, a, 2es18.10)') '"', trim(ele%name), ':E_Field"', 'REL 2E-07', end_orb%field
       endif
-    end do
+    enddo  ! loop over methods
+
+    ! Spin stuff
 
     if (valid_spin_tracking_method(ele, sprint$)) then
       ele%spin_tracking_method = sprint$
@@ -241,8 +272,8 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     if (isn == 0) cycle
-
     if (debug_mode) print '(t46, a, t60, a, t74, a, t91, a)', 'dSpin_x', 'dSpin_y', 'dSpin_z', 'dSpin_amp'
+
     do j = 1, isn
       write (1, '(a)') trim(line(j))
       if (debug_mode) print '(a)', trim(line_debug(j))

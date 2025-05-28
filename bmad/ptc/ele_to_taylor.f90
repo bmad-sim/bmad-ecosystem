@@ -116,7 +116,7 @@ ptc_probe8 = ptc_cdamap + ptc_probe ! = IdentityMap + const
 
 ! It does not make sense to do spin tracking if spin_taylor is not present but orbital_taylor is.
 
-if (bmad_com%spin_tracking_on .and. (present(spin_taylor) .or. (.not. present(spin_taylor) .and. .not. present(orbital_taylor)))) then
+if (bmad_com%spin_tracking_on .or. present(spin_taylor)) then
   call track_probe (ptc_probe8, ptc_state+SPIN0, fibre1 = bmadl%start)
 
   do i = 0, 3

@@ -1983,7 +1983,7 @@ character(30), parameter :: grid_field_geometry_name(0:2) = &
                           [character(30) :: 'GARBAGE!', 'rotationally_symmetric_rz', 'xyz']
 integer, parameter :: grid_field_dimension(2) = [2, 3] 
 
-! Structures for saving the track through an element.
+! Strong_beam_struct is used as a component of track_point_struct.
 
 type strong_beam_struct
   integer :: ix_slice = 0                   ! 0 -> at element center and not at slice.
@@ -1992,11 +1992,13 @@ type strong_beam_struct
   real(rp) :: dx = 0, dy = 0                ! Particle - beam slice distance.
 end type
 
+! Not: track_struct will hold an array of track_point_structs.
+
 type track_point_struct
   real(rp) s_lab                                  ! Longitudinal lab coord with respect to the upstream end.
   real(rp) s_body                                 ! Longitudinal body coord with respect to the entrance end.
-  type (coord_struct) orb                         ! An array of track points indexed from 0 (%orb(0:)).
-  type (em_field_struct) field                    ! An array of em fields indexed from 0 (%field(0:)).
+  type (coord_struct) orb                         ! Particle position in lab coords.
+  type (em_field_struct) field                    ! E&M fields in lab coordinates.
   type (strong_beam_struct) strong_beam           ! Strong beam info for beambeam element.
   real(rp) vec0(6)                                ! 0th order part of xfer map from the beginning.
   real(rp) mat6(6,6)                              ! 1st order part of xfer map (transfer matrix).
