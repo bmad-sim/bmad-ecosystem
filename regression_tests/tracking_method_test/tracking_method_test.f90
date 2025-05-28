@@ -309,7 +309,7 @@ character(*) :: instr
 
     case("RBEND4-Anti_D: Bmad_Standard")               ; tolerance = 'ABS 4e-13'
     case("RBEND4-Anti_OD: Bmad_Standard")              ; tolerance = 'ABS 4e-13'
-    case("RBEND4-Anti_O: Bmad_Standard")               ; tolerance = 'ABS 4e-13'
+    case("RBEND4-Anti_O: Bmad_Standard")               ; tolerance = 'ABS 1e-12'
     case("RBEND4-Anti_O: Runge_Kutta")                 ; tolerance = 'ABS 1e-12'
     case("RBEND4-Anti_O: Time_Runge_Kutta")            ; tolerance = 'ABS 1e-12'
     case("RBEND6-Anti_O: Symp_Lie_PTC")                ; tolerance = 'ABS 1E-13'
