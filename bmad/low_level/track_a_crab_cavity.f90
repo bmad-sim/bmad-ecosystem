@@ -28,7 +28,7 @@ type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) voltage, rel_voltage, phase0, phase, t0, length, charge_dir, dt_length, beta_ref
-real(rp) k_rf, dl, beta_old, pz_old, h, pc, s_here, dt_ref, omega(3), qrot(0:3)
+real(rp) k_rf, dl, beta_old, pz_old, h, pc, s_here, omega(3), qrot(0:3)
 real(rp) mat_2(6,6), E_old, E_new
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -47,7 +47,6 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 
 ref_ele => ele
 if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_super_lord(ele)
-dt_ref = ele%s_start - ref_ele%s_start
 field = em_field_struct()
 
 !
@@ -76,16 +75,14 @@ h = mass_of(orbit%species)/ele%value(p0c$)
 
 ! Track through slices.
 
-call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
+call track_this_drift(orbit, dl/2, ele, mat6, make_matrix)
 
 do i = 1, n_slice
+  s_here = (i - 0.5_rp) * dl
 
-  ! Note: particle_rf_time is referenced to the lord element if ele is a super or slice slave.
-  ! Thus we need dt_ref.
-  s_here = (i - 0.5_rp) * ele%value(l$) / n_slice
   phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-          (particle_rf_time (orbit, ele, .false., s_here) - rf_ref_time_offset(ele) - &
-          (s_here+dt_ref)/(orbit%beta * c_light)) * ele%value(rf_frequency$))
+          (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele, s_here)) * &
+          ele%value(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_length
   phase = phase0
 
@@ -134,10 +131,10 @@ do i = 1, n_slice
   endif
 
   if (i == n_slice) exit
-  call track_this_drift(orbit, dl, ele, phase, mat6, make_matrix)
+  call track_this_drift(orbit, dl, ele, mat6, make_matrix)
 enddo
 
-call track_this_drift(orbit, dl/2, ele, phase, mat6, make_matrix)
+call track_this_drift(orbit, dl/2, ele, mat6, make_matrix)
 
 ! coupler kick, multipoles, back to lab coords.
 
@@ -152,19 +149,18 @@ endif
 !-------------------------
 contains
 
-subroutine track_this_drift (orbit, dl, ele, phase, mat6, make_matrix)
+subroutine track_this_drift (orbit, dl, ele, mat6, make_matrix)
 
 type (coord_struct) orbit
 type (ele_struct) ele
 real(rp) mat6(6,6)
-real(rp) z, dl, phase
+real(rp) z, dl
 logical make_matrix
 
 !
 
 z = orbit%vec(5)
 call track_a_drift (orbit, dl, mat6, make_matrix)
-!! phase = phase + twopi * ele%value(rf_frequency$) * (orbit%vec(5) - z) / (c_light * orbit%beta)
 
 end subroutine track_this_drift
 

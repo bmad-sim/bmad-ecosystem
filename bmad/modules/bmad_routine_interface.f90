@@ -2402,10 +2402,11 @@ function rf_is_on (branch, ix_ele1, ix_ele2) result (is_on)
   logical is_on
 end function
 
-function rf_ref_time_offset (ele) result (time)
+function rf_ref_time_offset (ele, ds) result (time)
   import
   implicit none
   type (ele_struct) ele
+  real(rp), optional :: ds
   real(rp) time
 end function
 
