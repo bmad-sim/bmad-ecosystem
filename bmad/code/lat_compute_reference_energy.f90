@@ -517,7 +517,7 @@ type (coord_struct) orb_start, orb_end, orb1, orb2
 type (bmad_common_struct) bmad_com_saved
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(3)
-real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time
+real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time, t, ds, beta
 
 integer i, n, key
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
@@ -593,7 +593,34 @@ case (lcavity$)
     if (err) goto 9000
   endif
 
-  ! If ele is super_slave and the super_lord and ele are essentially the same element, do not need to track.
+  n = nint(ele%value(n_rf_steps$))
+  if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%key == lcavity$ .and. &
+                                                              ele%tracking_method == bmad_standard$ .and. n > 0) then
+    if (.not. associated(ele%rf)) allocate(ele%rf)
+    if (allocated(ele%rf%steps)) then
+      if (ubound(ele%rf%steps, 1) /= n+1) deallocate(ele%rf%steps)
+    endif
+    if (.not. allocated(ele%rf%steps)) allocate(ele%rf%steps(0:n+1))
+
+    t = 0.0_rp
+    ds = ele%value(l$) / n
+    ele%rf%ds_step = ds
+
+    E_tot = ele%value(E_tot_start$)
+    ele%rf%steps(0) = rf_stair_step_struct(E_tot,  ele%value(p0c_start$)/E_tot, t, 0.0_rp)
+    E_tot = E_tot + 0.5_rp * ele%value(voltage$) / n
+
+    do i = 1, n
+      call convert_total_energy_to(E_tot, ele%ref_species, beta = beta)
+      t = t + ds / (c_light * beta)
+      ele%rf%steps(i) = rf_stair_step_struct(E_tot, beta, t, i * ele%value(l$) / n)
+      E_tot = E_tot + ele%value(voltage$) / n
+    enddo
+
+    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$),  ele%value(p0c$)/ele%value(E_tot$), real_garbage$, real_garbage$)
+  endif
+
+  ! If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
 
   do_track = .true.
   if (ele%slave_status == super_slave$) then

@@ -132,15 +132,12 @@ The complete structure is shown in this and the preceding figure.}
 \index{ele_struct!initialization}
 \index{ele_struct!pointer components}
 
-The \vn{ele_struct} has a number of components and subcomponents 
-that are pointers and this raises a deallocation issue.
-Generally, most \vn{ele_struct} elements are part of a \vn{lat_struct}
-variable (\sref{s:lat:point})
-and such elements in a \vn{lat_struct} are handled by the
-\vn{lat_struct} allocation/deallocation routines. 
-In the case where a local \vn{ele_struct}
-variable is used within a subroutine or function, the \vn{ele_struct} 
-variable must either be defined with the \vn{save} attribute 
+The \vn{ele_struct} has a number of components and subcomponents that are pointers. This is done to
+minimize memory size. The use of pointers raises a deallocation issue.  Generally, most \vn{ele_struct}
+elements are part of a \vn{lat_struct} variable (\sref{s:lat:point}) and such elements in a
+\vn{lat_struct} are handled by the \vn{lat_struct} allocation/deallocation routines.  In the case
+where a local \vn{ele_struct} variable is used within a subroutine or function, the \vn{ele_struct}
+variable must either be defined with the \vn{save} attribute
 \begin{example}
   type (ele_struct), save :: ele          ! Use the save attribute
   logical, save :: init_needed = .false.
@@ -157,7 +154,7 @@ or the pointers within the variable must be deallocated  with a call to
   ...
   call init_ele (ele, sbend\$)            ! Initialize element each time
   ...
-  call deallocate_ele_pointers (ele) ! And deallocate.
+  call deallocate_ele_pointers (ele)     ! And deallocate.
 \end{example}
 
 In the ``normal'' course of events, the pointers of an \vn{ele_struct} variable should not be

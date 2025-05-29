@@ -1243,6 +1243,7 @@ call init_attribute_name1 (lcavity$, gen_grad_map$,                 'GEN_GRAD_MA
 call init_attribute_name1 (lcavity$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (lcavity$, phi0_autoscale$,               'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (lcavity$, n_cell$,                       'N_CELL')
+call init_attribute_name1 (lcavity$, n_rf_steps$,                   'N_RF_STEPS')
 call init_attribute_name1 (lcavity$, l_active$,                     'L_ACTIVE', dependent$)
 call init_attribute_name1 (lcavity$, voltage_tot$,                  'VOLTAGE_TOT', dependent$)
 call init_attribute_name1 (lcavity$, gradient_tot$,                 'GRADIENT_TOT', dependent$)
@@ -1461,6 +1462,7 @@ call init_attribute_name1 (crab_cavity$, phi0_autoscale$,           'PHI0_AUTOSC
 call init_attribute_name1 (crab_cavity$, autoscale_amplitude$,      'AUTOSCALE_AMPLITUDE', private$)  ! Not yet used
 call init_attribute_name1 (crab_cavity$, autoscale_phase$,          'AUTOSCALE_PHASE', private$)      ! Not yet used
 call init_attribute_name1 (crab_cavity$, field_master$,             'FIELD_MASTER')
+call init_attribute_name1 (crab_cavity$, n_rf_steps$,               'N_RF_STEPS')
 
 call init_attribute_name1 (rfcavity$, longitudinal_mode$,           'LONGITUDINAL_MODE')
 call init_attribute_name1 (rfcavity$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
@@ -1485,6 +1487,7 @@ call init_attribute_name1 (rfcavity$, cylindrical_map$,             'CYLINDRICAL
 call init_attribute_name1 (rfcavity$, gen_grad_map$,                'GEN_GRAD_MAP')
 call init_attribute_name1 (rfcavity$, grid_field$,                  'GRID_FIELD')
 call init_attribute_name1 (rfcavity$, n_cell$,                      'N_CELL')
+call init_attribute_name1 (rfcavity$, n_rf_steps$,                  'N_RF_STEPS')
 call init_attribute_name1 (rfcavity$, phi0_max$,                    'phi0_max', private$)
 call init_attribute_name1 (rfcavity$, phi0_err$,                    'phi0_err', private$)
 call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', dependent$)
@@ -1946,7 +1949,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 
-case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CELL', &
+case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CELL', 'N_RF_STEPS', &
       'IX_TO_BRANCH', 'IX_TO_ELEMENT', 'NUM_STEPS', 'INTEGRATOR_ORDER', 'N_SLAVE', 'N_LORD', &
       'MAX_FRINGE_ORDER', 'UPSTREAM_ELE_DIR', 'DOWNSTREAM_ELE_DIR', 'RUNGE_KUTTA_ORDER', &
       'SAD_N_DIV_MAX', 'LONGITUDINAL_MODE', 'MOSAIC_DIFFRACTION_NUM', 'FINAL_CHARGE')

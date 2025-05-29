@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 334
+integer, parameter :: bmad_inc_version$ = 335
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1283,6 +1283,25 @@ type foil_struct
   type (material_struct), allocatable :: material(:)
 end type
 
+! Single energy stair step
+! A single step is a drift followed by an energy kick except for the
+! zeroth step which is just a kick and the last step is a "phantom" to simplify the code.
+! The first and last energy kicks are half of the interior kicks.
+
+type rf_stair_step_struct
+  real(rp) :: E_tot = 0       ! Reference energy in drift before kick.
+  real(rp) :: beta = 0        ! Reference velocity in drift before kick.
+  real(rp) :: dtime = 0       ! Reference Time at energy kick with respect to beginning of element.
+  real(rp) :: s = 0           ! S-position at kick from beginning of element.
+end type
+
+! Element RF parameter struct
+
+type rf_ele_struct
+  type (rf_stair_step_struct), allocatable :: steps(:)      ! Energy stair step array indexed from zero.
+  real(rp) :: ds_step = 0                                   ! length of a stair step.
+end type
+
 ! Distribution of outgoing particles for a given thickness.
 
 type converter_distribution_struct
@@ -1379,6 +1398,7 @@ type ele_struct
   type (branch_struct), pointer :: branch => null()                      ! Pointer to branch containing element.
   type (controller_struct), pointer :: control => null()                 ! group & overlay variables.
   type (converter_struct), pointer :: converter => null()                ! EG: Positron converter in linac.
+  type (rf_ele_struct), pointer :: rf => null()                          ! RF parameters.
   type (foil_struct), pointer :: foil => null()
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
@@ -1772,7 +1792,8 @@ integer, parameter :: cmat_12$ = 30, dtheta_origin$ = 30, b_param$ = 30, l_chord
 integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id$ = 31, ref_cap_gamma$ = 31, &
                       l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
                       mean_excitation_energy$ = 31, fiducial_pt$ = 31
-integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, use_reflectivity_table$ = 32, init_needed$ = 32
+integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, &
+                      use_reflectivity_table$ = 32, init_needed$ = 32, n_rf_steps$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, crossing_time$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
 integer, parameter :: y_pitch$ = 35, y_kick$ = 35
