@@ -1,14 +1,10 @@
 name: Bmad Ecosystem - Build & Test
 
 on:
-  # Run on demand
+  # Run on demand, push, or pull request
   workflow_dispatch:
-
-  # Run on push to any branch
   push:
-
-  # Run on pull requests
-  ## pull_request:  # In practice this duplicates run on push.
+  pull_request:
 
   ## Future Ideas:
   ## PR make it 10 or less
