@@ -35,6 +35,10 @@ type (ele_struct), target :: ele
 type (lat_param_struct) :: param
 
 real(rp), optional :: mat6(6,6)
+real(rp) length, r_step
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+
+integer n_step, ix_mag_max, ix_elec_max
 
 logical, optional :: make_matrix
 
