@@ -109,7 +109,11 @@ case (gkicker$)
 ! LCavity: Linac rf cavity.
 
 case (lcavity$)
-  call track_a_lcavity (orbit, ele, param, mat6, make_matrix)
+  if (nint(ele%value(n_rf_steps$)) == 0) then
+    call track_a_lcavity_old (orbit, ele, param, mat6, make_matrix)
+  else
+    call track_a_lcavity (orbit, ele, param, mat6, make_matrix)
+  endif
 
 !-----------------------------------------------
 ! marker, etc.

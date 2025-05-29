@@ -2991,6 +2991,16 @@ subroutine track_a_lcavity (orbit, ele, param, mat6, make_matrix)
   logical, optional :: make_matrix
 end subroutine
 
+subroutine track_a_lcavity_old (orbit, ele, param, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) orbit
+  type (ele_struct), target :: ele
+  type (lat_param_struct) param
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine track_a_mask (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
@@ -4604,6 +4614,19 @@ if (associated(ele_in%mode3)) then
   ele_out%mode3 = ele_in%mode3
 else
   if (associated (ele_save%mode3)) deallocate (ele_save%mode3)
+endif
+
+! %rf
+
+if (associated(ele_in%rf)) then
+  if (associated (ele_save%rf)) then
+    ele_out%rf => ele_save%rf
+  else
+    allocate (ele_out%rf)
+  endif
+  ele_out%rf = ele_in%rf
+else
+  if (associated (ele_save%rf)) deallocate (ele_save%rf)
 endif
 
 ! %high_energy_space_charge
