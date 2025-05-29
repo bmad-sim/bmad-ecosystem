@@ -42,6 +42,22 @@ character(*), parameter :: r_name = 'track_a_lcavity'
 
 ! 
 
+if (ele%value(rf_frequency$) == 0  .and. (ele%value(voltage$) /= 0 .or. ele%value(voltage_err$) /= 0)) then
+  call out_io (s_error$, r_name, 'LCAVITY ELEMENT HAS ZERO RF_FREQUENCY: ' // ele%name)
+  orbit%state = lost$
+  return
+endif
+
+length = orbit%time_dir * ele%value(l$)
+if (length == 0) return
+
+n_step = max(1, nint(ele%value(num_steps$)))
+r_step = rp8(orbit%time_dir) / n_step
+
+call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+
 call err_exit
 
 end subroutine track_a_lcavity
