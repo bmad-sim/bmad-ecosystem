@@ -5027,7 +5027,7 @@ case ('taylor_map', 'matrix')
   force_use_ptc = .false.
   do_inverse = .false.
   clean = .true.
-  output_type = 'TAYLOR_STANDARD'  ! "BMAD_LATTICE_FORMAT", "SCIBMAD", "RADIATION", "MATRIX", "TAYLOR_STANDARD"
+  output_type = 'TAYLOR_STANDARD'  ! "BMAD_LATTICE_FORMAT", "SCIBMAD", "RADIATION", "MATRIX"
   fmt = ''
   ele1_name = ''
   ele2_name = ''
@@ -5035,6 +5035,7 @@ case ('taylor_map', 'matrix')
 
   if (show_what == 'matrix') then
     n_order = 1
+    output_type = 'MATRIX'
   else
     n_order = -1
   endif
