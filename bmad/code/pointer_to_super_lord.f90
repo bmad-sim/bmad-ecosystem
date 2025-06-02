@@ -1,7 +1,8 @@
 !+
 ! Function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
 !
-! Function to point to the super_lord of a super_slave or the lord of a slick_slave.
+! Function to point to the super_lord of a super_slave or the lord of a slice_slave.
+! If slave is not a super_slave or slice_slave, lord_ptr will point to slave
 !
 ! If slave is a slice_slave with a control chain:
 !   super_lord -> super_slave -> slice_slave

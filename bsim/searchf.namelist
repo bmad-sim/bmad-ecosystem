@@ -118,12 +118,12 @@ write_bunch_by_bunch_info
 hom_voltage
 logical_to_python
 
-File: code/set_tune_3d.f90
-set_tune_3d
-
 File: code/count_lines_in_file.f90
 count_lines_in_file_mod
 count_lines_in_file
+
+File: code/set_tune_3d.f90
+set_tune_3d
 
 File: code_synrad/break_wall_into_segments.f90
 break_wall_into_segments
@@ -479,7 +479,6 @@ ltt_track_bmad_single
 ltt_track_bmad_bunch
 ltt_track_map
 ltt_print_mpi_info
-ltt_bunch_time_sum
 ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
