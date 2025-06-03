@@ -53,7 +53,7 @@ if (present(name_out)) name_out = ''
 
 ! No "@" then simply choose s%global%default_universe.
 
-ix = tao_uni_ampersand_index(name_in)
+ix = tao_uni_atsign_index(name_in)
 ic = index (name_in, '::')
 
 if (present(explicit_uni)) explicit_uni = (ix /= 0)

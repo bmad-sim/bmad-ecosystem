@@ -4,6 +4,8 @@
 ! Subroutine to find the lattice elements in the lattice corresponding to the ele_list argument. 
 !
 ! See also tao_locate_elements for a routine that only searches one given universe.
+! The disadvantage of tao_locate_all_elements is that the ele_list cannot use Bmad constructs like 
+! ranges (EG "q1:q2" to designate all elements between q1 and q2).
 !
 ! Input:
 !   ele_list     -- Character(*): String with element names using element list format.
@@ -24,9 +26,8 @@ implicit none
 
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
-type (ele_pointer_struct), allocatable :: this_eles(:)
 
-integer i, ix, n_eles, n0
+integer i, ix, n_eles, n_eles_old
 
 character(*) ele_list
 character(100) ele_name, word, string
@@ -57,23 +58,23 @@ endif
 ! It is important to not split constructs like "Q*, ~QZ*".
 
 string = ele_list
+n_eles_old = 0
+n_eles = 0
+
 do 
   call tao_pick_universe (string, string, picked, err);  if (err) return
   call next_element_chunk (string, word)
   if (word == '') exit
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. picked(i)) cycle
-    call lat_ele_locator (word, s%u(i)%model%lat, this_eles, n_eles, err)
+    call lat_ele_locator (word, s%u(i)%model%lat, eles, n_eles, err, append_eles = .true.)
     if (err) return
-    if (n_eles == 0) cycle
-    n0 = size(eles)
-    call re_allocate_eles (eles, n0+n_eles, .true., .true.)
-    eles(n0+1:n0+n_eles) = this_eles(1:n_eles)
-    eles(n0+1:n0+n_eles)%id = i
+    eles(n_eles_old+1:n_eles)%id = i
+    n_eles_old = n_eles
   enddo
 enddo
 
-if (size(eles) == 0) then
+if (n_eles == 0) then
   call out_io (s_error$, r_name, 'ELEMENT(S) NOT FOUND: ' // ele_list)
   err = .true.
   return
