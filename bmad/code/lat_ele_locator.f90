@@ -1,5 +1,6 @@
 !+
-! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
+! Subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, 
+!                                                                     order_by_index, append_eles)
 !
 ! Routine to locate all the elements in a lattice that corresponds to loc_str.
 ! If there are multiple elements of the same name, pointers to all such elements are returned.
@@ -81,30 +82,34 @@
 ! the ordering of the quads among themselves and the ordering of the sbends among themselves.
 ! 
 ! Input:
-!   loc_str        -- character(*): Element names or indexes. May be lower case.
-!   lat            -- lat_struct: Lattice to search through.
+!   loc_str         -- character(*): Element names or indexes. May be lower case.
+!   lat             -- lat_struct: Lattice to search through.
+!   eles(:)         -- ele_pointer_struct, allocatable: If append_eles is True, save existing elements.
+!   n_loc           -- integer: Number of existing elements. Used if append_eles is True.
 !   above_ubound_is_err
-!                  -- logical, optional: Default is True. If the upper bound "e2" on an "e1:e2" range construct 
+!                   -- logical, optional: Default is True. If the upper bound "e2" on an "e1:e2" range construct 
 !                       is an integer and above the maximum element index then treat this as an error? 
 !                       If False, treat e2 as the maximum element index. 
-!   ix_dflt_branch -- integer, optional: If present and not -1 then restrict search to specified branch.
+!   ix_dflt_branch  -- integer, optional: If present and not -1 then restrict search to specified branch.
 !                       If not present or -1: Search all branches. Exception: For elements specified using 
 !                       an integer index (EG: "43"), if ix_dflt_branch is not present or -1 use branch 0.
-!   order_by_index -- logical, optional: False is default. If True, order a component of loc_str like "quad::*" 
+!   order_by_index  -- logical, optional: False is default. If True, order a component of loc_str like "quad::*" 
 !                       by element index instead of longitudinal s-position. Index ordering and s-position ordering
 !                       are different when there are super lords and super slaves.
+!   append_eles     -- logical, optional: Default is False. If True, found elements are appended to eles(:) array.
 !
 ! Output:
-!   eles(:)       -- ele_pointer_struct, allocatable: Array of matching elements.
-!                    Note: This routine does not try to deallocate eles.
-!                     It is up to you to deallocate eles if needed.
-!   n_loc         -- integer: Number of locations found.
-!                      Set to zero if no elements are found.
-!   err           -- logical, optional: Set True if there is a decode error.
-!                      Note: Not finding any matching element is not an error.
+!   eles(:)         -- ele_pointer_struct, allocatable: Array of matching elements.
+!                       Note: This routine does not try to deallocate eles.
+!                       It is up to you to deallocate eles if needed.
+!   n_loc           -- integer: Number of locations found.
+!                       Set to zero if no elements are found.
+!   err             -- logical, optional: Set True if there is a decode error.
+!                       Note: Not finding any matching element is not an error.
 !-
 
-subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, order_by_index)
+subroutine lat_ele_locator (loc_str, lat, eles, n_loc, err, above_ubound_is_err, ix_dflt_branch, &
+                                                                          order_by_index, append_eles)
 
 use bmad_interface, dummy => lat_ele_locator
 
@@ -128,13 +133,14 @@ integer i, j, ib, ios, ix, n_loc, n_loc2, match_name_to
 integer in_range, ix_word, key
 integer, parameter :: ele_name$ = -1
 
-logical, optional :: above_ubound_is_err, err, order_by_index
+logical, optional :: above_ubound_is_err, err, order_by_index, append_eles
 logical err2, delim_found, above_ub_is_err, s_ordered, negate, names_are_integers, intersection
 
 ! init
 
 if (present(err)) err = .true.
-n_loc = 0
+
+if (.not. logic_option(.false., append_eles)) n_loc = 0
 intersection = .false.
 branch_str = ''
 delim = ''
@@ -149,7 +155,6 @@ in_range = 0
 ! Loop over all items in the list
 
 do
-
   ! Get next item. 
   ! If the split is in between "::" then need to piece the two haves together.
 

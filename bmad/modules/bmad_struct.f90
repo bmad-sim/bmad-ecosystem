@@ -893,7 +893,7 @@ end type
 type ele_pointer_struct
   type (ele_struct), pointer :: ele => null()
   type (lat_ele_loc_struct) :: loc = lat_ele_loc_struct()
-  integer :: id = -1                    ! For general use. Not used by Bmad.
+  integer :: id = -1      ! For general use. Not used by Bmad. In particular, used by Tao to designate universe ele is in.
 end type
 
 ! Structure to be used for an array of pointers to branches.

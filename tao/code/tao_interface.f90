@@ -1248,7 +1248,7 @@ character(*), parameter :: r_name = 'tao_pointer_to_universe_str'
 
 nullify(u)
 
-ix = tao_uni_ampersand_index(string)
+ix = tao_uni_atsign_index(string)
 if (ix == 0) then
   u => s%u(tao_universe_index(-1))
   return
@@ -1282,9 +1282,9 @@ end function tao_pointer_to_universe_str
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Function tao_uni_ampersand_index(string) result (ix_amp)
+! Function tao_uni_atsign_index(string) result (ix_amp)
 !
-! Routine to return the index of an ampersand ("@") sign in a string if the ampersand is
+! Routine to return the index of an atsign ("@") character in a string if the atsign is
 ! being used as a separator between a universe spec and the rest of the string.
 !
 ! For example:
@@ -1298,7 +1298,7 @@ end function tao_pointer_to_universe_str
 !   ix_amp      -- integer: Index of universe "@". Set to zero if no universe "@" found.
 !-
 
-function tao_uni_ampersand_index(string) result (ix_amp)
+function tao_uni_atsign_index(string) result (ix_amp)
 
 implicit none
 
@@ -1317,6 +1317,6 @@ do i = 1, len(string)
   return
 enddo
 
-end function tao_uni_ampersand_index
+end function tao_uni_atsign_index
 
 end module
