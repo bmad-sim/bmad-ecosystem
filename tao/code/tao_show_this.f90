@@ -2271,6 +2271,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_ref_shift         = ', bmad_com%absolute_time_ref_shift
     nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
     nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on               = ', bmad_com%aperture_limit_on
+    nl=nl+1; write(lines(nl), lmt) '  %normalize_twiss                 = ', bmad_com%normalize_twiss
 
     if (allocated(lat%custom)) then
       nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'

@@ -1868,7 +1868,7 @@ integer, parameter :: aperture$ = 95, etap_a$ = 95
 integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
 integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
-integer, parameter :: aperture_limit_on$ = 99, alpha_a$ = 99, reflectivity_table$ = 99, energy_probability_curve$ = 99
+integer, parameter :: alpha_a$ = 99, reflectivity_table$ = 99, energy_probability_curve$ = 99
 
 integer, parameter :: exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100
@@ -2200,6 +2200,7 @@ type extra_parsing_info_struct
   logical :: absolute_time_ref_shift_set            = .false.
   logical :: convert_to_kinetic_momentum_set        = .false.
   logical :: aperture_limit_on_set                  = .false.
+  logical :: normalize_twiss_set                    = .false.
   logical :: sad_eps_scale_set                      = .false.
   logical :: sad_amp_max_set                        = .false.
   logical :: sad_n_div_max_set                      = .false.
@@ -2284,7 +2285,8 @@ type bmad_common_struct
   logical :: absolute_time_ref_shift = .true.          ! Apply reference time shift when using absolute time tracking?
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
-  logical :: aperture_limit_on = .true.                ! use apertures in tracking?
+  logical :: normalize_twiss = .true.                  ! Normalize matrix when computing Twiss for off-energy ref?
+  logical :: aperture_limit_on = .true.                ! Use apertures in tracking?
   logical :: debug = .false.                           ! Used for code debugging.
 end type
   

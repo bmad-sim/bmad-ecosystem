@@ -1,3 +1,0 @@
-This test tests the lattice bookkeeping for a lattice with bends, lcavities, and flexible patches.
-This test is particularly sensitive to problems in lat_compute_energy_and_time not correctly keeping the floor
-position bookkeeping up-to-date.

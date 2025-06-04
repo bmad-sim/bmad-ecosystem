@@ -27,12 +27,14 @@ call chrom_calc (lat, 1.0e-4_rp, ch_x, ch_y, err)
 
 ele => lat%ele(2)
 write (1, '(a, 2f14.8)') '"Chrom" ABS 1e-7', ch_x, ch_y
-write (1, '(a, 4f14.8)') '"W-func-closed" REL 1e-4', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
+write (1, '(a, 4f14.8)') '"W-func-closed" REL 1e-6', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
+write (1, '(a, 4f14.8)') '"eta-closed" REL 1e-6', ele%x%deta_dpz, ele%x%detap_dpz, ele%y%deta_dpz, ele%y%detap_dpz
 
 lat%param%geometry = open$
 
 call chrom_calc (lat, 1.0e-4_rp, ch_x, ch_y, err, orb0 = orb(0))
-write (1, '(a, 4f14.8)') '"W-func-open" REL 1e-4', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
+write (1, '(a, 4f14.8)') '"W-func-open" REL 1e-6', ele%a%dbeta_dpz, ele%b%dbeta_dpz, ele%a%dalpha_dpz, ele%b%dalpha_dpz
+write (1, '(a, 4f14.8)') '"eta-open" REL 1e-6', ele%x%deta_dpz, ele%x%detap_dpz, ele%y%deta_dpz, ele%y%detap_dpz
 
 close(1)
 
