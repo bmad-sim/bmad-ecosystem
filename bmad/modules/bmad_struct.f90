@@ -1283,19 +1283,23 @@ type foil_struct
   type (material_struct), allocatable :: material(:)
 end type
 
-! Single energy stair step
-! A single step is a drift followed by an energy kick except for the
-! zeroth step which is just a kick and the last step is a "phantom" to simplify the code.
-! The first and last energy kicks are half of the interior kicks.
+! rf_stair_step_struct: Single energy stair step. Used in rf_ele_struct.
 
 type rf_stair_step_struct
-  real(rp) :: E_tot = 0       ! Reference energy in drift before kick.
+  real(rp) :: E_tot0 = 0      ! Reference energy just before kick referenced to the beginning of element.
+  real(rp) :: E_tot1 = 0      ! Reference energy just after kick referenced to the beginning of element.
   real(rp) :: beta = 0        ! Reference velocity in drift before kick.
   real(rp) :: dtime = 0       ! Reference Time at energy kick with respect to beginning of element.
   real(rp) :: s = 0           ! S-position at kick from beginning of element.
 end type
 
-! Element RF parameter struct
+! Element RF parameter struct.
+! rf_ele_struct%steps(0:) is and array of steps indexed from zero.
+! A single step is a drift followed by an energy kick with the
+! the first and last energy kicks being half of the interior kicks.
+! Exceptions:
+!   The zeroth step is just the initial kick (no drift).
+!   The last step is a "phantom" (no drift and no kick) that just holds the final energy value.
 
 type rf_ele_struct
   type (rf_stair_step_struct), allocatable :: steps(:)      ! Energy stair step array indexed from zero.

@@ -1144,17 +1144,13 @@ The generalization when the kick is not in the horizontal plane is easily derive
 \label{s:lcavity.std}
 \index{lcavity}
 
-For tracking using something like \vn{runge_kutta}, with \vn{field_calc} set to \vn{bmad_standard},
-the fields are modeled by the equations given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
+When integration through RF fields with \vn{field_calc} set to \vn{bmad_standard} and
+\vn{tracking_method} set to something like \vn{runge_kutta}, the fields are modeled by the equations
+given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
 
 For \vn{bmad_standard} tracking, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
 trajectory through an \vn{Lcavity} is modeled using equations developed by Rosenzweig and
-Serafini\cite{b:rosenzweig} (R\&S) with
-\begin{equation}
-  b_0 = 1, \qquad \text{and} \qquad b_{-1} = 1 
-\end{equation}
-and all other $b_n$ set to zero.
-
+Serafini\cite{b:rosenzweig} (R\&S).
 The transport equations in R\&S were developed in the ultra-relativistic limit with $\beta = 1$.  To
 extend these equations to lower energies, the transport through the cavity body (R\&S Eq.~(9)) has
 been modified to give the correct phase-space area at non ultra-relativistic energies:
@@ -1183,26 +1179,36 @@ simulating particles when $\beta$ is significantly different from 1. Indeed, the
 to simulate such particles is by integrating through the actual field [Cf.~Runge Kutta tracking
 (\sref{s:tkm})]}.
 
-The change in $z$ going through a cavity is calculated by first calculating the particle
-transit time $\Delta t$
-\begin{align}
-  c \, \Delta t &= \int_{s_1}^{s_2} \!\! ds \,\, \frac{1}{\beta(s)} 
-    = \int_{s_1}^{s_2} \!\! ds \, \frac{E}{\sqrt{E^2 - (mc^2)^2}} \CRNO
-  &= \frac{c \, P_2 - c \, P_1}{G} = \frac{E_2 + E_1}{P_2 + P_1} \, \frac{L}{c}
-\end{align}
-where $L$ is the accelerating length and it has been assumed that the accelerating gradient $G$ is
-constant through the cavity and retarding due to the particle's finite transverse momentum is
-ignored. In this equation $\beta = v / c$, $E$ is the energy, and $P$ is the momentum. The change in
-$z$ is thus
+Using all the $b_n$ set to zero except $b_0 = 1$ and $b_{-1} = 1$ (see R\&S Eq.~(4)),
+$\eta(\delta\phi)$ is unity.
+
+For non ultra-relativistic particles, the problem with using \Eq{xxpc} is that it is difficult to
+compute a self-consistent RF phase for points interior to the cavity. For this reason a drift-kick
+model is employed where the cavity is divided into a number of equally spaced slices with RF kicks
+given at the edge of the slices and in between there is a field free region where the particle can
+balisticly drift. The voltage $V_k$ applied at the interior slice boundries is $ V_k =
+V\cos(\phi)/n_{slice}$ where $V$ is the total RF voltage, $\phi$ is the RF phase, and $n_{slice}$ is
+the number of slices. At the edges of the element the kick is half this $V_k =
+V\cos(\phi)/2n_{slice}$. The kick is adapted from \Eq{xxpc}:
 \begin{equation}
-  z_2 = \frac{\beta_2}{\beta_1} \, z_1 - 
-  \frac{\beta_2 \, L}{c} \, 
-  \left(
-  \frac{E_2 + E_1}{P_2 + P_1} - 
-  \frac{\Ebar_2 + \Ebar_1}{\Pbar_2 + \Pbar_1}
-  \right)
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_2 = \sqrt{\frac{\beta_1}{\beta_2}} \, 
+  \begin{pmatrix}
+    1  & 0 \\
+    -\sqrt{\frac{1}{8}} \, \frac{\gamma'}{\gamma_2 \, \cos(\Delta\phi)} &
+        \frac{\gamma_1}{\gamma_2}
+  \end{pmatrix}
+  \,
+  \begin{pmatrix}
+    x \\ 
+    x'
+  \end{pmatrix}_1
+  \label{xxpc}
 \end{equation}
-where $\Pbar$ and $\Ebar$ are the momentum and energy of the reference particle.
+where $\gamma'$ is computed assuming a gradient of $V_k / L_{slice}$ where $L_{slice}$ is the length of 
+the slices.
 
 Note that the above transport equations are only symplectic on-axis There are second order terms in
 the transverse coordinates that are missing. To obtain a proper symplectic matrix, the

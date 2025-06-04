@@ -517,7 +517,7 @@ type (coord_struct) orb_start, orb_end, orb1, orb2
 type (bmad_common_struct) bmad_com_saved
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(3)
-real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time, t, ds, beta
+real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time, t, ds, beta, E_tot0, E_tot1
 
 integer i, n, key
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
@@ -606,18 +606,19 @@ case (lcavity$)
     ds = ele%value(l$) / n
     ele%rf%ds_step = ds
 
-    E_tot = ele%value(E_tot_start$)
-    ele%rf%steps(0) = rf_stair_step_struct(E_tot,  ele%value(p0c_start$)/E_tot, t, 0.0_rp)
-    E_tot = E_tot + 0.5_rp * ele%value(voltage$) / n
+    E_tot0 = ele%value(E_tot_start$)
+    E_tot1 = E_tot0 + 0.5_rp * ele%value(voltage$) / n
+    ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1,  ele%value(p0c_start$)/E_tot, t, 0.0_rp)
 
     do i = 1, n
+      E_tot0 = E_tot1
+      E_tot1 = E_tot0 + ele%value(voltage$) / n
       call convert_total_energy_to(E_tot, ele%ref_species, beta = beta)
       t = t + ds / (c_light * beta)
-      ele%rf%steps(i) = rf_stair_step_struct(E_tot, beta, t, i * ele%value(l$) / n)
-      E_tot = E_tot + ele%value(voltage$) / n
+      ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, beta, t, i * ele%value(l$) / n)
     enddo
 
-    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$),  ele%value(p0c$)/ele%value(E_tot$), real_garbage$, real_garbage$)
+    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$)/ele%value(E_tot$), real_garbage$, real_garbage$)
   endif
 
   ! If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
