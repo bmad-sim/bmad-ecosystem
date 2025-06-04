@@ -1286,7 +1286,8 @@ end type
 ! rf_stair_step_struct: Single energy stair step. Used in rf_ele_struct.
 
 type rf_stair_step_struct
-  real(rp) :: E_tot = 0       ! Reference energy in drift before kick.
+  real(rp) :: E_tot0 = 0      ! Reference energy just before kick referenced to the beginning of element.
+  real(rp) :: E_tot1 = 0      ! Reference energy just after kick referenced to the beginning of element.
   real(rp) :: beta = 0        ! Reference velocity in drift before kick.
   real(rp) :: dtime = 0       ! Reference Time at energy kick with respect to beginning of element.
   real(rp) :: s = 0           ! S-position at kick from beginning of element.
