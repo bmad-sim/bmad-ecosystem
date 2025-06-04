@@ -89,7 +89,7 @@ if (logic_option(.false., pure_uni)) then
   endif
 
 else
-  ix = tao_uni_ampersand_index(name_out)
+  ix = tao_uni_atsign_index(name_out)
   if (ix == 0) then
     uni = ''
   else
