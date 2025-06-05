@@ -108,7 +108,18 @@ endif
 orb_in  => ele2%map_ref_orb_in
 orb_out => ele2%map_ref_orb_out
 
+rel_p1 = 1 + orb_in%vec(6)    ! Map reference momentum
+rel_p2 = 1 + orb_out%vec(6)
+
 mat6 = ele2%mat6
+if (ele2%key /= e_gun$) then   ! Energy change normalization is not applied to an e-gun
+  if (bmad_com%normalize_twiss) then
+    mat6(:, 2:6:2) = mat6(:, 2:6:2) * rel_p1
+    mat6(2:6:2, :) = mat6(2:6:2, :) / rel_p2
+  endif
+  rel_p2 = rel_p2 / rel_p1
+  rel_p1 = 1
+endif
 
 !---------------------------------------------------------------------
 ! det_factor is a renormalization factor to handle non-symplectic errors.
@@ -219,9 +230,6 @@ if (geometry == closed$) eta1_vec(5) = 0
 ! Also for elements with a static electric field, pz should include the potential energy and so the 
 ! mat6(6,:) terms should be all zero. However Bmad is not using proper canonical coords so the
 ! mat6(6,:) terms are forced to zero.
-
-rel_p1 = 1 + orb_in%vec(6)    ! Map reference momentum
-rel_p2 = 1 + orb_out%vec(6)
 
 if (rel_p1 == 0 .or. key2 == rfcavity$ .or. key2 == lcavity$ .or. ele1%value(p0c$) /= ele2%value(p0c$)) then
   dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec)

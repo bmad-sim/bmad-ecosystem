@@ -204,6 +204,7 @@ call write_if_logic_param_changed (bmad_com%absolute_time_ref_shift,         bma
 call write_if_logic_param_changed (bmad_com%absolute_time_tracking,          bmad_com_default%absolute_time_tracking,           'bmad_com[absolute_time_tracking]')
 call write_if_logic_param_changed (bmad_com%convert_to_kinetic_momentum,     bmad_com_default%convert_to_kinetic_momentum,      'bmad_com[convert_to_kinetic_momentum]')
 call write_if_logic_param_changed (bmad_com%aperture_limit_on,               bmad_com_default%aperture_limit_on,                'bmad_com[aperture_limit_on]')
+call write_if_logic_param_changed (bmad_com%normalize_twiss,                 bmad_com_default%normalize_twiss,                  'bmad_com[normalize_twiss]')
 
 call write_if_logic_param_changed (ptc_com%use_orientation_patches,     ptc_com_default%use_orientation_patches,      'ptc_com[use_orientation_patches]')
 call write_if_logic_param_changed (ptc_com%print_info_messages,         ptc_com_default%print_info_messages,          'ptc_com[print_info_messages]')

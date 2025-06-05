@@ -148,6 +148,7 @@ case ('BMAD_COM')
   case ('ABSOLUTE_TIME_REF_SHIFT');         ptr_array(1)%l => bmad_com%absolute_time_ref_shift
   case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
   case ('APERTURE_LIMIT_ON');               ptr_array(1)%l => bmad_com%aperture_limit_on
+  case ('NORMALIZE_TWISS');                 ptr_array(1)%l => bmad_com%normalize_twiss
   case ('DEBUG');                           ptr_array(1)%l => bmad_com%debug
 
   case default

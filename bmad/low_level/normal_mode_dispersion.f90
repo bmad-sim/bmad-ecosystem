@@ -60,7 +60,6 @@ else
 
   ele%a%eta     = eta_vec(1)
   ele%a%etap    = eta_vec(2)
-
   ele%b%eta     = eta_vec(3)
   ele%b%etap    = eta_vec(4)
 
@@ -72,6 +71,13 @@ else
     ele%b%deta_ds = eta_vec(4) / rel_p - orb_vec(4) / rel_p**2
   endif
 
+  eta_vec = [ele%x%deta_dpz, ele%x%detap_dpz, ele%y%deta_dpz, ele%y%detap_dpz]
+  eta_vec = matmul (v_inv_mat, eta_vec)
+
+  ele%a%deta_dpz     = eta_vec(1)
+  ele%a%detap_dpz    = eta_vec(2)
+  ele%b%deta_dpz     = eta_vec(3)
+  ele%b%detap_dpz    = eta_vec(4)
 endif
 
 end subroutine
