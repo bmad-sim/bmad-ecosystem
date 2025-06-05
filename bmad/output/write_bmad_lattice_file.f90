@@ -838,7 +838,8 @@ do ib = 0, ubound(lat%branch, 1)
       ! Default for ds_step and integrator_order is determined by attribute_bookkeeper based upon the
       ! settings of other parameters like the element's strength.
       if (attrib%name == 'DS_STEP' .or. attrib%name == 'INTEGRATOR_ORDER') then
-        call transfer_ele (ele, this_ele, .true.) 
+        call transfer_ele (ele, this_ele, .true.)
+        this_ele%lord_status = not_a_lord$   ! So attribute_bookkeeper will not touch slaves.
         this_ele%value(ds_step$) = 0
         this_ele%value(num_steps$) = 0
         this_ele%value(integrator_order$) = 0
