@@ -1357,6 +1357,16 @@ Example:
   set global rf_on = T          ! Turn on the RF cavities.
 \end{example}
 
+For users who have OpenMP support enabled for parallel calculations, the global
+parameter \vn{n_threads} may be set at runtime to configure the
+\vn{OMP_NUM_THREADS} on the fly.
+
+Example:
+\begin{example}
+  set global n_threads = 1  ! Use only a single thread
+  set global n_threads = 4  ! Use four threads
+\end{example}
+
 %% set graph --------------------------------------------------------------
 
 \subsection{set graph}
