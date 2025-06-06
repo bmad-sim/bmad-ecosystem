@@ -45,6 +45,14 @@ To set the number of threads when running a program compiled with \vn{OpenMP}, s
   export OMP_NUM_THREADS=8
 \end{example}
 
+This may also be set during Tao runtime as the global parameter \vn{n_threads}. For example:
+\begin{example}
+  set global n_threads = 1  ! Use only a single thread
+  set global n_threads = 4  ! Use four threads
+\end{example}
+
+See \sref{s:set.global} for more information.
+
 To the local \bmad Guru: Compiling and linking of \tao with \vn{OpenMP} is documented on the \bmad
 web site. By default, \vn{OpenMP} is not enabled. Essentially, OpenMP is enabled by modifying
 the \vn{dist_prefs} file before compiling and linking.

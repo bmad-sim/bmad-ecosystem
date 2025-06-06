@@ -25,7 +25,7 @@ character(200) :: cmd_words(12)
 character(80) arg0, arg1, base, switch
 character(*), parameter :: r_name = 'tao_parse_command_args'
 
-integer n_arg, i_arg, ix
+integer n_arg, i_arg, ix, old_n_threads
 logical error, negate
 
 ! Init global and common structs.
@@ -114,8 +114,9 @@ do
   case ('-clear')
     s%init = tao_init_struct()
     s%com = tao_common0
+    old_n_threads = s%global%n_threads
     s%global = tao_global_struct()
-    call tao_set_openmp_n_threads(s%global%n_threads)
+    s%global%n_threads = old_n_threads
 
   case ('-command')
     call get_next_arg (arg0, s%init%command_arg, i_arg, n_arg, .true.)
