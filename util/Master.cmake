@@ -503,6 +503,7 @@ foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
 endforeach()
 if (HDF5_FOUND)
   set(SHARED_LINK_LIBS ${HDF5_Fortran_HL_LIBRARIES} ${HDF5_Fortran_LIBRARIES} ${SHARED_LINK_LIBS})
+  list(FILTER SHARED_LINK_LIBS EXCLUDE REGEX "-NOTFOUND$")
 endif()
 
 #------------------------------------------------------
