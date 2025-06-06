@@ -495,15 +495,22 @@ SET (MASTER_INC_DIRS
 
 # If we use system HDF5 libraries, search for include directories
 find_package(HDF5 COMPONENTS Fortran HL)
+if (HDF5_FOUND)
+  if(HDF5_hdf5_hl_fortran_LIBRARY MATCHES "-NOTFOUND$" AND HDF5_hdf5hl_fortran_LIBRARY MATCHES "-NOTFOUND$")
+    message(FATAL_ERROR "Neither HDF5_hdf5_hl_fortran_LIBRARY nor HDF5_hdf5hl_fortran_LIBRARY found")
+  elseif(HDF5_hdf5_hl_fortran_LIBRARY MATCHES "-NOTFOUND$" AND NOT HDF5_hdf5hl_fortran_LIBRARY MATCHES "-NOTFOUND$")
+    set(HDF5_hdf5_hl_fortran_LIBRARY ${HDF5_hdf5hl_fortran_LIBRARY})
+    list(FILTER HDF5_Fortran_HL_LIBRARIES EXCLUDE REGEX "-NOTFOUND$")
+    list(FILTER HDF5_Fortran_LIBRARIES EXCLUDE REGEX "-NOTFOUND$")
+  endif()
+  set(SHARED_LINK_LIBS ${HDF5_Fortran_HL_LIBRARIES} ${HDF5_Fortran_LIBRARIES} ${SHARED_LINK_LIBS})
+endif()
 foreach(h5dir ${HDF5_Fortran_INCLUDE_DIRS})
   list(FIND CMAKE_Fortran_IMPLICIT_INCLUDE_DIRECTORIES "${h5dir}" h5found)
   if (h5found EQUAL -1)
     list(APPEND MASTER_INC_DIRS "${h5dir}")
   endif()
 endforeach()
-if (HDF5_FOUND)
-  set(SHARED_LINK_LIBS ${HDF5_Fortran_HL_LIBRARIES} ${HDF5_Fortran_LIBRARIES} ${SHARED_LINK_LIBS})
-endif()
 
 #------------------------------------------------------
 # Add local include paths to search list if they exist
