@@ -98,6 +98,7 @@ integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, l
 integer id1, id2, id3, ne, na, nn
 
 real(rp) coef, val, L_mis(3), S_mis(3,3), value
+real(rp) a_orig(0:n_pole_maxx), b_orig(0:n_pole_maxx)
 real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx)
 real(rp) a2(0:n_pole_maxx), b2(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
@@ -267,55 +268,48 @@ if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then
   nl=nl+1; write (li(nl), '(5x, a, l1)') 'MULTIPOLES_ON    = ', ele%multipoles_on 
 endif
 
-ele2 => ele
-if (ele%slave_status == super_slave$) ele2 => pointer_to_super_lord(ele2)
+a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
+call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
 
-if (associated(ele2%a_pole)) then
-  nl=nl+1; li(nl) = ''
-  if (ele%slave_status == super_slave$) then
-      nl=nl+1; write (li(nl), '(5x, 3a)') '=== Multipoles of Super_Lord: ', trim(ele_full_name(ele2)), ' ==='
-  endif
-
-  if (attribute_index(ele2, 'SCALE_MULTIPOLES') == scale_multipoles$) then
-    nl=nl+1; write (li(nl), '(5x, a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele2%scale_multipoles, &
+if (ix_pole_max > -1) then
+  if (attribute_index(ele, 'SCALE_MULTIPOLES') == scale_multipoles$) then
+    nl=nl+1; write (li(nl), '(5x, a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele%scale_multipoles, &
                                     '! Magnet strength scaling? Reference momentum scaling done if FIELD_MASTER = T.'
   endif
 
   if (associated(branch)) param = branch%param
+  call multipole_ele_to_ab (ele, .false.,  ix_pole_max, a_orig, b_orig)
 
-  a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
-  if (ele2%key == multipole$) then
-    call multipole_ele_to_ab (ele2, .false., ix_pole_max, a,  b)
-    call multipole_ele_to_kt (ele2, .true.,  ix_pole_max, knl, tn)
+  if (ele%key == multipole$) then
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   else
-    call multipole_ele_to_ab (ele2, .false., ix_pole_max, a,  b)
-    call multipole_ele_to_ab (ele2, .true.,  ix_pole_max, a2, b2)
-    call multipole_ele_to_kt (ele2, .true.,  ix_pole_max, knl, tn)
+    call multipole_ele_to_ab (ele, .true.,  ix_pole_max, a2, b2)
+    call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   endif
 
-  do im = 0, n_pole_maxx
-    if (ele2%key == multipole$) then
+  do im = 0, ix_pole_max
+    if (ele%key == multipole$) then
       if (a(im) == 0 .and. b(im) == 0 .and. tn(im) == 0) cycle
 
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-              'K', im, 'L       =', ele2%a_pole(im), 'KS', im, '       =', ele2%a_pole_elec(im), 'T', im, '        =', ele2%b_pole(im)
+              'K', im, 'L       =', ele%a_pole(im), 'KS', im, '       =', ele%a_pole_elec(im), 'T', im, '        =', ele%b_pole(im)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
               'B', im, '(equiv) =', b(im),          'A', im,  '(equiv) =', a(im),              'T', im, '(equiv) =', tn(im)
 
-    elseif (ele2%key == ab_multipole$) then
+    elseif (ele%key == ab_multipole$) then
       if (a(im) == 0 .and. b(im) == 0) cycle
 
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-                 'A', im, ' =', ele2%a_pole(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
+                 'A', im, ' =', ele%a_pole(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
       nl=nl+1; write (li(nl), '(2x, 3(3x, a, i0, a, es11.3))') &
-                 'B', im, ' =', ele2%b_pole(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
+                 'B', im, ' =', ele%b_pole(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
 
     else
-      if (ele2%a_pole(im) == 0 .and. ele2%b_pole(im) == 0 .and. a(im) == 0 .and. b(im) == 0) cycle
+      if (a_orig(im) == 0 .and. b_orig(im) == 0 .and. a(im) == 0 .and. b(im) == 0) cycle
 
-      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, ' =', ele2%a_pole(im), &
+      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, ' =', a_orig(im), &
                  'A', im, '(Scaled) =', a(im), 'A', im, '(w/Tilt) =', a2(im), 'K', im, 'L(equiv) =', knl(im)
-      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, ' =', ele2%b_pole(im), &
+      nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, ' =', b_orig(im), &
                  'B', im, '(Scaled) =', b(im), 'B', im, '(w/Tilt) =', b2(im), 'T', im, '(equiv)  =', tn(im)
     endif
 
@@ -324,13 +318,14 @@ endif
 
 ! Electric Multipoles
 
-if (associated(ele2%a_pole_elec)) then
-  call multipole_ele_to_ab (ele2, .false., ix_pole_max, a, b, electric$)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, a, b, electric$)
+call multipole_ele_to_ab (ele, .false., ix_pole_max, a_orig, b_orig, electric$, original = .true.)
 
-  do im = 0, n_pole_maxx
+if (associated(ele%a_pole_elec)) then
+  do im = 0, ix_pole_max
     if (a(im) == 0 .and. b(im) == 0) cycle
-    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, '_elec =', ele2%a_pole_elec(im), 'A', im, '_elec(Scaled) =', a(im)
-    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, '_elec =', ele2%b_pole_elec(im), 'B', im, '_elec(Scaled) =', b(im)
+    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'A', im, '_elec =', a_orig(im), 'A', im, '_elec(Scaled) =', a(im)
+    nl=nl+1; write (li(nl), '(2x, 4(3x, a, i0, a, es11.3))') 'B', im, '_elec =', b_orig(im), 'B', im, '_elec(Scaled) =', b(im)
   enddo
 endif
 

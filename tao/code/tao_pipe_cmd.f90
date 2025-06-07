@@ -157,7 +157,7 @@ type (control_var1_struct), pointer :: cvar
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy, time1, gamma
 real(rp) x_bend(0:400), y_bend(0:400), dx_bend(0:400), dy_bend(0:400), dx_orbit(0:400), dy_orbit(0:400)
-real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx)
+real(rp) a(0:n_pole_maxx), b(0:n_pole_maxx), a2(0:n_pole_maxx), b2(0:n_pole_maxx), a_orig(0:n_pole_maxx), b_orig(0:n_pole_maxx)
 real(rp) knl(0:n_pole_maxx), tn(0:n_pole_maxx)
 real(rp) mat6(6,6), vec0(6), array(7), perp(3), origin(3), r_wall
 real(rp), allocatable :: real_arr(:), value_arr(:)
@@ -3350,12 +3350,13 @@ case ('ele:multipoles')
     nl=incr(nl); li(nl) = 'An;Bn;An (Scaled);Bn (Scaled);An (w/Tilt);Bn (w/Tilt);KnL (equiv);Tn (equiv)'
   endif
 
-  if (.not. associated(ele%a_pole)) then
+  call multipole_ele_to_ab (ele, .false., ix_pole_max, a_orig,  b_orig, original = .true.)
+
+  if (ix_pole_max == -1) then
     call end_stuff(li, nl)
     return
   endif
 
-  a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
   if (ele%key == multipole$) then
     call multipole_ele_to_ab (ele, .false., ix_pole_max, a,  b)
     call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
@@ -3365,8 +3366,8 @@ case ('ele:multipoles')
     call multipole_ele_to_kt (ele, .true.,  ix_pole_max, knl, tn)
   endif
 
-  do i = 0, n_pole_maxx
-    if (ele%a_pole(i) == 0 .and. ele%b_pole(i) == 0) cycle
+  do i = 0, ix_pole_max
+    if (a_orig(i) == 0 .and. b_orig(i) == 0) cycle
 
     if (ele%key == multipole$) then
       nl=incr(nl); write (li(nl), '(i0, 6(a, es22.14))') i, ';', &
@@ -3378,7 +3379,7 @@ case ('ele:multipoles')
 
     else
       nl=incr(nl); write (li(nl), '(i0, 8(a, es22.14))') i, ';', &
-                      ele%a_pole(i), ';', ele%b_pole(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
+                      a_orig(i), ';', b_orig(i), ';', a(i), ';', b(i), ';', a2(i), ';', b2(i), ';', knl(i), ';', tn(i)
     endif
   enddo
 

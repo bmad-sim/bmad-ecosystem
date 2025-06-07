@@ -1871,7 +1871,7 @@ subroutine multipole_ab_to_kt (an, bn, knl, tn)
   real(rp) knl(0:), tn(0:)
 end subroutine
 
-recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
+recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1, original)
   import
   implicit none
   type (ele_struct), target :: ele
@@ -1881,6 +1881,7 @@ recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, 
   integer, optional :: pole_type, include_kicks
   integer include_kck
   logical use_ele_tilt
+  logical, optional :: original
 end subroutine
 
 subroutine multipole_ele_to_kt (ele, use_ele_tilt, ix_pole_max, knl, tilt, pole_type, include_kicks)
