@@ -54,12 +54,8 @@ if (ele%key == multipole$) then
     return
   endif
 
-  if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
-    lord => pointer_to_super_lord(ele)
-    call pointer_to_ele_multipole (lord, knl_pole, tilt_pole, ksl_pole, pole_type)
-  else
-    call pointer_to_ele_multipole (ele, knl_pole, tilt_pole, ksl_pole, pole_type)
-  endif
+  lord => pointer_to_super_lord(ele)
+  call pointer_to_ele_multipole (lord, knl_pole, tilt_pole, ksl_pole, pole_type)
 
   if (all(ksl_pole == 0)) then
     knl  = knl_pole

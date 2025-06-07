@@ -27,7 +27,7 @@ type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, 
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
-real(rp) pc, abs_tol(3)
+real(rp) pc, abs_tol(3), dE, dE_ref, scale
 real(rp), parameter :: zero6(6) = 0
 
 integer j, k, n, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
@@ -516,8 +516,8 @@ type (lat_param_struct) :: param
 type (coord_struct) orb_start, orb_end, orb1, orb2
 type (bmad_common_struct) bmad_com_saved
 
-real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, phase, velocity, abs_tol(3)
-real(rp) value_saved(num_ele_attrib$), beta0, ele_ref_time, t, ds, beta, E_tot0, E_tot1
+real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, p1c, phase, velocity, abs_tol(3), scale, dE_ref, dE_amp
+real(rp) value_saved(num_ele_attrib$), ele_ref_time, t, ds, beta, E_tot0, E_tot1, fac
 
 integer i, n, key
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
@@ -593,7 +593,9 @@ case (lcavity$)
     if (err) goto 9000
   endif
 
+  do_track = .true.
   n = nint(ele%value(n_rf_steps$))
+
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%key == lcavity$ .and. &
                                                               ele%tracking_method == bmad_standard$ .and. n > 0) then
     if (.not. associated(ele%rf)) allocate(ele%rf)
@@ -603,27 +605,38 @@ case (lcavity$)
     if (.not. allocated(ele%rf%steps)) allocate(ele%rf%steps(0:n+1))
 
     t = 0.0_rp
-    ds = ele%value(l$) / n
+    scale = 1.0_rp / n
+    ds = ele%value(l$) * scale
     ele%rf%ds_step = ds
 
+    dE_ref = (ele%value(E_tot$) - ele%value(E_tot_start)) * scale
+    dE_amp = (ele%value(voltage$) + ele%value(voltage_err$)) * scale
     E_tot0 = ele%value(E_tot_start$)
-    E_tot1 = E_tot0 + 0.5_rp * ele%value(voltage$) / n
-    ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1,  ele%value(p0c_start$)/E_tot, t, 0.0_rp)
+    E_tot1 = E_tot0 + 0.5_rp * dE_ref
+    p0c = ele%value(p0c_start$)
+    call convert_total_energy_to(E_tot1, ele%ref_species, pc = p1c)
+    ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, p1c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp)
 
+    fac = 1.0_rp
     do i = 1, n
+      beta = p0c / E_tot0
       E_tot0 = E_tot1
-      E_tot1 = E_tot0 + ele%value(voltage$) / n
-      call convert_total_energy_to(E_tot, ele%ref_species, beta = beta)
+      p0c = p1c
+      if (i == n) fac = 0.5_rp
+      E_tot1 = E_tot0 + fac * dE_ref
+      call convert_total_energy_to(E_tot1, ele%ref_species, pc = p1c)
       t = t + ds / (c_light * beta)
-      ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, beta, t, i * ele%value(l$) / n)
+      ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, p1c, fac*dE_amp, fac*scale, t, i * ds)
     enddo
 
-    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$)/ele%value(E_tot$), real_garbage$, real_garbage$)
+    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), ele%value(p0c$), 0.0_rp, &
+                                                                                      real_garbage$, real_garbage$, real_garbage$)
+    ele%ref_time = ref_time_start + t
+    do_track = .false.
   endif
 
   ! If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
 
-  do_track = .true.
   if (ele%slave_status == super_slave$) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
@@ -995,6 +1008,7 @@ subroutine calc_time_ref_orb_out (ele, orb_end)
 type (ele_struct), target :: ele
 type (coord_struct) orb_end
 type (ele_struct), pointer :: lord
+real(rp) beta0
 integer ii
 !
 

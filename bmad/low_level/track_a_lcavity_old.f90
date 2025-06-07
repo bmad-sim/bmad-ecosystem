@@ -101,7 +101,7 @@ endif
 
 mc2 = mass_of(orbit%species)
 
-call reference_energy_correction(ele, orbit, first_track_edge$, mat6, make_matrix)
+call ele_reference_energy_correction(ele, orbit, first_track_edge$, mat6, make_matrix)
 
 iss%pc_start = p0c_end * (1 + orbit%vec(6))
 iss%beta_start = orbit%beta
@@ -547,12 +547,10 @@ else
   orbit%vec(4) = orbit%vec(4) + k2 * orbit%vec(3)         ! Exit kick
 endif
 
-! 
+! Convert back from (x', y', c(t_ref-t), E) coords
 
 orbit%vec(5) = orbit%vec(5) - (cdt - iss%cdt_ref)
 orbit%vec(6) = (iss%pc_end - p0c_end) / p0c_end
-
-! Convert back from (x', y', c(t_ref-t), E) coords
 
 if (logic_option(.false., make_matrix)) then
   rel_p = iss%pc_end / p0c_end
