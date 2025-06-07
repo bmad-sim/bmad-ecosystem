@@ -28,7 +28,7 @@
 
 subroutine ele_reference_energy_correction (ele, orbit, particle_at, mat6, make_matrix)
 
-use bmad_struct
+use bmad_routine_interface, dummy => ele_reference_energy_correction
 
 implicit none
 
