@@ -172,8 +172,8 @@ if (present(orbit_start)) then
   if (ele_p%value(p0c_start$) /= ele%value(p0c$) .and. &
                       .not. significant_difference(orbit_start%p0c, ele%value(p0c$), rel_tol = small_rel_change$)) then
     select case (dir)
-    case (1);    call reference_energy_correction(ele_p, orb_at_start, upstream_end$)
-    case (-1);   call reference_energy_correction(ele_p, orb_at_start, downstream_end$)
+    case (1);    call ele_reference_energy_correction(ele_p, orb_at_start, upstream_end$)
+    case (-1);   call ele_reference_energy_correction(ele_p, orb_at_start, downstream_end$)
     end select
   endif
 else

@@ -121,9 +121,9 @@ if (present(ds_ref)) ds_ref = ds0
 if (logic_option(.true., drift_to_exit)) then
   ! Set track edge so that energy correction does not ignore an energy shift.
   if (orbit%direction * orbit%time_dir == 1) then
-    call reference_energy_correction (ele, orbit, first_track_edge$)
+    call ele_reference_energy_correction (ele, orbit, first_track_edge$)
   else
-    call reference_energy_correction (ele, orbit, second_track_edge$)
+    call ele_reference_energy_correction (ele, orbit, second_track_edge$)
   endif
   beta0 = v(p0c$) / v(e_tot$)
   orbit%vec(1) = orbit%vec(1) - r_vec(3) * p_vec(1) / p_vec(3)

@@ -20,7 +20,6 @@
 !
 ! Output:
 !   lord_ptr        -- ele_struct, pointer: Pointer to the lord.
-!                        Nullified if there is an error.
 !   control         -- control_struct, pointer, optional: Pointer to control info for this lord/slave relationship.
 !                        Nullified if there is an error.
 !   ix_slave_back   -- integer, optional: Index back to the slave. That is, pointer_to_slave(lord_ptr, ix_slave_back) 
@@ -69,14 +68,12 @@ else
   ele_ptr => slave
 endif
 
-!
-
 if (ele_ptr%slave_status /= super_slave$) then
-  call out_io (s_fatal$, r_name, 'Routine is being called with lattice element ' // ele_full_name(slave), &
-                                 'that is not a super_slave nor a slice_slave!')
-  if (global_com%exit_on_error) call err_exit
+  lord_ptr => ele_ptr
   return
 endif
+
+!
 
 do ix = 1, ele_ptr%n_lord
   lord_ptr => pointer_to_lord(ele_ptr, ix)

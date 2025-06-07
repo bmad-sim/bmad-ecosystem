@@ -1174,6 +1174,16 @@ subroutine ele_rad_int_cache_calc (ele)
   type (ele_struct) ele
 end subroutine
 
+subroutine ele_reference_energy_correction (ele, orbit, particle_at, mat6, make_matrix)
+  import
+  implicit none
+  type (ele_struct) :: ele
+  type (coord_struct) :: orbit
+  real(rp), optional :: mat6(6,6)
+  integer particle_at
+  logical, optional :: make_matrix
+end subroutine
+
 subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
   import
   implicit none
@@ -1984,6 +1994,15 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
 
+subroutine orbit_reference_energy_correction (orbit, p0c_new, mat6, make_matrix)
+  import
+  implicit none
+  type (coord_struct) :: orbit
+  real(rp) p0c_new
+  real(rp), optional :: mat6(6,6)
+  logical, optional :: make_matrix
+end subroutine
+
 function orbit_to_floor_phase_space (orbit, ele) result (floor_phase_space)
   import
   implicit none
@@ -2300,16 +2319,6 @@ subroutine reallocate_expression_stack (stack, n, exact)
   type (expression_atom_struct), allocatable :: stack(:)
   integer n
   logical, optional :: exact
-end subroutine
-
-subroutine reference_energy_correction (ele, orbit, particle_at, mat6, make_matrix)
-  import
-  implicit none
-  type (ele_struct) :: ele
-  type (coord_struct) :: orbit
-  real(rp), optional :: mat6(6,6)
-  integer particle_at
-  logical, optional :: make_matrix
 end subroutine
 
 function rel_tracking_charge_to_mass (orbit, ref_species) result (rel_charge)

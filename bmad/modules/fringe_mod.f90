@@ -547,11 +547,7 @@ case (quadrupole$)
 
 case (sad_mult$)
   ! Slice slaves and super slaves have their associated multipoles stored in the lord
-  if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
-    m_ele => pointer_to_super_lord(ele)
-  else
-    m_ele => ele
-  endif
+  m_ele => pointer_to_super_lord(ele)
   if (.not. associated(m_ele%a_pole)) return
   call multipole1_ab_to_kt (m_ele%a_pole(1), m_ele%b_pole(1), 1, k1_rel, tilt1)
   k1_rel = charge_dir * k1_rel / (m_ele%value(l$) * rel_p)

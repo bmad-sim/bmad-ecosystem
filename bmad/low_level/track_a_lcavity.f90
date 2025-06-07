@@ -205,8 +205,7 @@ function rf_step_index(E_ref, s_rel, lord) result (ix_step)
 
 type (ele_struct) :: lord
 real(rp) E_ref, dE, dE_rel, s_rel
-integer ix_step
-integer n_slice
+integer ix_step, n_step
 
 character(*), parameter :: r_name = 'rf_step_index'
 
@@ -217,7 +216,7 @@ if (.not. associated(lord%rf)) then
   return
 endif
 
-n_slice = ubound(lord%rf%steps, 1) - 1  ! Number of slices
+n_step = ubound(lord%rf%steps, 1) - 1  ! Number of slices
 dE = lord%value(E_tot$) - lord%value(E_tot_start$)
 
 ! dE == 0 case. Must use s_rel in this case.
@@ -226,18 +225,18 @@ if (dE == 0) then
   if (s_rel == 0) then
     ix_step = 0
   elseif (s_rel == lord%value(l$)) then
-    ix_step = n_slice + 1
+    ix_step = n_step + 1
   else
-    ix_step = nint(n_slice * s_rel / lord%value(l$)) + 1
+    ix_step = nint(n_step * s_rel / lord%value(l$)) + 1
   endif
   return
 endif
 
 ! dE /= 0 case
 
-ix_step = nint(2.0_rp * (E_ref - lord%value(E_tot_start$)) / dE)
-if (ix_step == 2*n_slice) then
-  ix_step = n_slice + 1
+ix_step = nint(2.0_rp * n_step * (E_ref - lord%value(E_tot_start$)) / dE)
+if (ix_step == 2*n_step) then
+  ix_step = n_step + 1
 elseif (ix_step > 0) then
   ix_step = (ix_step + 1) / 2
 endif
@@ -260,7 +259,7 @@ type (coord_struct) orbit
 type (ele_struct) lord
 type (rf_stair_step_struct) :: step
 
-real(rp) dE, scale, t_ref, phase, rel_p, pc, mc2, m2(2,2), E_tot0, E_tot1, E0, E1
+real(rp) scale, t_ref, phase, rel_p, pc, mc2, m2(2,2), E_tot0, E_tot1, E0, E1, dE, pz_new, p1c
 integer direction
 
 !
@@ -268,20 +267,25 @@ integer direction
 if (direction == 1) then
   E_tot0 = step%E_tot0
   E_tot1 = step%E_tot1
+  p1c = step%p1c
 else
   E_tot0 = step%E_tot1
   E_tot1 = step%E_tot0
+  p1c = step%p0c
 endif
+
+phase = this_rf_phase(ix_step, orbit, lord)
+dE = direction * step%dE_amp * cos(phase)
 
 !
 
-scale = 0.5_rp * dE / (lord%value(E_tot$) - lord%value(E_tot_start$))
-phase = this_rf_phase(ix_step, orbit, lord)
+scale = 0.5_rp * step%scale
 rel_p = 1 + orbit%vec(6)
 mc2 = mass_of(orbit%species)
+pz_new = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 
 ! Half the multipole kicks
-! TODO: REF MOMENTUM/ENERGY CORRECTION!
+
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, length*scale, mat6, make_matrix)
 
@@ -304,10 +308,12 @@ endif
 
 ! Update to new energy
 
-E1 = orbit%vec(6)
+E1 = orbit%vec(6) 
 call convert_total_energy_to(E1, orbit%species, pc = pc)
 orbit%beta = pc / E1
+orbit%vec(6) = pz_new
 
+call orbit_reference_energy_correction(orbit, p1c, mat6, make_matrix)
 
 ! Convert back from (x', y', c(t_ref-t), E) coords
 
@@ -355,5 +361,23 @@ endif
 phase = modulo2(phase, pi)
 
 end function this_rf_phase
+
+!---------------------------------------------------------------------------------------
+! contains
+
+!+
+! Function dpc_given_dE(pc_old, mass, dE) result (dpc)
+!
+! Routine to return the change in pc due to a change in dE calculated in such a way to avoid round-off error.
+!-
+
+function dpc_given_dE(pc_old, mass, dE) result(dpc)
+
+real(rp) pc_old, mass, dE, dpc, del2
+
+del2 = dE**2 + 2 * sqrt(pc_old**2 + mass**2) * dE
+dpc = del2 / (sqrt(pc_old**2 + del2) + pc_old)
+
+end function dpc_given_dE
 
 end subroutine track_a_lcavity
