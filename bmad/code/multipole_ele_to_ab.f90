@@ -1,5 +1,5 @@
 !+
-! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
+! Subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1, original)
 !                             
 ! Subroutine to extract the ab multipole values of an element.
 !
@@ -16,18 +16,19 @@
 !            no$                      -- Default. Do not include any kick components in a and b multipoles. 
 !            include_kicks$           -- Include hkick/vkick/dg in the n = 0 components.
 !                                           Also included are quad k1, sextupole k2 and octupole k3 components.
+!   original      -- logical, optional: Default is false. If True, no scaling is applied.
 !
 ! Output:
 !   ix_pole_max       -- Integer: Index of largest nonzero a(:) or b(:) pole. Set to -1 if all multipoles are zero.
 !                          ix_pole_max is set independent of a nonzero b1 (if present).
-!   a(0:n_pole_maxx)  -- real(rp): Array of scalled multipole values.
-!   b(0:n_pole_maxx)  -- real(rp): Array of scalled multipole values.
+!   a(0:n_pole_maxx)  -- real(rp): Array of multipole values.
+!   b(0:n_pole_maxx)  -- real(rp): Array of multipole values.
 !   b1                -- real(rp), optional: If present, b1 is set to the value of the b(1) component
 !                         of the b(:) array and b(1) is set to zero. Also ix_pole_max is ajusted as needed.
 !                         This is used by routines that want to handle b(1) in a special way in tracking.
 !-
 
-recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1)
+recursive subroutine multipole_ele_to_ab (ele, use_ele_tilt, ix_pole_max, a, b, pole_type, include_kicks, b1, original)
 
 use bmad_interface, dummy => multipole_ele_to_ab
 
@@ -47,6 +48,7 @@ integer ix_pole_max
 integer, optional :: pole_type, include_kicks
 integer i, n, p_type, include_kck, ix_kick_max
 
+logical, optional :: original
 logical use_ele_tilt, can_use_cache, is_set
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
@@ -64,7 +66,7 @@ if (.not. ele%is_on .or. ele%key == pipe$) return
 
 p_type = integer_option(magnetic$, pole_type)
 include_kck = integer_option(no$, include_kicks)
-can_use_cache = (.not. bmad_com%auto_bookkeeper)
+can_use_cache = (.not. bmad_com%auto_bookkeeper .and. .not. logic_option(.false., original))
 if (.not. allocated(ele%multipole_cache)) allocate(ele%multipole_cache)
 
 !
@@ -218,8 +220,7 @@ if (ele%multipoles_on .and. associated(a_pole)) then
   call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
 endif
 
-call this_ele_non_multipoles (ele, a_kick, b_kick)
-
+if (.not. logic_option(.false., original)) call this_ele_non_multipoles (ele, a_kick, b_kick)
 if (can_use_cache) call load_this_cache(cache, p_type, a, b, a_kick, b_kick)
 
 if (include_kck == include_kicks$) then
