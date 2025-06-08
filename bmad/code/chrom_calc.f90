@@ -43,7 +43,7 @@ type (coord_struct), pointer :: orb_ptr(:)
 type (branch_struct), pointer :: branch, branch2
 type (ele_struct), pointer :: ele, ele2
 
-real(rp) :: high_tune_x, high_tune_y, low_tune_x, low_tune_y
+real(rp) :: high_tune_x, high_tune_y, low_tune_x, low_tune_y, dE_low, dE, dE2
 real(rp) :: pz0, delta_e, chrom_a, chrom_b
 real(rp), optional :: pz
 real time0, time1
@@ -65,8 +65,14 @@ ele => branch%ele(0)
 if (present(err_flag)) err_flag = .true.
 if (delta_e <= 0) delta_e = 1.0d-4
 
+
+
 ! reference momentum
 pz0 = real_option(0.0_rp, pz)
+dE_low = delta_e
+if (pz0 - dE_low < -0.99_rp) dE_low = max(0.0_rp, pz0 + 0.99_rp)
+dE = delta_e + dE_low   ! Total energy swing
+dE2 = 0.5_rp * dE
 
 nt = branch%n_ele_track
 nm = branch%n_ele_max
@@ -96,7 +102,7 @@ endif
 
 if (branch%param%geometry == closed$) then
   i0 = 0
-  orb_ptr(0)%vec(6) = pz0-delta_e
+  orb_ptr(0)%vec(6) = pz0-dE_low
   if (present(low_E_orb)) then; call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err)
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   endif
@@ -114,27 +120,27 @@ if (branch%param%geometry == closed$) then
 else
   i0 = 1
   orb_ptr(0) = orb0
-  orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)-delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+  orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(low_E_orb)) then; call track_all(lat2, low_E_orb, ix_br)
   else;                         call track_all(lat2, this_orb, ix_br)
   endif
   ele2 => lat2%branch(ix_br)%ele(0)
-  ele2%a%beta  = ele%a%beta  - delta_e * ele%a%dbeta_dpz
-  ele2%b%beta  = ele%b%beta  - delta_e * ele%b%dbeta_dpz
-  ele2%a%alpha = ele%a%alpha - delta_e * ele%a%dalpha_dpz
-  ele2%b%alpha = ele%b%alpha - delta_e * ele%b%dalpha_dpz
+  ele2%a%beta  = ele%a%beta  - dE2 * ele%a%dbeta_dpz
+  ele2%b%beta  = ele%b%beta  - dE2 * ele%b%dbeta_dpz
+  ele2%a%alpha = ele%a%alpha - dE2 * ele%a%dalpha_dpz
+  ele2%b%alpha = ele%b%alpha - dE2 * ele%b%dalpha_dpz
 
-  ele2%a%eta   = ele%a%eta   - delta_e * ele%a%deta_dpz
-  ele2%b%eta   = ele%b%eta   - delta_e * ele%b%deta_dpz
-  ele2%x%eta   = ele%x%eta   - delta_e * ele%x%deta_dpz
-  ele2%y%eta   = ele%y%eta   - delta_e * ele%y%deta_dpz
-  ele2%z%eta   = ele%z%eta   - delta_e * ele%z%deta_dpz
+  ele2%a%eta   = ele%a%eta   - dE2 * ele%a%deta_dpz
+  ele2%b%eta   = ele%b%eta   - dE2 * ele%b%deta_dpz
+  ele2%x%eta   = ele%x%eta   - dE2 * ele%x%deta_dpz
+  ele2%y%eta   = ele%y%eta   - dE2 * ele%y%deta_dpz
+  ele2%z%eta   = ele%z%eta   - dE2 * ele%z%deta_dpz
 
-  ele2%a%etap  = ele%a%etap  - delta_e * ele%a%detap_dpz
-  ele2%b%etap  = ele%b%etap  - delta_e * ele%b%detap_dpz
-  ele2%x%etap  = ele%x%etap  - delta_e * ele%x%detap_dpz
-  ele2%y%etap  = ele%y%etap  - delta_e * ele%y%detap_dpz
-  ele2%z%etap  = ele%z%etap  - delta_e * ele%z%detap_dpz
+  ele2%a%etap  = ele%a%etap  - dE2 * ele%a%detap_dpz
+  ele2%b%etap  = ele%b%etap  - dE2 * ele%b%detap_dpz
+  ele2%x%etap  = ele%x%etap  - dE2 * ele%x%detap_dpz
+  ele2%y%etap  = ele%y%etap  - dE2 * ele%y%detap_dpz
+  ele2%z%etap  = ele%z%etap  - dE2 * ele%z%detap_dpz
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -205,22 +211,22 @@ else
   else;                          call track_all(lat2, this_orb, ix_br)
   endif
   ele2 => lat2%branch(ix_br)%ele(0)
-  ele2%a%beta  = ele%a%beta  + delta_e * ele%a%dbeta_dpz
-  ele2%b%beta  = ele%b%beta  + delta_e * ele%b%dbeta_dpz
-  ele2%a%alpha = ele%a%alpha + delta_e * ele%a%dalpha_dpz
-  ele2%b%alpha = ele%b%alpha + delta_e * ele%b%dalpha_dpz
+  ele2%a%beta  = ele%a%beta  + dE2 * ele%a%dbeta_dpz
+  ele2%b%beta  = ele%b%beta  + dE2 * ele%b%dbeta_dpz
+  ele2%a%alpha = ele%a%alpha + dE2 * ele%a%dalpha_dpz
+  ele2%b%alpha = ele%b%alpha + dE2 * ele%b%dalpha_dpz
 
-  ele2%a%eta   = ele%a%eta   + delta_e * ele%a%deta_dpz
-  ele2%b%eta   = ele%b%eta   + delta_e * ele%b%deta_dpz
-  ele2%x%eta   = ele%x%eta   + delta_e * ele%x%deta_dpz
-  ele2%y%eta   = ele%y%eta   + delta_e * ele%y%deta_dpz
-  ele2%z%eta   = ele%z%eta   + delta_e * ele%z%deta_dpz
+  ele2%a%eta   = ele%a%eta   + dE2 * ele%a%deta_dpz
+  ele2%b%eta   = ele%b%eta   + dE2 * ele%b%deta_dpz
+  ele2%x%eta   = ele%x%eta   + dE2 * ele%x%deta_dpz
+  ele2%y%eta   = ele%y%eta   + dE2 * ele%y%deta_dpz
+  ele2%z%eta   = ele%z%eta   + dE2 * ele%z%deta_dpz
 
-  ele2%a%etap  = ele%a%etap  + delta_e * ele%a%detap_dpz
-  ele2%b%etap  = ele%b%etap  + delta_e * ele%b%detap_dpz
-  ele2%x%etap  = ele%x%etap  + delta_e * ele%x%detap_dpz
-  ele2%y%etap  = ele%y%etap  + delta_e * ele%y%detap_dpz
-  ele2%z%etap  = ele%z%etap  + delta_e * ele%z%detap_dpz
+  ele2%a%etap  = ele%a%etap  + dE2 * ele%a%detap_dpz
+  ele2%b%etap  = ele%b%etap  + dE2 * ele%b%detap_dpz
+  ele2%x%etap  = ele%x%etap  + dE2 * ele%x%detap_dpz
+  ele2%y%etap  = ele%y%etap  + dE2 * ele%y%detap_dpz
+  ele2%z%etap  = ele%z%etap  + dE2 * ele%z%detap_dpz
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -230,25 +236,25 @@ high_tune_y = branch2%ele(nt)%b%phi / twopi
 
 ! compute the chrom
 
-chrom_a = (high_tune_x - low_tune_x) / (2 * delta_e)
-chrom_b = (high_tune_y - low_tune_y) / (2 * delta_e)
+chrom_a = (high_tune_x - low_tune_x) / dE
+chrom_b = (high_tune_y - low_tune_y) / dE
 
-branch%ele(i0:nm)%a%dbeta_dpz  = (branch2%ele(i0:nm)%a%beta  - branch%ele(i0:nm)%a%dbeta_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%b%dbeta_dpz  = (branch2%ele(i0:nm)%b%beta  - branch%ele(i0:nm)%b%dbeta_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%a%dalpha_dpz = (branch2%ele(i0:nm)%a%alpha - branch%ele(i0:nm)%a%dalpha_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%b%dalpha_dpz = (branch2%ele(i0:nm)%b%alpha - branch%ele(i0:nm)%b%dalpha_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%a%dbeta_dpz  = (branch2%ele(i0:nm)%a%beta  - branch%ele(i0:nm)%a%dbeta_dpz) / dE
+branch%ele(i0:nm)%b%dbeta_dpz  = (branch2%ele(i0:nm)%b%beta  - branch%ele(i0:nm)%b%dbeta_dpz) / dE
+branch%ele(i0:nm)%a%dalpha_dpz = (branch2%ele(i0:nm)%a%alpha - branch%ele(i0:nm)%a%dalpha_dpz) / dE
+branch%ele(i0:nm)%b%dalpha_dpz = (branch2%ele(i0:nm)%b%alpha - branch%ele(i0:nm)%b%dalpha_dpz) / dE
 
-branch%ele(i0:nm)%a%deta_dpz  = (branch2%ele(i0:nm)%a%eta  - branch%ele(i0:nm)%a%deta_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%b%deta_dpz  = (branch2%ele(i0:nm)%b%eta  - branch%ele(i0:nm)%b%deta_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%x%deta_dpz  = (branch2%ele(i0:nm)%x%eta  - branch%ele(i0:nm)%x%deta_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%y%deta_dpz  = (branch2%ele(i0:nm)%y%eta  - branch%ele(i0:nm)%y%deta_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%z%deta_dpz  = (branch2%ele(i0:nm)%z%eta  - branch%ele(i0:nm)%z%deta_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%a%deta_dpz  = (branch2%ele(i0:nm)%a%eta  - branch%ele(i0:nm)%a%deta_dpz) / dE
+branch%ele(i0:nm)%b%deta_dpz  = (branch2%ele(i0:nm)%b%eta  - branch%ele(i0:nm)%b%deta_dpz) / dE
+branch%ele(i0:nm)%x%deta_dpz  = (branch2%ele(i0:nm)%x%eta  - branch%ele(i0:nm)%x%deta_dpz) / dE
+branch%ele(i0:nm)%y%deta_dpz  = (branch2%ele(i0:nm)%y%eta  - branch%ele(i0:nm)%y%deta_dpz) / dE
+branch%ele(i0:nm)%z%deta_dpz  = (branch2%ele(i0:nm)%z%eta  - branch%ele(i0:nm)%z%deta_dpz) / dE
 
-branch%ele(i0:nm)%a%detap_dpz = (branch2%ele(i0:nm)%a%etap - branch%ele(i0:nm)%a%detap_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%b%detap_dpz = (branch2%ele(i0:nm)%b%etap - branch%ele(i0:nm)%b%detap_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%x%detap_dpz = (branch2%ele(i0:nm)%x%etap - branch%ele(i0:nm)%x%detap_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y%detap_dpz) / (2 * delta_e)
-branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%detap_dpz) / (2 * delta_e)
+branch%ele(i0:nm)%a%detap_dpz = (branch2%ele(i0:nm)%a%etap - branch%ele(i0:nm)%a%detap_dpz) / dE
+branch%ele(i0:nm)%b%detap_dpz = (branch2%ele(i0:nm)%b%etap - branch%ele(i0:nm)%b%detap_dpz) / dE
+branch%ele(i0:nm)%x%detap_dpz = (branch2%ele(i0:nm)%x%etap - branch%ele(i0:nm)%x%detap_dpz) / dE
+branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y%detap_dpz) / dE
+branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%detap_dpz) / dE
 
 if (present(err_flag)) err_flag = .false.
 
