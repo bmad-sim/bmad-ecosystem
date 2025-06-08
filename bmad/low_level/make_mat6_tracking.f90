@@ -59,7 +59,7 @@ start_orb0 = start_orb
 
 call track_this (start_orb0, ele, param, end_orb, q_map(:,0), .false.)
 if (end_orb%state /= alive$) then
-  call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING CENTRAL PARTICLE. MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+  call out_io (s_error$, r_name, 'CENTRAL PARTICLE LOST IN TRACKING. MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
   bmad_private%random_on = .true.
   return
 endif
