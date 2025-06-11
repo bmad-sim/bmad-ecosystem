@@ -517,7 +517,7 @@ type (coord_struct) orb_start, orb_end, orb1, orb2
 type (bmad_common_struct) bmad_com_saved
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, p1c, phase, velocity, abs_tol(3), scale, dE_ref, dE_amp
-real(rp) value_saved(num_ele_attrib$), ele_ref_time, t, ds, beta, E_tot0, E_tot1, fac
+real(rp) value_saved(num_ele_attrib$), ele_ref_time, t, ds, beta, E_tot0, E_tot1, fac, dp0c
 
 integer i, n, key
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
@@ -609,13 +609,14 @@ case (lcavity$)
     ds = ele%value(l$) * scale
     ele%rf%ds_step = ds
 
-    dE_ref = (ele%value(E_tot$) - ele%value(E_tot_start)) * scale
+    dE_ref = (ele%value(E_tot$) - ele%value(E_tot_start$)) * scale
     dE_amp = (ele%value(voltage$) + ele%value(voltage_err$)) * scale
     E_tot0 = ele%value(E_tot_start$)
     E_tot1 = E_tot0 + 0.5_rp * dE_ref
     p0c = ele%value(p0c_start$)
-    call convert_total_energy_to(E_tot1, ele%ref_species, pc = p1c)
-    ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, p1c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp)
+    dp0c = dpc_given_dE(p0c, mass_of(ele%ref_species), 0.5_rp * dE_ref)
+    p1c = p0c + dp0c
+    ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp)
 
     fac = 1.0_rp
     do i = 1, n
@@ -624,12 +625,13 @@ case (lcavity$)
       p0c = p1c
       if (i == n) fac = 0.5_rp
       E_tot1 = E_tot0 + fac * dE_ref
-      call convert_total_energy_to(E_tot1, ele%ref_species, pc = p1c)
+      dp0c = dpc_given_dE(p0c, mass_of(ele%ref_species), fac * dE_ref)
+      p1c = p0c + dp0c
       t = t + ds / (c_light * beta)
-      ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, p1c, fac*dE_amp, fac*scale, t, i * ds)
+      ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, fac*dE_amp, fac*scale, t, i * ds)
     enddo
 
-    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), ele%value(p0c$), 0.0_rp, &
+    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), 0.0_rp, 0.0_rp, &
                                                                                       real_garbage$, real_garbage$, real_garbage$)
     ele%ref_time = ref_time_start + t
     do_track = .false.
