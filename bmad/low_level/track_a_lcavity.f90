@@ -260,8 +260,8 @@ type (ele_struct) lord
 type (rf_stair_step_struct) :: step
 
 real(rp) mat6(6,6)
-real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), E0, E_start, E_end, dE, dE_amp, pz_end, p1c, dp0c
-real(rp) pc_start, pc_end, om
+real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), E_start, E_end, dE, dE_amp, pz_end, p1c, dp0c
+real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, m65
 
 integer direction
 logical make_matrix
@@ -273,7 +273,8 @@ scale = 0.5_rp * step%scale
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, length*scale, mat6, make_matrix)
 
-!
+!-------------------------------------------------
+! Calc some stuff
 
 if (direction == 1) then
   dp0c = step%dp0c
@@ -294,6 +295,7 @@ E_start = sqrt(pc_start**2 + mc2**2)
 pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 pc_end = (1 + pz_end) * orbit%p0c
 
+!-------------------------------------------------
 ! Convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
 
 if (logic_option(.false., make_matrix)) then
@@ -309,15 +311,30 @@ orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
 orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
 orbit%vec(5) = orbit%vec(5) / orbit%beta
 orbit%vec(6) = rel_p * orbit%p0c / orbit%beta
-E0 = orbit%vec(6)
 
-! Transverse Kick
-! Traveling wave.
+!-------------------------------------------------
+! Kick....
+
+E_end = orbit%vec(6) + dE
+om = twopi * ele%value(rf_frequency$) / c_light
+m65 = om * dE_amp * sin(phase)
+
+! Traveling wave transverse kick
 if (nint(lord%value(cavity_type$)) == traveling_wave$) then
-  orbit%vec(2) = orbit%vec(2) * pc_start / pc_end 
-  orbit%vec(4) = orbit%vec(4) * pc_start / pc_end 
+  r_pc = pc_start / pc_end 
 
-! Standing wave
+  if (logic_option(.false., make_matrix)) then
+    dp_dE = pc_end / E_end
+    r2_pc = dp_dE * orbit%vec(2) * pc_start / pc_end**2
+    mat6(2,:) = r_pc * mat6(2,:) - m65 * r2_pc * mat6(5,:) - r2_pc * mat6(6,:) 
+    r2_pc = dp_dE * orbit%vec(4) * pc_start / pc_end**2
+    mat6(4,:) = r_pc * mat6(4,:) - m65 * r2_pc * mat6(5,:) - r2_pc * mat6(6,:) 
+  endif
+
+  orbit%vec(2) = orbit%vec(2) * r_pc
+  orbit%vec(4) = orbit%vec(4) * r_pc
+
+! Standing wave transverse kick
 else
   call mat_make_unit (kmat)
 !  z21 = -gradient_max / (sqrt_8 * E_end)
@@ -327,23 +344,20 @@ endif
 
 ! Update to new energy
 
-E_end = orbit%vec(6)
-orbit%beta = pc_end / E_end
-orbit%vec(6) = pz_end
+orbit%vec(6) = E_end
+orbit%beta = pc_end / orbit%vec(6)
 
 if (logic_option(.false., make_matrix)) then
-  call mat_make_unit (kmat)
-  om = twopi * ele%value(rf_frequency$) / c_light
-  mat6(6,:) = mat6(6,:) + om * dE_amp * sin(phase) * mat6(5,:)
+  mat6(6,:) = mat6(6,:) + m65 * mat6(5,:)
 endif
 
 call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
 
+!-------------------------------------------------
 ! Convert back from (x', y', c(t_ref-t), E) coords
 
 if (logic_option(.false., make_matrix)) then
-  pc = orbit%p0c * (1 + orbit%vec(6))
-  rel_p = pc / orbit%p0c
+  rel_p = pc_end / orbit%p0c
   mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (orbit%p0c * orbit%beta)
   mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (orbit%p0c * orbit%beta)
 
@@ -356,7 +370,9 @@ endif
 orbit%vec(2) = orbit%vec(2) * (1 + orbit%vec(6))  ! Convert back to px
 orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))  ! Convert back to py
 orbit%vec(5) = orbit%vec(5) * orbit%beta
+orbit%vec(6) = pz_end
 
+!-------------------------------------------------
 ! Half the multipole kicks
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_matrix)

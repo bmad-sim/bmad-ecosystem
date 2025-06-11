@@ -3986,8 +3986,7 @@ da1=ba(3)
 da=ba(2)
 da=da+i_*da1
 call print(da)
-write(6,*) ii
-pause 
+ 
 enddo
 
     call KILL(B)
