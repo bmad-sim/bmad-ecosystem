@@ -52,7 +52,7 @@ real(rp) alpha, sin_a, cos_a, r_mat(2,2), dph, E_ref_end
 real(rp) phase, voltage_max, sqrt_8, f, k1
 real(rp) sqrt_beta12, dsqrt_beta12(6), f_ave, E1, E2
 real(rp) pxy2, xp1, xp2, yp1, yp2, mc2, om, om_g, m2(2,2), kmat(6,6), ds, r_step
-real(rp) c_min, c_plu, dc_min, dc_plu, cos_term, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
+real(rp) c_min, c_plu, dc_min, dc_plu, drp1_dr0, drp1_drp0, drp2_dr0, drp2_drp0
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 real(rp) E_ref_start, p0c_start, p0c_end, phase1, phase2, ph_err(2), rf_phase
 real(rp), parameter :: phase_abs_tol = 1e-4_rp
@@ -284,7 +284,7 @@ type (coord_struct) orbit
 type (internal_state_struct) iss
 real(rp) rf_phase, cdt, rel_p, dE, gradient_net, E_ratio, cos_phi, sin_phi, dcos_phi
 real(rp) dbeta1_dE1, dbeta2_dE2, dalpha_dt1, dalpha_dE1, dcoef_dt1, dcoef_dE1, z21, z22
-real(rp) dz_factor, kmat(6,6)
+real(rp) dz_factor, kmat(6,6), cos_term
 logical, optional :: make_matrix
 
 !

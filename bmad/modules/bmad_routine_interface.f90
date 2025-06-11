@@ -1066,6 +1066,12 @@ subroutine do_mode_flip (ele, err_flag)
   logical, optional :: err_flag
 end subroutine
 
+function dpc_given_dE(pc_old, mass, dE) result(dpc)
+  import
+  implicit none
+  real(rp) pc_old, mass, dE, dpc
+end function
+
 function e_accel_field (ele, voltage_or_gradient, bmad_standard_tracking) result (field)
   import
   implicit none
@@ -1995,11 +2001,11 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
 
-subroutine orbit_reference_energy_correction (orbit, p0c_new, mat6, make_matrix)
+subroutine orbit_reference_energy_correction (orbit, dp0c, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: orbit
-  real(rp) p0c_new
+  real(rp) dp0c
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine

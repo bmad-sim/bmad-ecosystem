@@ -294,7 +294,7 @@ tao_hook_post_process_data_def
 tao_hook_show_cmd_def
 tao_pointer_to_universe_int
 tao_pointer_to_universe_str
-tao_uni_ampersand_index
+tao_uni_atsign_index
 
 File: code/tao_lattice_calc.f90
 tao_lattice_calc
@@ -499,6 +499,9 @@ tao_shape_init
 File: code/tao_spin_matrix_calc.f90
 tao_spin_matrix_calc
 
+File: code/tao_regression_test.f90
+tao_regression_test
+
 File: code/tao_spin_tracking_turn_on.f90
 tao_spin_tracking_turn_on
 
@@ -594,8 +597,8 @@ tao_spin_polarization_calc
 File: code/tao_show_this.f90
 tao_show_this
 
-File: code/tao_regression_test.f90
-tao_regression_test
+File: code/tao_pipe_cmd.f90
+tao_pipe_cmd
 
 File: code/tao_evaluate_a_datum.f90
 tao_evaluate_a_datum
@@ -733,9 +736,6 @@ tao_curve_ele_ref
 
 File: code/tao_set_invalid.f90
 tao_set_invalid
-
-File: code/tao_pipe_cmd.f90
-tao_pipe_cmd
 
 File: code/tao_set_flags_for_changed_attribute.f90
 tao_set_flags_for_changed_attribute

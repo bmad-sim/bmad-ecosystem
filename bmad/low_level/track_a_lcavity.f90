@@ -138,12 +138,12 @@ do ix_step = ix_step_start, ix_step_end, direction
       ds = lord%rf%steps(ix_step)%s - s_now
       call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
       s_now = lord%rf%steps(ix_step)%s
-      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step), direction)
+      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step), direction, mat6, make_matrix)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
       call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
       s_now = lord%rf%steps(ix_step-1)%s
-      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction)
+      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction, mat6, make_matrix)
     endif
   endif
 enddo
@@ -204,7 +204,7 @@ contains
 function rf_step_index(E_ref, s_rel, lord) result (ix_step)
 
 type (ele_struct) :: lord
-real(rp) E_ref, dE, dE_rel, s_rel
+real(rp) E_ref, dE, dE_rel, s_rel, kmat(6,6)
 integer ix_step, n_step
 
 character(*), parameter :: r_name = 'rf_step_index'
@@ -253,43 +253,57 @@ end function rf_step_index
 !---------------------------------------------------------------------------------------
 ! contains
 
-subroutine this_energy_kick(orbit, lord, step, direction)
+subroutine this_energy_kick(orbit, lord, step, direction, mat6, make_matrix)
 
 type (coord_struct) orbit
 type (ele_struct) lord
 type (rf_stair_step_struct) :: step
 
-real(rp) scale, t_ref, phase, rel_p, pc, mc2, m2(2,2), E_tot0, E_tot1, E0, E1, dE, pz_new, p1c
+real(rp) mat6(6,6)
+real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), E0, E_start, E_end, dE, dE_amp, pz_end, p1c, dp0c
+real(rp) pc_start, pc_end, om
+
 integer direction
-
-!
-
-if (direction == 1) then
-  E_tot0 = step%E_tot0
-  E_tot1 = step%E_tot1
-  p1c = step%p1c
-else
-  E_tot0 = step%E_tot1
-  E_tot1 = step%E_tot0
-  p1c = step%p0c
-endif
-
-phase = this_rf_phase(ix_step, orbit, lord)
-dE = direction * step%dE_amp * cos(phase)
-
-!
-
-scale = 0.5_rp * step%scale
-rel_p = 1 + orbit%vec(6)
-mc2 = mass_of(orbit%species)
-pz_new = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
+logical make_matrix
 
 ! Half the multipole kicks
+
+scale = 0.5_rp * step%scale
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, length*scale, mat6, make_matrix)
 
-! Convert to (x', y', c(t_ref-t), E) coords
+!
+
+if (direction == 1) then
+  dp0c = step%dp0c
+  p1c = step%p0c + dp0c
+else
+  dp0c = -step%dp0c
+  p1c = step%p0c
+endif
+
+phase = this_rf_phase(ix_step, orbit, lord)
+dE_amp = direction * step%dE_amp 
+dE = dE_amp * cos(phase)
+
+rel_p = 1 + orbit%vec(6)
+pc_start = rel_p * orbit%p0c
+mc2 = mass_of(orbit%species)
+E_start = sqrt(pc_start**2 + mc2**2)
+pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
+pc_end = (1 + pz_end) * orbit%p0c
+
+! Convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
+
+if (logic_option(.false., make_matrix)) then
+  mat6(2,:) = mat6(2,:) / rel_p - orbit%vec(2) * mat6(6,:) / rel_p**2
+  mat6(4,:) = mat6(4,:) / rel_p - orbit%vec(4) * mat6(6,:) / rel_p**2
+
+  m2(1,:) = [1/orbit%beta, -orbit%vec(5) * mc2**2 * orbit%p0c / (pc_start**2 * E_start)]
+  m2(2,:) = [0.0_rp, orbit%p0c * orbit%beta]
+  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
+endif
 
 orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
 orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
@@ -297,23 +311,33 @@ orbit%vec(5) = orbit%vec(5) / orbit%beta
 orbit%vec(6) = rel_p * orbit%p0c / orbit%beta
 E0 = orbit%vec(6)
 
-! Slice Kick
-! Traveling wave
+! Transverse Kick
+! Traveling wave.
 if (nint(lord%value(cavity_type$)) == traveling_wave$) then
+  orbit%vec(2) = orbit%vec(2) * pc_start / pc_end 
+  orbit%vec(4) = orbit%vec(4) * pc_start / pc_end 
 
 ! Standing wave
 else
+  call mat_make_unit (kmat)
+!  z21 = -gradient_max / (sqrt_8 * E_end)
+!  kmat(2,1) =  z21 * cos_term
 
 endif
 
 ! Update to new energy
 
-E1 = orbit%vec(6) 
-call convert_total_energy_to(E1, orbit%species, pc = pc)
-orbit%beta = pc / E1
-orbit%vec(6) = pz_new
+E_end = orbit%vec(6)
+orbit%beta = pc_end / E_end
+orbit%vec(6) = pz_end
 
-call orbit_reference_energy_correction(orbit, p1c, mat6, make_matrix)
+if (logic_option(.false., make_matrix)) then
+  call mat_make_unit (kmat)
+  om = twopi * ele%value(rf_frequency$) / c_light
+  mat6(6,:) = mat6(6,:) + om * dE_amp * sin(phase) * mat6(5,:)
+endif
+
+call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
 
 ! Convert back from (x', y', c(t_ref-t), E) coords
 
@@ -323,7 +347,7 @@ if (logic_option(.false., make_matrix)) then
   mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (orbit%p0c * orbit%beta)
   mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (orbit%p0c * orbit%beta)
 
-  m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 / (pc * E1**2)]
+  m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
   m2(2,:) = [0.0_rp, 1 / (p0c_end * orbit%beta)]
 
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
@@ -361,23 +385,5 @@ endif
 phase = modulo2(phase, pi)
 
 end function this_rf_phase
-
-!---------------------------------------------------------------------------------------
-! contains
-
-!+
-! Function dpc_given_dE(pc_old, mass, dE) result (dpc)
-!
-! Routine to return the change in pc due to a change in dE calculated in such a way to avoid round-off error.
-!-
-
-function dpc_given_dE(pc_old, mass, dE) result(dpc)
-
-real(rp) pc_old, mass, dE, dpc, del2
-
-del2 = dE**2 + 2 * sqrt(pc_old**2 + mass**2) * dE
-dpc = del2 / (sqrt(pc_old**2 + del2) + pc_old)
-
-end function dpc_given_dE
 
 end subroutine track_a_lcavity
