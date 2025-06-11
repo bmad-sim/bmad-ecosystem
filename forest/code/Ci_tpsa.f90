@@ -7619,10 +7619,11 @@ endif
   END SUBROUTINE c_pri_c_ray
 
 
-  SUBROUTINE  pri_matrix(S1,MFILE)
+  SUBROUTINE  pri_matrix(S1,MFILE,for)
     implicit none
         INTEGER,OPTIONAL,INTENT(IN)::MFILE
     real(dp),INTENT(INout)::S1(:,:)
+    character(*), optional :: for
     integer i ,mfi
  
      mfi=6
@@ -7630,7 +7631,11 @@ endif
  
   
     do i=1,size(s1,1)
-     write(mfi,'(200(1X,G23.16))'  ) s1(i,:)
+     if(present(for)) then
+      write(mfi,for  ) s1(i,:)
+      else
+      write(mfi,'(200(1X,G23.16))'  ) s1(i,:)
+      endif
     enddo
  
   END SUBROUTINE pri_matrix
@@ -9481,7 +9486,7 @@ c_%np=c_%nv-c_%nd2harm-c_%ndc2t
       jp_mat(3,5,6)=1
     endif
    if(ndpt==5) then
-      jp_mat(3,6,5)=1
+      jp_mat(3,6,5)=-1
       jp_mat(3,5,6)=0
     endif 
  
@@ -9516,7 +9521,7 @@ if(.not.(use_np.and.present(np1))) npara_fpp=0
     call c_init(NO1,nd1,np11,ndpt1,0,ptc=my_false)
   end subroutine init_map_all 
 
-
+!!! init for ci_tpsa alone no PTC
   subroutine c_init_all(NO1,nd_or_nv,np1,ndpt1,AC_rf,ptc)  !,spin
     implicit none
     integer, intent(in) :: NO1,nd_or_nv
@@ -19396,7 +19401,7 @@ END FUNCTION FindDet
     IMPLICIT NONE
     TYPE(TREE_ELEMENT), INTENT(INOUT) :: T(:)
     TYPE(c_damap), INTENT(INOUT) :: Ma
-    INTEGER N,NP,i,k,j,kq
+    INTEGER N,NP,i,k,j,kq,mf
  
     real(dp) norm,mat(6,6)
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
@@ -19408,10 +19413,11 @@ END FUNCTION FindDet
  
 
     call alloc(L_r , N_r , N_s , L_s)
-    
+
+!!! default   sagan_gen=.true.  
      if(.not.sagan_gen.or.symplectify_map) call symplectify_for_zhe(ma,L_r , N_r, L_s , N_s )
 
-     
+ !!!      
       if(symplectify_map) then
        L_r=1
        N_r=1
@@ -19554,9 +19560,27 @@ endif
 
        mat=ma**(-1)
        t(1)%e_ij=ma%e_ij     !matmul(matmul(mat,ma%e_ij),transpose(mat))  not necessary I think
+call kanalnummer(mf,"taylor_series.txt")
 
-  
+write(mf,*)" equation 20 "
+do i=1,6
+call print(mg(i),mf)
+enddo
+  write(mf,*)" 9 derivatives of equation 20" 
+do i=1,9
+write(mf,*) k1_spin(i),k2_spin(i)
+call print(mg(i),mf)
+enddo
+  write(mf,*)" linear part" 
+call print(l_s,mf)
+  write(mf,*)" Quantum fluctuation" 
+do i=1,6
+do j=1,6
+ write(mf,*) ma%e_ij(i,j)
+enddo
+enddo
 
+close(mf)
     call kill(m); call kill(mg);
     deallocate(M);    deallocate(Mg);
     call kill(L_r , N_r , N_s , L_s)
@@ -19679,15 +19703,18 @@ real(dp)  fix(6),mat(6,6) ,f0(6),stoch,r2,coe
 !real(dp), allocatable :: mm(:,:),vm(:)
 type(c_damap) m,minput
 type(c_taylor) t
-integer  i,inf,j
+integer  i,inf,j,mberz
 type(tree_element_zhe), optional :: tree_zhe(:)
 
+character(255)  file_berz
 
 type(tree_element), pointer :: forward(:) =>null()
 character(*),optional :: filef
  
   as_is0=.false.
- 
+file_berz="zhe1_berz"
+ call kanalnummer(mberz,file_berz)
+
 if(present(as_is)) as_is0=as_is
   
   allocate(forward(3))
@@ -19764,7 +19791,7 @@ endif
 
 !call print(minput)
  call kill(m) 
-
+close(mberz)
 end subroutine fill_tree_element_line_zhe_outside_map
 
   subroutine compute_lie_map_matrix_complex(T)  !,spin
@@ -24738,4 +24765,43 @@ endif
 
  end subroutine c_normal_new_no_fac !_with_quaternion
 
+real(dp) function DET(aa0)
+implicit none
+real(dp)  aa0(:,:),aa(size(aa0,dim=1),size(aa0,dim=2))
+real(dp)  tmp,c(size(aa0,dim=1),size(aa0,dim=2))
+real(dp) max
+	integer i,j,k,l,m,num(size(aa0,dim=1)),n
+
+    aa=aa0
+	n=size(aa,dim=1)
+	det=1 
+	do k=1,n
+		max=aa(k,k);num(k)=k;
+		do i=k+1,n 
+			if(abs(max)<abs(aa(i,k))) then
+				max=aa(i,k)
+				num(k)=i
+			endif
+		enddo
+		if (num(k)/=k) then
+			do l=k,n 
+				tmp=aa(k,l)
+				aa(k,l)=aa(num(k),l)
+				aa(num(k),l)=tmp
+			enddo
+			det=-1.0_dp*det
+		endif
+		do m=k+1,n
+			c(m,k)=aa(m,k)/aa(k,k)
+			do l=k,n 
+				aa(m,l)=aa(m,l)-c(m,k)*aa(k,l)
+			enddo
+		enddo !There we made matrix triangular!	
+	enddo
+
+	do i=1,n
+	det=det*aa(i,i)
+	enddo
+	return
+end function
   END MODULE  c_tpsa
