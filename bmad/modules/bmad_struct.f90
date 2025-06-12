@@ -2209,6 +2209,7 @@ type extra_parsing_info_struct
   logical :: sad_amp_max_set                        = .false.
   logical :: sad_n_div_max_set                      = .false.
   logical :: max_num_runge_kutta_step_set           = .false.
+  logical :: spin_n0_direction_user_set_set         = .false.
   logical :: debug_set                              = .false.
   ! Used with space_charge_com
   logical :: ds_track_step_set                      = .false.
@@ -2291,6 +2292,7 @@ type bmad_common_struct
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
   logical :: normalize_twiss = .true.                  ! Normalize matrix when computing Twiss for off-energy ref?
   logical :: aperture_limit_on = .true.                ! Use apertures in tracking?
+  logical :: spin_n0_direction_user_set = .false.      ! User sets direction of n0 for closed geometry branches?
   logical :: debug = .false.                           ! Used for code debugging.
 end type
   

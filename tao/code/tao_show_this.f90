@@ -2232,46 +2232,48 @@ case ('global')
   case ('-bmad_com')
     nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Bmad_com Parameters (use "set bmad_com" to change):'
-    nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit              = ', bmad_com%max_aperture_limit
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking                = ', bmad_com%abs_tol_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_adaptive_tracking       = ', bmad_com%abs_tol_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %autoscale_amp_abs_tol           = ', bmad_com%autoscale_amp_abs_tol
+    nl=nl+1; write(lines(nl), rmt) '  %autoscale_amp_rel_tol           = ', bmad_com%autoscale_amp_rel_tol
+    nl=nl+1; write(lines(nl), rmt) '  %autoscale_phase_tol             = ', bmad_com%autoscale_phase_tol
     nl=nl+1; write(lines(nl), rmt) '  %d_orb                           = ', bmad_com%d_orb
     nl=nl+1; write(lines(nl), rmt) '  %default_ds_step                 = ', bmad_com%default_ds_step
-    nl=nl+1; write(lines(nl), rmt) '  %significant_length              = ', bmad_com%significant_length
-    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking                = ', bmad_com%rel_tol_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_tracking                = ', bmad_com%abs_tol_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_adaptive_tracking       = ', bmad_com%rel_tol_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %abs_tol_adaptive_tracking       = ', bmad_com%abs_tol_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %autoscale_amp_rel_tol           = ', bmad_com%autoscale_amp_rel_tol
-    nl=nl+1; write(lines(nl), rmt) '  %autoscale_amp_abs_tol           = ', bmad_com%autoscale_amp_abs_tol
-    nl=nl+1; write(lines(nl), rmt) '  %autoscale_phase_tol             = ', bmad_com%autoscale_phase_tol
-    nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking       = ', bmad_com%init_ds_adaptive_tracking
-    nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking        = ', bmad_com%min_ds_adaptive_tracking
     nl=nl+1; write(lines(nl), rmt) '  %electric_dipole_moment          = ', bmad_com%electric_dipole_moment
-    nl=nl+1; write(lines(nl), rmt) '  %synch_rad_scale                 = ', bmad_com%synch_rad_scale
-    nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                   = ', bmad_com%sad_eps_scale
+    nl=nl+1; write(lines(nl), rmt) '  %init_ds_adaptive_tracking       = ', bmad_com%init_ds_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %max_aperture_limit              = ', bmad_com%max_aperture_limit
+    nl=nl+1; write(lines(nl), rmt) '  %min_ds_adaptive_tracking        = ', bmad_com%min_ds_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_adaptive_tracking       = ', bmad_com%rel_tol_adaptive_tracking
+    nl=nl+1; write(lines(nl), rmt) '  %rel_tol_tracking                = ', bmad_com%rel_tol_tracking
     nl=nl+1; write(lines(nl), rmt) '  %sad_amp_max                     = ', bmad_com%sad_amp_max
+    nl=nl+1; write(lines(nl), rmt) '  %sad_eps_scale                   = ', bmad_com%sad_eps_scale
+    nl=nl+1; write(lines(nl), rmt) '  %significant_length              = ', bmad_com%significant_length
+    nl=nl+1; write(lines(nl), rmt) '  %synch_rad_scale                 = ', bmad_com%synch_rad_scale
 
+    nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
+    nl=nl+1; write(lines(nl), imt) '  %max_num_runge_kutta_step        = ', bmad_com%max_num_runge_kutta_step
     nl=nl+1; write(lines(nl), imt) '  %sad_n_div_max                   = ', bmad_com%sad_n_div_max
     nl=nl+1; write(lines(nl), iimt)'  %taylor_order                    = ', bmad_com%taylor_order, ' ! Input order. 0 => Use default'
     nl=nl+1; write(lines(nl), imt)'     Actual Taylor order in PTC: ', ptc_private%taylor_order_ptc
-    nl=nl+1; write(lines(nl), imt) '  %default_integ_order             = ', bmad_com%default_integ_order
 
-    nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
-    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
-    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
-    nl=nl+1; write(lines(nl), lmt) '  %high_energy_space_charge_on     = ', bmad_com%high_energy_space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
-    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average          = ', bmad_com%radiation_zero_average
-    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
-    nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps            = ', bmad_com%conserve_taylor_maps
-    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking          = ', bmad_com%absolute_time_tracking
     nl=nl+1; write(lines(nl), lmt) '  %absolute_time_ref_shift         = ', bmad_com%absolute_time_ref_shift
-    nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
+    nl=nl+1; write(lines(nl), lmt) '  %absolute_time_tracking          = ', bmad_com%absolute_time_tracking
     nl=nl+1; write(lines(nl), lmt) '  %aperture_limit_on               = ', bmad_com%aperture_limit_on
+    nl=nl+1; write(lines(nl), lmt) '  %auto_bookkeeper                 = ', bmad_com%auto_bookkeeper
+    nl=nl+1; write(lines(nl), lmt) '  %conserve_taylor_maps            = ', bmad_com%conserve_taylor_maps
+    nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
+    nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %high_energy_space_charge_on     = ', bmad_com%high_energy_space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %normalize_twiss                 = ', bmad_com%normalize_twiss
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_fluctuations_on       = ', bmad_com%radiation_fluctuations_on
+    nl=nl+1; write(lines(nl), lmt) '  %radiation_zero_average          = ', bmad_com%radiation_zero_average
+    nl=nl+1; write(lines(nl), lmt) '  %rf_phase_below_transition_ref   = ', bmad_com%rf_phase_below_transition_ref
+    nl=nl+1; write(lines(nl), lmt) '  %spin_n0_direction_user_set      = ', bmad_com%spin_n0_direction_user_set
+    nl=nl+1; write(lines(nl), lmt) '  %spin_sokolov_ternov_flipping_on = ', bmad_com%spin_sokolov_ternov_flipping_on
+    nl=nl+1; write(lines(nl), lmt) '  %spin_tracking_on                = ', bmad_com%spin_tracking_on
+    nl=nl+1; write(lines(nl), lmt) '  %sr_wakes_on                     = ', bmad_com%sr_wakes_on
 
     if (allocated(lat%custom)) then
       nl=nl+1; lines(nl) = 'Custom lattice parameters defined in lattice file:'
