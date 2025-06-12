@@ -131,17 +131,20 @@ do ix_step = ix_step_start, ix_step_end, direction
     if (ix_step == 0 .or. ix_step == n_steps) cycle
     ds = s_end - s_now
     call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+!!    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
 
   else
     ! Drift to edge of step and kick
     if (direction == 1) then
       ds = lord%rf%steps(ix_step)%s - s_now
       call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+!!      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
       s_now = lord%rf%steps(ix_step)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step), direction, mat6, make_matrix)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
       call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+!!      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
       s_now = lord%rf%steps(ix_step-1)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction, mat6, make_matrix)
     endif
@@ -326,9 +329,9 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$) then
   if (logic_option(.false., make_matrix)) then
     dp_dE = pc_end / E_end
     r2_pc = dp_dE * orbit%vec(2) * pc_start / pc_end**2
-    mat6(2,:) = r_pc * mat6(2,:) - m65 * r2_pc * mat6(5,:) - r2_pc * mat6(6,:) 
+    mat6(2,:) = r_pc * mat6(2,:) - m65 * r2_pc * mat6(5,:) + (orbit%vec(2) * E_start / (pc_end * pc_start) - r2_pc) * mat6(6,:) 
     r2_pc = dp_dE * orbit%vec(4) * pc_start / pc_end**2
-    mat6(4,:) = r_pc * mat6(4,:) - m65 * r2_pc * mat6(5,:) - r2_pc * mat6(6,:) 
+    mat6(4,:) = r_pc * mat6(4,:) - m65 * r2_pc * mat6(5,:) + (orbit%vec(4) * E_start / (pc_end * pc_start) - r2_pc) * mat6(6,:) 
   endif
 
   orbit%vec(2) = orbit%vec(2) * r_pc
@@ -351,8 +354,6 @@ if (logic_option(.false., make_matrix)) then
   mat6(6,:) = mat6(6,:) + m65 * mat6(5,:)
 endif
 
-call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
-
 !-------------------------------------------------
 ! Convert back from (x', y', c(t_ref-t), E) coords
 
@@ -362,15 +363,20 @@ if (logic_option(.false., make_matrix)) then
   mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (orbit%p0c * orbit%beta)
 
   m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
-  m2(2,:) = [0.0_rp, 1 / (p0c_end * orbit%beta)]
+  m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
 
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
 
-orbit%vec(2) = orbit%vec(2) * (1 + orbit%vec(6))  ! Convert back to px
-orbit%vec(4) = orbit%vec(4) * (1 + orbit%vec(6))  ! Convert back to py
+orbit%vec(2) = orbit%vec(2) * (1 + pz_end)  ! Convert back to px
+orbit%vec(4) = orbit%vec(4) * (1 + pz_end)  ! Convert back to py
 orbit%vec(5) = orbit%vec(5) * orbit%beta
 orbit%vec(6) = pz_end
+
+!-------------------------------------------------
+! Correct orbit%p0c
+
+call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
 
 !-------------------------------------------------
 ! Half the multipole kicks

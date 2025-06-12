@@ -1,4 +1,4 @@
- 2025-05-19 19:39:33 
+ 2025-06-11 17:58:34 
  
    1   Drift                 20   !Bmad_Com
    2   SBend                 29   !Line
@@ -104,6 +104,10 @@
         85  ETAP_Y                                  
         86  PHI_A                                   
         87  ETA_Z                                   
+        88  DETA_DPZ_X                              
+        89  DETA_DPZ_Y                              
+        90  DETAP_DPZ_X                             
+        91  DETAP_DPZ_Y                             
         92  S                                       
         93  REF_TIME                                
         99  ALPHA_A                                 
@@ -342,13 +346,13 @@
          2  TILT                                    
          3  REPETITION_FREQUENCY                    
          4  S_TWISS_REF                             
-         5  KS                                      
          7  BBI_CONSTANT                            
          8  CHARGE                                  
          9  N_PARTICLE                              
         14  SIG_X                                   
         15  SIG_Y                                   
         16  SIG_Z                                   
+        18  KS                                      
         20  N_SLICE                                 
         21  BETA_A_STRONG                           
         22  BETA_B_STRONG                           
@@ -444,6 +448,10 @@
         85  ETAP_Y                                  
         86  PHI_A                                   
         87  ETA_Z                                   
+        88  DETA_DPZ_X                              
+        89  DETA_DPZ_Y                              
+        90  DETAP_DPZ_X                             
+        91  DETAP_DPZ_Y                             
         92  S                                       
         93  REF_TIME                                
         99  ALPHA_A                                 
@@ -599,6 +607,7 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        43  N_RF_STEPS                              
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -1522,7 +1531,6 @@
         24  Y1_EDGE                                 
         25  Y2_EDGE                                 
         26  DTHICKNESS_DX                           
-        28  ATOMIC_WEIGHT                           
         29  F_FACTOR                                
         30  SCATTER_METHOD                          
         34  X_PITCH                                 
@@ -2052,7 +2060,7 @@
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  LONGITUDINAL_MODE                       
+        18  KS                                      
         19  AUTOSCALE_AMPLITUDE                     
         20  AUTOSCALE_PHASE                         
         21  E_LOSS                                  
@@ -2065,6 +2073,7 @@
         29  FIELD_AUTOSCALE                         
         30  VOLTAGE_TOT                             
         31  L_ACTIVE                                
+        32  LONGITUDINAL_MODE                       
         33  N_CELL                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -2075,10 +2084,12 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        43  N_RF_STEPS                              
         44  COUPLER_PHASE                           
         45  COUPLER_ANGLE                           
         46  COUPLER_STRENGTH                        
         47  COUPLER_AT                              
+        49  BS_FIELD                                
         50  DELTA_REF_TIME                          
         51  P0C_START                               
         52  E_TOT_START                             
@@ -3463,7 +3474,7 @@
         15  RF_FREQUENCY                            
         16  RF_WAVELENGTH                           
         17  STATIC_LINEAR_MAP                       
-        18  LONGITUDINAL_MODE                       
+        18  KS                                        [private]
         19  AUTOSCALE_AMPLITUDE                     
         20  AUTOSCALE_PHASE                         
         22  CAVITY_TYPE                             
@@ -3475,6 +3486,7 @@
         28  rf_clock_harminic                         [private]
         29  FIELD_AUTOSCALE                         
         31  L_ACTIVE                                
+        32  LONGITUDINAL_MODE                       
         33  N_CELL                                  
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -3485,10 +3497,12 @@
         40  VKICK                                   
         41  BL_HKICK                                
         42  BL_VKICK                                
+        43  N_RF_STEPS                              
         44  COUPLER_PHASE                           
         45  COUPLER_ANGLE                           
         46  COUPLER_STRENGTH                        
         47  COUPLER_AT                              
+        49  BS_FIELD                                  [private]
         50  DELTA_REF_TIME                          
         51  p0c_start                                 [private]
         52  e_tot_start                               [private]
@@ -3802,12 +3816,12 @@
  56  Sad_Mult            
          1  L                                       
          2  TILT                                    
-         5  KS                                      
          9  RHO                                     
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         17  STATIC_LINEAR_MAP                       
+        18  KS                                      
         19  E1                                      
         20  E2                                      
         21  FB1                                     
@@ -4039,13 +4053,13 @@
          1  L                                       
          2  TILT                                    
          4  K1                                      
-         5  KS                                      
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
         17  STATIC_LINEAR_MAP                       
+        18  KS                                      
         34  X_PITCH                                 
         35  Y_PITCH                                 
         36  X_OFFSET                                
@@ -4135,13 +4149,13 @@
          1  L                                       
          2  TILT                                    
          3  R_SOLENOID                              
-         5  KS                                      
         10  FRINGE_TYPE                             
         11  FRINGE_AT                               
         13  SPIN_FRINGE_ON                          
         15  R0_ELEC                                 
         16  R0_MAG                                  
         17  STATIC_LINEAR_MAP                       
+        18  KS                                      
         31  L_SOFT_EDGE                             
         34  X_PITCH                                 
         35  Y_PITCH                                 
@@ -4684,7 +4698,7 @@
      2    56
      3    25
      4    22
-     5    28
+     5    24
      6    25
      7    22
      8    29
@@ -4697,7 +4711,7 @@
     15    22
     16    23
     17    31
-    18     5
+    18     9
     19    12
     20    20
     21    21
@@ -4707,11 +4721,11 @@
     25    19
     26    28
     27    22
-    28    23
+    28    22
     29    27
     30    24
     31    22
-    32    14
+    32    16
     33    11
     34    50
     35    50
@@ -4722,13 +4736,13 @@
     40    28
     41    26
     42    23
-    43    10
+    43    13
     44     8
     45     7
     46     7
     47    20
     48     5
-    49     9
+    49    11
     50    57
     51    57
     52    57
@@ -4767,10 +4781,10 @@
     85    33
     86    25
     87    57
-    88    33
-    89    41
-    90    37
-    91    55
+    88    35
+    89    43
+    90    39
+    91    57
     92    57
     93    57
     94    55
@@ -5132,13 +5146,10 @@ Index: 5
     SBend               
     Sextupole           
     RFCavity            
-    BeamBeam            
     Wiggler             
-    Sol_Quad            
     Marker              
     Kicker              
     RBend               
-    Solenoid            
     Patch               
     Lcavity             
     Match               
@@ -5153,7 +5164,6 @@ Index: 5
     E_Gun               
     Undulator           
     Detector            
-    Sad_Mult            
     Lens                
     Crab_Cavity         
     RF_Bend             
@@ -5466,10 +5476,14 @@ Index: 17
  !---------------------------------
 Index: 18
     RFCavity            
+    BeamBeam            
+    Sol_Quad            
+    Solenoid            
     Lcavity             
     Match               
     EM_Field            
     Photon_Init         
+    Sad_Mult            
  
  !---------------------------------
 Index: 19
@@ -5708,7 +5722,6 @@ Index: 28
     Detector            
     Crab_Cavity         
     RF_Bend             
-    Foil                
  
  !---------------------------------
 Index: 29
@@ -5795,9 +5808,11 @@ Index: 31
  !---------------------------------
 Index: 32
     SBend               
+    RFCavity            
     BeamBeam            
     RBend               
     Patch               
+    Lcavity             
     Beginning_Ele       
     !Line               
     Match               
@@ -6213,14 +6228,17 @@ Index: 42
  !---------------------------------
 Index: 43
     SBend               
+    RFCavity            
     ELSeparator         
     BeamBeam            
     RBend               
+    Lcavity             
     !Parameter          
     !Line               
     Match               
     HKicker             
     VKicker             
+    Crab_Cavity         
     RF_Bend             
  
  !---------------------------------
@@ -6288,12 +6306,14 @@ Index: 48
  !---------------------------------
 Index: 49
     SBend               
+    RFCavity            
     BeamBeam            
     Wiggler             
     Sol_Quad            
     RBend               
     Solenoid            
     Patch               
+    Lcavity             
     Undulator           
     Sad_Mult            
  
@@ -7865,6 +7885,8 @@ Index: 88
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Monitor             
     Instrument          
     HKicker             
@@ -7904,6 +7926,8 @@ Index: 89
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Monitor             
     Instrument          
     HKicker             
@@ -7946,6 +7970,8 @@ Index: 90
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Monitor             
     Instrument          
     HKicker             
@@ -7991,6 +8017,8 @@ Index: 91
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
+    !Line               
     Match               
     Monitor             
     Instrument          

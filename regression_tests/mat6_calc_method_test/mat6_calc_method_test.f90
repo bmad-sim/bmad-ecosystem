@@ -96,6 +96,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
+      ele%mat6 = 0; ele%vec0 = 0
       call make_mat6 (ele, branch%param, start_orb, end_orb, err_flag = err)
       call transfer_ele(ele, eles(j), .true.)
       if (custom_test .and. ele%mat6_calc_method == bmad_standard$) then

@@ -3173,6 +3173,8 @@ The attributes specific to an \vn{lcavity} are
   l_active        = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
+  ks              = <Real>    ! Normalized solenoid strength.
+  bs_field        = <Real>    ! Solenoid field strength.
 \end{example}
 
 The \vn{voltage} and \vn{voltage_err} attributes can be used in place of \vn{gradient} and \vn{gradient_err}.
@@ -5105,7 +5107,7 @@ See \sref{s:list.solenoid} for a full list of element attributes along with a th
 \index{bs_gradient}
 Attributes specific to an \vn{solenoid} element are:
 \begin{example}
-  ks           = <Real>  ! Solenoid strength.
+  ks           = <Real>  ! Normalized solenoid strength.
   bs_field     = <Real>  ! Solenoid field strength.
   field_master = <T/F>   ! See \sref{s:field.master}.
   l_soft_edge  = <Real>  ! For modeling a ``soft" fringe.

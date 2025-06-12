@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 335
+integer, parameter :: bmad_inc_version$ = 336
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1746,7 +1746,7 @@ integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3, 
 integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, s_twiss_ref$ = 4, &
                       critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5, &
-                      ks$ = 5, flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
+                      flexible$ = 5, crunch$ = 5, ref_orbit_follows$ = 5, pc_out_min$ = 5
 integer, parameter :: gradient$ = 6, k3$ = 6, noise$ = 6, new_branch$ = 6, ix_branch$ = 6, g_max$ = 6, &
                       g$ = 6, symmetry$ = 6, field_scale_factor$ = 6, pc_out_max$ = 6
 integer, parameter :: dg$ = 7, bbi_const$ = 7, osc_amplitude$ = 7, ix_to_branch$ = 7, angle_out_max$ = 7, &
@@ -1763,7 +1763,7 @@ integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15, rf_frequ
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16, rf_wavelength$ = 16
 integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
 ! longitudinal_mode$ is near to rf_wavelength$ for type_ele to print rf_bucket_length near rf_wavelength$
-integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, longitudinal_mode$ = 18
+integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, ks$ = 18
 integer, parameter :: sig_e$ = 19, sig_pz$ = 19, autoscale_amplitude$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, autoscale_phase$ = 20, &
                       n_slice$ = 20, y_gain_calib$ = 20, sig_e2$ = 20
@@ -1800,7 +1800,7 @@ integer, parameter :: cmat_21$ = 31, l_active$ = 31, dphi_origin$ = 31, split_id
                       l_soft_edge$ = 31, transverse_sigma_cut$ = 31, pz_aperture_center$ = 31, &
                       mean_excitation_energy$ = 31, fiducial_pt$ = 31
 integer, parameter :: cmat_22$ = 32, dpsi_origin$ = 32, t_offset$ = 32, ds_slice$ = 32, &
-                      use_reflectivity_table$ = 32, init_needed$ = 32, n_rf_steps$ = 32
+                      use_reflectivity_table$ = 32, init_needed$ = 32, longitudinal_mode$ = 32
 integer, parameter :: angle$ = 33, n_cell$ = 33, mode_flip$ = 33, crossing_time$ = 33, x_kick$ = 33
 integer, parameter :: x_pitch$ = 34, px_kick$ = 34   ! Note: [x_kick$, px_kick$, ..., pz_kick$] must be in order.
 integer, parameter :: y_pitch$ = 35, y_kick$ = 35
@@ -1811,7 +1811,8 @@ integer, parameter :: hkick$ = 39, d_spacing$ = 39, x_offset_mult$ = 39, emittan
 integer, parameter :: vkick$ = 40, y_offset_mult$ = 40, p0c_ref_init$ = 40, emittance_b$ = 40, crab_x2$ = 40
 integer, parameter :: BL_hkick$ = 41, e_tot_ref_init$ = 41, emittance_z$ = 41, crab_x3$ = 41
 integer, parameter :: BL_vkick$ = 42, crab_tilt$ = 42
-integer, parameter :: BL_kick$ = 43, B_field$ = 43, E_field$ = 43, high_energy_space_charge_on$ = 43, crab_x4$=43
+integer, parameter :: BL_kick$ = 43, B_field$ = 43, E_field$ = 43, high_energy_space_charge_on$ = 43, crab_x4$=43, &
+                      n_rf_steps$ = 43
 integer, parameter :: photon_type$ = 44, coupler_phase$ = 44, dB_field$ = 44, crab_x5$=44
 integer, parameter :: lattice_type$ = 45, B1_gradient$ = 45, E1_gradient$ = 45, coupler_angle$ = 45
 integer, parameter :: live_branch$ = 46, B2_gradient$ = 46, E2_gradient$ = 46, coupler_strength$ = 46
