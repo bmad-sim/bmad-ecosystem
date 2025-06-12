@@ -340,6 +340,7 @@ if (found_it) then
   if (extra%sad_amp_max_set)                      bmad_com%sad_amp_max                     = bmad_com_read%sad_amp_max
   if (extra%sad_n_div_max_set)                    bmad_com%sad_n_div_max                   = bmad_com_read%sad_n_div_max
   if (extra%max_num_runge_kutta_step_set)         bmad_com%max_num_runge_kutta_step        = bmad_com_read%max_num_runge_kutta_step
+  if (extra%spin_n0_direction_user_set_set)       bmad_com%spin_n0_direction_user_set      = bmad_com_read%spin_n0_direction_user_set
   if (extra%debug_set)                            bmad_com%debug                           = bmad_com_read%debug
 
   if (extra%ds_track_step_set)                    space_charge_com%ds_track_step                    = space_charge_com_read%ds_track_step

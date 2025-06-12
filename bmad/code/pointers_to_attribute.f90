@@ -149,6 +149,7 @@ case ('BMAD_COM')
   case ('CONVERT_TO_KINETIC_MOMENTUM');     ptr_array(1)%l => bmad_com%convert_to_kinetic_momentum
   case ('APERTURE_LIMIT_ON');               ptr_array(1)%l => bmad_com%aperture_limit_on
   case ('NORMALIZE_TWISS');                 ptr_array(1)%l => bmad_com%normalize_twiss
+  case ('SPIN_N0_DIRECTION_USER_SET');      ptr_array(1)%l => bmad_com%spin_n0_direction_user_set
   case ('DEBUG');                           ptr_array(1)%l => bmad_com%debug
 
   case default

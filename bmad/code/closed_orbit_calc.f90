@@ -558,6 +558,12 @@ if (bmad_com_saved%spin_tracking_on) then
     mat3(:,i) = end_orb%spin
   enddo
   call w_mat_to_axis_angle(mat3, start_orb%spin, branch%param%spin_tune)
+  if (bmad_com%spin_n0_direction_user_set) then
+    if (dot_product(start_orb%spin, lat%particle_start%spin) < 0) then
+      start_orb%spin = -start_orb%spin
+      branch%param%spin_tune = 1.0_rp - branch%param%spin_tune
+    endif
+  endif
   call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
 endif
 
