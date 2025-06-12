@@ -1247,6 +1247,8 @@ call init_attribute_name1 (lcavity$, n_rf_steps$,                   'N_RF_STEPS'
 call init_attribute_name1 (lcavity$, l_active$,                     'L_ACTIVE', dependent$)
 call init_attribute_name1 (lcavity$, voltage_tot$,                  'VOLTAGE_TOT', dependent$)
 call init_attribute_name1 (lcavity$, gradient_tot$,                 'GRADIENT_TOT', dependent$)
+call init_attribute_name1 (lcavity$, ks$,                           'KS', quasi_free$)
+call init_attribute_name1 (lcavity$, bs_field$,                     'BS_FIELD', quasi_free$)
 
 call init_attribute_name1 (marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
@@ -1494,6 +1496,8 @@ call init_attribute_name1 (rfcavity$, gradient$,                    'GRADIENT', 
 call init_attribute_name1 (rfcavity$, gradient_err$,                'gradient_err', private$)
 call init_attribute_name1 (rfcavity$, voltage_err$,                 'voltage_err', private$)
 call init_attribute_name1 (rfcavity$, l_active$,                    'L_ACTIVE', dependent$)
+call init_attribute_name1 (rfcavity$, ks$,                          'KS', private$)       !!! Reserve space! quasi_free$)
+call init_attribute_name1 (rfcavity$, bs_field$,                    'BS_FIELD', private$) !!! Reserve space! quasi_free$)
 
 call init_attribute_name1 (rf_bend$, angle$,                        'ANGLE', quasi_free$)
 call init_attribute_name1 (rf_bend$, ref_tilt$,                     'REF_TILT')

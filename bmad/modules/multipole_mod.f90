@@ -84,7 +84,7 @@ type (ele_struct) ele
 
 real(rp) an(0:), bn(0:)
 real(rp) f, g, dpz, kx, ky, rel_p2, dk(2,2), alpha, kx_tot, ky_tot, dk_tot(2,2), kmat(6,6), dk_dp
-real(rp) E0, E1, mc2
+real(rp) E0, E1, mc2, r
 real(rp), optional :: scale, mat6(6,6)
 
 integer, optional :: pole_type
@@ -98,13 +98,14 @@ kx_tot = 0
 ky_tot = 0
 dk_tot = 0
 orb0 = orbit
+r = ele%value(p0c$) / orbit%p0c
 
 do n = 0, ix_pole_max
   if (logic_option(.false., make_matrix)) then
-    call ab_multipole_kick (an(n), bn(n), n, ele%ref_species, ele%orientation, orbit, kx, ky, dk, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (r*an(n), r*bn(n), n, ele%ref_species, ele%orientation, orbit, kx, ky, dk, pole_type = pole_type, scale = scale)
     dk_tot = dk_tot + dk
   else
-    call ab_multipole_kick (an(n), bn(n), n, ele%ref_species, ele%orientation, orbit, kx, ky, pole_type = pole_type, scale = scale)
+    call ab_multipole_kick (r*an(n), r*bn(n), n, ele%ref_species, ele%orientation, orbit, kx, ky, pole_type = pole_type, scale = scale)
   endif
 
   kx_tot = kx_tot + kx
