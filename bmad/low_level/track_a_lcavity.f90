@@ -131,17 +131,20 @@ do ix_step = ix_step_start, ix_step_end, direction
     if (ix_step == 0 .or. ix_step == n_steps) cycle
     ds = s_end - s_now
     call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+!!    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
 
   else
     ! Drift to edge of step and kick
     if (direction == 1) then
       ds = lord%rf%steps(ix_step)%s - s_now
       call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+!!      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
       s_now = lord%rf%steps(ix_step)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step), direction, mat6, make_matrix)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
       call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+!!      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
       s_now = lord%rf%steps(ix_step-1)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction, mat6, make_matrix)
     endif
