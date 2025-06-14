@@ -77,48 +77,50 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
 \index{bmad_common_struct|hyperbf}
 \begin{example}
   type bmad_common_struct
-    max_aperture_limit = 1e3            ! Max Aperture.
-    d_orb(6)           = 1e-5           ! for the make_mat6_tracking routine.
-    default_ds_step    = 0.2            ! Integration step size.  
-    significant_length = 1e-10          ! meter 
-    rel_tol_tracking = 1e-8             ! Closed orbit relative tolerance.
-    abs_tol_tracking = 1e-11            ! Closed orbit absolute tolerance.
-    rel_tol_adaptive_tracking = 1e-8    ! Runge-Kutta tracking relative tolerance.
     abs_tol_adaptive_tracking = 1e-10   ! Runge-Kutta tracking absolute tolerance.
-    init_ds_adaptive_tracking = 1e-3    ! Initial step size.
-    min_ds_adaptive_tracking = 0        ! Minimum step size to use.
-    fatal_ds_adaptive_tracking = 1e-8   ! Threshold for loosing particles.
+    abs_tol_tracking = 1e-11            ! Closed orbit absolute tolerance.
     autoscale_amp_abs_tol = 0.1_rp      ! Autoscale absolute amplitude tolerance (eV).
     autoscale_amp_rel_tol = 1e-6        ! Autoscale relative amplitude tolerance
     autoscale_phase_tol = 1e-5          ! Autoscale phase tolerance.
-    electric_dipole_moment = 0          ! Particle's EDM. 
-    synch_rad_scale = 1.0               ! Synch radiation kick scale. 1 => normal
+    d_orb(6)           = 1e-5           ! for the make_mat6_tracking routine.
+    default_ds_step    = 0.2            ! Integration step size.  
+    electric_dipole_moment = 0.0        ! Particle's EDM. 
+    fatal_ds_adaptive_tracking = 1e-8   ! Threshold for loosing particles.
+    init_ds_adaptive_tracking = 1e-3    ! Initial step size.
+    max_aperture_limit = 1e3            ! Max Aperture.
+    min_ds_adaptive_tracking = 0        ! Minimum step size to use.
     ptc_cut_factor = 0.006              ! Cut factor for PTC tracking
-    sad_eps_scale = 5.0e-3              ! Used in sad_mult step length calc.
+    rel_tol_adaptive_tracking = 1e-8    ! Runge-Kutta tracking relative tolerance.
+    rel_tol_tracking = 1e-8             ! Closed orbit relative tolerance.
     sad_amp_max = 5.0e-2                ! Used in sad_mult step length calc.
+    sad_eps_scale = 5.0e-3              ! Used in sad_mult step length calc.
+    significant_length = 1e-10          ! meter 
+    synch_rad_scale = 1.0               ! Synch radiation kick scale. 1 => normal
+
+    default_integ_order = 2             ! PTC integration order
+    max_num_runge_kutta_step = 10000    ! Max num RK steps before particle is lost.
+    ptc_max_fringe_order = 2            ! PTC max fringe order (2 => Quadrupole !).
     sad_n_div_max = 1000                ! Used in sad_mult step length calc.
     taylor_order = 3                    ! 3rd order is default
-    default_integ_order = 2             ! PTC integration order
-    ptc_max_fringe_order = 2            ! PTC max fringe order (2 => Quadrupole !).
-    max_num_runge_kutta_step = 10000    ! Max num RK steps before particle is lost.
-    rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
-    sr_wakes_on = T                     ! Short range wakefields?
+
+   absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
+    absolute_time_tracking = F          ! Set absolute or relative time tracking.
+    aperture_limit_on = T               ! Use aperture limits in tracking.
+    auto_bookkeeper = T                 ! Automatic bookkeeping?
+    conserve_taylor_maps = T            ! Enable bookkeeper to set
+                                        ! ele%taylor_map_includes_offsets = F?
+    csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
+    debug = F                           ! Used for code debugging.
+    high_energy_space_charge_on = F     ! High energy space charge calc toggle.
     lr_wakes_on = T                     ! Long range wakefields
     ptc_use_orientation_patches = T     ! Ele orientation translated to PTC patches?
-    auto_bookkeeper = T                 ! Automatic bookkeeping?
-    high_energy_space_charge_on = F     ! High energy space charge calc toggle.
-    csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
-    spin_tracking_on = F                ! spin tracking?
-    spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
     radiation_damping_on = F            ! Radiation damping toggle.
     radiation_fluctuations_on = F       ! Radiation fluctuations toggle.
     radiation_zero_average = F          ! Shift so that average radiation kick is zero?
-    conserve_taylor_maps = T            ! Enable bookkeeper to set
-                                        ! ele%taylor_map_includes_offsets = F?
-    absolute_time_tracking = F          ! Set absolute or relative time tracking.
-    absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
-    aperture_limit_on = T               ! Use aperture limits in tracking.
-    debug = F                           ! Used for code debugging.
+    rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
+    spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
+    spin_tracking_on = F                ! spin tracking?
+    sr_wakes_on = T                     ! Short range wakefields?
   end type
 \end{example}
 
@@ -306,6 +308,16 @@ superposition code will not create any super_slave elements that have a length l
 %
 \item[\vn{sr_wakes_on}] \Newline
 Toggle for turning on or off short-range higher order mode wakefield effects.
+%
+\item[\vn{spin_n0_direction_user_set}] \Newline
+The closed orbit invariant spin $\bfn_0$ (\sref{s:isf}) is degenerate such that if $\bfn_0(s)$ is a
+solution then so is $-\bfn_0(s)$. When calculating $\bfn_0(s)$, if \vn{spin_n0_direction_user_set}
+is false (the default), \bmad will choose the solution which has the tune in the range $[0,
+\pi]$. This is sometimes inconvenient so if \vn{spin_n0_direction_user_set} is set true, \bmad will
+choose $\bfn_0$ such that $\bfn_0$ at the beginning of the lattice branch is as nearly parallel to
+what is set using \vn{particle_start} (\sref{s:beam.start}). For branches with open geometry,
+\vn{spin_n0_direction_user_set} is ignored and $\bfn_0$ at the beginning of the branch is set to
+the value given by \vn{particle_start}.
 %
 \item[\vn{spin_sokolov_ternov_flipping_on}] \Newline
 This determines if the Sokolov-Ternov effect is included in a simulation.  The Sokolov-Ternov
