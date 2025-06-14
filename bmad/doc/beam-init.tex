@@ -88,7 +88,7 @@ of zero in which case the bunch charge as specified in the file is used.
 %
 \item[\%center(6)] \Newline
 The \vn{%center} parameter is used to offset the center position of a bunch. Exception: When
-\vn{%use_particle_start} is set to True, the \vn{particle_start} orbital values are used instead for the
+\vn{%use_particle_start} is set to True, the \vn{particle_start} values are used instead for the
 center position offset. See the description of \vn{%use_particle_start} below for more details.
 %
 \item[\%center_jitter, \%emit_jitter, \%sig_z_jitter, \%sig_pz_jitter] \Newline
@@ -261,6 +261,9 @@ from a file. Also: When \vn{%use_particle_start} is set to True, and not reading
 positions form a file, the \vn{particle_start} spin values are used instead. See the description of
 \vn{%use_particle_start} below for more details.
 %
+\item[%t_offset] \Newline
+Time offset. Always applied independent of the setting of \vn{use_particle_start}.
+%
 \item[\%use_particle_start] \Newline
 If \vn{%use_particle_start} is set to \vn{False} (the default) the center of
 the bunch is determined by the setting of the \vn{%center} component. If set to \vn{True}, the
@@ -270,13 +273,15 @@ center is determined by the setting of:
   particle_start[y], particle_start[py],
   particle_start[z], particle_start[pz]
 \end{example}
-If not reading from from a particle position file, \vn{%use_particle_start} will affect the setting
-of the spin. If \vn{%use_particle_start} is set to \vn{False}, the initial spin orientation is
-determined by the setting of the \vn{%spin} component. If set to \vn{True}, the spin is determined
+\vn{%use_particle_start = True} will also affect the setting
+of the spin. If set to \vn{True}, the spin is determined
 by:
 \begin{example}
   particle_start[spin_x], particle_start[spin_y], particle_start[spin_z]
 \end{example}
+Additionally, if \vn{%use_particle_start = True}, the setting of \vn{beam_init%t_offset} will be
+ignored in favor of \vn{particle_start[t]} set in the lattice file.
+
 See \sref{s:beam.start} for details about the \vn{particle_start} structure. Using the
 \vn{particle_start} structure allows setting center and spin values in the lattice file rather than
 the setting of \vn{%center} and \vn{%spin} in the \vn{beam_init_struct}. In this case, \vn{%center}
