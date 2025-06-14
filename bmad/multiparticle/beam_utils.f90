@@ -1856,10 +1856,11 @@ implicit none
 type (bunch_struct), target :: bunch
 type (beam_init_struct) beam_init
 type (ele_struct) ele
+type (coord_struct) center
 type (coord_struct), pointer :: p
 type (branch_struct), pointer :: branch
 
-real(rp) center(6), ran_vec(6), old_charge, pz_min, t_offset, dz, dz_tot
+real(rp) ran_vec(6), old_charge, pz_min, t_offset, dz, dz_tot, jitter(6)
 integer ix_bunch, i, n
 character(*), parameter :: r_name = 'bunch_init_end_calc'
 logical from_file, h5_file
@@ -1868,7 +1869,9 @@ logical from_file, h5_file
 ! Note: %use_particle_start_for_center is old deprecated name for %use_particle_start.
 
 call ran_gauss(ran_vec)
-center = beam_init%center_jitter * ran_vec
+jitter = beam_init%center_jitter * ran_vec
+
+t_offset = beam_init%t_offset
 
 if (beam_init%use_particle_start) then
   if (.not. associated (ele%branch)) then
@@ -1879,9 +1882,20 @@ if (beam_init%use_particle_start) then
     call out_io (s_error$, r_name, 'NO ASSOCIATED LATTICE WITH BEAM_INIT%USE_PARTICLE_START = T.')
     return
   endif
-  center = center + ele%branch%lat%particle_start%vec
+
+  center = ele%branch%lat%particle_start
+  if (center%vec(5) == real_garbage$) then  ! %t was set
+    center%vec = center%vec + jitter
+    center%vec(5) = real_garbage$
+  else
+    center%vec = center%vec + jitter
+  endif
+
+  call init_coord (center, center, ele, downstream_end$)
+
 else
-  center = center + beam_init%center
+  center = coord_struct()
+  center%vec = beam_init%center + jitter
 endif
 
 !
@@ -1889,17 +1903,16 @@ endif
 from_file = (beam_init%position_file /= '')
 n = len_trim(beam_init%position_file)
 h5_file = (beam_init%position_file(max(1,n-4):n) == '.hdf5' .or. beam_init%position_file(max(1,n-2):n) == '.h5')
-t_offset = beam_init%t_offset
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
   if (p%state == alive$) p%ix_turn = beam_init%ix_turn
-enddo
+  p%vec = p%vec + center%vec
 
-if (.not. h5_file) then
-  do i = 1, size(bunch%particle)
-    p => bunch%particle(i)
-    p%vec = p%vec + center
+  if (h5_file) then
+    p%t = p%t + t_offset
+
+  else
     p%s = ele%s
 
     ! Time coordinates. HDF5 files have full particle information so time conversion is ignored.
@@ -1907,7 +1920,7 @@ if (.not. h5_file) then
     if (beam_init%use_t_coords) then
       if (beam_init%use_z_as_t) then
         ! Fixed s, particles distributed in time using vec(5)
-        p%t = p%vec(5)
+        p%t = p%vec(5) + t_offset
         p%location = downstream_end$
         p%vec(5) = 0 ! init_coord will not complain when beta == 0 and vec(5) == 0
         
@@ -1944,8 +1957,8 @@ if (.not. h5_file) then
       pz_min = 1.000001_rp * sqrt(p%vec(2)**2 + p%vec(4)**2) - 1 ! 1.000001 factor to avoid roundoff problems.
       p%vec(6) = max(p%vec(6), pz_min)
     endif
-  enddo
-endif
+  endif
+enddo
 
 !
 

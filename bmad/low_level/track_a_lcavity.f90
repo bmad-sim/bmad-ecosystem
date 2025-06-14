@@ -88,7 +88,7 @@ endif
 ! lord will have the step information.
 ! See the documentation for the rf_ele_struct for some details.
 
-n_steps = ubound(ele%rf%steps, 1)
+n_steps = ubound(lord%rf%steps, 1)
 ix_step_start = rf_step_index(E_ref_start, s_now, lord)
 ix_step_end   = rf_step_index(E_ref_end, s_end, lord)
 
@@ -102,7 +102,7 @@ if (fringe_here(ele, orbit, first_track_edge$)) then
   if (nint(ele%value(cavity_type$)) == traveling_wave$) then
     ds = bmad_com%significant_length / 10  ! Make sure inside field region
     call em_field_calc (ele, param, ds, orbit, .true., field, logic_option(.false., make_matrix))
-    f = charge_of(orbit%species) / (2 * p0c_end)
+    f = charge_of(orbit%species) / (2 * p0c_start)
     pc = orbit%p0c * (1 + orbit%vec(6))
 
     if (logic_option(.false., make_matrix)) then
@@ -120,6 +120,7 @@ if (fringe_here(ele, orbit, first_track_edge$)) then
 
     orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
     orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
+    orbit%vec(6) = orbit%vec(6) - f * field%E(3) * orbit%vec(2) * orbit%vec(1)
   endif
 endif
 
@@ -175,6 +176,7 @@ if (fringe_here(ele, orbit, second_track_edge$)) then
 
     orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
     orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
+    orbit%vec(6) = orbit%vec(6) - f * field%E(3) * orbit%vec(2) * orbit%vec(1)
   endif
 
   ! Coupler kick
@@ -302,16 +304,11 @@ pc_end = (1 + pz_end) * orbit%p0c
 ! Convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
 
 if (logic_option(.false., make_matrix)) then
-  mat6(2,:) = mat6(2,:) / rel_p - orbit%vec(2) * mat6(6,:) / rel_p**2
-  mat6(4,:) = mat6(4,:) / rel_p - orbit%vec(4) * mat6(6,:) / rel_p**2
-
   m2(1,:) = [1/orbit%beta, -orbit%vec(5) * mc2**2 * orbit%p0c / (pc_start**2 * E_start)]
   m2(2,:) = [0.0_rp, orbit%p0c * orbit%beta]
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
 
-orbit%vec(2) = orbit%vec(2) / rel_p    ! Convert to x'
-orbit%vec(4) = orbit%vec(4) / rel_p    ! Convert to y'
 orbit%vec(5) = orbit%vec(5) / orbit%beta
 orbit%vec(6) = rel_p * orbit%p0c / orbit%beta
 
@@ -321,29 +318,6 @@ orbit%vec(6) = rel_p * orbit%p0c / orbit%beta
 E_end = orbit%vec(6) + dE
 om = twopi * ele%value(rf_frequency$) / c_light
 m65 = om * dE_amp * sin(phase)
-
-! Traveling wave transverse kick
-if (nint(lord%value(cavity_type$)) == traveling_wave$) then
-  r_pc = pc_start / pc_end 
-
-  if (logic_option(.false., make_matrix)) then
-    dp_dE = pc_end / E_end
-    r2_pc = dp_dE * orbit%vec(2) * pc_start / pc_end**2
-    mat6(2,:) = r_pc * mat6(2,:) - m65 * r2_pc * mat6(5,:) + (orbit%vec(2) * E_start / (pc_end * pc_start) - r2_pc) * mat6(6,:) 
-    r2_pc = dp_dE * orbit%vec(4) * pc_start / pc_end**2
-    mat6(4,:) = r_pc * mat6(4,:) - m65 * r2_pc * mat6(5,:) + (orbit%vec(4) * E_start / (pc_end * pc_start) - r2_pc) * mat6(6,:) 
-  endif
-
-  orbit%vec(2) = orbit%vec(2) * r_pc
-  orbit%vec(4) = orbit%vec(4) * r_pc
-
-! Standing wave transverse kick
-else
-  call mat_make_unit (kmat)
-!  z21 = -gradient_max / (sqrt_8 * E_end)
-!  kmat(2,1) =  z21 * cos_term
-
-endif
 
 ! Update to new energy
 
@@ -359,17 +333,12 @@ endif
 
 if (logic_option(.false., make_matrix)) then
   rel_p = pc_end / orbit%p0c
-  mat6(2,:) = rel_p * mat6(2,:) + orbit%vec(2) * mat6(6,:) / (orbit%p0c * orbit%beta)
-  mat6(4,:) = rel_p * mat6(4,:) + orbit%vec(4) * mat6(6,:) / (orbit%p0c * orbit%beta)
-
   m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
   m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
 
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
 
-orbit%vec(2) = orbit%vec(2) * (1 + pz_end)  ! Convert back to px
-orbit%vec(4) = orbit%vec(4) * (1 + pz_end)  ! Convert back to py
 orbit%vec(5) = orbit%vec(5) * orbit%beta
 orbit%vec(6) = pz_end
 
