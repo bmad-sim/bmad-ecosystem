@@ -1678,10 +1678,33 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     type(INTEGRATION_NODE), pointer :: C
     type(probe), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
-if(C%parent_fibre%mag%name=="MAP") then
-   if(c%cas==case_map) call track_mapr(C,XS,K)
+    
+if(C%parent_fibre%mag%name=="MAP1") then
+   if(c%cas==case_map) call track_mapr1(C,XS,1.0_dp,1,K)
 return
 endif
+if(C%parent_fibre%mag%name=="MAP2") then
+   if(c%cas==case_map) call track_mapr1(C,XS,1.0_dp,2,K)
+return
+endif
+if(C%parent_fibre%mag%name=="MAP2ND") then
+   if(c%cas==case_map) call track_mapr2nd(c,xs,K)
+return
+endif
+if(C%parent_fibre%mag%name=="MAP4TH") then
+   if(c%cas==case_map) call track_mapr4th(c,xs,K)
+return
+endif
+if(C%parent_fibre%mag%name=="MAP6TH") then
+   if(c%cas==case_map) call track_mapr6th(c,xs,K)
+return
+endif
+if(C%parent_fibre%mag%name=="MAP8TH") then
+   if(c%cas==case_map) call track_mapr8th(c,xs,K)
+return
+endif
+ 
+ 
     if(2*old_integrator+c%parent_fibre%mag%old_integrator>0) then
      call TRACK_NODE_FLAG_probe_R(C,XS,K)
     else
@@ -1704,8 +1727,33 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     type(INTEGRATION_NODE), pointer :: C
     type(probe_8), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
-if(C%parent_fibre%magp%name=="MAP") then
-   if(c%cas==case_map) call track_mapp(C,XS,k)
+if(C%parent_fibre%magp%name=="MAP1") then
+   if(c%cas==case_map) then
+    call track_mapp1(C,XS,1.0_dp,1,k)
+   endif
+return
+endif
+if(C%parent_fibre%magp%name=="MAP2") then
+   if(c%cas==case_map) then
+    call track_mapp1(C,XS,1.0_dp,2,k)
+  endif
+return
+endif
+if(C%parent_fibre%mag%name=="MAP2ND") then
+   if(c%cas==case_map) call track_mapp2nd(c,xs,K)
+return
+endif
+if(C%parent_fibre%mag%name=="MAP4TH") then
+   if(c%cas==case_map) call track_mapp4th(c,xs,K)
+
+return
+endif
+if(C%parent_fibre%mag%name=="MAP6TH") then
+   if(c%cas==case_map) call track_mapp6th(c,xs,K)
+return
+endif
+if(C%parent_fibre%mag%name=="MAP8TH") then
+   if(c%cas==case_map) call track_mapp8th(c,xs,K)
 return
 endif
     if(compute_stoch_kick) then
@@ -1738,14 +1786,181 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     endif
     end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p
 
-
-  subroutine track_mapr(c,xs,K)   !electric teapot s
+  
+  subroutine track_mapr2nd(c,xs,K)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(probe), INTENT(INout) :: xs
     TYPE(INTERNAL_STATE) K
-    integer i,n ,nz
-    real(dp) x(6),dl,q0(3),qf(3),pf0(3),pf(3),pfi(3),dpfi(3)
+     call track_mapr1(C,XS,0.5_dp,1,K)
+     call track_mapr1(C,XS,0.5_dp,2,K)
+  end subroutine track_mapr2nd
+
+  subroutine track_mapp2nd(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+     call track_mapp1(C,XS,0.5_dp,1,K)
+     call track_mapp1(C,XS,0.5_dp,2,K)
+  end subroutine track_mapp2nd
+
+  subroutine track_mapp4th(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+      call track_mapp1(C,XS,0.5_dp*yx0,1,K)
+      call track_mapp1(C,XS,0.5_dp*yx0,2,K)
+      call track_mapp1(C,XS,0.5_dp*yx1,1,K)
+      call track_mapp1(C,XS,0.5_dp*yx1,2,K)
+      call track_mapp1(C,XS,0.5_dp*yx0,1,K)
+      call track_mapp1(C,XS,0.5_dp*yx0,2,K)
+    end  subroutine track_mapp4th
+
+  subroutine track_mapr6th(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+      call track_mapr1(C,XS,0.5_dp*wy3,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy3,2,K)
+      call track_mapr1(C,XS,0.5_dp*wy2,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy2,2,K)
+      call track_mapr1(C,XS,0.5_dp*wy1,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy1,2,K)
+      call track_mapr1(C,XS,0.5_dp*wy0,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy0,2,K)
+      call track_mapr1(C,XS,0.5_dp*wy1,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy1,2,K)
+      call track_mapr1(C,XS,0.5_dp*wy2,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy2,2,K)
+      call track_mapr1(C,XS,0.5_dp*wy3,1,K)
+      call track_mapr1(C,XS,0.5_dp*wy3,2,K)
+
+    end  subroutine track_mapr6th
+
+  subroutine track_mapp6th(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+      call track_mapp1(C,XS,0.5_dp*wy3,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy3,2,K)
+      call track_mapp1(C,XS,0.5_dp*wy2,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy2,2,K)
+      call track_mapp1(C,XS,0.5_dp*wy1,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy1,2,K)
+      call track_mapp1(C,XS,0.5_dp*wy0,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy0,2,K)
+      call track_mapp1(C,XS,0.5_dp*wy1,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy1,2,K)
+      call track_mapp1(C,XS,0.5_dp*wy2,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy2,2,K)
+      call track_mapp1(C,XS,0.5_dp*wy3,1,K)
+      call track_mapp1(C,XS,0.5_dp*wy3,2,K)
+
+    end  subroutine track_mapp6th
+
+
+
+  subroutine track_mapr8th(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+      call track_mapr1(C,XS,0.5_dp*wyo7,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo7,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo6,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo6,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo5,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo5,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo4,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo4,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo3,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo3,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo2,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo2,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo1,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo1,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo0,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo0,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo1,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo1,2,K) 
+      call track_mapr1(C,XS,0.5_dp*wyo2,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo2,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo3,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo3,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo4,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo4,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo5,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo5,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo6,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo6,2,K)
+      call track_mapr1(C,XS,0.5_dp*wyo7,1,K)
+      call track_mapr1(C,XS,0.5_dp*wyo7,2,K)
+
+    end  subroutine track_mapr8th
+
+  subroutine track_mapp8th(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+      call track_mapp1(C,XS,0.5_dp*wyo7,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo7,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo6,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo6,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo5,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo5,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo4,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo4,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo3,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo3,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo2,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo2,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo1,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo1,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo0,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo0,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo1,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo1,2,K) 
+      call track_mapp1(C,XS,0.5_dp*wyo2,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo2,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo3,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo3,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo4,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo4,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo5,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo5,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo6,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo6,2,K)
+      call track_mapp1(C,XS,0.5_dp*wyo7,1,K)
+      call track_mapp1(C,XS,0.5_dp*wyo7,2,K)
+
+    end  subroutine track_mapp8th
+  subroutine track_mapr4th(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+      call track_mapr1(C,XS,0.5_dp*yx0,1,K)
+      call track_mapr1(C,XS,0.5_dp*yx0,2,K)
+      call track_mapr1(C,XS,0.5_dp*yx1,1,K)
+      call track_mapr1(C,XS,0.5_dp*yx1,2,K)
+      call track_mapr1(C,XS,0.5_dp*yx0,1,K)
+      call track_mapr1(C,XS,0.5_dp*yx0,2,K)
+    end  subroutine track_mapr4th
+
+
+
+  subroutine track_mapr1(c,xs,fac,pos,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer i,n ,nz,e(2),pos
+    real(dp) x(6),dl,q0(3),qf(3),pf0(3),pf(3),pfi(3),dpfi(3),fac
     real(dp) :: eps=1.d-7, norm,normold
     C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
     C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
@@ -1755,7 +1970,8 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
     C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
 
-
+e=0
+e(pos)=1
 
     q0(1)=xs%x(1)
     q0(2)=xs%x(3)
@@ -1766,15 +1982,16 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     
  
    n=c%parent_fibre%mag%p%nst
-   dl=c%parent_fibre%mag%l/n
+   dl=fac*c%parent_fibre%mag%l/n
 
 !  below is a call to an
    pf=pf0
    pfi=1.d38
    normold=1.d38
    do i=1,1000
-    call newtow_searchr(c,q0,qf,pf0,pf,dl,k)
-    dpfi=pf-pfi
+    call newtow_searchr2(c,q0,qf,pf0,pf,e,dl,k)
+  !  call newtow_searchr(c,q0,qf,pf0,pf,dl,k)
+    dpfi=e(2)*(pf-pfi)+e(1)*(qf-pfi)
     norm=abs(dpfi(1))+abs(dpfi(2))+abs(dpfi(3))
     if(norm>eps) then 
      normold=norm
@@ -1785,7 +2002,7 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
       normold=norm
      endif
     endif
-     pfi=pf
+     pfi=e(2)*pf+e(1)*qf
    enddo
    if(i>999) then
     check_stable=.false.
@@ -1798,72 +2015,135 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
     xs%x(4)=pf(2)
     xs%x(6)=pf(3)
 
+  end subroutine track_mapr1
 
 
-
-
-  end subroutine track_mapr
-  
-  subroutine newtow_searchr(c,q0,qf,pf0,pf,dl,k)
+!(c,q0,qf,pf0,pf,e,dl,k)
+subroutine newtow_searchr2(c,q0,qf,p0,pf,e,dl,k)
     TYPE(integration_node),pointer, INTENT(IN):: c
-    real(dp), INTENT(INout) :: q0(3),qf(3),pf0(3),pf(3)
+    TYPE(INTERNAL_STATE) K 
+    real(dp), INTENT(INout) :: q0(3),p0(3),qf(3),pf(3),dl
+    real(dp)   xft(6),fm(6),fp(6),mat(3,3),dv(3)
+    real(dp):: eps =1d-7
+    integer i ,j,nmat,ier,e(2)
+    nmat=3
+
+    do i=1,3
+      do j=1,3
+       xft(2*j-1)=e(2)*q0(j)+e(1)*qf(j)
+       xft(2*j)=e(1)*p0(j)+e(2)*pf(j)
+      enddo
+       xft(2*i-1)= e(2)*q0(i)+e(1)*qf(i)+e(1)*eps  
+       xft(2*i)= e(1)*p0(i)+e(2)*pf(i)+e(2)*eps  
+
+
+
+    call newtow_eval(c,xft,fp,dl,k)    
+
+       
+       xft(2*i-1)= e(2)*q0(i)+e(1)*qf(i)-e(1)*eps  
+       xft(2*i)= e(1)*p0(i)+e(2)*pf(i)-e(2)*eps  
+      
+    call newtow_eval(c,xft,fm,dl,k)  
+
+
+dv=0
+  do j=1,3  
+   dv(j)=e(1)*(fp(2*j-1)-fm(2*j-1))/2.0_dp/eps
+   dv(j)=dv(j)+e(2)*(fp(2*j)-fm(2*j))/2.0_dp/eps
+ enddo
+   ! do j=1,3  
+
+         mat(1:3,i)=dv
+
+  !  enddo
+
+
+enddo
+
+    do i=1,3
+     mat(i,i)=mat(i,i)-1.0_dp
+    enddo
+!stop
+      do i=1,3
+       xft(2*i-1)= e(2)*q0(i)+e(1)*qf(i) 
+       xft(2*i)  = e(1)*p0(i)+e(2)*pf(i)  
+      enddo
+
+    call newtow_eval(c,xft,fp,dl,k) 
+       do i=1,3
+       xft(2*i-1)=  q0(i)+ fp(2*i-1)
+       xft(2*i)  =  p0(i)  + fp(2*i)  
+      enddo
+
+   dv=0
+      do j=1,3
+       dv(j)=(qf(j)-xft(2*j-1))*e(1)
+       dv(j)=(pf(j)-xft(2*j))*e(2)+dv(j)
+      enddo
+
+         nmat=3
+   call matinv(mat,mat,nmat,nmat,ier)
+    dv=matmul(mat,dv)
+
+
+if(ier/=0) then
+ check_stable=.false.
+ write(6,*) "Unstable "
+ return
+ endif
+
+       qf=qf+e(1)*dv
+       pf=pf+e(2)*dv 
+       
+       do j=1,3
+         qf(j)=q0(j)+ fp(2*j-1)
+         pf(j)=p0(j)+ fp(2*j)
+      enddo
+ 
+!pause 1111
+ end subroutine newtow_searchr2
+
+subroutine newtow_eval(c,x,f,dl,k)
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp), INTENT(INout) :: x(6),f(6) 
     type(element), pointer :: mag   
     TYPE(INTERNAL_STATE) K 
-    real(dp) pz,onedelta,X(6),dl
-    real(dp) dir ,divr(3)
+    real(dp) pz,onedelta,dl
+    real(dp) dir  
     TYPE(TEAPOT),pointer :: EL
-    real(dp) b(3),VM,e(3),phi,mat(3,3)
-    integer i,nmat,ier
+    real(dp) b(3),VM,e(3),phi 
+    integer i  
     mag=>c%parent_fibre%mag
     el=>c%parent_fibre%mag%tp10
     IF(.NOT.EL%DRIFTKICK) stop 888
     DIR=EL%P%DIR*EL%P%CHARGE
-    do i=1,3
-     x(2*i-1)=q0(i)
-     x(2*i)=pf(i)
-    enddo
+
  
     call GETELECTRIC(EL,E,phi,B,VM,X,kick=my_true)
-    onedelta=root(1.0_dp+2.0_dp/c%parent_fibre%beta0*q0(3)+q0(3)**2)
+    onedelta=root(1.0_dp+2.0_dp/c%parent_fibre%beta0*x(5)+x(5)**2)
 if(.not.check_stable) return
 
 !!! Evaluation of the map of the generating function
-    pz=root(onedelta**2-pf(1)**2-pf(2)**2)
-     divr(1)=-mag%p%b0*pz
-    divr(1)=-DIR*B(1)+divr(1)
-    divr(2)=-DIR*B(2) 
-    divr(3)=-(1.0_dp+mag%p%b0*q0(1))*(1.0_dp/c%parent_fibre%beta0+q0(3))/pz 
-    divr(3)=divr(3)+1.0_dp/c%parent_fibre%beta0*(1-k%TOTALPATH)
+    pz=root(onedelta**2-x(2)**2-x(4)**2)
+    f(2)=mag%p%b0*pz
+    f(2)=DIR*B(1)+f(2)
+    f(4)=DIR*B(2) 
+    f(6)=(1.0_dp+mag%p%b0*x(1))*(1.0_dp/c%parent_fibre%beta0+x(5))/pz 
+    f(6)=f(6)-1.0_dp/c%parent_fibre%beta0*(1-k%TOTALPATH)
 
-    divr(1)=dl*divr(1)+pf(1)
-    divr(2)=dl*divr(2)+pf(2)
-    divr(3)=dl*divr(3)+pf(3)
+    f(2)=dl*f(2) 
+    f(4)=dl*f(4) 
+    f(6)=dl*f(6) 
 
-! computation of the derivative
-! this could be done with a compatible TPSA or by numerical differentiation
-!  it is not needed to be 100% exact
-    mat=0
-    mat(1,1)=1.0_dp+dl*pf(1)/pz
-    mat(1,2)= dl*pf(2)/pz
-    mat(2,2)=1.0_dp
-    mat(3,1)=-dl*(1.0_dp+mag%p%b0*q0(1))*(1.0_dp/c%parent_fibre%beta0+q0(3))/pz**3*pf(1)
-    mat(3,2)=-dl*(1.0_dp+mag%p%b0*q0(1))*(1.0_dp/c%parent_fibre%beta0+q0(3))/pz**3*pf(2)
-    mat(3,3)=1.0_dp
-    divr=pf0-divr
-    nmat=3
-   call matinv(mat,mat,nmat,nmat,ier)
-    divr=matmul(mat,divr)
-    pf=pf+divr
-!!! Evaluation of q final
-!!!! not needed except at the end but we can do it at every step also
-     qf(1)=q0(1)+dl*(1.0_dp+mag%p%b0*q0(1))*pf(1)/pz
-     qf(2)=q0(2)+dl*(1.0_dp+mag%p%b0*q0(1))*pf(2)/pz
-     qf(3)=q0(3) 
-    
+     f(1)= dl*(1.0_dp+mag%p%b0*x(1))*x(2)/pz
+     f(3)= dl*(1.0_dp+mag%p%b0*x(1))*x(4)/pz
+     f(5)= 0 
+ 
+  end subroutine newtow_eval
 
-  end subroutine newtow_searchr
-
-  subroutine track_mapp(c,xs,K)   !electric teapot s
+ 
+  subroutine track_mapp1(c,xs,fac,pos,K)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(probe_8), INTENT(INout) :: xs
@@ -1871,15 +2151,14 @@ if(.not.check_stable) return
     type(elementp), pointer :: mag   
 
     TYPE(INTERNAL_STATE) K
-    integer i,j(6),dir
-    type(real_8)  x(6),dl,q0(3),qf(3),pf0(3),pf(3),pz,divr(3)
+    integer i,j(6),dir,pos 
+    type(real_8)  x(6),dl,q0(3),qf(3),p0(3),pf(3),pz,divr(3),divp(3)
     type(c_damap) id
     type(damap) idp,id0
 !    real(dp) x0(6)
     type(real_8) b(3),VM,e(3),phi ,onedelta
     TYPE(TEAPOTP),pointer :: EL
-
-    call alloc(b);call alloc(vm);call alloc(e);call alloc(phi);
+    real(dp) fac
     mag=>c%parent_fibre%magp
     el=>c%parent_fibre%magp%tp10
 
@@ -1891,26 +2170,27 @@ if(.not.check_stable) return
     C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
     C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
     DIR=EL%P%DIR*EL%P%CHARGE
+ 
 
 if(c_%no>0) then
     call alloc(dl)
     call alloc(x)
     call alloc(q0)
     call alloc(qf)
-    call alloc(pf0)
+    call alloc(p0)
     call alloc(pf)
     call alloc(id)
     call alloc(idp,id0)
     call alloc(pz)
     call alloc(onedelta)
-    call alloc(divr)
     call alloc(b);call alloc(vm);call alloc(e);call alloc(phi);
     call alloc(divr)
+    call alloc(divp)
 endif
      xs0=xs
      xs1=xs
-      call track_mapr(c,xs1,K)
 
+      call track_mapr1(C,XS1,fac,pos,K)
  ! here I protect against the polymorph not being TPSA
  ! this is not sufficient.... 
  ! maybe the correct Julia implementation will be easier with Deniau's package
@@ -1927,32 +2207,46 @@ endif
      do i=1,6
       id0%v(i)=xs%x(i)-(xs%x(i).sub.'0')  ! removed the closed orbit
      enddo
-     x(1)=xs0%x(1)+dz_8(1)
-     x(3)=xs0%x(3)+dz_8(3)
-     x(5)=xs0%x(5)+dz_8(5)
-     x(2)=xs1%x(2)+dz_8(2)
-     x(4)=xs1%x(4)+dz_8(4)
-     x(6)=xs1%x(6)+dz_8(6)
- 
-     q0(1)=x(1)
-     q0(2)=x(3)
-     q0(3)=x(5)
-     pf(1)=x(2)
-     pf(2)=x(4)
-     pf(3)=x(6)
-
+     if(pos==2) then
+         x(1)=xs0%x(1)+dz_8(1)
+         x(3)=xs0%x(3)+dz_8(3)
+         x(5)=xs0%x(5)+dz_8(5)
+         x(2)=xs1%x(2)+dz_8(2)
+         x(4)=xs1%x(4)+dz_8(4)
+         x(6)=xs1%x(6)+dz_8(6)
+      
+         q0(1)=x(1)
+         q0(2)=x(3)
+         q0(3)=x(5)
+         pf(1)=x(2)
+         pf(2)=x(4)
+         pf(3)=x(6)
+      else
+         x(1)=xs1%x(1)+dz_8(1)
+         x(3)=xs1%x(3)+dz_8(3)
+         x(5)=xs1%x(5)+dz_8(5)
+         x(2)=xs0%x(2)+dz_8(2)
+         x(4)=xs0%x(4)+dz_8(4)
+         x(6)=xs0%x(6)+dz_8(6)
+      
+         qf(1)=x(1)
+         qf(2)=x(3)
+         qf(3)=x(5)
+         p0(1)=x(2)
+         p0(2)=x(4)
+         p0(3)=x(6)
+     endif
 !   evaluated the generating function as before
 !   by for polymorph
-     onedelta=sqrt(1.0_dp+2.0_dp/c%parent_fibre%beta0*q0(3)+q0(3)**2)
-
    dl=c%parent_fibre%magp%l/c%parent_fibre%magp%p%nst
 
-     call GETELECTRIC(EL,E,phi,B,VM,X,kick=my_true)
+    if(pos==2) then
+     onedelta=sqrt(1.0_dp+2.0_dp/c%parent_fibre%beta0*q0(3)+q0(3)**2)
+     call GETELECTRIC(EL,e,phi,B,VM,X,kick=my_true)
  
      pz=sqrt(onedelta**2-pf(1)**2-pf(2)**2)
- 
 
-     divr(1)=-mag%p%b0*pz
+    divr(1)=-mag%p%b0*pz
     divr(1)=-DIR*B(1)+divr(1)
     divr(2)=-DIR*B(2) 
     divr(3)=-(1.0_dp+mag%p%b0*q0(1))*(1.0_dp/c%parent_fibre%beta0+q0(3))/pz 
@@ -1964,19 +2258,58 @@ endif
     qf(1)=q0(1)+dl*(1.0_dp+mag%p%b0*q0(1))*pf(1)/pz
     qf(2)=q0(2)+dl*(1.0_dp+mag%p%b0*q0(1))*pf(2)/pz
     qf(3)=q0(3) 
+ else
+     onedelta=sqrt(1.0_dp+2.0_dp/c%parent_fibre%beta0*qf(3)+qf(3)**2)
+
+     call GETELECTRIC(EL,e,phi,B,VM,X,kick=my_true)
  
+     pz=sqrt(onedelta**2-p0(1)**2-p0(2)**2)
+
+
+    divp(1)=(1.0_dp+mag%p%b0*qf(1))*p0(1)/pz
+    divp(2)=(1.0_dp+mag%p%b0*qf(1))*p0(2)/pz
+    divp(3)=0.0_dp 
+    divp(1)=-dl*divp(1)+qf(1)
+    divp(2)=-dl*divp(2)+qf(2)
+    divp(3)=-dl*divp(3)+qf(3)
+
+    divr(1)=mag%p%b0*pz
+    divr(1)=DIR*B(1)+divr(1)
+    divr(2)=DIR*B(2) 
+    divr(3)=(1.0_dp+mag%p%b0*qf(1))*(1.0_dp/c%parent_fibre%beta0+qf(3))/pz 
+    divr(3)=divr(3)-1.0_dp/c%parent_fibre%beta0*(1-k%TOTALPATH)
+
+    pf(1)=dl*divr(1)+p0(1)
+    pf(2)=dl*divr(2)+p0(2)
+    pf(3)=dl*divr(3)+p0(3)
+endif
 !    Create a map around the closed orbit (Qf,P) as a function of (Q,PF)
+if(pos==2) then
     idp%v(2)=divr(1)-(divr(1).sub.'0')
     idp%v(4)=divr(2)-(divr(2).sub.'0')
     idp%v(6)=divr(3)-(divr(3).sub.'0')
     idp%v(1)=qf(1)-(qf(1).sub.'0')
     idp%v(3)=qf(2)-(qf(2).sub.'0')
     idp%v(5)=qf(3)-(qf(3).sub.'0')
- 
+else
+    idp%v(1)=divp(1)-(divp(1).sub.'0')
+    idp%v(3)=divp(2)-(divp(2).sub.'0')
+    idp%v(5)=divp(3)-(divp(3).sub.'0')
+    idp%v(2)=pf(1)-(pf(1).sub.'0')
+    idp%v(4)=pf(2)-(pf(2).sub.'0')
+    idp%v(6)=pf(3)-(pf(3).sub.'0')
+endif
+if(pos==2) then
     j=0
     j(2)=1
     j(4)=1
     j(6)=1
+else
+    j=0
+    j(1)=1
+    j(3)=1
+    j(5)=1
+endif
 !   Partially invert IDP around the closed orbit
 !   This operation is available in Matt's package  
 !   (QF,PF) as a function of (Q,P) but only the "DA" part
@@ -1995,19 +2328,20 @@ endif
     call kill(x)
     call kill(q0)
     call kill(qf)
-    call kill(pf0)
+    call kill(p0)
     call kill(pf)
     call kill(id)
     call kill(idp,id0)
     call kill(pz)
     call kill(onedelta)
-    call kill(divr)
     call kill(b);call kill(vm);call kill(e);call kill(phi);
     call kill(divr)
- if(.not.check_stable) stop 100
-  end subroutine track_mapp
+    call kill(divp)
 
-  subroutine track_mapr1(c,xs)   !electric teapot s
+ if(.not.check_stable) stop 100
+  end subroutine track_mapp1
+
+  subroutine track_mapr11(c,xs)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(probe), INTENT(INout) :: xs
@@ -2071,9 +2405,9 @@ endif
    xs%x(3)=xs%x(3)-c%parent_fibre%mag%an(1)/2.0_dp*xs%x(4)
   
 
-  end subroutine track_mapr1
+  end subroutine track_mapr11
 
-  subroutine track_mapp1(c,xs)   !electric teapot s
+  subroutine track_mapp11(c,xs)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(probe_8), INTENT(INout) :: xs
@@ -2158,7 +2492,7 @@ call kill(x)
 call kill(dl,k,rhoi,z)
 
 
-  end subroutine track_mapp1
+  end subroutine track_mapp11
 
   SUBROUTINE TRACK_NODE_FLAG_probe_R(C,XS,K)
     IMPLICIT NONE
