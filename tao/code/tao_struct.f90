@@ -454,7 +454,6 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta_merit^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
-  type (tao_spin_map_struct) :: spin_map
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above
@@ -467,6 +466,7 @@ type tao_data_struct
   logical :: good_plot = .true.            ! See above
   logical :: useit_plot = .false.          ! See above
   logical :: useit_opt = .false.           ! See above
+  type (tao_spin_map_struct) :: spin_map
   type (tao_d1_data_struct), pointer :: d1 => null() ! Pointer to the parent d1_data_struct 
   type (tao_eval_stack1_struct), allocatable :: stack(:)
 end type tao_data_struct
@@ -937,15 +937,14 @@ type tao_lattice_branch_struct
   type (coord_struct) orb0                                ! For saving beginning orbit
   type (normal_modes_struct) modes_ri                     ! Synchrotron integrals stuff
   type (normal_modes_struct) modes_6d                     ! 6D radiation matrices.
-  type (ptc_normal_form_struct) ptc_normal_form
-  type (bmad_normal_form_struct) bmad_normal_form
+  type (ptc_normal_form_struct) ptc_normal_form           ! Collection of normal form structures defined in PTC
+  type (bmad_normal_form_struct) bmad_normal_form         ! Collection of normal form structures defined in Bmad
   type (coord_struct), allocatable :: high_E_orb(:), low_E_orb(:)
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   real(rp) :: comb_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%ds_save
   integer track_state
   integer :: cache_n_pts = 0
   integer ix_rad_int_cache                                ! Radiation integrals cache index.
-  integer :: n_hterms = 0                                 ! Number of distinct res driving terms to evaluate.
   logical :: has_open_match_element = .false.
   logical :: plot_cache_valid = .false.                   ! Valid plotting data cache?
   logical :: spin_map_valid = .false.
