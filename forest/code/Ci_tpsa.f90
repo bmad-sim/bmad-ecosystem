@@ -19561,6 +19561,29 @@ endif
        mat=ma**(-1)
        t(1)%e_ij=ma%e_ij     !matmul(matmul(mat,ma%e_ij),transpose(mat))  not necessary I think
 
+if(.false.) then   !!!!  annoying prints
+call kanalnummer(mf,"taylor_series.txt")
+
+write(mf,*)" equation 20 "
+do i=1,6
+call print(mg(i),mf)
+enddo
+  write(mf,*)" 9 derivatives of equation 20" 
+do i=1,9
+write(mf,*) k1_spin(i),k2_spin(i)
+call print(mg(i),mf)
+enddo
+  write(mf,*)" linear part" 
+call print(l_s,mf)
+  write(mf,*)" Quantum fluctuation" 
+do i=1,6
+do j=1,6
+ write(mf,*) ma%e_ij(i,j)
+enddo
+enddo
+
+close(mf)
+endif
     call kill(m); call kill(mg);
     deallocate(M);    deallocate(Mg);
     call kill(L_r , N_r , N_s , L_s)
@@ -19683,7 +19706,7 @@ real(dp)  fix(6),mat(6,6) ,f0(6),stoch,r2,coe
 !real(dp), allocatable :: mm(:,:),vm(:)
 type(c_damap) m,minput
 type(c_taylor) t
-integer  i,inf,j
+integer  i,inf,j !,mberz
 type(tree_element_zhe), optional :: tree_zhe(:)
 
 character(255)  file_berz
@@ -19692,6 +19715,8 @@ type(tree_element), pointer :: forward(:) =>null()
 character(*),optional :: filef
  
   as_is0=.false.
+!file_berz="zhe1_berz"
+! call kanalnummer(mberz,file_berz)
 
 if(present(as_is)) as_is0=as_is
   
@@ -19769,7 +19794,7 @@ endif
 
 !call print(minput)
  call kill(m) 
-
+!close(mberz)
 end subroutine fill_tree_element_line_zhe_outside_map
 
   subroutine compute_lie_map_matrix_complex(T)  !,spin

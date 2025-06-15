@@ -34,11 +34,10 @@ type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
-type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
-real(rp) length, pc, E_ref_start, E_ref_end, s_now, s_end, kmat(6,6), phase, ds, f
-real(rp) p0c_start, p0c_end
+real(rp) length, pc, s_now, s_end, kmat(6,6), phase, ds, f, ff, dE
+real(rp) omega, mc2, pz_end, ez_field, dez_dz_field, gradient_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, direction
@@ -56,41 +55,37 @@ if (ele%value(rf_frequency$) == 0  .and. (ele%value(voltage$) /= 0 .or. ele%valu
   return
 endif
 
+! The lord will have the step information.
+! See the documentation for the rf_ele_struct for some details.
+
 length = orbit%time_dir * ele%value(l$)
 if (length == 0) return
 
 lord => pointer_to_super_lord(ele)
+mc2 = mass_of(orbit%species)
+n_steps = ubound(lord%rf%steps, 1)
 
-!
+direction = orbit%time_dir * orbit%direction 
+if (direction == 1) then
+  s_now = ele%s_start - lord%s_start
+  s_end = ele%s       - lord%s_start
+  ix_step_start = rf_step_index(ele%value(E_tot_start$), s_now, lord)
+  ix_step_end   = rf_step_index(ele%value(E_tot$), s_end, lord)
+else
+  s_now = ele%s       - lord%s_start
+  s_end = ele%s_start - lord%s_start
+  ix_step_start = rf_step_index(ele%value(E_tot$), s_now, lord)
+  ix_step_end   = rf_step_index(ele%value(E_tot_start$), s_end, lord)
+endif
+
+gradient_tot = direction * ele%value(gradient_tot$)
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
+!
+
 call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
-
-direction = orbit%time_dir * orbit%direction 
-if (direction == 1) then
-  E_ref_start = ele%value(E_tot_start$)
-  E_ref_end   = ele%value(E_tot$)
-  p0c_start   = ele%value(p0c_start$)
-  p0c_end     = ele%value(p0c$)
-  s_now = ele%s_start - lord%s_start
-  s_end = ele%s       - lord%s_start
-else
-  E_ref_start = ele%value(E_tot$)
-  E_ref_end   = ele%value(E_tot_start$)
-  p0c_start   = ele%value(p0c_start$)
-  p0c_end     = ele%value(p0c$)
-  s_now = ele%s       - lord%s_start
-  s_end = ele%s_start - lord%s_start
-endif
-
-! lord will have the step information.
-! See the documentation for the rf_ele_struct for some details.
-
-n_steps = ubound(lord%rf%steps, 1)
-ix_step_start = rf_step_index(E_ref_start, s_now, lord)
-ix_step_end   = rf_step_index(E_ref_end, s_end, lord)
 
 ! Beginning Edge
 ! Traveling_wave fringe (standing_wave fringe is built-in to the body formulas)
@@ -100,27 +95,34 @@ if (fringe_here(ele, orbit, first_track_edge$)) then
   call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
 
   if (nint(ele%value(cavity_type$)) == traveling_wave$) then
-    ds = bmad_com%significant_length / 10  ! Make sure inside field region
-    call em_field_calc (ele, param, ds, orbit, .true., field, logic_option(.false., make_matrix))
-    f = charge_of(orbit%species) / (2 * p0c_start)
+    ff = charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
+    f = ff / orbit%p0c
     pc = orbit%p0c * (1 + orbit%vec(6))
+    ez_field = gradient_tot * cos(phase)
+    omega = twopi * ele%value(rf_frequency$) / c_light
+    dez_dz_field = gradient_tot * sin(phase) * omega
+    dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
+    pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
 
-    if (logic_option(.false., make_matrix)) then
+    call to_energy_coords(orbit, mc2, mat6, make_matrix)
+
+    if (logic_option(.false., make_matrix)) then    
       call mat_make_unit(kmat)
-      kmat(2,1) = -f * (field%dE(3,1) * orbit%vec(1) + field%E(3))
-      kmat(2,3) = -f * field%dE(3,2) * orbit%vec(1) 
-      kmat(2,5) = -f * field%dE(3,3) * orbit%vec(1) * orbit%beta
-      kmat(2,6) =  f * field%E(3) * orbit%vec(1) * f / pc
-      kmat(4,1) = -f * field%dE(3,1) * orbit%vec(3)
-      kmat(4,3) = -f * (field%dE(3,2) * orbit%vec(3) + field%E(3))
-      kmat(4,5) = -f * field%dE(3,3) * orbit%vec(3) * orbit%beta
-      kmat(4,6) =  f * field%E(3) * orbit%vec(1) * f / pc
+      kmat(2,1) = -f * ez_field
+      kmat(2,5) = -f * dez_dz_field * orbit%vec(1) * orbit%beta
+      kmat(4,3) = -f * ez_field
+      kmat(4,5) = -f * dez_dz_field * orbit%vec(3) * orbit%beta
+      kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
+      kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
+      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega
       mat6 = matmul(kmat, mat6)
     endif
 
-    orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
-    orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
-    orbit%vec(6) = orbit%vec(6) - f * field%E(3) * orbit%vec(2) * orbit%vec(1)
+    orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
+    orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
+    orbit%vec(6) = orbit%vec(6) + dE
+  
+    call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
   endif
 endif
 
@@ -156,27 +158,35 @@ enddo
 
 if (fringe_here(ele, orbit, second_track_edge$)) then
   if (nint(ele%value(cavity_type$)) == traveling_wave$) then
-    ds = bmad_com%significant_length / 10  ! Make sure inside field region
-    call em_field_calc (ele, param, length - ds, orbit, .true., field, logic_option(.false., make_matrix))
-    f = -charge_of(orbit%species) / (2 * p0c_end)
+    phase = this_rf_phase(ix_step_start, orbit, lord)
+    ff = -charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
+    f = ff / orbit%p0c
+    pc = orbit%p0c * (1 + orbit%vec(6))
+    ez_field = gradient_tot * cos(phase)
+    omega = twopi * ele%value(rf_frequency$) / c_light
+    dez_dz_field = gradient_tot * sin(phase) * omega
+    dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
+    pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
+
+    call to_energy_coords(orbit, mc2, mat6, make_matrix)
 
     if (logic_option(.false., make_matrix)) then
       call mat_make_unit(kmat)
-      pc = orbit%p0c * (1 + orbit%vec(6))
-      kmat(2,1) = -f * (field%dE(3,1) * orbit%vec(1) + field%E(3))
-      kmat(2,3) = -f * field%dE(3,2) * orbit%vec(1) 
-      kmat(2,5) = -f * field%dE(3,3) * orbit%vec(1) * orbit%beta
-      kmat(2,6) =  f * field%E(3) * orbit%vec(1) * f / pc
-      kmat(4,1) = -f * field%dE(3,1) * orbit%vec(3)
-      kmat(4,3) = -f * (field%dE(3,2) * orbit%vec(3) + field%E(3))
-      kmat(4,5) = -f * field%dE(3,3) * orbit%vec(3) * orbit%beta
-      kmat(4,6) =  f * field%E(3) * orbit%vec(1) * f / pc
+      kmat(2,1) = -f * ez_field
+      kmat(2,5) = -f * dez_dz_field * orbit%vec(1) * orbit%beta
+      kmat(4,3) = -f * ez_field
+      kmat(4,5) = -f * dez_dz_field * orbit%vec(3) * orbit%beta
+      kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
+      kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
+      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega
       mat6 = matmul(kmat, mat6)
     endif
 
-    orbit%vec(2) = orbit%vec(2) - f * field%E(3) * orbit%vec(1)
-    orbit%vec(4) = orbit%vec(4) - f * field%E(3) * orbit%vec(3)
-    orbit%vec(6) = orbit%vec(6) - f * field%E(3) * orbit%vec(2) * orbit%vec(1)
+    orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
+    orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
+    orbit%vec(6) = orbit%vec(6) + dE
+
+    call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
   endif
 
   ! Coupler kick
@@ -209,7 +219,7 @@ contains
 function rf_step_index(E_ref, s_rel, lord) result (ix_step)
 
 type (ele_struct) :: lord
-real(rp) E_ref, dE, dE_rel, s_rel, kmat(6,6)
+real(rp) E_ref, dE, dE_rel, s_rel
 integer ix_step, n_step
 
 character(*), parameter :: r_name = 'rf_step_index'
@@ -265,7 +275,7 @@ type (ele_struct) lord
 type (rf_stair_step_struct) :: step
 
 real(rp) mat6(6,6)
-real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), E_start, E_end, dE, dE_amp, pz_end, p1c, dp0c
+real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), E_end, dE, dE_amp, pz_end, p1c, dp0c
 real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, m65
 
 integer direction
@@ -296,24 +306,14 @@ dE = dE_amp * cos(phase)
 rel_p = 1 + orbit%vec(6)
 pc_start = rel_p * orbit%p0c
 mc2 = mass_of(orbit%species)
-E_start = sqrt(pc_start**2 + mc2**2)
 pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 pc_end = (1 + pz_end) * orbit%p0c
 
-!-------------------------------------------------
-! Convert from (x, px, y, py, z, pz) to (x, x', y, y', c(t_ref-t), E) coords 
-
-if (logic_option(.false., make_matrix)) then
-  m2(1,:) = [1/orbit%beta, -orbit%vec(5) * mc2**2 * orbit%p0c / (pc_start**2 * E_start)]
-  m2(2,:) = [0.0_rp, orbit%p0c * orbit%beta]
-  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
-endif
-
-orbit%vec(5) = orbit%vec(5) / orbit%beta
-orbit%vec(6) = rel_p * orbit%p0c / orbit%beta
 
 !-------------------------------------------------
 ! Kick....
+
+call to_energy_coords(orbit, mc2, mat6, make_matrix)
 
 E_end = orbit%vec(6) + dE
 om = twopi * ele%value(rf_frequency$) / c_light
@@ -328,24 +328,12 @@ if (logic_option(.false., make_matrix)) then
   mat6(6,:) = mat6(6,:) + m65 * mat6(5,:)
 endif
 
-!-------------------------------------------------
-! Convert back from (x', y', c(t_ref-t), E) coords
+call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
 
-if (logic_option(.false., make_matrix)) then
-  rel_p = pc_end / orbit%p0c
-  m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 / (pc_end * E_end**2)]
-  m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
-
-  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
-endif
-
-orbit%vec(5) = orbit%vec(5) * orbit%beta
-orbit%vec(6) = pz_end
+call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
 
 !-------------------------------------------------
 ! Correct orbit%p0c
-
-call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
 
 !-------------------------------------------------
 ! Half the multipole kicks
@@ -376,5 +364,56 @@ endif
 phase = modulo2(phase, pi)
 
 end function this_rf_phase
+
+!---------------------------------------------------------------------------------------
+! contains
+
+subroutine to_energy_coords(orbit, mc2, mat6, make_matrix)
+
+type (coord_struct) orbit
+real(rp), optional :: mat6(6,6)
+real(rp) mc2, m2(2,2), pc
+logical, optional :: make_matrix
+
+! Convert from (z, pz) to (c(t0-t), E) coords 
+
+if (logic_option(.false., make_matrix)) then
+  pc = (1 + orbit%vec(6)) * orbit%p0c
+  m2(1,:) = [1/orbit%beta, -orbit%vec(5) * mc2**2 * orbit%p0c * orbit%beta / pc**3]
+  m2(2,:) = [0.0_rp, orbit%p0c * orbit%beta]
+  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
+endif
+
+orbit%vec(5) = orbit%vec(5) / orbit%beta
+orbit%vec(6) = (1 + orbit%vec(6)) * orbit%p0c / orbit%beta
+
+end subroutine to_energy_coords
+
+!---------------------------------------------------------------------------------------
+! contains
+
+subroutine to_momentum_coords(orbit, pz, mc2, mat6, make_matrix)
+
+type (coord_struct) orbit
+real(rp), optional :: mat6(6,6)
+real(rp) pz, mc2, m2(2,2), pc
+logical, optional :: make_matrix
+
+! Convert back from (c(t0-t), E) coords to (z, pz)
+! Note: pz is passed in as an argument to eliminate round-off error if pz were
+! to be calculated in this routine.
+
+if (logic_option(.false., make_matrix)) then
+  pc = (1 + pz) * orbit%p0c
+  m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 * orbit%beta**2 / pc**3]
+  m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
+
+  mat6(5:6,:) = matmul(m2, mat6(5:6,:))
+endif
+
+orbit%vec(5) = orbit%vec(5) * orbit%beta
+orbit%vec(6) = pz
+
+end subroutine to_momentum_coords
 
 end subroutine track_a_lcavity

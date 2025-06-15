@@ -159,7 +159,7 @@ module precision_constants
   ! Constant Symplectic integrator schemes
   real(dp) YOSK(0:4), YOSD(4),  butcher(8,8)    ! FIRST 6TH ORDER OF YOSHIDA
   real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
-  real(dp) ck8(11),bk8(11),ak8(11,11)
+  real(dp) ck8(11),bk8(11),ak8(11,11),yx0,yx1,wy1,wy2,wy3,wy0
   real(dp),parameter::AAA=-0.25992104989487316476721060727823e0_dp  ! fourth order integrator
   real(dp),parameter::FD1=0.5_dp/(1.0_dp+AAA),FD2=AAA*FD1,FK1=1.0_dp/(1.0_dp+AAA),FK2=(AAA-1.0_dp)*FK1
   ! end of symplectic integrator coefficients
@@ -174,7 +174,7 @@ module precision_constants
   !  LOGICAL(lp) :: ALLOW_TRACKING=.true.
   LOGICAL(lp),TARGET  :: CHECK_MADX_APERTURE=.TRUE.
   LOGICAL(lp),TARGET  :: APERTURE_FLAG=.true.
-
+  real(dp) wyo7,wyo6,wyo5,wyo4,wyo3,wyo2,wyo1,wyo0
   REAL(dp),TARGET   :: absolute_aperture=1.0_dp, t_aperture =1.d6
   integer,TARGET :: wherelost=0
   logical(lp),TARGET :: stable_da =.true.
@@ -436,7 +436,10 @@ contains
     IMPLICIT NONE
     integer i ,id 
     real(dp) a,b,b8,s21,ak
- 
+!!!! For implicit testin
+    yx0=1.0_dp/(2.0_dp-2.0_dp**(1.0_dp/3))
+    yx1=-2.0_dp**(1.0_dp/3)*yx0
+!!!!!!!
     YOSK(4)=0.0_dp
     if(quadruple) then
      YOSK(3)=0.784513610477557263819497633866351e0_dp
@@ -448,7 +451,10 @@ contains
      YOSK(1)=-1.17767998417887e0_dp
     endif
     YOSK(0)=1.0_dp-2.0_dp*(YOSK(1)+YOSK(2)+YOSK(3))
-
+wy0=YOSK(0)
+wy1=YOSK(1)
+wy2=YOSK(2)
+wy3=YOSK(3)
     do i=4,1,-1
        YOSD(i)=(YOSK(i)+YOSK(i-1))/2.0_dp
     enddo
@@ -527,7 +533,13 @@ wyosh(4)= -0.158240635368243E0_dp
 wyosh(5)= -0.144485223686048E1_dp 
 wyosh(6)= 0.253693336566229E0_dp  
 wyosh(7)= 0.914844246229740E0_dp  
-
+wyo1=wyosh(1)
+wyo2=wyosh(2)
+wyo3=wyosh(3)
+wyo4=wyosh(4)
+wyo5=wyosh(5)
+wyo6=wyosh(6)
+wyo7=wyosh(7)
 !wyosh(5,1)=0.227738840094906E-1_dp
 !wyosh(5,2)=0.252778927322839E1_dp
 !wyosh(5,3)=-0.719180053552772E-1_dp
@@ -542,6 +554,7 @@ wyosh(0)=1.0_dp
 do i=1,7
 wyosh(0)=wyosh(0)-2*wyosh(i)
 enddo
+wyo0=wyosh(0)
 
 !wyosh(0:7),wyoshid(0:15),wyoshik(15) 
 id=1
