@@ -20,6 +20,7 @@
 
 recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, why_invalid, called_from_lat_calc)
 
+use tao_init_data_mod, only: tao_add_to_normal_mode_h_array
 use tao_data_and_eval_mod, dummy => tao_evaluate_a_datum
 use pointer_lattice, only: operator(.sub.)
 use ptc_interface_mod, only: taylor_inverse
@@ -1685,6 +1686,7 @@ case ('normal.')
     return
   endif
 
+  if (sub_data_type(1:2) == 'h.') call tao_add_to_normal_mode_h_array(sub_data_type(3:8), bmad_nf%h)
 
   if (.not. associated(bmad_nf%ele_origin)) then
     ! Get resonant driving terms
@@ -1698,7 +1700,7 @@ case ('normal.')
   ! Get position of first number. 
   iz = index(sub_data_type, '.') + 1
   
-  if(sub_data_type(1:2) == 'h.') then
+  if (sub_data_type(1:2) == 'h.') then
     valid_value = .true.
     term_found = .false.
     do i=1, size(bmad_nf%h)

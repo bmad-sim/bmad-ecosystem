@@ -65,7 +65,6 @@ do i = lbound(s%u, 1), ubound(s%u,1)
   lat => s%u(i)%model%lat
   do j = 0, ubound(lat%branch, 1)
     n = max(n, lat%branch(j)%n_ele_max+10)
-    s%u(i)%model%tao_branch(j)%n_hterms = 0
   enddo
 enddo
 
@@ -296,7 +295,6 @@ type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_data_struct), pointer :: dat
-type (resonance_h_struct), allocatable :: h_temp(:)
 type (bmad_normal_form_struct), pointer :: norm_form
 
 real(rp) default_weight, default_meas
@@ -304,7 +302,6 @@ real(rp), allocatable :: s(:)
 
 integer i, n1, n2, ix, k, ix1, ix2, j, jj, n_d2, i_d1, has_associated_ele
 integer, allocatable :: ind(:)
-integer, pointer :: n_ht
 
 character(*) default_merit_type, default_data_source, default_data_type
 character(20) fmt
@@ -590,19 +587,8 @@ do j = n1, n2
     endif
 
     norm_form => u%model%tao_branch(dat%ix_branch)%bmad_normal_form
-    n_ht => u%model%tao_branch(dat%ix_branch)%n_hterms
-
     h_str = substr(dat%data_type, ix+k+8, ix+k+13)
-    found = .false.
-    if (allocated(norm_form%h)) found = any(h_str == norm_form%h(1:n_ht)%id)
-
-    if (.not. found) then
-      n_ht = n_ht + 1
-      call move_alloc (norm_form%h, h_temp)
-      allocate (norm_form%h(n_ht))
-      if (n_ht > 1) norm_form%h(1:n_ht-1) = h_temp
-      norm_form%h(n_ht)%id = h_str
-    endif
+    call tao_add_to_normal_mode_h_array(h_str, norm_form%h)
 
     if (len(dat%data_type) < ix + 20) exit
     ix = ix + k + 14
@@ -904,5 +890,46 @@ do n = lbound(data, 1), ubound(data, 1)
 enddo
 
 end subroutine tao_point_d1_to_data
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine tao_add_to_normal_mode_h_array(h_str, h_array)
+!
+! Routine to add on to the "h(:)" array holding the list of normal form
+! resonance driving terms to calculate.
+! If h_str is already in the h_array(:) list, nothing is done.
+!
+! Input:
+!   h_str         -- Character(6): Resonance driving term ID. EG: "110000"
+!
+! Output:
+!   h_array(:)    -- resonance_h_struct, allocatable: Array of resonance driving terms.
+!-
+
+subroutine tao_add_to_normal_mode_h_array(h_str, h_array)
+
+type(resonance_h_struct), allocatable :: h_array(:), h_temp(:)
+character(*) h_str
+integer n
+
+!
+
+if (.not. allocated(h_array)) then
+  allocate (h_array(1))
+  h_array(1)%id = h_str
+  return
+endif
+
+if (any(h_str == h_array(:)%id)) return
+
+n = size(h_array)
+call move_alloc (h_array, h_temp)
+allocate (h_array(n+1))
+h_array(1:n) = h_temp
+h_array(n+1)%id = h_str
+
+end subroutine tao_add_to_normal_mode_h_array
 
 end module
