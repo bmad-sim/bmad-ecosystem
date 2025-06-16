@@ -491,17 +491,19 @@ end subroutine lat_compute_ref_energy_and_time
 !
 ! Input:
 !   ele0           -- ele_struct: Previous element in lattice with starting energy and time values.
-!   ele            -- Ele_struct: Lattice element
+!   ele            -- ele_struct: Lattice element
 !     %time_ref_orb_in  -- Starting orbit for ref time calc.
 !   param          -- lat_Param_struct: Lattice parameters.
-!   err_flag       -- Logical: Set true if there is an error. False otherwise.
+!   err_flag       -- logical: Set true if there is an error. False otherwise.
+!   include_downstream_end -- logical, optional: Used for lcavity slave elements to decide if the
+!                               energy step at the cavity downstream end is to be included.
 !
 ! Output:
-!   ele         -- Ele_struct: Lattice element with reference energy and time.
+!   ele         -- ele_struct: Lattice element with reference energy and time.
 !     %time_ref_orb_out  -- Ending orbit for ref time calc.
 !-
 
-subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
+subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag, include_downstream_end)
 
 use bmad_interface, dummy => ele_compute_ref_energy_and_time
 use radiation_mod, only: track1_radiation
@@ -519,8 +521,10 @@ type (bmad_common_struct) bmad_com_saved
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, p0c, p1c, phase, velocity, abs_tol(3), scale, dE_ref, dE_amp
 real(rp) value_saved(num_ele_attrib$), ele_ref_time, t, ds, beta, E_tot0, E_tot1, fac, dp0c
 
-integer i, n, key
+integer i, n, key, i0, i1
+integer, parameter :: const_ref_energy$ = -999
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
+logical, optional :: include_downstream_end
 
 character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
@@ -549,7 +553,7 @@ ele%time_ref_orb_out%location = downstream_end$
 ele%time_ref_orb_out%s = ele%s
 
 key = ele%key
-if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = lcavity$
+if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = const_ref_energy$
 
 if (key == converter$) then
   ele%ref_species = ele%converter%species_out
@@ -577,10 +581,10 @@ case (converter$)
     call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))
   endif
 
-case (lcavity$)
+case (lcavity$, const_ref_energy$)
 
-  ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put 
-  ! in a temp value if needed. This does not affect the phase & amp adjustment.
+  ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put in a temp value. 
+  ! This does not affect the phase & amp adjustment.
   if (ele%value(e_tot$) == 0) then
     ele%value(E_tot$) = ele%value(e_tot_start$)      
     ele%value(p0c$) = ele%value(p0c_start$)
@@ -588,51 +592,70 @@ case (lcavity$)
     call attribute_bookkeeper(ele, .true.)
   endif
 
+  ! Autoscale will set %value(E_tot$) and %value(p0c$).
   if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
     if (err) goto 9000
   endif
 
   do_track = .true.
+
   n = nint(ele%value(n_rf_steps$))
+  if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$ .and. n > 0) then
 
-  if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%key == lcavity$ .and. &
-                                                              ele%tracking_method == bmad_standard$ .and. n > 0) then
-    if (.not. associated(ele%rf)) allocate(ele%rf)
-    if (allocated(ele%rf%steps)) then
-      if (ubound(ele%rf%steps, 1) /= n+1) deallocate(ele%rf%steps)
-    endif
-    if (.not. allocated(ele%rf%steps)) allocate(ele%rf%steps(0:n+1))
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+      lord => pointer_to_super_lord(ele)
+      i0 = ele_rf_step_index(-1.0_rp, ele%s_start - lord%s_start, lord)
+      i1 = ele_rf_step_index(-1.0_rp, ele%s - lord%s_start, lord, include_downstream_end)
 
-    t = 0.0_rp
-    scale = 1.0_rp / n
-    ds = ele%value(l$) * scale
-    ele%rf%ds_step = ds
+      ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
+      ele%value(p0c$) = lord%rf%steps(i1)%p0c
 
-    dE_ref = (ele%value(E_tot$) - ele%value(E_tot_start$)) * scale
-    dE_amp = (ele%value(voltage$) + ele%value(voltage_err$)) * scale
-    E_tot0 = ele%value(E_tot_start$)
-    E_tot1 = E_tot0 + 0.5_rp * dE_ref
-    p0c = ele%value(p0c_start$)
-    dp0c = dpc_given_dE(p0c, mass_of(ele%ref_species), 0.5_rp * dE_ref)
-    p1c = p0c + dp0c
-    ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp)
+      t = (lord%rf%steps(i0)%s - ele%s_start) * lord%rf%steps(i0)%dtime / lord%rf%ds_step
+      if (i1 /= i0) t = t + (ele%s - lord%rf%steps(i1)%s) * lord%rf%steps(i1)%dtime / lord%rf%ds_step
+      
+      do i = i0+1, i1-1
+        t = t + lord%rf%steps(i)%dtime
+      enddo
 
-    fac = 1.0_rp
-    do i = 1, n
-      beta = p0c / E_tot0
-      E_tot0 = E_tot1
-      p0c = p1c
-      if (i == n) fac = 0.5_rp
-      E_tot1 = E_tot0 + fac * dE_ref
-      dp0c = dpc_given_dE(p0c, mass_of(ele%ref_species), fac * dE_ref)
+    else
+      if (.not. associated(ele%rf)) allocate(ele%rf)
+      if (allocated(ele%rf%steps)) then
+        if (ubound(ele%rf%steps, 1) /= n+1) deallocate(ele%rf%steps)
+      endif
+      if (.not. allocated(ele%rf%steps)) allocate(ele%rf%steps(0:n+1))
+
+      t = 0.0_rp
+      scale = 1.0_rp / n
+      ds = ele%value(l$) * scale
+      ele%rf%ds_step = ds
+
+      dE_ref = (ele%value(E_tot$) - ele%value(E_tot_start$)) * scale
+      dE_amp = (ele%value(voltage$) + ele%value(voltage_err$)) * scale
+      E_tot0 = ele%value(E_tot_start$)
+      E_tot1 = E_tot0 + 0.5_rp * dE_ref
+      p0c = ele%value(p0c_start$)
+      dp0c = dpc_given_dE(p0c, mass_of(ele%ref_species), 0.5_rp * dE_ref)
       p1c = p0c + dp0c
-      t = t + ds / (c_light * beta)
-      ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, fac*dE_amp, fac*scale, t, i * ds)
-    enddo
+      ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp)
 
-    ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), 0.0_rp, 0.0_rp, &
-                                                                                      real_garbage$, real_garbage$, real_garbage$)
+      fac = 1.0_rp
+      do i = 1, n
+        beta = p0c / E_tot0
+        E_tot0 = E_tot1
+        p0c = p1c
+        if (i == n) fac = 0.5_rp
+        E_tot1 = E_tot0 + fac * dE_ref
+        dp0c = dpc_given_dE(p0c, mass_of(ele%ref_species), fac * dE_ref)
+        p1c = p0c + dp0c
+        t = t + ds / (c_light * beta)
+        ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, fac*dE_amp, fac*scale, t, i * ds)
+      enddo
+
+      ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), 0.0_rp, 0.0_rp, &
+                                                                                        real_garbage$, real_garbage$, real_garbage$)
+    endif
+
     ele%ref_time = ref_time_start + t
     do_track = .false.
   endif

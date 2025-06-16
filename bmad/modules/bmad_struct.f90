@@ -1284,25 +1284,28 @@ type foil_struct
 end type
 
 ! rf_stair_step_struct: Single energy stair step. Used in rf_ele_struct.
+! A single step is a drift followed by an energy kick.
 
 type rf_stair_step_struct
-  real(rp) :: E_tot0 = 0      ! Reference energy before kick. 
-  real(rp) :: E_tot1 = 0      ! Reference energy after kick.
-  real(rp) :: p0c = 0         ! Reference momentum before kick.
+  real(rp) :: E_tot0 = 0      ! Reference energy in the drift region before the kick point. 
+  real(rp) :: E_tot1 = 0      ! Reference energy after the kick point.
+  real(rp) :: p0c = 0         ! Reference momentum in the drift region (before the kick point).
   real(rp) :: dp0c = 0        ! Change in reference momentum
   real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid.
-  real(rp) :: scale = 0       ! Scale for multipole kicks. Sum over all steps will be 1.
-  real(rp) :: dtime = 0       ! Reference Time at energy kick with respect to beginning of element.
-  real(rp) :: s = 0           ! S-position at kick from beginning of element.
+  real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
+  real(rp) :: dtime = 0       ! Reference Time at the kick point with respect to beginning of element.
+  real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
 end type
 
 ! Element RF parameter struct.
-! rf_ele_struct%steps(0:) is and array of steps indexed from zero.
-! A single step is a drift followed by an energy kick with the
-! the first and last energy kicks being half of the interior kicks.
+! rf_ele_struct%steps(0:N+1) is and array of steps from zero to N+1 where N = ele%value(n_rf_steps$).
+! A single step is a drift followed by an energy kick.
+! The first and last kicks are at the element ends with the
+! the end kicks being half of the interior kicks.
 ! Exceptions:
 !   The zeroth step is just the initial kick (no drift).
-!   The last step is a "phantom" (no drift and no kick) that just holds the final energy value.
+!   The last (N+1)th step is a "phantom" (no drift and no kick) that just holds the final energy value.
+! Note: ele%rf is not allocated for slice and super slaves.
 
 type rf_ele_struct
   type (rf_stair_step_struct), allocatable :: steps(:)      ! Energy stair step array indexed from zero.

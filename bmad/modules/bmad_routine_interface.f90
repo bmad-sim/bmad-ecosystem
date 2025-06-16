@@ -1081,14 +1081,23 @@ function e_accel_field (ele, voltage_or_gradient, bmad_standard_tracking) result
   logical, optional :: bmad_standard_tracking
 end function
 
-recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
+recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag, include_downstream_end)
   import
   implicit none
   type (ele_struct), target :: ele0, ele
   type (lat_param_struct) param
   real(rp) e_tot_start, p0c_start, ref_time_start
   logical err_flag
+  logical, optional :: include_downstream_end
 end subroutine
+
+function ele_full_name (ele, template) result (str)
+  import
+  implicit none
+  type (ele_struct) ele
+  character(*), optional :: template
+  character(:), allocatable :: str
+end function
 
 recursive subroutine ele_geometry (floor_start, ele, floor_end, len_scale, ignore_patch_err)
   import
@@ -1138,14 +1147,6 @@ function ele_loc_name (ele, show_branch0, parens) result (str)
   character(10) str
 end function
 
-function ele_full_name (ele, template) result (str)
-  import
-  implicit none
-  type (ele_struct) ele
-  character(*), optional :: template
-  character(:), allocatable :: str
-end function
-
 subroutine ele_misalignment_L_S_calc (ele, L_mis, S_mis)
   import
   implicit none
@@ -1189,6 +1190,15 @@ subroutine ele_reference_energy_correction (ele, orbit, particle_at, mat6, make_
   integer particle_at
   logical, optional :: make_matrix
 end subroutine
+
+function ele_rf_step_index(E_ref, s_rel, ele, include_downstream_end) result (ix_step)
+  import
+  implicit none
+  type (ele_struct) :: ele
+  real(rp) E_ref, s_rel
+  integer ix_step
+  logical, optional :: include_downstream_end
+end function
 
 subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
   import
