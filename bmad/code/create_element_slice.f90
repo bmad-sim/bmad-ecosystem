@@ -232,7 +232,7 @@ else
 endif
 
 ele0%ref_species = ele_in%ref_species
-call ele_compute_ref_energy_and_time (ele0, sliced_ele, param, err2_flag)
+call ele_compute_ref_energy_and_time (ele0, sliced_ele, param, err2_flag, include_downstream_end)
 if (err2_flag) return
 
 if (.not. include_upstream_end) sliced_ele%time_ref_orb_in%location = inside$

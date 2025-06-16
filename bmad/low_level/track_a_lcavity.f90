@@ -69,13 +69,13 @@ direction = orbit%time_dir * orbit%direction
 if (direction == 1) then
   s_now = ele%s_start - lord%s_start
   s_end = ele%s       - lord%s_start
-  ix_step_start = rf_step_index(ele%value(E_tot_start$), s_now, lord)
-  ix_step_end   = rf_step_index(ele%value(E_tot$), s_end, lord)
+  ix_step_start = ele_rf_step_index(ele%value(E_tot_start$), s_now, lord)
+  ix_step_end   = ele_rf_step_index(ele%value(E_tot$), s_end, lord)
 else
   s_now = ele%s       - lord%s_start
   s_end = ele%s_start - lord%s_start
-  ix_step_start = rf_step_index(ele%value(E_tot$), s_now, lord)
-  ix_step_end   = rf_step_index(ele%value(E_tot_start$), s_end, lord)
+  ix_step_start = ele_rf_step_index(ele%value(E_tot$), s_now, lord)
+  ix_step_end   = ele_rf_step_index(ele%value(E_tot_start$), s_end, lord)
 endif
 
 gradient_tot = direction * ele%value(gradient_tot$)
@@ -198,75 +198,6 @@ call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix
 
 !---------------------------------------------------------------------------------------
 contains
-
-!+
-! Function rf_step_index(E_ref, s_rel, lord) result (ix_step)
-!
-! Routine to return the step index at a particular s-position or referece energy.
-!
-! E_ref is used in the computation instead of s_rel since s_rel is ambiguous if
-! s_rel corresponds to a slice boundary.
-!
-! Input:
-!   E_ref         -- real(rp): Reference energy of step
-!   s_rel         -- real(rp): S-position relative to the beginning of the element
-!   lord          -- real(rp): RF cavity.
-!
-! Output:
-!   ix_step       -- integer: Corresponding index in the lord%rf%steps(:) array.
-!-
-
-function rf_step_index(E_ref, s_rel, lord) result (ix_step)
-
-type (ele_struct) :: lord
-real(rp) E_ref, dE, dE_rel, s_rel
-integer ix_step, n_step
-
-character(*), parameter :: r_name = 'rf_step_index'
-
-! The step index corres
-
-if (.not. associated(lord%rf)) then
-  call out_io(s_error$, r_name, 'MISSING RF STEP BOOKKEEPING PARAMETERS. PLEASE REPORT THIS! FOR ELEMENT ' // ele_full_name(lord))
-  return
-endif
-
-n_step = ubound(lord%rf%steps, 1) - 1  ! Number of slices
-dE = lord%value(E_tot$) - lord%value(E_tot_start$)
-
-! dE == 0 case. Must use s_rel in this case.
-
-if (dE == 0) then
-  if (s_rel == 0) then
-    ix_step = 0
-  elseif (s_rel == lord%value(l$)) then
-    ix_step = n_step + 1
-  else
-    ix_step = nint(n_step * s_rel / lord%value(l$)) + 1
-  endif
-  return
-endif
-
-! dE /= 0 case
-
-ix_step = nint(2.0_rp * n_step * (E_ref - lord%value(E_tot_start$)) / dE)
-if (ix_step == 2*n_step) then
-  ix_step = n_step + 1
-elseif (ix_step > 0) then
-  ix_step = (ix_step + 1) / 2
-endif
-
-! Sanity check
-
-if (abs(E_ref - lord%rf%steps(ix_step)%E_tot0) > 1.0e-10 * (lord%value(E_tot$) + lord%value(E_tot_start$))) then
-  call out_io(s_error$, r_name, 'RF STEP BOOKKEEPING FAILURE. PLEASE REPORT THIS!  FOR ELEMENT ' // ele_full_name(lord))
-  return
-endif
-
-end function rf_step_index
-
-!---------------------------------------------------------------------------------------
-! contains
 
 subroutine this_energy_kick(orbit, lord, step, direction, mat6, make_matrix)
 
