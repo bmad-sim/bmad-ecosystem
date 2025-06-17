@@ -34,10 +34,11 @@ type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
+type (rf_stair_step_struct), pointer :: stair
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, pc, s_now, s_end, kmat(6,6), phase, ds, f, ff, dE
-real(rp) omega, mc2, pz_end, ez_field, dez_dz_field, gradient_tot
+real(rp) omega, mc2, pz_end, ez_field, dez_dz_field, gradient_tot, ks_rel
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, direction
@@ -109,18 +110,18 @@ if (fringe_here(ele, orbit, first_track_edge$)) then
     if (logic_option(.false., make_matrix)) then    
       call mat_make_unit(kmat)
       kmat(2,1) = -f * ez_field
-      kmat(2,5) = -f * dez_dz_field * orbit%vec(1) * orbit%beta
+      kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
       kmat(4,3) = -f * ez_field
-      kmat(4,5) = -f * dez_dz_field * orbit%vec(3) * orbit%beta
+      kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
       kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
       kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
-      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega
+      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
       mat6 = matmul(kmat, mat6)
     endif
 
     orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
     orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
-    orbit%vec(6) = orbit%vec(6) + dE
+    orbit%vec(6) = orbit%vec(6) - dE
   
     call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
   endif
@@ -128,26 +129,39 @@ endif
 
 ! Body
 
+ks_rel = ele%value(ks$) * ele%value(p0c$)
+
 do ix_step = ix_step_start, ix_step_end, direction
+  stair => lord%rf%steps(ix_step)
+
   if (ix_step == ix_step_end) then
     ! Drift to end. The first and last steps have no drift section.
     if (ix_step == 0 .or. ix_step == n_steps) cycle
     ds = s_end - s_now
-    call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
-!!    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
+    if (ele%value(ks$) == 0) then
+      call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+    else
+      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix, ks_rel/orbit%p0c, stair%p0c/stair%E_tot0)
+    endif
 
   else
     ! Drift to edge of step and kick
     if (direction == 1) then
-      ds = lord%rf%steps(ix_step)%s - s_now
-      call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
-!!      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
-      s_now = lord%rf%steps(ix_step)%s
-      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step), direction, mat6, make_matrix)
+      ds = stair%s - s_now
+      if (ele%value(ks$) == 0) then
+        call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+      else
+        call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix, ks_rel/orbit%p0c, stair%p0c/stair%E_tot0)
+      endif
+      s_now = stair%s
+      call this_energy_kick(orbit, lord, stair, direction, mat6, make_matrix)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
-      call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
-!!      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix)
+      if (ele%value(ks$) == 0) then
+        call track_a_drift(orbit, ds, mat6, make_matrix, ele%orientation)
+      else
+        call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_matrix, ks_rel/orbit%p0c, stair%p0c/stair%E_tot0)
+      endif
       s_now = lord%rf%steps(ix_step-1)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction, mat6, make_matrix)
     endif
@@ -173,18 +187,18 @@ if (fringe_here(ele, orbit, second_track_edge$)) then
     if (logic_option(.false., make_matrix)) then
       call mat_make_unit(kmat)
       kmat(2,1) = -f * ez_field
-      kmat(2,5) = -f * dez_dz_field * orbit%vec(1) * orbit%beta
+      kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
       kmat(4,3) = -f * ez_field
-      kmat(4,5) = -f * dez_dz_field * orbit%vec(3) * orbit%beta
+      kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
       kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
       kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
-      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega
+      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
       mat6 = matmul(kmat, mat6)
     endif
 
     orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
     orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
-    orbit%vec(6) = orbit%vec(6) + dE
+    orbit%vec(6) = orbit%vec(6) - dE
 
     call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
   endif
@@ -239,7 +253,6 @@ pc_start = rel_p * orbit%p0c
 mc2 = mass_of(orbit%species)
 pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 pc_end = (1 + pz_end) * orbit%p0c
-
 
 !-------------------------------------------------
 ! Kick....
