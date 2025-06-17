@@ -1,5 +1,5 @@
 !+
-! Subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix)
+! Subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix, ks, beta_ref)
 !
 ! Routine to track a particle through a solenoid element.
 !
@@ -10,13 +10,14 @@
 !   start_orb    -- Coord_struct: Starting position.
 !   mat6(6,6)    -- real(rp), optional :: Transfer matrix befor solenoid. 
 !   make_matrix  -- Logical, optional: If True then make the transfer matrix.
+!   ks
 !
 ! Output:
 !   end_orb      -- Coord_struct: End position.
 !   mat6(6,6)    -- real(rp), optional :: Transfer matrix with solenoid included. 
 !-
 
-subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix)
+subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix, ks, beta_ref)
 
 use bmad_routine_interface, except_dummy => solenoid_track_and_mat
 
@@ -26,21 +27,28 @@ type (ele_struct), target :: ele
 type (lat_param_struct) param
 type (coord_struct) start_orb, end_orb
 
-real(rp), optional :: mat6(:,:)
-real(rp) ks, rel_p, length, kss, c, s, c2, s2, cs, c2s2, ll, kssl, kssl2, ks0, kss0
-real(rp) mat4(4,4), xp, yp, pz, rel_tracking_charge, ff, e_tot, lpz
+real(rp), optional :: mat6(:,:), beta_ref, ks
+real(rp) ks_rel, rel_p, length, kss, c, s, c2, s2, cs, c2s2, ll, kssl, kssl2, ks0, kss0
+real(rp) mat4(4,4), xp, yp, pz, rel_tracking_charge, ff, e_tot, lpz, ref_beta
 real(rp) dpz_dx, dpz_dpx, dpz_dy, dpz_dpy, vec0(6), xmat(6,6)
 
 logical, optional :: make_matrix
 
 !
 
+rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
+
+if (present(ks)) then
+  ref_beta = beta_ref
+  ks0 = rel_tracking_charge * ks
+else
+  ref_beta = ele%value(p0c$) / ele%value(E_tot$)
+  ks0 = rel_tracking_charge * ele%value(ks$)
+endif
+
 vec0 = start_orb%vec
 end_orb = start_orb
 rel_p = 1 + start_orb%vec(6)
-rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
-
-ks0 = rel_tracking_charge * ele%value(ks$)
 kss0 = ks0 / 2
 
 xp = end_orb%vec(2) + kss0 * end_orb%vec(3)
@@ -52,10 +60,10 @@ if (ff <= 0) then
 endif
 pz = sqrt(ff)
 
-end_orb%vec(5) = end_orb%vec(5) + length * (end_orb%direction*(end_orb%beta * ele%value(E_tot$) / ele%value(p0c$)) - rel_p/pz)
+end_orb%vec(5) = end_orb%vec(5) + length * (end_orb%direction * end_orb%beta /ref_beta - rel_p/pz)
 
-ks = ks0 / pz
-kss = ks / 2
+ks_rel = ks0 / pz
+kss = ks_rel / 2
 kssl = kss * length 
 
 if (abs(length * kss) < 1d-10) then
@@ -99,12 +107,7 @@ endif
 
 end_orb%vec(1:4) = matmul (mat4, vec0(1:4))
 end_orb%t = end_orb%t + length * rel_p / (pz * end_orb%beta * c_light)
-
-if (end_orb%direction == 1) then
-  end_orb%s = ele%s
-else
-  end_orb%s = ele%s_start
-endif
+end_orb%s = end_orb%s + length * end_orb%direction
 
 ! Mat6
 
@@ -168,8 +171,8 @@ xmat(6,6) = 1
 
 ! xmat(5,6) 
 
-e_tot = ele%value(p0c$) * (1 + vec0(6)) / start_orb%beta
-xmat(5,6) = length * (mass_of(start_orb%species)**2 * ele%value(e_tot$) / e_tot**3 - 1/pz + (rel_p/pz)**2 / pz)
+e_tot = end_orb%p0c * (1 + vec0(6)) / start_orb%beta
+xmat(5,6) = length * (mass_of(start_orb%species)**2 * end_orb%p0c/ (ref_beta * e_tot**3) - 1/pz + (rel_p/pz)**2 / pz)
 
 mat6 = matmul(xmat, mat6)
 
