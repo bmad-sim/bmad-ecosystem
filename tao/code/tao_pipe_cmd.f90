@@ -8418,6 +8418,7 @@ end function parse_int
 subroutine orbit_out (orbit)
 
 type (coord_struct) orbit
+integer i
 
 nl=incr(nl); write (li(nl), rmt) 'x;REAL;F;',                                orbit%vec(1)
 nl=incr(nl); write (li(nl), rmt) 'px;REAL;F;',                               orbit%vec(2)
@@ -8766,7 +8767,7 @@ integer n_signif
 character(:), allocatable :: str
 character(40) string
 
-string = real_to_string(r, 20, n_signif = n_signif)
+string = real_to_string(r, 30, n_signif = n_signif)
 allocate (character(len_trim(adjustl(string))):: str)
 str = trim(adjustl(string))
 
@@ -8779,8 +8780,11 @@ function rstr(r) result (str)
 
 real(rp) r
 character(:), allocatable :: str
+character(40) string
 
-str = re_str(r, 16)
+string = real_to_string(r, 30, n_signif = 16)
+allocate (character(len_trim(adjustl(string))):: str)
+str = trim(adjustl(string))
 
 end function rstr
 
@@ -9184,6 +9188,7 @@ end function parse_ele_with_s_offset
 subroutine bunch_params_out (bunch_params)
 
 type (bunch_params_struct) bunch_params
+integer i, j
 
 !
 
