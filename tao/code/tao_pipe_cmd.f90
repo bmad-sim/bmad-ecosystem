@@ -2774,7 +2774,7 @@ case ('ele:gen_attribs')
     case (is_integer$)
       nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
     case (is_real$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, a)') trim(a_name), ';REAL;', free, ';', rstr(ele%value(i))
       nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele)
@@ -8771,6 +8771,18 @@ allocate (character(len_trim(adjustl(string))):: str)
 str = trim(adjustl(string))
 
 end function re_str
+
+!----------------------------------------------------------------------
+! contains
+
+function rstr(r) result (str)
+
+real(rp) r
+character(:), allocatable :: str
+
+str = re_str(r, 16)
+
+end function rstr
 
 !----------------------------------------------------------------------
 ! contains
