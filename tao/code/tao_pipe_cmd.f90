@@ -2774,7 +2774,7 @@ case ('ele:gen_attribs')
     case (is_integer$)
       nl=incr(nl); write (li(nl), '(2a, l1, a, i0)') trim(a_name), ';INT;', free, ';', nint(ele%value(i))
     case (is_real$)
-      nl=incr(nl); write (li(nl), '(2a, l1, a, es22.14)') trim(a_name), ';REAL;', free, ';', ele%value(i)
+      nl=incr(nl); write (li(nl), '(2a, l1, a, a)') trim(a_name), ';REAL;', free, ';', rstr(ele%value(i))
       nl=incr(nl); write (li(nl), '(4a)') 'units#', trim(a_name), ';STR;F;', attrib%units
     case (is_switch$)
       name = switch_attrib_value_name (a_name, ele%value(i), ele)
@@ -8418,6 +8418,7 @@ end function parse_int
 subroutine orbit_out (orbit)
 
 type (coord_struct) orbit
+integer i
 
 nl=incr(nl); write (li(nl), rmt) 'x;REAL;F;',                                orbit%vec(1)
 nl=incr(nl); write (li(nl), rmt) 'px;REAL;F;',                               orbit%vec(2)
@@ -8766,11 +8767,26 @@ integer n_signif
 character(:), allocatable :: str
 character(40) string
 
-string = real_to_string(r, 20, n_signif = n_signif)
+string = real_to_string(r, 30, n_signif = n_signif)
 allocate (character(len_trim(adjustl(string))):: str)
 str = trim(adjustl(string))
 
 end function re_str
+
+!----------------------------------------------------------------------
+! contains
+
+function rstr(r) result (str)
+
+real(rp) r
+character(:), allocatable :: str
+character(40) string
+
+string = real_to_string(r, 30, n_signif = 16)
+allocate (character(len_trim(adjustl(string))):: str)
+str = trim(adjustl(string))
+
+end function rstr
 
 !----------------------------------------------------------------------
 ! contains
@@ -9172,6 +9188,7 @@ end function parse_ele_with_s_offset
 subroutine bunch_params_out (bunch_params)
 
 type (bunch_params_struct) bunch_params
+integer i, j
 
 !
 

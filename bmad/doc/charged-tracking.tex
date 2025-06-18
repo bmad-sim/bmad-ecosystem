@@ -1138,22 +1138,71 @@ This gives the map
 \end{alignat}
 The generalization when the kick is not in the horizontal plane is easily derived.
 
+\newpage
+
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{LCavity Tracking}
 \label{s:lcavity.std}
 \index{lcavity}
 
-When integration through RF fields with \vn{field_calc} set to \vn{bmad_standard} and
+When track by integrating through RF fields with \vn{field_calc} set to \vn{bmad_standard} and
 \vn{tracking_method} set to something like \vn{runge_kutta}, the fields are modeled by the equations
-given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}.
+given in Sections~\sref{s:rf.fields} and \sref{s:rf.fringe}. The \vn{bmad_standard} fields, with a
+phase velocity equal to the speed of light, are appropriate for high energy particles traveling near
+the speed of light. However, for lower energy particles, the actual fields in a cavity are likely to
+have been designed with a lower phase velocity and this will cause a mismatch between simulation and
+reality.
 
-For \vn{bmad_standard} tracking, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
-trajectory through an \vn{Lcavity} is modeled using equations developed by Rosenzweig and
-Serafini\cite{b:rosenzweig} (R\&S).
-The transport equations in R\&S were developed in the ultra-relativistic limit with $\beta = 1$.  To
-extend these equations to lower energies, the transport through the cavity body (R\&S Eq.~(9)) has
-been modified to give the correct phase-space area at non ultra-relativistic energies:
+For \vn{bmad_standard} tracking, a drift-kick model is used where the particle trajectory is modeled
+such that the reference particle has a constant RF phase at the kick points even at low
+velocities.\footnote
+  {
+Developing a 6D symplectic model which continuous acceleration and constant RF phase for the
+reference particle proved too messy mainly due to the fact that at low energies it was found to
+be cumbersome to calculate the appropriate RF phase at any given s-position.
+  }
+The cavity is divided up into equal width sections with the number of sections $N_s$ equal to
+the setting of the \vn{n_rf_steps} parameter. Within a section particles are tracked as if in a
+field free region (or with a solenoid component if the element's solenoid strength is
+non-zero). Energy kicks are applied at the ends of the element and in between sections with the
+kicks at the ends being half that of the kicks applied in the interior. The voltage used for the
+interior kicks are:
+\begin{equation}
+  V_{kick} = \frac{r_q \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
+\end{equation}
+See \Eq{dergl}. The reference RF phase $\phi_\REF(n)$ at a $n$\Th kick point is obtained from the
+reference RF phase $\phi_\REF(0)$ at the beginning of the element with a phase offset due to the
+transit time from the beginning to the kick point of the reference particle:
+\begin{equation}
+  \phi_\REF(n) = \phi_\REF(0) + \sum_{j = 1}^n t_{0j}
+\end{equation}
+where $t_0j = L / c \beta_{0j} \, N_s$ is the transit time of the reference particle across the
+$j$\Th section with $L$ being the element length, and $\beta_{0j}$ the velocity of the reference
+particle in the $j$\Th section. With this construction, a particle on the zero orbit will see a
+constant RF phase.
+
+Cavities have a first order transverse kick in the fringe field regions at both the entrance and
+exit ends. Following Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S), the kicks are taken to be
+\begin{equation}
+  \Delta x' = \mp \frac{\gamma'}{2 \gamma}
+\end{equation}
+With a similar equation for $\Delta y'$. Here $\gamma$ is the particle's gamma factor and $\gamma'$
+is the acceleration $d\gamma/ds$.  To make the fringe kick symplectic the following Hamiltonian is
+used
+\begin{equation}
+  H_{fringe} = \frac{q}{2 \, q_{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
+\end{equation}
+where $q$ is the particle charge, $q_{ref}$ if the reference particle charge, $P_0$ is the reference momentum.
+This Hamiltonian is applied in the 
+
+%\spellspell
+
+, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
+trajectory through an \vn{Lcavity} is modeled using equations developed by The transport equations in R\&S were developed in the
+ultra-relativistic limit with $\beta = 1$.  To extend these equations to lower energies, the
+transport through the cavity body (R\&S Eq.~(9)) has been modified to give the correct phase-space
+area at non ultra-relativistic energies:
 \begin{equation}
   \begin{pmatrix}
     x \\ 

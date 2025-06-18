@@ -89,42 +89,39 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
 
 ! Beginning Edge
-! Traveling_wave fringe (standing_wave fringe is built-in to the body formulas)
 
 if (fringe_here(ele, orbit, first_track_edge$)) then
   phase = this_rf_phase(ix_step_start, orbit, lord)
   call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_matrix)
 
-  if (nint(ele%value(cavity_type$)) == traveling_wave$) then
-    ff = charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
-    f = ff / orbit%p0c
-    pc = orbit%p0c * (1 + orbit%vec(6))
-    ez_field = gradient_tot * cos(phase)
-    omega = twopi * ele%value(rf_frequency$) / c_light
-    dez_dz_field = gradient_tot * sin(phase) * omega
-    dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
-    pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
+  ff = charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
+  f = ff / orbit%p0c
+  pc = orbit%p0c * (1 + orbit%vec(6))
+  ez_field = gradient_tot * cos(phase)
+  omega = twopi * ele%value(rf_frequency$) / c_light
+  dez_dz_field = gradient_tot * sin(phase) * omega
+  dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
+  pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
 
-    call to_energy_coords(orbit, mc2, mat6, make_matrix)
+  call to_energy_coords(orbit, mc2, mat6, make_matrix)
 
-    if (logic_option(.false., make_matrix)) then    
-      call mat_make_unit(kmat)
-      kmat(2,1) = -f * ez_field
-      kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
-      kmat(4,3) = -f * ez_field
-      kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
-      kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
-      kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
-      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
-      mat6 = matmul(kmat, mat6)
-    endif
-
-    orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
-    orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
-    orbit%vec(6) = orbit%vec(6) - dE
-  
-    call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
+  if (logic_option(.false., make_matrix)) then    
+    call mat_make_unit(kmat)
+    kmat(2,1) = -f * ez_field
+    kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
+    kmat(4,3) = -f * ez_field
+    kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
+    kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
+    kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
+    kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
+    mat6 = matmul(kmat, mat6)
   endif
+
+  orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
+  orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
+  orbit%vec(6) = orbit%vec(6) - dE
+
+  call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
 endif
 
 ! Body
@@ -171,40 +168,37 @@ enddo
 ! End Edge
 
 if (fringe_here(ele, orbit, second_track_edge$)) then
-  if (nint(ele%value(cavity_type$)) == traveling_wave$) then
-    phase = this_rf_phase(ix_step_start, orbit, lord)
-    ff = -charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
-    f = ff / orbit%p0c
-    pc = orbit%p0c * (1 + orbit%vec(6))
-    ez_field = gradient_tot * cos(phase)
-    omega = twopi * ele%value(rf_frequency$) / c_light
-    dez_dz_field = gradient_tot * sin(phase) * omega
-    dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
-    pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
+  phase = this_rf_phase(ix_step_start, orbit, lord)
+  ff = -charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
+  f = ff / orbit%p0c
+  pc = orbit%p0c * (1 + orbit%vec(6))
+  ez_field = gradient_tot * cos(phase)
+  omega = twopi * ele%value(rf_frequency$) / c_light
+  dez_dz_field = gradient_tot * sin(phase) * omega
+  dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
+  pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
 
-    call to_energy_coords(orbit, mc2, mat6, make_matrix)
+  call to_energy_coords(orbit, mc2, mat6, make_matrix)
 
-    if (logic_option(.false., make_matrix)) then
-      call mat_make_unit(kmat)
-      kmat(2,1) = -f * ez_field
-      kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
-      kmat(4,3) = -f * ez_field
-      kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
-      kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
-      kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
-      kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
-      mat6 = matmul(kmat, mat6)
-    endif
-
-    orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
-    orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
-    orbit%vec(6) = orbit%vec(6) - dE
-
-    call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
+  if (logic_option(.false., make_matrix)) then
+    call mat_make_unit(kmat)
+    kmat(2,1) = -f * ez_field
+    kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
+    kmat(4,3) = -f * ez_field
+    kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
+    kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
+    kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
+    kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
+    mat6 = matmul(kmat, mat6)
   endif
 
+  orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
+  orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
+  orbit%vec(6) = orbit%vec(6) - dE
+
+  call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
+
   ! Coupler kick
-  phase = this_rf_phase(ix_step_end, orbit, lord)
   call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_matrix)
 endif
 
@@ -226,7 +220,7 @@ real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, m65
 integer direction
 logical make_matrix
 
-! Half the multipole kicks
+! Multipole half kicks
 
 scale = 0.5_rp * step%scale
 
@@ -255,7 +249,12 @@ pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 pc_end = (1 + pz_end) * orbit%p0c
 
 !-------------------------------------------------
-! Kick....
+! Standing wave transverse half kick
+
+
+
+!-------------------------------------------------
+! Energy kick
 
 call to_energy_coords(orbit, mc2, mat6, make_matrix)
 
@@ -277,10 +276,7 @@ call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
 call orbit_reference_energy_correction(orbit, dp0c, mat6, make_matrix)
 
 !-------------------------------------------------
-! Correct orbit%p0c
-
-!-------------------------------------------------
-! Half the multipole kicks
+! Multipole half kicks
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, length*scale, mat6, make_matrix)
@@ -347,8 +343,9 @@ logical, optional :: make_matrix
 ! Note: pz is passed in as an argument to eliminate round-off error if pz were
 ! to be calculated in this routine.
 
+pc = (1 + pz) * orbit%p0c
+
 if (logic_option(.false., make_matrix)) then
-  pc = (1 + pz) * orbit%p0c
   m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 * orbit%beta**2 / pc**3]
   m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
 
