@@ -224,14 +224,17 @@ particular parameters of any given simulation and so must be
 determined by the program using \bmad.
 
 %-----------------------------------------------------------------------------
-\section{Phase Space Coordinates Difference Between MAD and Bmad}
+\section{MAD Energy-Time Phase Space Coordinates}
+\label{energy.phase.space}
 
 \index{phase space coordinates!MAD convention}
 \index{MAD!phase space convention}
-\mad uses a different coordinate system where $(z, p_z)$ is replaced by $(-c\Delta t, p_t)$ where
-\begin{equation}
-  p_t \equiv \frac{\Delta E}{P_0 c}
-\end{equation}
-For highly relativistic particles the two coordinate systems are identical.
-This difference must be keept in mind when comparing results between \bmad and \mad. For example,
-the calculated dispersion will not be the same except in the ultra relativistic limit.
+\mad uses a different coordinate system where $(z, p_z)$ is replaced by $(\tau, p_\tau)$ where
+\begin{align}
+  \tau & \equiv -c \, \Delta t = \frac{z}{\beta} \\
+  p_\tau &\equiv \frac{\Delta E}{P_0 c} = \frac{E}{P_0 \, c} - \frac{1}{\beta_0} 
+\end{align}
+Where $E$ is the total energy, and $\beta_0$ is the reference velocity. For highly relativistic
+particles the two coordinate systems are identical.  This difference must be keept in mind when
+comparing results between \bmad and \mad. For example, the calculated dispersion will not be the
+same except in the ultra relativistic limit.
