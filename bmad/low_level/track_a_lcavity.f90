@@ -343,8 +343,9 @@ logical, optional :: make_matrix
 ! Note: pz is passed in as an argument to eliminate round-off error if pz were
 ! to be calculated in this routine.
 
+pc = (1 + pz) * orbit%p0c
+
 if (logic_option(.false., make_matrix)) then
-  pc = (1 + pz) * orbit%p0c
   m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 * orbit%beta**2 / pc**3]
   m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
 
