@@ -1138,13 +1138,14 @@ This gives the map
 \end{alignat}
 The generalization when the kick is not in the horizontal plane is easily derived.
 
-\newpage
-
 %---------------------------------------------------------------------------------
 %---------------------------------------------------------------------------------
 \section{LCavity Tracking}
 \label{s:lcavity.std}
 \index{lcavity}
+
+%---------------------------------------------------------------------------------
+\subsection{Integrating through RF fields}
 
 When track by integrating through RF fields with \vn{field_calc} set to \vn{bmad_standard} and
 \vn{tracking_method} set to something like \vn{runge_kutta}, the fields are modeled by the equations
@@ -1154,7 +1155,10 @@ the speed of light. However, for lower energy particles, the actual fields in a 
 have been designed with a lower phase velocity and this will cause a mismatch between simulation and
 reality.
 
-For \vn{bmad_standard} tracking, a drift-kick model is used where the particle trajectory is modeled
+%---------------------------------------------------------------------------------
+\subsection{drift-kick model}
+
+With \vn{bmad_standard} tracking, a drift-kick model is used where the particle trajectory is modeled
 such that the reference particle has a constant RF phase at the kick points even at low
 velocities.\footnote
   {
@@ -1162,18 +1166,21 @@ Developing a 6D symplectic model which continuous acceleration and constant RF p
 reference particle proved too messy mainly due to the fact that at low energies it was found to
 be cumbersome to calculate the appropriate RF phase at any given s-position.
   }
-The cavity is divided up into equal width sections with the number of sections $N_s$ equal to
-the setting of the \vn{n_rf_steps} parameter. Within a section particles are tracked as if in a
-field free region (or with a solenoid component if the element's solenoid strength is
-non-zero). Energy kicks are applied at the ends of the element and in between sections with the
-kicks at the ends being half that of the kicks applied in the interior. The voltage used for the
-interior kicks are:
+The cavity is divided up into equal width sections with the number of sections $N_s$ equal to the
+setting of the \vn{n_rf_steps} parameter. Within a section particles are tracked as if in a field
+free region (or with a solenoid component if the element's solenoid strength is non-zero). Energy
+kicks are applied at the ends of the element and in between sections with the kicks at the ends
+being half that of the kicks applied in the interior. The voltage at a kick point is:
 \begin{equation}
-  V_{kick} = \frac{r_q \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
+  V_{kick} = \frac{r_q \, \kappa \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
 \end{equation}
-See \Eq{dergl}. The reference RF phase $\phi_\REF(n)$ at a $n$\Th kick point is obtained from the
-reference RF phase $\phi_\REF(0)$ at the beginning of the element with a phase offset due to the
-transit time from the beginning to the kick point of the reference particle:
+See \Eq{dergl} for a description of the parameters in the equation. Here $\kappa$ is 0.5 for the end
+kick points and is unity for interior kick points.
+
+The reference energy in each section is adjusted to match the energy of the reference particle
+(which has $\phi_t = 0$ by definition).  The reference RF phase $\phi_\REF(n)$ at a $n$\Th kick
+point is obtained from the reference RF phase $\phi_\REF(0)$ at the beginning of the element with a
+phase offset due to the transit time from the beginning to the kick point of the reference particle:
 \begin{equation}
   \phi_\REF(n) = \phi_\REF(0) + \sum_{j = 1}^n t_{0j}
 \end{equation}
@@ -1182,109 +1189,120 @@ $j$\Th section with $L$ being the element length, and $\beta_{0j}$ the velocity 
 particle in the $j$\Th section. With this construction, a particle on the zero orbit will see a
 constant RF phase.
 
+Other than affecting the reference time at each kick point, the adjusting of the reference energy
+in each section will affect the plotting of phase space momentum coordinates since these
+are normalized to $P_0$ (\sref{s:phase.space}).
+
+%---------------------------------------------------------------------------------
+\subsection{Edge kick}
+
 Cavities have a first order transverse kick in the fringe field regions at both the entrance and
-exit ends. Following Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S), the kicks are taken to be
+exit ends. Following Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) Eq.~(12), the kicks are taken
+to be at the entrance and exit ends:
 \begin{equation}
-  \Delta x' = \mp \frac{\gamma'}{2 \gamma}
+  \Delta x' = \mp \frac{\gamma'}{2 \gamma} x
 \end{equation}
-With a similar equation for $\Delta y'$. Here $\gamma$ is the particle's gamma factor and $\gamma'$
-is the acceleration $d\gamma/ds$.  To make the fringe kick symplectic the following Hamiltonian is
-used
+With a similar equation for $\Delta y'$. Here the minus sign is for the entrance end and the plus
+sign is for the exit end, $\gamma$ is the particle's gamma factor, and $\gamma'$ is the acceleration
+$d\gamma/ds$.
+
+To make the fringe kick symplectic, the following Hamiltonian is used
 \begin{equation}
-  H_{fringe} = \frac{q}{2 \, q_{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
+  H_\txt{fringe} = \mp \frac{q}{2 \, q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
 \end{equation}
-where $q$ is the particle charge, $q_{ref}$ if the reference particle charge, $P_0$ is the reference momentum.
-This Hamiltonian is applied in the 
+where $q$ is the particle charge, $q_\txt{ref}$ if the reference particle charge, $P_0$ is the
+reference momentum.  Since $\phi_t = 2 \pi f_\txt{rf} \, t$ is time dependent, it is easiest to use
+this Hamiltonian in energy-time phase space coordinates (\sref{energy.phase.space}) to give the
+fringe kicks:
+\begin{align}
+  \Delta p_x &= \frac{\partial H_\txt{fringe}}{\partial x} 
+              = \mp \frac{q}{q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, x \CRNO
+  \Delta p_y &= \frac{\partial H_\txt{fringe}}{\partial y} 
+              = \mp\frac{q}{q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, y \\
+  \Delta p_\tau &= \frac{\partial H_\txt{fringe}}{\partial \tau} 
+                 = \mp \frac{\pi \, f_\txt{rf} \, q}{q_\txt{ref} \, P_0 \, c^2} G_t \, \sin(\phi_t + \phi_\REF) \, (x^2 + y^2)
+      \nonumber
+\end{align}
 
-, and with \vn{cavity_type} set to \vn{standing_wave}, the transverse
-trajectory through an \vn{Lcavity} is modeled using equations developed by The transport equations in R\&S were developed in the
-ultra-relativistic limit with $\beta = 1$.  To extend these equations to lower energies, the
-transport through the cavity body (R\&S Eq.~(9)) has been modified to give the correct phase-space
-area at non ultra-relativistic energies:
+%---------------------------------------------------------------------------------
+\subsection{Standing wave focusing: the pondermotive force}
+
+A \vn{LCavity}'s \vn{cavity_type} can be set to either \vn{traveling_wave} or
+\vn{standing_wave}. The traveling wave cavity is modeled as single forward propagating wave while
+with a the standing wave cavity, \bmad models the cavity as the superposition of a single forward
+propagating wave and a single backward propagating wave. In both cases there are no harmonics.  In
+both cases, it is the forward traveling wave that gives both acceleration and the edge kick.  The
+difference between the two cavity types is that with a standing wave cavity, there is an extra
+transverse focusing force called the ``ponderomotive force''.
+
+The time averaged transverse radial kick $\Fbar_r$ is modeled using R\&S Eq~(4):\footnote
+  {
+Notice that R\&S Eq~(4) is missing a minus sign.
+  }
 \begin{equation}
-  \begin{pmatrix}
-    x \\ 
-    x'
-  \end{pmatrix}_2 = \sqrt{\frac{\beta_1}{\beta_2}} \, 
-  \begin{pmatrix}
-    \cos(\alpha)  &
-        \sqrt{\frac{8}{\eta(\Delta\phi)}} \, \frac{\, \gamma_1}{\gamma'} \, \cos(\Delta\phi) \, \sin(\alpha) \\
-    -\sqrt{\frac{\eta(\Delta\phi)}{8}} \, \frac{\gamma'}{\gamma_2 \, \cos(\Delta\phi)} \, \sin(\alpha) &
-        \frac{\gamma_1}{\gamma_2} \, \cos(\alpha)
-  \end{pmatrix}
-  \,
-  \begin{pmatrix}
-    x \\ 
-    x'
-  \end{pmatrix}_1
-  \label{xxpc}
+  \Fbar =  \eta(\phi) \, \frac{(q G_t)^2}{8 \gamma \, m \, c^2} \, r
 \end{equation}
-The added factor of $\sqrt{\beta_1/\beta_2}$ gives the matrix the correct determinant of $\beta_1 \,
-\gamma_1 / \beta_2 \, \gamma_2$. {\em While the added factor of $\sqrt{\beta_1/\beta_2}$ does
-correct the phase space area, the above equation can only be considered as a rough approximation for
-simulating particles when $\beta$ is significantly different from 1. Indeed, the only accurate way
-to simulate such particles is by integrating through the actual field [Cf.~Runge Kutta tracking
-(\sref{s:tkm})]}.
+with $r$ being the radius, and $\phi = \phi_t + \phi_\REF$. Since there are
+no harmonics, $\eta(\phi)$ is unity (see discussion after R\&S Eq.~(13)). The transverse force is
+included in the drift-kick model by adding a transverse kick at the kick points.
+This transverse kick is
+\begin{align}
+  \Delta p_x &= -\frac{\kappa \, L}{N_s} \frac{1}{8 \cos^2(\phi)} \left( \frac{\gamma'}{\gamma} \right)^2 x \CRNO
+  &= -\frac{q \, \kappa G_t}{q_\REF \, m \, c^2} \frac{1}{8}
+\end{align}
+The kick is always focusing and is independent of any RF phase. The reason for the phase
+independence is due to the fact that the phase of the backwards propagating wave with respect to the
+forward propagating particle is rapidly varying. The formulas above are for the kick averaged over
+all phases and therefore the phase dependence has been eliminated.
 
-Using all the $b_n$ set to zero except $b_0 = 1$ and $b_{-1} = 1$ (see R\&S Eq.~(4)),
-$\eta(\delta\phi)$ is unity.
-
-For non ultra-relativistic particles, the problem with using \Eq{xxpc} is that it is difficult to
-compute a self-consistent RF phase for points interior to the cavity. For this reason a drift-kick
-model is employed where the cavity is divided into a number of equally spaced slices with RF kicks
-given at the edge of the slices and in between there is a field free region where the particle can
-balisticly drift. The voltage $V_k$ applied at the interior slice boundries is $ V_k =
-V\cos(\phi)/n_{slice}$ where $V$ is the total RF voltage, $\phi$ is the RF phase, and $n_{slice}$ is
-the number of slices. At the edges of the element the kick is half this $V_k =
-V\cos(\phi)/2n_{slice}$. The kick is adapted from \Eq{xxpc}:
+To keep the ponderomotive force tracking symplectic, a Hamiltonian is used:
 \begin{equation}
-  \begin{pmatrix}
-    x \\ 
-    x'
-  \end{pmatrix}_2 = 
-  \begin{pmatrix}
-    1  & 0 \\
-    -\sqrt{\frac{1}{8}} \, \frac{\gamma'}{\gamma_2 \, \cos(\Delta\phi)} &
-        \frac{\beta_1 \, \gamma_1}{\beta_2 \, \gamma_2}
-  \end{pmatrix}
-  \,
-  \begin{pmatrix}
-    x \\ 
-    x'
-  \end{pmatrix}_1
-  \label{xxpc2}
+  H_p = (x^2 + y_2)
 \end{equation}
-where $\gamma'$ is computed assuming a gradient of $V_k / L_{slice}$ where $L_{slice}$ is the length of 
-the slices.
+Thus similar to the fringe kick, there is an associated energy kick due to the ponderomotive force. In energy-time
+phase space coordinates this is:
+\begin{align}
+  \Delta p_x &= \CRNO
+  \Delta p_x &= \\
+  \Delta p_\tau &= \nonumber 
+\end{align}
 
-Note that the above transport equations are only symplectic on-axis There are second order terms in
-the transverse coordinates that are missing. To obtain a proper symplectic matrix, the
-\vn{symplectify} attribute of an \vn{lcavity} element (\sref{s:symp}) can be set to True.
-
+%-----------------------------------------------------------------------------------------
 %-----------------------------------------------------------------------------------------
 \section{Magnus Spin Tracking}
 \label{s:magnus}
 \index{magnus spin tracking}
 
-The \vn{magnus} spin tracking method uses an analytical Magnus expansion of the T-BMT equation to track spins. 
-Currently, the supported lattice elements are bends (including bends with $k_1 \neq 0$), quadrupoles, solenoids, and sextupoles.
-Many other elements are treated as drifts \sref{s:spin.methods}.
+The \vn{Magnus} spin tracking method uses an analytical Magnus expansion of the T-BMT equation to
+track spins.  Currently, the supported lattice elements are bends (including bends with $k_1 \neq
+0$), quadrupoles, solenoids, and sextupoles.  Many other elements are treated as drifts
+\sref{s:spin.methods}.
 
-One way to obtain approximate spin-transfer maps is to truncate the flow of the T-BMT equation to a given order in the entrance phase-space coordinates.
-The SPRINT method \sref{s:sprint.std} uses this idea at first order. The resulting map will generally not be a rotation, e.g., if quaternions are used, the map will
-not have unit norm. The idea behind the Magnus expansion is to find an approximate map which is also a rotation. Since the exact solution must be an
-element of the Lie group SU(2), it can be written as $\exp(F)$, where $F$ belongs to the Lie algebra of SU(2). The Magnus expansion provides a power
-expansion of $F$ which belongs to the Lie algebra of SU(2) at every order~\cite{b:magnus}.
+One way to obtain approximate spin-transfer maps is to truncate the flow of the T-BMT equation to a
+given order in the entrance phase-space coordinates.  The SPRINT method \sref{s:sprint.std} uses
+this idea at first order. The resulting map will generally not be a rotation, e.g., if quaternions
+are used, the map will not have unit norm. The idea behind the Magnus expansion is to find an
+approximate map which is also a rotation. Since the exact solution must be an element of the Lie
+group SU(2), it can be written as $\exp(F)$, where $F$ belongs to the Lie algebra of SU(2). The
+Magnus expansion provides a power expansion of $F$ which belongs to the Lie algebra of SU(2) at
+every order~\cite{b:magnus}.
 
-In SU(2), the T-BMT equation is given by Eq.~\eqref{tbmt-spinor}. This can be written in the standard form $\Psi'(s)=A(s)\Psi(s)$. The Magnus expansion gives the second-order solution as $\Psi(L)=\exp(F_1+F_2)\Psi(0)$, where
+In SU(2), the T-BMT equation is given by Eq.~\eqref{tbmt-spinor}. This can be written in the
+standard form $\Psi'(s)=A(s)\Psi(s)$. The Magnus expansion gives the second-order solution as
+$\Psi(L)=\exp(F_1+F_2)\Psi(0)$, where
 \begin{equation}
 F_1 = \int_0^LA(s)\,ds \quad \mathrm{and} \quad F_2=\frac{1}{2}\int_0^Lds_1\int_0^{s_1}ds_2\,[A(s_1),A(s_2)].
 \end{equation}
-Once the trajectory through a magnet is known, $A(s)$ is known as well. We then expand $A(s)$ as a power series in the entrance coordinates which change through the magnet (i.e, all orders of $p_z$ are retained in magnetic elements and all orders of $p_y$ are retained in a pure bend). The truncation to first- and second-order will be written as $A^{(1)}(s)$ and $A^{(2)}(s)$, respectively. The truncation of the exponent $F$ to second-order is then
+Once the trajectory through a magnet is known, $A(s)$ is known as well. We then expand $A(s)$ as a
+power series in the entrance coordinates which change through the magnet (i.e, all orders of $p_z$
+are retained in magnetic elements and all orders of $p_y$ are retained in a pure bend). The
+truncation to first- and second-order will be written as $A^{(1)}(s)$ and $A^{(2)}(s)$,
+respectively. The truncation of the exponent $F$ to second-order is then
 \begin{equation}
 F^{(2)}=\int_0^LA^{(2)}(s)\,ds+\frac{1}{2}\int_0^Lds_1\int_0^{s_1}ds_2\,[A^{(1)}(s_1),A^{(1)}(s_2)].
 \end{equation}
-The spin-transfer map is found by exponentiating $F^{(2)}$, which yields an element of SU(2) by nature of the Magnus expansion.
+The spin-transfer map is found by exponentiating $F^{(2)}$, which yields an element of SU(2) by
+nature of the Magnus expansion.
 
 
 %---------------------------------------------------------------------------------
