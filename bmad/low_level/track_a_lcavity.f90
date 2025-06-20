@@ -111,15 +111,15 @@ if (fringe_here(ele, orbit, first_track_edge$)) then
     kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
     kmat(4,3) = -f * ez_field
     kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
-    kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
-    kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
-    kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
+    kmat(6,1) = -ff * dez_dz_field * orbit%vec(1) / orbit%p0c
+    kmat(6,3) = -ff * dez_dz_field * orbit%vec(3) / orbit%p0c
+    kmat(6,5) = -ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2 / orbit%p0c
     mat6 = matmul(kmat, mat6)
   endif
 
   orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
   orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
-  orbit%vec(6) = orbit%vec(6) - dE
+  orbit%vec(6) = orbit%vec(6) + dE / orbit%p0c
 
   call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
 endif
@@ -186,15 +186,15 @@ if (fringe_here(ele, orbit, second_track_edge$)) then
     kmat(2,5) = -f * dez_dz_field * orbit%vec(1)
     kmat(4,3) = -f * ez_field
     kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
-    kmat(6,1) = -ff * dez_dz_field * orbit%vec(1)
-    kmat(6,3) = -ff * dez_dz_field * orbit%vec(3)
-    kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2
+    kmat(6,1) = -ff * dez_dz_field * orbit%vec(1) / orbit%p0c
+    kmat(6,3) = -ff * dez_dz_field * orbit%vec(3) / orbit%p0c
+    kmat(6,5) = -ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2  / orbit%p0c
     mat6 = matmul(kmat, mat6)
   endif
 
   orbit%vec(2) = orbit%vec(2) - f * ez_field * orbit%vec(1)
   orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
-  orbit%vec(6) = orbit%vec(6) - dE
+  orbit%vec(6) = orbit%vec(6) + dE / orbit%p0c
 
   call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
 
@@ -214,8 +214,8 @@ type (ele_struct) lord
 type (rf_stair_step_struct) :: step
 
 real(rp) mat6(6,6)
-real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), E_end, dE, dE_amp, pz_end, p1c, dp0c
-real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, m65
+real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), dE, dE_amp, pz_end, p1c, dp0c
+real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE
 
 integer direction
 logical make_matrix
@@ -258,17 +258,13 @@ pc_end = (1 + pz_end) * orbit%p0c
 
 call to_energy_coords(orbit, mc2, mat6, make_matrix)
 
-E_end = orbit%vec(6) + dE
-om = twopi * ele%value(rf_frequency$) / c_light
-m65 = om * dE_amp * sin(phase)
-
 ! Update to new energy
 
-orbit%vec(6) = E_end
-orbit%beta = pc_end / orbit%vec(6)
+orbit%vec(6) = orbit%vec(6) + dE / orbit%p0c
 
 if (logic_option(.false., make_matrix)) then
-  mat6(6,:) = mat6(6,:) + m65 * mat6(5,:)
+  om = twopi * ele%value(rf_frequency$) / c_light
+  mat6(6,:) = mat6(6,:) + (om * dE_amp * sin(phase) / orbit%p0c) * mat6(5,:)
 endif
 
 call to_momentum_coords(orbit, pz_end, mc2, mat6, make_matrix)
@@ -320,12 +316,12 @@ logical, optional :: make_matrix
 if (logic_option(.false., make_matrix)) then
   pc = (1 + orbit%vec(6)) * orbit%p0c
   m2(1,:) = [1/orbit%beta, -orbit%vec(5) * mc2**2 * orbit%p0c * orbit%beta / pc**3]
-  m2(2,:) = [0.0_rp, orbit%p0c * orbit%beta]
+  m2(2,:) = [0.0_rp, orbit%beta]
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
 
 orbit%vec(5) = orbit%vec(5) / orbit%beta
-orbit%vec(6) = (1 + orbit%vec(6)) * orbit%p0c / orbit%beta
+orbit%vec(6) = (1 + orbit%vec(6)) / orbit%beta
 
 end subroutine to_energy_coords
 
@@ -344,11 +340,11 @@ logical, optional :: make_matrix
 ! to be calculated in this routine.
 
 pc = (1 + pz) * orbit%p0c
+orbit%beta = pc / (orbit%p0c * orbit%vec(6))
 
 if (logic_option(.false., make_matrix)) then
-  m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 * orbit%beta**2 / pc**3]
-  m2(2,:) = [0.0_rp, 1 / (orbit%p0c * orbit%beta)]
-
+  m2(1,:) = [orbit%beta, orbit%vec(5) * mc2**2 * orbit%p0c * orbit%beta**2 / pc**3]
+  m2(2,:) = [0.0_rp, 1.0_rp / orbit%beta]
   mat6(5:6,:) = matmul(m2, mat6(5:6,:))
 endif
 
