@@ -161,7 +161,7 @@ if (this_merit <= 0.98*merit_min_type .or. t_delta > 10) then
   merit_min_type = merit_min
 endif
 
-if (this_merit < 1e-10 .and. s%com%all_merit_weights_positive) then
+if (this_merit < s%global%merit_stop_value .and. s%com%all_merit_weights_positive) then
   call out_io (s_blank$, r_name, stars, ' MERIT < 1E-10 ==> AT MINIMUM. QUITING HERE.', stars)
   status = 1
 endif
