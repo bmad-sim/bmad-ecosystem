@@ -2434,7 +2434,7 @@ do ii = 1, size(curve%x_line)
         mat6 = matmul(ele_to_s%mat6, mat6)  ! Matrix from beginning of branch.
         ele_to_s%vec0 = vec0
         ele_to_s%mat6 = mat6
-        ele_to_s%key = hybrid$                  ! So twiss_propagate1 does not get confused.
+        if (ele_to_s%key /= e_gun$) ele_to_s%key = hybrid$             ! So twiss_propagate1 does not get confused.
         call twiss_propagate1(branch%ele(0), ele_to_s, err_flag)
         ! Correct phase that can be off by factors of twopi
         ele0 => branch%ele(ele_here%ix_ele-1)
