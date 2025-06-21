@@ -224,7 +224,7 @@ particular parameters of any given simulation and so must be
 determined by the program using \bmad.
 
 %-----------------------------------------------------------------------------
-\section{MAD Energy-Time Phase Space Coordinates}
+\section{MAD and Bmad Energy-Time Phase Space Coordinates}
 \label{energy.phase.space}
 
 \index{phase space coordinates!MAD convention}
@@ -238,3 +238,10 @@ Where $E$ is the total energy, and $\beta_0$ is the reference velocity. For high
 particles the two coordinate systems are identical.  This difference must be keept in mind when
 comparing results between \bmad and \mad. For example, the calculated dispersion will not be the
 same except in the ultra relativistic limit.
+
+It is sometimes convenient to use energy-time phase space cocordinates in cases where there is
+an electric field like in an RF cavity. In this case, \bmad uses a differnt energy coordinate $p_E$
+\begin{align}
+  p_E &\equiv \frac{E}{P_0 \, c}
+\end{align}
+

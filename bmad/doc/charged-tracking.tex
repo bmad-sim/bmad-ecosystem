@@ -1208,21 +1208,26 @@ $d\gamma/ds$.
 
 To make the fringe kick symplectic, the following Hamiltonian is used
 \begin{equation}
-  H_\txt{fringe} = \mp \frac{q}{2 \, q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
+  H_f = \mp \frac{q}{2 \, q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
 \end{equation}
 where $q$ is the particle charge, $q_\txt{ref}$ if the reference particle charge, $P_0$ is the
 reference momentum.  Since $\phi_t = 2 \pi f_\txt{rf} \, t$ is time dependent, it is easiest to use
 this Hamiltonian in energy-time phase space coordinates (\sref{energy.phase.space}) to give the
 fringe kicks:
 \begin{align}
-  \Delta p_x &= \frac{\partial H_\txt{fringe}}{\partial x} 
+  \Delta p_x &= \frac{\partial H_f}{\partial x} 
               = \mp \frac{q}{q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, x \CRNO
-  \Delta p_y &= \frac{\partial H_\txt{fringe}}{\partial y} 
+  \Delta p_y &= \frac{\partial H_f}{\partial y} 
               = \mp\frac{q}{q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, y \\
-  \Delta p_\tau &= \frac{\partial H_\txt{fringe}}{\partial \tau} 
+  \Delta p_E &= \frac{\partial H_f}{\partial \tau} 
                  = \mp \frac{\pi \, f_\txt{rf} \, q}{q_\txt{ref} \, P_0 \, c^2} G_t \, \sin(\phi_t + \phi_\REF) \, (x^2 + y^2)
       \nonumber
 \end{align}
+The time shift can be thought of as due to the fact that the actual particle trajectory (and not the
+averaged trajectory) has a transverse sinusodial component synched to the phase of the backwards
+traveling wave.  The sinusodial component is needed to produce the pondermotive force but this
+oscillation also delays the particle in time compared to the case where there is no oscillation
+conponent.
 
 %---------------------------------------------------------------------------------
 \subsection{Standing wave focusing: the pondermotive force}
@@ -1245,27 +1250,24 @@ Notice that R\&S Eq~(4) is missing a minus sign.
 with $r$ being the radius, and $\phi = \phi_t + \phi_\REF$. Since there are
 no harmonics, $\eta(\phi)$ is unity (see discussion after R\&S Eq.~(13)). The transverse force is
 included in the drift-kick model by adding a transverse kick at the kick points.
-This transverse kick is
+To keep the ponderomotive force tracking symplectic, a Hamiltonian in energy-time
+phase space coordinates is used:
+\begin{equation}
+  H_p = -\frac{\kappa \, L \, q^2 \, G_t^2}{16 \, N_s \, P_0^2 \, c^2 \, p_E} \, (x^2 + y^2)
+\end{equation}
+Which gives kicks:
 \begin{align}
-  \Delta p_x &= -\frac{\kappa \, L}{N_s} \frac{1}{8 \cos^2(\phi)} \left( \frac{\gamma'}{\gamma} \right)^2 x \CRNO
-  &= -\frac{q \, \kappa G_t}{q_\REF \, m \, c^2} \frac{1}{8}
+  \Delta p_x &= \frac{\partial H_p}{\partial x} 
+              = -\frac{\kappa \, L \, q^2 \, G_t^2}{8 \, N_s \, P_0^2 \, c^2 \, p_E} \, x \CRNO
+  \Delta p_y &= \frac{\partial H_p}{\partial y} 
+              = -\frac{\kappa \, L \, q^2 \, G_t^2}{8 \, N_s \, P_0^2 \, c^2 \, p_E} \, y \\
+  \Delta \tau &= -\frac{\partial H_p}{\partial p_E} 
+              = -\frac{\kappa \, L \, q^2 \, G_t^2}{16 \, N_s \, P_0^2 \, c^2 \, p_E^2} \, (x^2 + y^2) \nonumber
 \end{align}
 The kick is always focusing and is independent of any RF phase. The reason for the phase
 independence is due to the fact that the phase of the backwards propagating wave with respect to the
 forward propagating particle is rapidly varying. The formulas above are for the kick averaged over
 all phases and therefore the phase dependence has been eliminated.
-
-To keep the ponderomotive force tracking symplectic, a Hamiltonian is used:
-\begin{equation}
-  H_p = (x^2 + y_2)
-\end{equation}
-Thus similar to the fringe kick, there is an associated energy kick due to the ponderomotive force. In energy-time
-phase space coordinates this is:
-\begin{align}
-  \Delta p_x &= \CRNO
-  \Delta p_x &= \\
-  \Delta p_\tau &= \nonumber 
-\end{align}
 
 %-----------------------------------------------------------------------------------------
 %-----------------------------------------------------------------------------------------

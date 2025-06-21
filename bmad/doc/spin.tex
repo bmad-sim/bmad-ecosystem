@@ -293,10 +293,14 @@ direction). This makes the integer part of the spin tune ambiguous.
 Additionally, if $\bfn_0$ is a valid closed orbit spin field then so is $-\bfn_0$ and the spin tune
 associated with $-\bfn_0$ is the negative of the spin tune associated with $\bfn_0$.
 
-Since the direction of $\bfn_0$ is arbitrary, \bmad uses the following convention if the parameter
-\vn{bmad_com%spin_n0_direction_user_set} (\sref{s:bmad.common}) is false (which is the default
-value): The range of the spin tune is choisen to be $[0, \pi]$. From the 1-turn spin transport
-quaternian $\bfq$ (\Eqs{qqqqq} and \eq{qt2ui}), the equation to calculate the tune is
+Since there are two possible anti-parallel solutions for $\bfn_0$, \bmad allows the user to specify
+which solution to pick if the parameter
+\begin{example}
+  bmad_com%spin_n0_direction_user_set (\sref{s:bmad.common})
+\end{example}
+is set \vn{True}. If set \vn{False} (which is the default), the direction is choosen by \bmad using
+the convention that chosen spin tune is in the range $[0, \pi]$. From the 1-turn
+spin transport quaternian $\bfq$ (\Eqs{qqqqq} and \eq{qt2ui}), the equation to calculate the tune is
 \begin{equation}
   \theta = 2 \cdot \text{atan2}\left( \bigl| (q_x, q_y, q_z) \bigr|, |q_0| \right)
 \end{equation}
@@ -304,9 +308,10 @@ where $\text{atan2}$ is the standard arc tangent function.
 With this, $\bfn_0$ is given by
 \begin{equation}
   \bfn_0 = \frac{\sign(q_0)}{\left| (q_x, q_y, q_z) \right|} \, ( q_x, q_y, q_z )
+  \label{n0q0}
 \end{equation}
-where $\sign$ is the sign function. With this, the calculation of the tune and $\bfn_0$ is
-independent of whether $\bfq$ or $-\bfq$ is used.
+where $\sign$ is the sign function. Note that with \Eq{n0q0} of $\bfn_0$ is independent of whether
+$\bfq$ or $-\bfq$ is used in the equation.
 
 %-----------------------------------------------------------------   
 \section{Polarization Limits and Polarization/Depolarization Rates}
