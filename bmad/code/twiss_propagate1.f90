@@ -115,7 +115,8 @@ mat6 = ele2%mat6
 if (ele2%key /= e_gun$) then   ! Energy change normalization is not applied to an e-gun
   if (bmad_com%normalize_twiss) then
     mat6(:, 2:6:2) = mat6(:, 2:6:2) * rel_p1
-    mat6(2:6:2, :) = mat6(2:6:2, :) / rel_p2
+    mat6(2:6:2, :) = mat6(2:6:2, :) * (1.0_rp / rel_p2)
+!!    mat6(2:6:2, :) = mat6(2:6:2, :) * (orb_in%p0c / (rel_p2 * orb_out%p0c))
   endif
   rel_p2 = rel_p2 / rel_p1
   rel_p1 = 1

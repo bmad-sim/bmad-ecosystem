@@ -16,14 +16,14 @@ type (taylor_struct) t_map(6)
 
 real(rp) err_mat(6,6)
 
-character(40) :: lat_file  = 'mat6_calc_method_test.bmad'
-character(46) :: final_str
+character(100) :: lat_file  = 'mat6_calc_method_test.bmad'
+character(46) :: final_str, mat6_calc_name
 character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 character(100) line
 
 integer, parameter :: n_methods = ubound(tracking_method_name, 1)
-integer :: i, j, k, ib, nargs, ns, tracking_method
+integer :: i, j, k, ib, nargs, ns, tracking_method_in
 logical custom_test, err, abs_time
 
 !
@@ -76,7 +76,7 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   do i = 1, branch%n_ele_max
     ele => branch%ele(i)
-    tracking_method = ele%tracking_method
+    tracking_method_in = ele%tracking_method
 
     if (i == branch%n_ele_track .and. ele%name == 'END') cycle
     ns = len_trim(ele%name) + 28
@@ -84,16 +84,22 @@ do ib = 0, ubound(lat%branch, 1)
     if (index(ele%name, 'ABS_TIME') /= 0) bmad_com%absolute_time_tracking = .true.
 
     do j = 1, n_methods
-      if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
+      if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == mad$) cycle
       if (j == auto$) cycle
       if (ele%key /= taylor$) call kill_taylor(ele%taylor)
 
       ele%mat6_calc_method = j
-      if (j == bmad_standard$) then
+
+      select case (j)
+      case (bmad_standard$)
         ele%tracking_method = bmad_standard$
-      else
-        ele%tracking_method = tracking_method
-      endif
+      case (custom$)
+        if (.not. valid_tracking_method(ele, branch%param%particle, runge_kutta$)) cycle
+        ele%tracking_method = runge_kutta$
+        ele%mat6_calc_method = tracking$
+      case default
+        ele%tracking_method = tracking_method_in
+      end select
 
       call init_coord (start_orb, lat%particle_start, ele, upstream_end$, branch%param%particle)
       ele%mat6 = 0; ele%vec0 = 0
@@ -113,30 +119,39 @@ do ib = 0, ubound(lat%branch, 1)
         ! if (j == mad$ .and. custom_test) cycle
         if (j == fixed_step_runge_kutta$ .or. j == fixed_step_time_runge_kutta$) cycle
         if (j == auto$) cycle
-        if(.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == custom$ .or. j == mad$) cycle
+        if (.not. valid_mat6_calc_method(ele, branch%param%particle, j) .or. j == mad$) cycle
+
+        select case (j)
+        case (custom$)
+          mat6_calc_name = 'Runge_Kutta'
+          if (.not. valid_tracking_method(ele, branch%param%particle, runge_kutta$)) cycle
+        case default
+          mat6_calc_name = mat6_calc_method_name(j)
+        end select
+
         ele2 => eles(j)
         if (k < 7) then
           if (custom_test) then
-            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // int_str(k) // '"' 
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_name) // ':MatrixRow' // int_str(k) // '"' 
             if (err) then
               print '(2a)', final_str(1:ns), '  -------------------------------------- LOST -------------------------------'
             else
               print fmt1, final_str(1:ns), ele2%mat6(k,:)
             endif
           else
-            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':MatrixRow' // int_str(k) // '"' 
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_name) // ':MatrixRow' // int_str(k) // '"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%mat6(k,:)
           endif
         else if (k == 7) then
           if (custom_test) then
-            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_name) // ':Vector"' 
             print fmt1, final_str(1:ns), ele2%vec0
           else
-            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Vector"' 
+            final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_name) // ':Vector"' 
             write (1, fmt1) final_str, tolerance(final_str), ele2%vec0
           endif
         else if (k == 8) then
-          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_method_name(j)) // ':Symp_Err"' 
+          final_str = '"' // trim(ele2%name) // ':' // trim(mat6_calc_name) // ':Symp_Err"' 
           if (custom_test) then
             print fmt2, final_str, tolerance(final_str), mat_symp_error(ele2%mat6, ele2%value(p0c$)/ele2%value(p0c_start$), err_mat)
           else
@@ -258,7 +273,12 @@ case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 5e-09'
 case ('"SOL_QUAD2:Tracking:MatrixRow1"')           ; tolerance = 'ABS 8e-10'
 case ('"SOL_QUAD2:Tracking:MatrixRow4"')           ; tolerance = 'ABS 2e-10'
 
-case default                                       ; tolerance = 'ABS 1E-10'
+case default
+  if (index(instr, 'Runge_Kutta') == 0) then
+    tolerance = 'ABS 1E-10'
+  else
+    tolerance = 'ABS 1E-4'
+  endif
 end select
 
 end function tolerance
