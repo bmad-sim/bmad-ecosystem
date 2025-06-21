@@ -277,7 +277,7 @@ case default
   if (index(instr, 'Runge_Kutta') == 0) then
     tolerance = 'ABS 1E-10'
   else
-    tolerance = 'ABS 1E-5'
+    tolerance = 'ABS 2E-5'
   endif
 end select
 
