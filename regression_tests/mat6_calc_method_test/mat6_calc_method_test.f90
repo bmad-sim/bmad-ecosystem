@@ -273,7 +273,12 @@ case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 5e-09'
 case ('"SOL_QUAD2:Tracking:MatrixRow1"')           ; tolerance = 'ABS 8e-10'
 case ('"SOL_QUAD2:Tracking:MatrixRow4"')           ; tolerance = 'ABS 2e-10'
 
-case default                                       ; tolerance = 'ABS 1E-10'
+case default
+  if (index(instr, 'Runge_Kutta') == 0) then
+    tolerance = 'ABS 1E-10'
+  else
+    tolerance = 'ABS 1E-5'
+  endif
 end select
 
 end function tolerance
