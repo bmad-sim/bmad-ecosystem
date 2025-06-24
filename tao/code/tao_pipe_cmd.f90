@@ -467,11 +467,15 @@ case ('bmad_com')
   nl=incr(nl); write (li(nl), lmt) 'spin_tracking_on;LOGIC;T;',                  bmad_com%spin_tracking_on
   nl=incr(nl); write (li(nl), lmt) 'spin_sokolov_ternov_flipping_on;LOGIC;T;',   bmad_com%spin_sokolov_ternov_flipping_on
   nl=incr(nl); write (li(nl), lmt) 'radiation_damping_on;LOGIC;T;',              bmad_com%radiation_damping_on
+  nl=incr(nl); write (li(nl), lmt) 'radiation_zero_average;LOGIC;T;',            bmad_com%radiation_zero_average
   nl=incr(nl); write (li(nl), lmt) 'radiation_fluctuations_on;LOGIC;T;',         bmad_com%radiation_fluctuations_on
   nl=incr(nl); write (li(nl), lmt) 'conserve_taylor_maps;LOGIC;T;',              bmad_com%conserve_taylor_maps
   nl=incr(nl); write (li(nl), lmt) 'absolute_time_tracking;LOGIC;T;',            bmad_com%absolute_time_tracking
+  nl=incr(nl); write (li(nl), lmt) 'absolute_time_ref_shift;LOGIC;T;',           bmad_com%absolute_time_ref_shift
   nl=incr(nl); write (li(nl), lmt) 'convert_to_kinetic_momentum;LOGIC;T;',       bmad_com%convert_to_kinetic_momentum
+  nl=incr(nl); write (li(nl), lmt) 'normalize_twiss;LOGIC;T;',                   bmad_com%normalize_twiss
   nl=incr(nl); write (li(nl), lmt) 'aperture_limit_on;LOGIC;T;',                 bmad_com%aperture_limit_on
+  nl=incr(nl); write (li(nl), lmt) 'spin_n0_direction_user_set;LOGIC;T;',        bmad_com%spin_n0_direction_user_set
   nl=incr(nl); write (li(nl), lmt) 'debug;LOGIC;T;',                             bmad_com%debug
 
 !------------------------------------------------------------------------------------------------

@@ -103,7 +103,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     sad_n_div_max = 1000                ! Used in sad_mult step length calc.
     taylor_order = 3                    ! 3rd order is default
 
-   absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
+    absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
     absolute_time_tracking = F          ! Set absolute or relative time tracking.
     aperture_limit_on = T               ! Use aperture limits in tracking.
     auto_bookkeeper = T                 ! Automatic bookkeeping?
@@ -113,6 +113,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     debug = F                           ! Used for code debugging.
     high_energy_space_charge_on = F     ! High energy space charge calc toggle.
     lr_wakes_on = T                     ! Long range wakefields
+    normalize_twiss = F                 ! Normalize Twiss calc for off-energy particles?
     ptc_use_orientation_patches = T     ! Ele orientation translated to PTC patches?
     radiation_damping_on = F            ! Radiation damping toggle.
     radiation_fluctuations_on = F       ! Radiation fluctuations toggle.
@@ -247,6 +248,10 @@ This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking (\sref{s:int
 size to use for adaptive tracking. If To be useful, \vn{min_ds_adaptive_tracking} must be set
 larger than the value of \vn{fatal_ds_adaptive_tracking}. In this case, particles are never lost
 due to taking too small a step.
+%
+\item[\vn{normalize_twiss}] \Newline
+Normalize transfer matrix when calculating Twiss parameters with off-energy particles?
+See \sref{s:off.twiss} for details.
 %
 \item{ptc_use_orientation_patches} \Newline
 With \bmad, there is no distinction whether an element's orientation attributes (\vn{offsets},
