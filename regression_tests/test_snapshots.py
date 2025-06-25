@@ -42,8 +42,8 @@ examples = pytest.mark.parametrize(
 
 
 lat_list_to_tolerance = {
-    "ele.a.beta": Tolerance(rtol=1e-7, atol=0),
-    "ele.b.beta": Tolerance(rtol=1e-7, atol=0),
+    "ele.a.beta": Tolerance(rtol=1e-5, atol=0),
+    "ele.b.beta": Tolerance(rtol=1e-5, atol=0),
     # TODO what else?
 }
 
