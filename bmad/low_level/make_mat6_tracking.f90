@@ -59,7 +59,7 @@ start_orb0 = start_orb
 
 call track_this (start_orb0, ele, param, end_orb, q_map(:,0), .false.)
 if (end_orb%state /= alive$) then
-  call out_io (s_error$, r_name, 'CENTRAL PARTICLE LOST IN TRACKING. MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+  call out_io (s_error$, r_name, 'CENTRAL PARTICLE LOST IN TRACKING TO CONSTRUCT TRANSFER MATRIX FOR ELEMENT: ' // ele%name)
   bmad_private%random_on = .true.
   return
 endif
@@ -72,7 +72,8 @@ do i = 1, 6
   start%vec(i) = start%vec(i) + del_orb(i)
   call track_this (start, ele, param, end2, q1, .true.)
   if (end2%state /= alive$) then
-    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (+). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING TO CONSTRUCT TRANSFER MATRIX FOR ELEMENT: ' // ele%name, &
+                                   'WITH POSITIVE OFFSET IN PHASE SPACE COORDINATE: ' // int_str(i))
     bmad_private%random_on = .true.
     return
   endif
@@ -82,7 +83,8 @@ do i = 1, 6
   start%vec(i) = start%vec(i) - del_orb(i)
   call track_this (start, ele, param, end1, q2, .true.)
   if (end1%state /= alive$) then
-    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING (-). MATRIX NOT CALCULATED FOR ELEMENT: ' // ele%name)
+    call out_io (s_error$, r_name, 'PARTICLE LOST IN TRACKING TO CONSTRUCT TRANSFER MATRIX FOR ELEMENT: ' // ele%name, &
+                                   'WITH NEGATIVE OFFSET IN PHASE SPACE COORDINATE: ' // int_str(i))
     bmad_private%random_on = .true.
     return
   endif

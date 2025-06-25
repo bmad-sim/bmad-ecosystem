@@ -34,11 +34,11 @@ type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
-type (rf_stair_step_struct), pointer :: stair
+type (rf_stair_step_struct), pointer :: step
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, s_now, s_end, kmat(6,6), phase, ds
-real(rp) mc2, gradient_tot, ks_rel
+real(rp) mc2, gradient_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
 integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, direction
@@ -98,39 +98,25 @@ if (fringe_here(ele, orbit, first_track_edge$)) call fringe_kick(orbit, lord, +1
 
 ! Body
 
-ks_rel = ele%value(ks$) * ele%value(p0c$)
-
 do ix_step = ix_step_start, ix_step_end, direction
-  stair => lord%rf%steps(ix_step)
+  step => lord%rf%steps(ix_step)
 
   if (ix_step == ix_step_end) then
     ! Drift to end. The first and last steps have no drift section.
     if (ix_step == 0 .or. ix_step == n_steps) cycle
     ds = s_end - s_now
-    if (ele%value(ks$) == 0) then
-      call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
-    else
-      call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat, ks_rel/orbit%p0c, stair%p0c/stair%E_tot0)
-    endif
+    call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
 
   else
     ! Drift to edge of step and kick
     if (direction == 1) then
-      ds = stair%s - s_now
-      if (ele%value(ks$) == 0) then
-        call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
-      else
-        call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat, ks_rel/orbit%p0c, stair%p0c/stair%E_tot0)
-      endif
-      s_now = stair%s
-      call this_energy_kick(orbit, lord, stair, direction, mat6, make_mat)
+      ds = step%s - s_now
+      call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
+      s_now = step%s
+      call this_energy_kick(orbit, lord, step, direction, mat6, make_mat)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
-      if (ele%value(ks$) == 0) then
-        call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
-      else
-        call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat, ks_rel/orbit%p0c, stair%p0c/stair%E_tot0)
-      endif
+      call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
       s_now = lord%rf%steps(ix_step-1)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction, mat6, make_mat)
     endif
@@ -149,6 +135,32 @@ call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_mat)
 
 !---------------------------------------------------------------------------------------
 contains
+
+subroutine step_drift(orbit, ds, step, ele, param, mat6, make_mat)
+
+type (coord_struct) orbit
+type (ele_struct) ele
+type (lat_param_struct) param
+type (rf_stair_step_struct) :: step
+
+real(rp) ds, ks_rel
+real(rp), optional :: mat6(6,6)
+logical make_mat
+
+!
+
+ks_rel = ele%value(ks$) * ele%value(p0c$)
+
+if (lord%value(ks$) == 0) then
+  call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
+else
+  call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat, ks_rel/orbit%p0c, step%p0c/step%E_tot0)
+endif
+
+end subroutine step_drift
+
+!---------------------------------------------------------------------------------------
+! contains
 
 subroutine fringe_kick(orbit, lord, edge, phase, mc2, mat6, make_mat)
 

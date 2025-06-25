@@ -463,26 +463,26 @@ the finite size of the RF bucket.
 \label{s:off.twiss}
 
 The Twiss parameter calculation for off-energy particles is done in one of two ways depending upon
-the setting of the \vn{bmad_com} parameter \vn{normalize_twiss} (\sef{s:bmad.common}).  Both
+the setting of the \vn{bmad_com} parameter \vn{normalize_twiss} (\sref{s:bmad.common}).  Both
 calculations start with the transfer matrix which is the Jacobian matrix evaluated with respect
 to the map reference orbit which is the closed orbit for lattice branches with a closed
 geometry and, for lattice branches with an open geometry, the map reference orbit is the orbit computed
 starting at the user defined initial position at the beginning of the branch (\sref{s:ref}).
 
-If \vn{normalize_twiss} is set to True, the Twiss calculation uses the transfer matrix without
-modification. If \vn{normalize_twiss} is set to False, before the Twiss calculation is performed,
-the transfer matrix is ``energy normalized'' by converting the matrix from \bmad standard phase
-space $(x, p_x, y, p_y, z, p_z)$ coordinates to ``angle'' coordinates $(x, x', y, y', z, p_z)$
+If \vn{normalize_twiss} is set to False (the default), the Twiss calculation uses the transfer
+matrix without modification. If \vn{normalize_twiss} is set to True, before the Twiss calculation is
+performed, the transfer matrix is ``energy normalized'' by converting the matrix from \bmad standard
+phase space $(x, p_x, y, p_y, z, p_z)$ coordinates to ``angle'' coordinates $(x, x', y, y', z, p_z)$
 (\sref{xpa1p}) using the paraxial approximation:
 \begin{equation}
   x', y' = \frac{p_x}{1 + p_{z}}, \frac{p_y}{1 + p_z}
 \end{equation}
 The advantage of normalizing the matrix is that for ``linear'' elements like a drift, the calculated
-Twiss parameters are independent of the reference $p_z$ (\cite{b:carli}). The disadvantage is that
-in an element where the map reference energy is changing, like it is in an \vn{e_gun} or
-\vn{lcavity}, the Twiss parameters at the end of the element will be different if the whole element
-transfer matrix is used or the element is sliced and the Twiss parameters are propagated slice by
-slice.
+Twiss parameters are independent of the reference $p_z$ about which the matrix is calculated
+(\cite{b:carli}). The disadvantage is that in an element where the map reference energy is changing,
+like it is in an \vn{e_gun} or \vn{lcavity} element, the Twiss parameters at the end of the element
+will be different if the whole element transfer matrix is used or the element is sliced and the
+Twiss parameters are propagated slice by slice.
 
 %-----------------------------------------------------------------
 \section{Montague W-function}
@@ -499,12 +499,12 @@ where
   \qquad
   B = \frac{1}{\beta} \, \frac{\partial\beta}{\partial p_z}
 \end{equation}
-While Montague does not explicitly state it, the $W$-function is formulated using the energy
-normalized Twiss calculation (\sref{s:off.twiss}) and using the non-normalized calculation will lead
-to misleading results.
-
 The W-function can be calculated even if the geometry of the lattice branch has
 an open geometry.  In this case, dbeta/dpz and dalpha/dpz at the beginning of the branch can be set
 in the lattice file by setting \vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_dpz_b]},
 \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]} (\sref{s:beginning}).
 
+While Montague does not explicitly state it, the $W$-function is formulated using the energy
+normalized Twiss calculation (\sref{s:off.twiss}) and using the non-normalized calculation will lead
+to misleading results. For example, the $W$-function will not be invariant within a drift with no
+normalization.
