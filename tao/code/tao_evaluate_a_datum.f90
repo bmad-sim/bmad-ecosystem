@@ -782,6 +782,13 @@ case ('chrom.')
     valid_value = .true.
 
   case ('chrom.dbeta.a')
+    if (.not. bmad_com%normalize_twiss) then
+      call out_io(s_warn$, r_name, &
+            'Evaluating "chrom.dbeta" with bmad_com[normalize_twiss] = False (the default) will lead to strange results.', &
+            'Recommendation: Set to True in the lattice file.', &
+            'See the Bmad manual on normalizing the transfer matrix for the Twiss calculation for details.')
+    endif
+
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         value_vec(i) = tao_lat%lat%ele(i)%a%dbeta_dpz / tao_lat%lat%ele(i)%a%beta
@@ -790,6 +797,13 @@ case ('chrom.')
     endif
 
   case ('chrom.dbeta.b')
+    if (.not. bmad_com%normalize_twiss) then
+      call out_io(s_warn$, r_name, &
+            'Evaluating "chrom.dbeta" with bmad_com[normalize_twiss] = False (the default) will lead to strange results.', &
+            'Recommendation: Set to True in the lattice file.', &
+            'See the Bmad manual on normalizing the transfer matrix for the Twiss calculation for details.')
+    endif
+
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         value_vec(i) = tao_lat%lat%ele(i)%b%dbeta_dpz / tao_lat%lat%ele(i)%b%beta
@@ -852,6 +866,13 @@ case ('chrom.')
     endif
 
   case ('chrom.w.a', 'chrom.w.b')
+    if (.not. bmad_com%normalize_twiss) then
+      call out_io(s_warn$, r_name, &
+            'Evaluating the Montague W-function with bmad_com[normalize_twiss] = False (the default) will lead to strange results.', &
+            'Recommendation: Set to True in the lattice file.', &
+            'See the Bmad manual on normalizing the transfer matrix for the Twiss calculation for details.')
+    endif
+
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
         if (data_type == 'chrom.w.a') then

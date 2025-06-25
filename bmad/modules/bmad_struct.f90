@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 336
+integer, parameter :: bmad_inc_version$ = 337
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2293,7 +2293,7 @@ type bmad_common_struct
   logical :: absolute_time_ref_shift = .true.          ! Apply reference time shift when using absolute time tracking?
   logical :: convert_to_kinetic_momentum = .false.     ! Cancel kicks due to finite vector potential when doing symplectic tracking?
                                                        !   Set to True to test symp_lie_bmad against runge_kutta.
-  logical :: normalize_twiss = .true.                  ! Normalize matrix when computing Twiss for off-energy ref?
+  logical :: normalize_twiss = .false.                 ! Normalize matrix when computing Twiss for off-energy ref?
   logical :: aperture_limit_on = .true.                ! Use apertures in tracking?
   logical :: spin_n0_direction_user_set = .false.      ! User sets direction of n0 for closed geometry branches?
   logical :: debug = .false.                           ! Used for code debugging.
