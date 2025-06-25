@@ -207,35 +207,34 @@ if (i_ele < 0) then
 
   ! calc super_lord matrices
 
-  do i = branch%n_ele_track+1, branch%n_ele_max
+  lord_loop: do i = branch%n_ele_track+1, branch%n_ele_max
     lord => branch%ele(i)
     if (lord%lord_status /= super_lord$) cycle
+
     slave0 => pointer_to_slave(lord, 1)
     slave1 => pointer_to_slave(lord, lord%n_slave)
-    i0 = slave0%ix_ele; i1 = slave1%ix_ele
+    if (all(lord%map_ref_orb_in%vec == slave0%map_ref_orb_in%vec) .and. lord%bookkeeping_state%mat6 /= stale$) cycle
 
-    if (.not. bmad_com%auto_bookkeeper .and. lord%bookkeeping_state%mat6 /= stale$) then
-      if (present(ref_orb)) then
-        if (all(ref_orb(i0-1)%vec == lord%map_ref_orb_in%vec)) cycle
-      else
-        if (all(lord%map_ref_orb_in%vec == 0)) cycle
-      endif
-    endif
+    lord%bookkeeping_state%mat6 = stale$
+    call mat_make_unit(lord%mat6)
+    lord%vec0 = 0
 
+    do ie = slave0%ix_ele, slave1%ix_ele
+      ele => branch%ele(ie)
+      if (ele%bookkeeping_state%mat6 /= ok$) cycle lord_loop
+      lord%mat6 = matmul(ele%mat6, lord%mat6)
+      lord%vec0 = matmul(ele%mat6, lord%vec0) + ele%vec0
+    enddo
 
-    if (zero_orbit .or. i_branch /= slave0%ix_branch) then
-      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, err_flag = err)
-    else
-      call make_mat6(lord, lat%branch(slave0%ix_branch)%param, ref_orb(i0-1), err_flag = err)
-    endif
-    if (err) return
-  enddo 
+    lord%bookkeeping_state%mat6 = ok$
+    lord%map_ref_orb_in  = slave0%map_ref_orb_in
+    lord%map_ref_orb_out = slave1%map_ref_orb_out
+  enddo lord_loop
 
   lat%lord_state%mat6 = ok$
 
   if (present(err_flag)) err_flag = .false.
   return
-
 endif
 
 !-----------------------------------------------------------
