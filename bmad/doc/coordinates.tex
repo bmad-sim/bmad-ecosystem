@@ -83,9 +83,12 @@ centered with respect to the reference curve. However, by specifying offsets, pi
 curve. Shifting a physical magnet with respect to its reference curve generally means that the
 reference curve does {\em not} correspond to the orbit that any actual particle could travel.
 
-Do not confuse this reference orbit (which defines the local coordinate system) with the reference
-orbit about which the transfer maps are calculated (\sref{s:twiss}). The former is fixed by the
-lattice while the latter can be any arbitrary orbit.
+Do not confuse this reference orbit (which defines the local coordinate system) with the ``map
+reference orbit'' about which the transfer maps are calculated (\sref{s:twiss}). The former is fixed
+by the lattice while the latter can be any arbitrary orbit. For the map reference orbit, \bmad uses
+the closed orbit for lattice branches with a closed geometry and, for lattice branches with an open
+geometry, the map reference orbit is the orbit computed starting at the user defined initial
+position at the beginning of the branch (\sref{s:beginning}).
 
 %-----------------------------------------------------------------------------
 \subsection{Element Entrance and Exit Coordinates}
