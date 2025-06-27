@@ -7,18 +7,14 @@ implicit none
 
 type (lat_struct), target :: lat
 real(rp) r
-
-character(200) :: line(10), line_debug(10)
+integer :: nargs
+logical debug_mode
+ 
 character(100) :: lat_file  = 'tracking_method_test.bmad'
 character(46) :: fmt, track_method
 
-integer, parameter :: n_methods = ubound(tracking_method_name, 1)
-integer :: nargs
-
-logical debug_mode
- 
 !
-!switch_bessel = .false.
+
 global_com%exit_on_error = .false.
 
 fmt = '(a, t49, a, 7es18.10)'
@@ -86,10 +82,24 @@ type (track_struct) track
 real(rp) del
 integer ele_o_sign, orb_dir_sign
 integer ib, i, j, isn
+integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 logical abs_time
+character(8) o_dir_str
 character(46) :: out_str
+character(200) :: line(10), line_debug(10)
 
 !
+
+      if (orb_dir_sign == 1 .and. ele_o_sign == 1) then
+        o_dir_str = ''
+      elseif (orb_dir_sign == 1 .and. ele_o_sign == -1) then
+        o_dir_str = '-Anti_O'
+      elseif (orb_dir_sign == -1 .and. ele_o_sign == 1) then
+        o_dir_str = '-Anti_D'
+      else
+        o_dir_str = '-Anti_OD'
+      endif
+
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -172,10 +182,6 @@ do ib = 0, ubound(lat%branch, 1)
         bmad_com%absolute_time_tracking = .false.
       endif
 
-      
-
-
-
       start_orb%species = default_tracking_species(branch%param)
       if (start_orb%direction*ele%orientation == -1) start_orb%species = antiparticle(start_orb%species)
 
@@ -196,12 +202,8 @@ do ib = 0, ubound(lat%branch, 1)
         else
           out_str = trim(ele%name) // ': ' // trim(tracking_method_name(j))
         endif
-      elseif (orb_dir_sign == 1 .and. ele_o_sign == -1) then
-        out_str = trim(ele%name) // '-Anti_O: ' // trim(tracking_method_name(j))
-      elseif (orb_dir_sign == -1 .and. ele_o_sign == 1) then
-        out_str = trim(ele%name) // '-Anti_D: ' // trim(tracking_method_name(j))
       else
-        out_str = trim(ele%name) // '-Anti_OD: ' // trim(tracking_method_name(j))
+        out_str = trim(ele%name) // trim(o_dir_str) // ': ' // trim(tracking_method_name(j))
       endif
 
       if (ele%key == e_gun$) then
@@ -254,7 +256,7 @@ do ib = 0, ubound(lat%branch, 1)
       ele%tracking_method = bmad_standard$
       if (associated(ele%spin_taylor(0)%term)) deallocate (ele%spin_taylor(0)%term)
       call track1 (start_orb, ele, branch%param, end_orb)
-      out_str = trim(ele%name) // ': Sprint dSpin'
+      out_str = trim(ele%name) // ': Sprint dSpin' // o_dir_str
       isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
                                                               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
@@ -265,7 +267,7 @@ do ib = 0, ubound(lat%branch, 1)
       ele%tracking_method = bmad_standard$
       if (associated(ele%spin_taylor(0)%term)) deallocate (ele%spin_taylor(0)%term)
       call track1 (start_orb, ele, branch%param, end_orb)
-      out_str = trim(ele%name) // ': Magnus dSpin'
+      out_str = trim(ele%name) // ': Magnus dSpin' // o_dir_str
       isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
                                                               end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)

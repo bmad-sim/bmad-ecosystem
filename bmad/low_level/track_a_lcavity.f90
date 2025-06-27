@@ -149,12 +149,10 @@ logical make_mat
 
 !
 
-ks_rel = ele%value(ks$) * ele%value(p0c$)
-
 if (lord%value(ks$) == 0) then
   call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
 else
-  call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat, ks_rel/orbit%p0c, step%p0c/step%E_tot0)
+  call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat)
 endif
 
 end subroutine step_drift
