@@ -512,6 +512,7 @@ case (bmad_standard$)
 
     field%b(1) = y * ele%value(k1$) * f_p0c 
     field%b(2) = x * ele%value(k1$) * f_p0c 
+    field%b(3) = ele%value(ks$) * f_p0c
 
     if (do_df_calc) then
       dfield_computed = .true.
@@ -520,7 +521,7 @@ case (bmad_standard$)
     endif
 
     if (logic_option(.false., calc_potential)) then
-      field%A(3) = 0.5_rp * (y * field%b(1) - x * field%b(2)) 
+      field%A = 0.5_rp * [-y * field%b(3), x * field%b(3), y * field%b(1) - x * field%b(2)]
     endif
 
   !------------------

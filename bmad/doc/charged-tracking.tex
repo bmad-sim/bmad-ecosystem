@@ -1197,30 +1197,24 @@ are normalized to $P_0$ (\sref{s:phase.space}).
 \subsection{Edge kick}
 
 Cavities have a first order transverse kick in the fringe field regions at both the entrance and
-exit ends. Following Rosenzweig and Serafini\cite{b:rosenzweig} (R\&S) Eq.~(12), the kicks are taken
-to be at the entrance and exit ends:
-\begin{equation}
-  \Delta x' = \mp \frac{\gamma'}{2 \gamma} x
-\end{equation}
-With a similar equation for $\Delta y'$. Here the minus sign is for the entrance end and the plus
-sign is for the exit end, $\gamma$ is the particle's gamma factor, and $\gamma'$ is the acceleration
-$d\gamma/ds$.
+exit ends due to an electric radial field 
 
-To make the fringe kick symplectic, the following Hamiltonian is used
+Following the model of Rosenzweig and Serafini\cite{b:rosenzweig} (See their Eq.~(12)),
+to make the fringe kick symplectic, the following Hamiltonian is used
 \begin{equation}
-  H_f = \mp \frac{q}{2 \, q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
+  H_f = \mp \frac{q}{2 \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
 \end{equation}
-where $q$ is the particle charge, $q_\txt{ref}$ if the reference particle charge, $P_0$ is the
-reference momentum.  Since $\phi_t = 2 \pi f_\txt{rf} \, t$ is time dependent, it is easiest to use
-this Hamiltonian in energy-time phase space coordinates (\sref{energy.phase.space}) to give the
-fringe kicks:
+where the minus sign is for the entrance end and the plus sign is for the exit end, $q$ is the
+particle charge, $P_0$ is the reference momentum.  Since $\phi_t = 2 \pi f_\txt{rf} \, t$ is time
+dependent, it is easiest to use this Hamiltonian in energy-time phase space coordinates
+(\sref{energy.phase.space}) to give the fringe kicks:
 \begin{align}
   \Delta p_x &= \frac{\partial H_f}{\partial x} 
-              = \mp \frac{q}{q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, x \CRNO
+              = \mp \frac{q}{P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, x \CRNO
   \Delta p_y &= \frac{\partial H_f}{\partial y} 
-              = \mp\frac{q}{q_\txt{ref} \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, y \\
+              = \mp\frac{q}{P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, y \\
   \Delta p_E &= \frac{\partial H_f}{\partial \tau} 
-                 = \mp \frac{\pi \, f_\txt{rf} \, q}{q_\txt{ref} \, P_0 \, c^2} G_t \, \sin(\phi_t + \phi_\REF) \, (x^2 + y^2)
+                 = \mp \frac{\pi \, f_\txt{rf} \, q}{P_0 \, c^2} G_t \, \sin(\phi_t + \phi_\REF) \, (x^2 + y^2)
       \nonumber
 \end{align}
 The time shift can be thought of as due to the fact that the actual particle trajectory (and not the
@@ -1228,6 +1222,11 @@ averaged trajectory) has a transverse sinusodial component synched to the phase 
 traveling wave.  The sinusodial component is needed to produce the pondermotive force but this
 oscillation also delays the particle in time compared to the case where there is no oscillation
 conponent.
+
+For spin tracking, the BMT equation is used with the integrated edge field (voltage) $\bfV_f$:
+\begin{equation}
+  \bfV_f = -G_t \, \bfr
+\end{equation}
 
 %---------------------------------------------------------------------------------
 \subsection{Standing wave focusing: the pondermotive force}
@@ -1267,6 +1266,11 @@ The kick is always focusing and is independent of any RF phase. The reason for t
 independence is due to the fact that the phase of the backwards propagating wave with respect to the
 forward propagating particle is rapidly varying. The formulas above are for the kick averaged over
 all phases and therefore the phase dependence has been eliminated.
+
+For spin tracking, the focusing kick is modeled as a radial integrated field (voltage) $\bfV_f$
+\begin{equation}
+  \bfV_f = -G_t \, \bfr
+\end{equation}
 
 %-----------------------------------------------------------------------------------------
 %-----------------------------------------------------------------------------------------

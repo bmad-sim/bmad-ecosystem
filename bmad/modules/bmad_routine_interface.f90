@@ -2727,14 +2727,14 @@ subroutine sol_quad_mat6_calc (ks, k1, tilt, s_len, ele, orbit, mat6, make_matri
   logical, optional :: make_matrix
 end subroutine
 
-subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix, ks, beta_ref)
+subroutine solenoid_track_and_mat (ele, length, param, start_orb, end_orb, mat6, make_matrix)
   import
   implicit none
   type (ele_struct), target :: ele
   type (lat_param_struct) param
   type (coord_struct) start_orb, end_orb
   real(rp) length
-  real(rp), optional :: mat6(:,:), ks, beta_ref
+  real(rp), optional :: mat6(:,:)
   logical, optional :: make_matrix
 end subroutine
 

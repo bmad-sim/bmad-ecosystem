@@ -1348,12 +1348,13 @@ Variables are initialized using the \vn{tao_var} namelist. The format for this i
 Example:
 \begin{example}
   &tao_var
-    v1_var%name      = "v_steer"   ! vertical steerings
-    default_universe  = "clone 2,3"
-    default_attribute = "vkick"     ! vertical kick attribute
-    default_weight    = 1e3
-    default_step      = 1e-5
-    var(0:99)%ele_name  = "v00w", "v01w", "v02w", "    ", "v04w", ...
+    v1_var%name        = "v_steer"   ! vertical steerings
+    default_universe   = "clone 2,3"
+    default_attribute  = "vkick"     ! vertical kick attribute
+    default_weight     = 1e3
+    default_step       = 1e-5
+    var(0:99)%ele_name = "v00w", "v01w", "v02w", "    ", "v04w", ...
+    var(2)%attribute   = "hkick"     ! Override default
   /
 \end{example}
 
