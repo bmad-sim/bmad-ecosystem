@@ -2076,14 +2076,13 @@ function particle_is_moving_forward (orbit, dir) result (is_moving_forward)
   logical is_moving_forward
 end function
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic, abs_time) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, abs_time) result (time)
   import
   implicit none
   type (coord_struct) orbit
   type (ele_struct), target :: ele
   real(rp), optional :: s_rel, rf_freq
-  real(rp) time
-  integer, optional :: rf_clock_harmonic
+  real(qp) time
   logical, optional :: reference_active_edge, time_coords, abs_time
 end function
 

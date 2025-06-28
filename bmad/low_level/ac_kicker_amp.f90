@@ -37,7 +37,8 @@ character(*), parameter :: r_name = 'ac_kicker_amp'
 !
 
 ref_ele => ele
-if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) ref_ele => pointer_to_super_lord (ref_ele)
+if (ref_ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) &
+                                                                      ref_ele => pointer_to_super_lord (ref_ele)
 
 ac_amp = 1
 if (ele%key /= ac_kicker$) return
@@ -55,12 +56,12 @@ ac => lord%ac_kick
 if (allocated(ac%frequency)) then
   ac_amp = 0
   do i = 1, size(ac%frequency)
-    t = real_option(particle_rf_time(orbit, ele, rf_clock_harmonic = ac%frequency(i)%rf_clock_harmonic), true_time)
+    t = real_option(real(particle_rf_time(orbit, ele, rf_freq = ac%frequency(i)%f), rp), true_time)
     ac_amp = ac_amp + ac%frequency(i)%amp * cos(twopi*(ac%frequency(i)%f * t + ac%frequency(i)%phi))
   enddo
 
 else
-  t = real_option(particle_rf_time(orbit, ele), true_time)
+  t = real_option(real(particle_rf_time(orbit, ele), rp), true_time)
   ac_amp = knot_interpolate(ac%amp_vs_time%time, ac%amp_vs_time%amp, t, nint(ele%value(interpolation$)), err_flag)
   if (err_flag) then
     call out_io (s_fatal$, r_name, 'INTERPOLATION PROBLEM FOR AC_KICKER: ' // ele%name)

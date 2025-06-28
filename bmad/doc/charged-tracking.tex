@@ -1172,7 +1172,8 @@ free region (or with a solenoid component if the element's solenoid strength is 
 kicks are applied at the ends of the element and in between sections with the kicks at the ends
 being half that of the kicks applied in the interior. The voltage at a kick point is:
 \begin{equation}
-  V_{kick} = \frac{r_q \, \kappa \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
+  V_txt{kick} = \frac{r_q \, \kappa \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
+  \label{vkick}
 \end{equation}
 See \Eq{dergl} for a description of the parameters in the equation. Here $\kappa$ is 0.5 for the end
 kick points and is unity for interior kick points.
@@ -1193,6 +1194,9 @@ Other than affecting the reference time at each kick point, the adjusting of the
 in each section will affect the plotting of phase space momentum coordinates since these
 are normalized to $P_0$ (\sref{s:phase.space}).
 
+For spin tracking through the energy kick, the BMT equation is used with the integrated kick field
+given by Eq.~{vkick} modeled as an electric field in the $z$-direction.
+
 %---------------------------------------------------------------------------------
 \subsection{Edge kick}
 
@@ -1205,7 +1209,7 @@ to make the fringe kick symplectic, the following Hamiltonian is used
   H_f = \mp \frac{q}{2 \, P_0 \, c} G_t \, \cos(\phi_t + \phi_\REF) \, (x^2 + y^2)
 \end{equation}
 where the minus sign is for the entrance end and the plus sign is for the exit end, $q$ is the
-particle charge, $P_0$ is the reference momentum.  Since $\phi_t = 2 \pi f_\txt{rf} \, t$ is time
+particle charge, $P_0$ is the reference momentum. Since $\phi_t = 2 \pi f_\txt{rf} \, t$ is time
 dependent, it is easiest to use this Hamiltonian in energy-time phase space coordinates
 (\sref{energy.phase.space}) to give the fringe kicks:
 \begin{align}
@@ -1223,7 +1227,8 @@ traveling wave.  The sinusodial component is needed to produce the pondermotive 
 oscillation also delays the particle in time compared to the case where there is no oscillation
 conponent.
 
-For spin tracking, the BMT equation is used with the integrated edge field (voltage) $\bfV_f$:
+For spin tracking through the edge field, the BMT equation is used with the integrated edge field
+(voltage) $\bfV_f$ parallel to the radius vector $\bfr$:
 \begin{equation}
   \bfV_f = -G_t \, \bfr
 \end{equation}
@@ -1267,10 +1272,12 @@ independence is due to the fact that the phase of the backwards propagating wave
 forward propagating particle is rapidly varying. The formulas above are for the kick averaged over
 all phases and therefore the phase dependence has been eliminated.
 
-For spin tracking, the focusing kick is modeled as a radial integrated field (voltage) $\bfV_f$
-\begin{equation}
-  \bfV_f = -G_t \, \bfr
-\end{equation}
+For spin tracking, to zeroth order, the averaged field is zero for the backwards wave so no spin
+kick is applied for the backwards wave.
+\begin{align}
+  \bfE(\bfr)   &= \CRNO
+  \bfB(\theta) &= 
+\end{align}
 
 %-----------------------------------------------------------------------------------------
 %-----------------------------------------------------------------------------------------

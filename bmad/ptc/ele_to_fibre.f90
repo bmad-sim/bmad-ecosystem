@@ -694,10 +694,17 @@ endif
 !----------------------------------------------
 
 if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
-  do i = n_mult, 1, -1
-    call add_to_cavity(ptc_fibre, i, 0, bn_ptc(i))
-    call add_to_cavity(ptc_fibre, -i, 0, an_ptc(i))
-  enddo
+  if (ptc_fibre%mag%kind == kind4) then
+    do i = n_mult, 1, -1
+      call add_to_cavity(ptc_fibre, i, 0, bn_ptc(i))
+      call add_to_cavity(ptc_fibre, -i, 0, an_ptc(i))
+    enddo
+  elseif (ptc_fibre%mag%kind == kind21) then
+    do i = n_mult, 1, -1
+      call add(ptc_fibre, i, 0, bn_ptc(i))
+      call add(ptc_fibre, -i, 0, an_ptc(i))
+    enddo
+  endif
 endif
 
 !----------------------------------------------
