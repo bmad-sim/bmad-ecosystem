@@ -1,5 +1,5 @@
 !+
-! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic, abs_time) result (time)
+! Function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, abs_time) result (time)
 !
 ! Routine to return the reference time used to calculate the phase of
 ! time-dependent EM fields.
@@ -19,9 +19,10 @@
 !   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
 !                         Needed for relative time tracking when the particle is inside the element. Default is 0.
 !   time_coords       -- logical, optional: Default False. If True then orbit is using time based phase space coordinates.
-!   rf_freq           -- real(rp), optional: If present and non-zero, the returned time shifted by an integer multiple
-!                          of 1/rf_freq to be in the range [-1/2*rf_freq, 1/2*rf_freq].
 !   rf_clock_harmonic -- integer, optional: Used with the rf clock in cases where an element has multiple frequencies.
+!   rf_freq           -- real(rp), optional: If present, the returned time shifted by an integer multiple
+!                          of 1/rf_freq to be in the range [-1/2*rf_freq, 1/2*rf_freq]. This is useful to
+!                          avoid round-off errors.
 !   abs_time          -- real(rp), optional: If False (default) use setting of bmad_com%absolute_time_tracking.
 !                           If True, use absolute time instead of relative time.
 !
@@ -29,7 +30,7 @@
 !   time      -- Real(rp): Current time.
 !-
 
-function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, rf_clock_harmonic, abs_time) result (time)
+function particle_rf_time (orbit, ele, reference_active_edge, s_rel, time_coords, rf_freq, abs_time) result (time)
 
 use bmad_routine_interface, dummy_except => particle_rf_time
 use attribute_mod, only: has_attribute
@@ -42,8 +43,8 @@ type (ele_struct), pointer :: ref_ele
 type (ele_pointer_struct), allocatable :: chain(:)
 
 real(rp), optional :: s_rel, rf_freq
-real(rp) time, s_hard_offset, beta0, freq
-integer, optional :: rf_clock_harmonic
+real(qp) time
+real(rp) s_hard_offset, beta0, freq
 integer n, ix_pass, n_links, harmonic
 logical, optional :: reference_active_edge, time_coords, abs_time
 
@@ -113,10 +114,9 @@ if (logic_option(.false., reference_active_edge) .and. (ele%key == rfcavity$ .or
   time = time - s_hard_offset / (c_light * beta0)
 endif
 
-!
-
-freq = real_option(0.0_rp, rf_freq)
-if (freq /= 0) time = modulo2(time, 0.5_rp/freq)
+if (present(rf_freq)) then
+  if (rf_freq /= 0) time = modulo2(time, 0.5_qp/rf_freq)
+endif
 
 end function particle_rf_time
 

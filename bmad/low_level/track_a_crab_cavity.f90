@@ -81,7 +81,7 @@ do i = 1, n_slice
   s_here = (i - 0.5_rp) * dl
 
   phase0 = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
-          (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele, s_here)) * &
+          (particle_rf_time (orbit, ele, .false., rf_freq = ele%value(rf_frequency$)) - rf_ref_time_offset(ele, s_here)) * &
           ele%value(rf_frequency$))
   if (ele%orientation == -1) phase0 = phase0 + twopi * ele%value(rf_frequency$) * dt_length
   phase = phase0

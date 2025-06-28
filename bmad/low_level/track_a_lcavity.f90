@@ -45,7 +45,7 @@ integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, direction
 integer ix_step
 
 logical, optional :: make_matrix
-logical make_mat
+logical make_mat, track_spin
 
 character(*), parameter :: r_name = 'track_a_lcavity'
 
@@ -62,6 +62,7 @@ endif
 
 length = orbit%time_dir * ele%value(l$)
 if (length == 0) return
+track_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 make_mat = logic_option(.false., make_matrix)
 lord => pointer_to_super_lord(ele)
@@ -142,8 +143,9 @@ type (coord_struct) orbit
 type (ele_struct) ele
 type (lat_param_struct) param
 type (rf_stair_step_struct) :: step
+type (em_field_struct) field
 
-real(rp) ds, ks_rel
+real(rp) ds, ks_rel, s_omega(3)
 real(rp), optional :: mat6(6,6)
 logical make_mat
 
@@ -152,7 +154,17 @@ logical make_mat
 if (lord%value(ks$) == 0) then
   call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
 else
-  call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat)
+  if (track_spin) then
+    field = em_field_struct()
+    field%b(3) = 0.5_rp * ds * ele%value(bs_field$)
+    s_omega = spin_omega(field, orbit, orbit%direction*ele%orientation)
+    call rotate_spin(s_omega, orbit%spin)
+    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat)
+    s_omega = spin_omega(field, orbit, orbit%direction*ele%orientation)
+    call rotate_spin(s_omega, orbit%spin)
+  else
+    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat)
+  endif
 endif
 
 end subroutine step_drift
@@ -164,24 +176,36 @@ subroutine fringe_kick(orbit, lord, edge, phase, mc2, mat6, make_mat)
 
 type (coord_struct) orbit
 type (ele_struct) lord
+type (em_field_struct) field
 
 real(rp) phase, mc2
 real(rp), optional :: mat6(6,6)
-real(rp) f, ff, dE, pc, ez_field, dez_dz_field, omega, pz_end
+real(rp) f, ff, dE, pc, ez_field, dez_dz_field, rf_omega, pz_end, s_omega(3)
 
 integer edge  ! +1 -> entrance end, -1 -> exit end.
 logical make_mat
 
-!
+! Init
 
 ff = edge * orbit%time_dir * charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
 f = ff / orbit%p0c
 pc = orbit%p0c * (1 + orbit%vec(6))
 ez_field = gradient_tot * cos(phase)
-omega = twopi * ele%value(rf_frequency$) / c_light
-dez_dz_field = gradient_tot * sin(phase) * omega
+rf_omega = twopi * ele%value(rf_frequency$) / c_light
+dez_dz_field = gradient_tot * sin(phase) * rf_omega
 dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
 pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
+
+! Spin
+
+if (track_spin) then
+  field = em_field_struct()
+  field%E(1:2) = (-0.5_rp * ff * ez_field / charge_of(orbit%species)) * [orbit%vec(1), orbit%vec(3)]
+  s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
+  call rotate_spin(s_omega, orbit%spin)
+endif
+
+! Kick
 
 call to_energy_coords(orbit, mc2, mat6, make_mat)
 
@@ -193,7 +217,7 @@ if (make_mat) then
   kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
   kmat(6,1) = -ff * dez_dz_field * orbit%vec(1) / orbit%p0c
   kmat(6,3) = -ff * dez_dz_field * orbit%vec(3) / orbit%p0c
-  kmat(6,5) = -ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * omega**2 / orbit%p0c
+  kmat(6,5) = -ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * rf_omega**2 / orbit%p0c
   mat6 = matmul(kmat, mat6)
 endif
 
@@ -202,6 +226,13 @@ orbit%vec(4) = orbit%vec(4) - f * ez_field * orbit%vec(3)
 orbit%vec(6) = orbit%vec(6) + dE / orbit%p0c
 
 call to_momentum_coords(orbit, pz_end, mc2, mat6, make_mat)
+
+! Spin
+
+if (track_spin) then
+  s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
+  call rotate_spin(s_omega, orbit%spin)
+endif
 
 end subroutine fringe_kick
 
@@ -213,10 +244,11 @@ subroutine this_energy_kick(orbit, lord, step, direction, mat6, make_mat)
 type (coord_struct) orbit
 type (ele_struct) lord
 type (rf_stair_step_struct) :: step
+type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
 real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), dE, dE_amp, pz_end, p1c, dp0c
-real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE
+real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, s_omega(3)
 
 integer direction
 logical make_mat
@@ -255,6 +287,16 @@ pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 pc_end = (1 + pz_end) * orbit%p0c
 
 !-------------------------------------------------
+! Spin
+
+if (track_spin) then
+  field = em_field_struct()
+  field%e(3) = dE / charge_of(orbit%species)
+  s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
+  call rotate_spin(s_omega, orbit%spin)
+endif
+
+!-------------------------------------------------
 ! Convert to energy coords
 
 call to_energy_coords(orbit, mc2, mat6, make_mat)
@@ -274,6 +316,14 @@ endif
 
 call to_momentum_coords(orbit, pz_end, mc2, mat6, make_mat)
 call orbit_reference_energy_correction(orbit, dp0c, mat6, make_mat)
+
+!-------------------------------------------------
+! Spin
+
+if (track_spin) then
+  s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
+  call rotate_spin(s_omega, orbit%spin)
+endif
 
 !-------------------------------------------------
 ! Standing wave transverse half kick
@@ -331,13 +381,37 @@ function this_rf_phase(orbit, lord) result (phase)
 
 type (coord_struct) orbit
 type (ele_struct) lord
+type (rf_stair_step_struct), pointer :: step, step0
 
-real(rp) phase
+real(rp) phase, particle_time
+integer is, ns
+
+!
+
+if (absolute_time_tracking(ele)) then
+  particle_time = modulo2(orbit%t, 0.5_qp / lord%value(rf_frequency$))
+  if (bmad_com%absolute_time_ref_shift) particle_time = particle_time - lord%value(ref_time_start$)
+
+  if (lord%value(l$) > 0) then
+    ns = nint(lord%value(n_rf_steps$))
+    do is = 1, ns
+      step => lord%rf%steps(is)
+      if (orbit%s-lord%s_start <= step%s .or. is == ns) exit
+    enddo
+
+    step0 => lord%rf%steps(is-1)
+    particle_time = particle_time - &
+          (step0%dtime + (orbit%s - lord%s_start - step0%s) * (step%dtime - step0%dtime) / (step%s - step0%s))
+  endif
+
+else  ! Relative time tracking
+  particle_time = particle_rf_time (orbit, lord, .false.)
+endif
 
 !
 
 phase = twopi * (lord%value(phi0_err$) + lord%value(phi0$) + lord%value(phi0_multipass$) + &
-           (particle_rf_time (orbit, lord, .false.) - rf_ref_time_offset(lord)) * lord%value(rf_frequency$))
+                                                                 particle_time * lord%value(rf_frequency$))
 if (bmad_com%absolute_time_tracking .and. lord%orientation*orbit%time_dir*orbit%direction == -1) then
   phase = phase - twopi * lord%value(rf_frequency$) * lord%value(delta_ref_time$)
 endif

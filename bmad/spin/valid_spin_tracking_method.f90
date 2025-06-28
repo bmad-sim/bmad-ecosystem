@@ -94,7 +94,7 @@ case (octupole$, thick_multipole$, &
 
 case (rfcavity$)
   select case (spin_tracking_method)
-  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$, magnus$)
+  case (off$, custom$, symp_lie_ptc$, tracking$, sprint$)
     is_valid = .true.
   end select
 

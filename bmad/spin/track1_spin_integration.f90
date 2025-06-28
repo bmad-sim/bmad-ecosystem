@@ -285,7 +285,7 @@ if (key == quadrupole$ .and. abs(ele%value(k1$)) < 1d-20) key = pipe$
 
 select case (key)
 
-case (pipe$, drift$, monitor$, instrument$, kicker$, hkicker$, vkicker$, rfcavity$)
+case (pipe$, drift$, monitor$, instrument$, kicker$, hkicker$, vkicker$)
   quat = quat
   
 ! Solenoid

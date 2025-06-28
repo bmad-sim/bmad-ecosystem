@@ -322,7 +322,7 @@ case (bmad_standard$)
       if (present(rf_time)) then
         time = rf_time
       else
-        time = particle_rf_time(orbit, ele, .false., s_body)
+        time = particle_rf_time(orbit, ele, .false., s_body, rf_freq = ele%value(rf_frequency$))
       endif
       phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
                       (time - rf_ref_time_offset(ele) - s_body/c_light) * ele%value(rf_frequency$))
@@ -347,7 +347,7 @@ case (bmad_standard$)
       if (present(rf_time)) then
         time = rf_time
       else
-        time = particle_rf_time(orbit, ele, .true., s_body)
+        time = particle_rf_time(orbit, ele, .true., s_body, rf_freq = ele%value(rf_frequency$))
       endif
       phase = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
       field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase)) / ref_charge
@@ -425,7 +425,7 @@ case (bmad_standard$)
     if (present(rf_time)) then
       time = rf_time
     else
-      time = particle_rf_time(orbit, ele, .true., s_body)
+      time = particle_rf_time(orbit, ele, .true., s_body, rf_freq = ele%value(rf_frequency$))
     endif
     
     if (nint(ele%value(cavity_type$)) == traveling_wave$) then
@@ -782,13 +782,6 @@ case(helical_model$)
 ! FieldMap
 
 case(fieldmap$)
-
-  if (present(rf_time)) then
-    time = rf_time
-  else
-    time = particle_rf_time(orbit, ele, .false., s_body)
-  endif
-
   if (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
       .not. associated(ele%gen_grad_map) .and. .not. associated(ele%grid_field)) then
     call out_io (s_fatal$, r_name, 'No associated fieldmap (cartesican_map, grid_field, etc) FOR: ' // ele%name) 
@@ -1108,6 +1101,12 @@ case(fieldmap$)
         freq0 = ele%value(rf_frequency$)
         freq = ele%value(rf_frequency$) * cl_map%harmonic
 
+        if (present(rf_time)) then
+          time = rf_time
+        else
+          time = particle_rf_time(orbit, ele, .false., s_body, rf_freq = freq0)
+        endif
+
         if (freq0 == 0) then
           call out_io (s_fatal$, r_name, 'Element frequency is zero but cylindrical_map harmonic is not in: ' // ele%name)
           if (global_com%exit_on_error) call err_exit
@@ -1312,6 +1311,12 @@ case(fieldmap$)
           if (global_com%exit_on_error) call err_exit
           if (present(err_flag)) err_flag = .true.
           return  
+        endif
+
+        if (present(rf_time)) then
+          time = rf_time
+        else
+          time = particle_rf_time(orbit, ele, .false., s_body, rf_freq = freq0)
         endif
 
         t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
