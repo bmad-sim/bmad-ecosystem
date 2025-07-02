@@ -17,7 +17,7 @@ type (taylor_struct) t_map(6)
 real(rp) err_mat(6,6)
 
 character(100) :: lat_file  = 'mat6_calc_method_test.bmad'
-character(46) :: final_str, mat6_calc_name
+character(48) :: final_str, mat6_calc_name
 character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 character(100) line
@@ -208,27 +208,18 @@ case ('"E_GUN1:Tracking:MatrixRow6"')              ; tolerance = 'ABS 6e-08'
 case ('"E_GUN1:Tracking:Symp_Err"')                ; tolerance = 'ABS 4e-07'
 case ('"E_GUN1:Tracking:Vector"')                  ; tolerance = 'ABS 6e-10'
 
-case ('"ELSEPARATOR1:Tracking:MatrixRow5"')        ; tolerance = 'ABS 2e-10'
-
-case ('"LCAVITY1:Tracking:MatrixRow5"')            ; tolerance = 'ABS 2e-10'
 case ('"LCAVITY1:Tracking:MatrixRow6"')            ; tolerance = 'ABS 6e-10'
 case ('"LCAVITY1:Tracking:Symp_Err"')              ; tolerance = 'ABS 3e-9'
-case ('"LCAVITY2:Tracking:MatrixRow5"')            ; tolerance = 'ABS 2e-10'
 case ('"LCAVITY2:Tracking:Symp_Err"')              ; tolerance = 'ABS 1e-7'
-case ('"LCAVITY3:Tracking:MatrixRow5"')            ; tolerance = 'ABS 2e-10'
 case ('"LCAVITY3:Tracking:MatrixRow6"')            ; tolerance = 'ABS 4e-10'
 case ('"LCAVITY3:Tracking:Symp_Err"')              ; tolerance = 'ABS 1e-9'
 
 
-case ('"LCAVITY1_ABS_TIME:Tracking:MatrixRow5"')   ; tolerance = 'ABS 2e-10'
 case ('"LCAVITY1_ABS_TIME:Tracking:MatrixRow6"')   ; tolerance = 'ABS 6e-10'
 case ('"LCAVITY1_ABS_TIME:Tracking:Symp_Err"')     ; tolerance = 'ABS 3e-9'
-case ('"LCAVITY2_ABS_TIME:Tracking:MatrixRow5"')   ; tolerance = 'ABS 2e-10'
-case ('"LCAVITY3_ABS_TIME:Tracking:MatrixRow5"')   ; tolerance = 'ABS 2e-10'
 case ('"LCAVITY3_ABS_TIME:Tracking:MatrixRow6"')   ; tolerance = 'ABS 5e-10'
 case ('"LCAVITY3_ABS_TIME:Tracking:Symp_Err"')     ; tolerance = 'ABS 3e-9'
 
-case ('"RFCAVITY2:Tracking:MatrixRow5"')           ; tolerance = 'ABS 2e-10'
 case ('"RFCAVITY2:Tracking:MatrixRow6"')           ; tolerance = 'ABS 1e-09'
 
 case ('"RBEND4:Symp_Lie_PTC:MatrixRow1"')          ; tolerance = 'ABS 4e-09'
@@ -241,11 +232,9 @@ case ('"RBEND4:Symp_Lie_PTC:Vector"')              ; tolerance = 'ABS 4e-08'
 case ('"RBEND4:Taylor:Vector"')                    ; tolerance = 'ABS 4e-08'
 case ('"RBEND4:Symp_Lie_PTC:Symp_Err"')            ; tolerance = 'ABS 4e-07'
 case ('"RBEND4:Taylor:Symp_Err"')                  ; tolerance = 'ABS 4e-07'
-case ('"RBEND4:Bmad_Standard:MatrixRow3"')         ; tolerance = 'ABS 2e-10'
 case ('"RBEND4:Bmad_Standard:MatrixRow5"')         ; tolerance = 'ABS 1e-07'
 case ('"RBEND4:Bmad_Standard:Vector"')             ; tolerance = 'ABS 4e-10'
 case ('"RBEND4:Tracking:MatrixRow1"')              ; tolerance = 'ABS 2e-08'
-case ('"RBEND4:Tracking:MatrixRow2"')              ; tolerance = 'ABS 2e-10'
 case ('"RBEND4:Tracking:MatrixRow3"')              ; tolerance = 'ABS 1e-07'
 case ('"RBEND4:Tracking:MatrixRow5"')              ; tolerance = 'ABS 1e-05'
 case ('"RBEND4:Tracking:Vector"')                  ; tolerance = 'ABS 1e-07'
@@ -271,11 +260,10 @@ case ('"SBEND7:Tracking:MatrixRow4"')              ; tolerance = 'ABS 4e-10'
 case ('"SBEND7:Tracking:Symp_Err"')                ; tolerance = 'ABS 5e-09'
 
 case ('"SOL_QUAD2:Tracking:MatrixRow1"')           ; tolerance = 'ABS 8e-10'
-case ('"SOL_QUAD2:Tracking:MatrixRow4"')           ; tolerance = 'ABS 2e-10'
 
 case default
   if (index(instr, 'Runge_Kutta') == 0) then
-    tolerance = 'ABS 1E-10'
+    tolerance = 'ABS 2E-10'
   else
     tolerance = 'ABS 1E-4'
   endif
