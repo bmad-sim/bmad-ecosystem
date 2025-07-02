@@ -1156,9 +1156,9 @@ have been designed with a lower phase velocity and this will cause a mismatch be
 reality.
 
 %---------------------------------------------------------------------------------
-\subsection{drift-kick model}
+\subsection{kick-drift-kick model}
 
-With \vn{bmad_standard} tracking, a drift-kick model is used where the particle trajectory is modeled
+With \vn{bmad_standard} tracking, a kick-drift-kick model is used where the particle trajectory is modeled
 such that the reference particle has a constant RF phase at the kick points even at low
 velocities.\footnote
   {
@@ -1170,10 +1170,11 @@ The cavity is divided up into equal width sections with the number of sections $
 setting of the \vn{n_rf_steps} parameter. Within a section particles are tracked as if in a field
 free region (or with a solenoid component if the element's solenoid strength is non-zero). Energy
 kicks are applied at the ends of the element and in between sections with the kicks at the ends
-being half that of the kicks applied in the interior. The voltage at a kick point is:
+being half that of the kicks applied in the interior. The voltage (integrated field) at a kick point
+is:
 \begin{equation}
-  V_txt{kick} = \frac{r_q \, \kappa \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
-  \label{vkick}
+  V_\txt{k} = \frac{r_q \, \kappa \, V_{tot}}{N_s} \, \cos(2 \pi \, (\phi_t + \phi_\REF))
+  \label{vkrq}
 \end{equation}
 See \Eq{dergl} for a description of the parameters in the equation. Here $\kappa$ is 0.5 for the end
 kick points and is unity for interior kick points.
@@ -1194,8 +1195,8 @@ Other than affecting the reference time at each kick point, the adjusting of the
 in each section will affect the plotting of phase space momentum coordinates since these
 are normalized to $P_0$ (\sref{s:phase.space}).
 
-For spin tracking through the energy kick, the BMT equation is used with the integrated kick field
-given by Eq.~{vkick} modeled as an electric field in the $z$-direction.
+For spin tracking through the energy kick, the BMT equation is used with the integrated electric field
+given by \Eq{vkrq} modeled as a field in the $z$-direction.
 
 %---------------------------------------------------------------------------------
 \subsection{Edge kick}
@@ -1222,15 +1223,15 @@ dependent, it is easiest to use this Hamiltonian in energy-time phase space coor
       \nonumber
 \end{align}
 The time shift can be thought of as due to the fact that the actual particle trajectory (and not the
-averaged trajectory) has a transverse sinusodial component synched to the phase of the backwards
+averaged trajectory) has a transverse sinusodial component synced to the phase of the backwards
 traveling wave.  The sinusodial component is needed to produce the pondermotive force but this
 oscillation also delays the particle in time compared to the case where there is no oscillation
-conponent.
+component.
 
 For spin tracking through the edge field, the BMT equation is used with the integrated edge field
-(voltage) $\bfV_f$ parallel to the radius vector $\bfr$:
+(voltage) $\overline{\bfE}_f$ parallel to the radius vector:
 \begin{equation}
-  \bfV_f = -G_t \, \bfr
+  \overline{\bfE}_f = -G_t \, \cos(\phi_t + \phi_\REF) \, (x, y, 0)
 \end{equation}
 
 %---------------------------------------------------------------------------------
@@ -1242,23 +1243,19 @@ with a the standing wave cavity, \bmad models the cavity as the superposition of
 propagating wave and a single backward propagating wave. In both cases there are no harmonics.  In
 both cases, it is the forward traveling wave that gives both acceleration and the edge kick.  The
 difference between the two cavity types is that with a standing wave cavity, there is an extra
-transverse focusing force called the ``ponderomotive force''.
+transverse focusing force called the ``pondermotive force''.
 
-The time averaged transverse radial kick $\Fbar_r$ is modeled using R\&S Eq~(4):\footnote
+The time averaged transverse radial kick is modeled using R\&S Eq~(4)\footnote
   {
 Notice that R\&S Eq~(4) is missing a minus sign.
   }
-\begin{equation}
-  \Fbar =  \eta(\phi) \, \frac{(q G_t)^2}{8 \gamma \, m \, c^2} \, r
-\end{equation}
-with $r$ being the radius, and $\phi = \phi_t + \phi_\REF$. Since there are
-no harmonics, $\eta(\phi)$ is unity (see discussion after R\&S Eq.~(13)). The transverse force is
-included in the drift-kick model by adding a transverse kick at the kick points.
-To keep the ponderomotive force tracking symplectic, A Hamiltonian $H_p$ is used:
+where, since there are no harmonics, $\eta(\phi)$ is unity (see discussion after R\&S Eq.~(13)).  In
+the \bmad kick-drift-kick model, the pondermotive force is included by adding a transverse kick at
+the kick points. To keep the pondermotive kick symplectic, A Hamiltonian $H_p$ is used:
 \begin{equation}
   H_p = -\frac{\kappa \, L \, q^2 \, G_t^2}{16 \, N_s \, P_0^2 \, c^2 \, (1 + p_z)} \, (x^2 + y^2)
 \end{equation}
-Which gives kicks:
+Which gives kicks (using standard \bmad phase space coordinates):
 \begin{align}
   \Delta p_x &= \frac{\partial H_p}{\partial x} 
               = -\frac{\kappa \, L \, q^2 \, G_t^2}{8 \, N_s \, P_0^2 \, c^2 \, (1 + p_z)} \, x \CRNO
@@ -1270,20 +1267,17 @@ Which gives kicks:
 The kick is always focusing and is independent of any RF phase. The reason for the phase
 independence is due to the fact that the phase of the backwards propagating wave with respect to the
 forward propagating particle is rapidly varying. The formulas above are for the kick averaged over
-all phases and therefore the phase dependence has been eliminated.
+all phases and therefore the phase dependence has been eliminated. Also note that the kick is
+quadratic in its dependence upon $G_t$. This is similar to the transverse focusing in FODO cells
+where the averaged kick is focusing and depends quadratically on the quadrupole field strength.
 
 For spin tracking, to zeroth order, the averaged field is zero for the backwards wave so no spin
 kick is applied for the backwards wave.
-\begin{align}
-  \bfE(\bfr)   &= \CRNO
-  \bfB(\theta) &= 
-\end{align}
 
 %-----------------------------------------------------------------------------------------
 %-----------------------------------------------------------------------------------------
 \section{Magnus Spin Tracking}
 \label{s:magnus}
-\index{magnus spin tracking}
 
 The \vn{Magnus} spin tracking method uses an analytical Magnus expansion of the T-BMT equation to
 track spins.  Currently, the supported lattice elements are bends (including bends with $k_1 \neq

@@ -17,7 +17,7 @@ type (taylor_struct) t_map(6)
 real(rp) err_mat(6,6)
 
 character(100) :: lat_file  = 'mat6_calc_method_test.bmad'
-character(46) :: final_str, mat6_calc_name
+character(48) :: final_str, mat6_calc_name
 character(20)  :: fmt1 = '(a,a,6es22.13)'
 character(20)  :: fmt2 = '(a,a,es22.13)'
 character(100) line

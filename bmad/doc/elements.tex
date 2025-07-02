@@ -58,19 +58,19 @@ use.
 {\tt
 \begin{tabular}{llll} \toprule
   {\it Element}      & {\it Section}         & {\it Element}         & {\it Section}       \\ \midrule
-  Beginning_Ele      & \ref{s:begin.ele}     &    Lens               & \ref{s:lens}        \\
-  Capillary          & \ref{s:capillary}     &  Marker               & \ref{s:mark}        \\
-  Crystal            & \ref{s:crystal}       &  Mask                 & \ref{s:mask}        \\
-  Custom             & \ref{s:custom}        &  Match                & \ref{s:match}       \\
-  Detector           & \ref{s:detector}      &  Monitor              & \ref{s:monitor}     \\ 
-  Diffraction_Plate  & \ref{s:diff.plate}    &  Mirror               & \ref{s:mirror}      \\
-  Drift              & \ref{s:drift}         &  Multilayer_Mirror    & \ref{s:multilayer}  \\
-  Ecollimator        & \ref{s:col}           &  Patch                & \ref{s:patch}       \\
-  Fiducial           & \ref{s:fiducial}      &  Photon_Fork          & \ref{s:fork}        \\
-  Floor_Shift        & \ref{s:floor.ele}     &  Photon_Init          & \ref{s:photon.init} \\
-  Fork               & \ref{s:fork}          &  Pipe                 & \ref{s:monitor}     \\
-  GKicker            & \ref{s:gkicker}       &  Rcollimator          & \ref{s:col}         \\
-  Instrument         & \ref{s:monitor}       &  Sample               & \ref{s:sample}      \\
+  Beginning_Ele      & \ref{s:begin.ele}     &  Marker               & \ref{s:mark}        \\
+  Capillary          & \ref{s:capillary}     &  Mask                 & \ref{s:mask}        \\
+  Crystal            & \ref{s:crystal}       &  Match                & \ref{s:match}       \\
+  Custom             & \ref{s:custom}        &  Monitor              & \ref{s:monitor}     \\ 
+  Detector           & \ref{s:detector}      &  Mirror               & \ref{s:mirror}      \\
+  Diffraction_Plate  & \ref{s:diff.plate}    &  Multilayer_Mirror    & \ref{s:multilayer}  \\
+  Drift              & \ref{s:drift}         &  Patch                & \ref{s:patch}       \\
+  Ecollimator        & \ref{s:col}           &  Photon_Fork          & \ref{s:fork}        \\
+  Fiducial           & \ref{s:fiducial}      &  Photon_Init          & \ref{s:photon.init} \\
+  Floor_Shift        & \ref{s:floor.ele}     &  Pipe                 & \ref{s:monitor}     \\
+  Fork               & \ref{s:fork}          &  Rcollimator          & \ref{s:col}         \\
+  GKicker            & \ref{s:gkicker}       &  Sample               & \ref{s:sample}      \\
+  Instrument         & \ref{s:monitor}       &                       &                     \\
   \bottomrule
 \end{tabular}
 }
@@ -3172,11 +3172,11 @@ The attributes specific to an \vn{lcavity} are
   voltage_tot                 ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).
   l_active        = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
+  ks              = <Real>    ! Normalized solenoid strength.
+  bs_field        = <Real>    ! Solenoid field strength.
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
 \end{example}
 
-%%  ks              = <Real>    ! Normalized solenoid strength.
-%%  bs_field        = <Real>    ! Solenoid field strength.
 %% Normalized field with respect to the reference energy at the exit end of the element.
 
 The \vn{voltage} and \vn{voltage_err} attributes can be used in place of \vn{gradient} and \vn{gradient_err}.
@@ -3259,22 +3259,22 @@ matrix for an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
 \sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
 be modeled.
 
-When an element's \vn{tracking_method} is set to \vn{runge_kutta}, the fields used with
-\vn{field_calc} set to \vn{bmad_standard} are described in Section~(\sref{s:rf.fields}). With
-\vn{cavity_type} set to \vn{standing_wave}, the longitudinal mode is set by the
-\vn{longitudinal_mode} parameter. The possible values are 0 or 1 and the default setting is 0.
+With \vn{field_calc} set to \vn{bmad_standard}, the electromagnetic fields in a \vn{lcavity} are
+described in Section~(\sref{s:rf.fields}). With \vn{cavity_type} set to \vn{standing_wave}, the
+longitudinal mode is set by the \vn{longitudinal_mode} parameter. The possible values are 0 or 1 and
+the default setting is 0. The electromagnetic fields are used for tracking when an element's
+\vn{tracking_method} is set to \vn{runge_kutta} or any similar tracking method.  If an element's
+\vn{cavity_type} parameter is set to \vn{standing_wave}, with \vn{field_calc} set to
+\vn{bmad_standard}, the ``active region'' over which there is a finite field is \vn{n_cell}
+half-wave pillbox resonators where each pillbox has length $\lambda/2$ (\sref{s:rf.fields}). The
+default setting for \vn{n_cell} is 1. The dependent parameter \vn{l_active} is set to the length of
+the active region. The active region should have a length less than the length of the element. If
+the length of the element is not equal to the active region, the active region is centered in the
+element and the regions to either side are treated as field free.
 
-If an element's \vn{cavity_type} parameter is set to \vn{standing_wave}, and if the \vn{field_calc}
-parameter is set to \vn{bmad_standard}, and if an element's \vn{tracking_method} is set to
-\vn{runge_kutta} (\sref{s:tkm}), the ``active region'' over which there is a finite field is
-\vn{n_cell} half-wave pillbox resonators where each pillbox has length $\lambda/2$
-(\sref{s:rf.fields}). The default setting for \vn{n_cell} is 1. The dependent parameter
-\vn{l_active} is set to the length of the active region. The active region should have a length less
-than the length of the element. If the length of the element is not equal to the active region, the
-active region is centered in the element and the regions to either side are treated as field free.
+When an element's \vn{tracking_method} is set to \vn{bmad_standard}, settings for the
+parameters \vn{n_cell}, and \vn{longitudinal_mode}, \vn{num_steps}, and \vn{ds_step} are ignored.
 
-Note: When an element's \vn{tracking_method} is set to \vn{bmad_standard}, settings for the
-parameters \vn{n_cell}, and \vn{longitudinal_mode} are ignored.
 
 Example:
 \begin{example}
@@ -3282,23 +3282,7 @@ Example:
          tracking_method = runge_kutta, n_cell = 3, longitudinal_mode = 1
 \end{example}
 
-Note: Multipoles \ref{s:multip} do not vary in time.
-
-{\em Note: The default \vn{bmad_standard} tracking for \vn{lcavity} elements when the velocity
-$\beta$ is significantly different from 1 can only be considered as a rough approximation. Indeed,
-the only accurate way to simulate a cavity in this situation is by integrating through the actual
-field [Cf.~Runge Kutta tracking (\sref{s:tkm})]}
-
-\newpage
-
-%-----------------------------------------------------------------
-\section{Lens}
-\label{s:lens}
-\index{lens|hyperbf}
-
-A \vn{lens} is an element for concentrating or dispersing light rays.
-
-This element is under development...
+Note: Multipoles (\ref{s:multip}) in a \vn{lcavity} do not vary in time.
 
 \newpage
 
