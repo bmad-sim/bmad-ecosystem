@@ -211,39 +211,32 @@ case ('PARTICLE_START')
   call re_allocate (ptr_array, 1)
   if (present(eles)) call re_allocate_eles (eles, 1)
 
-  ix = attribute_index (particle_start, attrib_name)
-  if (ix < 1) then
-    if (do_print) call out_io (s_error$, r_name, &
-           'INVALID ATTRIBUTE: ' // attrib_name, 'FOR ELEMENT: ' // ele_name)
-    call re_allocate(ptr_array, 0)
-    if (present(eles)) call re_allocate_eles (eles, 0)
-    err_flag = .true.
-    return
-  endif
-  if (present(ix_attrib)) ix_attrib = ix
-  select case (ix)
-  case (x$);                             ptr_array(1)%r => lat%particle_start%vec(1)
-  case (px$);                            ptr_array(1)%r => lat%particle_start%vec(2)
-  case (y$);                             ptr_array(1)%r => lat%particle_start%vec(3)
-  case (py$);                            ptr_array(1)%r => lat%particle_start%vec(4)
-  case (z$);                             ptr_array(1)%r => lat%particle_start%vec(5)
-  case (pz$);                            ptr_array(1)%r => lat%particle_start%vec(6)
-  case (field_x$);                       ptr_array(1)%r => lat%particle_start%field(1)
-  case (field_y$);                       ptr_array(1)%r => lat%particle_start%field(2)
-  case (phase_x$);                       ptr_array(1)%r => lat%particle_start%phase(1)
-  case (phase_y$);                       ptr_array(1)%r => lat%particle_start%phase(2)
-  case (t$);                             ptr_array(1)%q => lat%particle_start%t    ! Quad precision
-  case (e_photon$);                      ptr_array(1)%r => lat%particle_start%p0c
-  case (spin_x$);                        ptr_array(1)%r => lat%particle_start%spin(1)
-  case (spin_y$);                        ptr_array(1)%r => lat%particle_start%spin(2)
-  case (spin_z$);                        ptr_array(1)%r => lat%particle_start%spin(3)
-  case (emittance_a$);                   ptr_array(1)%r => lat%a%emit
-  case (emittance_b$);                   ptr_array(1)%r => lat%b%emit
-  case (emittance_z$);                   ptr_array(1)%r => lat%z%emit
-  case (sig_x$);                         ptr_array(1)%r => lat%a%sigma
-  case (sig_y$);                         ptr_array(1)%r => lat%b%sigma
-  case (sig_z$);                         ptr_array(1)%r => lat%z%sigma
-  case (sig_e$);                         ptr_array(1)%r => lat%z%sigmap
+  select case (attrib_name)
+  case ('X');                             ptr_array(1)%r => lat%particle_start%vec(1)
+  case ('PX');                            ptr_array(1)%r => lat%particle_start%vec(2)
+  case ('Y');                             ptr_array(1)%r => lat%particle_start%vec(3)
+  case ('PY');                            ptr_array(1)%r => lat%particle_start%vec(4)
+  case ('Z');                             ptr_array(1)%r => lat%particle_start%vec(5)
+  case ('PZ');                            ptr_array(1)%r => lat%particle_start%vec(6)
+  case ('FIELD_X');                       ptr_array(1)%r => lat%particle_start%field(1)
+  case ('FIELD_Y');                       ptr_array(1)%r => lat%particle_start%field(2)
+  case ('PHASE_X');                       ptr_array(1)%r => lat%particle_start%phase(1)
+  case ('PHASE_Y');                       ptr_array(1)%r => lat%particle_start%phase(2)
+  case ('T');                             PTR_array(1)%q => lat%particle_start%t    ! Quad precision
+  case ('E_PHOTON');                      ptr_array(1)%r => lat%particle_start%p0c
+  case ('SPIN_X');                        ptr_array(1)%r => lat%particle_start%spin(1)
+  case ('SPIN_Y');                        ptr_array(1)%r => lat%particle_start%spin(2)
+  case ('SPIN_Z');                        ptr_array(1)%r => lat%particle_start%spin(3)
+  case ('DIRECTION');                     ptr_array(1)%i => lat%particle_start%direction
+
+  case ('EMITTANCE_A');                   ptr_array(1)%r => lat%a%emit
+  case ('EMITTANCE_B');                   ptr_array(1)%r => lat%b%emit
+  case ('EMITTANCE_Z');                   ptr_array(1)%r => lat%z%emit
+  case ('SIG_X');                         ptr_array(1)%r => lat%a%sigma
+  case ('SIG_Y');                         ptr_array(1)%r => lat%b%sigma
+  case ('SIG_Z');                         ptr_array(1)%r => lat%z%sigma
+  case ('SIG_E');                         ptr_array(1)%r => lat%z%sigmap
+  case ('SIG_PZ');                        ptr_array(1)%r => lat%z%sigmap
 
   case default
     if (do_print) call out_io (s_error$, r_name, &
