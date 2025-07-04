@@ -1633,12 +1633,10 @@ The transfer map for the solenoid is:
            \frac{1 + c}{2} \, y_1 + \frac{s}{k_s} \, p_{y1} \\      
   p_{y2} &= \frac{k_s \, (1 - c)}{4} \, x_1 + \frac{-s}{2} \, p_{x1} -
             \frac{k_s \, s}{4} \, y_1 + \frac{1 + c}{2} \, p_{y1} \CRNO 
-  z_2    &= z_1 + \frac{L \, (1 + p_{z1})^2}{2 \, p_r^3} \, 
-                   \left[ \left( p_{x1} + \frac{k_s}{2} \, y_1 \right)^2 +
-                          \left( p_{y1} - \frac{k_s}{2} \, x_1 \right)^2 \right] \CRNO
+  z_2    &= z_1 + L \left( \frac{\beta}{\beta_0} - \frac{1+p_z}{p_r} \right) \CRNO
   p_{z2} &= p_{z1} \nonumber
 \end{align}
-where $k_s = B/P_0$ is the normalized field and
+where $k_s = q \, B/P_0$ is the normalized field and
 \begin{align}
   c &= \cos \left( k_s L / p_r \right) \CRNO
   s &= \sin \left( k_s L / p_r \right)

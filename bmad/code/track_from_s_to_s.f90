@@ -5,6 +5,11 @@
 ! If the particle is lost in tracking, end_orb will hold the coordinates at the point of loss.
 ! To get the twiss parameters at the ending s-position use twiss_and_track_at_s.
 !
+! If tracking in the forward direction, and there are multiple elements at s_start or s_end, the
+! tracking will start and end at the downstream end of the most downstream element.
+! Similarly if tracking in the reverse direction, and there are multiple elements at s_start or s_end, the
+! tracking will start and end at the upstream end of the most upstream element.
+!
 ! Input:
 !   lat         -- lat_struct: Lattice to track through
 !   s_start     -- real(rp): Starting s-position.

@@ -79,7 +79,7 @@
 
 \title{An Introduction and Tutorial to Bmad and Tao}
 \author{}
-\date{David Sagan and Chris Mayes \\ August 3, 2024}
+\date{David Sagan and Chris Mayes \\ July 4, 2025}
 
 \begin{document}
 
@@ -1331,23 +1331,46 @@ Tao} chapter of the \tao manual. Figure~\ref{f:fancy} shows an example of what c
 \subsection{Exercises [Answers in Section \sref{s:ans.plot}]}
 \label{s:plotting.ex}
 
+\begin{figure}[hb]
+  \centering
+  \includegraphics[width=0.6\textwidth]{plot-plan-orbit.pdf}
+  \caption{The \vn{floor_plan} plot can display the particle orbit (orange line).}
+  \label{f:floor.orbit}
+\end{figure}
+
 \begin{enumerate}[label=\thesection.\arabic{enumi}]
 \item Try placing other plot templates onto the plot page, such as \vn{b_field}.
 %
 \item Use the \vn{set} command to set the \vn{draw_symbols} curve logical for the curves
 in the \vn{beta} plot to True. What does the \vn{beta} plot look like now?
 %
-\item Start from Figure~\ref{f:lat.floor} and enable the drawing of the beam orbit in the \vn{floor_plan} 
-plot. [Hint: First read the ``Drawing a Floor Plan'' subsection in the ``Initializing Plotting''
-section of the ``Tao Initialization'' chapter.] The beam orbit deviates from the reference trajectory
-through the center of the elements due to the non-zero \vn{dg} in the bend. To make the trajectory
-plot more interesting, give the beam an initial energy offset. [Hint: Either put a \vn{particle_start}
-command in the lattice file (see the \bmad manual) or use the \vn{set particle_start} command in \tao.]
+\item
+The \vn{floor_plan} plot can include a drawing of the particle trajectory. As an example, do the
+following:
+\begin{enumerate}
+\item
+run \tao with the \vn{simple.bmad} lattice and use the \vn{place} command to display a
+\vn{floor_plan} plot (\sref{s:disp.plot}).
+\item
+Set the following parameters of the graph of the \vn{floor_plan}:
+\begin{code}
+set graph floor floor_plan%orbit_scale = 100 
+set graph floor_plan floor_plan%orbit_width = 8 
+\end{code}
+\item
+You can now see the particle trajectory. Move this trajectory by varying the \vn{hkick} parameter of
+element \vn{B}. For example:
+\begin{code}
+set ele b hkick = 0.003
+\end{code}
+You should see something like \fig{f:floor.orbit}. For more information (and more pretty pictures), 
+see the \vn{Floor Plan Drawing} section (\extref{T-s:floor.plan}) of the \tao manual.
+\end{enumerate}
 %
 \item
 What is the command to scale the x-axis for all the plots with one command? Use this to scale the
 x-axis for all plots to be the range [0.5, 1.5].
-
+%
 \end{enumerate}
 
 \newpage
@@ -2135,17 +2158,16 @@ Setup a variable to vary either the \vn{g} or \vn{angle} component of the bend.
 Run the \vn{lm} optimizer to produce Figure~\ref{f:b.wall}B. Voila! The machine is within the walls with
 the desired clearance.
 \item
-When you startup \tao and the dipole is unbent, you should get the warning:
+When you startup \tao and the dipole is unbent, you should get an error message that looks something like:
 \begin{code}
-[WARNING] tao_init:
-    DATUM EXISTS BUT CANNOT COMPUTE A MODEL VALUE: wall[2]
-       INVALID SINCE: No wall section found in the transverse plane
-                      of the evaluation point.
+[ERROR | 2025-JUL-04 01:24:26] tao_set_invalid:
+    No wall section found in the transverse plane of the evaluation point.
+    FOR DATUM: wall[2] with data_type: wall.right_side
 \end{code}
-Explain why you are getting this warning. Also explain why this warning goes away when the dipole
+Explain why you are getting this message. Also explain why this message goes away when the dipole
 gets bent enough. [Hint: Read carefully the description of how the datum value is computed.] Note
 that not being initially able to compute a model value does not hinder the optimization.
-\end {enumerate}
+\end{enumerate}
 
 \end{enumerate}
 
@@ -5254,15 +5276,11 @@ set curve beta draw_symbols = T
 The particle orbit is enabled when the \vn{orbit_scale} component of the graph is non-zero.  To
 calculate what orbit_scale should be set to to produce an orbit that looks nice, use the following
 logic: The maximum (horizontal) orbit excursion is at the end of the lattice where at the horizontal
-orbit is about 0.4~mm (the \vn{show lat} command will show this). The scale of the floor plan plot
+orbit is about 2~mm (the \vn{show lat} command will show this). The scale of the floor plan plot
 is of order 1~meter. So a ``reasonable'' plotted excursion would be, say, 0.2~meter. This gives an
-orbit scale of 500 = 0.2~meter / 0.4~mm. So set \vn{orbit_scale} using the command:
+orbit scale of 100 = 0.2~meter / 2~mm. So set \vn{orbit_scale} using the command:
 \begin{code}
-set graph floor floor_plan%orbit_scale = 500
-\end{code}
-To change the starting particle energy use, for example:
-\begin{code}
-set particle_start pz = 0.002
+set graph floor floor_plan%orbit_scale = 100
 \end{code}
 %
 \item
