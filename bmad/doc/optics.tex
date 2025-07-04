@@ -459,8 +459,12 @@ the finite size of the RF bucket.
   }
 
 %-----------------------------------------------------------------
-\section{Twiss Calculation of Off-Energy Particles}
-\label{s:off.twiss}
+\section{Twiss Calculation}
+\label{s:twiss.calc}
+
+%-----------------------------------------------------------------
+\subsection{Twiss Calculation of Off-Energy Particles}
+\label{s:twiss.off}
 
 The Twiss parameter calculation for off-energy particles is done in one of two ways depending upon
 the setting of the \vn{bmad_com} parameter \vn{normalize_twiss} (\sref{s:bmad.common}).  Both
@@ -485,6 +489,19 @@ will be different if the whole element transfer matrix is used or the element is
 Twiss parameters are propagated slice by slice.
 
 %-----------------------------------------------------------------
+\subsection{Twiss Calculation With Time Varying Fields}
+\label{s:twiss.time}
+
+It should always be keept in mind that the 4D Twiss calculation in \bmad essentially ignores coupling
+between transverse and longitudinal motion. This is a common practice that can be found in other
+simulation programs like MAD and Elegant. The full 6D treatment (\cite{b:wolski.coupling})
+is considerably more complicated than any 4D analysis. For example, Wolski's algorithm characterizes
+each normal mode with a 6x6 matrix.
+
+The bottom line is that Twiss parameters calculated when there is transverse-longitudinal coupling
+must be taken with a grain of salt. 
+
+%-----------------------------------------------------------------
 \section{Montague W-function}
 \label{s:w.func}
 
@@ -505,6 +522,6 @@ in the lattice file by setting \vn{beginning[dbeta_dpz_a]}, \vn{beginning[dbeta_
 \vn{beginning[dalpha_dpz_a]} and \vn{beginning[dalpha_dpz_b]} (\sref{s:beginning}).
 
 While Montague does not explicitly state it, the $W$-function is formulated using the energy
-normalized Twiss calculation (\sref{s:off.twiss}) and using the non-normalized calculation will lead
+normalized Twiss calculation (\sref{s:twiss.off}) and using the non-normalized calculation will lead
 to misleading results. For example, the $W$-function will not be invariant within a drift with no
 normalization.

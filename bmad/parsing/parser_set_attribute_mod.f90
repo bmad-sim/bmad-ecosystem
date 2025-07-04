@@ -1956,10 +1956,11 @@ case ('CSR_METHOD')
   ele%csr_method = switch
 
 case ('DEFAULT_TRACKING_SPECIES')
-  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
+  ! "()" are not delims since "antiparticle(...)" is possible.
+  call get_next_word (word, ix_word, ':,={}', delim, delim_found, .false.)  
   ix = species_id(word)
   if (ix == invalid$) then
-    call parser_error ('INVALID PARTICLE SPECIES: ' // word)
+    call parser_error ('INVALID DEFAULT_TRACKING_SPECIES: ' // word)
     return
   endif
 
@@ -2060,7 +2061,8 @@ case ('ORIGIN_ELE_REF_PT')
   ele%value(origin_ele_ref_pt$) = ix
 
 case ('PARTICLE')
-  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
+  ! "()" are not delims since "antiparticle(...)" is possible.
+  call get_next_word (word, ix_word, ':,={}', delim, delim_found, .false.)
   ix = species_id(word)
   if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
     call parser_error ('INVALID REFERENCE PARTICLE SPECIES: ' // word)
@@ -2120,7 +2122,8 @@ case ('SPATIAL_DISTRIBUTION')
   ele%value(spatial_distribution$) = ix
 
 case ('SPECIES_OUT')
-  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
+  ! "()" are not delims since "antiparticle(...)" is possible.
+  call get_next_word (word, ix_word, ':,={}', delim, delim_found, .false.)
   ix = species_id(word)
   if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
     call parser_error ('INVALID SPECIES_OUT: ' // word)
@@ -2129,7 +2132,8 @@ case ('SPECIES_OUT')
   ele%converter%species_out = ix
 
 case ('SPECIES_STRONG')
-  call get_next_word (word, ix_word, ':,=(){}', delim, delim_found, .false.)
+  ! "()" are not delims since "antiparticle(...)" is possible.
+  call get_next_word (word, ix_word, ':,={}', delim, delim_found, .false.)
   ix = species_id(word)
   if (ix == invalid$ .or. ix == ref_particle$ .or. ix == anti_ref_particle$) then
     call parser_error ('INVALID SPECIES_STRONG: ' // word)

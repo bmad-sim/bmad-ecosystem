@@ -3172,6 +3172,7 @@ The attributes specific to an \vn{lcavity} are
   voltage_tot                 ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).
   l_active        = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
   n_cell          = <Int>     ! Number of cavity cells. Default is 1.
+  n_rf_steps      = <Int>     ! Number of steps in kick-drift-kick model.
   ks              = <Real>    ! Normalized solenoid strength.
   bs_field        = <Real>    ! Solenoid field strength.
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
@@ -3204,7 +3205,6 @@ whether \vn{absolute time tracking} or \vn{relative time tracking} is being used
   \(\phi_\REF\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
   \label{lcav.phi}
 \end{example}
-
 In the above equation $r_q$ is the relative charge between the reference particle (set by the
 \vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
 cavity. For example, if the reference particle and the tracked particle are the same, $r_q$ is
@@ -3231,6 +3231,13 @@ sign. Essentially the MAD8 documentation gives
 \end{example}
 This is incorrect. 
 
+The \vn{n_rf_steps} parameter sets the number of drifts used in the kick-drift-kick model
+(\sref{s:lcavity.std}) used when the \vn{tracking_method} is set to \vn{bmad_standard}. When using
+a fixed step Runge-Kutta \vn{tracking_method}, the step size is determined by the setting of
+\vn{num_steps} or \vn{ds_step}. The reason why there are two different paramters to choose a step
+size is due to the fact that, in general, the number of drifts needed for an accurate result
+is much smaller than the number Runge-Kutta steps.
+
 When short-range wakefields are being simulated, with \vn{bmad_com%sr_wakes_on = True}
 (\sref{s:bmad.ptc.com}), the \vn{e_loss} attribute can be used to modify the gradient in order to
 maintain a constant average energy gain. That is, \vn{e_loss} can be used to simulate the effect of
@@ -3251,13 +3258,16 @@ settings are:
   standing_wave    ! Default
   traveling_wave
 \end{example}
-The \vn{cavity_type} switch is ignored if a field map is used.  With the \vn{standing_wave} setting,
-the transverse trajectory through an \vn{lcavity} is modeled using equations developed by Rosenzweig
-and Serafini\cite{b:rosenzweig} modified to give the correct phase-space area at non
-ultra-relativistic energies.  See Section \sref{s:lcavity.std} for more details.  Note: The transfer
-matrix for an \vn{lcavity} with finite \vn{gradient} is never symplectic. See
-\sref{s:phase.space}. In addition, couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) can
-be modeled.
+The \vn{cavity_type} switch is ignored if a field map is used.  The \vn{traveling_wave} cavity has
+an electromagnetic wave traveling (in body coordinates) in the forward direction. The
+\vn{standing_wave} cavity has a standing wave which can be decomposed into a forward traveling wave
+and a backwards traveling wave.
+
+With the \vn{standing_wave} setting, the transverse trajectory through an \vn{lcavity} is modeled
+using equations developed by Rosenzweig and Serafini\cite{b:rosenzweig}. See Section
+\sref{s:lcavity.std} for more details.  Note: The transfer matrix for an \vn{lcavity} with finite
+\vn{gradient} is never symplectic if the reference energy at either end is different. See
+\sref{s:phase.space}. 
 
 With \vn{field_calc} set to \vn{bmad_standard}, the electromagnetic fields in a \vn{lcavity} are
 described in Section~(\sref{s:rf.fields}). With \vn{cavity_type} set to \vn{standing_wave}, the
@@ -3275,14 +3285,14 @@ element and the regions to either side are treated as field free.
 When an element's \vn{tracking_method} is set to \vn{bmad_standard}, settings for the
 parameters \vn{n_cell}, and \vn{longitudinal_mode}, \vn{num_steps}, and \vn{ds_step} are ignored.
 
-
 Example:
 \begin{example}
   lwf: lcavity, l = 2.3, rf_frequency = 500e6, voltage = 20e6,
          tracking_method = runge_kutta, n_cell = 3, longitudinal_mode = 1
 \end{example}
 
-Note: Multipoles (\ref{s:multip}) in a \vn{lcavity} do not vary in time.
+\vn{Lcavity} elements can model couplers (\sref{s:rf.coupler}) and HOM wakes (\sref{s:wakes}) as well as
+multipoles (\ref{s:multip}). Note that multipoles in a \vn{lcavity} do not vary in time.
 
 \newpage
 

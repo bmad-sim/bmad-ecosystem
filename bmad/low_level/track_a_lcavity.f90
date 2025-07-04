@@ -38,11 +38,11 @@ type (rf_stair_step_struct), pointer :: step
 
 real(rp), optional :: mat6(6,6)
 real(rp) length, s_now, s_end, kmat(6,6), phase, ds
-real(rp) mc2, gradient_tot
+real(rp) mc2
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
-integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, direction
-integer ix_step
+integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, s_dir
+integer ix_step, body_dir
 
 logical, optional :: make_matrix
 logical make_mat, track_spin
@@ -69,8 +69,10 @@ lord => pointer_to_super_lord(ele)
 mc2 = mass_of(orbit%species)
 n_steps = ubound(lord%rf%steps, 1)
 
-direction = orbit%time_dir * orbit%direction 
-if (direction == 1) then
+s_dir = orbit%time_dir * orbit%direction        ! Longitudinal propagation direction 
+body_dir = orbit%direction * ele%orientation    ! Forward time direction of travel with respect to body coordinates
+
+if (s_dir == 1) then
   s_now = ele%s_start - lord%s_start
   s_end = ele%s       - lord%s_start
   ix_step_start = ele_rf_step_index(ele%value(E_tot_start$), s_now, lord)
@@ -81,8 +83,6 @@ else
   ix_step_start = ele_rf_step_index(ele%value(E_tot$), s_now, lord)
   ix_step_end   = ele_rf_step_index(ele%value(E_tot_start$), s_end, lord)
 endif
-
-gradient_tot = direction * ele%value(gradient_tot$)
 
 call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
@@ -95,11 +95,11 @@ call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
 
 phase = this_rf_phase(orbit, lord)
 call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
-if (fringe_here(ele, orbit, first_track_edge$)) call fringe_kick(orbit, lord, +1, phase, mc2, mat6, make_mat)
+if (fringe_here(ele, orbit, first_track_edge$)) call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
 
 ! Body
 
-do ix_step = ix_step_start, ix_step_end, direction
+do ix_step = ix_step_start, ix_step_end, s_dir
   step => lord%rf%steps(ix_step)
 
   if (ix_step == ix_step_end) then
@@ -110,16 +110,16 @@ do ix_step = ix_step_start, ix_step_end, direction
 
   else
     ! Drift to edge of step and kick
-    if (direction == 1) then
+    if (s_dir == 1) then
       ds = step%s - s_now
       call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
       s_now = step%s
-      call this_energy_kick(orbit, lord, step, direction, mat6, make_mat)
+      call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
       call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
       s_now = lord%rf%steps(ix_step-1)%s
-      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), direction, mat6, make_mat)
+      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), body_dir, mat6, make_mat)
     endif
   endif
 enddo
@@ -127,7 +127,7 @@ enddo
 ! End Edge
 
 phase = this_rf_phase(orbit, lord)
-if (fringe_here(ele, orbit, second_track_edge$)) call fringe_kick(orbit, lord, -1, phase, mc2, mat6, make_mat)
+if (fringe_here(ele, orbit, second_track_edge$)) call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
 call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
 
 !
@@ -172,7 +172,7 @@ end subroutine step_drift
 !---------------------------------------------------------------------------------------
 ! contains
 
-subroutine fringe_kick(orbit, lord, edge, phase, mc2, mat6, make_mat)
+subroutine fringe_kick(orbit, lord, edge, phase, body_dir, mc2, mat6, make_mat)
 
 type (coord_struct) orbit
 type (ele_struct) lord
@@ -180,13 +180,19 @@ type (em_field_struct) field
 
 real(rp) phase, mc2
 real(rp), optional :: mat6(6,6)
-real(rp) f, ff, dE, pc, ez_field, dez_dz_field, rf_omega, pz_end, s_omega(3)
+real(rp) f, ff, dE, pc, ez_field, dez_dz_field, rf_omega, pz_end, s_omega(3), gradient_tot
 
 integer edge  ! +1 -> entrance end, -1 -> exit end.
+integer body_dir
 logical make_mat
+
+! The fringe kick only exists if there is a wave traveling in the same direction as the particle.
+
+if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == -1) return
 
 ! Init
 
+gradient_tot = body_dir * orbit%time_dir * ele%value(gradient_tot$)
 ff = edge * orbit%time_dir * charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
 f = ff / orbit%p0c
 pc = orbit%p0c * (1 + orbit%vec(6))
@@ -239,7 +245,7 @@ end subroutine fringe_kick
 !---------------------------------------------------------------------------------------
 ! contains
 
-subroutine this_energy_kick(orbit, lord, step, direction, mat6, make_mat)
+subroutine this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
 
 type (coord_struct) orbit
 type (ele_struct) lord
@@ -250,7 +256,7 @@ real(rp), optional :: mat6(6,6)
 real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), dE, dE_amp, pz_end, p1c, dp0c
 real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, s_omega(3)
 
-integer direction
+integer body_dir
 logical make_mat
 
 ! Multipole half kicks
@@ -263,12 +269,12 @@ if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lo
 !-------------------------------------------------
 ! Standing wave transverse half kick
 
-if (nint(lord%value(cavity_type$)) == standing_wave$) call standing_wave_transverse_kick(orbit, lord, scale, mat6, make_mat)
+call pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
 
 !-------------------------------------------------
 ! Calc some stuff
 
-if (direction == 1) then
+if (s_dir == 1) then
   dp0c = step%dp0c
   p1c = step%p0c + dp0c
 else
@@ -277,7 +283,7 @@ else
 endif
 
 phase = this_rf_phase(orbit, lord)
-dE_amp = direction * step%dE_amp 
+dE_amp = s_dir * step%dE_amp 
 dE = dE_amp * cos(phase)
 
 rel_p = 1 + orbit%vec(6)
@@ -328,7 +334,7 @@ endif
 !-------------------------------------------------
 ! Standing wave transverse half kick
 
-if (nint(lord%value(cavity_type$)) == standing_wave$) call standing_wave_transverse_kick(orbit, lord, scale, mat6, make_mat)
+call pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
 
 !-------------------------------------------------
 ! Multipole half kicks
@@ -341,7 +347,7 @@ end subroutine this_energy_kick
 !---------------------------------------------------------------------------------------
 ! contains
 
-subroutine standing_wave_transverse_kick(orbit, lord, scale, mat6, make_mat)
+subroutine pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
 
 type (coord_struct) orbit
 type (ele_struct) lord
@@ -349,7 +355,12 @@ type (ele_struct) lord
 real(rp) scale, coef, kmat(6,6), rel_p
 real(rp), optional :: mat6(6,6)
 
+integer body_dir
 logical make_mat
+
+! The pondermotive force only occurs if there is a EM wave in the opposite direction from the direction of travel.
+
+if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) return
 
 !
 
@@ -372,7 +383,7 @@ orbit%vec(2) = orbit%vec(2) - coef * orbit%vec(1)
 orbit%vec(4) = orbit%vec(4) - coef * orbit%vec(3)
 orbit%vec(5) = orbit%vec(5) - 0.5_rp * coef * (orbit%vec(1)**2 + orbit%vec(3)**2) / rel_p
 
-end subroutine standing_wave_transverse_kick
+end subroutine pondermotive_transverse_kick
 
 !---------------------------------------------------------------------------------------
 ! contains
