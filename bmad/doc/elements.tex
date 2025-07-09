@@ -1188,30 +1188,28 @@ The attributes specific to an \vn{crab_cavity} are
   phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{c:multipass}).
   rf_frequency    = <Real>    ! RF frequency (Hz).
   harmon          = <Real>    ! Harmonic number
-  harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
+  harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent variable
+                              !   with reference energy changes?
   voltage                     ! Cavity voltage. Dependent attribute (\sref{s:depend}).
 \end{example}
 
-The Hamiltonian  $H_{\text{crab}}$ for a thin crab cavity is\cite{b:crab1}:
+The Hamiltonian $H_{\text{crab}}$ for a thin crab cavity in energy-time phase space coordinates
+(\sref{energy.phase.space}) is\cite{b:crab1}:
 \begin{equation}
-  H_{\text{crab}} = -r_q \, V\, x \, \sin(k \, t + 2 \, \pi \, \phi_0)
+  H_{\text{crab}} = \frac{-r_q \, e \, V}{c P_0} \, x \, \sin(2 \, \pi \, (f_\txt{rf} \, t + \phi_0))
 \end{equation}
-where $x$ and $z$ are particle coordinates, $r_q$ is the charge relative to the reference
+where $x$ is the particle position, $t$ is the time, $r_q$ is the charge relative to the reference
 particle, $V$ is the ``effective'' cavity voltage, $\phi_0$ is a user settable
-phase, and $k$ is the wave number
-\begin{equation}
-  k = \frac{2 \, \pi \, f_{\text{rf}}}{c}
-\end{equation}
-Which give kicks of
+phase, and $f_\txt{rf}$ is the RF frequency. The kick is:
 \begin{align} 
-  \Delta p_x &= -\frac{1}{c \, P_0} \, \frac{\partial H_{\text{crab}}}{\partial x} = 
-    \frac{r_q \, V}{c \, P_0} \, \sin(k \, t + 2 \, \pi \, \phi_0) \CRNO 
-  \Delta E &= -\frac{\partial H_{\text{crab}}}{\partial t} = 
-    r_q \, V \, \, k \, x \, \cos(k \, t + 2 \, \pi \, \phi_0) 
+  \Delta p_x &= - \frac{\partial H_{\text{crab}}}{\partial x} = 
+    \frac{r_q \, e \, V}{c \, P_0} \, \sin(2 \, \pi \, (f_\txt{rf} \, t + \phi_0)) \CRNO 
+  \Delta E &= -c \, P_0 \, \frac{\partial H_{\text{crab}}}{\partial t} = 
+    2 \, \pi \, r_q \, e \, V \, \, f_\txt{rf} \, x \, \cos(2 \, \pi \, (f_\txt{rf} \, t + \phi_0)) 
 \end{align} 
 Note: The sign of $H_{\text{crab}}$ used by Authors in the literature is not standardized. \bmad
-uses the convention such that a particle with the charge of the reference particle and with $z$ and
-$V$ positive will have a positive $\Delta p_x$.
+uses the convention such that a particle with the charge of the reference particle and with phase
+space $z$ (which has opposite sign to $t$) and $V$ positive will have a positive $\Delta p_x$.
 
 In the above equations $r_q$ is the relative charge between the reference particle (set by the
 \vn{parameter[particle]} parameter in a lattice file) and the particle being tracked through the
@@ -1223,8 +1221,8 @@ the centerline\cite{b:kim}. With this mode, the transverse kick is due to the ma
 longitudinal kick is due to the electric field. Using this, the integrated electric and magnetic
 fields needed for spin tracking are:
 \begin{align}
-  \int \! B_y &= \frac{-V}{c} \, \sin(k \, z + 2 \, \pi \, \phi_0) \CRNO 
-  \int \! E_s &=  \beta \, V \, \, k \, x \, \cos(k \, z + 2 \, \pi \, \phi_0) 
+  \int \! B_y &= \frac{-V}{c} \, \sin(2 \, \pi \, (f_\txt{rf} \, t + \phi_0)) \CRNO 
+  \int \! E_s &= 2 \, \pi \, \beta \, V \, \, f_\txt{rf} \, x \, \cos(2 \, \pi \, (f_\txt{rf} \, t + \phi_0))
 \end{align}
 where $\beta = v/c$ is the normalized speed of the particle.
 
@@ -3175,7 +3173,7 @@ The attributes specific to an \vn{lcavity} are
   n_rf_steps      = <Int>     ! Number of steps in kick-drift-kick model.
   ks              = <Real>    ! Normalized solenoid strength.
   bs_field        = <Real>    ! Solenoid field strength.
-  longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
+  longitudinal_mode = <Int>   ! Longitudinal mode. Default is 0. May be 0 or 1.
 \end{example}
 
 %% Normalized field with respect to the reference energy at the exit end of the element.
@@ -4722,7 +4720,7 @@ Attributes specific to an \vn{rfcavity} are:
   phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
   phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on (rad/2pi).
   gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
-  longitudinal_mode = <Int>   ! Longitudinal mode. Default is 1. May be 0 or 1.
+  longitudinal_mode = <Int>   ! Longitudinal mode. Default is 0. May be 0 or 1.
 \end{example}
 
 The integrated energy kick felt by a particle, assuming no phase slippage, is 
