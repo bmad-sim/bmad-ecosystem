@@ -5095,7 +5095,7 @@ case ('taylor_map', 'matrix')
     case ('-scibmad')
       output_type = 'SCIBMAD'
       style = 'SCIBMAD'
-      call tao_next_word(what2, var_name)
+      if (what2(1:1) /= '-') call tao_next_word(what2, var_name)
       
     case ('-universe')
       call tao_next_word(what2, aname)
@@ -5352,10 +5352,10 @@ case ('taylor_map', 'matrix')
         call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch)
         if (do_inverse) call taylor_inverse(taylor, taylor)
         call truncate_taylor_to_order (taylor, n_order, taylor)
-        call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name)
-        do j = 1, n
-          nl=nl+1; lines(nl) = alloc_lines(j)
-        enddo
+        call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
+        if (bmad_com%spin_tracking_on) then
+          call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
+        endif
       endif
     enddo
 

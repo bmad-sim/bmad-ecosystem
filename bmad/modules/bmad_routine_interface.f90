@@ -3581,13 +3581,13 @@ subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, t
   character(*), optional, allocatable :: lines(:)
 end subroutine
 
-subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean, out_var_suffix)
+subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean, out_var_suffix, append)
   import
   implicit none
   type (taylor_struct), intent(in), target :: bmad_taylor(:)
   integer, optional, intent(out) :: n_lines
   integer, optional :: max_order, file_id
-  logical, optional :: clean
+  logical, optional :: clean, append
   character(*), optional :: out_style, out_var_suffix
   character(*), optional, allocatable :: lines(:)
 end subroutine

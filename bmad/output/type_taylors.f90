@@ -1,5 +1,5 @@
 !+
-! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean, out_var_suffix)
+! Subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean, out_var_suffix, append)
 !
 ! Subroutine to print or put in a string array a Bmad taylor map.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -7,6 +7,8 @@
 ! Input:
 !   bmad_taylor(:)  -- taylor_struct: Array of taylors.
 !   max_order       -- integer, optional: Maximum order to print.
+!   lines(:)        -- character(*), allocatable, optional: Used with append = True. Output will start at n_lines+1
+!   n_lines         -- integer, optional: Used with append = True. Output will start at n_lines+1.
 !   file_id         -- integer, optional: If present, write output to a file with handle file_id.
 !   out_style       -- character(*), optional: Determins the string to be used for the output type column.
 !                        '' (default) -> 'X', 'Px, 'Y', 'Py', 'Z', 'Pz' If size(bmad_taylor) = 6
@@ -23,16 +25,17 @@
 !                       suffix of the variable holding the taylor map. Default is "z". 
 !                       For example, if "z" is the suffix then:
 !                         Descriptor = "d_z", orbital map name = "v_z", ref orbit name = v0_z, and spin map name = "q_z".
+!   append          -- logical, optional: Default is False. If True, n_lines on input is the number of existing lines in lines(:) to save.
 !
 ! Output:
-!   lines(:)     -- character(*), allocatable, optional :: Character array to hold the output. 
-!                     If not present, the information is printed to the terminal.
-!                     For out_style = 'BMAD', Suggested length of lines characters.
-!   n_lines      -- integer, optional: Number of lines in lines(:) that hold valid output.
-!                     n_lines must be present if lines(:) is. 
+!   lines(:)        -- character(*), allocatable, optional: Array to hold the output. 
+!                        If not present, the information is printed to the terminal.
+!                        For out_style = 'BMAD', Suggested length of lines characters.
+!   n_lines         -- integer, optional: Number of lines in lines(:) that hold valid output.
+!                        n_lines must be present if lines(:) is. 
 !-
 
-subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean, out_var_suffix)
+subroutine type_taylors (bmad_taylor, max_order, lines, n_lines, file_id, out_style, clean, out_var_suffix, append)
 
 use taylor_mod, dummy => type_taylors
 
@@ -46,7 +49,7 @@ integer, optional, intent(out) :: n_lines
 integer, optional :: max_order, file_id
 integer i, j, k, n, ie, nl, ix, nt, max_ord
 
-logical, optional :: clean
+logical, optional :: clean, append
 
 character(*), optional :: out_style, out_var_suffix
 character(*), optional, allocatable :: lines(:)
@@ -271,9 +274,16 @@ endif
 ! Finish
 
 if (present(lines)) then
-  call re_allocate(lines, nl, .false.)
-  n_lines = nl
-  lines(1:nl) = li(1:nl)
+  if (logic_option(.false., append)) then
+    call re_allocate(lines, nl+n_lines, .false.)
+    lines(n_lines+1:n_lines+nl) = li(1:nl)
+    n_lines = n_lines + nl
+  else
+    call re_allocate(lines, nl, .false.)
+    lines(1:nl) = li(1:nl)
+    n_lines = nl
+  endif
+
 else
   do i = 1, nl
     print '(1x, a)', trim(li(i))
