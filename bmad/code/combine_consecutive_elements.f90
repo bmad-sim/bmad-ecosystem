@@ -175,7 +175,7 @@ case (rfcavity$, lcavity$)
   ele1%value(voltage$) = 2 * ele1%value(voltage$)
 
 case (taylor$)
-  call concat_ele_taylor (ele1%taylor, ele2, ele1%taylor, error)
+  call concat_ele_taylor (ele1%taylor, ele2, error)
 
 end select
 

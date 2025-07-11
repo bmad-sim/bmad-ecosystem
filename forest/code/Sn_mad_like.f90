@@ -2496,7 +2496,9 @@ CONTAINS
     else
        RFCAVITYL=0
     endif
-
+ 
+lag1=lag1+phase0
+ 
     RFCAVITYL%L=L1
     RFCAVITYL%LD=L1
     RFCAVITYL%LC=L1
@@ -2862,7 +2864,7 @@ CONTAINS
        S2%lag=S1%lag
        S2%volt=flip*S1%volt
        S2%freq=S1%freq0*S1%harmon
-       S2%phas=-S1%lag
+       S2%phas=-S1%lag 
        !       S2%lag=zero
        !       S2%volt=flip*S1%volt
        !       S2%freq=S1%freq0*S1%harmon
@@ -2884,7 +2886,7 @@ CONTAINS
        S2%lag=0.0_dp
        S2%volt=flip*S1%volt
        S2%freq=S1%freq0*S1%harmon
-       S2%phas=-S1%lag
+       S2%phas=-S1%lag 
        !      S2%p0c=S1%p0c
        !frs
        S2%DELTA_E=S1%DELTA_E
@@ -2904,14 +2906,14 @@ CONTAINS
     if(s1%kind==kind22) then
        ALLOCATE(S2%FREQ,S2%PHAS)
        S2%freq=S1%freq0
-       S2%phas=s1%lag
+       S2%phas=s1%lag 
     endif
 
     if(s1%kind==kind15) then
        ALLOCATE(S2%VOLT)
        S2%volt=S1%volt
        ALLOCATE(S2%phas)
-       S2%phas=S1%lag
+       S2%phas=S1%lag 
     endif
 
     if(s1%kind==kind3.or.s1%kind==kind5) then   !.or.s1%kind==kind17) then

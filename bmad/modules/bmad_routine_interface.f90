@@ -3404,11 +3404,13 @@ subroutine transfer_lat_parameters (lat_in, lat_out)
   type (lat_struct) :: lat_out
 end subroutine
 
-subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, unit_start, concat_if_possible)
+subroutine transfer_map_calc (lat, t_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, &
+                                                       unit_start, concat_if_possible, spin_map)
   import
   implicit none
   type (lat_struct), target :: lat
   type (taylor_struct) :: t_map(:)
+  type (taylor_struct), optional :: spin_map(:)
   type (coord_struct), optional :: ref_orb
   integer, intent(in), optional :: ix1, ix2, ix_branch
   logical err_flag

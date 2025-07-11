@@ -5353,9 +5353,9 @@ case ('taylor_map', 'matrix')
         if (do_inverse) call taylor_inverse(taylor, taylor)
         call truncate_taylor_to_order (taylor, n_order, taylor)
         call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
-        if (bmad_com%spin_tracking_on) then
-          call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
-        endif
+!        if (bmad_com%spin_tracking_on) then
+!          call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
+!        endif
       endif
     enddo
 

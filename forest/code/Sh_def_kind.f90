@@ -1904,6 +1904,7 @@ CONTAINS !----------------------------------------------------------------------
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
 
     INTEGER I,J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
@@ -1994,6 +1995,24 @@ CONTAINS !----------------------------------------------------------------------
           CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
+!!! newyoshida Spanish
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
+       DO J=1,21
+          CALL KICKCAV(EL,NDKs(J),X,k)
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       ENDDO
+ 
 
 
     CASE DEFAULT
@@ -2018,6 +2037,9 @@ CONTAINS !----------------------------------------------------------------------
     TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
     real(dp)  NDDF(0:15)
     type(real_8) NDF(0:15),NDK(15) 
+    type(real_8)  NDFs(0:21),NDKs(21) 
+    real(dp)  NDDFs(0:21)
+
     INTEGER I,J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     TYPE(INTERNAL_STATE) kt !,OPTIONAL :: K
@@ -2118,6 +2140,30 @@ CONTAINS !----------------------------------------------------------------------
           CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
        CALL KILL(NDF);CALL KILL(NDK);
+
+!!! newyoshida Spanish
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+call alloc(NDFs);call alloc(NDKs);
+
+ 
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
+       DO J=1,21
+          CALL KICKCAV(EL,NDKs(J),X,k)
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       ENDDO
+ 
+call kill(NDFs);call kill(NDKs);
+
 
     CASE DEFAULT
 
@@ -2346,8 +2392,7 @@ CALL FRINGECAV(EL,X,k,2)
        do ko=1,el%nf
 
 
-          x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO) &
-               +EL%phase0)/EL%P%P0C
+          x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO) )/EL%P%P0C
           ! doing crabola
 
           X1=X(1)
@@ -2370,8 +2415,8 @@ CALL FRINGECAV(EL,X,k,2)
 
           ! multipole * cos(omega t+ phi)/p0c
 
-          X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
-          X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+          X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
+          X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
 
           IF(EL%P%NMUL>=1) THEN
              BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -2390,7 +2435,7 @@ CALL FRINGECAV(EL,X,k,2)
              BBYTW=0.0_dp
              BBXTW=0.0_dp
           ENDIF
-          X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+          X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
        enddo
         
@@ -2436,7 +2481,7 @@ CALL FRINGECAV(EL,X,k,2)
     do ko=1,el%nf
 
        x(5)=x(5)-el%f(ko)*dir*EL%volt*volt_c*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+ &
-            EL%PH(KO)+EL%phase0)/EL%P%P0C
+            EL%PH(KO))/EL%P%P0C
        ! doing crabola
 
        X1=X(1)
@@ -2461,8 +2506,8 @@ CALL FRINGECAV(EL,X,k,2)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
-       X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(2)=X(2)-el%f(ko)*dir*BBYTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
+       X(4)=X(4)+el%f(ko)*DIR*BBXTW/EL%P%P0C*(el%a+ el%r*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -2481,7 +2526,7 @@ CALL FRINGECAV(EL,X,k,2)
           BBYTW=0.0_dp
           BBXTW=0.0_dp
        ENDIF
-       X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       X(5)=X(5)+el%f(ko)*ko*O*dir*BBYTW/EL%P%P0C*el%r*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
     enddo
 
@@ -2522,14 +2567,14 @@ CALL FRINGECAV(EL,X,k,2)
     ad=0.0_dp
    do ko=1,el%nf    ! over modes
 
-    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
-    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
+    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))*0.5_dp
+    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))/2.0_dp
     AD(1)=-C1+AD(1)
     AD(2)=S1+AD(2)
-    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))*0.5_dp
 
 !!!   -DA_3/DT FOR KICK IN X(5)
-    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
    enddo
 !vvvv
     A(1)=AD(1)*X(1)  ! A_x
@@ -2594,16 +2639,16 @@ CALL FRINGECAV(EL,X,k,2)
 
    do ko=1,el%nf    ! over modes
 
-    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
-    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))/2.0_dp
+    C1=el%f(ko)*V*sin(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))*0.5_dp
+    S1=el%f(ko)*(ko*O)*V*sin(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))/2.0_dp
 
     AD(1)=-C1+AD(1)
     AD(2)=S1+AD(2)
 
-    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))*0.5_dp
+    ad(3)=ad(3)-(ko*O)*el%f(ko)*V*cos(ko*O*z)*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))*0.5_dp
 
 !!!   DA_3/DT FOR KICK IN X(5)
-    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+    A(3)=A(3)-EL%P%DIR*el%f(ko)*V*COS(ko*O*z)*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
    enddo
 
     A(1)=AD(1)*X(1)
@@ -3953,8 +3998,8 @@ stop
 
    do ko=1,el%nf    ! over modes
 
-    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
-    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
+    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
+    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
 
     X(2)=X(2)+V*S1*X(1)*0.5_dp
@@ -4015,8 +4060,8 @@ stop
 
     do ko=1,el%nf    ! over modes
 
-    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
-    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%phase0+EL%PH(KO))
+    s1=cos(kbmad*ko*O*z)*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
+    c1=cos(kbmad*ko*O*z)*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
 !    print *, "nf=", el%nf, "jc=", jc, "ko=", ko, "it=", it, "T=", el%t, "kbmad=", kbmad, "ph0=", EL%phase0
 !    call PRTP1("PHS=", EL%phas)
@@ -4086,15 +4131,15 @@ stop
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
-          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          X(2)=X(2)-X(1)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))/(ko*O)
+          X(4)=X(4)-X(3)*el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))/(ko*O)
        ENDIF
 
 !!!!!   el%t should be the "phase" of the cavity if many modes are used
 !!!!!   indeed EL%PH(KO) should be used to shape the harmonic profile of the cavity only
 !!!!!   if tot_t=1 (default)  then it=1 if totalpath=1 other zero
 !!!!!   if tot_t=0 it=1 always
-       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
        ! doing crabola
 
@@ -4119,8 +4164,8 @@ stop
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
-       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
+       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -4140,7 +4185,7 @@ stop
           BBXTW=0.0_dp
        ENDIF
 
-       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
     enddo    ! over modes
 
 
@@ -4205,7 +4250,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          C1 = el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)/(ko*O)
+          C1 = el%f(ko)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))/(ko*O)
           X(2)=X(2)-X(1)*C1
           X(4)=X(4)-X(3)*C1
 !          call PRTP1("C1", C1)
@@ -4214,7 +4259,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 !      write (*,'(7(a,E25.16))') '@ KO= ', ko*1.0_dp, ' F= ', F%r, ' F(KO)= ', el%f(ko)%r, ' P(KO)= ', EL%PH(KO)%r, ' T= ', EL%t,&
 !                                ' IT= ', 1.0_dp*it
 
-       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       x(5)=x(5)-el%f(ko)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
        ! doing crabola
 
@@ -4239,8 +4284,8 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
-       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0))
+       X(2)=X(2)-el%f(ko)*YL*DIR*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
+       X(4)=X(4)+el%f(ko)*YL*DIR*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -4260,7 +4305,7 @@ SUBROUTINE KICKCAVP(EL,YL,X,k)
           BBXTW=0.0_dp
        ENDIF
 
-       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)+EL%phase0)
+       X(5)=X(5)+el%f(ko)*(ko*O)*YL*DIR*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
 
     enddo    ! over modes
 
@@ -5902,6 +5947,7 @@ integer :: kkk=0
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -6003,7 +6049,25 @@ integer :: kkk=0
           CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
+!!! newyoshida Spanish 
 
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
+       DO J=1,21
+          CALL KICK (EL,NDKs(J),X,k)
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       ENDDO
+ 
 
 
     CASE DEFAULT
@@ -6026,6 +6090,8 @@ integer :: kkk=0
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp)  NDDF(0:15)
     type(real_8) NDF(0:15),NDK(15) 
+    real(dp)  NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
 
     INTEGER I,J,pos,f1
 
@@ -6138,6 +6204,31 @@ integer :: kkk=0
        ENDDO
  
        CALL KILL(NDF);CALL KILL(NDK);
+
+!!! newyoshida Spanish 
+
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+
+       CALL ALLOC(NDFs);CALL ALLOC(NDKs);
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
+       DO J=1,21
+          CALL KICK (EL,NDKs(J),X,k)
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       ENDDO
+ 
+       CALL KILL(NDFs);CALL KILL(NDKs);
+
 
     CASE DEFAULT
        !w_p=0
@@ -6543,6 +6634,7 @@ integer :: kkk=0
     real(dp) D1,D2,DK1,DK2,D2H
     real(dp) dd1,dd2,DK(4),DF(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
     INTEGER I,J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -6616,6 +6708,27 @@ integer :: kkk=0
           CALL KICK_SOL(EL,NDF(J),X,k)
        ENDDO
  
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL KICK_SOL(EL,NDFs(0),X,k)
+
+       DO J=1,21
+          CALL KICKMUL(EL,NDKs(J),X,k)
+          CALL KICK_SOL(EL,NDFs(J),X,k)
+       ENDDO
+ 
+
+
 
 
     CASE DEFAULT
@@ -6641,6 +6754,8 @@ integer :: kkk=0
     TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4),D2H
     real(dp)  NDDF(0:15)
     type(real_8) NDF(0:15),NDK(15)
+    real(dp)  NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21)
     INTEGER I,J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -6733,6 +6848,28 @@ integer :: kkk=0
        ENDDO
  
        CALL KILL(NDF);CALL KILL(NDK);
+
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+       CALL alloc(NDFs);CALL alloc(NDKs);
+
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL KICK_SOL(EL,NDFs(0),X,k)
+
+       DO J=1,21
+          CALL KICKMUL(EL,NDKs(J),X,k)
+          CALL KICK_SOL(EL,NDFs(J),X,k)
+       ENDDO
+ 
+       CALL KILL(NDFs);CALL KILL(NDKs);
 
     CASE DEFAULT
        !w_p=0
@@ -12431,6 +12568,7 @@ endif
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
 
     INTEGER I,J,f1
     integer,optional :: pos
@@ -12518,6 +12656,25 @@ endif
           CALL SSECH1(EL,NDF(J),NDDF(J),X,k)
        ENDDO
  
+!!! newyoshida Spanish 
+
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL SSECH1(EL,NDFs(0),NDDFs(0),X,k)
+
+       DO J=1,21
+          CALL SKICK (EL,NDKs(J),X,k)
+          CALL SSECH1(EL,NDFs(J),NDDFs(J),X,k)
+       ENDDO
+ 
 
 
     CASE DEFAULT
@@ -12585,6 +12742,8 @@ endif
     TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
     real(dp)  NDDF(0:15)
     type(real_8) NDF(0:15),NDK(15) 
+    real(dp)  NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer,optional :: pos
@@ -12682,6 +12841,28 @@ endif
           CALL SSECH1(EL,NDF(J),NDDF(J),X,k)
        ENDDO
       CALL KILL(NDF);CALL KILL(NDK);
+!!! newyoshida Spanish 
+
+    CASE(9)
+      CALL ALLOC(NDFs);CALL ALLOC(NDKs);
+
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL SSECH1(EL,NDFs(0),NDDFs(0),X,k)
+
+       DO J=1,21
+          CALL SKICK (EL,NDKs(J),X,k)
+          CALL SSECH1(EL,NDFs(J),NDDFs(J),X,k)
+       ENDDO
+ 
+      CALL KILL(NDFs);CALL KILL(NDKs);
 
     CASE DEFAULT
        !w_p=0
@@ -14201,6 +14382,10 @@ end subroutine set_f_in_k16
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+    real(dp)  NDDFs(0:21)
+    real(dp) NDFs(0:21),NDKs(21) 
+
+
     INTEGER I,J,f1,pos
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -14268,6 +14453,27 @@ end subroutine set_f_in_k16
              CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
+!!! newyoshida Spanish 
+
+    CASE(9)
+
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+             CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
+       DO J=1,21
+             CALL KICKEX(EL,NDKs(J),X,k,pos)
+             CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       ENDDO
+
+ 
        CASE DEFAULT
           !w_p=0
           !w_p%nc=1
@@ -14334,6 +14540,8 @@ end subroutine set_f_in_k16
              CALL KICKEX(EL,NDK(J),X,k)
              CALL SPAR(EL,NDF(J),NDDF(J),X,k)
        ENDDO
+
+
        CASE DEFAULT
           !w_p=0
           !w_p%nc=1
@@ -14359,6 +14567,8 @@ end subroutine set_f_in_k16
     type(real_8) NDF(0:15),NDK(15) 
     INTEGER I,J,f1,pos
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    real(dp)  NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
 
     IF(EL%DRIFTKICK) THEN
 
@@ -14436,6 +14646,27 @@ end subroutine set_f_in_k16
  
        CALL KILL(NDF);CALL KILL(NDK);
 
+!!! newyoshida Spanish 
+
+    CASE(9)
+      CALL ALLOC(NDFs);CALL ALLOC(NDKs);
+
+  !  real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+             CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+
+       DO J=1,21
+             CALL KICKEX(EL,NDKs(J),X,k,pos)
+             CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
+       ENDDO
+      CALL kill(NDFs);CALL kill(NDKs);
 
        CASE DEFAULT
           !w_p=0
@@ -16348,9 +16579,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        if(ASSOCIATED(EL%CAVITY_TOTALPATH)) then
           deallocate(EL%CAVITY_TOTALPATH)
        endif
-       if(ASSOCIATED(EL%phase0)) then
-          deallocate(EL%phase0)
-       endif
+
        if(ASSOCIATED(EL%ACC)) then
        call kill_acceleration(EL%ACC)
           deallocate(EL%ACC)
@@ -16359,7 +16588,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
        NULLIFY(EL%ACC)
        NULLIFY(EL%t)
-       NULLIFY(EL%phase0)
+
        NULLIFY(EL%CAVITY_TOTALPATH)
        NULLIFY(EL%N_BESSEL)
        NULLIFY(EL%H1)
@@ -16399,9 +16628,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
        if(ASSOCIATED(EL%CAVITY_TOTALPATH)) then
           deallocate(EL%CAVITY_TOTALPATH)
        endif
-       if(ASSOCIATED(EL%phase0)) then
-          deallocate(EL%phase0)
-       endif
+
        if(ASSOCIATED(EL%F)) then
           CALL KILL(EL%F,EL%NF)
           deallocate(EL%F)
@@ -16440,7 +16667,7 @@ SUBROUTINE ZEROr_teapot(EL,I)
 
        NULLIFY(EL%ACC)
        NULLIFY(EL%t)
-       NULLIFY(EL%phase0)
+
        NULLIFY(EL%CAVITY_TOTALPATH)
        NULLIFY(EL%N_BESSEL)
        NULLIFY(EL%H1)
@@ -16970,8 +17197,7 @@ endif
       elp%c4%volt =1.0_dp
       el%c4%phas  =0.0_dp
       elp%c4%phas =0.0_dp
-      el%c4%phase0  =0.0_dp
-      elp%c4%phase0 =0.0_dp
+
       el%c4%t  =tc
       elp%c4%t =tc
 
@@ -20652,7 +20878,8 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 !!! newyoshida
     CASE(8)
 
- 
+        WRITE(6,*) " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED in intr_he"
+
      stop 888
 
 
@@ -20775,7 +21002,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 !!! newyoshida
     CASE(8)
 
- 
+       WRITE(6,*) " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED in intp_he"
      stop 888
 
     CASE DEFAULT
@@ -22106,7 +22333,10 @@ call kill(vm,phi,z)
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) BBYTWT,BBXTW,BBYTW,x1,x3
-    integer J,ko
+    integer J,ko,it
+
+    it=tot_t*k%totalpath+(1-tot_t)
+
 
     E=0.0_dp
     B=0.0_dp
@@ -22135,11 +22365,11 @@ call kill(vm,phi,z)
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          B(2)=B(2)-EL%F(KO)*X(1)*DF*VL*COS(ko*O*X(6)+EL%PHAS+phase0)/(ko*O)
-          B(1)=B(1)+EL%F(KO)*X(3)*DF*VL*COS(ko*O*X(6)+EL%PHAS+phase0)/(ko*O)
+          B(2)=B(2)-EL%F(KO)*X(1)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS)/(ko*O)
+          B(1)=B(1)+EL%F(KO)*X(3)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS)/(ko*O)
        ENDIF
 
-       E(3)=E(3)-EL%F(KO)*F*VL*SIN(ko*O*x(6)+EL%PHAS+phase0)
+       E(3)=E(3)-EL%F(KO)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS)
 
        ! doing crabola
 
@@ -22163,8 +22393,8 @@ call kill(vm,phi,z)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       B(2)=B(2)+EL%F(KO)*BBYTW/EL%P%P0C*cos(ko*O*x(6)+EL%PHAS+EL%phase0)
-       B(1)=B(1)+EL%F(KO)*BBXTW/EL%P%P0C*cos(ko*O*x(6)+EL%PHAS+EL%phase0)
+       B(2)=B(2)+EL%F(KO)*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
+       B(1)=B(1)+EL%F(KO)*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -22184,7 +22414,7 @@ call kill(vm,phi,z)
           BBXTW=0.0_dp
        ENDIF
 
-       E(3)=E(3)+EL%F(KO)*ko*O*BBYTW/EL%P%P0C*sin(ko*O*x(6)+EL%PHAS+EL%phase0)
+       E(3)=E(3)+EL%F(KO)*ko*O*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
     enddo
 
     call b0_cav(EL,x,BBXTW,BBYTW)
@@ -22202,7 +22432,9 @@ call kill(vm,phi,z)
     INTEGER I
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     TYPE(REAL_8) BBYTWT,BBXTW,BBYTW,x1,x3
-    integer J,KO
+    integer J,ko,it
+
+    it=tot_t*k%totalpath+(1-tot_t)
 
     DO I=1,3
        E(I)=0.0_dp
@@ -22212,7 +22444,6 @@ call kill(vm,phi,z)
     IF(k%NOCAVITY) RETURN
     CALL ALLOC(DF,R2,F,DR2,O,VL)
     CALL ALLOC(BBYTWT,BBXTW,BBYTW,x1,x3)
-
        if(freq_redefine) then
         O=EL%freq
          else
@@ -22236,11 +22467,11 @@ call kill(vm,phi,z)
        !    EL%DELTA_E=x(5)
 
        IF(EL%N_BESSEL>0) THEN
-          B(2)=B(2)-EL%F(KO)*X(1)*DF*VL*COS(ko*O*X(6)+EL%PHAS+phase0)/(ko*O)
-          B(1)=B(1)+EL%F(KO)*X(3)*DF*VL*COS(ko*O*X(6)+EL%PHAS+phase0)/(ko*O)
+          B(2)=B(2)-EL%F(KO)*X(1)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS)/(ko*O)
+          B(1)=B(1)+EL%F(KO)*X(3)*DF*VL*COS(ko*O*(x(6)+EL%t*it)+EL%PHAS)/(ko*O)
        ENDIF
 
-       E(3)=E(3)-EL%F(KO)*F*VL*SIN(ko*O*x(6)+EL%PHAS+phase0)
+       E(3)=E(3)-EL%F(KO)*F*VL*SIN(ko*O*(x(6)+EL%t*it)+EL%PHAS)
 
        ! doing crabola
 
@@ -22264,8 +22495,8 @@ call kill(vm,phi,z)
 
        ! multipole * cos(omega t+ phi)/p0c
 
-       B(2)=B(2)+EL%F(KO)*BBYTW/EL%P%P0C*cos(ko*O*x(6)+EL%PHAS+EL%phase0)
-       B(1)=B(1)+EL%F(KO)*BBXTW/EL%P%P0C*cos(ko*O*x(6)+EL%PHAS+EL%phase0)
+       B(2)=B(2)+EL%F(KO)*BBYTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
+       B(1)=B(1)+EL%F(KO)*BBXTW/EL%P%P0C*(EL%A+EL%R*cos(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO)))
 
        IF(EL%P%NMUL>=1) THEN
           BBYTW=-EL%BN(EL%P%NMUL)/EL%P%NMUL
@@ -22285,12 +22516,13 @@ call kill(vm,phi,z)
           BBXTW=0.0_dp
        ENDIF
 
-       E(3)=E(3)+EL%F(KO)*ko*O*BBYTW/EL%P%P0C*sin(ko*O*x(6)+EL%PHAS+EL%phase0)
+       E(3)=E(3)+EL%F(KO)*ko*O*BBYTW/EL%P%P0C*EL%R*sin(ko*O*(x(6)+EL%t*it)+EL%PHAS+EL%PH(KO))
     enddo
 
     call b0_cav(EL,x,BBXTW,BBYTW)
     b(1)=b(1)+BBXTW
     b(2)=b(2)+BBYTW
+
 
 
     CALL KILL(BBYTWT,BBXTW,BBYTW,x1,x3)
@@ -24809,10 +25041,14 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
 
     CALL Abmad_TRANS(D,Z0,X,k,A,AD,b,e)
     call b0_cav(D,x,BBXTW,BBYTW)
+ 
+
 !write(n_wedge,"(11(1x,g16.9,1x))") z0+hhh, b,scaleb*b,qi%x(0:3)
 !eeeeeeeeeeeeeeeeeeeeeeeee
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
+  
+
 
     IF(D%P%EXACT) THEN
        if(k%TIME) then
@@ -24835,10 +25071,10 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     ELSE
        if(k%TIME) then
           PZ=ROOT(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2)
-          F(1)=X(2)/PZ-BBYTW 
-          F(3)=X(4)/PZ+BBXTW
-          F(2)=F(1)*AD(1)
-          F(4)=F(3)*AD(1)
+          F(1)=X(2)/PZ
+          F(3)=X(4)/PZ
+          F(2)=F(1)*AD(1)-BBYTW 
+          F(4)=F(3)*AD(1)+BBXTW
           F(5)=-(F(1)*X(1)+F(3)*X(3))*AD(2)+A(3)
           F(6)=((X(2)*X(2)+X(4)*X(4))/2.0_dp/pz**2+1.0_dp)*(1.0_dp/D%P%BETA0+x(5))/pz
           F(6)=F(6)-(1-k%TOTALPATH)/D%P%BETA0
@@ -24851,7 +25087,7 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
     ENDIF
-
+ 
     X(2)=X(2)+A(1)
     X(4)=X(4)+A(2)
 
@@ -25996,9 +26232,10 @@ subroutine rk6bmad_cav_trav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
 !    ad=0
     CALL Abmad_TRANS(D,Z0,X,k,A,AD)
     call b0_cav(D,x,BBXTW,BBYTW)
+ 
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
-
+ 
     IF(D%P%EXACT) THEN
        if(k%TIME) then
           PZ=sqrt(1.0_dp+2.0_dp*X(5)/D%P%BETA0+x(5)**2-X(2)**2-X(4)**2)
@@ -26036,7 +26273,7 @@ subroutine rk6bmad_cav_trav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
           F(6)=(1.0_dp/(1.0_dp+X(5)))*(X(2)*X(2)+X(4)*X(4))/2.0_dp/(1.0_dp+X(5))+k%TOTALPATH
        endif
     ENDIF
-
+ 
     X(2)=X(2)+A(1)
     X(4)=X(4)+A(2)
 !  
@@ -28964,6 +29201,7 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
     real(dp) DD1,DD2,z0
     real(dp) DF(4),DK(4),DDF(4),DKH(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15),NDKH(15)
+    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21),NDKHs(21)
 
     INTEGER I,J,POS
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
@@ -29111,6 +29349,31 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
           CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,P%X)
        ENDDO
  
+!!! newyoshida spanish
+    CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+          NDKHs(I)=NDKs(I)/2.0_DP
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL KICKCAV (EL,NDKHs(J),p%X,k)
+         else
+          CALL KICKCAV (EL,NDKs(J),p%X,k)
+        endif
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,P%X)
+       ENDDO
+ 
 
 
     CASE DEFAULT
@@ -29184,6 +29447,9 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
     type(real_8)  NDKH(15) 
     real(dp)   NDDF(0:15)
     type(real_8) NDF(0:15),NDK(15) 
+    real(dp)   NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
+    type(real_8)  NDKHs(21) 
 
  
 
@@ -29346,6 +29612,35 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
    CALL KILL(NDF);CALL KILL(NDK);
    CALL KILL(NDKH)
 
+!!! newyoshida spanish
+    CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+   CALL alloc(NDFs);CALL alloc(NDKs);
+   CALL alloc(NDKHs)
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+          NDKHs(I)=NDKs(I)/2.0_DP
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL KICKCAV (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL KICKCAV (EL,NDKHs(J),p%X,k)
+         else
+          CALL KICKCAV (EL,NDKs(J),p%X,k)
+        endif
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,P%X)
+       ENDDO
+   CALL KILL(NDFs);CALL KILL(NDKs);
+   CALL KILL(NDKHs)
     CASE DEFAULT
 
        WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
@@ -29419,6 +29714,7 @@ endif
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DKH(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDKHs(21),NDDFs(0:21)
 
     INTEGER I,J,f1
  !   integer,optional :: pos
@@ -29548,7 +29844,7 @@ endif
           CALL SSECH1(EL,DF(J),DDF(J),p%X,k)
        ENDDO
 
-!!! newyoshida
+ 
     CASE(8)
   !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
           NDF(0)=EL%L*wyoshid(0)/EL%P%NST
@@ -29572,7 +29868,31 @@ endif
         endif
           CALL SSECH1(EL,NDF(J),NDDF(J),p%X,k)
        ENDDO
+
+!!! newyoshida spanish
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDKHs(21),NDDFs(0:21)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST 
+       ENDDO
  
+          CALL SSECH1(EL,NDFs(0),NDDFs(0),p%X,k)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL SKICK (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL SKICK (EL,NDKHs(J),p%X,k)
+        else
+          CALL SKICK (EL,NDKs(J),p%X,k)
+        endif
+          CALL SSECH1(EL,NDFs(J),NDDFs(J),p%X,k)
+       ENDDO
 
 
     CASE DEFAULT
@@ -29652,6 +29972,8 @@ endif
     TYPE(REAL_8)  dk2h,dk1h
     type(real_8) DKH(4)
     type(real_8)  NDKH(15) 
+    type(real_8) NDFs(0:21),NDKs(21),NDKHs(21)
+    real(dp) NDDFs(0:21)
 
 
     POS=c%POS_IN_FIBRE-2
@@ -29820,6 +30142,37 @@ endif
 
       CALL KILL(NDF);CALL KILL(NDK);
   CALL KILL(NDKH)
+
+!!! newyoshida spanish
+    CASE(9)
+  !  real(dp) NDFs(0:21),NDKs(21),NDKHs(21),NDDFs(0:21)
+ call alloc(NDFs);call alloc(NDKs);
+call alloc(NDKHs); 
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST 
+       ENDDO
+ 
+          CALL SSECH1(EL,NDFs(0),NDDFs(0),p%X,k)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL SKICK (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL SKICK (EL,NDKHs(J),p%X,k)
+        else
+          CALL SKICK (EL,NDKs(J),p%X,k)
+        endif
+          CALL SSECH1(EL,NDFs(J),NDDFs(J),p%X,k)
+       ENDDO
+
+ call kill(NDFs);call kill(NDKs);
+call kill(NDKHs); 
 
     CASE DEFAULT
        !w_p=0
@@ -30765,6 +31118,7 @@ endif
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DKH(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDKHs(21),NDDFs(0:21)
     INTEGER I,J,f1,pos
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -30892,6 +31246,31 @@ endif
         endif
              CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        ENDDO
+
+       CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST 
+       ENDDO
+
+             CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL KICKEX(EL,NDKHs(J),p%X,k,pos)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKEX(EL,NDKHs(J),p%X,k,pos)
+        else
+          CALL KICKEX(EL,NDKs(J),p%X,k,pos)
+        endif
+             CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+
  
        CASE DEFAULT
           !w_p=0
@@ -31054,14 +31433,17 @@ endif
     real(dp) DD1,DD2
     real(dp) DDF(4)
     TYPE(REAL_8) DH,D,D1,D2,DK1,DK2,DF(4),DK(4)
-    real(dp)  NDDF(0:15)
-    type(real_8) NDF(0:15),NDK(15) 
     INTEGER I,J,f1,pos
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     type(fibre), pointer :: f
     TYPE(REAL_8)  dk2h,dk1h
     type(real_8) DKH(4)
     type(real_8)  NDKH(15) 
+    real(dp)  NDDF(0:15)
+    type(real_8) NDF(0:15),NDK(15) 
+    type(real_8)  NDKHs(21) 
+    real(dp)  NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
 
     f=>c%parent_fibre
     el=> f%magp%k16
@@ -31204,6 +31586,36 @@ CALL alloc(NDKH)
  
        CALL KILL(NDF);CALL KILL(NDK);
      CALL KILL(NDKH)
+
+       CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+       CALL alloc(NDFs);CALL alloc(NDKs);
+     CALL alloc(NDKHs)
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST 
+       ENDDO
+
+             CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL KICKEX(EL,NDKHs(J),p%X,k,pos)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDK(J))
+        CALL KICKEX(EL,NDKHs(J),p%X,k,pos)
+        else
+          CALL KICKEX(EL,NDKs(J),p%X,k,pos)
+        endif
+             CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+
+       CALL KILL(NDFs);CALL KILL(NDKs);
+     CALL KILL(NDKHs)
 
        CASE DEFAULT
           !w_p=0
@@ -31377,6 +31789,7 @@ CALL alloc(NDKH)
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DKH(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDKHs(21),NDDFs(0:21)
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer pos
@@ -31512,7 +31925,33 @@ CALL alloc(NDKH)
        ENDDO
  
 
+ !!! new yoshida Spanish
+    CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
  
+          CALL KICK_SOL(EL,NDFs(0),p%X,k)
+
+       DO J=1,21
+
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL KICKMUL (EL,NDKHs(J),p%X,k)
+        else
+          CALL KICKMUL(EL,NDKs(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,NDFs(J),p%X,k)
+       ENDDO
+ 
+
 
 
 
@@ -31545,7 +31984,9 @@ CALL alloc(NDKH)
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer pos
-
+    type(real_8)  NDKHs(21) 
+    real(dp)   NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
 
     f=>c%parent_fibre
     el=> f%magp%s5
@@ -31699,7 +32140,36 @@ CALL alloc(NDKH)
    CALL KILL(NDF);CALL KILL(NDK);
   CALL KILL(NDKH)
 
+!!! new yoshida Spanish
+    CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+   CALL alloc(NDFs);CALL alloc(NDKs);
+  CALL alloc(NDKHs)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
+       ENDDO
+ 
+          CALL KICK_SOL(EL,NDFs(0),p%X,k)
 
+       DO J=1,21
+
+       if(k%spin.or.k%radiation) then
+        CALL KICKMUL (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL KICKMUL (EL,NDKHs(J),p%X,k)
+        else
+          CALL KICKMUL(EL,NDKs(J),p%X,k)
+        endif
+          CALL KICK_SOL(EL,NDFs(J),p%X,k)
+       ENDDO
+ 
+   CALL KILL(NDFs);CALL KILL(NDKs);
+  CALL KILL(NDKHs)
 
     CASE DEFAULT
        !w_p=0
@@ -31726,6 +32196,7 @@ CALL alloc(NDKH)
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DKH(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDKH(15),NDDF(0:15)
+    real(dp) NDFs(0:21),NDKs(21),NDKHs(21),NDDFs(0:21)
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer pos
@@ -31886,7 +32357,31 @@ CALL alloc(NDKH)
           CALL DRIFT(NDF(J),NDDF(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        ENDDO
  
+!!! newyoshida  Spanish
+    CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST 
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
 
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL KICK (EL,NDKHs(J),p%X,k)
+        else
+          CALL KICK (EL,NDKs(J),p%X,k)
+        endif
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+ 
 
 
     CASE DEFAULT
@@ -32217,7 +32712,10 @@ end SUBROUTINE kick_stochastic_after
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer pos
- 
+     type(real_8)  NDKHs(21) 
+    real(dp)   NDDFs(0:21)
+    type(real_8) NDFs(0:21),NDKs(21) 
+
     f=>c%parent_fibre
     el=> f%magP%k2
 
@@ -32389,6 +32887,38 @@ end SUBROUTINE kick_stochastic_after
    CALL KILL(NDF);CALL KILL(NDK);
   CALL KILL(NDKH)
 
+!!! newyoshida  Spanish
+    CASE(9)
+  !  real(dp) NDF(0:15),NDK(15),NDDF(0:15)
+
+ 
+   CALL alloc(NDFs);CALL alloc(NDKs);
+  CALL alloc(NDKHs)
+
+          NDFs(0)=EL%L*wyoshids(0)/EL%P%NST
+          NDDFs(0)=EL%P%LD*wyoshids(0)/EL%P%NST
+       DO I =1,21
+          NDFs(I)=EL%L*wyoshids(I)/EL%P%NST
+          NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
+          NDKHs(I)=EL%L*wyoshiks(I)/EL%P%NST/2.0_dp
+          NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST 
+       ENDDO
+ 
+          CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+
+       DO J=1,21
+       if(k%spin.or.k%radiation) then
+        CALL KICK (EL,NDKHs(J),p%X,k)
+        call RAD_SPIN_qua_PROBE(c,p,k,NDKs(J))
+        CALL KICK (EL,NDKHs(J),p%X,k)
+        else
+          CALL KICK (EL,NDKs(J),p%X,k)
+        endif
+          CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
+       ENDDO
+ 
+   CALL KILL(NDFs);CALL KILL(NDKs);
+  CALL KILL(NDKHs)
 
     CASE DEFAULT
 
