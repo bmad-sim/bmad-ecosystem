@@ -106,18 +106,18 @@ do ix_step = ix_step_start, ix_step_end, s_dir
     ! Drift to end. The first and last steps have no drift section.
     if (ix_step == 0 .or. ix_step == n_steps) cycle
     ds = s_end - s_now
-    call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
+    call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
 
   else
     ! Drift to edge of step and kick
     if (s_dir == 1) then
       ds = step%s - s_now
-      call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
+      call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
       s_now = step%s
       call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
     else
       ds = lord%rf%steps(ix_step-1)%s - s_now
-      call step_drift(orbit, ds, step, ele, param, mat6, make_mat)
+      call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
       s_now = lord%rf%steps(ix_step-1)%s
       call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), body_dir, mat6, make_mat)
     endif
@@ -137,10 +137,10 @@ call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_mat)
 !---------------------------------------------------------------------------------------
 contains
 
-subroutine step_drift(orbit, ds, step, ele, param, mat6, make_mat)
+subroutine step_drift(orbit, ds, step, lord, param, mat6, make_mat)
 
 type (coord_struct) orbit
-type (ele_struct) ele
+type (ele_struct) lord
 type (lat_param_struct) param
 type (rf_stair_step_struct) :: step
 type (em_field_struct) field
@@ -152,18 +152,18 @@ logical make_mat
 !
 
 if (lord%value(ks$) == 0) then
-  call track_a_drift(orbit, ds, mat6, make_mat, ele%orientation)
+  call track_a_drift(orbit, ds, mat6, make_mat, lord%orientation)
 else
   if (track_spin) then
     field = em_field_struct()
-    field%b(3) = 0.5_rp * ds * ele%value(bs_field$)
-    s_omega = spin_omega(field, orbit, orbit%direction*ele%orientation)
+    field%b(3) = 0.5_rp * ds * lord%value(bs_field$)
+    s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
     call rotate_spin(s_omega, orbit%spin)
-    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat)
-    s_omega = spin_omega(field, orbit, orbit%direction*ele%orientation)
+    call solenoid_track_and_mat (lord, ds, param, orbit, orbit, mat6, make_mat)
+    s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
     call rotate_spin(s_omega, orbit%spin)
   else
-    call solenoid_track_and_mat (ele, ds, param, orbit, orbit, mat6, make_mat)
+    call solenoid_track_and_mat (lord, ds, param, orbit, orbit, mat6, make_mat)
   endif
 endif
 
@@ -393,15 +393,22 @@ function this_rf_phase(orbit, lord) result (phase)
 type (coord_struct) orbit
 type (ele_struct) lord
 type (rf_stair_step_struct), pointer :: step, step0
-
+type (ele_pointer_struct), allocatable :: chain(:)
 real(rp) phase, particle_time
-integer is, ns
+integer is, ns, ix_pass, n_links
 
 !
 
 if (absolute_time_tracking(ele)) then
   particle_time = modulo2(orbit%t, 0.5_qp / lord%value(rf_frequency$))
-  if (bmad_com%absolute_time_ref_shift) particle_time = particle_time - lord%value(ref_time_start$)
+  if (bmad_com%absolute_time_ref_shift) then
+    if (lord%slave_status == multipass_slave$) then
+      call multipass_chain(lord, ix_pass, n_links, chain)
+      particle_time = particle_time - chain(1)%ele%value(ref_time_start$)
+    else
+      particle_time = particle_time - lord%value(ref_time_start$)
+    endif
+  endif
 
   if (lord%value(l$) > 0) then
     ns = nint(lord%value(n_rf_steps$))

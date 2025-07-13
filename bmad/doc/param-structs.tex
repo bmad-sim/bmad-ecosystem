@@ -156,6 +156,11 @@ tracking. The advantage of \vn{absolute_time_ref_shift} set to False is that whe
 tracking in \bmad with tracking in programs that use absolute time tracking but do not implement a
 reference shift (for example, the IMPACT and GPT programs), it is convenient not to have to worry
 about the reference shift.
+
+Note: If \vn{absolute_time_ref_shift} is True, then the reference time shift for a multipass slave
+element, will be based upon the reference time of the first pass slave. This is done since each
+slave of a given multipass lord represents the same physical element.
+
 %
 \item[\vn{aperture_limit_on}] \Newline
 Setting \vn{aperture_limit_on} to \vn{False} will disable the aperture limits set for individual

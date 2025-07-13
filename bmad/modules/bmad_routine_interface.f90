@@ -1627,6 +1627,12 @@ subroutine lattice_bookkeeper (lat, err_flag)
   logical, optional :: err_flag
 end subroutine
 
+subroutine lcavity_rf_step_setup(ele)
+  import
+  implicit none
+  type (ele_struct) ele
+end subroutine
+
 subroutine linear_to_spin_taylor(q_map, spin_taylor)
   import
   type (taylor_struct) spin_taylor(0:3)

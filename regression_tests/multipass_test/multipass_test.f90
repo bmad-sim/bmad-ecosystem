@@ -5,9 +5,11 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat, lat2
-type (ele_struct), pointer :: ele, ele2
+type (ele_struct), pointer :: ele, ele2, lord
+type (ele_pointer_struct), allocatable :: eles(:)
+type (rf_stair_step_struct), pointer :: step
 
-integer ie
+integer ii, ie, is, n_loc
 
 !
 
@@ -16,8 +18,8 @@ open (1, file = 'output.now')
 ! Space_charge_method test
 
 call bmad_parser ('multipass_and_superimpose.bmad', lat)
-call write_bmad_lattice_file ('out.bmad', lat)
-call bmad_parser ('out.bmad', lat2)
+call write_bmad_lattice_file ('lat_out.bmad', lat)
+call bmad_parser ('lat_out.bmad', lat2)
 
 do ie = 1, lat%n_ele_max
   ele => lat%ele(ie)
@@ -26,10 +28,35 @@ do ie = 1, lat%n_ele_max
       quote(space_charge_method_name(lat2%ele(ie)%space_charge_method))
 enddo
 
+call lat_ele_locator('CAVITY1', lat, eles, n_loc)
+lord => eles(1)%ele
+
+
+do is = 0, 2
+  if (is == 0) then
+    ele => lord
+  else
+    ele => pointer_to_slave(lord, is)
+  endif
+
+  do ii = 0, ubound(ele%rf%steps, 1)
+    step => ele%rf%steps(ii)
+    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-a-', int_str(ii), '" REL 1E-12', step%E_tot0, &
+                                                                   step%E_tot1, step%p0c, step%dp0c, step%dE_amp
+    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" REL 1E-12', step%scale, step%dtime, step%s
+  enddo
+enddo
+
+call lat_ele_locator('END', lat, eles, n_loc)
+ele => eles(1)%ele
+write (1, '(a, 2es22.14)') '"END-energy" REL 1E-12', ele%value(p0c$), ele%value(E_tot$)
+
+
+
 ! Forking with a branch element
 
 call bmad_parser ('branch_fork.bmad', lat)
-call write_bmad_lattice_file ('lat1.bmad', lat)
+call write_bmad_lattice_file ('lat_out1.bmad', lat)
 call bmad_parser ('lat1.bmad', lat)
 
 ele => lat%branch(1)%ele(2)
@@ -58,7 +85,7 @@ write (1, '(3a)') '"MS-13"  STR  "', trim(lat%ele(13)%name), '"'
 ! fiducial and flexible patch
 
 call bmad_parser ('patch.bmad', lat)
-call write_bmad_lattice_file ('lat2.bmad', lat)
+call write_bmad_lattice_file ('lat_out2.bmad', lat)
 call bmad_parser ('lat2.bmad', lat)
 
 write (1, '(a, f12.6)')  '"P-0S" ABS 0', lat%branch(1)%ele(0)%s

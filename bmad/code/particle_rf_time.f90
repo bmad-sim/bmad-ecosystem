@@ -68,7 +68,7 @@ if (ix_pass > 1) ref_ele => chain(1)%ele
 ! With absolute time tracking the reference time is relative to the reference time of the element.
 ! This way the phase does not have to be adjusted when switching between absolute and relative time tracking.
 
-! Note: With a multipass_slave, use the reference time of the pass element.
+! Note: With a multipass_slave, use the reference time of the first pass element.
 ! Note: An e_gun always uses absolute time tracking to get around the problem when orbit%beta = 0.
 ! Note: beambeam element with repitition_rate = 0 always uses relative time tracking.
 
