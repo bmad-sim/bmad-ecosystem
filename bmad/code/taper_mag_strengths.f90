@@ -169,9 +169,9 @@ change = 0
 base = real_option(0.0_rp, g0)
 
 if (.not. attribute_free (ele, attrib_name, .false., dependent_attribs_free = .true.)) then
-  if (k_loop == 1) call out_io (s_warn$, r_name, 'This attribute controlled by an Overlay: ' // trim(ele%name) // &
-                                                     '[' // attrib_name // ']  ' // ele_loc_name(ele, parens = '()'), &
-                                                 'No tapering applied for this attribute.')
+  if (k_loop == 1) call out_io (s_warn$, r_name, 'No tapering applied for attribute ' // trim(attrib_name) // &
+                                                 ' controlled by Overlay: ' //  ele_full_name(ele))
+                                                 
   return
 endif
 

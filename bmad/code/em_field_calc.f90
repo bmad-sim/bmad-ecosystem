@@ -50,10 +50,10 @@ use multipole_mod, dummy2 => em_field_calc
 
 implicit none
 
-type (ele_struct), target :: ele, ele2
+type (ele_struct), target :: ele
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
 type (ele_pointer_struct), allocatable :: used_list(:)
-type (ele_struct), pointer :: lord
+type (ele_struct), pointer :: lord, ele2
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
 type (em_field_struct) :: field, field1, field2, lord_field, l1_field, mode_field
@@ -69,7 +69,7 @@ type (spline_struct) spline
 type (branch_struct), pointer :: branch
 
 real(rp), optional :: rf_time
-real(rp) :: x, y, j1, dj1, time, s_pos, s_body, s_lab, s_lab2, z, ff, dk(3,3), ref_charge, f_p0c
+real(rp) :: x, y, j1, dj1, time, s_this, s_pos, s_body, s_lab, s_this2, z, ff, dk(3,3), ref_charge, f_p0c
 real(rp) :: c_x, s_x, c_y, s_y, c_z, s_z, ch_x, ch_y, sh_x, sh_y, coef, fd(3), Ex, Ey, amp
 real(rp) :: cos_ang, sin_ang, sgn_x, sgn_y, sgn_z, dkm(2,2), cos_ks, sin_ks, length
 real(rp) phase, gradient, r, E_r_coef, E_s, k_wave, s_eff, a_amp, inte
@@ -92,7 +92,7 @@ integer i, j, m, n, ix, trig_x, trig_y, status, im, iz0, iz1, izp, ix_pole_max
 
 logical :: local_ref_frame
 logical, optional :: calc_dfield, calc_potential, err_flag, use_overlap, grid_allow_s_out_of_bounds, print_err
-logical do_df_calc, err, dfield_computed, add_kicks
+logical do_df_calc, err, dfield_computed, add_kicks, stay_local
 
 character(*), parameter :: r_name = 'em_field_calc'
 
@@ -124,13 +124,24 @@ if (ele%field_calc == refer_to_lords$) then
 
   ! The lord of an element may have independent misalignments.
   ! So use an orbit that is not in the slave's reference frame.
+  ! Exception: If ele has only one lord. In this case it is imporant not to go to the lab frame since
+  ! an RF cavity with a hard edge active region will cause problems with Runge-Kutta tracking.
 
-  lab_orb = orbit
+  this_orb = orbit
 
-  if (local_ref_frame) then
-    call offset_particle (ele, unset$, lab_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_lab)
+  if (ele%slave_status == slice_slave$) then
+    ele2 => ele%lord
   else
-    s_lab = s_pos
+    ele2 => ele
+  endif
+
+  stay_local = (((ele2%slave_status == super_slave$ .and. num_lords(ele2, super_lord$) == 1) .or. &
+                                             ele2%slave_status /= super_lord$) .and. local_ref_frame)
+
+  if (local_ref_frame .and. .not. stay_local) then
+    call offset_particle (ele, unset$, this_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_this)
+  else
+    s_this = s_pos
   endif
 
   !
@@ -143,7 +154,7 @@ if (ele%field_calc == refer_to_lords$) then
     ! Multipass_lords do not have a well defined global position so take the lord position equal to the slave position.
     ! This is justified if all the slaves have the same position as they should in a realistic lattice.
     if (lord%lord_status == multipass_lord$) then
-      s_lab2 = s_lab
+      s_this2 = s_this
       lord%floor = ele%floor  ! Needed if there is field overlap.
     else
       ds = ele%s_start - lord%s_start
@@ -151,7 +162,7 @@ if (ele%field_calc == refer_to_lords$) then
         branch => pointer_to_branch(lord)
         ds = modulo2(ds, 0.5_rp*branch%param%total_length)
       endif
-      s_lab2 = s_lab + ds
+      s_this2 = s_this + ds
     endif
 
     if (present(used_eles)) then
@@ -159,10 +170,10 @@ if (ele%field_calc == refer_to_lords$) then
         if (.not. associated(used_eles(j)%ele)) exit
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
-      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
+      call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
                             use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
     else
-      call em_field_calc (lord, param, s_lab2, lab_orb, .false., field2, calc_dfield, err, calc_potential, &
+      call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
                             use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list, print_err)
     endif
 
@@ -180,7 +191,10 @@ if (ele%field_calc == refer_to_lords$) then
 
   enddo lord_loop
 
-  if (local_ref_frame) call convert_field_ele_to_lab(ele, s_lab, .false., field, calc_dfield, calc_potential)
+  if (local_ref_frame .and. .not. stay_local) then
+    call convert_field_ele_to_lab(ele, s_this, .false., field, calc_dfield, calc_potential)
+  endif
+
   return
 endif
 

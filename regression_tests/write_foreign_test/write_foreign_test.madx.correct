@@ -123,9 +123,9 @@ TAYLOR1: matrix, l = 5.00000E-01, rm11 = 1.00445E+00, kick1 = -9.54885E-03, rm12
      tm624 = 4.78291E-07, tm634 = 1.42032E-03, tm644 = 1.50447E+00, tm615 = -5.30024E-07,
      tm626 = 3.29521E-05, tm646 = -4.68311E-08;
 VKICKER1: vkicker, l =   4.50000E+00, kick = 5.00000E-03, tilt = 1.00000E-01;
-LCAVITY1: lcavity, l =   4.50000E+00, deltae = 5.00000E-03, freq = 5.00000E+02, phi0 = 1.50000E-01;
-LCAVITY2: lcavity, l =   4.50000E+00, deltae = 5.00000E-06, freq = 5.00000E+02, phi0 = 1.50000E-01;
-LCAVITY3: lcavity, l =   4.50000E+00, deltae = 5.00000E-03, freq = 5.00000E+02, phi0 = 1.50000E-01;
+LCAVITY1: rfcavity, l =   4.50000E+00, volt = 5.00000E-03, lag = -1.00000E-01;
+LCAVITY2: rfcavity, l =   4.50000E+00, volt = 5.00000E-06, lag = -1.00000E-01;
+LCAVITY3: rfcavity, l =   4.50000E+00, volt = 5.00000E-03, lag = -1.00000E-01;
 END: marker;
 
 //---------------------------------;

@@ -416,9 +416,9 @@ if (phi /= 0 .or. psi /= 0 .or. key == patch$ .or. key == crystal$ .or. has_mult
         enddo
 
         if (ele2%bookkeeping_state%floor_position == stale$ .and. .not. logic_option(.false., ignore_patch_err)) then
-          call out_io (s_fatal$, r_name, 'FOR FLEXIBLE PATCH: ' // trim(ele%name) // '  ' // trim(ele_loc_name(ele, parens = "()")), &
-                                         '"DOWNSTREAM" FIDUCIAL ELEMENT: ' // trim(ele2%name) // '  ' // trim(ele_loc_name(ele2, parens = "()")), &
-                                         ' DOES NOT HAVE A WELL DEFINED POSITION')
+          call out_io (s_fatal$, r_name, 'FOR FLEXIBLE PATCH: ' // ele_full_name(ele), &
+                                         '"DOWNSTREAM" FIDUCIAL ELEMENT: ' // ele_full_name(ele2), &
+                                         'DOES NOT HAVE A WELL DEFINED POSITION')
           if (global_com%exit_on_error) call err_exit
         endif
 

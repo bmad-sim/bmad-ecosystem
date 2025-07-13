@@ -898,14 +898,20 @@ do
 
   case (lcavity$)
 
-    write (line_out, '(2a)') trim(ele%name) // ': lcavity, l = ', re_str(val(l$))
-    call value_to_line (line_out, val(gradient$)*val(l$)/1d6, 'deltae', 'R')
-    call value_to_line (line_out, val(rf_frequency$)/1d6, 'freq', 'R')
-    call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'R')
-    if (out_type == 'MAD-8' .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-      line_out = trim(line_out) // ', swave'
+    if (out_type == 'MAD-8') then
+      write (line_out, '(2a)') trim(ele%name) // ': lcavity, l = ', re_str(val(l$))
+      call value_to_line (line_out, val(gradient$)*val(l$)/1d6, 'deltae', 'R')
+      call value_to_line (line_out, val(rf_frequency$)/1d6, 'freq', 'R')
+      call value_to_line (line_out, val(phi0$)+val(phi0_multipass$), 'phi0', 'R')
+      if (nint(ele%value(cavity_type$)) == standing_wave$) then
+        line_out = trim(line_out) // ', swave'
+      endif
+    else  ! MAD-X does not have a lcavity.
+      write (line_out, '(2a)') trim(ele%name) // ': rfcavity, l = ', re_str(val(l$))
+      call value_to_line (line_out, val(voltage$)/1E6, 'volt', 'R')
+      call value_to_line (line_out, val(phi0$)+val(phi0_multipass$)-0.25, 'lag', 'R')
+      call value_to_line (line_out, val(harmon$), 'harmon', 'I')
     endif
-
 
   ! solenoid MAD
 
