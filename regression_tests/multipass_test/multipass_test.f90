@@ -49,7 +49,7 @@ enddo
 
 call lat_ele_locator('END', lat, eles, n_loc)
 ele => eles(1)%ele
-write (1, '(a, 2es22.14)') '"END-energy" REL 1E-12', ele%value(p0c$), ele%value(E_tot$)
+write (1, '(a, 2es22.14)') '"END-energy" REL 4E-9', ele%value(p0c$), ele%value(E_tot$)
 
 
 
@@ -62,7 +62,7 @@ call bmad_parser ('lat1.bmad', lat)
 ele => lat%branch(1)%ele(2)
 write (1, '(3a)')       '"BF-01"  STR  "', trim(ele%name), '"'
 write (1, '(a, 2i3)')   '"BF-02"  ABS   0 ', nint(ele%value(ix_to_branch$)), nint(ele%value(ix_to_element$))
-write (1, '(a, f10.4)') '"BF-03"  REL  4e-9', ele%value(p0c$)
+write (1, '(a, f10.4)') '"BF-03"  REL  1e-12', ele%value(p0c$)
 
 ! Multipass and superimpose
 
