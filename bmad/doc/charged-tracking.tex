@@ -68,9 +68,9 @@ To understand the difference between relative and absolute time tracking, consid
 traveling on the reference orbit along side the reference particle in a circular ring with one RF
 cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking}, $t_\text{eff}$
 will always be zero (assuming \vn{bmad_com[absolute_time_ref_shift]} is set to True) at the entrance
-to the cavity.  With \vn{absolute time tracking}, the particle, on the first turn, will have
-$t_\text{eff}$ equal to zero. However, on subsequent turns (or subsequent passes if using
-multipass), the time will increase by the revolution time $t_\text{C}$ on each turn. If the RF
+to the cavity.  On the other hand, with \vn{absolute time tracking}, the particle, on the first
+turn, will have $t_\text{eff}$ equal to zero. However, on subsequent turns (or subsequent passes if
+using multipass), the time will increase by the revolution time $t_\text{C}$ on each turn. If the RF
 frequency $f_\text{rf}$ is some multiple of the revolution harmonic, the RF phase with absolute vs
 relative time tracking will be some multiple of $2 \, \pi$ and thus RF kick given the particle will
 be the same in both cases. However, if the RF frequency is not some multiple of the revolution
@@ -85,7 +85,9 @@ coordinates so with absolute time tracking, one has a different map for each tur
 
 With relative time tracking the transfer map problem is swept under the rug. The penalty for using
 relative time tracking is that results can be unphysical. For example, with relative time tracking,
-the closed orbit is essentially independent of the RF frequency. From a different angle this can be
+the closed orbit is essentially independent of the RF frequency. In an actual machine, the closed orbit
+will vary with RF frequency and, in fact, varying the RF frequency is one way of measuring
+the dispersion. From a different angle this independence can be
 viewed as a desirable feature since if one is only interested in, say, calculating the Twiss
 parameters, it can be an annoyance to have to worry that the ring one has constructed have a length
 that is exactly commensurate with the RF frequency. And it is potentially confusing to see non-zero
@@ -95,9 +97,7 @@ RF frequency or due to RF cavities not being spaced a multiple of the RF wavelen
 The above discussion is limited to the cavity fundamental mode. Long-range wakefields, on the
 other hand, cannot be synchronized to the $z$ coordinate since, in general, their frequencies are
 not commensurate with the fundamental mode frequency. For simulating the long-range wakes, the kick
-is thus, by necessity, tied to the absolute time. The exception is that a wake associated with the
-fundamental mode (that is, has the same frequency as the fundamental mode) will always use relative
-time if the fundamental is using relative time and vice versa.
+is thus, by necessity, tied to the absolute time.
 
 Do not confuse absolute time tracking with the \vn{time_runge_kutta} tracking method
 (\sref{s:tkm}). The \vn{time_runge_kutta} method uses time as the independent variable instead of

@@ -4,19 +4,19 @@ beginning[beta_a] =  10
 beginning[beta_b] =  10
 
 parameter[geometry] = open
-beginning[e_tot] = 1e9
+beginning[e_tot] = 1e6
+
+cavity1: lcavity, rf_frequency = 1.3e9, L = 0.6, n_rf_steps = 3, voltage = 4e5, phi0 = 0.1
 
 cavity2: lcavity, tracking_method = runge_kutta,  mat6_calc_method = tracking,  
-field_calc = fieldmap, rf_frequency = 1.3e9,
-L = 	0.568,
-grid = call::grid.bmad 
+            field_calc = fieldmap, rf_frequency = 1.3e9, L = 0.568, grid = call::grid.bmad 
 
 dri01: pipe, l = 6
 null_d: null_ele
 q01: quadrupole, l = 1, superimpose, ref = null_d, offset = -4, a2 = 1, tracking_method = runge_kutta
 mm: marker, superimpose, ref = cavity2
 
-mline: line[multipass] = (dri01, null_d, cavity2) 
+mline: line[multipass] = (dri01, null_d, cavity1, cavity2) 
 erlrecovery: line = (mline, mline)
 
 q01[space_charge_method] = fft_3d
