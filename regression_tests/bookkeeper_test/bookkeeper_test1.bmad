@@ -1,3 +1,5 @@
+no_digested
+
 parameter[geometry] = open
 beginning[p0c] = 1e3
 beginning[beta_a] = 1

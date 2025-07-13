@@ -86,8 +86,7 @@ if (ele1%a%beta <= 0 .or. ele1%b%beta <= 0) then
     endif
   endif
 
-  call out_io (s_error$, r_name, 'NON-POSITIVE BETA DETECTED AT ELEMENT: ' // &
-                                  trim(ele1%name) // '  ' // ele_loc_name(ele1, .true., '()'))
+  call out_io (s_error$, r_name, 'NON-POSITIVE BETA DETECTED AT ELEMENT: ' // ele_full_name(ele1))
   return
 endif
 

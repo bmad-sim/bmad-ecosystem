@@ -490,7 +490,7 @@ if (i0 < ig0 .or. i0 >= ig1) then
       str = 'SETTING FIELD TO ZERO'
     endif
     call out_io (s_error$, r_name, '\i0\D GRID_FIELD INTERPOLATION OUT OF BOUNDS. GRID INDEX: I\i0\ = \i0\ (POSITION = \f12.6\)', &
-                                 'FOR ELEMENT: ' // trim(ele%name) // '  ' // trim(ele_loc_name(ele, parens = '()')), &
+                                 'FOR ELEMENT: ' // ele_full_name(ele), &
                                  '(x, y, s(from ele beginning)) PARTICLE POSITION: \3F12.6\ ', str, &
                                  i_array = [grid_dim, ix_x, i0], r_array = [x, orbit%vec(1), orbit%vec(3), orbit%s-ele%s_start])
   endif

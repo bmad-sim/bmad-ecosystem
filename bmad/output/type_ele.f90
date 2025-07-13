@@ -967,11 +967,11 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
     lord => pointer_to_lord(ele, 1)
     nl=nl+1; write (li(nl), '(3a, i0, a)') 'Associated Multipass_Lord: ', trim(lord%name), '  (Index: ', lord%ix_ele, ')'
     nl=nl+1; li(nl) = 'Other slaves of this Lord:'
-    nl=nl+1; li(nl) = '     Index   Name'
+    nl=nl+1; li(nl) = '   Name'
     do im = 1, lord%n_slave
       slave => pointer_to_slave(lord, im)
       if (slave%ix_ele == ele%ix_ele .and. slave%ix_branch == ele%ix_branch) cycle
-      nl=nl+1; write (li(nl), '(a, 3x, a)') adjustr(ele_loc_name(slave)), trim(slave%name)
+      nl=nl+1; write (li(nl), '(3x, a)') ele_full_name(slave)
     enddo
 
   case (super_slave$)
@@ -982,8 +982,8 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
       if (lord%lord_status /= super_lord$) cycle
       if (lord%slave_status == multipass_slave$) then
         lord2 => pointer_to_lord(lord, 1)
-        nl=nl+1; write (li(nl), '(i8, 3x, a, t45, 3a, 2x, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key)), &
-                      '   --> Multipass_slave of: ', trim(ele_loc_name(lord2)), lord2%name
+        nl=nl+1; write (li(nl), '(i8, 3x, a, t45, 3a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key)), &
+                      '   --> Multipass_slave of: ', ele_full_name(lord2)
       else
         nl=nl+1; write (li(nl), '(i8, 3x, a, t45, a)') lord%ix_ele, trim(lord%name), trim(key_name(lord%key))
       endif
@@ -1067,17 +1067,14 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
       do j = 1, lord%n_lord_field
         has_it = .true.
         lord2 => pointer_to_lord(lord, lord%n_lord+im)
-        nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
-                      trim(ele_loc_name(lord2)), lord2%name, key_name(lord2%key)
+        nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(lord2), key_name(lord2%key)
       enddo
     enddo
   else
     do im = 1, ele%n_lord_field
       has_it = .true.
       lord => pointer_to_lord(ele, ele%n_lord+im)
-      nl=nl+1; write (li(nl), '(a8, t12, a35, a16, f10.3)') &
-                    trim(ele_loc_name(lord)), lord%name, key_name(lord%key)
-
+      nl=nl+1; write (li(nl), '(3x, a, t48, a16)') ele_full_name(lord), key_name(lord%key)
     enddo
   endif
 
@@ -1167,20 +1164,20 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
     case (multipass_lord$, super_lord$, girder_lord$, control_lord$)
       if (ele%key == feedback$) then
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Ele_Type           Slave_Type      S'
+        nl=nl+1; li(nl) = '   Name';  li(nl)(n_char+14:) = 'Ele_Type           Slave_Type      S'
         do im = 1, ele%n_slave
           slave => pointer_to_slave (ele, im, ctl)
-          nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, a6, f14.6)') trim(ele_loc_name(slave)), &
-                                      slave%name(1:n_char), key_name(slave%key), ctl%attribute, slave%s
+          nl=nl+1; write (li(nl), '(3x, a)') ele_full_name(slave)
+          write (li(nl)(n_char+14:), '(a16, 3x, a6, f14.6)') key_name(slave%key), ctl%attribute, slave%s
         enddo
 
       else
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves:'
-        nl=nl+1; li(nl) = '   Index   Name';  li(nl)(n_char+14:) = 'Type                     S'
+        nl=nl+1; li(nl) = '   Name';  li(nl)(n_char+14:) = 'Type                     S'
         do im = 1, ele%n_slave
           slave => pointer_to_slave (ele, im)
-          nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a16, 3x, f14.6)') &
-                      trim(ele_loc_name(slave)), slave%name(1:n_char), key_name(slave%key), slave%s
+          nl=nl+1; write (li(nl), '(3x, a)') ele_full_name(slave)
+          write (li(nl)(n_char+14:), '(a16, 3x, f14.6)') key_name(slave%key), slave%s
         enddo
       endif
 
@@ -1240,8 +1237,8 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
           call split_expression_string (knots_to_string(ele%control%x_knot, ctl%y_knot), 70, 5, li2)
         endif
 
-        nl=nl+1; write (li(nl), '(a8, t12, a, 2x, a18, 2a, 4x, a)') trim(ele_loc_name(slave)), &
-                                  slave%name(1:n_char), ctl%attribute, attrib_val_str, str1(1:17), trim(li2(1))
+        nl=nl+1; write (li(nl), '(a)') ele_full_name(slave)
+        write (li(nl)(50:), '(a18, 2a, 4x, a)') ctl%attribute, attrib_val_str, str1(1:17), trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
           n = 50 + n_char + len(attrib_val_str)
@@ -1257,7 +1254,7 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
   has_it = .false.
   nl=nl+1; li(nl) = ' '
   nl=nl+1; li(nl) = "This element's field overlaps:"
-  nl=nl+1; li(nl) = '   Index   Name                                      Type '
+  nl=nl+1; li(nl) = '   Name                                               Type '
 
   if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do im = 1, ele%n_lord
@@ -1265,17 +1262,15 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
       do j = 1, lord%n_slave_field
         has_it = .true.
-        slave => pointer_to_slave(ele, im, lord_type = field_lord$)
-        nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
-                      trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
+        slave => pointer_to_slave(lord, j, lord_type = field_lord$)
+        nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(slave), trim(key_name(slave%key))
       enddo
     enddo
   else
     do im = 1, ele%n_slave_field
       has_it = .true.
       slave => pointer_to_slave(ele, im, lord_type = field_lord$)
-      nl=nl+1; write (li(nl), '(a8, t12, a30, a16, f10.3)') &
-                    trim(ele_loc_name(slave)), slave%name, trim(key_name(slave%key))
+      nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(slave), trim(key_name(slave%key))
     enddo
   endif
 
