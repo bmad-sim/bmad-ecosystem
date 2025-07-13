@@ -12,7 +12,7 @@ contains
 !-----------------------------------------------------------------------
 !+         
 ! Subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb_in, ref_orb_out, ix_branch, 
-!                                               one_turn, unit_start, err_flag, concat_if_possible)
+!                                          one_turn, unit_start, err_flag, concat_if_possible, spin_map)
 !
 ! Subroutine to calculate the transfer map between longitudinal positions s1 to s2.
 !
@@ -27,7 +27,7 @@ contains
 !
 ! Input:
 !   lat         -- lat_struct: Lattice used in the calculation.
-!   t_map(6)    -- Taylor_struct: Initial map (used when unit_start = False)
+!   t_map(6)    -- taylor_struct: Initial map (used when unit_start = False)
 !   s1          -- real(rp), optional: Element start position for the calculation.
 !                    Default is 0.
 !   s2          -- real(rp), optional: Element end position for the calculation.
@@ -46,16 +46,18 @@ contains
 !   concat_if_possible
 !               -- logical, optional: If present and True then use map concatenation rather than tracking 
 !                    if a map is present for a given lattice element. See above. Default is False.
+!   spin_map(4) -- taylor_struct, optional: Initial spin map.
 !
 ! Output:
-!   t_map(6)    -- Taylor_struct: Transfer map.
+!   t_map(6)    -- taylor_struct: Transfer map.
 !   ref_orb_out -- coord_struct, optional: Ending coordinates of the reference orbit.
 !                    This is also the actual orbit of particle 
-!   err_flag    -- Logical, optional: Set true if there is an error. False otherwise.
+!   err_flag    -- logical, optional: Set true if there is an error. False otherwise.
+!   spin_map(4) -- taylor_struct, optional: Final spin map. Only computed if bmad_com%spin_tracking_on = T.
 !-
 
 subroutine transfer_map_from_s_to_s (lat, t_map, s1, s2, ref_orb_in, ref_orb_out, ix_branch, &
-                                                   one_turn, unit_start, err_flag, concat_if_possible)
+                                            one_turn, unit_start, err_flag, concat_if_possible, spin_map)
 
 use ptc_interface_mod, only: concat_taylor, taylor_inverse
 
@@ -65,7 +67,8 @@ type (lat_struct), target :: lat
 type (coord_struct), optional :: ref_orb_in, ref_orb_out
 type (coord_struct) orb
 type (taylor_struct) :: t_map(:)
-type (taylor_struct) a_map(6)
+type (taylor_struct) a_map(6), s_map(4)
+type (taylor_struct), optional :: spin_map(:)
 type (branch_struct), pointer :: branch
 
 real(rp), intent(in), optional :: s1, s2
@@ -75,7 +78,7 @@ integer, optional :: ix_branch
 integer ix_br, ix_ele
 
 logical, optional :: one_turn, unit_start, err_flag, concat_if_possible
-logical unit_start_this, error_flag
+logical unit_start_this, error_flag, do_spin
 
 character(*), parameter :: r_name = 'transfer_map_from_s_to_s'
 
@@ -83,6 +86,7 @@ character(*), parameter :: r_name = 'transfer_map_from_s_to_s'
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
+do_spin = present(spin_map) .and. bmad_com%spin_tracking_on
 
 unit_start_this = logic_option(.true., unit_start)
 if (present(err_flag)) err_flag = .true.
@@ -98,6 +102,7 @@ ix_ele = element_at_s (branch, ss1, .true.)
 if (unit_start_this) then
   call taylor_make_unit (t_map)
   if (present(ref_orb_in)) t_map%ref = ref_orb_in%vec
+  if (do_spin) call taylor_make_unit(spin_map)
 endif
 
 if (present(ref_orb_in)) then
@@ -117,31 +122,38 @@ endif
 ! Normal case
 
 if (ss1 < ss2) then 
-  call transfer_this_map (t_map, branch, ss1, ss2, error_flag, orb, concat_if_possible = concat_if_possible)
+  call transfer_this_map (t_map, branch, ss1, ss2, error_flag, orb, do_spin, concat_if_possible, spin_map)
   if (error_flag) return
 
 ! For a circular lattice push through the origin.
 
 elseif (branch%param%geometry == closed$) then
-  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, error_flag, orb, concat_if_possible)
+  call transfer_this_map (t_map, branch, ss1, branch%param%total_length, error_flag, orb, do_spin, concat_if_possible, spin_map)
   if (error_flag) return
-  call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, orb, concat_if_possible)
+  call transfer_this_map (t_map, branch, 0.0_rp, ss2, error_flag, orb, do_spin, concat_if_possible, spin_map)
   if (error_flag) return
 
 ! For an open lattice compute the backwards map
 
 else
   if (unit_start_this) then
-    call transfer_this_map (t_map, branch, ss2, ss1, error_flag, orb, concat_if_possible)
+    call transfer_this_map (t_map, branch, ss2, ss1, error_flag, orb, do_spin, concat_if_possible, spin_map)
     if (error_flag) return
     call taylor_inverse (t_map, t_map)
+    if (do_spin) call taylor_inverse(spin_map, spin_map)
   else  
     call taylor_make_unit (a_map)
-    call transfer_this_map (a_map, branch, ss2, ss1, error_flag, orb, concat_if_possible)
+    if (do_spin) call taylor_make_unit(s_map)
+    call transfer_this_map (a_map, branch, ss2, ss1, error_flag, orb, do_spin, concat_if_possible, s_map)
     if (error_flag) return
     call taylor_inverse (a_map, a_map)
     call concat_taylor (t_map, a_map, t_map)
     call kill_taylor (a_map)
+    if (do_spin) then
+      call taylor_inverse (s_map, s_map)
+      call concat_taylor (spin_map, s_map, spin_map)
+      call kill_taylor (s_map)
+    endif
   endif
 
 endif
@@ -155,19 +167,20 @@ end subroutine transfer_map_from_s_to_s
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, orb, concat_if_possible)
+! Subroutine transfer_this_map (t_map, branch, s_1, s_2, error_flag, orb, do_spin, concat_if_possible, spin_map)
 !
 ! Private subroutine used by transfer_map_from_s_to_s
 !-
 
-subroutine transfer_this_map (map, branch, s_1, s_2, error_flag, orb, concat_if_possible)
+subroutine transfer_this_map (t_map, branch, s_1, s_2, error_flag, orb, do_spin, concat_if_possible, spin_map)
 
 use ptc_interface_mod, only: taylor_propagate1, concat_ele_taylor
 
 implicit none
 
 type (branch_struct), target :: branch
-type (taylor_struct) :: map(:)
+type (taylor_struct) :: t_map(:)
+type (taylor_struct), optional :: spin_map(:)
 type (ele_struct), pointer :: ele
 type (ele_struct), pointer :: runt => null()
 type (ele_struct), target, save :: runt_save
@@ -179,7 +192,7 @@ real(rp) s_1, s_2, s_now, s_end, ds
 
 integer i, ix_ele
 
-logical create_it, track_upstream_end, track_downstream_end, track_entire_ele
+logical do_spin, create_it, track_upstream_end, track_downstream_end, track_entire_ele
 logical runt_points_to_new, error_flag, include_next_ele
 logical, optional :: concat_if_possible
 logical, save :: old_track_end = .false.
@@ -250,15 +263,15 @@ do
   ! Now for the integration step
 
   if (track_entire_ele .and. logic_option(.false., concat_if_possible)  .and. associated(ele%taylor(1)%term)) then
-    call concat_ele_taylor (map, ele, map, error_flag); if (error_flag) return
-    call init_coord(orb, map%ref, ele, downstream_end$)
+    call concat_ele_taylor (t_map, ele, error_flag, spin_map); if (error_flag) return
+    call init_coord(orb, t_map%ref, ele, downstream_end$)
   else
-    call taylor_propagate1 (map, runt, branch%param, error_flag, orb); if (error_flag) return
-    call init_coord(orb, map%ref, runt, downstream_end$)
+    call taylor_propagate1 (t_map, runt, branch%param, error_flag, orb, spin_map); if (error_flag) return
+    call init_coord(orb, t_map%ref, runt, downstream_end$)
   endif
 
   ! Save the present integration step parameters so that if this routine
-  ! is called in the future we can tell if the saved taylor map is still valid.
+  ! is called in the future we can tell if the saved taylor t_map is still valid.
 
   old_track_end = track_upstream_end .or. track_downstream_end
 

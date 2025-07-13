@@ -279,7 +279,7 @@ do ib = 0, ubound(lat_out%branch, 1)
 
         if (do_taylor) then
           if (associated(ele_in%taylor(1)%term)) then
-            call concat_ele_taylor (ele_out%taylor, ele_in, ele_out%taylor, err_flag)
+            call concat_ele_taylor (ele_out%taylor, ele_in, err_flag)
           else
             call taylor_propagate1 (ele_out%taylor, ele_in, b_in%param, err_flag)
           endif

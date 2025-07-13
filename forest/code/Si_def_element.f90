@@ -1099,6 +1099,7 @@ CONTAINS
        EL%C4%VOLT=>EL%VOLT
        EL%C4%FREQ=>EL%FREQ
        EL%C4%PHAS=>EL%PHAS
+!       EL%PHAS=EL%PHAS+phase0
        EL%C4%H1=>EL%H1
        EL%C4%H2=>EL%H2
        !       EL%C4%P0C=>EL%P0C
@@ -1106,7 +1107,7 @@ CONTAINS
        EL%C4%THIN=>EL%THIN
        ALLOCATE(EL%C4%N_BESSEL);EL%C4%N_BESSEL=0
        ALLOCATE(EL%C4%cavity_totalpath);EL%C4%cavity_totalpath=cavity_totalpath
-       ALLOCATE(EL%C4%phase0);EL%C4%phase0=phase0
+ !      ALLOCATE(EL%C4%phase0);EL%C4%phase0=phase0
        ALLOCATE(EL%C4%NF);EL%C4%NF=N_CAV4_F
        ALLOCATE(EL%C4%F(N_CAV4_F));EL%C4%F=0.0_dp;EL%C4%F(1)=1.0_dp;
        ALLOCATE(EL%C4%A);EL%C4%A=0.0_dp;
@@ -1597,6 +1598,7 @@ CONTAINS
        EL%C4%VOLT=>EL%VOLT
        EL%C4%FREQ=>EL%FREQ
        EL%C4%PHAS=>EL%PHAS
+!EL%PHASphase0
        EL%c4%H1=>EL%H1
        EL%c4%H2=>EL%H2
        !       EL%C4%P0C=>EL%P0C
@@ -1604,7 +1606,7 @@ CONTAINS
        EL%C4%THIN=>EL%THIN
        ALLOCATE(EL%C4%N_BESSEL);EL%C4%N_BESSEL=0
        ALLOCATE(EL%C4%cavity_totalpath);EL%C4%cavity_totalpath=cavity_totalpath
-       ALLOCATE(EL%C4%phase0);EL%C4%phase0=phase0
+!       ALLOCATE(EL%C4%phase0);EL%C4%phase0=phase0
        ALLOCATE(EL%C4%NF);EL%C4%NF=N_CAV4_F
        ALLOCATE(EL%C4%F(N_CAV4_F));CALL ALLOC(EL%C4%F,N_CAV4_F);EL%C4%F(1)=1.0_dp;
        ALLOCATE(EL%C4%A);CALL ALLOC(EL%C4%A);EL%C4%A=0.0_dp;
@@ -3766,7 +3768,7 @@ nullify(EL%filef,el%fileb);
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath
-       ELP%C4%phase0 = EL%C4%phase0
+!       ELP%C4%phase0 = EL%C4%phase0
        DO I=1,EL%C4%NF
           ELP%C4%F(I)=EL%C4%F(I)
           ELP%C4%PH(I)=EL%C4%PH(I)
@@ -4168,7 +4170,7 @@ nullify(EL%filef,el%fileb);
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath
-       ELP%C4%phase0 = EL%C4%phase0
+!       ELP%C4%phase0 = EL%C4%phase0
        DO I=1,EL%C4%NF
           ELP%C4%F(I)=EL%C4%F(I)
           ELP%C4%PH(I)=EL%C4%PH(I)
@@ -4584,7 +4586,7 @@ nullify(EL%filef,el%fileb);
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath
-       ELP%C4%phase0 = EL%C4%phase0
+!       ELP%C4%phase0 = EL%C4%phase0
        DO I=1,EL%C4%NF
           ELP%C4%F(I)=EL%C4%F(I)
           ELP%C4%PH(I)=EL%C4%PH(I)

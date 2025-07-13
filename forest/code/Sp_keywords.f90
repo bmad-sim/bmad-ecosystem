@@ -1116,8 +1116,8 @@ brhoi=1.0_dp/brho
           el%mag%c4%r=r
           el%magp%c4%r=r
        ENDIF
-       el%mag%c4%PHASE0=0.0_dp
-       el%mag%c4%PHASE0=0.0_dp
+    !   el%mag%c4%PHASE0=0.0_dp
+    !   el%mag%c4%PHASE0=0.0_dp
        el%mag%c4%always_on=my_true
        el%magp%c4%always_on=my_true
        el%mag%c4%xprime=my_false
@@ -2521,7 +2521,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  cav0%N_BESSEL=F%c4%N_BESSEL
  cav0%NF=F%c4%NF
  cav0%CAVITY_TOTALPATH=F%c4%CAVITY_TOTALPATH
- cav0%phase0=F%c4%phase0
+ cav0%phase0=  0.0_dp  !!!F%c4%phase0  bullshit 
  cav0%t=F%c4%t
  cav0%always_on=F%c4%always_on
  cav0%xprime=F%c4%xprime
@@ -2529,7 +2529,7 @@ if(dir) then   !BETA0,GAMMA0I,GAMBET,MASS ,AG
  cav0%PH(1:F%c4%NF)=F%c4%PH
  cav0%A=F%c4%A
  cav0%R=F%c4%R
-    if(present(mf)) then
+    if(present(mf)) then 
      write(mf,NML=CAVname)
     endif   
  
@@ -2544,7 +2544,7 @@ CALL SETFAMILY(f)
 
 
  F%c4%CAVITY_TOTALPATH=cav0%CAVITY_TOTALPATH
- F%c4%phase0=cav0%phase0
+! F%c4%phase0=cav0%phase0
  F%c4%t=cav0%t
  F%c4%always_on=cav0%always_on
  F%c4%xprime=cav0%xprime

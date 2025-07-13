@@ -160,6 +160,11 @@ module precision_constants
   real(dp) YOSK(0:4), YOSD(4),  butcher(8,8)    ! FIRST 6TH ORDER OF YOSHIDA
   real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
   real(dp) ck8(11),bk8(11),ak8(11,11),yx0,yx1,wy1,wy2,wy3,wy0
+  real(dp)wy0s,wy1s,wy2s,wy3s,wy4s,wy5s,wy6s,yosks(0:6)
+  real(dp) wyoshs(0:10),wyoshiks(0:21),wyoshids(0:21)
+                                        
+  real(dp) wyo10s,wyo9s,wyo8s,wyo7s,wyo6s,wyo5s,wyo4s,wyo3s,wyo2s,wyo1s,wyo0s
+
   real(dp),parameter::AAA=-0.25992104989487316476721060727823e0_dp  ! fourth order integrator
   real(dp),parameter::FD1=0.5_dp/(1.0_dp+AAA),FD2=AAA*FD1,FK1=1.0_dp/(1.0_dp+AAA),FK2=(AAA-1.0_dp)*FK1
   ! end of symplectic integrator coefficients
@@ -434,9 +439,9 @@ contains
 
   SUBROUTINE MAKE_YOSHIDA
     IMPLICIT NONE
-    integer i ,id 
+    integer i ,id ,ntl
     real(dp) a,b,b8,s21,ak
-!!!! For implicit testin
+!!!! For implicit testing
     yx0=1.0_dp/(2.0_dp-2.0_dp**(1.0_dp/3))
     yx1=-2.0_dp**(1.0_dp/3)*yx0
 !!!!!!!
@@ -462,43 +467,49 @@ wy3=YOSK(3)
     do i=3,0,-1
        YOSK(i+1)=YOSK(I)
     enddo
-!!!  rk6 in pancake
-butcher(1,1)=1.0_dp/9.0_dp
-butcher(2,1)=1.0_dp/24.0_dp
-butcher(2,2)=3.0_dp/24.0_dp
-butcher(3,1)=1.0_dp/6
-butcher(3,2)=-3.0_dp/6
-butcher(3,3)=4.0_dp/6
-butcher(4,1)=-5.0_dp/8
-butcher(4,2)=27.0_dp/8
-butcher(4,3)=-24.0_dp/8
-butcher(4,4)=6.0_dp/8
-butcher(5,1)=221.0_dp/9
-butcher(5,2)=-981.0_dp/9
-butcher(5,3)=867.0_dp/9
-butcher(5,4)=-102.0_dp/9
-butcher(5,5)=1.0_dp/9
-butcher(6,1)=-183.0_dp/48
-butcher(6,2)=678.0_dp/48
-butcher(6,3)=-472.0_dp/48
-butcher(6,4)=-66.0_dp/48
-butcher(6,5)=80.0_dp/48
-butcher(6,6)=3.0_dp/48
-butcher(7,1)=716.0_dp/82
-butcher(7,2)=-2079.0_dp/82
-butcher(7,3)=1002.0_dp/82
-butcher(7,4)=834.0_dp/82
-butcher(7,5)=-454.0_dp/82
-butcher(7,6)=-9.0_dp/82
-butcher(7,7)=72.0_dp/82
-butcher(8,1)=41.0_dp/840
-butcher(8,2)=216.0_dp/840
-butcher(8,3)=27.0_dp/840
-butcher(8,4)=272.0_dp/840
-butcher(8,5)=27.0_dp/840
-butcher(8,6)=216.0_dp/840
-butcher(8,7)=41.0_dp/840
-butcher(8,8)=0
+
+! 6th order
+  YOSKs(6)= 0.13861930854051695245808013042625e0_dp
+  YOSKs(5)= 0.13346562851074760407046858832209e0_dp
+  YOSKs(4)= 0.13070531011449225190542755785015e0_dp
+  YOSKs(3)= 0.12961893756907034772505366537091e0_dp
+  YOSKs(2)= -0.35000324893920896516170830911323e0_dp
+  YOSKs(1)= 0.11805530653002387170273438954049e0_dp
+ 
+ YOSKs(0)=1.0_dp-2.0_dp*( YOSKs(1)+YOSKs(2)+YOSKs(3)+YOSKs(4)+YOSKs(5)+YOSKs(6))
+wy0s=YOSKs(0)
+wy1s=YOSKs(1)
+wy2s=YOSKs(2)
+wy3s=YOSKs(3)
+wy4s=YOSKs(4)
+wy5s=YOSKs(5)
+wy6s=YOSKs(6)
+!! 8th order
+ wyoshs(1)= 0.11699135019217642180722881433533e0_dp
+ wyoshs(2)= 0.12581718736176041804392391641587E0_dp
+ wyoshs(3)= 0.12603912321825988140305670268365E0_dp
+ wyoshs(4)= 0.11892905625000350062692972283951E0_dp
+wyoshs(5)= 0.11317848435755633314700952515599E0_dp
+ wyoshs(6)=-0.24445266791528841269462171413216E0_dp
+ wyoshs(7)=-0.23341414023165082198780281128319E0_dp
+wyoshs(8)= 0.35337821052654342419534541324080E0_dp
+ wyoshs(9)= 0.10837408645835726397433410591546E0_dp
+ wyoshs(10)= 0.10647728984550031823931967854896E0_dp
+ wyo1s=wyoshs(1)
+ wyo2s=wyoshs(2)
+ wyo3s=wyoshs(3)
+ wyo4s=wyoshs(4)
+ wyo5s=wyoshs(5)
+ wyo6s=wyoshs(6)
+ wyo7s=wyoshs(7)
+wyo8s=wyoshs(8)
+ wyo9s=wyoshs(9)
+ wyo10s=wyoshs(10)
+ wyoshs(0)=1.0_dp
+do i=1,10
+  wyoshs(0)=wyoshs(0)-2*wyoshs(i)
+enddo
+wyo0s=wyoshs(0)
 
 !wyosh(1,1)= -0.161582374150097E1_dp   
 !wyosh(1,2)= -0.244699182370524E1_dp   
@@ -549,6 +560,9 @@ wyo7=wyosh(7)
 !wyosh(5,7)=0.130300165760014E1_dp
 
  
+
+ 
+
 wyosh(0)=1.0_dp
 
 do i=1,7
@@ -575,7 +589,7 @@ do i=1,6
 enddo
  wyoshik(id)=wyosh(7)
  wyoshid(id)=wyosh(7)/2
-
+ 
 if(.false.) then
 write(6,*) id
 !pause 777
@@ -588,8 +602,81 @@ do id=1,15
  write(6,*) id,wyoshid(id),wyoshik(id)
 enddo
 write(6,*) a,b
- stop 999
+ pause  999
 endif
+
+ntl=10
+!wyoshs(0:7),wyoshids(0:15),wyoshiks(15) 
+id=1
+wyoshids(0)=wyoshs(ntl)/2
+do i=ntl,1,-1
+ wyoshiks(id)=wyoshs(i)
+ wyoshids(id)=(wyoshs(i)+wyoshs(i-1))/2
+id=id+1
+enddo
+  wyoshiks(id)=wyoshs(0)
+  wyoshids(id)=(wyoshs(0)+wyoshs(1))/2
+  id=id+1
+
+do i=1,ntl-1
+ wyoshiks(id)=wyoshs(i)
+ wyoshids(id)=(wyoshs(i)+wyoshs(i+1))/2
+ id=id+1
+enddo
+ wyoshiks(id)=wyoshs(ntl)
+ wyoshids(id)=wyoshs(ntl)/2
+
+if(.false.) then
+write(6,*) id
+!pause 777
+ a=wyoshids(0) 
+ b=0
+ write(6,*) 0,wyoshids(0) 
+do id=1,2*ntl+1
+  a=a+wyoshids(id)
+  b=b+wyoshiks(id)
+ write(6,*) id,wyoshids(id),wyoshiks(id)
+enddo
+write(6,*) a,b
+ pause  9999
+endif
+!!!  rk6 in pancake
+butcher(1,1)=1.0_dp/9.0_dp
+butcher(2,1)=1.0_dp/24.0_dp
+butcher(2,2)=3.0_dp/24.0_dp
+butcher(3,1)=1.0_dp/6
+butcher(3,2)=-3.0_dp/6
+butcher(3,3)=4.0_dp/6
+butcher(4,1)=-5.0_dp/8
+butcher(4,2)=27.0_dp/8
+butcher(4,3)=-24.0_dp/8
+butcher(4,4)=6.0_dp/8
+butcher(5,1)=221.0_dp/9
+butcher(5,2)=-981.0_dp/9
+butcher(5,3)=867.0_dp/9
+butcher(5,4)=-102.0_dp/9
+butcher(5,5)=1.0_dp/9
+butcher(6,1)=-183.0_dp/48
+butcher(6,2)=678.0_dp/48
+butcher(6,3)=-472.0_dp/48
+butcher(6,4)=-66.0_dp/48
+butcher(6,5)=80.0_dp/48
+butcher(6,6)=3.0_dp/48
+butcher(7,1)=716.0_dp/82
+butcher(7,2)=-2079.0_dp/82
+butcher(7,3)=1002.0_dp/82
+butcher(7,4)=834.0_dp/82
+butcher(7,5)=-454.0_dp/82
+butcher(7,6)=-9.0_dp/82
+butcher(7,7)=72.0_dp/82
+butcher(8,1)=41.0_dp/840
+butcher(8,2)=216.0_dp/840
+butcher(8,3)=27.0_dp/840
+butcher(8,4)=272.0_dp/840
+butcher(8,5)=27.0_dp/840
+butcher(8,6)=216.0_dp/840
+butcher(8,7)=41.0_dp/840
+butcher(8,8)=0
 
 ck8=0
 bk8=0

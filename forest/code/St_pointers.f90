@@ -1220,23 +1220,7 @@ endif
              p=>p%next
           enddo
 
-       case('RFCLEANBMAD')
-     !  read(mf,*)  IBN,HPHA,N_name ! bessel, phase, totalpath
-           ibn=0
-        hpha=-pi
-        n_name=0
-          p=>my_ering%start
-          do ii=1,my_ering%N
-           if(p%mag%kind==kind4) then
-            p%mag%c4%N_BESSEL=ibn
-            p%magp%c4%N_BESSEL=ibn
-            p%mag%c4%phase0=HPHA
-            p%magp%c4%phase0=HPHA
-            p%mag%c4%CAVITY_TOTALPATH=n_name
-            p%magp%c4%CAVITY_TOTALPATH=n_name
-           endif
-           P=>P%NEXT
-          ENDDO
+ 
        case('MODULATE','ACMAGNET')
           READ(MF,*) NAME , posr
 
@@ -3495,8 +3479,8 @@ endif
           write(6,*) " freq    = ",p%mag%freq
           write(6,*) " phas    = ",p%mag%phas
           write(6,*) " ref p0c = ",p%mag%p%p0c
-          p%mag%c4%phase0=0.0_dp
-          p%magp%c4%phase0=0.0_dp
+       !   p%mag%c4%phase0=0.0_dp
+        !  p%magp%c4%phase0=0.0_dp
           p%mag%c4%f(1)=1.0_dp
           p%magp%c4%f(1)=1.0_dp
           p%mag%c4%ph(1)=0.0_dp

@@ -115,7 +115,8 @@ TYPE CAV4
    TYPE(MAGNET_CHART), POINTER:: P => null()
    real(dp) , POINTER ::L => null()                    !  Storage space for computed
    real(dp),  DIMENSION(:), POINTER :: AN => null(),BN => null()                 !Multipole component
-   real(dp), POINTER :: VOLT => null(), FREQ => null(),PHAS => null(),DELTA_E => null(),phase0 => null(),t => null()
+  ! real(dp), POINTER :: VOLT => null(), FREQ => null(),PHAS => null(),DELTA_E => null(),phase0 => null(),t => null()
+   real(dp), POINTER :: VOLT => null(), FREQ => null(),PHAS => null(),DELTA_E => null(),t => null()
    real(dp), POINTER :: F(:) => null()
    real(dp), POINTER :: A => null(),R => null()
    real(dp), POINTER :: PH(:) => null()
@@ -135,7 +136,8 @@ TYPE CAV4P
    TYPE(REAL_8) , POINTER ::L => null()
    TYPE(REAL_8),  DIMENSION(:), POINTER :: AN => null(),BN => null()         !Multipole component
    TYPE(REAL_8), POINTER :: VOLT => null(), FREQ => null(),PHAS => null()      ! Cavity Information
-   real(dp), POINTER :: DELTA_E => null(),phase0 => null(),t => null()                        ! Cavity information
+   real(dp), POINTER :: DELTA_E => null(), t => null()                        ! Cavity information
+!   real(dp), POINTER :: DELTA_E => null(),phase0 => null(),t => null()                        ! Cavity information
    TYPE(REAL_8), POINTER :: F(:) => null()
    TYPE(REAL_8), POINTER :: PH(:) => null()
    TYPE(REAL_8), POINTER :: A => null(),R => null()

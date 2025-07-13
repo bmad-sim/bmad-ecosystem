@@ -24,7 +24,7 @@ subroutine ele_to_taylor (ele, orb0, taylor_map_includes_offsets, include_dampin
 use ptc_interface_mod, dummy => ele_to_taylor, dummy2 => dp
 use s_tracking
 use mad_like, only: real_8, fibre, ring_l, survey, CONVERSION_XPRIME_IN_ABELL, internal_state
-use ptc_spin, only: track_probe_x, track_probe
+use ptc_spin, only: track_probe
 use ptc_multiparticle, only: survey
 use madx_ptc_module, only: bmadl
 
