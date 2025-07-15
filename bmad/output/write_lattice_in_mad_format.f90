@@ -73,7 +73,7 @@ real(rp), optional :: dr12_drift_max
 real(rp) field, hk, vk, limit(2), length, a, b, f, e2, beta, r_max, r0, dr12_max
 real(rp), pointer :: val(:)
 real(rp) knl(0:n_pole_maxx), tilts(0:n_pole_maxx), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
-real(rp) tilt, x_pitch, y_pitch, etilt, epitch, eyaw, offset(3), w_mat(3,3)
+real(rp) tilt, x_pitch, y_pitch, etilt, epitch, eyaw, offset(3), w_mat(3,3), rel_p0c
 
 integer, optional :: ix_branch
 integer, allocatable :: n_repeat(:), an_indexx(:)
@@ -590,8 +590,9 @@ end select
 
 ! write element parameters
 
-n_names = 0                          ! number of names stored in the list
+n_names = 0          ! Number of names stored in the list
 ix_ele = 0
+rel_p0c = 1.0        ! Used to renormalize magnet strengths for MAD-X when there are Lcavity elements.
 
 do
   ix_ele = ix_ele + 1
@@ -683,7 +684,7 @@ do
 
     write (line_out, '(2a)') trim(ele%name) // ': hkicker, l = ', re_str(val(l$))
 
-    call value_to_line (line_out, val(kick$), 'kick', 'R')
+    call value_to_line (line_out, val(kick$)*rel_p0c, 'kick', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! kicker MAD
@@ -692,8 +693,8 @@ do
 
     write (line_out, '(2a)') trim(ele%name) // ': kicker, l = ', re_str(val(l$))
 
-    call value_to_line (line_out, val(hkick$), 'hkick', 'R')
-    call value_to_line (line_out, val(vkick$), 'vkick', 'R')
+    call value_to_line (line_out, val(hkick$)*rel_p0c, 'hkick', 'R')
+    call value_to_line (line_out, val(vkick$)*rel_p0c, 'vkick', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! vkicker MAD
@@ -702,7 +703,7 @@ do
 
     write (line_out, '(2a)') trim(ele%name) // ': vkicker, l = ', re_str(val(l$))
 
-    call value_to_line (line_out, val(kick$), 'kick', 'R')
+    call value_to_line (line_out, val(kick$)*rel_p0c, 'kick', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! marker MAD
@@ -717,7 +718,7 @@ do
 
     write (line_out, '(2a)') trim(ele%name) // ': octupole, l = ', re_str(val(l$))
 
-    call value_to_line (line_out, val(k3$), 'k3', 'R')
+    call value_to_line (line_out, val(k3$)*rel_p0c, 'k3', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! quadrupole MAD
@@ -725,7 +726,7 @@ do
   case (quadrupole$)
 
     write (line_out, '(2a)') trim(ele%name) // ': quadrupole, l = ', re_str(val(l$))
-    call value_to_line (line_out, val(k1$), 'k1', 'R')
+    call value_to_line (line_out, val(k1$)*rel_p0c, 'k1', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! sbend MAD
@@ -756,7 +757,7 @@ do
     if (out_type == 'MAD-X' .and. ele%value(l$) /= 0) then
       call multipole_ele_to_ab (ele, .false., ix, a_pole, b_pole, magnetic$, include_kicks$)
       call value_to_line (line_out, val(dg$) + b_pole(0)/val(l$), 'k0', 'R')
-      call value_to_line (line_out, a_pole(0)/val(l$), 'k0s', 'R')
+      call value_to_line (line_out, rel_p0c*a_pole(0)/val(l$), 'k0s', 'R')
     endif
 
   ! sextupole MAD
@@ -764,7 +765,7 @@ do
   case (sextupole$)
 
     write (line_out, '(2a)') trim(ele%name) // ': sextupole, l = ', re_str(val(l$))
-    call value_to_line (line_out, val(k2$), 'k2', 'R')
+    call value_to_line (line_out, rel_p0c*val(k2$), 'k2', 'R')
     call value_to_line (line_out, val(tilt$), 'tilt', 'R')
 
   ! taylor MAD
@@ -907,10 +908,13 @@ do
         line_out = trim(line_out) // ', swave'
       endif
     else  ! MAD-X does not have a lcavity.
+      call out_io(s_warn$, r_name, 'Beware! Lcavity encountered: ' // ele%name, &
+                                   'Translating to RFcavity and renormalizing downstream element strengths.')
       write (line_out, '(2a)') trim(ele%name) // ': rfcavity, l = ', re_str(val(l$))
       call value_to_line (line_out, val(voltage$)/1E6, 'volt', 'R')
       call value_to_line (line_out, val(phi0$)+val(phi0_multipass$)-0.25, 'lag', 'R')
       call value_to_line (line_out, val(harmon$), 'harmon', 'I')
+      rel_p0c = ele%value(p0c$) / branch_out%ele(1)%value(p0c_start$)
     endif
 
   ! solenoid MAD
@@ -918,7 +922,7 @@ do
   case (solenoid$)
 
     write (line_out, '(2a)') trim(ele%name) // ': solenoid, l = ', re_str(val(l$))
-    call value_to_line (line_out, val(ks$), 'ks', 'R')
+    call value_to_line (line_out, rel_p0c*val(ks$), 'ks', 'R')
 
   ! multipole MAD
 
@@ -935,8 +939,8 @@ do
         if (all(knl(i:) == 0)) exit
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value
         if (abs(b_pole(i)) < 1d-12 * abs(a_pole(i))) b_pole(i) = 0  ! Round to zero insignificant value
-        call value_to_line (knl_str,  b_pole(i) * factorial(i), '', 'R', .false.)
-        call value_to_line (ksl_str, -a_pole(i) * factorial(i), '', 'R', .false.)
+        call value_to_line (knl_str,  rel_p0c*b_pole(i) * factorial(i), '', 'R', .false.)
+        call value_to_line (ksl_str, -rel_p0c*a_pole(i) * factorial(i), '', 'R', .false.)
       enddo
       if (any(b_pole /= 0)) line_out = trim(line_out) // ', knl = {' // trim(knl_str(3:)) // '}'
       if (any(a_pole /= 0)) line_out = trim(line_out) // ', ksl = {' // trim(ksl_str(3:)) // '}'
@@ -944,7 +948,7 @@ do
     else
       do i = 0, 9
         write (str, '(a, i0, a)') 'K', i, 'L'
-        call value_to_line (line_out, knl(i), str, 'R')
+        call value_to_line (line_out, rel_p0c*knl(i), str, 'R')
         write (str, '(a, i0)') 'T', i
         call value_to_line (line_out, tilts(i), str, 'R')
       enddo
