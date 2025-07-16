@@ -5,6 +5,7 @@ from pytao import SubprocessTao
 
 def test_beam_energy_n_rf_steps():
     """
+    Regression test for issue #1619:
     Ensure that reference particle energy is changed correctly for multipass cavities using bmad-standard tracking with
     `n_rf_steps` set.
     """
