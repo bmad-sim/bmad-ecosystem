@@ -56,7 +56,13 @@ type expression_atom_struct
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
   real(rp) :: value = 0
-  type (expression_atom_struct), pointer :: atom(:) => null()  ! For expression trees
+end type
+
+type expression_tree_struct
+  character(60) :: name = ''
+  integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
+  real(rp) :: value = 0
+  type (expression_tree_struct), pointer :: atom(:) => null()  ! For expression trees
 end type
 
 !-------------------------------------------------------------------------

@@ -15,7 +15,7 @@ type (control_struct), pointer :: ctl
 type (control_ramp1_struct), pointer :: ramp(:)
 type (nametable_struct) ntab
 type (expression_atom_struct), allocatable :: stack(:)
-type (expression_atom_struct) tree
+type (expression_tree_struct) tree
 type (ele_pointer_struct), allocatable :: ramper(:)
 type (material_struct), pointer :: mater(:), mater2(:)
 

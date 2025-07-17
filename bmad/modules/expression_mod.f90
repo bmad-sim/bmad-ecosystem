@@ -22,18 +22,18 @@ contains
 !   expression_tree_value
 !
 ! Input:
-!   tree      -- expression_atom_struct: Only used when recursively called.
+!   tree      -- expression_tree_struct: Only used when recursively called.
 !   string    -- character(*): Expression to be converted.
 !
 ! Output:
-!   tree      -- expression_atom_struct: Expression evaluation tree.
+!   tree      -- expression_tree_struct: Expression evaluation tree.
 !   err_flag  -- logical: Set True if there is an error (EG divide by 0).
 !   err_str   -- character(*): String describing the error.
 !-
 
 subroutine expression_string_to_tree (string, tree, err_flag, err_str)
 
-type (expression_atom_struct), target :: tree
+type (expression_tree_struct), target :: tree
 
 logical err_flag
 
@@ -54,7 +54,7 @@ contains
 
 recursive subroutine bracket_pass(parse_line, tree, err_flag, err_str, tree_name)
 
-type (expression_atom_struct), target :: tree
+type (expression_tree_struct), target :: tree
 
 integer i, id, ixe, ix_word, n_atom
 
@@ -149,8 +149,8 @@ end subroutine bracket_pass
 
 recursive subroutine comma_pass(tree, err_flag, err_str)
 
-type (expression_atom_struct), target :: tree, t2
-type (expression_atom_struct), pointer :: t2a
+type (expression_tree_struct), target :: tree, t2
+type (expression_tree_struct), pointer :: t2a
 
 integer n_comma, na, n0, ia, nn
 logical err_flag
@@ -202,7 +202,7 @@ end subroutine comma_pass
 
 subroutine push_atom(tree, n_atom, str)
 
-type (expression_atom_struct), target :: tree
+type (expression_tree_struct), target :: tree
 integer n_atom
 character(*) str
 
@@ -287,7 +287,7 @@ end subroutine get_next_chunk
 
 subroutine increment_n_atom(tree, n_atom)
 
-type (expression_atom_struct), target :: tree
+type (expression_tree_struct), target :: tree
 integer n_atom
 
 n_atom = n_atom + 1
@@ -301,18 +301,18 @@ end subroutine expression_string_to_tree
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function type_expression_tree (tree)
+! Function expression_tree_to_string (tree)
 !
 ! Routine to print an expression tree.
 !
 ! Input:
-!   tree        -- expression_atom_struct: Tree to print.
+!   tree        -- expression_tree_struct: Tree to print.
 !   n_atom      -- integer, optional: Internal use only. Used with recursive calls. 
 !-
 
 recursive function expression_tree_to_string (tree, n_atom) result (str)
 
-type (expression_atom_struct) tree
+type (expression_tree_struct) tree
 integer, optional :: n_atom
 integer n
 character(400) str
@@ -355,7 +355,7 @@ end function expression_tree_to_string
 ! Routine to evaluate and expression tree.
 !
 ! Input:
-!   tree          -- expression_atom_struct
+!   tree          -- expression_tree_struct
 
 
 
@@ -372,18 +372,18 @@ end function expression_tree_to_string
 ! array will be lost if n is less than the original size of the array
 !
 ! Input:
-!   tree       -- expression_atom_struct:
+!   tree       -- expression_tree_struct:
 !   n          -- integer: Size wanted.
 !   exact      -- logical, optional:  Default is False. If False, the size of 
 !                   the output array is permitted to be larger than n. 
 !
 ! Output:
-!   tree       -- expression_atom_struct:
+!   tree       -- expression_tree_struct:
 !-
 
 subroutine re_associate_tree(tree, n, exact)
 
-type (expression_atom_struct), target :: tree, temp_tree
+type (expression_tree_struct), target :: tree, temp_tree
 integer n, n_old, n_save
 logical, optional :: exact
 
