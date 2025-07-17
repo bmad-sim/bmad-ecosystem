@@ -291,7 +291,11 @@ type (expression_tree_struct), target :: tree
 integer n_atom
 
 n_atom = n_atom + 1
-if (n_atom > size(tree%atom)) call re_associate_tree(tree, n_atom+20)
+if (associated(tree%atom)) then
+  if (n_atom > size(tree%atom)) call re_associate_tree(tree, n_atom+10)
+else
+  call re_associate_tree(tree, n_atom+10)
+endif
 
 end subroutine increment_n_atom
 
@@ -396,7 +400,7 @@ if (associated(tree%atom)) then
   n_save = min(n, n_old)
   temp_tree%atom => tree%atom
   allocate (tree%atom(n))
-  tree%atom(1:n_save) = temp_tree%atom
+  tree%atom(1:n_save) = temp_tree%atom(1:n_save)
   deallocate (temp_tree%atom)  
 else
   allocate (tree%atom(n))
