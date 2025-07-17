@@ -12,6 +12,402 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
+! Subroutine expression_string_to_tree (string, tree, err_flag, err_str)
+!
+! Routine to create an expression tree array which can be used 
+! to evaluate an arithmethic expression.
+!
+! Also see:
+!   expression_value
+!   expression_tree_value
+!
+! Input:
+!   tree      -- expression_atom_struct: Only used when recursively called.
+!   string    -- character(*): Expression to be converted.
+!
+! Output:
+!   tree      -- expression_atom_struct: Expression evaluation tree.
+!   err_flag  -- logical: Set True if there is an error (EG divide by 0).
+!   err_str   -- character(*): String describing the error.
+!-
+
+subroutine expression_string_to_tree (string, tree, err_flag, err_str)
+
+type (expression_atom_struct), target :: tree
+
+logical err_flag
+
+character(*) string, err_str
+character(len(string)) parse_line
+
+! Form tree with brackets nodes 
+! Then further subdivide if there are commas
+
+err_flag = .false.
+err_str = ''
+parse_line = string
+call bracket_pass(parse_line, tree, err_flag, err_str, 'root'); if (err_flag) return
+call comma_pass(tree, err_flag, err_str); if (err_flag) return
+
+!------------------------------------------------------------------------
+contains
+
+recursive subroutine bracket_pass(parse_line, tree, err_flag, err_str, tree_name)
+
+type (expression_atom_struct), target :: tree
+
+integer i, id, ixe, ix_word, n_atom
+
+logical delim_found, do_combine
+logical err_flag
+
+character(*) parse_line, err_str, tree_name
+character(1) delim, cc
+character(80) word, word2
+
+! 
+
+select case (tree_name)
+case ('[');     tree%type = square_brackets$; tree%name = '[]'
+case ('(');     tree%type = parens$;          tree%name = '()'
+case ('{');     tree%type = curly_brackets$;  tree%name = '{}'
+case ('root');  tree%type = root$;            tree%name = 'root'
+end select
+
+tree%value = 0
+n_atom = 0
+
+!
+
+parsing_loop: do
+  call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,{}', delim, delim_found)
+  if (ix_word == 0 .and. .not. delim_found) then
+    if (tree%name /= 'root') then
+      err_str = 'Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
+                '  In: ' // quote(string)
+      err_flag = .true.
+    endif
+    call re_associate_tree(tree, n_atom, exact = .true.)
+    return
+  endif
+
+  select case (delim)
+  case ('[', '(', '{')
+    call push_atom(tree, n_atom, word)
+    call increment_n_atom(tree, n_atom)
+    call bracket_pass(parse_line, tree%atom(n_atom), err_flag, err_str, delim); if (err_flag) return
+
+  case ('+', '-')
+    do_combine = (ix_word > 1)
+
+    if (do_combine) then
+      cc = upcase(word(ix_word:ix_word))
+      if (cc /= 'E' .and. cc /= 'D') do_combine = .false.
+      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{} ', ix_word = ixe)) do_combine = .false.
+
+      do i = 1, ix_word-1
+        if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
+      enddo
+    endif
+
+    if (do_combine) then
+      word = trim(word) // delim // parse_line(1:ixe)
+      call push_atom(tree, n_atom, word)
+      parse_line = parse_line(ixe+1:)
+    else
+      call push_atom(tree, n_atom, word)
+      call push_atom(tree, n_atom, delim)
+    endif
+
+  case (']', ')', '}')
+    call push_atom(tree, n_atom, word)
+
+    if (tree%name(2:2) /= delim) then
+      if (tree%name == 'root') then
+        err_str = 'End bracket: ' // quote(delim) // ' has no beginning bracket.' // &
+                  '  In: ' // quote(string)
+      else
+        err_str = 'Brackets mismatch. Opening: ' // quote(tree%name) // ' has ending: ' // quote(delim) // &
+                  '  In: ' // quote(string)
+        err_flag = .true.
+      endif
+    endif
+    exit
+
+  case default
+    call push_atom(tree, n_atom, word)
+    call push_atom(tree, n_atom, delim)
+  end select
+enddo parsing_loop
+
+call re_associate_tree(tree, n_atom, exact = .true.)
+
+end subroutine bracket_pass
+
+!------------------------------------------------------------------------
+! contains
+
+recursive subroutine comma_pass(tree, err_flag, err_str)
+
+type (expression_atom_struct), target :: tree, t2
+type (expression_atom_struct), pointer :: t2a
+
+integer n_comma, na, n0, ia, nn
+logical err_flag
+character(*) err_str
+
+! Add comma layer
+
+n_comma = 0
+n0 = 1
+nn = size(tree%atom)
+
+do na = 1, nn
+  select case (tree%atom(na)%type)
+  case (square_brackets$, parens$, curly_brackets$)
+    call comma_pass(tree%atom(na), err_flag, err_str)
+
+  case (comma$)
+    call increment_n_atom(t2, n_comma)
+    t2a => t2%atom(n_comma)
+    t2a%name = ','
+    t2a%type = comma$
+
+    allocate(t2a%atom(na-n0))
+    do ia = 1, na - n0
+      t2a%atom(ia) = tree%atom(ia + n0 - 1)
+    enddo
+    n0 = na + 1
+  end select
+end do
+
+call increment_n_atom(t2, n_comma)
+t2a => t2%atom(n_comma)
+t2a%name = ','
+t2a%type = comma$
+allocate(t2a%atom(nn + 1 - n0))
+do ia = 1, nn + 1 - n0
+  t2a%atom(ia) = tree%atom(ia + n0 - 1)
+enddo
+call re_associate_tree(t2, n_comma, exact = .true.)
+
+deallocate(tree%atom)
+allocate(tree%atom(n_comma))
+tree%atom = t2%atom
+
+end subroutine comma_pass
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine push_atom(tree, n_atom, str)
+
+type (expression_atom_struct), target :: tree
+integer n_atom
+character(*) str
+
+if (len_trim(str) == 0) return
+call increment_n_atom(tree, n_atom)
+tree%atom(n_atom)%name = str
+
+select case (upcase(str))
+case ('MIN');                  tree%atom(n_atom)%type = min$
+case ('MAX');                  tree%atom(n_atom)%type = max$
+case ('COT');                  tree%atom(n_atom)%type = cot$
+case ('CSC');                  tree%atom(n_atom)%type = csc$
+case ('SEC');                  tree%atom(n_atom)%type = sec$
+case ('SIN');                  tree%atom(n_atom)%type = sin$
+case ('SINC');                 tree%atom(n_atom)%type = sinc$
+case ('COS');                  tree%atom(n_atom)%type = cos$
+case ('TAN');                  tree%atom(n_atom)%type = tan$
+case ('ASIN');                 tree%atom(n_atom)%type = asin$
+case ('ACOS');                 tree%atom(n_atom)%type = acos$
+case ('ATAN');                 tree%atom(n_atom)%type = atan$
+case ('ATAN2');                tree%atom(n_atom)%type = atan2$
+case ('MODULO');               tree%atom(n_atom)%type = modulo$
+case ('ABS');                  tree%atom(n_atom)%type = abs$
+case ('SQRT');                 tree%atom(n_atom)%type = sqrt$
+case ('LOG');                  tree%atom(n_atom)%type = log$
+case ('EXP');                  tree%atom(n_atom)%type = exp$
+case ('FACTORIAL');            tree%atom(n_atom)%type = factorial$
+case ('RAN');                  tree%atom(n_atom)%type = ran$
+case ('RAN_GAUSS');            tree%atom(n_atom)%type = ran_gauss$
+case ('INT');                  tree%atom(n_atom)%type = int$
+case ('SIGN');                 tree%atom(n_atom)%type = sign$
+case ('NINT');                 tree%atom(n_atom)%type = nint$
+case ('FLOOR');                tree%atom(n_atom)%type = floor$
+case ('CEILING');              tree%atom(n_atom)%type = ceiling$
+case ('CHARGE_OF');            tree%atom(n_atom)%type = charge_of$
+case ('MASS_OF');              tree%atom(n_atom)%type = mass_of$
+case ('SPECIES');              tree%atom(n_atom)%type = species$
+case ('ANTIPARTICLE');         tree%atom(n_atom)%type = antiparticle$
+case ('ANOMALOUS_MOMENT_OF');  tree%atom(n_atom)%type = anomalous_moment_of$
+case ('COTH');                 tree%atom(n_atom)%type = coth$
+case ('SINH');                 tree%atom(n_atom)%type = sinh$
+case ('COSH');                 tree%atom(n_atom)%type = cosh$
+case ('TANH');                 tree%atom(n_atom)%type = tanh$
+case ('ACOTH');                tree%atom(n_atom)%type = acoth$
+case ('ASINH');                tree%atom(n_atom)%type = asinh$
+case ('ACOSH');                tree%atom(n_atom)%type = acosh$
+case ('ATANH');                tree%atom(n_atom)%type = atanh$
+case ('+');                    tree%atom(n_atom)%type = plus$
+case ('-');                    tree%atom(n_atom)%type = minus$
+case ('*');                    tree%atom(n_atom)%type = times$
+case ('/');                    tree%atom(n_atom)%type = divide$
+case ('^');                    tree%atom(n_atom)%type = power$
+case default
+  if (is_real(str)) then
+    tree%atom(n_atom)%type = constant$
+  else
+    tree%atom(n_atom)%type = variable$
+  endif
+end select
+
+end subroutine push_atom
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine get_next_chunk (parse_line, word, ix_word, delim_list, delim, delim_found)
+
+character(*) parse_line, word, delim_list, delim
+
+integer ix_word
+
+logical delim_found
+
+!
+
+call word_read (parse_line, delim_list, word, ix_word, delim, delim_found, parse_line)
+
+end subroutine get_next_chunk
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine increment_n_atom(tree, n_atom)
+
+type (expression_atom_struct), target :: tree
+integer n_atom
+
+n_atom = n_atom + 1
+if (n_atom > size(tree%atom)) call re_associate_tree(tree, n_atom+20)
+
+end subroutine increment_n_atom
+
+end subroutine expression_string_to_tree
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function type_expression_tree (tree)
+!
+! Routine to print an expression tree.
+!
+! Input:
+!   tree        -- expression_atom_struct: Tree to print.
+!   n_atom      -- integer, optional: Internal use only. Used with recursive calls. 
+!-
+
+recursive function expression_tree_to_string (tree, n_atom) result (str)
+
+type (expression_atom_struct) tree
+integer, optional :: n_atom
+integer n
+character(400) str
+
+!
+
+str = ''
+
+select case (tree%type)
+case (root$)
+  do n = 1, size(tree%atom)
+    str = trim(str) //  expression_tree_to_string(tree%atom(n), n)
+  enddo
+
+case (square_brackets$, parens$, curly_brackets$)
+  str = tree%name(1:1)
+  do n = 1, size(tree%atom)
+    str = trim(str) //  expression_tree_to_string(tree%atom(n), n)
+  enddo
+  str = trim(str) // tree%name(2:2)
+
+case (comma$)
+  if (integer_option(2, n_atom) > 1) str = trim(str) // tree%name
+  do n = 1, size(tree%atom)
+    str = trim(str) //  expression_tree_to_string(tree%atom(n), n)
+  enddo
+
+case default
+  str = trim(str) // tree%name 
+end select
+
+end function expression_tree_to_string
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function expression_tree_value(tree) result (value)
+!
+! Routine to evaluate and expression tree.
+!
+! Input:
+!   tree          -- expression_atom_struct
+
+
+
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine re_associate_tree(tree, n, exact)
+!
+! Routine to reassociate the tree%atom(:) array
+!
+! Note: The data of the array is preserved but data at the end of the
+! array will be lost if n is less than the original size of the array
+!
+! Input:
+!   tree       -- expression_atom_struct:
+!   n          -- integer: Size wanted.
+!   exact      -- logical, optional:  Default is False. If False, the size of 
+!                   the output array is permitted to be larger than n. 
+!
+! Output:
+!   tree       -- expression_atom_struct:
+!-
+
+subroutine re_associate_tree(tree, n, exact)
+
+type (expression_atom_struct), target :: tree, temp_tree
+integer n, n_old, n_save
+logical, optional :: exact
+
+!
+
+if (associated(tree%atom)) then
+  n_old = size(tree%atom)
+  if (n == n_old) return
+  if (.not. logic_option(.false., exact) .and. n < n_old) return
+  n_save = min(n, n_old)
+  temp_tree%atom => tree%atom
+  allocate (tree%atom(n))
+  tree%atom(1:n_save) = temp_tree%atom
+  deallocate (temp_tree%atom)  
+else
+  allocate (tree%atom(n))
+endif
+
+end subroutine re_associate_tree
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
 ! Subroutine expression_string_to_stack (string, stack, n_stack, err_flag, err_str)
 !
 ! This routine creates an expression stack array which can be used 
@@ -512,8 +908,6 @@ end subroutine expression_string_to_stack
 !-
 
 subroutine pushit (array, ix_arr, this_type)
-
-implicit none
 
 integer array(:), ix_arr, this_type
 character(*), parameter :: r_name = 'pushit'

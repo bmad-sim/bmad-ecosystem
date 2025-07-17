@@ -53,9 +53,10 @@ integer, parameter :: n_var_max$ = 999                ! Maximum number of variab
 integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset.
 
 type expression_atom_struct
-  character(40) :: name = ''
+  character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
   real(rp) :: value = 0
+  type (expression_atom_struct), pointer :: atom(:) => null()  ! For expression trees
 end type
 
 !-------------------------------------------------------------------------
@@ -2426,6 +2427,7 @@ integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, averag
 integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47, sign$ = 48
 integer, parameter :: sinh$ = 49, cosh$ = 50, tanh$ = 51, coth$ = 52, asinh$ = 53, acosh$ = 54, atanh$ = 55, acoth$ = 56
 integer, parameter :: min$ = 57, max$ = 58, modulo$ = 59
+integer, parameter :: root$ = 100, parens$ = 101, square_brackets$ = 102, curly_brackets$ = 103
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "min", "max", "rms" and "average" are not implemented in Bmad but is used by Tao.
@@ -2443,6 +2445,7 @@ integer, parameter :: expression_eval_level(59) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1
               9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
               9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
 
+character(4), parameter :: bracket_name(100:103) = [character(4):: 'root', '()', '[]', '{}']
 contains
 
 !-------------------------------------------------------------------------------------------------------

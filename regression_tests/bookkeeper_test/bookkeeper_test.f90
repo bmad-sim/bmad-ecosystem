@@ -15,6 +15,7 @@ type (control_struct), pointer :: ctl
 type (control_ramp1_struct), pointer :: ramp(:)
 type (nametable_struct) ntab
 type (expression_atom_struct), allocatable :: stack(:)
+type (expression_atom_struct) tree
 type (ele_pointer_struct), allocatable :: ramper(:)
 type (material_struct), pointer :: mater(:), mater2(:)
 
@@ -28,6 +29,15 @@ character(40) :: exp_str(4) = [character(40):: &
                       'atan2(atan2(1,2), atan(0.5))', &
                       'atan(atan((1/(3+4))))', &
                       'ran_gauss(0.3*2) + ran_gauss()']
+
+character(40) :: tree_str(5) = [character(40):: &
+                      '(()', &
+                      '{(4) / 7.32e+34} + [8]', &
+                      'gran_gauss(3) + ran_gauss()', &
+                      'abc {ran, gar}^5', &
+                      'abc {ran, gar}^5 + [4*5 ] ) ), + 64' &
+                              ]
+
 
 character(100) str, err_str
 
@@ -93,11 +103,23 @@ do i = 1, lat%n_ele_max
     write (1, '(3a, es20.12)') '"', trim(ele%name), '-p0c" REL 1E-10', ele%value(p0c$)
     write (1, '(3a, es20.12)') '"', trim(ele%name), '-hkick" REL 1E-10', ele%value(hkick$)
   end select
-
-
 enddo
 
 !-----------------------------------------
+
+print *
+do i = 1, size(tree_str)
+  call expression_string_to_tree(tree_str(i), tree, err, err_str)
+  str = expression_tree_to_string(tree)
+  write (1, '(a, i0, 2a)') '"Tree2-str', i, '" STR        ', quote(str)
+  write (1, '(a, i0, 2a)') '"Tree2-err', i, '" STR        ', quote(err_str)
+  print *, '=================================='
+  print '(a)', quote(tree_str(i))
+  print '(a)', quote(str)
+  print '(a)', quote(err_str)
+enddo
+print *, '=================================='
+print *
 
 call ran_seed_put (1234)
 do i = 1, size(exp_str)
@@ -106,6 +128,9 @@ do i = 1, size(exp_str)
   call expression_string_to_stack (exp_str(i), stack, n_stack, err, err_str)
   str = expression_stack_to_string(stack)
   write (1, '(a, i0, 2a)') '"Expression-str', i, '" STR  ', quote(str)
+  call expression_string_to_tree(exp_str(i), tree, err, err_str)
+  str = expression_tree_to_string(tree)
+  write (1, '(a, i0, 2a)') '"Tree-str', i, '" STR        ', quote(str)
 enddo
 
 !
