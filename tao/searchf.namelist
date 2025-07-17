@@ -215,6 +215,7 @@ tao_allocate_data_array
 tao_d2_data_stuffit
 tao_init_data_in_universe
 tao_point_d1_to_data
+tao_add_to_normal_mode_h_array
 
 File: code/tao_init_find_elements.f90
 tao_init_find_elements
@@ -594,21 +595,6 @@ tao_x_scale_graph
 File: code/tao_spin_polarization_calc.f90
 tao_spin_polarization_calc
 
-File: code/tao_show_this.f90
-tao_show_this
-
-File: code/tao_pipe_cmd.f90
-tao_pipe_cmd
-
-File: code/tao_evaluate_a_datum.f90
-tao_evaluate_a_datum
-
-File: code/tao_single_mode.f90
-tao_single_mode
-
-File: code/tao_spin_matrices_calc_needed.f90
-tao_spin_matrices_calc_needed
-
 File: code/tao_struct.f90
 tao_struct
 model$
@@ -715,6 +701,21 @@ tao_super_universe_struct
 tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
+
+File: code/tao_pipe_cmd.f90
+tao_pipe_cmd
+
+File: code/tao_evaluate_a_datum.f90
+tao_evaluate_a_datum
+
+File: code/tao_show_this.f90
+tao_show_this
+
+File: code/tao_single_mode.f90
+tao_single_mode
+
+File: code/tao_spin_matrices_calc_needed.f90
+tao_spin_matrices_calc_needed
 
 File: code/tao_to_real.f90
 tao_to_real
