@@ -416,6 +416,7 @@ def bmad_param(param, ele_name):
     if param == 'b' and bmad_type[1:] != 'bend': return '?'
     if param == 'fse' and bmad_type[1:] != 'bend': return '?'
     if param == 'angle' and bmad_type[1:] != 'bend': return '?'
+
   return bparam
 
 #------------------------------------------------------------------
@@ -623,6 +624,10 @@ def parse_element(dlist):
       bparam = bmad_param(eparam, ele.name)
       if bparam == '?': continue
       if ele.bmad_type == 'drift' and bparam != 'l': continue
+
+    # See: https://github.com/bmad-sim/bmad-ecosystem/issues/1622
+
+    if bparam == 'hgap': line += ', fringe_type = full, fint = 0.5'
 
     #
 
