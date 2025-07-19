@@ -76,5 +76,5 @@ jobs:
           TAO_REUSE_SUBPROCESS: 1
         run: |
           echo -e '## Test results\n\n```' >> "$GITHUB_STEP_SUMMARY"
-          pytest -v --cov=pytao/ -k 'interface_commands or parse' pytao/tests 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+          pytest --import-mode=importlib -v --cov=pytao/ -k 'interface_commands or parse' pytao/tests 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
