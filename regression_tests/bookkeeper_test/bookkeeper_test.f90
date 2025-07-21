@@ -31,10 +31,10 @@ character(40) :: exp_str(4) = [character(40):: &
                       'ran_gauss(0.3*2) + ran_gauss()']
 
 character(40) :: tree_str(5) = [character(40):: &
-                      '(()', &
                       '{(4) / 7.32e+34} + [8]', &
                       'gran_gauss(3) + ran_gauss()', &
                       'abc {ran, gar}^5', &
+                      '(()', &
                       'abc {ran, gar}^5 + [4*5 ] ) ), + 64' &
                               ]
 
@@ -71,6 +71,40 @@ open (1, file = 'output.now', recl = 200)
 
 !-----------------------------------------
 
+if (.false.) then
+
+print *
+do i = 1, size(tree_str)
+  call expression_string_to_tree(tree_str(i), tree, err, err_str)
+  str = expression_tree_to_string(tree)
+  write (1, '(a, i0, 2a)') '"Tree2-str', i, '" STR        ', quote(str)
+  write (1, '(a, i0, 2a)') '"Tree2-err', i, '" STR        ', quote(err_str)
+  print *, '=================================='
+  call type_expression_tree(tree)
+  print *, '---------------'
+  print '(a)', quote(tree_str(i))
+  print '(a)', quote(str)
+  print '(a)', quote(err_str)
+enddo
+print *, '=================================='
+print *
+
+call ran_seed_put (1234)
+do i = 1, size(exp_str)
+  val = expression_value(exp_str(i), err)
+  write (1, '(a, i0, a, f14.8)') '"Expression-val', i, '" ABS 1E-10 ', val
+  call expression_string_to_stack (exp_str(i), stack, n_stack, err, err_str)
+  str = expression_stack_to_string(stack)
+  write (1, '(a, i0, 2a)') '"Expression-str', i, '" STR  ', quote(str)
+  call expression_string_to_tree(exp_str(i), tree, err, err_str)
+  str = expression_tree_to_string(tree)
+  write (1, '(a, i0, 2a)') '"Tree-str', i, '" STR        ', quote(str)
+enddo
+
+endif
+
+!-----------------------------------------
+
 bmad_com%auto_bookkeeper = .false.
 call bmad_parser('ramper.bmad', lat)
 
@@ -103,34 +137,6 @@ do i = 1, lat%n_ele_max
     write (1, '(3a, es20.12)') '"', trim(ele%name), '-p0c" REL 1E-10', ele%value(p0c$)
     write (1, '(3a, es20.12)') '"', trim(ele%name), '-hkick" REL 1E-10', ele%value(hkick$)
   end select
-enddo
-
-!-----------------------------------------
-
-print *
-do i = 1, size(tree_str)
-  call expression_string_to_tree(tree_str(i), tree, err, err_str)
-  str = expression_tree_to_string(tree)
-  write (1, '(a, i0, 2a)') '"Tree2-str', i, '" STR        ', quote(str)
-  write (1, '(a, i0, 2a)') '"Tree2-err', i, '" STR        ', quote(err_str)
-  print *, '=================================='
-  print '(a)', quote(tree_str(i))
-  print '(a)', quote(str)
-  print '(a)', quote(err_str)
-enddo
-print *, '=================================='
-print *
-
-call ran_seed_put (1234)
-do i = 1, size(exp_str)
-  val = expression_value(exp_str(i), err)
-  write (1, '(a, i0, a, f14.8)') '"Expression-val', i, '" ABS 1E-10 ', val
-  call expression_string_to_stack (exp_str(i), stack, n_stack, err, err_str)
-  str = expression_stack_to_string(stack)
-  write (1, '(a, i0, 2a)') '"Expression-str', i, '" STR  ', quote(str)
-  call expression_string_to_tree(exp_str(i), tree, err, err_str)
-  str = expression_tree_to_string(tree)
-  write (1, '(a, i0, 2a)') '"Tree-str', i, '" STR        ', quote(str)
 enddo
 
 !

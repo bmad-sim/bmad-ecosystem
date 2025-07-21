@@ -60,9 +60,9 @@ end type
 
 type expression_tree_struct
   character(60) :: name = ''
-  integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
+  integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. 
   real(rp) :: value = 0
-  type (expression_tree_struct), pointer :: atom(:) => null()  ! For expression trees
+  type (expression_tree_struct), pointer :: node(:) => null()  ! Child nodes.
 end type
 
 !-------------------------------------------------------------------------
@@ -2433,25 +2433,27 @@ integer, parameter :: sinc$ = 36, constant$ = 37, comma$ = 38, rms$ = 39, averag
 integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46, csc$ = 47, sign$ = 48
 integer, parameter :: sinh$ = 49, cosh$ = 50, tanh$ = 51, coth$ = 52, asinh$ = 53, acosh$ = 54, atanh$ = 55, acoth$ = 56
 integer, parameter :: min$ = 57, max$ = 58, modulo$ = 59
-integer, parameter :: root$ = 100, parens$ = 101, square_brackets$ = 102, curly_brackets$ = 103
+integer, parameter :: root$ = 60, parens$ = 61, square_brackets$ = 62, curly_brackets$ = 63, func_parens$ = 64
+integer, parameter :: arrow$ = 65, equal$ = 66, colon$ = 67, double_colon$ = 68, compound_var$ = 69
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "min", "max", "rms" and "average" are not implemented in Bmad but is used by Tao.
 
-character(20), parameter :: expression_op_name(59) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(69) = [character(20) :: '+', '-', '*', '/', &
                                     '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                     'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                     'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
                                     '?!+Numeric', '?!+Variable', 'mass_of', 'charge_of', 'anomalous_moment_of', &
                                     'species', '?!+Species', 'sinc', '?!+Constant', ',', 'rms', 'average', 'sum', &
                                     '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign', &
-                                    'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth', 'min', 'max', 'modulo']
+                                    'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth', 'min', 'max', 'modulo', &
+                                    'root', '()', '[]', '{}', '()', '->', '=', ':', '::', 'compound']
 
-integer, parameter :: expression_eval_level(59) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+integer, parameter :: expression_eval_level(69) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
               9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
-              9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9]
+              9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
+              0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
-character(4), parameter :: bracket_name(100:103) = [character(4):: 'root', '()', '[]', '{}']
 contains
 
 !-------------------------------------------------------------------------------------------------------
