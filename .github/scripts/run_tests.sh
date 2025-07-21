@@ -21,7 +21,7 @@ echo '```'
 echo -e "\n## Starting regression tests\n"
 
 echo '```'
-python -m pytest --import-mode=importlib -v
+python -m pytest -v
 echo '```'
 
 echo -e "\n## Tests finished!\n"
