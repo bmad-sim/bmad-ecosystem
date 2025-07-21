@@ -9,6 +9,36 @@ private pushit
 contains
 
 !-------------------------------------------------------------------------
+! Expression tree doc:
+!
+! Expression string split on:
+!   Two character operators: "->", "::" 
+!   operators: +-*/^=:
+!   brackets: [](){}
+!   comma: ,
+!
+! Root node name is "root" and is of type root$
+! Brackets in the expression string must be matched.
+! The corresponding tree node will have a name / type of:
+!   "[]" / square_brackets$,    "()" / parens$ or func_parens$,   "{}" / curley_brackets$
+!
+! The root node, and all bracket nodes, will have an array of child nodes all of which will be comma nodes.
+! Example:
+!   "[A, B]" 
+! will translate to a "[]" node with two comma children and the first comma child will have a 
+! single child "A" and the second comma child will have a single child "B".
+! Example:
+!   "(A)"
+! will translate to a "()" node with one comma child and this comma child will have a single child "A".
+!
+! Compound variables are something like "data::orxit.x" which get translated to a compound_var$ node
+! with children:
+!   "data",  "::", "orbit.x"
+! Also functions line "atan()" are considered compound vars with children
+!   "atan",  "()"
+!-
+ 
+!-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
@@ -28,7 +58,7 @@ contains
 ! Output:
 !   tree      -- expression_tree_struct: Expression evaluation tree.
 !   err_flag  -- logical: Set True if there is an error (EG divide by 0).
-!   err_str   -- character(*): String describing the error.
+!   err_str   -- character(*): String describing the error. Make length large to hold the expression.
 !-
 
 subroutine expression_string_to_tree (string, tree, err_flag, err_str)
@@ -48,6 +78,8 @@ err_str = ''
 parse_line = string
 call bracket_pass(parse_line, tree, err_flag, err_str, 'root'); if (err_flag) return
 call comma_pass(tree, err_flag, err_str); if (err_flag) return
+call node_markup_pass(tree, err_flag, err_str); if (err_flag) return
+call reverse_polish_pass(tree, err_flag, err_str); if (err_flag) return
 
 !------------------------------------------------------------------------
 contains
@@ -56,46 +88,45 @@ recursive subroutine bracket_pass(parse_line, tree, err_flag, err_str, tree_name
 
 type (expression_tree_struct), target :: tree
 
-integer i, id, ixe, ix_word, n_atom
+integer i, id, ixe, ix_word, n_node
 
 logical delim_found, do_combine
 logical err_flag
 
 character(*) parse_line, err_str, tree_name
-character(1) delim, cc
+character(2) delim, cc
 character(80) word, word2
 
 ! 
 
 select case (tree_name)
-case ('[');     tree%type = square_brackets$; tree%name = '[]'
-case ('(');     tree%type = parens$;          tree%name = '()'
-case ('{');     tree%type = curly_brackets$;  tree%name = '{}'
-case ('root');  tree%type = root$;            tree%name = 'root'
+case ('[');     tree%type = square_brackets$;  tree%name = '[]'
+case ('(');     tree%type = parens$;           tree%name = '()'
+case ('{');     tree%type = curly_brackets$;   tree%name = '{}'
+case ('root');  tree%type = root$;             tree%name = 'root'
 end select
 
 tree%value = 0
-n_atom = 0
+n_node = 0
 
 !
 
 parsing_loop: do
-  call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,{}', delim, delim_found)
+  call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,{}=:', delim, delim_found)
   if (ix_word == 0 .and. .not. delim_found) then
     if (tree%name /= 'root') then
-      err_str = 'Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
-                '  In: ' // quote(string)
-      err_flag = .true.
+      call set_this_err('Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
+                        '  In: ' // quote(string), err_str, err_flag)
     endif
-    call re_associate_tree(tree, n_atom, exact = .true.)
+    call re_associate_tree(tree, n_node, exact = .true.)
     return
   endif
 
   select case (delim)
   case ('[', '(', '{')
-    call push_atom(tree, n_atom, word)
-    call increment_n_atom(tree, n_atom)
-    call bracket_pass(parse_line, tree%atom(n_atom), err_flag, err_str, delim); if (err_flag) return
+    call push_node(tree, n_node, word)
+    call increment_n_node(tree, n_node)
+    call bracket_pass(parse_line, tree%node(n_node), err_flag, err_str, delim); if (err_flag) return
 
   case ('+', '-')
     do_combine = (ix_word > 1)
@@ -103,7 +134,7 @@ parsing_loop: do
     if (do_combine) then
       cc = upcase(word(ix_word:ix_word))
       if (cc /= 'E' .and. cc /= 'D') do_combine = .false.
-      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{} ', ix_word = ixe)) do_combine = .false.
+      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{}=: ', ix_word = ixe)) do_combine = .false.
 
       do i = 1, ix_word-1
         if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
@@ -111,36 +142,35 @@ parsing_loop: do
     endif
 
     if (do_combine) then
-      word = trim(word) // delim // parse_line(1:ixe)
-      call push_atom(tree, n_atom, word)
+      word = trim(word) // trim(delim) // parse_line(1:ixe)
+      call push_node(tree, n_node, word)
       parse_line = parse_line(ixe+1:)
     else
-      call push_atom(tree, n_atom, word)
-      call push_atom(tree, n_atom, delim)
+      call push_node(tree, n_node, word)
+      call push_node(tree, n_node, delim)
     endif
 
   case (']', ')', '}')
-    call push_atom(tree, n_atom, word)
+    call push_node(tree, n_node, word)
 
     if (tree%name(2:2) /= delim) then
       if (tree%name == 'root') then
-        err_str = 'End bracket: ' // quote(delim) // ' has no beginning bracket.' // &
-                  '  In: ' // quote(string)
+        call set_this_err('End bracket: ' // quote(delim) // ' has no beginning bracket.' // &
+                          '  In: ' // quote(string), err_str, err_flag)
       else
-        err_str = 'Brackets mismatch. Opening: ' // quote(tree%name) // ' has ending: ' // quote(delim) // &
-                  '  In: ' // quote(string)
-        err_flag = .true.
+        call set_this_err('Brackets mismatch. Opening: ' // quote(tree%name) // ' has ending: ' // quote(delim) // &
+                          '  In: ' // quote(string), err_str, err_flag)
       endif
     endif
     exit
 
   case default
-    call push_atom(tree, n_atom, word)
-    call push_atom(tree, n_atom, delim)
+    call push_node(tree, n_node, word)
+    call push_node(tree, n_node, delim)
   end select
 enddo parsing_loop
 
-call re_associate_tree(tree, n_atom, exact = .true.)
+call re_associate_tree(tree, n_node, exact = .true.)
 
 end subroutine bracket_pass
 
@@ -160,110 +190,267 @@ character(*) err_str
 
 n_comma = 0
 n0 = 1
-nn = size(tree%atom)
+nn = size(tree%node)
 
 do na = 1, nn
-  select case (tree%atom(na)%type)
+  select case (tree%node(na)%type)
   case (square_brackets$, parens$, curly_brackets$)
-    call comma_pass(tree%atom(na), err_flag, err_str)
+    call comma_pass(tree%node(na), err_flag, err_str)
 
   case (comma$)
-    call increment_n_atom(t2, n_comma)
-    t2a => t2%atom(n_comma)
+    call increment_n_node(t2, n_comma)
+    t2a => t2%node(n_comma)
     t2a%name = ','
     t2a%type = comma$
 
-    allocate(t2a%atom(na-n0))
+    allocate(t2a%node(na-n0))
     do ia = 1, na - n0
-      t2a%atom(ia) = tree%atom(ia + n0 - 1)
+      t2a%node(ia) = tree%node(ia + n0 - 1)
     enddo
     n0 = na + 1
   end select
 end do
 
-call increment_n_atom(t2, n_comma)
-t2a => t2%atom(n_comma)
+call increment_n_node(t2, n_comma)
+t2a => t2%node(n_comma)
 t2a%name = ','
 t2a%type = comma$
-allocate(t2a%atom(nn + 1 - n0))
+allocate(t2a%node(nn + 1 - n0))
 do ia = 1, nn + 1 - n0
-  t2a%atom(ia) = tree%atom(ia + n0 - 1)
+  t2a%node(ia) = tree%node(ia + n0 - 1)
 enddo
 call re_associate_tree(t2, n_comma, exact = .true.)
 
-deallocate(tree%atom)
-allocate(tree%atom(n_comma))
-tree%atom = t2%atom
+deallocate(tree%node)
+allocate(tree%node(n_comma))
+tree%node => t2%node
 
 end subroutine comma_pass
 
 !------------------------------------------------------------------------
 ! contains
 
-subroutine push_atom(tree, n_atom, str)
+recursive subroutine node_markup_pass(tree, err_flag, err_str)
 
 type (expression_tree_struct), target :: tree
-integer n_atom
+type (expression_tree_struct), pointer :: node
+
+integer in, n_node
+logical err_flag, is_func
+character(*) err_str
+
+!
+
+n_node = size(tree%node)
+
+do in = 1, n_node
+  is_func = .false.
+  node => tree%node(in)
+  call node_markup_pass(node, err_flag, err_str); if (err_flag) return
+
+  ! Set type
+
+  select case (upcase(node%name))
+  case ('MIN');                  node%type = min$;                     is_func = .true.
+  case ('MAX');                  node%type = max$;                     is_func = .true.
+  case ('COT');                  node%type = cot$;                     is_func = .true.
+  case ('CSC');                  node%type = csc$;                     is_func = .true.
+  case ('SEC');                  node%type = sec$;                     is_func = .true.
+  case ('SIN');                  node%type = sin$;                     is_func = .true.
+  case ('SINC');                 node%type = sinc$;                    is_func = .true.
+  case ('COS');                  node%type = cos$;                     is_func = .true.
+  case ('TAN');                  node%type = tan$;                     is_func = .true.
+  case ('ASIN');                 node%type = asin$;                    is_func = .true.
+  case ('ACOS');                 node%type = acos$;                    is_func = .true.
+  case ('ATAN');                 node%type = atan$;                    is_func = .true.
+  case ('ATAN2');                node%type = atan2$;                   is_func = .true.
+  case ('MODULO');               node%type = modulo$;                  is_func = .true.
+  case ('ABS');                  node%type = abs$;                     is_func = .true.
+  case ('SQRT');                 node%type = sqrt$;                    is_func = .true.
+  case ('LOG');                  node%type = log$;                     is_func = .true.
+  case ('EXP');                  node%type = exp$;                     is_func = .true.
+  case ('FACTORIAL');            node%type = factorial$;               is_func = .true.
+  case ('RAN');                  node%type = ran$;                     is_func = .true.
+  case ('RAN_GAUSS');            node%type = ran_gauss$;               is_func = .true.
+  case ('INT');                  node%type = int$;                     is_func = .true.
+  case ('SIGN');                 node%type = sign$;                    is_func = .true.
+  case ('NINT');                 node%type = nint$;                    is_func = .true.
+  case ('FLOOR');                node%type = floor$;                   is_func = .true.
+  case ('CEILING');              node%type = ceiling$;                 is_func = .true.
+  case ('CHARGE_OF');            node%type = charge_of$;               is_func = .true.
+  case ('MASS_OF');              node%type = mass_of$;                 is_func = .true.
+  case ('SPECIES');              node%type = species$;                 is_func = .true.
+  case ('ANTIPARTICLE');         node%type = antiparticle$;            is_func = .true.
+  case ('ANOMALOUS_MOMENT_OF');  node%type = anomalous_moment_of$;     is_func = .true.
+  case ('COTH');                 node%type = coth$;                    is_func = .true.
+  case ('SINH');                 node%type = sinh$;                    is_func = .true.
+  case ('COSH');                 node%type = cosh$;                    is_func = .true.
+  case ('TANH');                 node%type = tanh$;                    is_func = .true.
+  case ('ACOTH');                node%type = acoth$;                   is_func = .true.
+  case ('ASINH');                node%type = asinh$;                   is_func = .true.
+  case ('ACOSH');                node%type = acosh$;                   is_func = .true.
+  case ('ATANH');                node%type = atanh$;                   is_func = .true.
+  case ('->');                   node%type = arrow$
+  case ('*');                    node%type = times$
+  case ('/');                    node%type = divide$
+  case ('^');                    node%type = power$
+  case ('::');                   node%type = double_colon$
+  case ('{}', '[]')             
+  case (',', '=')               
+
+  case ('()')
+    if (index('ABCDEFGHIJKLMNOPQRSTUVWXYZ', upcase(tree%node(max(1,in-1))%name(1:1))) > 0) node%type = func_parens$
+
+  case ('+')
+    node%type = plus$
+    if (index('+-*/^', tree%node(max(1,in-1))%name) > 0) node%type = unary_plus$
+
+  case ('-')
+    node%type = minus$
+    if (index('+-*/^', tree%node(max(1,in-1))%name) > 0) node%type = unary_minus$
+
+  case default
+    if (is_real(node%name)) then
+      node%type = constant$
+    else
+      node%type = variable$
+    endif
+  end select
+
+  ! Some error checks
+
+  select case (node%type)
+  case (plus$, minus$, times$, divide$, power$, unary_plus$, unary_minus$)
+    if (in == n_node) then
+      call set_this_err('Operator: ' // node%name // 'is at the end of the expression: ' // string, err_str, err_flag)
+      return
+    endif
+
+  case (constant$, variable$)
+  case (square_brackets$, parens$, curly_brackets$, arrow$, comma$)
+
+  case default
+    if (is_func) then
+      if (in == n_node) then
+        call set_this_err('Function: ' // quote(node%name) // &
+                             ' is not followed by parenteses character "(" in: ' // string, err_str, err_flag)
+      elseif (tree%node(in+1)%type /= parens$) then
+        call set_this_err('Function: ' // quote(node%name) // &
+                             ' is not followed by parenteses character "(" in: ' // string, err_str, err_flag)
+      endif
+    endif
+  end select
+enddo
+
+end subroutine node_markup_pass
+
+!------------------------------------------------------------------------
+! contains
+
+recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
+
+type (expression_tree_struct), target :: tree, t2, op, tsave
+type (expression_tree_struct), pointer :: node, n2
+
+integer i, j, in, it, n_node, i_op, ix_last_op
+logical err_flag, has_op
+character(*) err_str
+
+! If tree%node(:) array does not represent an expression, skip reverse Polish step.
+
+if (.not. associated(tree%node)) return
+
+n_node = size(tree%node)
+
+has_op = .false.
+do in = 1, n_node
+  node => tree%node(in)
+  call reverse_polish_pass(node, err_flag, err_str); if (err_flag) return
+  select case (node%type)
+  case (plus$, minus$, times$, divide$, power$, unary_plus$, unary_minus$)
+    has_op = .true.
+    exit
+  end select
+enddo
+
+if (.not. has_op) return
+
+!
+
+allocate(t2%node(n_node))
+allocate(op%node(100))
+
+t2%node => tree%node
+i_op = 0
+it = 0
+ix_last_op = 0
+
+do in = 1, n_node
+  node => t2%node(in)
+
+  select case (node%type)
+  case (unary_plus$, unary_minus$, plus$, minus$, times$, divide$, power$)
+    if (.false. .and. ix_last_op < in - 2) then   ! Make compound
+      n2 => tree%node(ix_last_op+1)
+      allocate(tsave%node(size(n2%node)))
+      tsave%node = n2
+      n2%type = compound_var$
+      n2%name = 'compound'
+      allocate(n2%node(in - ix_last_op - 1))
+      n2%node(1) = tsave
+      do j = ix_last_op+2, in-1
+        n2%node(j-ix_last_op) = tree%node(j)
+      enddo
+      it = ix_last_op + 1
+      if (associated(tsave%node)) deallocate(tsave%node)
+    endif
+
+    ! See if there are operations on the OP stack that need to be transferred
+    ! to the tree%node array.
+
+    do i = i_op, 1, -1
+      if (expression_eval_level(op%node(i)%type) < expression_eval_level(node%type)) exit
+      it = it + 1
+      tree%node(it) = op%node(i_op)
+    enddo
+    i_op = i
+
+    i_op = i_op + 1
+    op%node(i_op) = node
+
+  case default
+    it = it + 1
+    tree%node(it) = node
+  end select
+enddo
+
+do i = i_op, 1, -1
+  it = it + 1
+  tree%node(it) = op%node(i_op)
+enddo
+
+!
+
+deallocate(op%node)
+deallocate(t2%node)
+call re_associate_tree(tree, it, exact = .true.)
+
+end subroutine reverse_polish_pass
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine push_node(tree, n_node, str)
+
+type (expression_tree_struct), target :: tree
+integer n_node
 character(*) str
 
 if (len_trim(str) == 0) return
-call increment_n_atom(tree, n_atom)
-tree%atom(n_atom)%name = str
+call increment_n_node(tree, n_node)
+tree%node(n_node)%name = str
 
-select case (upcase(str))
-case ('MIN');                  tree%atom(n_atom)%type = min$
-case ('MAX');                  tree%atom(n_atom)%type = max$
-case ('COT');                  tree%atom(n_atom)%type = cot$
-case ('CSC');                  tree%atom(n_atom)%type = csc$
-case ('SEC');                  tree%atom(n_atom)%type = sec$
-case ('SIN');                  tree%atom(n_atom)%type = sin$
-case ('SINC');                 tree%atom(n_atom)%type = sinc$
-case ('COS');                  tree%atom(n_atom)%type = cos$
-case ('TAN');                  tree%atom(n_atom)%type = tan$
-case ('ASIN');                 tree%atom(n_atom)%type = asin$
-case ('ACOS');                 tree%atom(n_atom)%type = acos$
-case ('ATAN');                 tree%atom(n_atom)%type = atan$
-case ('ATAN2');                tree%atom(n_atom)%type = atan2$
-case ('MODULO');               tree%atom(n_atom)%type = modulo$
-case ('ABS');                  tree%atom(n_atom)%type = abs$
-case ('SQRT');                 tree%atom(n_atom)%type = sqrt$
-case ('LOG');                  tree%atom(n_atom)%type = log$
-case ('EXP');                  tree%atom(n_atom)%type = exp$
-case ('FACTORIAL');            tree%atom(n_atom)%type = factorial$
-case ('RAN');                  tree%atom(n_atom)%type = ran$
-case ('RAN_GAUSS');            tree%atom(n_atom)%type = ran_gauss$
-case ('INT');                  tree%atom(n_atom)%type = int$
-case ('SIGN');                 tree%atom(n_atom)%type = sign$
-case ('NINT');                 tree%atom(n_atom)%type = nint$
-case ('FLOOR');                tree%atom(n_atom)%type = floor$
-case ('CEILING');              tree%atom(n_atom)%type = ceiling$
-case ('CHARGE_OF');            tree%atom(n_atom)%type = charge_of$
-case ('MASS_OF');              tree%atom(n_atom)%type = mass_of$
-case ('SPECIES');              tree%atom(n_atom)%type = species$
-case ('ANTIPARTICLE');         tree%atom(n_atom)%type = antiparticle$
-case ('ANOMALOUS_MOMENT_OF');  tree%atom(n_atom)%type = anomalous_moment_of$
-case ('COTH');                 tree%atom(n_atom)%type = coth$
-case ('SINH');                 tree%atom(n_atom)%type = sinh$
-case ('COSH');                 tree%atom(n_atom)%type = cosh$
-case ('TANH');                 tree%atom(n_atom)%type = tanh$
-case ('ACOTH');                tree%atom(n_atom)%type = acoth$
-case ('ASINH');                tree%atom(n_atom)%type = asinh$
-case ('ACOSH');                tree%atom(n_atom)%type = acosh$
-case ('ATANH');                tree%atom(n_atom)%type = atanh$
-case ('+');                    tree%atom(n_atom)%type = plus$
-case ('-');                    tree%atom(n_atom)%type = minus$
-case ('*');                    tree%atom(n_atom)%type = times$
-case ('/');                    tree%atom(n_atom)%type = divide$
-case ('^');                    tree%atom(n_atom)%type = power$
-case default
-  if (is_real(str)) then
-    tree%atom(n_atom)%type = constant$
-  else
-    tree%atom(n_atom)%type = variable$
-  endif
-end select
-
-end subroutine push_atom
+end subroutine push_node
 
 !-------------------------------------------------------------------------
 ! contains
@@ -280,24 +467,49 @@ logical delim_found
 
 call word_read (parse_line, delim_list, word, ix_word, delim, delim_found, parse_line)
 
+if (delim == '-' .and. parse_line(1:1) == '>' .or. &
+    delim == ':' .and. parse_line(1:1) == ':') then
+  delim = delim(1:1) // parse_line(1:1)
+  call string_trim(parse_line(2:), parse_line, ix_word)
+endif
+
+
+
 end subroutine get_next_chunk
 
 !------------------------------------------------------------------------
 ! contains
 
-subroutine increment_n_atom(tree, n_atom)
+subroutine increment_n_node(tree, n_node)
 
 type (expression_tree_struct), target :: tree
-integer n_atom
+integer n_node
 
-n_atom = n_atom + 1
-if (associated(tree%atom)) then
-  if (n_atom > size(tree%atom)) call re_associate_tree(tree, n_atom+10)
+n_node = n_node + 1
+if (associated(tree%node)) then
+  if (n_node > size(tree%node)) call re_associate_tree(tree, n_node+10)
 else
-  call re_associate_tree(tree, n_atom+10)
+  call re_associate_tree(tree, n_node+10)
 endif
 
-end subroutine increment_n_atom
+end subroutine increment_n_node
+
+!------------------------------------------------------------------------
+! contains
+
+subroutine set_this_err(str, err_str, err_flag)
+
+character(*) str, err_str
+logical err_flag
+integer n
+
+!
+
+err_flag = .true.
+n = min(len(str), len(err_str))
+err_str = str(1:n)
+
+end subroutine set_this_err
 
 end subroutine expression_string_to_tree
 
@@ -305,19 +517,89 @@ end subroutine expression_string_to_tree
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function expression_tree_to_string (tree)
+! Subroutine deallocate_expression_tree(tree)
 !
-! Routine to print an expression tree.
+! Routine to deallocate an expression tree.
+!
+! Input:
+!   tree      -- expression_tree_struct: Tree to deallocate.
+!
+! Output:
+!   tree      -- expression_tree_struct: Deallocated tree.
+!-
+
+recursive subroutine deallocate_expression_tree(tree)
+
+type (expression_tree_struct) tree
+integer in
+
+!
+
+do in = 1, size(tree%node)
+  call deallocate_expression_tree(tree%node(in))
+enddo
+
+deallocate(tree%node)
+
+end subroutine deallocate_expression_tree
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine type_expression_tree (tree, indent)
+!
+! Routine to output an expression tree in tree form.
+! Good for debugging.
 !
 ! Input:
 !   tree        -- expression_tree_struct: Tree to print.
-!   n_atom      -- integer, optional: Internal use only. Used with recursive calls. 
+!   indent      -- integer, optional: Initial indent. Default is zero.
+!
+! Output:
+!   str         -- character(1000): Expression string.
 !-
 
-recursive function expression_tree_to_string (tree, n_atom) result (str)
+recursive subroutine type_expression_tree(tree, indent)
 
 type (expression_tree_struct) tree
-integer, optional :: n_atom
+integer, optional :: indent
+integer n, ind
+character(20) fmt
+
+!
+
+ind = integer_option(0, indent)
+
+write(fmt, '(a, i0, a)') '(', 6*ind+2, 'x, a, i6)'
+print fmt, trim(tree%name), tree%type
+
+do n = 1, size(tree%node)
+  call type_expression_tree(tree%node(n), ind+1)
+enddo
+
+end subroutine type_expression_tree
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function expression_tree_to_string (tree, n_node) result(str)
+!
+! Routine to convert an expression tree to a expression string.
+!
+! Input:
+!   tree        -- expression_tree_struct: Tree to print.
+!   n_node      -- integer, optional: Internal use only. Used with recursive calls. 
+!
+! Output:
+!   str         -- character(1000): Expression string.
+!-
+
+recursive function expression_tree_to_string (tree, n_node) result (str)
+
+type (expression_tree_struct) tree
+integer, optional :: n_node
 integer n
 character(400) str
 
@@ -326,29 +608,100 @@ character(400) str
 str = ''
 
 select case (tree%type)
-case (root$)
-  do n = 1, size(tree%atom)
-    str = trim(str) //  expression_tree_to_string(tree%atom(n), n)
-  enddo
+case (root$, compound_var$)
+  ! No printing
 
 case (square_brackets$, parens$, curly_brackets$)
   str = tree%name(1:1)
-  do n = 1, size(tree%atom)
-    str = trim(str) //  expression_tree_to_string(tree%atom(n), n)
+  do n = 1, size(tree%node)
+    str = trim(str) //  expression_tree_to_string(tree%node(n), n)
   enddo
   str = trim(str) // tree%name(2:2)
+  return
 
 case (comma$)
-  if (integer_option(2, n_atom) > 1) str = trim(str) // tree%name
-  do n = 1, size(tree%atom)
-    str = trim(str) //  expression_tree_to_string(tree%atom(n), n)
-  enddo
+  if (integer_option(2, n_node) > 1) str = trim(str) // tree%name
 
 case default
   str = trim(str) // tree%name 
 end select
 
+do n = 1, size(tree%node)
+  str = trim(str) //  expression_tree_to_string(tree%node(n), n)
+enddo
+
 end function expression_tree_to_string
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Function expression_tree_node_array_to_string (tree) result(str)
+!
+! Routine to convert an expression tree to a expression string.
+!
+! Input:
+!   tree        -- expression_tree_struct: Tree to print.
+!
+! Output:
+!   str         -- character(1000): Expression string.
+!-
+
+recursive function expression_tree_node_array_to_string (tree) result (str)
+
+type (expression_tree_struct), target :: tree
+type (expression_tree_struct), pointer :: node
+integer n, i_str, i_parens
+character(400) str
+character(400) strs(20)
+character(*), parameter :: r_name = 'expression_tree_node_array_to_string'
+
+!
+
+strs(1) = ''
+i_str = 1
+i_parens = 0
+
+do n = 1, size(tree%node)
+  node => tree%node(n)
+  select case (node%type)
+  case(plus$, minus$, times$, divide$, power$)
+    i_str = i_str - 2
+    strs(i_str) = trim(strs(i_str)) // trim(node%name) // strs(i_str+1)
+
+  case(unary_plus$, unary_minus$)
+    i_str = i_str - 1
+    strs(i_str) = trim(node%name) // trim(strs(i_str))
+
+  case(parens$, square_brackets$, curly_brackets$)
+    i_str = i_str + 1
+    strs(i_str) = node%name(1:1) // expression_tree_node_array_to_string(node) // node%name(2:2)
+
+  case (func_parens$)
+    strs(i_str) = trim(strs(i_str)) // node%name(1:1) // &
+                      expression_tree_node_array_to_string(node) // node%name(2:2)
+
+  case(comma$)
+    i_parens = i_parens + 1
+    if (i_parens == 1) then
+      strs(i_str) = trim(strs(i_str)) // expression_tree_node_array_to_string(node)
+    else
+      strs(i_str) = trim(strs(i_str)) // ',' // expression_tree_node_array_to_string(node)
+    endif
+
+  case default
+    i_str = i_str + 1
+    strs(i_str) = trim(node%name)
+  end select
+enddo
+
+if (i_str /= 1) then
+  call out_io(s_error$, r_name, 'BOOKKEEPING ERROR! PLEASE REPORT!')
+endif  
+
+str = strs(1)
+
+end function expression_tree_node_array_to_string
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -370,7 +723,7 @@ end function expression_tree_to_string
 !+
 ! Subroutine re_associate_tree(tree, n, exact)
 !
-! Routine to reassociate the tree%atom(:) array
+! Routine to reassociate the tree%node(:) array
 !
 ! Note: The data of the array is preserved but data at the end of the
 ! array will be lost if n is less than the original size of the array
@@ -393,17 +746,17 @@ logical, optional :: exact
 
 !
 
-if (associated(tree%atom)) then
-  n_old = size(tree%atom)
+if (associated(tree%node)) then
+  n_old = size(tree%node)
   if (n == n_old) return
   if (.not. logic_option(.false., exact) .and. n < n_old) return
   n_save = min(n, n_old)
-  temp_tree%atom => tree%atom
-  allocate (tree%atom(n))
-  tree%atom(1:n_save) = temp_tree%atom(1:n_save)
-  deallocate (temp_tree%atom)  
+  temp_tree%node => tree%node
+  allocate (tree%node(n))
+  tree%node(1:n_save) = temp_tree%node(1:n_save)
+  deallocate (temp_tree%node)  
 else
-  allocate (tree%atom(n))
+  allocate (tree%node(n))
 endif
 
 end subroutine re_associate_tree
@@ -530,7 +883,7 @@ parsing_loop: do
   endif
 
   if (do_combine) then
-    word = trim(word) // delim // parse_line(1:ixe)
+    word = trim(word) // trim(delim) // parse_line(1:ixe)
     parse_line = parse_line(ixe+1:)
     ix_word = len_trim(word)
   
