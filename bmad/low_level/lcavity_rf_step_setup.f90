@@ -10,7 +10,7 @@
 !   ele         -- ele_struct: Element with ele%rf properly setup.
 !-
 
-subroutine lcavity_rf_step_setup(ele)
+recursive subroutine lcavity_rf_step_setup(ele)
 
 use bmad_routine_interface, dummy => lcavity_rf_step_setup
 
@@ -97,6 +97,11 @@ type (rf_stair_step_struct), pointer :: step, step1
 
 real(rp) t, p0c, mass, phase, dE, beta
 integer i, n
+
+! It can happen that if the slave tracking_method is switched to bmad_standard, the lord has
+! not yet been setup.
+
+if (.not. associated(lord%rf)) call lcavity_rf_step_setup(lord)
 
 ! Correct for the fact that reference particle transit time through the slave will be different than the 
 ! reference transit time through the multipass_lord and this will give RF phase shifts and will shift
