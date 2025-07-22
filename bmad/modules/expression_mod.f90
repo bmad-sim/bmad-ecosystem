@@ -4,6 +4,8 @@ use bmad_struct
 
 implicit none
 
+type (expression_tree_struct), pointer :: tree_root
+
 private pushit
 
 contains
@@ -42,7 +44,7 @@ contains
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine expression_string_to_tree (string, tree, err_flag, err_str)
+! Subroutine expression_string_to_tree (string, root_tree, err_flag, err_str)
 !
 ! Routine to create an expression tree array which can be used 
 ! to evaluate an arithmethic expression.
@@ -52,7 +54,7 @@ contains
 !   expression_tree_value
 !
 ! Input:
-!   tree      -- expression_tree_struct: Only used when recursively called.
+!   root_tree -- expression_tree_struct: Only used when recursively called.
 !   string    -- character(*): Expression to be converted.
 !
 ! Output:
@@ -61,9 +63,9 @@ contains
 !   err_str   -- character(*): String describing the error. Make length large to hold the expression.
 !-
 
-subroutine expression_string_to_tree (string, tree, err_flag, err_str)
+subroutine expression_string_to_tree (string, root_tree, err_flag, err_str)
 
-type (expression_tree_struct), target :: tree
+type (expression_tree_struct), target :: root_tree
 
 logical err_flag
 
@@ -73,13 +75,15 @@ character(len(string)) parse_line
 ! Form tree with brackets nodes 
 ! Then further subdivide if there are commas
 
+tree_root => root_tree
+
 err_flag = .false.
 err_str = ''
 parse_line = string
-call bracket_pass(parse_line, tree, err_flag, err_str, 'root'); if (err_flag) return
-call comma_pass(tree, err_flag, err_str); if (err_flag) return
-call node_markup_pass(tree, err_flag, err_str); if (err_flag) return
-call reverse_polish_pass(tree, err_flag, err_str); if (err_flag) return
+call bracket_pass(parse_line, root_tree, err_flag, err_str, 'root'); if (err_flag) return
+call comma_pass(root_tree, err_flag, err_str); if (err_flag) return
+call node_markup_pass(root_tree, err_flag, err_str); if (err_flag) return
+call reverse_polish_pass(root_tree, err_flag, err_str); if (err_flag) return
 
 !------------------------------------------------------------------------
 contains
@@ -221,7 +225,7 @@ do ia = 1, nn + 1 - n0
 enddo
 call re_associate_tree(t2, n_comma, exact = .true.)
 
-deallocate(tree%node)
+call deallocate_node(tree%node)
 allocate(tree%node(n_comma))
 tree%node => t2%node
 
@@ -402,7 +406,7 @@ do in = 1, n_node
         n2%node(j-ix_last_op) = tree%node(j)
       enddo
       it = ix_last_op + 1
-      if (associated(tsave%node)) deallocate(tsave%node)
+      if (associated(tsave%node)) call deallocate_node(tsave%node)
     endif
 
     ! See if there are operations on the OP stack that need to be transferred
@@ -431,8 +435,8 @@ enddo
 
 !
 
-deallocate(op%node)
-deallocate(t2%node)
+call deallocate_node(op%node)
+call deallocate_node(t2%node)
 call re_associate_tree(tree, it, exact = .true.)
 
 end subroutine reverse_polish_pass
@@ -513,6 +517,16 @@ end subroutine set_this_err
 
 end subroutine expression_string_to_tree
 
+!------------------------------------------------------------------------
+
+subroutine deallocate_node(node_array)
+type (expression_tree_struct), pointer :: node_array(:)
+call type_expression_tree(tree_root)
+print '(l3, z12)', associated(node_array), loc(node_array)
+deallocate(node_array)
+end subroutine deallocate_node
+
+
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -539,7 +553,7 @@ do in = 1, size(tree%node)
   call deallocate_expression_tree(tree%node(in))
 enddo
 
-deallocate(tree%node)
+call deallocate_node(tree%node)
 
 end subroutine deallocate_expression_tree
 
@@ -571,8 +585,8 @@ character(20) fmt
 
 ind = integer_option(0, indent)
 
-write(fmt, '(a, i0, a)') '(', 6*ind+2, 'x, a, i6)'
-print fmt, trim(tree%name), tree%type
+write(fmt, '(a, i0, a)') '(', 6*ind+2, 'x, a, i6, z12)'
+print fmt, trim(tree%name), tree%type, loc(tree)
 
 do n = 1, size(tree%node)
   call type_expression_tree(tree%node(n), ind+1)
@@ -754,7 +768,7 @@ if (associated(tree%node)) then
   temp_tree%node => tree%node
   allocate (tree%node(n))
   tree%node(1:n_save) = temp_tree%node(1:n_save)
-  deallocate (temp_tree%node)  
+  call deallocate_node (temp_tree%node)  
 else
   allocate (tree%node(n))
 endif
