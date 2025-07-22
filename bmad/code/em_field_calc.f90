@@ -122,10 +122,10 @@ endif
 if (ele%field_calc == refer_to_lords$) then
   if (.not. present(used_eles)) allocate (used_list(ele%n_lord+5))
 
-  ! The lord of an element may have independent misalignments.
-  ! So use an orbit that is not in the slave's reference frame.
-  ! Exception: If ele has only one lord. In this case it is imporant not to go to the lab frame since
-  ! an RF cavity with a hard edge active region will cause problems with Runge-Kutta tracking.
+  ! The lords of an element may have independent misalignments.
+  ! So use an orbit that is in the lab frame and not in the slave's reference frame.
+  ! Exception: If ele has only one lord. In this case, it is imporant not to go to the lab frame since an RF
+  ! cavity with a hard edge active region will cause problems with Runge-Kutta tracking due to round-off errors.
 
   this_orb = orbit
 
@@ -136,7 +136,7 @@ if (ele%field_calc == refer_to_lords$) then
   endif
 
   stay_local = (((ele2%slave_status == super_slave$ .and. num_lords(ele2, super_lord$) == 1) .or. &
-                                             ele2%slave_status /= super_lord$) .and. local_ref_frame)
+                                             ele2%slave_status /= super_slave$) .and. local_ref_frame)
 
   if (local_ref_frame .and. .not. stay_local) then
     call offset_particle (ele, unset$, this_orb, set_hvkicks = .false., s_pos = s_pos, s_out = s_this)
