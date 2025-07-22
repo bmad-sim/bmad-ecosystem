@@ -121,13 +121,14 @@ be called within do loops.
 
 To reduce unnecessary calculations, the logicals \vn{global%lattice_calc_on}
 and \vn{global%plot_on} can be toggled from within the command file. Also 
-setting \vn{global%quiet} can turn off verbose output to the terminal. Example
+setting \vn{global%quiet} can turn off verbose output to the terminal. 
+Note: Setting \vn{global%lattice_calc_on} to False will also disable any plotting
+calculations. 
+Example
 \begin{example}
   set global quiet = all          ! Turn off verbose output to the terminal.
-  set global lattice_calc_on = F  ! Turn off lattice calculations
-  set global plot_on = F          ! Turn off plot calculations
+  set global lattice_calc_on = F  ! Turn off lattice  and plotting calculations
   ... do some stuff ...
-  set global plot_on = T          ! Turn back on 
   set global lattice_calc_on = T  ! Turn back on
   set global quiet = off         
 \end{example}

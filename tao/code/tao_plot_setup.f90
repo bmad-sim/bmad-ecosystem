@@ -25,7 +25,7 @@ character(20) :: r_name = 'tao_plot_setup'
 
 !
 
-if (.not. s%global%plot_on  .and. .not. s%global%external_plotting) return
+if ((.not. s%global%plot_on  .and. .not. s%global%external_plotting) .or. .not. s%global%lattice_calc_on) return
 s%plot_page%region%setup_done = .false.
 
 ! First do plots that are needed by parametric plots.
