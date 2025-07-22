@@ -748,13 +748,15 @@ will stop. The default value is zero. Also see \vn{global%merit_stop_value}.
   \item{\vn{global%lattice_calc_on}} \Newline
 \vn{global%lattice_calc_on} controls whether lattice calculations are done when there are changes in
 the lattice. Lattice calculations include the calculation of orbits, Twiss parameters, beam
-tracking, etc. This switch is useful in controlling unnecessary calculational overhead.  A typical
-scenario where this switch is used involves first setting \vn{%lattice_calc_on} to \vn{False} (using
-the \vn{set} command (\sref{s:set})), then executing a set of commands, and finally setting
-\vn{%lattice_calc_on} back to \vn{True}. This saves some of the calculational overhead that each
-command generates. Similarly, \vn{global%plot_on} can be toggled to save even more time. Also see
-the \vn{set universe} command (\sref{s:set.universe}) for ways to suppress certain types of
-calculations (for example, calculating the Twiss parameters) that are not needed.
+tracking, etc. This also includes plotting calculations so while \vn{%lattice_calc_on} is set to
+False, the plot window will not update. This switch is useful in controlling unnecessary
+calculational overhead.  A typical scenario where this switch is used involves first setting
+\vn{%lattice_calc_on} to \vn{False} (using the \vn{set} command (\sref{s:set})), then executing a
+set of commands, and finally setting \vn{%lattice_calc_on} back to \vn{True}. This saves some of the
+calculational overhead that each command generates. Similarly, \vn{global%plot_on} can be toggled to
+save even more time. Also see the \vn{set universe} command (\sref{s:set.universe}) for ways to
+suppress certain types of calculations (for example, calculating the Twiss parameters) that are not
+needed.
 %
   \item{\vn{global%force_plot_data_calc}} \Newline
 Sometimes it is convenient to have \tao calculate plotting curve points even when \tao is not doing

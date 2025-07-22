@@ -42,7 +42,7 @@ logical found, err, beam_source
 
 ! inits
 
-if (.not. s%global%plot_on) return
+if (.not. s%global%plot_on .or. .not. s%global%lattice_calc_on) return
 call tao_create_plot_window () ! This routine knows not to create multiple windows.
 if (logic_option(.true., do_clear)) call qp_clear_page
 
