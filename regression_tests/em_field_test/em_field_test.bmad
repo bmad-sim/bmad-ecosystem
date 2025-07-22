@@ -22,20 +22,21 @@ instrument1:       instrument, l = 4.5, num_steps = 10
 kicker1:           kicker, l = 4.5, hkick = 0.003, vkick = 0.003, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 lcavity1:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
 lcavity2:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, tilt = 0.1
-lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, 
-                            tilt = 0.1, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10
+lcavity3:          lcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, num_steps = 10, x_offset = 0.05, y_pitch = 0.01, 
+                            tilt = 0.2, coupler_at = both_ends, coupler_strength = 0.05, gradient_err = 10
 monitor1:          monitor, l = 4.5, num_steps = 10
 
 octupole1:         octupole, l = 4.5, k3 = 1e3, tilt, num_steps = 10, x_offset = 0.01, y_pitch = 0.001
 
 patch1:            patch, x_offset = 0.001, y_offset = 0.002, z_offset = 0.004, t_offset = 1e-11, x_pitch = 0.001, y_pitch = 0.002, tilt = 2
 
-quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
-quadrupole2:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
-quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
-quadrupole4:       quadrupole, l = 0.6, k1 = 1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
-quadrupole5:       quadrupole, l = 0.6, k1 = -1, tilt, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
-rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.1
+quadrupole1:       quadrupole, l = 0.6, k1 = 1, tilt = 0.1, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole2:       quadrupole, l = 0.6, k1 = -1, tilt = 0.2, num_steps = 10, x_offset = 0.05, y_pitch = 0.002
+quadrupole3:       quadrupole, l = 0.6, k1 = 1e-20, tilt = 0.3, num_steps = 10, x_offset = 0.05, y_pitch = 0.001
+quadrupole4:       quadrupole, l = 0.6, k1 = 1, tilt = 0.4, num_steps = 10, x_offset = 0.05, y_pitch = 0.001, fringe_type = full
+quadrupole5:       quadrupole, l = 0.6, k1 = -1, tilt = 0.5, num_steps = 10, x_offset = 0.03, y_pitch = 0.002, fringe_type = full,
+                    superimpose, ref = quadrupole4
+rcollimator1:      rcollimator, l = 4.5, x_limit = 0.09/2, y_limit = 0.05/2, num_steps = 10, x_offset = 0.02, y_pitch = 0.001, tilt = 0.6
 rfcavity1:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
                              y_pitch = 0.001, tilt = 0.1
 rfcavity2:         rfcavity, l = 4.5, rf_frequency = 500e6, voltage = 5e5, phi0 = 0.1, num_steps = 10, x_offset = 0.05, 
@@ -88,7 +89,7 @@ l1[geometry] = open
 ! Put lcavity elements last since they shift reference energy
 
 l2: line = (drift1, ecollimator1, elseparator1, elseparator2, hkicker1, 
-            instrument1, kicker1, monitor1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4, quadrupole5,
+            instrument1, kicker1, monitor1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4,
             rcollimator1, rfcavity1, rfcavity2, sad_mult1, sad_mult2, sbend1, sbend2, sbend3, sbend4, sbend5, sextupole1, 
             solenoid1, solenoid2, sol_quad1, sol_quad2, vkicker1, wiggler_map1, wiggler_periodic1, 
             w1x, w2x, w3x, w1y, w2y, w3y, 
