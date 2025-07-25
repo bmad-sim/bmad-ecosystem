@@ -108,8 +108,8 @@ endif
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   if (.not. can_use_cache) then
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
+    do i = 1, num_lord(ele)
+      lord => pointer_to_lord(ele, i, lord_type = multipole_source$)
 
       if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
       if (.not. lord%is_on) cycle
@@ -138,8 +138,8 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   ix_kick_max = -1
   ix_pole_max = -1
 
-  do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i)
+  do i = 1, num_lord(ele)
+    lord => pointer_to_lord(ele, i, lord_type = multipole_source$)
 
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$ .or. lord%key == pipe$) cycle
     if (.not. lord%is_on) cycle
@@ -297,6 +297,29 @@ elseif (p_type == electric$ .and. cache%elec_valid) then
 endif
 
 end subroutine set_from_cache
+
+!---------------------------------------------
+! contains
+
+function num_lord(ele) result (n_lord)
+
+type (ele_struct) ele
+integer n_lord
+
+!
+
+select case (ele%slave_status)
+case (super_slave$)
+  n_lord = ele%n_lord
+case (slice_slave$)
+  if (ele%lord%slave_status == super_slave$) then
+    n_lord = ele%lord%n_lord
+  else
+    n_lord = 1
+  endif
+end select
+
+end function num_lord
 
 !---------------------------------------------
 ! contains

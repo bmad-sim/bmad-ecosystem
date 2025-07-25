@@ -137,6 +137,7 @@ integer, parameter :: group_lord$ = 4, super_lord$ = 5, overlay_lord$ = 6
 integer, parameter :: girder_lord$ = 7, multipass_lord$ = 8, multipass_slave$ = 9
 integer, parameter :: not_a_lord$ = 10, slice_slave$ = 11, control_lord$ = 12, ramper_lord$ = 13
 integer, parameter :: governor$ = 14, field_lord$ = 15    ! governor$ = Union of overlay and group lords.
+integer, parameter :: multipole_source$ = -1   ! Used with pointer_to_lord(...)
 
 character(20), parameter :: control_name(13) = [character(20):: &
             'Minor_Slave', 'Super_Slave', 'Free', 'Group_Lord', &
