@@ -46,7 +46,7 @@ real(rp), pointer :: a_pole(:), b_pole(:), ksl_pole(:)
 
 integer ix_pole_max
 integer, optional :: pole_type, include_kicks
-integer i, n, p_type, include_kck, ix_kick_max
+integer i, nn, p_type, include_kck, ix_kick_max
 
 logical, optional :: original
 logical use_ele_tilt, can_use_cache, is_set
@@ -73,7 +73,7 @@ if (.not. allocated(ele%multipole_cache)) allocate(ele%multipole_cache)
 
 cache => ele%multipole_cache
 if (can_use_cache) then
-  call set_from_cache(ele, cache, p_type, include_kck, is_set);  if (is_set) return
+  call set_from_cache(ele, cache, p_type, include_kck, is_set, can_use_cache);  if (is_set) return
 endif
 
 ! Multipole ele 
@@ -108,20 +108,21 @@ endif
 
 if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   if (.not. can_use_cache) then
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
+    do i = 1, num_lord(ele)
+      lord => pointer_to_lord(ele, i, lord_type = multipole_source$)
+
       if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
       if (.not. lord%is_on) cycle
-      call multipole_ele_to_ab (lord, .true., n, this_a, this_b, pole_type, include_kicks)
-      if (n > -1) then
+      call multipole_ele_to_ab (lord, .true., nn, this_a, this_b, pole_type, include_kicks)
+      if (nn > -1) then
         if (p_type == magnetic$) then
-          a(0:n) = a(0:n) + this_a(0:n) * (ele%value(l$) / lord%value(l$))
-          b(0:n) = b(0:n) + this_b(0:n) * (ele%value(l$) / lord%value(l$))
+          a(0:nn) = a(0:nn) + this_a(0:nn) * (ele%value(l$) / lord%value(l$))
+          b(0:nn) = b(0:nn) + this_b(0:nn) * (ele%value(l$) / lord%value(l$))
         else
-          a(0:n) = a(0:n) + this_a(0:n)
-          b(0:n) = b(0:n) + this_b(0:n)
+          a(0:nn) = a(0:nn) + this_a(0:nn)
+          b(0:nn) = b(0:nn) + this_b(0:nn)
         endif
-        ix_pole_max = max(ix_pole_max, n)
+        ix_pole_max = max(ix_pole_max, nn)
       endif
     enddo
 
@@ -137,11 +138,12 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   ix_kick_max = -1
   ix_pole_max = -1
 
-  do i = 1, ele%n_lord
-    lord => pointer_to_lord(ele, i)
+  do i = 1, num_lord(ele)
+    lord => pointer_to_lord(ele, i, lord_type = multipole_source$)
+
     if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$ .or. lord%key == pipe$) cycle
     if (.not. lord%is_on) cycle
-    call multipole_ele_to_ab (lord, .true., n, this_a, this_b, pole_type, no$)
+    call multipole_ele_to_ab (lord, .true., nn, this_a, this_b, pole_type, no$)
     lord_cache => lord%multipole_cache
 
     if (p_type == magnetic$) then
@@ -165,51 +167,51 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
   if (p_type == magnetic$) then
     cache%mag_valid = .true.
 
-    n = ix_pole_max
-    cache%ix_pole_mag_max = n
-    if (n > -1) then
-      call tilt_this_multipole(ele, -1, a, b, n)
-      call re_allocate2(cache%a_pole_mag, 0, n, .false.)
-      call re_allocate2(cache%b_pole_mag, 0, n, .false.)
-      cache%a_pole_mag(0:n) = a(0:n)
-      cache%b_pole_mag(0:n) = b(0:n)
+    nn = ix_pole_max
+    cache%ix_pole_mag_max = nn
+    if (nn > -1) then
+      call tilt_this_multipole(ele, -1, a, b, nn)
+      call re_allocate2(cache%a_pole_mag, 0, nn, .false.)
+      call re_allocate2(cache%b_pole_mag, 0, nn, .false.)
+      cache%a_pole_mag(0:nn) = a(0:nn)
+      cache%b_pole_mag(0:nn) = b(0:nn)
     endif      
 
-    n = ix_kick_max
-    cache%ix_kick_mag_max = n
-    if (n > -1) then
-      call tilt_this_multipole(ele, -1, a_kick, b_kick, n)
-      call re_allocate2(cache%a_kick_mag, 0, n, .false.)
-      call re_allocate2(cache%b_kick_mag, 0, n, .false.)
-      cache%a_kick_mag(0:n) = a_kick(0:n)
-      cache%b_kick_mag(0:n) = b_kick(0:n)
+    nn = ix_kick_max
+    cache%ix_kick_mag_max = nn
+    if (nn > -1) then
+      call tilt_this_multipole(ele, -1, a_kick, b_kick, nn)
+      call re_allocate2(cache%a_kick_mag, 0, nn, .false.)
+      call re_allocate2(cache%b_kick_mag, 0, nn, .false.)
+      cache%a_kick_mag(0:nn) = a_kick(0:nn)
+      cache%b_kick_mag(0:nn) = b_kick(0:nn)
     endif      
     
   else
     cache%elec_valid = .true.
 
-    n = ix_pole_max
-    cache%ix_pole_elec_max = n
-    if (n > -1) then
-      call tilt_this_multipole(ele, -1, a, b, n)
-      call re_allocate2(cache%a_pole_elec, 0, n, .false.)
-      call re_allocate2(cache%b_pole_elec, 0, n, .false.)
-      cache%a_pole_elec(0:n) = a(0:n)
-      cache%b_pole_elec(0:n) = b(0:n)
+    nn = ix_pole_max
+    cache%ix_pole_elec_max = nn
+    if (nn > -1) then
+      call tilt_this_multipole(ele, -1, a, b, nn)
+      call re_allocate2(cache%a_pole_elec, 0, nn, .false.)
+      call re_allocate2(cache%b_pole_elec, 0, nn, .false.)
+      cache%a_pole_elec(0:nn) = a(0:nn)
+      cache%b_pole_elec(0:nn) = b(0:nn)
     endif      
 
-    n = ix_kick_max
-    cache%ix_kick_elec_max = n
-    if (n > -1) then
-      call tilt_this_multipole(ele, -1, a_kick, b_kick, n)
-      call re_allocate2(cache%a_kick_elec, 0, n, .false.)
-      call re_allocate2(cache%b_kick_elec, 0, n, .false.)
-      cache%a_kick_elec(0:n) = a_kick(0:n)
-      cache%b_kick_elec(0:n) = b_kick(0:n)
+    nn = ix_kick_max
+    cache%ix_kick_elec_max = nn
+    if (nn > -1) then
+      call tilt_this_multipole(ele, -1, a_kick, b_kick, nn)
+      call re_allocate2(cache%a_kick_elec, 0, nn, .false.)
+      call re_allocate2(cache%b_kick_elec, 0, nn, .false.)
+      cache%a_kick_elec(0:nn) = a_kick(0:nn)
+      cache%b_kick_elec(0:nn) = b_kick(0:nn)
     endif      
   endif
 
-  call set_from_cache(ele, cache, p_type, include_kck, is_set)
+  call set_from_cache(ele, cache, p_type, include_kck, is_set, can_use_cache)
   return
 endif
 
@@ -236,12 +238,13 @@ if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
 !---------------------------------------------
 contains
 
-subroutine set_from_cache(ele, cache, p_type, include_kck, is_set)
+subroutine set_from_cache(ele, cache, p_type, include_kck, is_set, can_use_cache)
 
 type (ele_struct) ele
 type (multipole_cache_struct) cache
 integer p_type, include_kck
-logical is_set
+integer n
+logical is_set, can_use_cache
 
 !
 
@@ -294,6 +297,29 @@ elseif (p_type == electric$ .and. cache%elec_valid) then
 endif
 
 end subroutine set_from_cache
+
+!---------------------------------------------
+! contains
+
+function num_lord(ele) result (n_lord)
+
+type (ele_struct) ele
+integer n_lord
+
+!
+
+select case (ele%slave_status)
+case (super_slave$)
+  n_lord = ele%n_lord
+case (slice_slave$)
+  if (ele%lord%slave_status == super_slave$) then
+    n_lord = ele%lord%n_lord
+  else
+    n_lord = 1
+  endif
+end select
+
+end function num_lord
 
 !---------------------------------------------
 ! contains
@@ -450,7 +476,7 @@ type (ele_struct) this_ele
 type (branch_struct), pointer :: branch
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), this_a(0:n_pole_maxx), this_b(0:n_pole_maxx)
 real(rp) tilt, an, bn, sin_t, cos_t
-integer p_type, ix_max, ref_exp
+integer p_type, ix_max, ref_exp, n
 logical has_nonzero
 logical a, b ! protect symbols
 

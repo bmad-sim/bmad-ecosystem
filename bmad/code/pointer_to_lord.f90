@@ -8,11 +8,17 @@
 !   %n_lord+1               to %n_lord+%n_lord_field                   for field overlap lords.
 !   %n_lord+%n_lord_field+1 to %n_lord+%n_lord_field+%n_lord_ramper    for ramper lords
 !
-! If lord_type = field_lord$, only the field overlap lords may be accessed and the range for ix_lord is:
+! If lord_type = field_lord$: Only the field overlap lords may be accessed and the range for ix_lord is:
 !   1 to slave%n_lord_field  
 !
-! If lord_type = ramper_lord$, only the ramper lords may be accessed and the range for ix_lord is:
+! If lord_type = ramper_lord$: Only the ramper lords may be accessed and the range for ix_lord is:
 !   1 to slave%n_lord_ramper  
+!
+! If lord_type = multipole_source$: Used to get the elements holding the the multipole arrarys for slave.
+! Slice_slave elements will return the super_lord with index ix_lord if the slice's lord is a super_slave. 
+! Otherwise, just return the slice's lord if ix_lord = 1 (and Null otherwise).
+! Super_slave elements return the lord with index ix_lord as usual.
+! If slave is not a slice_slave nor a super_slave, just return the slave.
 !
 ! If slave arg is a slice_slave with control chain:
 !   super_lord -> super_slave -> slice_slave
@@ -54,7 +60,7 @@ implicit none
 type (ele_struct), target :: slave
 type (control_struct), pointer, optional :: control
 type (control_struct), pointer :: ctl
-type (ele_struct), pointer :: lord_ptr
+type (ele_struct), pointer :: lord_ptr, ld
 type (lat_struct), pointer :: lat
 
 integer, optional :: ix_slave_back, lord_type, ix_control, ix_ic
@@ -71,6 +77,7 @@ if (present(ix_ic)) ix_ic = -1
 nullify(lord_ptr)
 
 n_lord_reg = slave%n_lord + slave%n_lord_field
+lat => slave%branch%lat
 
 select case (integer_option(all$, lord_type))
 case (all$)
@@ -85,14 +92,31 @@ case (ramper_lord$)
   if (ix_lord > slave%n_lord_ramper .or. ix_lord < 1) return
   ixl = ix_lord + n_lord_reg
 
+case (multipole_source$)
+  select case (slave%slave_status)
+  case (slice_slave$)
+    lord_ptr => slave%lord
+    if (lord_ptr%slave_status == super_slave$) then
+      icon = lat%ic(slave%ic1_lord + ix_lord - 1)
+      ctl => lat%control(icon)
+      lord_ptr => lat%branch(ctl%lord%ix_branch)%ele(ctl%lord%ix_ele)
+    endif
+    return
+  case (super_slave$)
+    ixl = ix_lord
+    ! Rest handled at end of routine
+  case default
+    if (ix_lord > 1) return
+    lord_ptr => slave
+    return
+  end select
+
 case default
   call out_io (s_fatal$, r_name, 'BAD LORD_TYPE ARGUMENT: ' // int_str(lord_type))
   stop
 end select
 
 ! If a slice_ele is a slave of a super_slave, return a lord of the super_slave.
-
-lat => slave%branch%lat
 
 if (slave%slave_status == slice_slave$) then
   lord_ptr => slave%lord

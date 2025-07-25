@@ -482,7 +482,7 @@ end subroutine sr_transverse_wake_particle
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine sr_z_long_wake (ele, bunch, z_ave, test_particle)
+! Subroutine sr_z_long_wake (ele, bunch, z_ave)
 !
 ! Subroutine to apply the short-range z-wake kick to a particle.
 !
@@ -490,17 +490,13 @@ end subroutine sr_transverse_wake_particle
 !   ele           -- ele_struct: Element with wake.
 !   bunch         -- bunch_struct: Bunch before wake applied.
 !   z_ave         -- real(rp): Average z-position of all live particles.
-!   test_particle -- coord_struct, optional: Used for testing the wake code.
-!                     If present, the wake will only be applied to this one particle.
 !
 ! Output:
 !   orbit         -- coord_struct: Ending particle coords.
 !   bunch         -- bunch_struct: Bunch before wake applied.
-!   test_particle -- coord_struct, optional: Used for testing the wake code.
-!                     If present, the wake will only be applied to this one particle.
 !+
 
-subroutine sr_z_long_wake (ele, bunch, z_ave, test_particle)
+subroutine sr_z_long_wake (ele, bunch, z_ave)
 
 use spline_mod
 
@@ -509,7 +505,6 @@ type (bunch_struct), target :: bunch
 type (wake_sr_struct), pointer :: sr
 type (wake_sr_z_long_struct), pointer :: srz
 type (coord_struct), pointer :: p, orbit
-type (coord_struct), optional, target :: test_particle
 
 real(rp) x, f0, ff, f_add, kick, dz, rz_rel, r1, r2
 real(rp) z_ave
@@ -580,12 +575,8 @@ call fft_1d(srz%w_out, 1)
 ! Notice that p%charge does not appear here.
 
 do i = 1, size(bunch%particle)
-  if (present(test_particle)) then
-    p => test_particle
-  else
-    p => bunch%particle(i)
-    if (p%state /= alive$) cycle
-  endif
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
 
   rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srz%dz + n2 + 1
   ix1 = MOD(floor(rz_rel) + n2 - 1, nn) + 1
@@ -602,8 +593,6 @@ do i = 1, size(bunch%particle)
   case (y_trailing$)
     p%vec(6) = p%vec(6) - (r1 * srz%w_out(ix1) + r2 * srz%w_out(ix2)) * p%vec(3)
   end select
-
-  if (present(test_particle)) exit
 enddo
 
 end subroutine sr_z_long_wake
@@ -697,23 +686,19 @@ end subroutine order_particles_in_z
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine track1_sr_wake (bunch, ele, test_particle)
+! Subroutine track1_sr_wake (bunch, ele)
 !
 ! Subroutine to apply the short range wake fields to a bunch. 
 !
 ! Input:
 !   bunch         -- bunch_struct: Bunch of particles.
 !   ele           -- ele_struct: Element with wakefields.
-!   test_particle -- coord_struct, optional: Used for testing the wake code.
-!                     If present, the wake will only be applied to this one particle.
 !
 ! Output:
 !   bunch         -- bunch_struct: Bunch with wakefields applied to the particles.
-!   test_particle -- coord_struct, optional: Used for testing the wake code.
-!                     If present, the wake will only be applied to this one particle.
 !-
 
-subroutine track1_sr_wake (bunch, ele, test_particle)
+subroutine track1_sr_wake (bunch, ele)
 
 implicit none
 
@@ -721,7 +706,6 @@ type (bunch_struct), target :: bunch
 type (ele_struct) ele
 type (coord_struct), pointer :: particle
 type (coord_struct), pointer :: p(:)
-type (coord_struct), optional :: test_particle
 
 real(rp) sr02
 integer i, j, k, i1, i2, n_sr_long, n_sr_trans, k_start, n_live
@@ -766,21 +750,15 @@ ele%wake%sr%z_ref_trans = p(i1)%vec(5)
 
 ! Z-wake
 
-call sr_z_long_wake(ele, bunch, p((i1+i2)/2)%vec(5), test_particle)
+call sr_z_long_wake(ele, bunch, p((i1+i2)/2)%vec(5))
 
 ! Loop over all particles in the bunch and apply the mode wakes
 
-if (present(test_particle)) then
-    call sr_longitudinal_wake_particle (ele, test_particle)
-    call sr_transverse_wake_particle (ele, test_particle)
-
-else
-  do j = 1, n_live
-    particle => p(bunch%ix_z(j))  ! Particle to kick
-    call sr_longitudinal_wake_particle (ele, particle)
-    call sr_transverse_wake_particle (ele, particle)
-  enddo
-endif
+do j = 1, n_live
+  particle => p(bunch%ix_z(j))  ! Particle to kick
+  call sr_longitudinal_wake_particle (ele, particle)
+  call sr_transverse_wake_particle (ele, particle)
+enddo
 
 end subroutine track1_sr_wake
 
