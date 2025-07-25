@@ -14,6 +14,8 @@
 ! If lord_type = ramper_lord$, only the ramper lords may be accessed and the range for ix_lord is:
 !   1 to slave%n_lord_ramper  
 !
+! If lord_type = super_lord$, ix_lord is ignored and pointer_to_super_lord is called.
+!
 ! If slave arg is a slice_slave with control chain:
 !   super_lord -> super_slave -> slice_slave
 ! Then pointer_to_lord will point to the super_lord and not the super_slave. 
@@ -84,6 +86,10 @@ case (field_lord$)
 case (ramper_lord$)
   if (ix_lord > slave%n_lord_ramper .or. ix_lord < 1) return
   ixl = ix_lord + n_lord_reg
+
+case (super_lord$)
+  lord_ptr => pointer_to_super_lord(slave, control, ix_slave_back, ix_control, ix_ic)
+  return
 
 case default
   call out_io (s_fatal$, r_name, 'BAD LORD_TYPE ARGUMENT: ' // int_str(lord_type))

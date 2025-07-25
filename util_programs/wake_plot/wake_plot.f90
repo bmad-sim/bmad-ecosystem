@@ -14,7 +14,7 @@ type (wake_sr_struct), pointer :: sr
 type (wake_lr_struct), pointer :: lr
 type (wake_sr_z_long_struct), pointer :: srz
 type (wake_lr_mode_struct), allocatable :: lr_mode(:)
-type (bunch_struct), target :: bunch
+type (bunch_struct), target :: bunch, bunch_save
 type (coord_struct), pointer :: p1, test_p
 type (coord_struct), target :: this_p
 type (coord_struct), allocatable :: orb(:)
@@ -113,6 +113,11 @@ if (who == 'sr-z-long' .and. plot_type == 'wake') then
   stop
 endif
 
+if (who /= 'sr-z-long' .and. plot_type == 'wake') then
+  print *, 'Plotting with plot_type == "wake and who not set to "sr-z-long" not yet implemented! Stopping.'
+  stop
+endif
+
 !
 
 if (use_beam_init) then
@@ -122,11 +127,7 @@ if (use_beam_init) then
     stop
   endif
 
-  if (who == 'sr-z-long') then
-    test_p => this_p
-  else
-    test_p => bunch%particle(1)
-  endif
+  test_p => bunch%particle(1)
 
 else
   call reallocate_bunch(bunch, 2)
@@ -142,11 +143,13 @@ endif
 call init_coord(test_p, zero6, wake_ele, upstream_end$)
 test_p%vec(1:3:2) = xy_trailing
 vec2 = test_p%vec
-test_p%charge = 1e-20
+test_p%charge = 1d-50
 
 ! 
 
 allocate (x_axis(n_points), wx(n_points), wy(n_points), wz(n_points))
+
+! Long range
 
 select case (who(1:2))
 case ('lr')
@@ -188,7 +191,7 @@ case ('lr')
     wz(i) = test_p%vec(6)
   enddo
 
-!
+! Short range
 
 case ('sr')
   sr => wake_ele%wake%sr
@@ -204,33 +207,35 @@ case ('sr')
     endif
   endif
 
-  if (who /= 'sr-z-long') then
+  if (who /= 'sr-z-long' .and. who /= 'sr') then
     srz => sr%z_long
     deallocate (srz%w, srz%fw, srz%fbunch, srz%w_out)
     allocate (srz%w(0), srz%fw(0), srz%fbunch(0), srz%w_out(0))
   endif
 
-  if (who /= 'sr-mode' .and. who /= 'sr-trans') then
+  if (who /= 'sr-mode' .and. who /= 'sr-trans' .and. who /= 'sr') then
     deallocate (sr%trans)
     allocate (sr%trans(0))
   endif
 
-  if (who /= 'sr_mode' .and. who /= 'sr_long') then
+  if (who /= 'sr_mode' .and. who /= 'sr_long' .and. who /= 'sr') then
     deallocate (sr%long)
     allocate (sr%long(0))
   endif
 
+  bunch_save = bunch
 
   do i = 1, n_points
+    bunch = bunch_save
     z = x_min + (x_max - x_min) * (i - 1.0_rp) / (n_points - 1.0_rp)
     test_p%vec = vec2
     test_p%vec(5) = z
     x_axis(i) = z
     call order_particles_in_z(bunch)
-    call track1_sr_wake(bunch, wake_ele, test_p)
-    wx(i) = test_p%vec(2)
-    wy(i) = test_p%vec(4)
-    wz(i) = test_p%vec(6)
+    call track1_sr_wake(bunch, wake_ele)
+    wx(i) = test_p%vec(2) * wake_ele%value(p0c$)
+    wy(i) = test_p%vec(4) * wake_ele%value(p0c$)
+    wz(i) = test_p%vec(6) * wake_ele%value(p0c$)
   enddo
 
 end select

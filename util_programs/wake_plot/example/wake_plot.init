@@ -13,7 +13,6 @@
   x_min = -1e-2               ! Limit of plot range. 
   x_max = 0
   n_points = 1001             ! Number of plot points
-  draw_knot_points = False    ! Draw symbols at SR z-dependent wake knot points?
   text_scale = 1.2            ! Scale for drawing text.
   plot_size = 500, 400        ! (width, height) plot size in pixels.
 

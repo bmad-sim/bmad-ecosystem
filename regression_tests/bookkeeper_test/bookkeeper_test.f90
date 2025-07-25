@@ -31,15 +31,15 @@ character(40) :: exp_str(4) = [character(40):: &
                       'ran_gauss(0.3*2) + ran_gauss()']
 
 character(40) :: tree_str(5) = [character(40):: &
+                      'xyz = 3^2 + tan(4^5) * ran_gauss()', &
                       '{(4) / 7.32e+34} + [8]', &
-                      'gran_gauss(3) + ran_gauss()', &
                       'abc {ran, gar}^5', &
                       '(()', &
                       'abc {ran, gar}^5 + [4*5 ] ) ), + 64' &
                               ]
 
 
-character(100) str, err_str
+character(200) str, err_str
 
 real(rp), allocatable :: save(:)
 real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6), val
@@ -76,18 +76,21 @@ if (.false.) then
 print *
 do i = 1, size(tree_str)
   call expression_string_to_tree(tree_str(i), tree, err, err_str)
+  print *, '=================================='
+  print '(a)', quote(tree_str(i))
+  print *, '---------------'
+  call type_expression_tree(tree)
   str = expression_tree_to_string(tree)
   write (1, '(a, i0, 2a)') '"Tree2-str', i, '" STR        ', quote(str)
   write (1, '(a, i0, 2a)') '"Tree2-err', i, '" STR        ', quote(err_str)
-  print *, '=================================='
-  call type_expression_tree(tree)
   print *, '---------------'
-  print '(a)', quote(tree_str(i))
   print '(a)', quote(str)
   print '(a)', quote(err_str)
 enddo
 print *, '=================================='
 print *
+
+  stop
 
 call ran_seed_put (1234)
 do i = 1, size(exp_str)
