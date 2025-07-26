@@ -95,8 +95,8 @@ parse_line = string
 
 call deallocate_expression_tree(root_tree)
 call bracket_pass(parse_line, root_tree, err_flag, err_str, 'root'); if (err_flag) return
-call comma_pass(root_tree, err_flag, err_str); if (err_flag) return
 call node_markup_pass(root_tree, err_flag, err_str); if (err_flag) return
+call comma_pass(root_tree, err_flag, err_str); if (err_flag) return
 call reverse_polish_pass(root_tree, err_flag, err_str); if (err_flag) return
 
 !------------------------------------------------------------------------
@@ -142,6 +142,21 @@ parsing_loop: do
     return
   endif
 
+  if (is_real(word)) then
+    if (n_node > 0) then
+      if (tree%node(n_node)%name == '+' .or. tree%node(n_node)%name == '-') then
+        tree%node(n_node)%name = trim(tree%node(n_node)%name) // word
+      else
+        call push_node(tree, n_node, word)
+      endif
+    else
+      call push_node(tree, n_node, word)
+    endif
+
+    word = ''
+    ! And delim is handled below
+  endif
+
   select case (delim)
   case ('[', '(', '{')
     call push_node(tree, n_node, word)
@@ -163,8 +178,17 @@ parsing_loop: do
 
     if (do_combine) then
       word = trim(word) // trim(delim) // parse_line(1:ixe)
-      call push_node(tree, n_node, word)
       parse_line = parse_line(ixe+1:)
+      if (n_node > 0) then
+        if (tree%node(n_node)%name == '+' .or. tree%node(n_node)%name == '-') then
+          tree%node(n_node)%name = trim(tree%node(n_node)%name) // word
+        else
+          call push_node(tree, n_node, word)
+        endif
+      else
+        call push_node(tree, n_node, word)
+      endif
+
     else
       call push_node(tree, n_node, word)
       call push_node(tree, n_node, delim)
@@ -211,68 +235,6 @@ end subroutine bracket_pass
 !------------------------------------------------------------------------
 ! contains
 
-recursive subroutine comma_pass(tree, err_flag, err_str)
-
-type (expression_tree_struct), target :: tree, t2
-type (expression_tree_struct), pointer :: t2a
-
-integer n_comma, na, n0, ia, nn
-logical err_flag
-character(*) err_str
-
-! Exception: root node with equal subnodes does not get a comma layer.
-
-if (tree%type == root$ .and. tree%node(1)%type == equal$) then
-  do na = 1, size(tree%node)
-    call comma_pass(tree%node(na), err_flag, err_str); if (err_flag) return
-  enddo
-  return
-endif
-
-! Add comma layer
-
-n_comma = 0
-n0 = 1
-nn = size(tree%node)
-
-do na = 1, nn
-  select case (tree%node(na)%type)
-  case (square_brackets$, parens$, curly_brackets$, equal$)
-    call comma_pass(tree%node(na), err_flag, err_str); if (err_flag) return
-
-  case (comma$)
-    call increment_n_node(t2, n_comma)
-    t2a => t2%node(n_comma)
-    t2a%name = ','
-    t2a%type = comma$
-
-    allocate(t2a%node(na-n0))
-    do ia = 1, na - n0
-      t2a%node(ia) = tree%node(ia + n0 - 1)
-    enddo
-    n0 = na + 1
-  end select
-end do
-
-call increment_n_node(t2, n_comma)
-t2a => t2%node(n_comma)
-t2a%name = ','
-t2a%type = comma$
-allocate(t2a%node(nn + 1 - n0))
-do ia = 1, nn + 1 - n0
-  t2a%node(ia) = tree%node(ia + n0 - 1)
-enddo
-call re_associate_tree(t2, n_comma, exact = .true.)
-
-call deallocate_node(tree%node)
-allocate(tree%node(n_comma))
-tree%node => t2%node
-
-end subroutine comma_pass
-
-!------------------------------------------------------------------------
-! contains
-
 recursive subroutine node_markup_pass(tree, err_flag, err_str)
 
 type (expression_tree_struct), target :: tree
@@ -284,6 +246,7 @@ character(*) err_str
 
 !
 
+if (.not. associated(tree%node)) return
 n_node = size(tree%node)
 
 do in = 1, n_node
@@ -338,19 +301,27 @@ do in = 1, n_node
   case ('/');                    node%type = divide$
   case ('^');                    node%type = power$
   case ('::');                   node%type = double_colon$
-  case ('{}', '[]')             
-  case (',', '=')               
+  case (',');                    node%type = comma$
+  case ('{}', '[]', '=')        ! Already marked
 
   case ('()')
     if (index('ABCDEFGHIJKLMNOPQRSTUVWXYZ', upcase(tree%node(max(1,in-1))%name(1:1))) > 0) node%type = func_parens$
 
   case ('+')
     node%type = plus$
-    if (index('+-*/^', tree%node(max(1,in-1))%name) > 0) node%type = unary_plus$
+    if (in == 1) then
+      node%type = unary_plus$
+    elseif (index('+-*/^', trim(tree%node(in-1)%name)) > 0) then
+      node%type = unary_plus$
+    endif
 
   case ('-')
     node%type = minus$
-    if (index('+-*/^', tree%node(max(1,in-1))%name) > 0) node%type = unary_minus$
+    if (in == 1) then
+      node%type = unary_minus$
+    elseif (index('+-*/^', trim(tree%node(in-1)%name)) > 0) then
+      node%type = unary_minus$
+    endif
 
   case default
     if (is_real(node%name)) then
@@ -390,6 +361,71 @@ end subroutine node_markup_pass
 !------------------------------------------------------------------------
 ! contains
 
+recursive subroutine comma_pass(tree, err_flag, err_str)
+
+type (expression_tree_struct), target :: tree, t2
+type (expression_tree_struct), pointer :: t2a
+
+integer n_comma, na, n0, ia, nn
+logical err_flag
+character(*) err_str
+
+! Exception: root node with equal subnodes does not get a comma layer.
+
+if (.not. associated(tree%node)) return
+nn = size(tree%node)
+if (nn == 0) return
+
+if (tree%type == root$ .and. tree%node(1)%type == equal$) then
+  do na = 1, nn
+    call comma_pass(tree%node(na), err_flag, err_str); if (err_flag) return
+  enddo
+  return
+endif
+
+! Add comma layer
+
+n_comma = 0
+n0 = 1
+
+do na = 1, nn
+  select case (tree%node(na)%type)
+  case (square_brackets$, parens$, func_parens$, curly_brackets$, equal$)
+    call comma_pass(tree%node(na), err_flag, err_str); if (err_flag) return
+
+  case (comma$)
+    call increment_n_node(t2, n_comma)
+    t2a => t2%node(n_comma)
+    t2a%name = ','
+    t2a%type = comma$
+
+    allocate(t2a%node(na-n0))
+    do ia = 1, na - n0
+      t2a%node(ia) = tree%node(ia + n0 - 1)
+    enddo
+    n0 = na + 1
+  end select
+end do
+
+call increment_n_node(t2, n_comma)
+t2a => t2%node(n_comma)
+t2a%name = ','
+t2a%type = comma$
+allocate(t2a%node(nn + 1 - n0))
+do ia = 1, nn + 1 - n0
+  t2a%node(ia) = tree%node(ia + n0 - 1)
+enddo
+call re_associate_tree(t2, n_comma, exact = .true.)
+
+call deallocate_node(tree%node)
+allocate(tree%node(n_comma))
+tree%node => t2%node
+
+end subroutine comma_pass
+
+!------------------------------------------------------------------------
+! contains
+
 recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 
 type (expression_tree_struct), target :: tree, t2, op
@@ -402,7 +438,6 @@ character(*) err_str
 ! If tree%node(:) array does not represent an expression, skip reverse Polish step.
 
 if (.not. associated(tree%node)) return
-
 n_node = size(tree%node)
 
 has_op = .false.
@@ -434,7 +469,7 @@ do it2 = 1, n_node
   node => t2%node(it2)
 
   select case (node%type)
-  case (unary_plus$, unary_minus$, plus$, minus$, times$, divide$, power$)
+  case (plus$, minus$, times$, divide$, power$)
     if (n_nonop > 1) call make_compound_node(tree, t2, it, it2_0, n_nonop)
     n_nonop = 0
 
@@ -448,6 +483,10 @@ do it2 = 1, n_node
     enddo
     i_op = i
 
+    i_op = i_op + 1
+    op%node(i_op) = node
+
+  case (unary_plus$, unary_minus$)
     i_op = i_op + 1
     op%node(i_op) = node
 
@@ -637,14 +676,16 @@ recursive subroutine type_expression_tree(tree, indent)
 type (expression_tree_struct) tree
 integer, optional :: indent
 integer n, ind
-character(20) fmt
+character(40) fmt
 
 !
 
 ind = integer_option(0, indent)
 
-write(fmt, '(a, i0, a)') '(', 6*ind+2, 'x, a, i6, z12)'
-print fmt, trim(tree%name), tree%type   !, loc(tree)
+write(fmt, '(a, i0, a, i0, a)') '(', 4*ind+2, 'x, a, t', 4*ind+30, ', a, i0, z12)'
+print fmt, trim(tree%name), ':', tree%type   !, loc(tree)
+
+if (.not. associated(tree%node)) return
 
 do n = 1, size(tree%node)
   call type_expression_tree(tree%node(n), ind+1)
@@ -765,6 +806,11 @@ character(400) strs(20)
 character(*), parameter :: r_name = 'expression_tree_node_array_to_string'
 
 !
+
+if (.not. associated(tree%node)) then
+  str = ''
+  return
+endif
 
 strs(1) = ''
 i_str = 1

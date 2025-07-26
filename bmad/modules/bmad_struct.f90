@@ -2450,7 +2450,7 @@ character(20), parameter :: expression_op_name(69) = [character(20) :: '+', '-',
                                     'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth', 'min', 'max', 'modulo', &
                                     'root', '()', '[]', '{}', '()', '->', '=', ':', '::', 'compound']
 
-integer, parameter :: expression_eval_level(69) = [1, 1, 2, 2, 0, 0, 4, 3, 3, -1, &
+integer, parameter :: expression_eval_level(69) = [1, 1, 3, 3, 0, 0, 4, 2, 2, -1, &
               9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
               9, 9, 9, 9, 0, 9, 9, 9, 0, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
               0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
