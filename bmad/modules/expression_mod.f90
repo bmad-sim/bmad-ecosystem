@@ -246,6 +246,7 @@ character(*) err_str
 
 !
 
+if (.not. associated(tree%node)) return
 n_node = size(tree%node)
 
 do in = 1, n_node
@@ -371,8 +372,12 @@ character(*) err_str
 
 ! Exception: root node with equal subnodes does not get a comma layer.
 
+if (.not. associated(tree%node)) return
+nn = size(tree%node)
+if (nn == 0) return
+
 if (tree%type == root$ .and. tree%node(1)%type == equal$) then
-  do na = 1, size(tree%node)
+  do na = 1, nn
     call comma_pass(tree%node(na), err_flag, err_str); if (err_flag) return
   enddo
   return
@@ -382,7 +387,6 @@ endif
 
 n_comma = 0
 n0 = 1
-nn = size(tree%node)
 
 do na = 1, nn
   select case (tree%node(na)%type)
@@ -434,7 +438,6 @@ character(*) err_str
 ! If tree%node(:) array does not represent an expression, skip reverse Polish step.
 
 if (.not. associated(tree%node)) return
-
 n_node = size(tree%node)
 
 has_op = .false.
@@ -682,6 +685,8 @@ ind = integer_option(0, indent)
 write(fmt, '(a, i0, a, i0, a)') '(', 4*ind+2, 'x, a, t', 4*ind+30, ', a, i0, z12)'
 print fmt, trim(tree%name), ':', tree%type   !, loc(tree)
 
+if (.not. associated(tree%node)) return
+
 do n = 1, size(tree%node)
   call type_expression_tree(tree%node(n), ind+1)
 enddo
@@ -801,6 +806,11 @@ character(400) strs(20)
 character(*), parameter :: r_name = 'expression_tree_node_array_to_string'
 
 !
+
+if (.not. associated(tree%node)) then
+  str = ''
+  return
+endif
 
 strs(1) = ''
 i_str = 1
