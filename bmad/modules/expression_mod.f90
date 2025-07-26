@@ -660,15 +660,12 @@ end subroutine deallocate_expression_tree
 !+
 ! Subroutine type_expression_tree (tree, indent)
 !
-! Routine to output an expression tree in tree form.
+! Routine to print an expression tree in tree form.
 ! Good for debugging.
 !
 ! Input:
 !   tree        -- expression_tree_struct: Tree to print.
 !   indent      -- integer, optional: Initial indent. Default is zero.
-!
-! Output:
-!   str         -- character(1000): Expression string.
 !-
 
 recursive subroutine type_expression_tree(tree, indent)
@@ -715,7 +712,7 @@ type (expression_tree_struct) tree
 integer, optional :: n_node
 integer n, iss, ns, n_sub
 character(:), allocatable :: str_out
-character(1000) str, ss(10)
+character(2000) str, ss(10)
 
 !
 
@@ -793,7 +790,7 @@ end function expression_tree_to_string
 !   tree        -- expression_tree_struct: Tree to print.
 !
 ! Output:
-!   str         -- character(1000): Expression string.
+!   str         -- character(2000): Expression string.
 !-
 
 recursive function expression_tree_node_array_to_string (tree) result (str)
@@ -801,8 +798,8 @@ recursive function expression_tree_node_array_to_string (tree) result (str)
 type (expression_tree_struct), target :: tree
 type (expression_tree_struct), pointer :: node
 integer n, i_str, i_parens
-character(400) str
-character(400) strs(20)
+character(2000) str
+character(2000) strs(20)
 character(*), parameter :: r_name = 'expression_tree_node_array_to_string'
 
 !
