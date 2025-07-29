@@ -119,11 +119,18 @@ endif
 base => tree%node(1)
 call expression_tree_asterisk_restore(base)
 
+call type_expression_tree(tree)  !!!
+
 err_flag = .false.
 n_stk = 0
 call expression_tree_to_stack(base, stk, n_stk, expression, err_flag, .false.)
 if (err_flag) return
 
+print *, '!=========================================='
+print *
+do i = 1, n_stk
+  print '(a, t40, i0)', trim(stk(i)%name), stk(i)%type
+enddo
 
 ! Finish
 

@@ -410,19 +410,21 @@ end subroutine tao_get_data
 
 subroutine tao_expression_hash_substitute(expression_in, expression_out, eval_ele)
 
-type (ele_struct), optional :: eval_ele
+type (ele_struct), optional, pointer :: eval_ele
 character(*) expression_in, expression_out
 character(40) ele_name
 integer ix, ix2, n
 
 ! 
 
+expression_out = expression_in
 if (.not. present(eval_ele)) return
+if (.not. associated(eval_ele)) return
 ele_name = ele_full_name(eval_ele, '!#')
 
 n = len_trim(ele_name)
 ix = 0
-expression_out = expression_in
+
 do
   ix2 = index(expression_out(ix+1:), '#')
   if (ix2 == 0) return
