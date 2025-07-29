@@ -73,6 +73,8 @@ logical printit
 character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
 character(*), optional :: dflt_dat_or_var_index
+
+character(60) saved_prefix
 character(80) default_source
 character(2000) :: phrase, err_str
 
@@ -119,20 +121,49 @@ endif
 base => tree%node(1)
 call expression_tree_asterisk_restore(base)
 
-call type_expression_tree(tree)  !!!
+if (s%global%debug_on) then
+  call type_expression_tree(tree)  !!!
+endif
 
 err_flag = .false.
 n_stk = 0
 call expression_tree_to_stack(base, stk, n_stk, expression, err_flag, .false.)
 if (err_flag) return
 
-print *, '!=========================================='
-print *
+if (s%global%debug_on) then
+  print *, '! New =========================================='
+  do i = 1, n_stk
+    if (allocated(stk(i)%value)) then
+      print '(a20, es12.4, t50, i0)', stk(i)%name, stk(i)%value(1), stk(i)%type
+    else
+      print '(a20, t50, i0)', stk(i)%name, stk(i)%type
+    endif
+  enddo
+  print *, '!=========================================='
+  print *
+endif
+
+! Evaluate individual values
+
 do i = 1, n_stk
-  print '(a, t40, i0)', trim(stk(i)%name), stk(i)%type
+  select case (stk(i)%type)
+  case (plus$, unary_plus$, minus$, unary_minus$, times$, divide$, power$, function$)
+  case default
+    ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
+    saved_prefix = ''
+    if (i > 1) then
+      ix = index(stk(i-1)%name, '|')
+      if (ix > 0) saved_prefix = stk(i-1)%name(1:ix-1)
+    endif
+
+    call tao_param_value_routine (stk(i)%name, use_good_user, saved_prefix, stk(i), err_flag, printit, &
+               dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
+               dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+    if (err_flag) return
+  end select
 enddo
 
-! Finish
+! Evaluate expression
 
 call tao_evaluate_stack (stk(1:n_stk), n_size, use_good_user, value, err_flag, printit, expression, info)
 
@@ -253,64 +284,19 @@ logical err_flag, in_compound, in_comp
 character(*) expression
 character(*), parameter :: r_name = 'expression_tree_to_stack'
 
-!
+! Note: Tao variable, data, and paramter name syntax does not use parens.
 
 in_comp = in_compound
 
 select case (tree%type)
 case (function$)
-  select case (tree%name)
-  case ('cot');             call push_stack (stk, n_stk, cot$, tree%name)
-  case ('csc');             call push_stack (stk, n_stk, csc$, tree%name)
-  case ('sec');             call push_stack (stk, n_stk, sec$, tree%name)
-  case ('sin');             call push_stack (stk, n_stk, sin$, tree%name)
-  case ('sinc');            call push_stack (stk, n_stk, sinc$, tree%name)
-  case ('cos');             call push_stack (stk, n_stk, cos$, tree%name)
-  case ('tan');             call push_stack (stk, n_stk, tan$, tree%name)
-  case ('asin');            call push_stack (stk, n_stk, asin$, tree%name)
-  case ('acos');            call push_stack (stk, n_stk, acos$, tree%name)
-  case ('atan');            call push_stack (stk, n_stk, atan$, tree%name)
-  case ('atan2')
-  case ('modulo')
-  case ('sinh');            call push_stack (stk, n_stk, sinh$, tree%name)
-  case ('cosh');            call push_stack (stk, n_stk, cosh$, tree%name)
-  case ('tanh');            call push_stack (stk, n_stk, tanh$, tree%name)
-  case ('coth');            call push_stack (stk, n_stk, coth$, tree%name)
-  case ('asinh');           call push_stack (stk, n_stk, asinh$, tree%name)
-  case ('acosh');           call push_stack (stk, n_stk, acosh$, tree%name)
-  case ('atanh');           call push_stack (stk, n_stk, atanh$, tree%name)
-  case ('acoth');           call push_stack (stk, n_stk, acoth$, tree%name)
-  case ('abs');             call push_stack (stk, n_stk, abs$, tree%name)
-  case ('min');             call push_stack (stk, n_stk, min$, tree%name)
-  case ('max');             call push_stack (stk, n_stk, max$, tree%name)
-  case ('rms');             call push_stack (stk, n_stk, rms$, tree%name)
-  case ('average', 'mean'); call push_stack (stk, n_stk, average$, tree%name)
-  case ('sum');             call push_stack (stk, n_stk, sum$, tree%name)
-  case ('sqrt');            call push_stack (stk, n_stk, sqrt$, tree%name)
-  case ('log');             call push_stack (stk, n_stk, log$, tree%name)
-  case ('exp');             call push_stack (stk, n_stk, exp$, tree%name)
-  case ('factorial');       call push_stack (stk, n_stk, factorial$, tree%name)
-  case ('ran')         
-  case ('ran_gauss')
-  case ('int');             call push_stack (stk, n_stk, int$, tree%name)
-  case ('sign');            call push_stack (stk, n_stk, sign$, tree%name)
-  case ('nint');            call push_stack (stk, n_stk, nint$, tree%name)
-  case ('floor');           call push_stack (stk, n_stk, floor$, tree%name)
-  case ('ceiling');         call push_stack (stk, n_stk, ceiling$, tree%name)
-  case ('mass_of');         call push_stack (stk, n_stk, mass_of$, tree%name)
-  case ('charge_of');       call push_stack (stk, n_stk, charge_of$, tree%name)
-  case ('anomalous_moment_of'); call push_stack (stk, n_stk, anomalous_moment_of$, tree%name)
-  case ('species');         call push_stack (stk, n_stk, species$, tree%name)
-  case ('antiparticle');    call push_stack (stk, n_stk, antiparticle$, tree%name)
-  case default
-    call out_io(s_error$, r_name, 'Function name not recognized: ' // tree%name, &
-                                  'In expression: ' // expression)
-    err_flag = .true.
-    return
-  end select
+  call push_stack (stk, n_stk, tree%type, tree%name)
 
-case (compound_var$)
-  in_comp = .true.
+case (comma$, parens$, func_parens$)
+  ! No op
+
+case (compound$)
+  !in_comp = .true.
 
 case (curly_brackets$)
   if (in_compound) stk(n_stk)%name = '{' // stk(n_stk)%name
@@ -318,8 +304,6 @@ case (curly_brackets$)
 case (square_brackets$)
   if (in_compound) stk(n_stk)%name = '[' // stk(n_stk)%name
 
-case (parens$, func_parens$)
-  if (in_compound) stk(n_stk)%name = '(' // stk(n_stk)%name
 
 case default
   if (in_compound) then
@@ -344,8 +328,6 @@ case (curly_brackets$)
   if (in_compound) stk(n_stk)%name = '}' // stk(n_stk)%name
 case (square_brackets$)
   if (in_compound) stk(n_stk)%name = ']' // stk(n_stk)%name
-case (parens$, func_parens$)
-  if (in_compound) stk(n_stk)%name = ')' // stk(n_stk)%name
 end select
 
 end subroutine expression_tree_to_stack
@@ -371,7 +353,15 @@ if (n_stk > size(stack)) then
   stack(1:n_stk-1) = tmp_stk
 endif
 
-stack(n_stk)%type = this_type
+! Tao uses numeric$ instead of variable$ or constant#
+
+select case (this_type)
+case (variable$, constant$)
+  stack(n_stk)%type = numeric$
+case default
+  stack(n_stk)%type = this_type
+end select
+
 stack(n_stk)%name = this_name
 stack(n_stk)%scale = 1
 

@@ -2435,7 +2435,7 @@ integer, parameter :: arg_count$ = 43, antiparticle$ = 44, cot$ = 45, sec$ = 46,
 integer, parameter :: sinh$ = 49, cosh$ = 50, tanh$ = 51, coth$ = 52, asinh$ = 53, acosh$ = 54, atanh$ = 55, acoth$ = 56
 integer, parameter :: min$ = 57, max$ = 58, modulo$ = 59
 integer, parameter :: root$ = 60, parens$ = 61, square_brackets$ = 62, curly_brackets$ = 63, func_parens$ = 64
-integer, parameter :: arrow$ = 65, equal$ = 66, colon$ = 67, double_colon$ = 68, compound_var$ = 69, function$ = 70
+integer, parameter :: arrow$ = 65, equal$ = 66, colon$ = 67, double_colon$ = 68, compound$ = 69, function$ = 70
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "min", "max", "rms" and "average" are not implemented in Bmad but is used by Tao.

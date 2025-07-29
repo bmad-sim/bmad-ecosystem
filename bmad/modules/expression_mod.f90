@@ -54,7 +54,7 @@ contains
 ! have three comma children.
 !
 ! Compound variables are something like "data::orxit.x" (this is a Tao construct) which get 
-! translated to a compound_var$ node with children:
+! translated to a compound$ node with children:
 !   "data",  "::", "orbit.x"
 ! Also functions line "atan()" are considered compound vars with children
 !   "atan",  "()"
@@ -86,15 +86,16 @@ err_flag = .false.
 err_str = ''
 parse_line = string
 
-! bracket_pass: Where ever there are brackets, form a subtree with a bracket node as the root.
-! comma_pass: Where ever there are comma deliminated chunks, reform into a set of subtrees, one for each chunk
-!   and with a comma node as the root for each chunk
+! parse_pass: Parse expression string into node chunks and where there are brackets, 
+!   form a subtree with a bracket node as the root.
+! comma_pass: Where there are comma deliminated chunks, reform into a set of subtrees, one for each chunk
+!   and with a comma node as the root for each chunk.
 ! node_markup_pass: Assign the appropriate node%type for all nodes.
 ! reverse_polish_pass: For any tree%node(:) array that represents an expression, Reformulate in reverse Polish.
 !   Also form compound_var$ subtrees as needed.
 
 call deallocate_expression_tree(root_tree)
-call bracket_pass(parse_line, root_tree, err_flag, err_str, 'root'); if (err_flag) return
+call parse_pass(parse_line, root_tree, err_flag, err_str, 'root'); if (err_flag) return
 call node_markup_pass(root_tree, err_flag, err_str); if (err_flag) return
 call comma_pass(root_tree, err_flag, err_str); if (err_flag) return
 call reverse_polish_pass(root_tree, err_flag, err_str); if (err_flag) return
@@ -102,7 +103,7 @@ call reverse_polish_pass(root_tree, err_flag, err_str); if (err_flag) return
 !------------------------------------------------------------------------
 contains
 
-recursive subroutine bracket_pass(parse_line, tree, err_flag, err_str, tree_name)
+recursive subroutine parse_pass(parse_line, tree, err_flag, err_str, tree_name)
 
 type (expression_tree_struct), target :: tree, t2
 type (expression_tree_struct), pointer :: node 
@@ -138,30 +139,15 @@ parsing_loop: do
       call set_this_err('Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
                         '  In: ' // quote(string), err_str, err_flag)
     endif
-    call re_associate_tree(tree, n_node, exact = .true.)
+    call re_associate_node_array(tree, n_node, exact = .true.)
     return
-  endif
-
-  if (is_real(word)) then
-    if (n_node > 0) then
-      if (tree%node(n_node)%name == '+' .or. tree%node(n_node)%name == '-') then
-        tree%node(n_node)%name = trim(tree%node(n_node)%name) // word
-      else
-        call push_node(tree, n_node, word)
-      endif
-    else
-      call push_node(tree, n_node, word)
-    endif
-
-    word = ''
-    ! And delim is handled below
   endif
 
   select case (delim)
   case ('[', '(', '{')
     call push_node(tree, n_node, word)
     call increment_n_node(tree, n_node)
-    call bracket_pass(parse_line, tree%node(n_node), err_flag, err_str, delim); if (err_flag) return
+    call parse_pass(parse_line, tree%node(n_node), err_flag, err_str, delim); if (err_flag) return
 
   case ('+', '-')
     do_combine = (ix_word > 1)
@@ -179,15 +165,7 @@ parsing_loop: do
     if (do_combine) then
       word = trim(word) // trim(delim) // parse_line(1:ixe)
       parse_line = parse_line(ixe+1:)
-      if (n_node > 0) then
-        if (tree%node(n_node)%name == '+' .or. tree%node(n_node)%name == '-') then
-          tree%node(n_node)%name = trim(tree%node(n_node)%name) // word
-        else
-          call push_node(tree, n_node, word)
-        endif
-      else
-        call push_node(tree, n_node, word)
-      endif
+      call push_node(tree, n_node, word)
 
     else
       call push_node(tree, n_node, word)
@@ -210,7 +188,7 @@ parsing_loop: do
 
   case ('=')
     call push_node(tree, n_node, word)
-    call re_associate_tree(tree, n_node, exact = .true.)
+    call re_associate_node_array(tree, n_node, exact = .true.)
     t2%node => tree%node
     allocate(tree%node(2))
     n_node = 2
@@ -220,7 +198,7 @@ parsing_loop: do
     node%name = '='
     node%node => t2%node
 
-    call bracket_pass(parse_line, tree%node(2), err_flag, err_str, delim); if (err_flag) return
+    call parse_pass(parse_line, tree%node(2), err_flag, err_str, delim); if (err_flag) return
 
   case default
     call push_node(tree, n_node, word)
@@ -228,9 +206,9 @@ parsing_loop: do
   end select
 enddo parsing_loop
 
-call re_associate_tree(tree, n_node, exact = .true.)
+call re_associate_node_array(tree, n_node, exact = .true.)
 
-end subroutine bracket_pass
+end subroutine parse_pass
 
 !------------------------------------------------------------------------
 ! contains
@@ -322,6 +300,28 @@ do in = 1, n_node
   end select
 enddo
 
+! Combine unary minus or plus node with following constant node.
+
+do in = n_node-1, 1, -1
+  if (tree%node(in+1)%type /= constant$) cycle
+  node => tree%node(in)
+  select case (node%type)
+  case (unary_minus$)
+    node = tree%node(in+1)
+    node%name = '-' // node%name
+    n_node = n_node - 1
+    tree%node(in+1:n_node) = tree%node(in+2:n_node+1)
+  case (unary_plus$)
+    node = tree%node(in+1)
+    node%name = '+' // node%name
+    n_node = n_node - 1
+    tree%node(in+1:n_node) = tree%node(in+2:n_node+1)
+  end select
+enddo
+
+call re_associate_node_array(tree, n_node, exact = .true.)
+
+
 end subroutine node_markup_pass
 
 !------------------------------------------------------------------------
@@ -381,7 +381,7 @@ allocate(t2a%node(nn + 1 - n0))
 do ia = 1, nn + 1 - n0
   t2a%node(ia) = tree%node(ia + n0 - 1)
 enddo
-call re_associate_tree(t2, n_comma, exact = .true.)
+call re_associate_node_array(t2, n_comma, exact = .true.)
 
 call deallocate_node(tree%node)
 allocate(tree%node(n_comma))
@@ -397,7 +397,7 @@ recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 type (expression_tree_struct), target :: tree, t2, op
 type (expression_tree_struct), pointer :: node
 
-integer i, it2, it, n_node, i_op, it2_0, n_nonop
+integer i, it2, it, n_node, i_op, n_nonop
 logical err_flag, has_op
 character(*) err_str
 
@@ -428,7 +428,6 @@ allocate(tree%node(n_node))
 
 i_op = 0
 it = 0
-it2_0 = 0
 n_nonop = 0
 
 do it2 = 1, n_node
@@ -461,13 +460,11 @@ do it2 = 1, n_node
     tree%node(it) = tree%node(it-1)
     tree%node(it-1) = node
     n_nonop = n_nonop + 1
-    if (n_nonop == 1) it2_0 = it2
 
   case default
     it = it + 1
     tree%node(it) = node
     n_nonop = n_nonop + 1
-    if (n_nonop == 1) it2_0 = it2
   end select
 enddo
 
@@ -482,7 +479,7 @@ enddo
 
 call deallocate_node(op%node)
 call deallocate_node(t2%node)
-call re_associate_tree(tree, it, exact = .true.)
+call re_associate_node_array(tree, it, exact = .true.)
 
 end subroutine reverse_polish_pass
 
@@ -492,13 +489,13 @@ end subroutine reverse_polish_pass
 subroutine make_compound_node(tree, it, n_nonop)
 
 type (expression_tree_struct), target :: tree, t2, compound
-integer it, it2_0, n_nonop
+integer it, n_nonop
 integer j
 
 !
 
 allocate(compound%node(n_nonop))
-compound%type = compound_var$
+compound%type = compound$
 compound%name = 'compound'
 do j = 1, n_nonop
   compound%node(j) = tree%node(it-n_nonop+j)
@@ -559,9 +556,9 @@ integer n_node
 
 n_node = n_node + 1
 if (associated(tree%node)) then
-  if (n_node > size(tree%node)) call re_associate_tree(tree, n_node+10)
+  if (n_node > size(tree%node)) call re_associate_node_array(tree, n_node+10)
 else
-  call re_associate_tree(tree, n_node+10)
+  call re_associate_node_array(tree, n_node+10)
 endif
 
 end subroutine increment_n_node
@@ -699,7 +696,7 @@ else
 endif
 
 select case (tree%type)
-case (root$, compound_var$)
+case (root$, compound$)
   ! No printing
 
 case (square_brackets$, parens$, func_parens$, curly_brackets$)
@@ -851,9 +848,9 @@ end function expression_tree_node_array_to_string
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine re_associate_tree(tree, n, exact)
+! Subroutine re_associate_node_array(tree, n, exact)
 !
-! Routine to reassociate the tree%node(:) array
+! Routine to resize the tree%node(:) array.
 !
 ! Note: The data of the array is preserved but data at the end of the
 ! array will be lost if n is less than the original size of the array
@@ -868,7 +865,7 @@ end function expression_tree_node_array_to_string
 !   tree       -- expression_tree_struct:
 !-
 
-subroutine re_associate_tree(tree, n, exact)
+subroutine re_associate_node_array(tree, n, exact)
 
 type (expression_tree_struct), target :: tree, temp_tree
 integer n, n_old, n_save
@@ -889,7 +886,7 @@ else
   allocate (tree%node(n))
 endif
 
-end subroutine re_associate_tree
+end subroutine re_associate_node_array
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
