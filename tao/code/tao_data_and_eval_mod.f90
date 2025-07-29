@@ -1623,8 +1623,8 @@ n_size = max(1, n_size_in)
 do i = 1, size(stack)
   ss => stack(i)
 
-  select case (ss%type)
-  case (average$, sum$, rms$, min$, max$); n_size = 1
+  select case (ss%name)
+  case ('average', 'sum', 'rms', 'min', 'max'); n_size = 1
   end select
 
   if (allocated(ss%value)) then
@@ -1786,110 +1786,69 @@ do i = 1, size(stack)
     endif
     i2 = i2 - 1
 
-  case (cot$)
-    stk2(i2)%value = 1.0_rp / tan(stk2(i2)%value)
+  case (function$)
+    select case (stack(i)%name)
+    case ('cot');       stk2(i2)%value = 1.0_rp / tan(stk2(i2)%value)
+    case ('csc');       stk2(i2)%value = 1.0_rp / sin(stk2(i2)%value)
+    case ('sec');       stk2(i2)%value = 1.0_rp / cos(stk2(i2)%value)
+    case ('sin');       stk2(i2)%value = sin(stk2(i2)%value)
+    case ('sinc');      stk2(i2)%value = sinc(stk2(i2)%value)
+    case ('cos');       stk2(i2)%value = cos(stk2(i2)%value)
+    case ('tan');       stk2(i2)%value = tan(stk2(i2)%value)
+    case ('asin');      stk2(i2)%value = asin(stk2(i2)%value)
+    case ('acos');      stk2(i2)%value = acos(stk2(i2)%value)
+    case ('atan');      stk2(i2)%value = atan(stk2(i2)%value)
+    case ('atan2');     stk2(i2-1)%value = atan2(stk2(i2-1)%value, stk2(i2)%value)
+      i2 = i2 - 1
+    case ('modulo');    stk2(i2-1)%value = modulo(stk2(i2-1)%value, stk2(i2)%value)
+      i2 = i2 - 1
+    case ('sinh');      stk2(i2)%value = sinh(stk2(i2)%value)
+    case ('cosh');      stk2(i2)%value = cosh(stk2(i2)%value)
+    case ('tanh');      stk2(i2)%value = tanh(stk2(i2)%value)
+    case ('coth');      stk2(i2)%value = 1.0_rp / tanh(stk2(i2)%value)
+    case ('asinh');     stk2(i2)%value = asinh(stk2(i2)%value)
+    case ('acosh');     stk2(i2)%value = acosh(stk2(i2)%value)
+    case ('atanh');     stk2(i2)%value = atanh(stk2(i2)%value)
+    case ('acoth');     stk2(i2)%value = 1.0_rp / atanh(stk2(i2)%value)
+    case ('abs');       stk2(i2)%value = abs(stk2(i2)%value)
+    case ('sqrt');      stk2(i2)%value = sqrt(stk2(i2)%value)
+    case ('log');       stk2(i2)%value = log(stk2(i2)%value)
+    case ('exp');       stk2(i2)%value = exp(stk2(i2)%value)
+    case ('int');       stk2(i2)%value = int(stk2(i2)%value)
+    case ('sign');      stk2(i2)%value = sign_of(stk2(i2)%value)
+    case ('nint');      stk2(i2)%value = nint(stk2(i2)%value)
+    case ('floor');     stk2(i2)%value = floor(stk2(i2)%value)
+    case ('ceiling');   stk2(i2)%value = ceiling(stk2(i2)%value)
 
-  case (csc$) 
-    stk2(i2)%value = 1.0_rp / sin(stk2(i2)%value)
+    case ('rms');       stk2(i2)%value(1) = rms_value(stk2(i2)%value, info%good)
+      call re_allocate(stk2(i2)%value, 1)
+      info(1)%good = any(info%good)
+      call tao_re_allocate_expression_info(info, 1)
 
-  case (sec$)
-    stk2(i2)%value = 1.0_rp / cos(stk2(i2)%value)
+    case ('average', 'mean')
+      if (any(info%good)) then
+        stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good) / count(info%good)
+      endif
+      call re_allocate(stk2(i2)%value, 1)
+      info(1)%good = any(info%good)
+      call tao_re_allocate_expression_info(info, 1)
 
-  case (sin$) 
-    stk2(i2)%value = sin(stk2(i2)%value)
+    case ('sum', 'min', 'max')
+      select case (stack(i)%name)
+      case ('sum'); stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good)
+      case ('min'); stk2(i2)%value(1) = minval(stk2(i2)%value, mask = info%good)
+      case ('max'); stk2(i2)%value(1) = maxval(stk2(i2)%value, mask = info%good)
+      end select
+      call re_allocate(stk2(i2)%value, 1)
+      info(1)%good = .true.
+      call tao_re_allocate_expression_info(info, 1)
 
-  case (sinc$) 
-    stk2(i2)%value = sinc(stk2(i2)%value)
-
-  case (cos$) 
-    stk2(i2)%value = cos(stk2(i2)%value)
-
-  case (tan$) 
-    stk2(i2)%value = tan(stk2(i2)%value)
-
-  case (asin$) 
-    stk2(i2)%value = asin(stk2(i2)%value)
-
-  case (acos$) 
-    stk2(i2)%value = acos(stk2(i2)%value)
-
-  case (atan$) 
-    stk2(i2)%value = atan(stk2(i2)%value)
-
-  case (atan2$) 
-    stk2(i2-1)%value = atan2(stk2(i2-1)%value, stk2(i2)%value)
-    i2 = i2 - 1
-
-  case (modulo$) 
-    stk2(i2-1)%value = modulo(stk2(i2-1)%value, stk2(i2)%value)
-    i2 = i2 - 1
-
-  case (sinh$)
-    stk2(i2)%value = sinh(stk2(i2)%value)
-
-  case (cosh$) 
-    stk2(i2)%value = cosh(stk2(i2)%value)
-
-  case (tanh$) 
-    stk2(i2)%value = tanh(stk2(i2)%value)
-
-  case (coth$)
-    stk2(i2)%value = 1.0_rp / tanh(stk2(i2)%value)
-
-  case (asinh$) 
-    stk2(i2)%value = asinh(stk2(i2)%value)
-
-  case (acosh$) 
-    stk2(i2)%value = acosh(stk2(i2)%value)
-
-  case (atanh$) 
-    stk2(i2)%value = atanh(stk2(i2)%value)
-
-  case (acoth$)
-    stk2(i2)%value = 1.0_rp / atanh(stk2(i2)%value)
-
-  case (abs$) 
-    stk2(i2)%value = abs(stk2(i2)%value)
-
-  case (rms$)
-    stk2(i2)%value(1) = rms_value(stk2(i2)%value, info%good)
-    call re_allocate(stk2(i2)%value, 1)
-    info(1)%good = any(info%good)
-    call tao_re_allocate_expression_info(info, 1)
-
-  case (average$)
-    if (any(info%good)) then
-      stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good) / count(info%good)
-    endif
-    call re_allocate(stk2(i2)%value, 1)
-    info(1)%good = any(info%good)
-    call tao_re_allocate_expression_info(info, 1)
-
-  case (sum$, min$, max$)
-    select case (stack(i)%type)
-    case (sum$); stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good)
-    case (min$); stk2(i2)%value(1) = minval(stk2(i2)%value, mask = info%good)
-    case (max$); stk2(i2)%value(1) = maxval(stk2(i2)%value, mask = info%good)
-    end select
-    call re_allocate(stk2(i2)%value, 1)
-    info(1)%good = .true.
-    call tao_re_allocate_expression_info(info, 1)
-
-  case (sqrt$) 
-    stk2(i2)%value = sqrt(stk2(i2)%value)
-
-  case (log$) 
-    stk2(i2)%value = log(stk2(i2)%value)
-
-  case (exp$) 
-    stk2(i2)%value = exp(stk2(i2)%value)
-
-  case (factorial$) 
+    case ('factorial');
     do n = 1, size(stk2(i2)%value)
       stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
     enddo
 
-  case (ran$) 
+    case ('ran');
     i2 = i2 + 1
     call re_allocate(stk2(i2)%value, n_size)
     call ran_uniform(stk2(i2)%value)
@@ -1899,49 +1858,35 @@ do i = 1, size(stack)
       info%good = info(1)%good
     endif
 
-  case (ran_gauss$) 
-    if (nint(stack(i-1)%value(1)) == 0) then
-      i2 = i2 + 1
-      call re_allocate(stk2(i2)%value, n_size)
-      call ran_gauss(stk2(i2)%value)
-    else
-      call re_allocate(value, n_size)
-      call ran_gauss(value, sigma_cut = stk2(i2)%value(1))
-      call re_allocate(stk2(i2)%value, n_size)
-      stk2(i2)%value = value
-    endif
+    case ('ran_gauss')
+      if (nint(stack(i-1)%value(1)) == 0) then
+        i2 = i2 + 1
+        call re_allocate(stk2(i2)%value, n_size)
+        call ran_gauss(stk2(i2)%value)
+      else
+        call re_allocate(value, n_size)
+        call ran_gauss(value, sigma_cut = stk2(i2)%value(1))
+        call re_allocate(stk2(i2)%value, n_size)
+        stk2(i2)%value = value
+      endif
 
-    if (size(info) == 1) then
-      call tao_re_allocate_expression_info(info, n_size)
-      info%good = info(1)%good
-    endif
+      if (size(info) == 1) then
+        call tao_re_allocate_expression_info(info, n_size)
+        info%good = info(1)%good
+      endif
 
-  case (int$)
-    stk2(i2)%value = int(stk2(i2)%value)
-
-  case (sign$)
-    stk2(i2)%value = sign_of(stk2(i2)%value)
-
-  case (nint$)
-    stk2(i2)%value = nint(stk2(i2)%value)
-
-  case (floor$)
-    stk2(i2)%value = floor(stk2(i2)%value)
-
-  case (ceiling$)
-    stk2(i2)%value = ceiling(stk2(i2)%value)
-
-  case (mass_of$, charge_of$, anomalous_moment_of$)
-    species = species_id(stk2(i2)%name)
-    if (species == invalid$) then
-      if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
-      err_flag = .true.
-      return
-    endif
-    select case (stack(i)%type)
-    case (mass_of$);              stk2(i2)%value = mass_of(species)
-    case (charge_of$);            stk2(i2)%value = charge_of(species)
-    case (anomalous_moment_of$);  stk2(i2)%value = anomalous_moment_of(species)
+    case ('mass_of', 'charge_of', 'anomalous_moment_of')
+      species = species_id(stk2(i2)%name)
+      if (species == invalid$) then
+        if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
+        err_flag = .true.
+        return
+      endif
+      select case (stack(i)%name)
+      case ('mass_of');              stk2(i2)%value = mass_of(species)
+      case ('charge_of');            stk2(i2)%value = charge_of(species)
+      case ('anomalous_moment_of');  stk2(i2)%value = anomalous_moment_of(species)
+      end select
     end select
 
   case default

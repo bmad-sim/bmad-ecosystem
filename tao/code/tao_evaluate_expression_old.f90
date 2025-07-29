@@ -318,12 +318,6 @@ parsing_loop: do
       case ('asin');            call push_op_stack (op, i_op, asin$)
       case ('acos');            call push_op_stack (op, i_op, acos$)
       case ('atan');            call push_op_stack (op, i_op, atan$)
-      case ('atan2')
-        call push_op_stack (op, i_op, atan2$)
-        func(n_func)%n_arg_target = 2
-      case ('modulo')
-        call push_op_stack (op, i_op, modulo$)
-        func(n_func)%n_arg_target = 2
       case ('sinh');            call push_op_stack (op, i_op, sinh$)
       case ('cosh');            call push_op_stack (op, i_op, cosh$)
       case ('tanh');            call push_op_stack (op, i_op, tanh$)
@@ -342,12 +336,6 @@ parsing_loop: do
       case ('log');             call push_op_stack (op, i_op, log$)
       case ('exp');             call push_op_stack (op, i_op, exp$)
       case ('factorial');       call push_op_stack (op, i_op, factorial$)
-      case ('ran')         
-        call push_op_stack (op, i_op, ran$)
-        func(n_func)%n_arg_target = 0
-      case ('ran_gauss')
-        call push_op_stack (op, i_op, ran_gauss$)
-        func(n_func)%n_arg_target = -1      ! 0 or 1 args
       case ('int');             call push_op_stack (op, i_op, int$)
       case ('sign');            call push_op_stack (op, i_op, sign$)
       case ('nint');            call push_op_stack (op, i_op, nint$)
@@ -358,6 +346,18 @@ parsing_loop: do
       case ('anomalous_moment_of'); call push_op_stack (op, i_op, anomalous_moment_of$)
       case ('species');         call push_op_stack (op, i_op, species$)
       case ('antiparticle');    call push_op_stack (op, i_op, antiparticle$)
+      case ('ran')         
+        call push_op_stack (op, i_op, ran$)
+        func(n_func)%n_arg_target = 0
+      case ('ran_gauss')
+        call push_op_stack (op, i_op, ran_gauss$)
+        func(n_func)%n_arg_target = -1      ! 0 or 1 args
+      case ('atan2')
+        call push_op_stack (op, i_op, atan2$)
+        func(n_func)%n_arg_target = 2
+      case ('modulo')
+        call push_op_stack (op, i_op, modulo$)
+        func(n_func)%n_arg_target = 2
       case default
         call out_io (s_error$, r_name, 'UNEXPECTED CHARACTERS (BAD FUNCTION NAME?) BEFORE "(": ', 'IN EXPRESSION: ' // expression)
         return
@@ -581,6 +581,19 @@ if (phrase /= '') then
   return
 endif
 
+if (s%global%debug_on) then
+  print *, '! Old =========================================='
+  do i = 1, i_lev
+    if (allocated(stk(i)%value)) then
+      print '(a20, es12.4, t50, i0)', stk(i)%name, stk(i)%value(1), stk(i)%type
+    else
+      print '(a20, t50, i0)', stk(i)%name, stk(i)%type
+    endif
+  enddo
+  print *, '!=========================================='
+  print *
+endif
+
 call tao_evaluate_stack (stk(1:i_lev), n_size, use_good_user, value, err_flag, printit, expression, info)
 
 ! If the stack argument is present then copy stk to stack
@@ -638,9 +651,14 @@ if (i_lev > size(stack)) then
   stack(1:i_lev-1) = tmp_stk
 endif
 
-stack(i_lev)%type = this_type
 stack(i_lev)%name = expression_op_name(this_type)
 stack(i_lev)%scale = 1
+
+if (expression_eval_level(this_type) == 9 .and. index('abcdefghijklmnopqrstuvwxyz', stack(i_lev)%name(1:1)) > 0) then
+  stack(i_lev)%type = function$
+else
+  stack(i_lev)%type = this_type
+endif
 
 end subroutine push_stack
                        
