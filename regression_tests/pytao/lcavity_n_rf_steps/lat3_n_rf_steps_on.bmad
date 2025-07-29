@@ -1,2 +1,0 @@
-call, file=lat3_n_rf_steps_off.bmad
-Lcavity::*[n_rf_steps] = 1024

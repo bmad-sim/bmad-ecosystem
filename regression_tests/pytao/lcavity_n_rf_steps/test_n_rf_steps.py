@@ -21,6 +21,21 @@ def test_beam_energy_n_rf_steps():
         )
 
 
+def test_ref_time_n_rf_steps():
+    """
+    Regression test for issue #1619:
+    Ensure that reference time is changed correctly for multipass cavities using bmad-standard tracking with
+    `n_rf_steps` set.
+    """
+    lat_path = Path(__file__).parent / "lat1.bmad"
+    assert lat_path.is_file(), f"Lattice file not found: {lat_path}"
+
+    # Check beam energy
+    with SubprocessTao(lattice_file=str(lat_path), noplot=True) as tao:
+        assert tao.ele_gen_attribs(r"cav\1")["DELTA_REF_TIME"] > 0
+        assert tao.ele_gen_attribs(r"cav\2")["DELTA_REF_TIME"] > 0    
+
+
 def test_segfault_multiple_tracking_mode_n_rf_steps():
     """
     Regression test for issue #1629:
