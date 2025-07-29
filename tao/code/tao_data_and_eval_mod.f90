@@ -389,7 +389,7 @@ end subroutine tao_get_data
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+
-! Subroutine tao_expression_hash_substitute(expression, eval_ele)
+! Subroutine tao_expression_hash_substitute(expression_in, expression_out, eval_ele)
 !
 ! Routine to, in the expression, substitute the evaluation lattice element name in place
 ! of hash ("#") characters. Care is taken to only do this where it makes sense.
@@ -400,35 +400,40 @@ end subroutine tao_get_data
 !   [,]-*+/:|@<>, or a blank character, or the beginning or end of the expression
 !
 ! Input:
-!   expression    -- character(*): Expression.
-!   eval_ele      -- character(*), optional: Evaluation element name to substitute in.
-!                     If not present, expression will not be modified.
+!   expression_in   -- character(*): Expression.
+!   eval_ele        -- ele_struct, optional: Evaluation element name to substitute in.
+!                       If not present, expression will not be modified.
 !
 ! Output:
-!   expression    -- character(*): Expression with substitutions made.
+!   expression_out  -- character(*): Expression with substitutions made.
 !-
 
-subroutine tao_expression_hash_substitute(expression, eval_ele)
+subroutine tao_expression_hash_substitute(expression_in, expression_out, eval_ele)
 
-character(*) expression
-character(*), optional :: eval_ele
+type (ele_struct), optional, pointer :: eval_ele
+character(*) expression_in, expression_out
+character(40) ele_name
 integer ix, ix2, n
 
 ! 
 
+expression_out = expression_in
 if (.not. present(eval_ele)) return
+if (.not. associated(eval_ele)) return
+ele_name = ele_full_name(eval_ele, '!#')
 
-n = len_trim(eval_ele)
+n = len_trim(ele_name)
 ix = 0
+
 do
-  ix2 = index(expression(ix+1:), '#')
+  ix2 = index(expression_out(ix+1:), '#')
   if (ix2 == 0) return
   ix = ix + ix2
   if (ix > 1) then
-    if (index('[,]-*+/:|@<> ', expression(ix-1:ix-1)) == 0) cycle
+    if (index('[,]-*+/:|@<> ', expression_out(ix-1:ix-1)) == 0) cycle
   endif
-  if (index('[,]-*+/:|@<> ', expression(ix+1:ix+1)) == 0) cycle
-  expression(ix:) = trim(eval_ele) // expression(ix+1:)
+  if (index('[,]-*+/:|@<> ', expression_out(ix+1:ix+1)) == 0) cycle
+  expression_out(ix:) = trim(ele_name) // expression_out(ix+1:)
   ix = ix + n
 enddo
 

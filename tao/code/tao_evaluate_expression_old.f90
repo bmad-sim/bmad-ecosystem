@@ -46,7 +46,6 @@ subroutine tao_evaluate_expression_old (expression, n_size, use_good_user, value
                       dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 
 use tao_data_and_eval_mod, dummy => tao_evaluate_expression_old
-use random_mod
 use expression_mod
 
 implicit none
@@ -95,10 +94,7 @@ printit = logic_option(.true., print_err)
 default_source = ''
 if (present(dflt_source)) default_source = dflt_source
 
-phrase = expression
-if (present(dflt_ele)) then
-   if (associated(dflt_ele)) call tao_expression_hash_substitute(phrase, ele_full_name(dflt_ele, '!#'))
-end if
+call tao_expression_hash_substitute(expression, phrase, dflt_ele)
 
 if (len(phrase) > 11) then
   if (phrase(1:11) == 'expression:') phrase = phrase(12:)
@@ -220,9 +216,10 @@ parsing_loop: do
   enddo
 
   ! If delim = "*" then see if this is being used as a wildcard
-  ! Examples: "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]", "var::*d|model"
-  ! If so, we have split in the wrong place and we need to correct this. 
-  ! Something like "emit*data::mf.xm|model", "3*[1,2]" or "3*.42" does not get split.
+  ! Wildcard examples: 
+  !    "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]", "var::*d|model"
+  ! Non-wildcard examples:
+  ! "emit*data::mf.xm|model", "3*[1,2]", "3*.42", "a*[b,c]"
 
   do
     if (delim /= '*') exit
