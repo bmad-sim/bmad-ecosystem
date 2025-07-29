@@ -1,3 +1,4 @@
+from pathlib import Path
 import numpy as np
 from pytao import Tao
 
@@ -37,7 +38,11 @@ def assert_dicts_allclose(d1, d2, rtol=1e-5, atol=1e-8):
 
 
 def test_sr_wakes_onoff():
-    tao = Tao(lattice_file='lat.bmad', startup_file='tao.startup', noplot=True)
+    lattice_file = Path(__file__).parent / "lat.bmad"
+    startup_file = Path(__file__).parent / "tao.startup"
+
+    
+    tao = Tao(lattice_file=lattice_file, startup_file=startup_file, noplot=True)
    
     tao.cmd('set bmad sr_wakes_on = F')
     d1 = tao.bunch_data('end')
