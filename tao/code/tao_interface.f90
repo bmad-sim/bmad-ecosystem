@@ -347,7 +347,6 @@ type (tao_expression_info_struct), allocatable, optional :: info(:)
   logical :: print_err
 end subroutine
 
-
 subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
   import

@@ -46,7 +46,6 @@ subroutine tao_evaluate_expression_old (expression, n_size, use_good_user, value
                       dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 
 use tao_data_and_eval_mod, dummy => tao_evaluate_expression_old
-use random_mod
 use expression_mod
 
 implicit none

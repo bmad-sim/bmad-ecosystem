@@ -34,8 +34,8 @@ character(60) :: tree_str(5) = [character(60):: &
                       '-A^-B + tan(4*c)', &
                       'xyz = -3^-2 + tan(4^atan(10,11)*c) * ran_gauss() - xxx->b', &
                       '{(4) / 7.32e+34} + [8] * atan(10,11)', &
-                      'abc {ran, gar}^5', &
-                      'abc {ran, gar}^5 + [4*5 ] ) ), + 64' &
+                      'abc {ran(), gar()}^5', &
+                      'abc {ran(), gar}^5 + [4*5 ] ) ), + 64' &
                               ]
 
 character(200) str, err_str
@@ -52,10 +52,11 @@ nargs = command_argument_count()
 
 if (nargs > 0) then
   call get_command_argument(1, lat_file)
-  print '(a)', quote(tree_str(i))
+  print '(a)', quote(lat_file)
   print *, '---------------'
   call expression_string_to_tree(lat_file, tree, err, err_str)
   call type_expression_tree(tree)
+  str = expression_tree_to_string(tree)
   print *, '---------------'
   print '(a)', quote(str)
   print '(a)', quote(err_str)
