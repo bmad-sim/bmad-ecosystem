@@ -23,7 +23,7 @@ def test_beam_energy_n_rf_steps():
 
 def test_ref_time_n_rf_steps():
     """
-    Regression test for issue #1619:
+    Regression test for issue #1642:
     Ensure that reference time is changed correctly for multipass cavities using bmad-standard tracking with
     `n_rf_steps` set.
     """
