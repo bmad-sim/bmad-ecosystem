@@ -158,16 +158,10 @@ one level up from your current working directory use
 Command loops can be implemented in a command file. See the documentation on \vn{do/enddo}
 (\sref{s:do}) for more details.
 
-The \vn{-no_calc} option is equivalent to putting the following at the beginning of the
-command file to speed up execution time:
-\begin{example}
-  set global lattice_calc_on = F   ! Stop lattice calculations (\sref{s:lat.calc}).
-  set global plot_on = F           ! Halt replotting 
-or
-  set calc off                     ! Same as the two lines above.
-\end{example}
-When using the \vn{-no_calc} option, at the end of the command file the \vn{lattice_calc_on} and
-\vn{plot_on} logicals will be toggled back to their initial values.
+The \vn{-no_calc} option, can be use to speed up execution time by halting all lattice and plotting
+calculations. This is equivalent to setting the \vn{global} parameter \vn{lattice_calc_on} to False.
+at the beginning of the command file and then setting this parameter to its initial state 
+after the file has been run.
 
 To suppress all the output when running a command file use the command:
 \begin{example}
@@ -1121,18 +1115,13 @@ Format:
   set calculate \{<on/off>\}
 \end{example}
 
-Toggles the following on (True) or off (False):
-\begin{example}
-  global%lattice_calc_on
-  global%plot_on
-\end{example}
+Toggles the following on (True) or off (False) the parameter \vn{global%lattice_calc_on}
 
 Examples:
 \begin{example}
-  set calc on    ! Sets lattice calc and plot_on to True
-  set calc off   ! Sets lattice calc and plot_on to False
-  set calc       ! Toggles lattice_calc and sets plot_on to
-                 !  the same value as lattice_calc.
+  set calc on    ! Sets lattice_calc_on to True
+  set calc off   ! Sets lattice_calc_on to False
+  set calc       ! Toggles lattice_calc_on
 \end{example}
 
 %% set curve --------------------------------------------------------------

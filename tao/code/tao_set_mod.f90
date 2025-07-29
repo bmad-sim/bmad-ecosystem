@@ -215,15 +215,12 @@ endif
 select case (what)
 case ('toggle')
   s%global%lattice_calc_on = (.not. s%global%lattice_calc_on)
-  s%global%plot_on = s%global%lattice_calc_on 
 
 case ('off')
   s%global%lattice_calc_on = .false.
-  s%global%plot_on = .false.
 
 case ('on')
   s%global%lattice_calc_on = .true.
-  s%global%plot_on = .true.
 end select
 
 end subroutine tao_set_calculate_cmd

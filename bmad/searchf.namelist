@@ -1408,6 +1408,7 @@ var_offset$
 n_var_max$
 taylor_offset$
 expression_atom_struct
+expression_tree_struct
 bmad_standard$
 symp_lie_ptc$
 runge_kutta$
@@ -1462,6 +1463,7 @@ control_lord$
 ramper_lord$
 governor$
 field_lord$
+multipole_source$
 control_name
 set$
 unset$
@@ -2504,9 +2506,15 @@ root$
 parens$
 square_brackets$
 curly_brackets$
+func_parens$
+arrow$
+equal$
+colon$
+double_colon$
+compound_var$
+function$
 expression_op_name
 expression_eval_level
-bracket_name
 next_in_branch
 coord_state_name
 is_attribute
@@ -2692,6 +2700,11 @@ mark_patch_regions
 File: modules/expression_mod.f90
 expression_mod
 expression_string_to_tree
+deallocate_node
+deallocate_expression_tree
+type_expression_tree
+expression_tree_to_string
+expression_tree_node_array_to_string
 re_associate_tree
 expression_string_to_stack
 pushit

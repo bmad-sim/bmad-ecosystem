@@ -24,22 +24,21 @@ character(40) :: loc_str(19) = [character(40):: 'qu1-1', 'qu1-5', 'qu2+1', 'qu2+
           '1>>drift::3:15', 'sb', '3:15', '1>>quad::*', 'octupole::1>>*', &
           'sb##2', 'type::*', 'alias::"q*t"', 'descrip::"So Long"', 'sb%', &
           '0>>drift::qu1:qu2', '1>>drift::qu1:qu2', 'sbend::17:5', 'quad::*,~2>>*', 'Quad::*&*9*']
-character(40) :: exp_str(4) = [character(40):: &
+character(60) :: exp_str(4) = [character(60):: &
                       'atan2(1,2) + ran()', &
                       'atan2(atan2(1,2), atan(0.5))', &
                       'atan(atan((1/(3+4))))', &
                       'ran_gauss(0.3*2) + ran_gauss()']
 
-character(40) :: tree_str(5) = [character(40):: &
-                      '{(4) / 7.32e+34} + [8]', &
-                      'gran_gauss(3) + ran_gauss()', &
-                      'abc {ran, gar}^5', &
-                      '(()', &
-                      'abc {ran, gar}^5 + [4*5 ] ) ), + 64' &
+character(60) :: tree_str(5) = [character(60):: &
+                      '-A^-B + tan(4*c)', &
+                      'xyz = -3^-2 + tan(4^atan(10,11)*c) * ran_gauss() - xxx->b', &
+                      '{(4) / 7.32e+34} + [8] * atan(10,11)', &
+                      'abc {ran(), gar()}^5', &
+                      'abc {ran(), gar}^5 + [4*5 ] ) ), + 64' &
                               ]
 
-
-character(100) str, err_str
+character(200) str, err_str
 
 real(rp), allocatable :: save(:)
 real(rp) m1(6,6), m2(6,6), r0(6), vec1(6), vec2(6), val
@@ -53,8 +52,14 @@ nargs = command_argument_count()
 
 if (nargs > 0) then
   call get_command_argument(1, lat_file)
-  val = expression_value(lat_file, err)
-  print *, val
+  print '(a)', quote(lat_file)
+  print *, '---------------'
+  call expression_string_to_tree(lat_file, tree, err, err_str)
+  call type_expression_tree(tree)
+  str = expression_tree_to_string(tree)
+  print *, '---------------'
+  print '(a)', quote(str)
+  print '(a)', quote(err_str)
   stop
 endif
 
@@ -71,23 +76,12 @@ open (1, file = 'output.now', recl = 200)
 
 !-----------------------------------------
 
-if (.false.) then
-
-print *
 do i = 1, size(tree_str)
   call expression_string_to_tree(tree_str(i), tree, err, err_str)
   str = expression_tree_to_string(tree)
   write (1, '(a, i0, 2a)') '"Tree2-str', i, '" STR        ', quote(str)
   write (1, '(a, i0, 2a)') '"Tree2-err', i, '" STR        ', quote(err_str)
-  print *, '=================================='
-  call type_expression_tree(tree)
-  print *, '---------------'
-  print '(a)', quote(tree_str(i))
-  print '(a)', quote(str)
-  print '(a)', quote(err_str)
 enddo
-print *, '=================================='
-print *
 
 call ran_seed_put (1234)
 do i = 1, size(exp_str)
@@ -100,8 +94,6 @@ do i = 1, size(exp_str)
   str = expression_tree_to_string(tree)
   write (1, '(a, i0, 2a)') '"Tree-str', i, '" STR        ', quote(str)
 enddo
-
-endif
 
 !-----------------------------------------
 

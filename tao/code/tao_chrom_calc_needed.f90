@@ -21,7 +21,6 @@ do_chrom = .false.
 if (data_source /= 'lat') return
 if (len(data_type) < 6) return
 if (index(data_type, 'chrom.') /= 0) do_chrom = .true. 
-if (index(data_type, 'dalpha_dpz') /= 0) do_chrom = .true. 
-if (index(data_type, 'dbeta_dpz') /= 0) do_chrom = .true. 
+if (index(data_type, '_dpz') /= 0 .and. index(data_type, 'spin') == 0) do_chrom = .true. 
 
 end function tao_chrom_calc_needed

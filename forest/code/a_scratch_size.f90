@@ -602,7 +602,7 @@ do id=1,15
  write(6,*) id,wyoshid(id),wyoshik(id)
 enddo
 write(6,*) a,b
- pause  999
+ stop
 endif
 
 ntl=10
@@ -638,7 +638,7 @@ do id=1,2*ntl+1
  write(6,*) id,wyoshids(id),wyoshiks(id)
 enddo
 write(6,*) a,b
- pause  9999
+ stop
 endif
 !!!  rk6 in pancake
 butcher(1,1)=1.0_dp/9.0_dp

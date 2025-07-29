@@ -243,7 +243,8 @@ subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1,
   character(*) label_name
 end subroutine
 
-recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
+recursive &
+subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
                                                             why_invalid, called_from_lat_calc)
   import
   implicit none
@@ -258,6 +259,50 @@ end subroutine
 
 recursive &
 subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, err_flag, print_err, &
+                      info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+  import
+  implicit none
+  character(*) :: expression
+  character(*), optional :: dflt_component, dflt_source
+  character(*), optional :: dflt_dat_or_var_index
+  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
+  type (coord_struct), optional :: dflt_orbit
+  type (tao_expression_info_struct), allocatable, optional :: info(:)
+  type (tao_data_struct), optional :: datum
+  real(rp), allocatable :: value(:)
+  real(rp), optional :: dflt_s_offset
+  integer n_size
+  integer, optional :: dflt_uni, dflt_eval_point
+  logical use_good_user, err_flag
+  logical, optional :: print_err
+end subroutine
+
+recursive &
+subroutine tao_evaluate_expression_new (expression, n_size, use_good_user, value, err_flag, print_err, &
+                      info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
+                      dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+  import
+  implicit none
+  character(*) :: expression
+  character(*), optional :: dflt_component, dflt_source
+  character(*), optional :: dflt_dat_or_var_index
+  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
+  type (coord_struct), optional :: dflt_orbit
+  type (tao_expression_info_struct), allocatable, optional :: info(:)
+  type (tao_data_struct), optional :: datum
+  real(rp), allocatable :: value(:)
+  real(rp), optional :: dflt_s_offset
+  integer n_size
+  integer, optional :: dflt_uni, dflt_eval_point
+  logical use_good_user, err_flag
+  logical, optional :: print_err
+end subroutine
+
+recursive &
+subroutine tao_evaluate_expression_old (expression, n_size, use_good_user, value, err_flag, print_err, &
                       info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
                       dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
   import
@@ -301,7 +346,6 @@ type (tao_expression_info_struct), allocatable, optional :: info(:)
   logical err
   logical :: print_err
 end subroutine
-
 
 subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
