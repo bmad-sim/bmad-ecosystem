@@ -26,6 +26,7 @@ do ie = 1, lat%n_ele_max
   write (1, '(a, i0, 3a, 2x, a)') '"scm-', ie, trim(ele%name), '" STR  ', &
       quote(space_charge_method_name(ele%space_charge_method)), &
       quote(space_charge_method_name(lat2%ele(ie)%space_charge_method))
+  write (1, '(a, i0, a, es22.14)') '"ref_time-', ie, '" ABS 1E-16', ele%ref_time
 enddo
 
 call lat_ele_locator('CAVITY1', lat, eles, n_loc)
