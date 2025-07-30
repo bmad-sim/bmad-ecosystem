@@ -121,7 +121,7 @@ endif
 base => tree%node(1)
 call expression_tree_asterisk_restore(base)
 
-if (s%global%debug_on) then
+if (s%global%verbose_on) then
   call type_expression_tree(tree)  !!!
 endif
 
@@ -130,7 +130,7 @@ n_stk = 0
 call expression_tree_to_stack(base, stk, n_stk, expression, err_flag, .false.)
 if (err_flag) return
 
-if (s%global%debug_on) then
+if (s%global%verbose_on) then
   print *, '! New =========================================='
   do i = 1, n_stk
     if (allocated(stk(i)%value)) then
@@ -156,6 +156,16 @@ do i = 1, n_stk
       if (ix > 0) saved_prefix = stk(i-1)%name(1:ix-1)
     endif
 
+    ! Don't try to find the value of a species name.
+    ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
+    if (i < n_stk) then
+      select case (stk(i+1)%name)
+      case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
+        stk(i)%type = species_const$
+        cycle
+      end select
+    endif
+
     call tao_param_value_routine (stk(i)%name, use_good_user, saved_prefix, stk(i), err_flag, printit, &
                dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
                dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
@@ -165,7 +175,7 @@ enddo
 
 ! Evaluate expression
 
-call tao_evaluate_stack (stk(1:n_stk), n_size, use_good_user, value, err_flag, printit, expression, info)
+call tao_evaluate_stack_new (stk(1:n_stk), n_size, use_good_user, value, err_flag, printit, expression, info)
 
 ! If the stack argument is present then copy stk to stack
 

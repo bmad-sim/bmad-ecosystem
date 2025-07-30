@@ -680,6 +680,7 @@ type tao_global_struct
   logical :: cmd_file_abort_on_error = .true.         ! Abort open command files if there is an error?
   logical :: concatenate_maps = .false.               ! False => tracking using DA. 
   logical :: debug_on = .false.                       ! For debugging.
+  logical :: verbose_on = .false.                     ! For verbose output. Used with debugging.
   logical :: derivative_recalc = .true.               ! Recalc before each optimizer run?
   logical :: derivative_uses_design = .false.         ! Derivative calc uses design lattice instead of model?
   logical :: disable_smooth_line_calc = .false.       ! Global disable of the smooth line calculation.

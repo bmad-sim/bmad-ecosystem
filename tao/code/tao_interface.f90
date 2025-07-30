@@ -347,6 +347,17 @@ type (tao_expression_info_struct), allocatable, optional :: info(:)
   logical :: print_err
 end subroutine
 
+subroutine tao_evaluate_stack_new (stack, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
+  import
+  implicit none
+  type (tao_eval_stack1_struct), target :: stack(:)
+  type (tao_expression_info_struct), allocatable, optional :: info_in(:)
+  real(rp), allocatable :: value(:)
+  integer n_size_in, species
+  logical err_flag, use_good_user, print_err
+  character(*) expression
+end subroutine
+
 subroutine tao_find_data (err, data_name, d2_array, d1_array, d_array, re_array, &
                            log_array, str_array, int_array, ix_uni, dflt_index, print_err, component)
   import
