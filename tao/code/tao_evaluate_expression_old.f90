@@ -581,7 +581,7 @@ if (phrase /= '') then
   return
 endif
 
-if (s%global%debug_on) then
+if (s%global%verbose_on) then
   print *, '! Old =========================================='
   do i = 1, i_lev
     if (allocated(stk(i)%value)) then
@@ -594,7 +594,7 @@ if (s%global%debug_on) then
   print *
 endif
 
-call tao_evaluate_stack (stk(1:i_lev), n_size, use_good_user, value, err_flag, printit, expression, info)
+call tao_evaluate_stack_old (stk(1:i_lev), n_size, use_good_user, value, err_flag, printit, expression, info)
 
 ! If the stack argument is present then copy stk to stack
 

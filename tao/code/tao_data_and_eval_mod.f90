@@ -1571,7 +1571,7 @@ end function tao_evaluate_datum_at_s
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
+! Subroutine tao_evaluate_stack_old (stack, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
 !
 ! Routine to evaluate an expression stack.
 !
@@ -1593,7 +1593,7 @@ end function tao_evaluate_datum_at_s
 !   err_flag      -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_evaluate_stack (stack, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
+subroutine tao_evaluate_stack_old (stack, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
 
 use expression_mod
 
@@ -1612,7 +1612,7 @@ integer i, i2, j, n, ns, ni, n_size
 logical err_flag, use_good_user, print_err, info_allocated
 
 character(*) expression
-character(*), parameter :: r_name = 'tao_evaluate_stack'
+character(*), parameter :: r_name = 'tao_evaluate_stack_old'
 
 ! Calculate good
 
@@ -1956,7 +1956,7 @@ if (.not. ok) then
 endif
 end function this_size_check
 
-end subroutine tao_evaluate_stack 
+end subroutine tao_evaluate_stack_old 
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
