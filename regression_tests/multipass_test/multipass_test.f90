@@ -43,8 +43,8 @@ do is = 0, 2
   do ii = 0, ubound(ele%rf%steps, 1)
     step => ele%rf%steps(ii)
     write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-a-', int_str(ii), '" REL 1E-8', step%E_tot0, &
-                                                                   step%E_tot1, step%p0c, step%dp0c, step%dE_amp
-    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" REL 1E-8', step%scale, step%time, step%dt_rf, step%s
+                                            step%E_tot1, step%p0c, step%dp0c, step%dE_amp, step%s
+    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" ABS 1E-18', step%time, step%dt_rf
   enddo
 enddo
 
