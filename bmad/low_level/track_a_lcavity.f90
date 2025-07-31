@@ -93,7 +93,7 @@ call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
 
 ! Beginning Edge
 
-phase = this_rf_phase(orbit, lord)
+phase = this_rf_phase(orbit, ele, lord)
 call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
 if (fringe_here(ele, orbit, first_track_edge$)) call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
 
@@ -126,7 +126,7 @@ enddo
 
 ! End Edge
 
-phase = this_rf_phase(orbit, lord)
+phase = this_rf_phase(orbit, ele, lord)
 if (fringe_here(ele, orbit, second_track_edge$)) call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
 call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
 
@@ -282,7 +282,7 @@ else
   p1c = step%p0c
 endif
 
-phase = this_rf_phase(orbit, lord)
+phase = this_rf_phase(orbit, ele, lord)
 dE_amp = s_dir * step%dE_amp 
 dE = dE_amp * cos(phase)
 
@@ -388,14 +388,24 @@ end subroutine pondermotive_transverse_kick
 !---------------------------------------------------------------------------------------
 ! contains
 
-function this_rf_phase(orbit, lord) result (phase)
+function this_rf_phase(orbit, ele, lord) result (phase)
 
 type (coord_struct) orbit
-type (ele_struct) lord
+type (ele_struct) ele, lord
 type (rf_stair_step_struct), pointer :: step, step0
 type (ele_pointer_struct), allocatable :: chain(:)
 real(rp) phase, particle_time
 integer is, ns, ix_pass, n_links
+
+!
+
+if (lord%value(l$) > 0) then
+  ns = nint(lord%value(n_rf_steps$))
+  do is = 0, ns
+    step => lord%rf%steps(is)
+    if (orbit%s-lord%s_start <= step%s .or. is == ns) exit
+  enddo
+endif
 
 !
 
@@ -410,20 +420,13 @@ if (absolute_time_tracking(ele)) then
     endif
   endif
 
-  if (lord%value(l$) > 0) then
-    ns = nint(lord%value(n_rf_steps$))
-    do is = 1, ns
-      step => lord%rf%steps(is)
-      if (orbit%s-lord%s_start <= step%s .or. is == ns) exit
-    enddo
-
+  if (lord%value(l$) > 0 .and. is > 0) then
     step0 => lord%rf%steps(is-1)
-    particle_time = particle_time - &
-          (step0%dtime + (orbit%s - lord%s_start - step0%s) * (step%dtime - step0%dtime) / (step%s - step0%s))
+    particle_time = particle_time - step%time
   endif
 
 else  ! Relative time tracking
-  particle_time = particle_rf_time (orbit, lord, .false.)
+  particle_time = particle_rf_time (orbit, lord, .false.) + ele%rf%steps(is)%dt_rf
 endif
 
 !

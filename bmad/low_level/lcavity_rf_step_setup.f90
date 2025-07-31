@@ -64,7 +64,7 @@ E_tot1 = E_tot0 + 0.5_rp * dE_ref
 p0c = ele%value(p0c_start$)
 dp0c = dpc_given_dE(p0c, mass, 0.5_rp * dE_ref)
 p1c = p0c + dp0c
-ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp)
+ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp, 0.0_rp)
 
 fac = 1.0_rp
 do i = 1, n
@@ -76,11 +76,11 @@ do i = 1, n
   p1c = p0c + dp0c
   beta = p0c / E_tot0
   t = t + ds / (c_light * beta)
-  ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, fac*dE_amp, fac*scale, t, i * ds)
+  ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, fac*dE_amp, fac*scale, t, 0.0_rp, i * ds)
 enddo
 
 ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), &
-                                                    0.0_rp, 0.0_rp, real_garbage$, real_garbage$, real_garbage$)
+                                         0.0_rp, 0.0_rp, real_garbage$, real_garbage$, real_garbage$, real_garbage$)
 ele%ref_time = ele%value(ref_time_start$) + t
  
 end subroutine this_rf_setup
@@ -95,7 +95,7 @@ type (ele_struct) lord
 type (rf_stair_step_struct), pointer :: steps(:)
 type (rf_stair_step_struct), pointer :: step, step1
 
-real(rp) t, p0c, mass, phase, dE, beta
+real(rp) dt_rf, time_ref, dt_ref, p0c, mass, phase, dE, beta
 integer i, n
 
 ! It can happen that if the slave tracking_method is switched to bmad_standard, the lord has
@@ -114,24 +114,31 @@ n = nint(lord%value(n_rf_steps$))
 
 ! Now need to correct for each rf%step: %E_tot0, %E_tot1, %p0c, %dp0c.
 
-t = 0.0_rp    ! Ref time of slave relative to the lord
+time_ref = 0.0_rp
+dt_rf = 0.0_rp    ! ref time of slave relative to the lord
 steps(0)%E_tot0 = ele%value(E_tot_start$)
 steps(0)%p0c = ele%value(p0c_start$)
 
 
 do i = 0, n
   step => steps(i)
-  phase = ele%value(rf_frequency$) * t + ele%value(phi0$)
+  phase = ele%value(rf_frequency$) * dt_rf + ele%value(phi0$)
   dE = step%scale * lord%value(voltage$) * cos(twopi * phase)
   step%E_tot1 = step%E_tot0 + dE
   step%dp0c = dpc_given_dE(step%p0c, mass, dE)
+  step%dt_rf = dt_rf
+  step%time = time_ref
 
   ! Calc at next step kick point
   step1 => steps(i+1)
-  beta = (step%p0c + step%dp0c) / step%E_tot1    ! Beta in drift after this step
-  t = t + (step1%s - step%s) / (c_light * beta) - (step1%dtime - step%dtime)
   step1%E_tot0 = step%E_tot1
   step1%p0c = step%p0c + step%dp0c
+  if (i /= n) then
+    beta = step1%p0c / step1%E_tot0    ! Ref beta in drift after this step
+    dt_ref = (step1%s - step%s) / (c_light * beta)
+    time_ref = time_ref + dt_ref
+    dt_rf = time_ref - step1%time
+  endif
 enddo
 
 step => steps(n+1)
@@ -139,6 +146,7 @@ step%E_tot1 = step%E_tot0
 
 ele%value(E_tot$) = step%E_tot1
 ele%value(p0c$)   = step%p0c
+ele%ref_time = ele%value(ref_time_start$) + time_ref
 
 end subroutine this_rf_multipass_slave_setup
 

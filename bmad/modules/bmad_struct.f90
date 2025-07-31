@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 337
+integer, parameter :: bmad_inc_version$ = 338
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1295,13 +1295,17 @@ end type
 ! A single step is a drift followed by an energy kick.
 
 type rf_stair_step_struct
-  real(rp) :: E_tot0 = 0      ! Reference energy in the drift region before the kick point. 
+  real(rp) :: E_tot0 = 0      ! Reference energy in the drift region (before the kick point). 
   real(rp) :: E_tot1 = 0      ! Reference energy after the kick point.
   real(rp) :: p0c = 0         ! Reference momentum in the drift region (before the kick point).
   real(rp) :: dp0c = 0        ! Change in reference momentum
   real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
-  real(rp) :: dtime = 0       ! Reference time at the kick point with respect to beginning of element.
+  real(rp) :: time = 0        ! Reference time at the kick point with respect to beginning of element.
+  real(rp) :: dt_rf = 0       ! Difference between zero reference time and RF clock.
+                              !   dt_rf will be zero except for multipass_slave elements.
+                              !   For all the slaves of a given multipass_lord and for a given step, 
+                              !   %time - %dt_rf will all be the same.
   real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
 end type
 
@@ -1311,8 +1315,9 @@ end type
 ! The first and last kicks are at the element ends with the
 ! the end kicks being half of the interior kicks.
 ! Exceptions:
-!   The zeroth step is just the initial kick (no drift).
+!   The zeroth step is just the initial kick (no drift). A particle at step zero is just outside the entrance end.
 !   The last (N+1)th step is a "phantom" (no drift and no kick) that just holds the final energy value.
+!     A particle at the (N+1)th step is just outside the exit end.
 ! Note: ele%rf is not allocated for slice and super slaves.
 
 type rf_ele_struct
@@ -1726,7 +1731,7 @@ integer, parameter :: val1$=19, val2$=20, val3$=21, val4$=22, val5$=23, &
 !   Range [beta_a0$, alpha_b0$] and [beta_a1$, alpha_b1$] hold all twiss.
 !   Range [eta_x0$, etap_y0$] and [eta_x1$, etap_y1$] hold all dispersion.
 !   Range [c11_mat0$, c22_mat0$] and [c11_mat1$, c22_mat1$] hold all C-matrix values
-    
+
 integer, parameter :: beta_a0$ = 2, alpha_a0$ = 3, beta_b0$ = 4, alpha_b0$ = 5
 integer, parameter :: beta_a1$ = 6, alpha_a1$ = 7, beta_b1$ = 8, alpha_b1$ = 9
 integer, parameter :: dphi_a$ = 10, dphi_b$ = 11
@@ -1747,6 +1752,11 @@ integer, parameter :: e_photon$ = 9
 
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
+
+integer, parameter :: beta_a_set$ = 2, alpha_a_set$ = 3, beta_b_set$ = 4, alpha_b_set$ = 5, phi_a_set$ = 6, phi_b_set$ = 7
+integer, parameter :: eta_x_set$ = 8, etap_x_set$ = 9, eta_y_set$ = 10, etap_y_set$ = 11
+integer, parameter :: c11_mat_set$ = 12, c12_mat_set$ = 13, c21_mat_set$ = 14, c22_mat_set$ = 15, mode_flip_set$ = 16
+integer, parameter :: x_set$ = 21, px_set$ = 22, y_set$ = 23, py_set$ = 24, z_set$ = 25, pz_set$ = 26
 
 integer, parameter :: radius$ = 3, focal_strength$ = 5
 
