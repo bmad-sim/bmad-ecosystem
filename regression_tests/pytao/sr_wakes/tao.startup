@@ -1,0 +1,30 @@
+set beam_init a_norm_emit = 1e-06
+set beam_init b_norm_emit = 1e-06
+set beam_init sig_z = 0.000599584916
+set beam_init bunch_charge = 1e-15
+set beam_init random_engine = quasi
+set beam_init dpz_dz = -10
+set beam_init sig_pz = 0.005995857499096581
+set beam_init position_file = particles3.h5
+set beam_init n_particle = 3
+
+set bmad radiation_damping_on = F
+set bmad radiation_fluctuations_on = F
+set bmad sr_wakes_on = F
+set bmad lr_wakes_on = F
+set beam saved_at = MARKER::*
+
+set global track_type = beam
+!place r13 bunch_z_pz
+!place r23 bunch_x_px
+!place r33 bunch_x_pz
+!sc
+
+
+
+! Now the plot will change
+!set bmad sr_wakes_on = F
+
+
+
+
