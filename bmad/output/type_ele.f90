@@ -1615,7 +1615,7 @@ character(*) attrib_name
 character(40) a_name, a2_name
 logical is_2nd_col_attrib
 
-character(42), parameter :: att_name(103) = [character(42):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
+character(42), parameter :: att_name(118) = [character(42):: 'X_PITCH', 'Y_PITCH', 'X_OFFSET', &
                 'Y_OFFSET', 'Z_OFFSET', 'REF_TILT', 'TILT', 'ROLL', 'X1_LIMIT', 'Y1_LIMIT', &
                 'FB1', 'FQ1', 'LORD_PAD1', 'HKICK', 'VKICK', 'KICK', 'FRINGE_TYPE', 'DS_STEP', 'R0_MAG', &
                 'KS', 'K1', 'K2', 'G', 'DG', 'G_TOT', 'H1', 'E1', 'FINT', 'HGAP', &
@@ -1630,9 +1630,12 @@ character(42), parameter :: att_name(103) = [character(42):: 'X_PITCH', 'Y_PITCH
                 'MODE_FLIP0', 'BETA_A_STRONG', 'BETA_B_STRONG', 'REF_TIME_START', 'THICKNESS', &
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
                 'F_FACTOR', 'EXACT_MULTIPOLES', 'CROSSING_TIME', 'SPIN_TRACKING_MODEL', 'VOLTAGE_ERR', &
-                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX', 'PC_STRONG']
+                'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX', 'PC_STRONG', &
+                'BETA_A_SET', 'ALPHA_A_SET', 'ETA_X_SET', 'ETAP_X_SET', 'PHI_A_SET', 'CMAT_11_SET', 'CMAT_21_SET', &
+                'DBETA_DPZ_A_SET', 'DALPHA_DPZ_A_SET', 'DETA_DPZ_X_SET', 'DETAP_DPZ_X_SET', &
+                'X_SET', 'Y_SET', 'Z_SET', 'PHI_A_SET']
 
-character(42), parameter :: att2_name(103) = [character(42):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
+character(42), parameter :: att2_name(118) = [character(42):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
                 'FB2', 'FQ2', 'LORD_PAD2', 'BL_HKICK', 'BL_VKICK', 'BL_KICK', 'FRINGE_AT', 'NUM_STEPS', 'R0_ELEC', &
                 'BS_FIELD', 'B1_GRADIENT', 'B2_GRADIENT', 'B_FIELD', 'DB_FIELD', 'B_FIELD_TOT', 'H2', 'E2', 'FINTX', 'HGAPX', &
@@ -1647,7 +1650,10 @@ character(42), parameter :: att2_name(103) = [character(42):: 'X_PITCH_TOT', 'Y_
                 'MODE_FLIP1', 'ALPHA_A_STRONG', 'ALPHA_B_STRONG', 'DELTA_REF_TIME', 'DTHICKNESS_DX', &
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
                 'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', 'GRADIENT_ERR', &
-                'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX', 'E_TOT_STRONG']
+                'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX', 'E_TOT_STRONG', &
+                'BETA_B_SET', 'ALPHA_B_SET', 'ETA_Y_SET', 'ETAP_Y_SET', 'PHI_N_SET', 'CMAT_12_SET', 'CMAT_22_SET', &
+                'DBETA_DPZ_B_SET', 'DALPHA_DPZ_B_SET', 'DETA_DPZ_Y_SET', 'DETAP_DPZ_Y_SET', &
+                'PX_SET', 'PY_SET', 'PZ_SET', 'PHI_B_SET']
 
 ! Exceptional cases
 
