@@ -249,6 +249,7 @@ Case (wiggler$, undulator$)
     orbit%vec(2) = orbit%vec(2) + ds2 * dpx
     orbit%vec(4) = orbit%vec(4) + ds2 * dpy
 
+    call radiation_kick(orbit)
     if (bmad_com%spin_tracking_on) call wig_spin(orbit, s_pos, ds2)
     call radiation_kick(orbit)
 
@@ -337,9 +338,11 @@ case (solenoid$, quadrupole$, sol_quad$)
 
     call bsq_drift1 (orbit, ds2, calculate_mat6)
     call bsq_drift2 (orbit, ds2, calculate_mat6)
-    call bsq_kick (ds, calculate_mat6)
+    call bsq_kick (ds2, calculate_mat6)
+    call radiation_kick(orbit)
     if (bmad_com%spin_tracking_on) call wig_spin(orbit, s_pos, ds2)
     call radiation_kick(orbit)
+    call bsq_kick (ds2, calculate_mat6)
     call bsq_drift2 (orbit, ds2, calculate_mat6)
     call bsq_drift1 (orbit, ds2, calculate_mat6)
 
