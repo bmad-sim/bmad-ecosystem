@@ -45,7 +45,7 @@ subroutine this_rf_setup(ele)
 
 type (ele_struct) ele
 
-real(rp) t, ds, beta, E_tot0, E_tot1, fac, dp0c, scale, dE_ref, dE_amp, p0c, p1c, mass
+real(rp) t, ds, beta, E_tot0, E_tot1, fac, scale, dE_ref, dE_amp, p0c, p1c, mass
 integer i, n
 
 !
@@ -63,8 +63,7 @@ E_tot0 = ele%value(E_tot_start$)
 E_tot1 = E_tot0 + 0.5_rp * dE_ref
 p0c = ele%value(p0c_start$)
 call convert_total_energy_to(E_tot1, ele%ref_species, pc = p1c)
-dp0c = p1c - p0c
-ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp, 0.0_rp, 0)
+ele%rf%steps(0) = rf_stair_step_struct(E_tot0, E_tot1, p0c, p1c, 0.5_rp * dE_amp, 0.5_rp * scale, t, 0.0_rp, 0.0_rp, 0)
 
 fac = 1.0_rp
 do i = 1, n
@@ -73,14 +72,15 @@ do i = 1, n
   E_tot1 = E_tot0 + fac * dE_ref
   p0c = p1c
   call convert_total_energy_to(E_tot1, ele%ref_species, pc = p1c)
-  dp0c = p1c - p0c
   beta = p0c / E_tot0
   t = t + ds / (c_light * beta)
-  ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, dp0c, fac*dE_amp, fac*scale, t, 0.0_rp, i * ds, i)
+  ele%rf%steps(i) = rf_stair_step_struct(E_tot0, E_tot1, p0c, p1c, fac*dE_amp, fac*scale, t, 0.0_rp, i * ds, i)
 enddo
 
+ele%rf%steps(n)%E_tot1 = ele%value(E_tot$)
+ele%rf%steps(n)%p1c = ele%value(p0c$)
 ele%rf%steps(n+1) = rf_stair_step_struct(ele%value(E_tot$), ele%value(E_tot$), ele%value(p0c$), &
-                                         0.0_rp, 0.0_rp, 0.0_rp, t, 0.0_rp, n * ds, n+1)
+                                         ele%value(p0c$), 0.0_rp, 0.0_rp, t, 0.0_rp, n * ds, n+1)
 ele%ref_time = ele%value(ref_time_start$) + t
  
 end subroutine this_rf_setup
@@ -112,7 +112,7 @@ steps => ele%rf%steps
 mass = mass_of(ele%ref_species)
 n = nint(lord%value(n_rf_steps$))
 
-! Now need to correct for each rf%step: %E_tot0, %E_tot1, %p0c, %dp0c, %time, %dp0c, %dt_rf
+! Now need to correct for each rf%step: %E_tot0, %E_tot1, %p0c, %p1c, %time, %dt_rf
 ! Everything else is the same as the lord.
 
 time_ref = 0.0_rp
@@ -126,7 +126,7 @@ do i = 0, n
   dE = step%scale * lord%value(voltage$) * cos(twopi * phase)
   step%E_tot1 = step%E_tot0 + dE
   call convert_total_energy_to(step%E_tot1, ele%ref_species, pc = p1c)
-  step%dp0c = p1c - step%p0c
+  step%p1c = p1c
   step%dt_rf = dt_rf
   step%time = time_ref
 
@@ -144,11 +144,11 @@ enddo
 
 step => steps(n+1)
 step%E_tot1 = step%E_tot0
+step%p1c = step%p0c
 step%time = steps(n)%time
-step%dp0c = 0
 
 ele%value(E_tot$) = step%E_tot1
-ele%value(p0c$)   = step%p0c
+ele%value(p0c$)   = step%p1c
 ele%ref_time = ele%value(ref_time_start$) + time_ref
 
 end subroutine this_rf_multipass_slave_setup

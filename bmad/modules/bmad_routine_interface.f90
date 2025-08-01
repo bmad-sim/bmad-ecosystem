@@ -2017,11 +2017,11 @@ subroutine orbit_amplitude_calc (ele, orb, amp_a, amp_b, amp_na, amp_nb)
   real(rp), optional :: amp_a, amp_b, amp_na, amp_nb
 end subroutine
 
-subroutine orbit_reference_energy_correction (orbit, dp0c, mat6, make_matrix)
+subroutine orbit_reference_energy_correction (orbit, p0c_new, mat6, make_matrix)
   import
   implicit none
   type (coord_struct) :: orbit
-  real(rp) dp0c
+  real(rp) p0c_new
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine

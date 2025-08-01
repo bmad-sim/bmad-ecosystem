@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 339
+integer, parameter :: bmad_inc_version$ = 340
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1298,7 +1298,7 @@ type rf_stair_step_struct
   real(rp) :: E_tot0 = 0      ! Reference energy in the drift region (before the kick point). 
   real(rp) :: E_tot1 = 0      ! Reference energy after the kick point.
   real(rp) :: p0c = 0         ! Reference momentum in the drift region (before the kick point).
-  real(rp) :: dp0c = 0        ! Change in reference momentum
+  real(rp) :: p1c = 0         ! Reference momentum after the kick point.
   real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
   real(rp) :: time = 0        ! Reference time at the kick point with respect to beginning of element.

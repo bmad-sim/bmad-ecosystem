@@ -2445,54 +2445,58 @@ case ('graph')
     nl=nl+1; write(lines(nl), '(a, i0, 2a)') 'text_legend(', i, ')                = ', quote(g%text_legend(i))
   enddo
 
-  nl=nl+1; write(lines(nl), amt)  'x%label                          = ', quote(g%x%label)
-  nl=nl+1; write(lines(nl), rmt)  'x%max                            = ', g%x%max
-  nl=nl+1; write(lines(nl), rmt)  'x%min                            = ', g%x%min
-  nl=nl+1; write(lines(nl), imt)  'x%major_div                      = ', g%x%major_div
-  nl=nl+1; write(lines(nl), imt)  'x%major_div_nominal              = ', g%x%major_div_nominal
-  nl=nl+1; write(lines(nl), imt)  'x%places                         = ', g%x%places
-  nl=nl+1; write(lines(nl), lmt)  'x%draw_label                     = ', g%x%draw_label
-  nl=nl+1; write(lines(nl), lmt)  'x%draw_numbers                   = ', g%x%draw_numbers
-  nl=nl+1; write(lines(nl), rmt)  'x%tick_max                       = ', g%x%tick_max
-  nl=nl+1; write(lines(nl), rmt)  'x%tick_min                       = ', g%x%tick_min
-  nl=nl+1; write(lines(nl), rmt)  'x%dtick                          = ', g%x%dtick
-  nl=nl+1; write(lines(nl), rmt)  'x%eval_max                       = ', g%x%eval_max
-  nl=nl+1; write(lines(nl), rmt)  'x%eval_min                       = ', g%x%eval_min
+  nl=nl+1; write(lines(nl), amt)   'x%label                          = ', quote(g%x%label)
+  nl=nl+1; write(lines(nl), rmt)   'x%max                            = ', g%x%max
+  nl=nl+1; write(lines(nl), rmt)   'x%min                            = ', g%x%min
+  nl=nl+1; write(lines(nl), imt)   'x%major_div                      = ', g%x%major_div
+  nl=nl+1; write(lines(nl), imt)   'x%major_div_nominal              = ', g%x%major_div_nominal
+  nl=nl+1; write(lines(nl), imt)   'x%places                         = ', g%x%places
+  nl=nl+1; write(lines(nl), lmt)   'x%draw_label                     = ', g%x%draw_label
+  nl=nl+1; write(lines(nl), lmt)   'x%draw_numbers                   = ', g%x%draw_numbers
+  nl=nl+1; write(lines(nl), rmt)   'x%tick_max                       = ', g%x%tick_max
+  nl=nl+1; write(lines(nl), rmt)   'x%tick_min                       = ', g%x%tick_min
+  nl=nl+1; write(lines(nl), rmt)   'x%dtick                          = ', g%x%dtick
+  nl=nl+1; write(lines(nl), rmt)   'x%eval_max                       = ', g%x%eval_max
+  nl=nl+1; write(lines(nl), rmt)   'x%eval_min                       = ', g%x%eval_min
 
-  nl=nl+1; write(lines(nl), lmt)  'y2_mirrors_y                     = ', g%y2_mirrors_y
-  nl=nl+1; write(lines(nl), amt)  'y%label                          = ', quote(g%y%label)
-  nl=nl+1; write(lines(nl), rmt)  'y%label_offset                   = ', g%y%label_offset
-  nl=nl+1; write(lines(nl), rmt)  'y%max                            = ', g%y%max
-  nl=nl+1; write(lines(nl), rmt)  'y%min                            = ', g%y%min
-  nl=nl+1; write(lines(nl), imt)  'y%major_div                      = ', g%y%major_div
-  nl=nl+1; write(lines(nl), imt)  'y%major_div_nominal              = ', g%y%major_div_nominal
-  nl=nl+1; write(lines(nl), imt)  'y%places                         = ', g%y%places
-  nl=nl+1; write(lines(nl), lmt)  'y%draw_label                     = ', g%y%draw_label
-  nl=nl+1; write(lines(nl), lmt)  'y%draw_numbers                   = ', g%y%draw_numbers
-  nl=nl+1; write(lines(nl), rmt)  'y%tick_max                       = ', g%y%tick_max
-  nl=nl+1; write(lines(nl), rmt)  'y%tick_min                       = ', g%y%tick_min
-  nl=nl+1; write(lines(nl), rmt)  'y%dtick                          = ', g%y%dtick
+  nl=nl+1; write(lines(nl), lmt)   'y2_mirrors_y                     = ', g%y2_mirrors_y
+  nl=nl+1; write(lines(nl), amt)   'y%label                          = ', quote(g%y%label)
+  nl=nl+1; write(lines(nl), rmt)   'y%label_offset                   = ', g%y%label_offset
+  nl=nl+1; write(lines(nl), rmt)   'y%max                            = ', g%y%max
+  nl=nl+1; write(lines(nl), rmt)   'y%min                            = ', g%y%min
+  nl=nl+1; write(lines(nl), imt)   'y%major_div                      = ', g%y%major_div
+  nl=nl+1; write(lines(nl), imt)   'y%major_div_nominal              = ', g%y%major_div_nominal
+  nl=nl+1; write(lines(nl), imt)   'y%places                         = ', g%y%places
+  nl=nl+1; write(lines(nl), lmt)   'y%draw_label                     = ', g%y%draw_label
+  nl=nl+1; write(lines(nl), lmt)   'y%draw_numbers                   = ', g%y%draw_numbers
+  nl=nl+1; write(lines(nl), rmt)   'y%tick_max                       = ', g%y%tick_max
+  nl=nl+1; write(lines(nl), rmt)   'y%tick_min                       = ', g%y%tick_min
+  nl=nl+1; write(lines(nl), rmt)   'y%dtick                          = ', g%y%dtick
 
-  nl=nl+1; write(lines(nl), amt)  'y2%label                         = ', quote(g%y2%label)
-  nl=nl+1; write(lines(nl), rmt)  'y2%label_offset                  = ', g%y2%label_offset
-  nl=nl+1; write(lines(nl), rmt)  'y2%max                           = ', g%y2%max
-  nl=nl+1; write(lines(nl), rmt)  'y2%min                           = ', g%y2%min
-  nl=nl+1; write(lines(nl), imt)  'y2%major_div                     = ', g%y2%major_div
-  nl=nl+1; write(lines(nl), imt)  'y2%major_div_nominal             = ', g%y2%major_div_nominal
-  nl=nl+1; write(lines(nl), imt)  'y2%places                        = ', g%y2%places
-  nl=nl+1; write(lines(nl), lmt)  'y2%draw_label                    = ', g%y2%draw_label
-  nl=nl+1; write(lines(nl), lmt)  'y2%draw_numbers                  = ', g%y2%draw_numbers
-  nl=nl+1; write(lines(nl), lmt)  'limited                          = ', g%limited
-  nl=nl+1; write(lines(nl), lmt)  'clip                             = ', g%clip
-  nl=nl+1; write(lines(nl), lmt)  'draw_axes                        = ', g%draw_axes
-  nl=nl+1; write(lines(nl), lmt)  'draw_curve_legend                = ', g%draw_curve_legend
-  nl=nl+1; write(lines(nl), lmt)  'draw_grid                        = ', g%draw_grid
-  nl=nl+1; write(lines(nl), lmt)  'draw_title                       = ', g%draw_title
-  nl=nl+1; write(lines(nl), lmt)  'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
-  nl=nl+1; write(lines(nl), lmt)  'allow_wrap_around                = ', g%allow_wrap_around
+  nl=nl+1; write(lines(nl), amt)   'y2%label                         = ', quote(g%y2%label)
+  nl=nl+1; write(lines(nl), rmt)   'y2%label_offset                  = ', g%y2%label_offset
+  nl=nl+1; write(lines(nl), rmt)   'y2%max                           = ', g%y2%max
+  nl=nl+1; write(lines(nl), rmt)   'y2%min                           = ', g%y2%min
+  nl=nl+1; write(lines(nl), imt)   'y2%major_div                     = ', g%y2%major_div
+  nl=nl+1; write(lines(nl), imt)   'y2%major_div_nominal             = ', g%y2%major_div_nominal
+  nl=nl+1; write(lines(nl), imt)   'y2%places                        = ', g%y2%places
+  nl=nl+1; write(lines(nl), lmt)   'y2%draw_label                    = ', g%y2%draw_label
+  nl=nl+1; write(lines(nl), lmt)   'y2%draw_numbers                  = ', g%y2%draw_numbers
+  nl=nl+1; write(lines(nl), lmt)   'limited                          = ', g%limited
+  nl=nl+1; write(lines(nl), lmt)   'clip                             = ', g%clip
+  nl=nl+1; write(lines(nl), lmt)   'draw_axes                        = ', g%draw_axes
+  nl=nl+1; write(lines(nl), lmt)   'draw_curve_legend                = ', g%draw_curve_legend
+  nl=nl+1; write(lines(nl), lmt)   'draw_grid                        = ', g%draw_grid
+  nl=nl+1; write(lines(nl), lmt)   'draw_title                       = ', g%draw_title
+  nl=nl+1; write(lines(nl), lmt)   'draw_only_good_user_data_or_vars = ', g%draw_only_good_user_data_or_vars
+  nl=nl+1; write(lines(nl), lmt)   'allow_wrap_around                = ', g%allow_wrap_around
 
+  if (g%type == 'lat_layout') then
+    nl=nl+1; write(lines(nl), lmt) 'global%label_keys                = ', s%global%label_keys
+  endif
 
   if (allocated(g%curve)) then
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = '                         |          Line           |          Symbols'
     nl=nl+1; lines(nl) = 'Curves:                  |     Mean         RMS    |      Mean         RMS'
     do i = 1, size(g%curve)
@@ -2507,6 +2511,7 @@ case ('graph')
       endif
     enddo
   else
+    nl=nl+1; lines(nl) = ''
     nl=nl+1; lines(nl) = 'Curves: None associated'
   endif
 
@@ -6257,6 +6262,7 @@ case ('variables')
     nl=nl+1; write(lines(nl), imt)  '%ix_var           = ', v_ptr%ix_var
     nl=nl+1; write(lines(nl), imt)  '%ix_dvar          = ', v_ptr%ix_dvar           
     nl=nl+1; write(lines(nl), imt)  '%ix_v1            = ', v_ptr%ix_v1
+    nl=nl+1; write(lines(nl), imt)  '%ix_key_table     = ', v_ptr%ix_key_table
     nl=nl+1; write(lines(nl), rmt)  '%model            = ', v_ptr%model_value
     nl=nl+1; write(lines(nl), rmt)  '%base             = ', v_ptr%base_value
 
