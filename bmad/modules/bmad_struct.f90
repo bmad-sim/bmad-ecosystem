@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 338
+integer, parameter :: bmad_inc_version$ = 339
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1307,6 +1307,7 @@ type rf_stair_step_struct
                               !   For all the slaves of a given multipass_lord and for a given step, 
                               !   %time - %dt_rf will all be the same.
   real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
+  integer :: ix_step = 0      ! Step index in ele%rf%steps(:) array
 end type
 
 ! Element RF parameter struct.
