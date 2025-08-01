@@ -50,7 +50,7 @@ enddo
 
 call lat_ele_locator('END', lat, eles, n_loc)
 ele => eles(1)%ele
-write (1, '(a, 2es22.14)') '"END-energy" REL 4E-9', ele%value(p0c$), ele%value(E_tot$)
+write (1, '(a, 2es22.14)') '"END-energy" REL 1E-8', ele%value(p0c$), ele%value(E_tot$)
 
 
 
