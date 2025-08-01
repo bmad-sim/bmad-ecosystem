@@ -391,7 +391,7 @@ end subroutine pondermotive_transverse_kick
 function this_rf_phase(orbit, ele, lord) result (phase)
 
 type (coord_struct) orbit
-type (ele_struct) ele, lord
+type (ele_struct), target :: ele, lord
 type (ele_struct), pointer :: ele2
 type (rf_stair_step_struct), pointer :: step, step0
 type (ele_pointer_struct), allocatable :: chain(:)
