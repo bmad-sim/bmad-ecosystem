@@ -1683,7 +1683,7 @@ integer, parameter :: floor_shift$ = 49, fiducial$ = 50, undulator$ = 51, diffra
 integer, parameter :: photon_init$ = 53, sample$ = 54, detector$ = 55, sad_mult$ = 56, mask$ = 57
 integer, parameter :: ac_kicker$ = 58, lens$ = 59, def_space_charge_com$ = 60, crab_cavity$ = 61
 integer, parameter :: ramper$ = 62, def_ptc_com$ = 63, rf_bend$ = 64, gkicker$ = 65, foil$ = 66
-integer, parameter :: thick_multipole$ = 67, pickup$ = 68, feedback$ = 69, n_key$ = 69
+integer, parameter :: thick_multipole$ = 67, pickup$ = 68, feedback$ = 69, fixer$ = 70, n_key$ = 70
 
 ! A "!" as the first character is to prevent name matching by the key_name_to_key_index routine.
 
@@ -1701,7 +1701,7 @@ character(20), parameter :: key_name(n_key$) = [ &
     'Undulator         ', 'Diffraction_Plate ', 'Photon_Init       ', 'Sample            ', 'Detector          ', &
     'Sad_Mult          ', 'Mask              ', 'AC_Kicker         ', 'Lens              ', '!Space_Charge_Com ', &
     'Crab_Cavity       ', 'Ramper            ', '!PTC_Com          ', 'RF_Bend           ', 'GKicker           ', &
-    'Foil              ', 'Thick_Multipole   ', 'Pickup            ', 'Feedback          ']
+    'Foil              ', 'Thick_Multipole   ', 'Pickup            ', 'Feedback          ', 'Fixer             ']
 
 ! These logical arrays get set in init_attribute_name_array and are used
 ! to sort elements that have kick or orientation attributes from elements that do not.
@@ -1753,10 +1753,13 @@ integer, parameter :: e_photon$ = 9
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
-integer, parameter :: beta_a_set$ = 2, alpha_a_set$ = 3, beta_b_set$ = 4, alpha_b_set$ = 5, phi_a_set$ = 6, phi_b_set$ = 7
-integer, parameter :: eta_x_set$ = 8, etap_x_set$ = 9, eta_y_set$ = 10, etap_y_set$ = 11
-integer, parameter :: c11_mat_set$ = 12, c12_mat_set$ = 13, c21_mat_set$ = 14, c22_mat_set$ = 15, mode_flip_set$ = 16
-integer, parameter :: x_set$ = 21, px_set$ = 22, y_set$ = 23, py_set$ = 24, z_set$ = 25, pz_set$ = 26
+integer, parameter :: x_set$ = 15, px_set$ = 16, y_set$ = 17, py_set$ = 18, z_set$ = 19, pz_set$ = 20
+integer, parameter :: beta_a_set$ = 21, alpha_a_set$ = 22, beta_b_set$ = 23, alpha_b_set$ = 24
+integer, parameter :: phi_a_set$ = 25, phi_b_set$ = 26, mode_flip_set$ = 27
+integer, parameter :: eta_x_set$ = 34, etap_x_set$ = 35, eta_y_set$ = 36, etap_y_set$ = 37
+integer, parameter :: cmat_11_set$ = 38, cmat_12_set$ = 39, cmat_21_set$ = 40, cmat_22_set$ = 41
+integer, parameter :: dbeta_dpz_a_set$ = 42, dbeta_dpz_b_set$ = 43, dalpha_dpz_a_set$ = 44, dalpha_dpz_b_set$ = 45
+integer, parameter :: deta_dpz_x_set$ = 46, deta_dpz_y_set$ = 47, detap_dpz_x_set$ = 48, detap_dpz_y_set$ = 49
 
 integer, parameter :: radius$ = 3, focal_strength$ = 5
 
