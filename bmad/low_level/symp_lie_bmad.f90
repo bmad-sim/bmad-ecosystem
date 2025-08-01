@@ -115,7 +115,7 @@ ds2 = 0.5_rp * ds
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-if (do_offset) call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = calculate_mat6)
+if (do_offset) call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = .true., mat6 = mat6, make_matrix = calculate_mat6)
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*time_dir, mat6, calculate_mat6)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*length,   mat6, calculate_mat6)
@@ -349,7 +349,7 @@ case (solenoid$, quadrupole$, sol_quad$)
     if (present(track)) call save_this_track_pt (orbit, s_pos)
   enddo
 
-  if (bmad_com%spin_tracking_on) call wig_spin(orbit, s_pos, ds2)
+  if (bmad_com%spin_tracking_on) call wig_spin(orbit, s_pos, 0.5_rp*ds2)
   fringe_info%particle_at = second_track_edge$
   call apply_element_edge_kick (orbit, fringe_info, ele, param, .true., mat6, calculate_mat6, apply_sol_fringe = .false.)
 
@@ -369,7 +369,7 @@ end select
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*length,   mat6, calculate_mat6)
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*time_dir, mat6, calculate_mat6)
 
-if (do_offset) call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = calculate_mat6)
+if (do_offset) call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = .true., mat6 = mat6, make_matrix = calculate_mat6)
 
 ! Correct z-position for wigglers, etc. 
 
