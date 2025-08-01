@@ -824,6 +824,7 @@ do ib = 0, ubound(lat%branch, 1)
 
         if (j == l$ .and. (fid == entrance_end$ .or. fid == entrance_end$)) cycle
         if (j == l_rectangle$ .and. (fid == none_pt$ .or. fid == center_pt$)) cycle
+        if (j == angle$) cycle
       endif
       if (j == check_sum$) cycle
       if (x_lim_good .and. (j == x1_limit$ .or. j == x2_limit$)) cycle
