@@ -122,7 +122,7 @@ base => tree%node(1)
 call expression_tree_asterisk_restore(base)
 
 if (s%global%verbose_on) then
-  call type_expression_tree(tree)  !!!
+  call type_expression_tree(tree)
 endif
 
 err_flag = .false.
