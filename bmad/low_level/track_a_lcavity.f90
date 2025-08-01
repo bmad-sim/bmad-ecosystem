@@ -93,9 +93,11 @@ call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
 
 ! Beginning Edge
 
-phase = this_rf_phase(orbit, ele, lord)
-call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
-if (fringe_here(ele, orbit, first_track_edge$)) call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+if (fringe_here(ele, orbit, first_track_edge$)) then
+  phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(ix_step_start))
+  call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
+  call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+endif
 
 ! Body
 
@@ -126,9 +128,11 @@ enddo
 
 ! End Edge
 
-phase = this_rf_phase(orbit, ele, lord)
-if (fringe_here(ele, orbit, second_track_edge$)) call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
-call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
+if (fringe_here(ele, orbit, second_track_edge$)) then
+  phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(ix_step_end))
+  call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
+  call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
+endif
 
 !
 
@@ -282,7 +286,7 @@ else
   p1c = step%p0c
 endif
 
-phase = this_rf_phase(orbit, ele, lord)
+phase = this_rf_phase(orbit, ele, lord, step)
 dE_amp = s_dir * step%dE_amp 
 dE = dE_amp * cos(phase)
 
@@ -388,32 +392,18 @@ end subroutine pondermotive_transverse_kick
 !---------------------------------------------------------------------------------------
 ! contains
 
-function this_rf_phase(orbit, ele, lord) result (phase)
+function this_rf_phase(orbit, ele, lord, step) result (phase)
 
 type (coord_struct) orbit
 type (ele_struct), target :: ele, lord
-type (ele_struct), pointer :: ele2
-type (rf_stair_step_struct), pointer :: step, step0
+type (rf_stair_step_struct) step
 type (ele_pointer_struct), allocatable :: chain(:)
 real(rp) phase, particle_time
-integer is, ns, ix_pass, n_links
+integer ix_pass, n_links
 
 !
 
-ele2 => ele
-if (ele%slave_status == slice_slave$) ele2 => ele%lord
-
-if (lord%value(l$) > 0) then
-  ns = nint(lord%value(n_rf_steps$))
-  do is = 0, ns
-    step => lord%rf%steps(is)
-    if (orbit%s-lord%s_start <= step%s .or. is == ns) exit
-  enddo
-endif
-
-!
-
-if (absolute_time_tracking(ele2)) then
+if (absolute_time_tracking(lord)) then
   particle_time = modulo2(orbit%t, 0.5_qp / lord%value(rf_frequency$))
   if (bmad_com%absolute_time_ref_shift) then
     if (lord%slave_status == multipass_slave$) then
@@ -424,13 +414,10 @@ if (absolute_time_tracking(ele2)) then
     endif
   endif
 
-  if (lord%value(l$) > 0 .and. is > 0) then
-    step0 => lord%rf%steps(is-1)
-    particle_time = particle_time - step%time
-  endif
+  particle_time = particle_time - step%time
 
 else  ! Relative time tracking
-  particle_time = particle_rf_time (orbit, lord, .false.) + ele2%rf%steps(is)%dt_rf
+  particle_time = particle_rf_time (orbit, lord, .false.) + step%dt_rf
 endif
 
 !
