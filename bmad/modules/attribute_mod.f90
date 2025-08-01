@@ -3272,7 +3272,7 @@ if (attrib_info%state == is_free$) return
 
 select case (ele%key)
 case (sbend$, rf_bend$)
-  if (any(ix_attrib == [angle$, l_chord$, rho$])) free = .false.
+  if (any(ix_attrib == [l_chord$, rho$])) free = .false.
 case (rfcavity$)
   if (.not. dep_attribs_free) then
     if (ix_attrib == harmon$) free = .false.

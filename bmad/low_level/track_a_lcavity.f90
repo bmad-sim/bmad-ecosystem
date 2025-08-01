@@ -391,13 +391,17 @@ end subroutine pondermotive_transverse_kick
 function this_rf_phase(orbit, ele, lord) result (phase)
 
 type (coord_struct) orbit
-type (ele_struct) ele, lord
+type (ele_struct), target :: ele, lord
+type (ele_struct), pointer :: ele2
 type (rf_stair_step_struct), pointer :: step, step0
 type (ele_pointer_struct), allocatable :: chain(:)
 real(rp) phase, particle_time
 integer is, ns, ix_pass, n_links
 
 !
+
+ele2 => ele
+if (ele%slave_status == slice_slave$) ele2 => ele%lord
 
 if (lord%value(l$) > 0) then
   ns = nint(lord%value(n_rf_steps$))
@@ -409,7 +413,7 @@ endif
 
 !
 
-if (absolute_time_tracking(ele)) then
+if (absolute_time_tracking(ele2)) then
   particle_time = modulo2(orbit%t, 0.5_qp / lord%value(rf_frequency$))
   if (bmad_com%absolute_time_ref_shift) then
     if (lord%slave_status == multipass_slave$) then
@@ -426,7 +430,7 @@ if (absolute_time_tracking(ele)) then
   endif
 
 else  ! Relative time tracking
-  particle_time = particle_rf_time (orbit, lord, .false.) + ele%rf%steps(is)%dt_rf
+  particle_time = particle_rf_time (orbit, lord, .false.) + ele2%rf%steps(is)%dt_rf
 endif
 
 !
