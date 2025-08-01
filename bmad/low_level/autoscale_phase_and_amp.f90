@@ -115,7 +115,7 @@ if (tm == bmad_standard$ .or. (ele%key == rfcavity$ .and. ele%value(l$) == 0 .an
     e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
     if (err_flag) then
-      call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele%name)
+      call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
       ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
       param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
       return
@@ -168,7 +168,7 @@ if (ele%value(field_autoscale$) == 0) then
   ! Cannot autophase if not allowed to make the ele%value(field_autoscale$) non-zero.
   if (.not. do_scale_amp) then
     call out_io (s_fatal$, &
-            r_name, 'CANNOT AUTO PHASE IF NOT ALLOWED TO MAKE THE FIELD_SCALE NON-ZERO FOR: ' // ele%name)
+            r_name, 'CANNOT AUTO PHASE IF NOT ALLOWED TO MAKE THE FIELD_SCALE NON-ZERO FOR: ' // ele_full_name(ele))
     if (global_com%exit_on_error) call err_exit ! exit on error.
     return 
   endif
@@ -206,7 +206,7 @@ if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   enddo
 
   if (i == 101) then
-    call out_io (s_fatal$, r_name, 'CANNOT FIND CORRECT AMPLITUDE SCALE FOR: ' // ele%name)
+    call out_io (s_fatal$, r_name, 'CANNOT FIND CORRECT AMPLITUDE SCALE FOR: ' // ele_full_name(ele))
     if (global_com%exit_on_error) call err_exit ! exit on error.
   endif
 
@@ -296,7 +296,7 @@ if (do_scale_amp .and. ele%value(l$) /= 0) then
     int_tot = ((n_pts_tot - n_pts) * int_tot + n_pts * integral) / n_pts_tot
     if (n_pts_tot > 16) then
       if (int_tot == 0 .and. int_old == 0) then
-        call out_io (s_error$, r_name, 'FIELD IS ZERO FOR: ' // ele%name) 
+        call out_io (s_error$, r_name, 'FIELD IS ZERO FOR: ' // ele_full_name(ele)) 
         call cleanup_this()
         return
       endif
@@ -337,7 +337,7 @@ dE_max2 = dE_particle(pz_max2)
 ! initial particle energy is low and the ele%value(field_autoscale$) is much to large.
 
 if (sign_of_dE*dE_max1 <= 0) then
-  call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION FOR: ' // ele%name)
+  call out_io (s_error$, r_name, 'CANNOT FIND ACCELERATING PHASE REGION FOR: ' // ele_full_name(ele))
   err_flag = .true.
   return
 endif
@@ -383,7 +383,7 @@ main_loop: do n_loop = 1, n_loop_max
       do j = -19, 20
         if (debug) print *, j, phi_max+j/40.0, pz_calc(phi_max + j / 40.0, err_flag)
       enddo
-      call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE FOR ELEMENT: ' // ele%name)
+      call out_io (s_error$, r_name, 'CANNOT STABLY TRACK PARTICLE FOR ELEMENT: ' // ele_full_name(ele))
       err_flag = .true.
       return
     endif
@@ -452,7 +452,7 @@ main_loop: do n_loop = 1, n_loop_max
   endif
 
   if (n_loop == n_loop_max) then
-    call out_io (s_warn$, r_name, 'AUTO SCALING NOT CONVERGING FOR ELEMENT: ' // ele%name)
+    call out_io (s_warn$, r_name, 'AUTO SCALING NOT CONVERGING FOR ELEMENT: ' // ele_full_name(ele))
   endif
 
 enddo main_loop

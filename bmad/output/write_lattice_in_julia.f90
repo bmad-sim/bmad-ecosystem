@@ -62,7 +62,7 @@ character(20), parameter :: julia_name(n_key$) = [character(20):: &
     'Undulator         ', 'DiffractionPlatee ', 'PhotonInit        ', 'Sample            ', 'Detector          ', &
     'SadMult           ', 'Mask              ', 'ACKicker          ', 'Lens              ', '!Space_Charge_Com ', &
     'CrabCavity        ', 'Ramper            ', '!PTC_Com          ', 'RFBend            ', 'Kicker            ', &
-    'Foil              ', 'ThickMultipole    ', 'Instrument        ', 'Instrument        ']
+    'Foil              ', 'ThickMultipole    ', 'Instrument        ', 'Instrument        ', 'Fixer             ']
 
 
 ! Open file

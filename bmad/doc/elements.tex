@@ -25,16 +25,17 @@ available in \bmad.
   EM_Field          & \ref{s:em.field}      &  Rcollimator       & \ref{s:col}        \\
   Feedback          & \ref{s:feedback}      &  RF_bend           & \ref{s:rf.bend}    \\
   Fiducial          & \ref{s:fiducial}      &  RFcavity          & \ref{s:rfcav}      \\
-  Floor_Shift       & \ref{s:floor.ele}     &  Sad_Mult          & \ref{s:sad.mult}   \\
-  Foil              & \ref{s:foil}          &  Sbend             & \ref{s:bend}       \\
-  Fork              & \ref{s:fork}          &  Sextupole         & \ref{s:sex}        \\
-  GKicker           & \ref{s:gkicker}       &  Sol_Quad          & \ref{s:sq}         \\
-  HKicker           & \ref{s:hvkicker}      &  Solenoid          & \ref{s:sol}        \\
-  Hybrid            & \ref{s:hybrid}        &  Taylor            & \ref{s:taylor}     \\
-  Instrument        & \ref{s:monitor}       &  Thick_Multipole   & \ref{s:thick.mult} \\
-  Kicker            & \ref{s:kicker}        &  Undulator         & \ref{s:wiggler}    \\
-  Lcavity           & \ref{s:lcav}          &  VKicker           & \ref{s:hvkicker}   \\ 
-  Marker            & \ref{s:mark}          &  Wiggler           & \ref{s:wiggler}    \\
+  Fixer             & \ref{s:fixer}         &  Sad_Mult          & \ref{s:sad.mult}   \\
+  Floor_Shift       & \ref{s:floor.ele}     &  Sbend             & \ref{s:bend}       \\
+  Foil              & \ref{s:foil}          &  Sextupole         & \ref{s:sex}        \\
+  Fork              & \ref{s:fork}          &  Sol_Quad          & \ref{s:sq}         \\
+  GKicker           & \ref{s:gkicker}       &  Solenoid          & \ref{s:sol}        \\
+  HKicker           & \ref{s:hvkicker}      &  Taylor            & \ref{s:taylor}     \\
+  Hybrid            & \ref{s:hybrid}        &  Thick_Multipole   & \ref{s:thick.mult} \\
+  Instrument        & \ref{s:monitor}       &  Undulator         & \ref{s:wiggler}    \\
+  Kicker            & \ref{s:kicker}        &  VKicker           & \ref{s:hvkicker}   \\ 
+  Lcavity           & \ref{s:lcav}          &  Wiggler           & \ref{s:wiggler}    \\
+  Marker            & \ref{s:mark}          &                    &                    \\
   \bottomrule
 \end{tabular}
 } \caption{Table of element types suitable for use with charged particles. Also see
@@ -2103,6 +2104,18 @@ Example:
 See \sref{s:ex.collide} for an example where a fiducial element is
 used to position the second ring in a dual ring colliding beam 
 machine.
+
+\newpage
+
+%-----------------------------------------------------------------
+\section{Fixer}
+\label{s:fixer}
+
+A \vn{fixer} element is used to set the particle orbit and/or the Twiss parameters at
+any point in an open geometry lattice branch. The orbit and/or Twiss parameter can then
+be propagated both forward and backwards.
+
+<b>This element is in construction and is not yet usable.</b>
 
 \newpage
 
