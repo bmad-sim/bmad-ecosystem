@@ -257,7 +257,7 @@ type (rf_stair_step_struct) :: step
 type (em_field_struct) field
 
 real(rp), optional :: mat6(6,6)
-real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), dE, dE_amp, pz_end, p1c, dp0c
+real(rp) scale, t_ref, phase, rel_p, mc2, m2(2,2), dE, dE_amp, pz_end, p1c
 real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, s_omega(3)
 
 integer body_dir
@@ -279,10 +279,8 @@ call pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
 ! Calc some stuff
 
 if (s_dir == 1) then
-  dp0c = step%dp0c
-  p1c = step%p0c + dp0c
+  p1c = step%p1c
 else
-  dp0c = -step%dp0c
   p1c = step%p0c
 endif
 
@@ -325,7 +323,7 @@ endif
 ! Convert to momentum coords
 
 call to_momentum_coords(orbit, pz_end, mc2, mat6, make_mat)
-call orbit_reference_energy_correction(orbit, dp0c, mat6, make_mat)
+call orbit_reference_energy_correction(orbit, p1c, mat6, make_mat)
 
 !-------------------------------------------------
 ! Spin
