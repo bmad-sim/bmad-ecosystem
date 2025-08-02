@@ -275,7 +275,9 @@ do ib = 0, ubound(lat_out%branch, 1)
         init_hybrid_needed = .false.
 
       else
-        if (ele_in%key == marker$ .or. ele_in%key == photon_fork$ .or. ele_in%key == fork$) cycle
+        select case (ele_in%key)
+        case (marker$, photon_fork$, fixer$, fork$); cycle
+        end select
 
         if (do_taylor) then
           if (associated(ele_in%taylor(1)%term)) then

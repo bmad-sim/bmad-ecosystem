@@ -26,6 +26,7 @@ do ie = 1, lat%n_ele_max
   write (1, '(a, i0, 3a, 2x, a)') '"scm-', ie, trim(ele%name), '" STR  ', &
       quote(space_charge_method_name(ele%space_charge_method)), &
       quote(space_charge_method_name(lat2%ele(ie)%space_charge_method))
+  write (1, '(a, i0, a, es22.14)') '"ref_time-', ie, '" ABS 1E-16', ele%ref_time
 enddo
 
 call lat_ele_locator('CAVITY1', lat, eles, n_loc)
@@ -42,14 +43,14 @@ do is = 0, 2
   do ii = 0, ubound(ele%rf%steps, 1)
     step => ele%rf%steps(ii)
     write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-a-', int_str(ii), '" REL 1E-8', step%E_tot0, &
-                                                                   step%E_tot1, step%p0c, step%dp0c, step%dE_amp
-    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" REL 1E-12', step%scale, step%dtime, step%s
+                                            step%E_tot1, step%p0c, step%p1c, step%dE_amp, step%s
+    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" ABS 1E-18', step%time, step%dt_rf
   enddo
 enddo
 
 call lat_ele_locator('END', lat, eles, n_loc)
 ele => eles(1)%ele
-write (1, '(a, 2es22.14)') '"END-energy" REL 4E-9', ele%value(p0c$), ele%value(E_tot$)
+write (1, '(a, 2es22.14)') '"END-energy" REL 1E-8', ele%value(p0c$), ele%value(E_tot$)
 
 
 

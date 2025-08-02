@@ -193,7 +193,7 @@ case (lcavity$)
     is_valid = .true.
   end select
 
-case (marker$, detector$)
+case (marker$, detector$, fixer$)
   select case (method)
   case (bmad_standard$, symp_lie_ptc$, linear$, taylor$, custom$)
     is_valid = .true.

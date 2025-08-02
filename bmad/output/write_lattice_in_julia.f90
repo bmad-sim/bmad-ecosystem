@@ -62,7 +62,7 @@ character(20), parameter :: julia_name(n_key$) = [character(20):: &
     'Undulator         ', 'DiffractionPlatee ', 'PhotonInit        ', 'Sample            ', 'Detector          ', &
     'SadMult           ', 'Mask              ', 'ACKicker          ', 'Lens              ', '!Space_Charge_Com ', &
     'CrabCavity        ', 'Ramper            ', '!PTC_Com          ', 'RFBend            ', 'Kicker            ', &
-    'Foil              ', 'ThickMultipole    ', 'Instrument        ', 'Instrument        ']
+    'Foil              ', 'ThickMultipole    ', 'Instrument        ', 'Instrument        ', 'Fixer             ']
 
 
 ! Open file
@@ -430,7 +430,6 @@ do ib = 0, ubound(lat%branch, 1)
 
   do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
-    if (ele%key == marker$ .and. ele%name == 'END') cycle
     if (ele%slave_status == super_slave$) cycle
     if (ele%slave_status == multipass_slave$) cycle
     !!! call eles_with_same_name_handler(ele, named_eles, an_indexx, names, n_names, order)

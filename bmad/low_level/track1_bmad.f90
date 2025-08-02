@@ -120,7 +120,7 @@ case (lcavity$)
 ! Note: floor_shift elements can have finite length in the case where it is a slice_slave of a taylor 
 ! element (the first slice is a taylor element and all other slices are floor_shifts).
 
-case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$, beginning_ele$)
+case (marker$, fork$, photon_fork$, floor_shift$, fiducial$, detector$, beginning_ele$, fixer$)
 
   orbit%t = orbit%t + ele%value(delta_ref_time$)
 

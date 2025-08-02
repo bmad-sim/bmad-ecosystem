@@ -47,9 +47,9 @@ character(*), parameter :: r_name = 'ele_reference_energy_correction'
 if (ele%value(p0c$) == ele%value(p0c_start$)) return
 
 if ((orbit%direction*orbit%time_dir == 1 .and. particle_at == first_track_edge$) .or. particle_at == downstream_end$) then
-  call orbit_reference_energy_correction(orbit, ele%value(p0c$)-orbit%p0c, mat6, make_matrix)
+  call orbit_reference_energy_correction(orbit, ele%value(p0c$), mat6, make_matrix)
 elseif ((orbit%direction*orbit%time_dir == -1 .and. particle_at == second_track_edge$) .or. particle_at == upstream_end$) then
-  call orbit_reference_energy_correction(orbit, ele%value(p0c_start$)-orbit%p0c, mat6, make_matrix)
+  call orbit_reference_energy_correction(orbit, ele%value(p0c_start$), mat6, make_matrix)
 else
   return
 endif

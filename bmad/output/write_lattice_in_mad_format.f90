@@ -708,7 +708,7 @@ do
 
   ! marker MAD
 
-  case (marker$, fork$, photon_fork$)
+  case (marker$, fork$, photon_fork$, fiducial$, fixer$)
 
     line_out = trim(ele%name) // ': marker'
 
@@ -1073,8 +1073,9 @@ if (out_type(1:3) == 'MAD') then
     ! sad_mult and patch elements are translated to a matrix which does not have offsets.
     ! And marker like elements also do not have offsets
 
-    if (ele%key == sad_mult$ .or. ele%key == patch$) cycle
-    if (ele%key == marker$ .or. ele%key == fork$ .or. ele%key == photon_fork$) cycle
+    select case (ele%key)
+    case (sad_mult$, patch$, marker$, fork$, photon_fork$, fiducial$, fixer$); cycle
+    end select
 
     !
 

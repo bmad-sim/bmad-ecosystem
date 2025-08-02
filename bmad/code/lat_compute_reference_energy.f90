@@ -611,11 +611,11 @@ case (lcavity$, const_ref_energy$)
       ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
       ele%value(p0c$) = lord%rf%steps(i1)%p0c
 
-      t = (lord%rf%steps(i0)%s - ele%s_start) * lord%rf%steps(i0)%dtime / lord%rf%ds_step
-      if (i1 /= i0) t = t + (ele%s - lord%rf%steps(i1)%s) * lord%rf%steps(i1)%dtime / lord%rf%ds_step
+      t = (lord%rf%steps(i0)%s - ele%s_start) * lord%rf%steps(i0)%time / lord%rf%ds_step
+      if (i1 /= i0) t = t + (ele%s - lord%rf%steps(i1)%s) * lord%rf%steps(i1)%time / lord%rf%ds_step
       
       do i = i0+1, i1-1
-        t = t + lord%rf%steps(i)%dtime
+        t = t + lord%rf%steps(i)%time
       enddo
 
     else
@@ -735,7 +735,7 @@ case (patch$)
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
   ele%time_ref_orb_out%t = ele%ref_time
 
-case (marker$, fork$, photon_fork$)
+case (marker$, fork$, fixer$, photon_fork$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
   ele%value(delta_ref_time$) = 0

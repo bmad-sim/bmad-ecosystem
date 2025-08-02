@@ -590,7 +590,7 @@ do ix_ele = 1, branch_out%n_ele_track
       call value_to_line (line_out, -val(phi0_err$), 'DPHI', 'R', .true., .false.)
 
     !
-    case (marker$)
+    case (marker$, fixer$)
       write (line_out, '(4a)') 'MARK ', trim(ele%name), ' = ('
       call value_to_line (line_out, val(sad_mark_offset$), 'OFFSET', 'R', .true., .false.)
       call value_to_line (line_out, ele%old_value(sad_bound$), 'BOUND', 'R', .true., .false.)
@@ -769,57 +769,59 @@ do ix_ele = 1, branch_out%n_ele_track
   ! misalignments
   ! Note: SAD applies pitches and offsets in reverse order to Bmad.
 
-  xp = val(x_pitch$);  yp = val(y_pitch$)
+  if (has_orientation_attributes(ele)) then
+    xp = val(x_pitch$);  yp = val(y_pitch$)
 
-  if (xp /= 0) then
-    zo =  val(z_offset$) * cos(xp) + val(x_offset$) * sin(xp)
-    xo = -val(z_offset$) * sin(xp) + val(x_offset$) * cos(xp)
-    val(z_offset$) = zo
-    val(x_offset$) = xo
-  endif
-
-  if (yp /= 0) then
-    zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
-    yo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
-    val(z_offset$) = zo
-    val(y_offset$) = yo
-  endif
-
-  if (ele%key == null_ele$) then ! patch -> SOL
-    if (ele%iyy == entrance_end$) then
-      val(x_offset$) = -val(x_offset$)
-      val(y_offset$) = -val(y_offset$)
-      val(z_offset$) = -val(z_offset$)
-    else
-      val(z_offset$) = -val(z_offset$)
+    if (xp /= 0) then
+      zo =  val(z_offset$) * cos(xp) + val(x_offset$) * sin(xp)
+      xo = -val(z_offset$) * sin(xp) + val(x_offset$) * cos(xp)
+      val(z_offset$) = zo
+      val(x_offset$) = xo
     endif
-    val(z_offset$) = val(z_offset$) + ele%value(t_offset$) * c_light
-  endif
 
-  call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
-  call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
-  call value_to_line (line_out, val(z_offset$), 'DZ', 'R', .true., .false.)
-
-  if (ele%key /= marker$) then
-    call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'R', .true., .false.)
-    call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'R', .true., .false.)
-  endif
-
-  if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
-    call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
-  elseif (ele%key /= sbend$ .and. ele%key /= kicker$ .and. ele%key /= vkicker$) then
-    call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
-  endif
-
-  if (ele%key == null_ele$ .and. nint(ele%old_value(sad_geo$)) == 1) then
-    if (ele%iyy == entrance_end$) then
-      call value_to_line (line_out, val(x_pitch$), 'DPX', 'R', .true., .false.)
-      call value_to_line (line_out, val(y_pitch$), 'DPY', 'R', .true., .false.)
-    else
-      call value_to_line (line_out, -val(x_pitch$), 'DPX', 'R', .true., .false.)
-      call value_to_line (line_out, -val(y_pitch$), 'DPY', 'R', .true., .false.)
+    if (yp /= 0) then
+      zo =  val(z_offset$) * cos(yp) + val(y_offset$) * sin(yp)
+      yo = -val(z_offset$) * sin(yp) + val(y_offset$) * cos(yp)
+      val(z_offset$) = zo
+      val(y_offset$) = yo
     endif
-  endif      
+
+    if (ele%key == null_ele$) then ! patch -> SOL
+      if (ele%iyy == entrance_end$) then
+        val(x_offset$) = -val(x_offset$)
+        val(y_offset$) = -val(y_offset$)
+        val(z_offset$) = -val(z_offset$)
+      else
+        val(z_offset$) = -val(z_offset$)
+      endif
+      val(z_offset$) = val(z_offset$) + ele%value(t_offset$) * c_light
+    endif
+
+    call value_to_line (line_out, val(x_offset$), 'DX', 'R', .true., .false.)
+    call value_to_line (line_out, val(y_offset$), 'DY', 'R', .true., .false.)
+    call value_to_line (line_out, val(z_offset$), 'DZ', 'R', .true., .false.)
+
+    if (ele%key /= marker$) then
+      call value_to_line (line_out, -val(x_pitch$), 'CHI1', 'R', .true., .false.)
+      call value_to_line (line_out, -val(y_pitch$), 'CHI2', 'R', .true., .false.)
+    endif
+
+    if (ele%key == patch$ .or. ele%key == null_ele$) then   ! null_ele -> SOL
+      call value_to_line (line_out, -val(tilt$),    'CHI3', 'R', .true., .false.)
+    elseif (ele%key /= sbend$ .and. ele%key /= kicker$ .and. ele%key /= vkicker$) then
+      call value_to_line (line_out, -val(tilt$),    'ROTATE', 'R', .true., .false.)
+    endif
+
+    if (ele%key == null_ele$ .and. nint(ele%old_value(sad_geo$)) == 1) then
+      if (ele%iyy == entrance_end$) then
+        call value_to_line (line_out, val(x_pitch$), 'DPX', 'R', .true., .false.)
+        call value_to_line (line_out, val(y_pitch$), 'DPY', 'R', .true., .false.)
+      else
+        call value_to_line (line_out, -val(x_pitch$), 'DPX', 'R', .true., .false.)
+        call value_to_line (line_out, -val(y_pitch$), 'DPY', 'R', .true., .false.)
+      endif
+    endif      
+  endif
 
   !
 
