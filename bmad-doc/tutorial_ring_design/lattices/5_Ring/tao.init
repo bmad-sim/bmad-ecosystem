@@ -1,4 +1,0 @@
-&tao_plot_page
-
-	plot_page%n_curve_pts = 5000
-/

@@ -1,7 +1,0 @@
-call, file = fodoAF0.bmad
-
-FODOAR: line = (QF, D2, B, D1, QD, D2, B, D1)
-use, FODOAR
-
-! To create a fodoAR.bmad file with optimized quad strengths, copy this file and 
-! change call to call fodoAF.bmad.

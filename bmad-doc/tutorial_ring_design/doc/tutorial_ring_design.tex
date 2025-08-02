@@ -76,7 +76,7 @@
 \title{Collider Ring Design Tutorial using Bmad}
 \author{}
 \date{
-\parbox{2in}{\today \\
+\parbox{2in}{2025, August 1 \\
 \rule[3pt]{1.8in}{2pt} \\
 Joe Devlin \\
 Georg Hoffstaetter de Torquat \\
@@ -196,7 +196,7 @@ Later in the tutorial the sextupoles and corrector coils will be added in.
 }}[0.3in]
 %
 The phase advance per FODO cell for the lattice to be designed is chosen to be 90$\degree$ to achieve the emittance requirements. Construction of the forward arc FODO cell without sextupoles will be
-demonstrated below. Left as an exercise will be the construction of the reverse arc FODO cell without sextupoles along with the forward and reverse straight section FODO cells. Example files can be found in the \vn{/lattices/1_FoDoA/a_Arc/} directory.
+demonstrated below. Left as an exercise will be the construction of the reverse arc FODO cell without sextupoles along with the forward and reverse straight section FODO cells. Example files can be found in the \vn{/lattices/01_FODO/a_Arc/} directory.
 
 \begin{figure}[h!]
   \includegraphics*[width=0.95\columnwidth]{figures/FODOaf-dim.pdf}
@@ -231,7 +231,7 @@ FODOAF: line = (QF, D1, B, D2, QD, D1, B, D2)
 use, FODOAF
 \end{code}
 
-Make sure you are in the directory \vn{/lattices/1_FoDoA}.
+Make sure you are in the directory \vn{/lattices/01_FODO}.
 On the command line, the lattice can be opened in \tao using the command 
 \begin{code}
 tao -lat fodoAF0.bmad
@@ -697,7 +697,7 @@ zero, the last two quadrupoles can be minimally varied.
 
 The procedure for creating the forward dispersion suppressor is outlined below. 
 The reverse dispersion suppressor construction is left as an exercise. 
-The example files can be found in the \vn{/lattices/2_DispSuppress/F/} directory.
+The example files can be found in the \vn{/lattices/02_DispSuppress/F/} directory.
 
 To create the forward dispersion suppressor:
 \begin{enumerate}[leftmargin=*]
@@ -900,7 +900,7 @@ The periodic betas in the arcs are different from the periodic betas in the stra
 
 The procedure for creating the forward matching section is shown below.
 Matching the reverse matching section is left as an exercise. 
-The example files can be found in the \vn{/lattices/3_MatchToSS/F/} directory.
+The example files can be found in the \vn{/lattices/03_MatchToSS/F/} directory.
 
 To create the forward matching section:
 \begin{enumerate}[leftmargin=*]
@@ -1374,7 +1374,7 @@ connect the lines together.
 \subsection{Example: Forward Straight Section to Arc}
 
 As an example, the forward line to connect the straight section to the arc, \vn{SS_TO_ARCF}, will be constructed. 
-The example lattice file can be found in \vn{/lattices/5_Ring/}. 
+The example lattice file can be found in \vn{/lattices/05_Ring/}. 
 Construction of \vn{SS_TO_ARCR} and the entire ring will be left as an exercise.
 
 Following Fig.~\ref{f:sextant}, both the matching to dispersion creator line (which we'll call \vn{MDCF}), and the dispersion creator line itself (which we'll call \vn{DISPCREF}) need to be construted. Using the mirror symmetry as shown in Fig.~\ref{f:ring}, it is seen that \vn{SS_TO_ARCF} will use the same quadrupole settings as in \vn{ARC_TO_SSR}. Keeping with our convention of starting each line with a full horizontally-focusing quadrupole, this is 
@@ -1519,7 +1519,7 @@ Because this region is particularly sensitive, this match is achieved with the f
 
 %------------------------------------------------------------------------------
 \subsection{Example: Constructing the Upstream and Downstream IR Lines}
-The example lattice file can be found in \vn{/lattices/6_IP/a_IP0/}.
+The example lattice file can be found in \vn{/lattices/06_IP/a_IP0/}.
 
 Construct the upstream and downstream IR lines, shown on the top and bottom of Fig.~\ref{f:ir} respectively, and leave the upstream, downstream, and full IR matching described in the introduction as exercises.
 
@@ -1645,7 +1645,7 @@ These 6 constraints can be satisfied using the four quadrupoles in the forward m
 %------------------------------------------------------------------------------
 \subsection{Example: tao.init for the Tune Cell}
 
-The example file can be found at \vn{/lattices/7_TuneCell/tao.init}.
+The example file can be found at \vn{/lattices/07_TuneCell/tao.init}.
 
 To define datums that constrain the solution to have periodic betas in the straight section,
 \vn{expression} datums are used. Expressions are an extremely powerful tool that allows for complex lattice optimizations and matching techniques. 
@@ -1987,7 +1987,7 @@ starting one. Here, the \vn{pz} coordinate at the end of the element is nonzero.
 %------------------------------------------------------------------------------
 \subsection{Adding RF Cavities}
 
-The example files for this section can be found at \vn{/lattices/9_RF/AddingRF/}
+The example files for this section can be found at \vn{/lattices/09_RF/AddingRF/}
 
 In a real machine, electrons emit synchrotron radiation as they bend around the ring, so we need to replenish the energy with an RF system. Let’s put RF cavities in the 10 o’clock straight section of our ring. We will design a special FODO cell with RF cavities \vn{FODORF} and replace 4 FODO cells in the 10 o’clock straight section. 
 
