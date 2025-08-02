@@ -635,7 +635,7 @@ do
     bmad_params(:4) = [character(40):: 'x_offset', 'y_offset', 'sig_x', 'sig_y']
     elegant_params(:4) = [character(40):: 'xcenter', 'ycenter', 'xsize', 'ysize']
 
-  case (marker$, fixer$, fiducial$)   ! Elegant
+  case (marker$)   ! Elegant
     write (line_out, '(2a)') trim(ele%name) // ': mark'
     bmad_params(:2) = [character(40):: 'x_offset', 'y_offset']
     elegant_params(:2) = [character(40):: 'dx', 'dy']
