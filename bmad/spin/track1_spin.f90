@@ -43,7 +43,8 @@ logical err
 
 if (start_orb%species == photon$) return
 
-if ((ele%key == drift$ .or. ele%key == marker$) .and. ele%spin_tracking_method /= custom$) then
+if ((ele%key == drift$ .or. ele%key == marker$ .or. ele%key == fixer$) .and. &
+                                                       ele%spin_tracking_method /= custom$) then
   end_orb%spin = start_orb%spin
   if (logic_option(.false., make_quaternion)) ele%spin_q(:,0) = [1, 0, 0, 0]
   return

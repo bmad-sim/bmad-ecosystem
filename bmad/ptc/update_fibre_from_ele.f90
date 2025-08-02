@@ -75,7 +75,7 @@ endif
 
 !
 
-if (ele%key == marker$) return
+if (ele%key == marker$ .or. ele%key == fixer$) return
 
 ! Must set all poles even if zero since they might have been non-zero beforehand.
 ! Note: On ptc side bn(1) is error field when creating a fibre but is total field when fibre is being modified.	 

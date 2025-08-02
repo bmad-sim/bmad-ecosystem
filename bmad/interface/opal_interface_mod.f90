@@ -150,7 +150,7 @@ ele_loop: do ie = ix_start, ix_end
   !----------------------------------------------------------
   ! Marker -----------------------------------
   !----------------------------------------------------------
-  case (marker$, detector$)
+  case (marker$, detector$, fixer$)
     write (line, '(a)' ) trim(ele%name) // ': marker'
     ! Write ELEMEDGE
     call value_to_line (line, ele%s - val(L$), 'elemedge', 'R', ignore_if_zero = .false.)

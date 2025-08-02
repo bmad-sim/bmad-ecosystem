@@ -183,7 +183,7 @@ case (mask$)
     is_valid = .true.
   end select
 
-case (marker$, detector$)
+case (marker$, fixer$, detector$)
   select case (mat6_calc_method)
   case (auto$, bmad_standard$, symp_lie_ptc$, taylor$, tracking$, custom$)
     is_valid = .true.

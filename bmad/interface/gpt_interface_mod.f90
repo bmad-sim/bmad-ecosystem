@@ -564,7 +564,7 @@ case (quadrupole$)
    call write_property('gradient')
    write (iu, '(a)') ' );'  
 
-case (drift$, monitor$, instrument$, pipe$, girder$, overlay$, group$, marker$)
+case (drift$, monitor$, instrument$, pipe$, girder$, overlay$, group$, marker$, fixer$)
   ! Nothing to do
 
 case default

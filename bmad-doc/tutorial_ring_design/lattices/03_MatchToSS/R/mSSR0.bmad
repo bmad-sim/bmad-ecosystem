@@ -1,0 +1,54 @@
+! (1): Start with dispsupR.bmad
+! (2): Add straight section (SS) drift DB
+! (3): Define quads for matching to SS (two per plane, use SS strengths as starting point)
+! (4): Define the matching to SS line (MSSR)
+! (5): Define the entire dispersion suppression and matching line (ARC_TO_SSR)
+parameter[geometry] = Open            
+
+parameter[p0c]                      = 1.7846262612447E10
+parameter[particle]                 = Electron
+
+beginning[beta_a]    = 30.6276899615611
+beginning[alpha_a]   = -2.4028257772189
+beginning[eta_x]     = 0.586359929961733
+beginning[etap_x]    = 0.0469886311069574
+beginning[beta_b]    = 5.54895892160188
+beginning[alpha_b]   = 0.47688813370475
+
+
+!-------------------------------------------------------
+
+QF: Quadrupole, L = 0.5, K1 = 0.312808574467162
+D2: Drift, L = 1.241
+BH: SBend, L = 6.86004047683621, G = 1.73467958576489E-3, E1 = 5.94998608634431E-3,
+   E2 = 5.94998608634431E-3
+D1: Drift, L = 0.609
+QD: Quadrupole, L = 0.5, K1 = -0.312643401293818
+QFR1: Quadrupole, L = 0.5, K1 = 0.31279043710515
+QDR1: Quadrupole, L = 0.5, K1 = -0.312476088830373
+
+! (2): Add straight section (SS) drift DB
+DB: Drift, L = 5.855
+! (3): Define quads for matching to SS (two per plane, use SS strengths as starting point)
+QFR2: Quadrupole, L = 0.5, K1 = 0.351957452649287
+QDR2: Quadrupole, L = 0.5, K1 = -0.351957452649287
+QFR3: Quadrupole, L = 0.5, K1 = 0.351957452649287
+QDR3: Quadrupole, L = 0.5, K1 = -0.351957452649287
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+
+DISPSUPR: line = ( qf, d2, bh, d1, qd, d2, bh, d1, qfr1, d2, bh, d1, qdr1, d2, bh, d1)
+
+! (4): Define the matching to SS line (MSSR)
+MSSR: line = ( QFR2, D2, DB, D1, QDR2, D2, DB, D1,  QFR3, D2, DB, D1, QDR3, D2, DB, D1)
+
+! (5): Define the entire dispersion suppression and matching line (ARC_TO_SSR)
+ARC_TO_SSR: line = (DISPSUPR, MSSR)
+
+use, ARC_TO_SSR

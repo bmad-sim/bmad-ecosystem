@@ -735,7 +735,7 @@ case (patch$)
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
   ele%time_ref_orb_out%t = ele%ref_time
 
-case (marker$, fork$, photon_fork$)
+case (marker$, fork$, fixer$, photon_fork$)
   ele%value(E_tot$) = E_tot_start
   ele%value(p0c$) = p0c_start
   ele%value(delta_ref_time$) = 0

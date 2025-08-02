@@ -139,7 +139,7 @@ case (rfcavity$)
 case (solenoid$)
   call mad_solenoid (ele, energy, map)
 
-case (marker$, detector$)
+case (marker$, detector$, fixer$, fiducial$)
   call make_unit_mad_map (map)
 
 case default
