@@ -1,5 +1,5 @@
-"write_foreign_test.mad8" STR  "BAD"
-"write_foreign_test.madx" STR  "BAD"
-"write_foreign_test.sad" STR  "BAD"
+"write_foreign_test.mad8" STR  "GOOD"
+"write_foreign_test.madx" STR  "GOOD"
+"write_foreign_test.sad" STR  "GOOD"
 "write_foreign_test.lte" STR  "GOOD"
 "write_foreign_test.julia" STR  "GOOD"
