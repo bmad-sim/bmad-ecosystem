@@ -5,11 +5,10 @@ beginning[e_tot] = 10e6
 parameter[geometry] = open
 parameter[absolute_time_tracking] = T
 
-p: patch
 cav: Lcavity, voltage = 1e6, L = 1, rf_frequency = 1e9
 linac: line[multipass] = (cav)
 
-lat: line = (linac, p, linac)
+lat: line = (linac, linac)
 use, lat
 
 Lcavity::*[n_rf_steps] = 1024
