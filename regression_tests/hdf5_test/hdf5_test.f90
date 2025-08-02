@@ -14,7 +14,7 @@ type (coord_struct), pointer :: p
 type (beam_struct) beam, beam2
 type (beam_init_struct) beam_init
 type (ele_struct) ele
-type (grid_field_struct), pointer :: gf1(:), gf0(:)
+type (grid_field_struct), pointer :: gf1(:) => null(), gf0(:) => null()
 type (pmd_unit_struct) unit
 
 integer i, j, n_part

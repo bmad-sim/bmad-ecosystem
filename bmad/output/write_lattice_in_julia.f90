@@ -430,7 +430,6 @@ do ib = 0, ubound(lat%branch, 1)
 
   do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
-    if (ele%key == marker$ .and. ele%name == 'END') cycle
     if (ele%slave_status == super_slave$) cycle
     if (ele%slave_status == multipass_slave$) cycle
     !!! call eles_with_same_name_handler(ele, named_eles, an_indexx, names, n_names, order)

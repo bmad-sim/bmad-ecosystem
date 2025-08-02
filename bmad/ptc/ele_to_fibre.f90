@@ -349,7 +349,8 @@ case (sol_quad$)
   ptc_key%list%usethin = .false.  ! So zero length element is not treated as a multipole
 
 !------------------------------
-case (marker$, detector$, fork$, photon_fork$, beginning_ele$, patch$, floor_shift$, fiducial$, taylor$, match$)
+case (marker$, detector$, fixer$, fork$, photon_fork$, beginning_ele$, &
+                                      patch$, floor_shift$, fiducial$, taylor$, match$)
   ptc_key%magnet = 'marker'
   ptc_key%nstep = 1
 

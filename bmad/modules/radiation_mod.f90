@@ -87,7 +87,7 @@ if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuati
 if (ele%value(l$) == 0) return
 if (ele%tracking_method == taylor$ .and. ele%mat6_calc_method == taylor$) return
 select case (ele%key)
-case (drift$, pipe$, taylor$, multipole$, ab_multipole$, mask$, marker$);  return
+case (drift$, pipe$, taylor$, multipole$, ab_multipole$, mask$, marker$, fixer$, fiducial$);  return
 end select
 
 ! Use stochastic and damp mats
