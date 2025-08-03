@@ -254,7 +254,7 @@ case (taylor$)
 case (symp_lie_bmad$) 
   call symp_lie_bmad (ele, param, end_orb, track, mat6 = ele%mat6, make_matrix = make_map1)
   stm = ele%spin_tracking_method
-  if (stm == tracking$ .or. stm == symp_lie_bmad$) do_spin_tracking = .false.
+  if (stm == tracking$ .or. stm == symp_lie_ptc$) do_spin_tracking = .false.
 
 case (symp_lie_ptc$)
   call track1_symp_lie_ptc (end_orb, ele, param, track)

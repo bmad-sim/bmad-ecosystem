@@ -266,7 +266,7 @@ subroutine tao_evaluate_expression (expression, n_size, use_good_user, value, er
   character(*) :: expression
   character(*), optional :: dflt_component, dflt_source
   character(*), optional :: dflt_dat_or_var_index
-  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (tao_eval_node_struct), allocatable, optional :: stack(:)
   type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
   type (coord_struct), optional :: dflt_orbit
   type (tao_expression_info_struct), allocatable, optional :: info(:)
@@ -288,7 +288,7 @@ subroutine tao_evaluate_expression_new (expression, n_size, use_good_user, value
   character(*) :: expression
   character(*), optional :: dflt_component, dflt_source
   character(*), optional :: dflt_dat_or_var_index
-  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (tao_eval_node_struct), allocatable, optional :: stack(:)
   type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
   type (coord_struct), optional :: dflt_orbit
   type (tao_expression_info_struct), allocatable, optional :: info(:)
@@ -310,7 +310,7 @@ subroutine tao_evaluate_expression_old (expression, n_size, use_good_user, value
   character(*) :: expression
   character(*), optional :: dflt_component, dflt_source
   character(*), optional :: dflt_dat_or_var_index
-  type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+  type (tao_eval_node_struct), allocatable, optional :: stack(:)
   type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
   type (coord_struct), optional :: dflt_orbit
   type (tao_expression_info_struct), allocatable, optional :: info(:)
@@ -347,13 +347,14 @@ type (tao_expression_info_struct), allocatable, optional :: info(:)
   logical :: print_err
 end subroutine
 
-subroutine tao_evaluate_stack_new (stack, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
+recursive &
+subroutine tao_evaluate_tree (tao_tree, n_size, use_good_user, value, err_flag, print_err, expression, info_in)
   import
   implicit none
-  type (tao_eval_stack1_struct), target :: stack(:)
+  type (tao_eval_node_struct), target :: tao_tree
   type (tao_expression_info_struct), allocatable, optional :: info_in(:)
   real(rp), allocatable :: value(:)
-  integer n_size_in, species
+  integer n_size
   logical err_flag, use_good_user, print_err
   character(*) expression
 end subroutine

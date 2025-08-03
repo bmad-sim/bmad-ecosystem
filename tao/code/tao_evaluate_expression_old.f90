@@ -56,8 +56,8 @@ type expression_func_struct
   integer :: n_arg_count = 0      ! Number of arguments found.
 end type
 
-type (tao_eval_stack1_struct), allocatable :: stk(:)
-type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+type (tao_eval_node_struct), allocatable :: stk(:)
+type (tao_eval_node_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable, optional :: info(:)
@@ -636,7 +636,7 @@ end subroutine push_op_stack
 
 subroutine push_stack (stack, i_lev, this_type)
 
-type (tao_eval_stack1_struct), allocatable :: stack(:), tmp_stk(:)
+type (tao_eval_node_struct), allocatable :: stack(:), tmp_stk(:)
 integer i_lev, this_type
 
 character(*), parameter :: r_name = "push_stack"

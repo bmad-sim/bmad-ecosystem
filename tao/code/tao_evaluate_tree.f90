@@ -1,10 +1,10 @@
 !+
-! Subroutine tao_evaluate_stack_new (stack, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
+! Subroutine tao_evaluate_tree (tao_tree, n_size_in, use_good_user, value, info, err_flag, print_err, expression)
 !
-! Routine to evaluate an expression stack.
+! Routine to evaluate an expression tao_tree.
 !
 ! Input:
-!   stack(:)      -- tao_eval_stack1_struct: Expression stack
+!   tao_tree      -- tao_eval_node_struct: Expression tree
 !   n_size_in     -- integer: Desired array size. If the expression evaluates to a
 !                      a scalar, each value in the value array will get this value.
 !                      If n_size = 0, the natural size is determined by the expression itself.
@@ -14,113 +14,137 @@
 !   expression    -- character(*): Original expression. Used for error messages.
 !
 ! Output:
-!   value(:)      -- Real(rp), allocatable: Value of arithmetic expression.
-!   info(:)       -- tao_expression_info_struct, allocatable: Is the value valid? 
+!   value(:)      -- Real(rp), allocatable: Value(s) of the arithmetic expression.
+!   info(:)       -- tao_expression_info_struct, allocatable: Are the returned values valid? 
 !                      Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
 !                      orbit.x[23]|good_user is False.
 !   err_flag      -- Logical: True on error. False otherwise
 !-
 
-subroutine tao_evaluate_stack_new (stack, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
+recursive &
+subroutine tao_evaluate_tree (tao_tree, n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
 
-use tao_interface, dummy => tao_evaluate_stack_new
+use tao_interface, dummy => tao_evaluate_tree
 use expression_mod
 
-type (tao_eval_stack1_struct), target :: stack(:)
-type (tao_eval_stack1_struct), pointer :: ss
-type (tao_eval_stack1_struct), pointer :: s2(:)
-type (tao_eval_stack1_struct) stk2(20)
+type (tao_eval_node_struct), target :: tao_tree
+type (tao_eval_node_struct), pointer :: node1
+type (tao_eval_node_struct) stk2(20)
 type (tao_expression_info_struct), allocatable, optional :: info_in(:)
-type (tao_expression_info_struct), allocatable :: info(:)
+type (tao_expression_info_struct), allocatable :: info_loc(:), info2(:)
 
-real(rp), allocatable :: value(:)
+real(rp), allocatable :: value(:), val2(:)
 
-integer n_size_in, species
-integer i, i2, j, n, ns, ni, n_size
+integer n_size_in, n_size, species
+integer i, i2, j, n, nn, nj, ns, ni
 
-logical err_flag, use_good_user, print_err, info_allocated
+logical err_flag, use_good_user, print_err, info_allocated, err
 
 character(*) expression
-character(*), parameter :: r_name = 'tao_evaluate_stack_new'
+character(*), parameter :: r_name = 'tao_evaluate_tree'
+
+! Handle root
+
+if (tao_tree%type == root$) then  ! Must have only one child
+  call tao_evaluate_tree (tao_tree%node(1), n_size_in, use_good_user, value, err_flag, print_err, expression, info_in)
+  return
+endif
+
+!
+
+if (.not. associated(tao_tree%node)) return
+
+err_flag = .true.
+nn = size(tao_tree%node)
 
 ! Calculate good
 
-s2 => stack   ! For debugging purposes
-err_flag = .true.
 n_size = max(1, n_size_in)
 
-do i = 1, size(stack)
-  ss => stack(i)
+do i = 1, nn
+  node1 => tao_tree%node(i)
 
-  select case (ss%name)
+  select case (node1%name)
   case ('average', 'sum', 'rms', 'min', 'max'); n_size = 1
   end select
 
-  if (allocated(ss%value)) then
-    if (size(ss%value) > 1 .and. n_size > 1 .and. size(ss%value) /= n_size) then
+  if (allocated(node1%value)) then
+    if (size(node1%value) > 1 .and. n_size > 1 .and. size(node1%value) /= n_size) then
       if (print_err) call out_io (s_error$, r_name, 'Array sizes mismatch in expression')
       err_flag = .true.
       return
     endif
-    n_size = max(n_size, size(ss%value))
+    n_size = max(n_size, size(node1%value))
   endif
 
-  if (allocated(ss%value_ptr)) then
-    if (associated(ss%value_ptr(1)%good_value)) then    
-      do j = 1, size(ss%value_ptr)
+  if (allocated(node1%value_ptr)) then
+    if (associated(node1%value_ptr(1)%good_value)) then    
+      do j = 1, size(node1%value_ptr)
         if (use_good_user) then
-          ss%info(j)%good = ss%value_ptr(j)%good_value .and. ss%value_ptr(j)%good_user
+          node1%info(j)%good = node1%value_ptr(j)%good_value .and. node1%value_ptr(j)%good_user
         else
-          ss%info(j)%good = ss%value_ptr(j)%good_value
+          node1%info(j)%good = node1%value_ptr(j)%good_value
         endif
       enddo
     endif
   endif
 enddo
 
-call tao_re_allocate_expression_info(info, n_size)
+call tao_re_allocate_expression_info(info_loc, n_size)
 
-! Go through the stack and perform the operations...
+! Go through the tao_tree%node array and perform the operations...
 
-i2 = 0  ! stack pointer
-do i = 1, size(stack)
+i2 = 0  
+do i = 1, nn
+  node1 => tao_tree%node(i)
 
-  if (allocated(stack(i)%info)) then
-    ns = size(stack(i)%info)
-    if (.not. allocated(info)) then
-      call tao_re_allocate_expression_info(info, ns)
-      info = tao_expression_info_struct()
+  if (node1%type == square_brackets$) then
+    nj = size(node1%node)
+    call re_allocate(node1%value, nj)
+    call tao_re_allocate_expression_info(node1%info, nj)
+
+    do j = 1, nj
+      call tao_evaluate_tree (node1%node(j), 1, use_good_user, val2, err, print_err, expression, info2)
+      if (err) return
+      node1%value(j) = val2(1)
+      node1%info(j) = info2(1)
+    enddo
+  endif
+
+  if (allocated(node1%info)) then
+    ns = size(node1%info)
+    if (.not. allocated(info_loc)) then
+      call tao_re_allocate_expression_info(info_loc, ns)
+      info_loc = tao_expression_info_struct()
     endif
-    ni = size(info)
+    ni = size(info_loc)
 
     if (.not. this_size_check(ns, ni)) return
     if (ns == ni) then
-      info%good = info%good .and. stack(i)%info%good
-      do j = 1, size(info)
-        if (stack(i)%info(j)%s /= real_garbage$) info(j)%s = stack(i)%info(j)%s
-        info(j)%ele => stack(i)%info(j)%ele
+      info_loc%good = info_loc%good .and. node1%info%good
+      do j = 1, size(info_loc)
+        if (node1%info(j)%s /= real_garbage$) info_loc(j)%s = node1%info(j)%s
+        info_loc(j)%ele => node1%info(j)%ele
       enddo 
     elseif (ns == 1) then
-      info%good = info%good .and. stack(i)%info(1)%good
+      info_loc%good = info_loc%good .and. node1%info(1)%good
     elseif (ni == 1) then
-      call tao_re_allocate_expression_info(info, ns)
-      info%good = info(1)%good .and. stack(i)%info(1)%good
+      call tao_re_allocate_expression_info(info_loc, ns)
+      info_loc%good = info_loc(1)%good .and. node1%info(1)%good
     endif
   endif
 
   !
 
-  select case (stack(i)%type)
-  case (arg_count$)
-    cycle
+  select case (node1%type)
 
-  case (numeric$)
+  case (numeric$, constant$, square_brackets$)
     i2 = i2 + 1
-    call value_transfer (stk2(i2)%value, stack(i)%value)
+    call value_transfer (stk2(i2)%value, node1%value)
 
   case (species_const$) ! Something like "electron". Just push on stack.
     i2 = i2 + 1
-    stk2(i2)%name = stack(i)%name
+    stk2(i2)%name = node1%name
     call re_allocate(stk2(i2)%value, 1)
 
   case (species$)
@@ -128,17 +152,17 @@ do i = 1, size(stack)
 
   case (lat_num$, ele_num$)
     !!! This needs to be fixed to include default stuff
-    !!! call tao_param_value_routine (stack(i)%name, '', stack(i), err_flag, print_err)
+    !!! call tao_param_value_routine (node1%name, '', node1, err_flag, print_err)
     i2 = i2 + 1
-    call value_transfer (stk2(i2)%value, stack(i)%value)
+    call value_transfer (stk2(i2)%value, node1%value)
 
   case (var_num$, data_num$)
-    do j = 1, size(stack(i)%value)
-      stack(i)%value(j) = stack(i)%value_ptr(j)%r
+    do j = 1, size(node1%value)
+      node1%value(j) = node1%value_ptr(j)%r
     enddo
-    stack(i)%value = stack(i)%value * stack(i)%scale
+    node1%value = node1%value * node1%scale
     i2 = i2 + 1
-    call value_transfer (stk2(i2)%value, stack(i)%value)
+    call value_transfer (stk2(i2)%value, node1%value)
 
   case (unary_minus$) 
     stk2(i2)%value = -stk2(i2)%value
@@ -189,9 +213,9 @@ do i = 1, size(stack)
       ! Propably can get rid of this stuff...
       stk2(i2)%value(j) = 1
       if (n == 1) then
-        info%good = .false.  ! All are false
+        info_loc%good = .false.  ! All are false
       else
-        info(j)%good = .false.
+        info_loc(j)%good = .false.
       endif
     enddo
 
@@ -216,7 +240,7 @@ do i = 1, size(stack)
     i2 = i2 - 1
 
   case (function$)
-    select case (stack(i)%name)
+    select case (node1%name)
     case ('cot');       stk2(i2)%value = 1.0_rp / tan(stk2(i2)%value)
     case ('csc');       stk2(i2)%value = 1.0_rp / sin(stk2(i2)%value)
     case ('sec');       stk2(i2)%value = 1.0_rp / cos(stk2(i2)%value)
@@ -249,28 +273,28 @@ do i = 1, size(stack)
     case ('floor');     stk2(i2)%value = floor(stk2(i2)%value)
     case ('ceiling');   stk2(i2)%value = ceiling(stk2(i2)%value)
 
-    case ('rms');       stk2(i2)%value(1) = rms_value(stk2(i2)%value, info%good)
+    case ('rms');       stk2(i2)%value(1) = rms_value(stk2(i2)%value, info_loc%good)
       call re_allocate(stk2(i2)%value, 1)
-      info(1)%good = any(info%good)
-      call tao_re_allocate_expression_info(info, 1)
+      info_loc(1)%good = any(info_loc%good)
+      call tao_re_allocate_expression_info(info_loc, 1)
 
     case ('average', 'mean')
-      if (any(info%good)) then
-        stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good) / count(info%good)
+      if (any(info_loc%good)) then
+        stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info_loc%good) / count(info_loc%good)
       endif
       call re_allocate(stk2(i2)%value, 1)
-      info(1)%good = any(info%good)
-      call tao_re_allocate_expression_info(info, 1)
+      info_loc(1)%good = any(info_loc%good)
+      call tao_re_allocate_expression_info(info_loc, 1)
 
     case ('sum', 'min', 'max')
-      select case (stack(i)%name)
-      case ('sum'); stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info%good)
-      case ('min'); stk2(i2)%value(1) = minval(stk2(i2)%value, mask = info%good)
-      case ('max'); stk2(i2)%value(1) = maxval(stk2(i2)%value, mask = info%good)
+      select case (node1%name)
+      case ('sum'); stk2(i2)%value(1) = sum(stk2(i2)%value, mask = info_loc%good)
+      case ('min'); stk2(i2)%value(1) = minval(stk2(i2)%value, mask = info_loc%good)
+      case ('max'); stk2(i2)%value(1) = maxval(stk2(i2)%value, mask = info_loc%good)
       end select
       call re_allocate(stk2(i2)%value, 1)
-      info(1)%good = .true.
-      call tao_re_allocate_expression_info(info, 1)
+      info_loc(1)%good = .true.
+      call tao_re_allocate_expression_info(info_loc, 1)
 
     case ('factorial');
     do n = 1, size(stk2(i2)%value)
@@ -282,13 +306,13 @@ do i = 1, size(stack)
     call re_allocate(stk2(i2)%value, n_size)
     call ran_uniform(stk2(i2)%value)
 
-    if (size(info) == 1) then
-      call tao_re_allocate_expression_info(info, n_size)
-      info%good = info(1)%good
+    if (size(info_loc) == 1) then
+      call tao_re_allocate_expression_info(info_loc, n_size)
+      info_loc%good = info_loc(1)%good
     endif
 
     case ('ran_gauss')
-      if (nint(stack(i-1)%value(1)) == 0) then
+      if (nint(tao_tree%node(i-1)%value(1)) == 0) then
         i2 = i2 + 1
         call re_allocate(stk2(i2)%value, n_size)
         call ran_gauss(stk2(i2)%value)
@@ -299,9 +323,9 @@ do i = 1, size(stack)
         stk2(i2)%value = value
       endif
 
-      if (size(info) == 1) then
-        call tao_re_allocate_expression_info(info, n_size)
-        info%good = info(1)%good
+      if (size(info_loc) == 1) then
+        call tao_re_allocate_expression_info(info_loc, n_size)
+        info_loc%good = info_loc(1)%good
       endif
 
     case ('mass_of', 'charge_of', 'anomalous_moment_of')
@@ -311,7 +335,7 @@ do i = 1, size(stack)
         err_flag = .true.
         return
       endif
-      select case (stack(i)%name)
+      select case (node1%name)
       case ('mass_of');              stk2(i2)%value = mass_of(species)
       case ('charge_of');            stk2(i2)%value = charge_of(species)
       case ('anomalous_moment_of');  stk2(i2)%value = anomalous_moment_of(species)
@@ -334,18 +358,18 @@ endif
 if (size(stk2(1)%value) == 1 .and. n_size_in > 1) then
   call re_allocate(value, n_size_in)
   value = stk2(1)%value(1)
-  if (.not. info(1)%good) value = 0
-elseif (size(stk2(1)%value) > 1 .and. size(info) == 1) then
+  if (.not. info_loc(1)%good) value = 0
+elseif (size(stk2(1)%value) > 1 .and. size(info_loc) == 1) then
   call value_transfer (value, stk2(1)%value)
-  if (.not. info(1)%good) value = 0
+  if (.not. info_loc(1)%good) value = 0
 else
   call value_transfer (value, stk2(1)%value)
-  where (.not. info%good) value = 0
+  where (.not. info_loc%good) value = 0
 endif
 
 if (present(info_in)) then
   if (allocated(info_in)) deallocate(info_in)
-  info_in = info
+  info_in = info_loc
 endif
 
 n_size = size(value)
@@ -385,5 +409,5 @@ if (.not. ok) then
 endif
 end function this_size_check
 
-end subroutine tao_evaluate_stack_new 
+end subroutine tao_evaluate_tree 
 

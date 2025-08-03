@@ -28,6 +28,12 @@ contains
 ! handle node%node(:) being an allocatable array. Thus deallocate_expression_tree must be called before
 ! any tree instance goes out of scope.
 !
+! Note types used:
+!   plus$, minus$, times$, divide$, power$, unary_minus$, unary_plus$
+!   constant$, numeric$, variable$, function$
+!   root$, parens$, func_parens$, square_brackets$, curly_brackets$
+!   arrow$, equal$, colon$, double_colon$, compound$
+! 
 ! An expression string will be split on:
 !   Two character operators: "->", "::" 
 !   operators: +-*/^=:

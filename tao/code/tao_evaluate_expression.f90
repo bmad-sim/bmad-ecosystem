@@ -52,7 +52,7 @@ implicit none
 character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
 character(*), optional :: dflt_dat_or_var_index
-type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
+type (tao_eval_node_struct), allocatable, optional :: stack(:)
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable, optional :: info(:)
@@ -66,7 +66,7 @@ logical, optional :: print_err
 
 !
 
-if (s%global%debug_on) then
+if (s%global%expression_tree_on) then
   call tao_evaluate_expression_new (expression, n_size, use_good_user, value, err_flag, print_err, &
                       info, stack, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, &
                       dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)

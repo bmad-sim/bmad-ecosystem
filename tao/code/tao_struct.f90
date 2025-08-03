@@ -96,13 +96,14 @@ type tao_expression_info_struct
   real(rp) :: s = real_garbage$               ! Longitudinal position of expression.
 end type
 
-type tao_eval_stack1_struct
+type tao_eval_node_struct
   integer :: type = 0                 
   character(120) :: name = ''
   real(rp) :: scale = 1               ! Scale factor for ping data
   real(rp), allocatable :: value(:)
   type (tao_expression_info_struct), allocatable :: info(:)
   type (tao_real_pointer_struct), allocatable :: value_ptr(:)  ! Used to point to data, lattice parameters, etc
+  type (tao_eval_node_struct), pointer :: node(:) => null()  ! Child nodes for tree construction.
 end type
 
 !----------------------------------------------------------------------
@@ -468,7 +469,7 @@ type tao_data_struct
   logical :: useit_opt = .false.           ! See above
   type (tao_spin_map_struct) :: spin_map
   type (tao_d1_data_struct), pointer :: d1 => null() ! Pointer to the parent d1_data_struct 
-  type (tao_eval_stack1_struct), allocatable :: stack(:)
+  type (tao_eval_node_struct), allocatable :: stack(:)
 end type tao_data_struct
 
 ! A d1_data_struct represents, say, all the horizontal orbit data.
@@ -677,10 +678,9 @@ type tao_global_struct
   character(100) :: history_file = '~/.history_tao'
   logical :: beam_timer_on = .false.                  ! For timing the beam tracking calculation.
   logical :: box_plots = .false.                      ! For debugging plot layout issues.
+  logical :: blank_line_between_commands = .true.     ! Add a blank line between command output?
   logical :: cmd_file_abort_on_error = .true.         ! Abort open command files if there is an error?
   logical :: concatenate_maps = .false.               ! False => tracking using DA. 
-  logical :: debug_on = .false.                       ! For debugging.
-  logical :: verbose_on = .false.                     ! For verbose output. Used with debugging.
   logical :: derivative_recalc = .true.               ! Recalc before each optimizer run?
   logical :: derivative_uses_design = .false.         ! Derivative calc uses design lattice instead of model?
   logical :: disable_smooth_line_calc = .false.       ! Global disable of the smooth line calculation.
@@ -705,8 +705,11 @@ type tao_global_struct
   logical :: svd_retreat_on_merit_increase = .true.
   logical :: var_limits_on = .true.                   ! Respect the variable limits?
   logical :: wait_for_CR_in_single_mode = .false.     ! For use with a python GUI.
-  logical :: blank_line_between_commands = .true.     ! Add a blank line between command output?
   logical :: symbol_import = .false.                  ! Import symbols from lattice file(s)?
+  ! Internal stuff
+  logical :: debug_on = .false.                       ! For debugging.
+  logical :: expression_tree_on = .false.             ! Use an expression tree instead of a stack?
+  logical :: verbose_on = .false.                     ! For verbose output. Used with debugging.
 end type
 
 !
@@ -853,7 +856,7 @@ type tao_scratch_space_struct
   type (ele_pointer_struct), allocatable :: eles(:)
   type (tao_d1_data_array_struct), allocatable :: d1_array(:)
   type (tao_v1_var_array_struct), allocatable :: v1_array(:)
-  type (tao_eval_stack1_struct), allocatable :: stack(:)
+  type (tao_eval_node_struct), allocatable :: stack(:)
   type (tao_var_array_struct), allocatable :: var_array(:)
   type (all_pointer_struct), allocatable :: attribs(:)
   type (tao_data_var_component_struct), allocatable :: comp(:)
