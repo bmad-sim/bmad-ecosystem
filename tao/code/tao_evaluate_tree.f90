@@ -152,7 +152,7 @@ do i = 1, nn
 
   select case (node1%type)
 
-  case (numeric$, constant$, square_brackets$, compound$, func_parens$, parens$, comma$)
+  case (numeric$, constant$, square_brackets$, compound$, func_parens$, parens$, comma$, variable$)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, node1%value)
 
