@@ -74,7 +74,6 @@ character(*) :: expression
 character(*), optional :: dflt_component, dflt_source
 character(*), optional :: dflt_dat_or_var_index
 
-character(60) saved_prefix
 character(80) default_source
 character(2000) :: phrase, err_str
 
@@ -108,6 +107,7 @@ endif
 
 call expression_string_to_tree(phrase, tree, err_flag, err_str)
 
+
 if (err_flag) then
   call out_io(s_error$, r_name, 'Error parsing expression: ' // err_str)
   return
@@ -118,21 +118,14 @@ if (size(tree%node) /= 1 .or. tree%node(1)%type /= comma$) then
   return
 endif
 
-call expression_tree_asterisk_restore(tree)
-
-if (s%global%verbose_on) then
-  call type_expression_tree(tree)
-endif
+if (s%global%verbose_on) call type_expression_tree(tree)
 
 err_flag = .false.
-call expression_tree_to_tao_tree(tree, tao_tree, expression, err_flag, .false.)
-if (err_flag) return
+call bmad_tree_to_tao_tree(tree, tao_tree, expression, err_flag); if (err_flag) return
+call deallocate_tree(tree)
+call tree_param_evaluate(tao_tree, expression, err_flag); if (err_flag) return
 
-if (s%global%verbose_on) then
-  call tao_type_expression_tree(tao_tree)
-endif
-
-! Evaluate expression
+if (s%global%verbose_on) call tao_type_expression_tree(tao_tree)
 
 call tao_evaluate_tree (tao_tree, n_size, use_good_user, value, err_flag, printit, expression, info)
 
@@ -196,67 +189,120 @@ enddo main_loop
 end subroutine expression_asterisk_substitute
 
 !----------------------------------------------------------------------------------------------------
-! contains
-
-recursive subroutine expression_tree_asterisk_restore(tree)
-
-type (expression_tree_struct), target :: tree
-integer in, ix
-
-!
-
-do
-  ix = index(tree%name, '??')
-  if (ix == 0) exit
-  tree%name = tree%name(1:ix-1) // '*' // tree%name(ix+1:)
-enddo
-
-if (associated(tree%node)) then
-  do in = 1, size(tree%node)
-    call expression_tree_asterisk_restore(tree%node(in))
-  enddo
-endif
-
-end subroutine
-
-!----------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-recursive subroutine expression_tree_to_tao_tree(tree, tao_tree, expression, err_flag, in_compound, parent)
+recursive subroutine bmad_tree_to_tao_tree(tree, tao_tree, expression, err_flag)
 
 implicit none
 
 type (expression_tree_struct), target :: tree
-type (expression_tree_struct), optional :: parent 
+type (expression_tree_struct), pointer :: node
 type (tao_eval_node_struct), target :: tao_tree
 type (tao_eval_node_struct), pointer :: tnode
+
+integer in, ix, n_node
+logical err_flag, split_variable
+
+character(*) expression
+character(*), parameter :: r_name = 'bmad_tree_to_tao_tree'
+
+! Note: Tao variable, data, and paramter name syntax does not use parens.
+
+tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
+if (.not. associated(tree%node)) return
+n_node = size(tree%node)
+
+split_variable = .false.
+do in = 1, n_node
+  node => tree%node(in)
+  select case (node%type)
+  case (colon$, double_colon$, vertical_bar$)
+    split_variable = .true.
+    exit
+  end select
+enddo
+
+if (split_variable) then
+  allocate(tao_tree%node(1))
+  tnode => tao_tree%node(1)
+  tnode%type = variable$
+  tnode%name = expression_tree_to_string (tree, .false.)
+  return
+endif
+
+!
+
+allocate(tao_tree%node(n_node))
+
+do in = 1, n_node
+  tnode => tao_tree%node(in)
+  tnode = tao_eval_node_struct(tree%node(in)%type, tree%node(in)%name, 1.0_rp, null(), null(), null(), null())
+  select case (tnode%type)
+  ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
+  case (function$)
+    select case (tnode%name)
+    case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
+      if (in == 1) then
+        call out_io(s_error$, r_name, 'Misplaced function: ' // quote(tnode%name) // ' in expression: ' // expression)
+        err_flag = .true.
+        return
+      elseif (tao_tree%node(in-1)%type /= func_parens$) then
+        call out_io(s_error$, r_name, 'Missing parentheses for function: ' // quote(tnode%name) // ' in expression: ' // expression)
+        err_flag = .true.
+        return
+      endif
+
+      tao_tree%node(in-1) = tao_tree%node(in-1)%node(1)%node(1)  ! node(in-1) func_parens has comma child
+      tao_tree%node(in-1)%type = species_const$
+      call tao_deallocate_tree(tao_tree%node(in-1))
+    end select
+
+  case (square_brackets$, func_parens$, parens$, comma$, compound$)
+    call bmad_tree_to_tao_tree(tree%node(in), tao_tree%node(in), expression, err_flag)
+    if (err_flag) return
+  end select
+enddo
+
+end subroutine bmad_tree_to_tao_tree
+
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+! contains
+
+recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag, parent)
+
+implicit none
+
+type (tao_eval_node_struct), target :: tao_tree
+type (tao_eval_node_struct), pointer :: tnode
+type (expression_tree_struct), optional :: parent 
 
 integer in, ix, n_node
 logical err_flag, in_compound, in_comp
 
 character(*) expression
-character(*), parameter :: r_name = 'expression_tree_to_tao_tree'
+character(60) saved_prefix
+character(*), parameter :: r_name = 'tree_param_evaluate'
 
-! Note: Tao variable, data, and paramter name syntax does not use parens.
+!
 
-in_comp = in_compound
-
-tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
-
-select case (tree%type)
-end select
-
-if (.not. associated(tree%node)) return
-n_node = size(tree%node)
-allocate(tao_tree%node(n_node))
+if (.not. associated(tao_tree%node)) return
+n_node = size(tao_tree%node)
 
 ! Evaluate
 
 do in = 1, n_node
   tnode => tao_tree%node(in)
-  tnode = tao_eval_node_struct(tree%node(in)%type, tree%node(in)%name, 1.0_rp, null(), null(), null(), null())
+
+  do
+    ix = index(tao_tree%name, '??')
+    if (ix == 0) exit
+    tao_tree%name = tao_tree%name(1:ix-1) // '*' // tao_tree%name(ix+1:)
+  enddo
+
   select case (tnode%type)
   case (variable$, numeric$, constant$)
     ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
@@ -266,42 +312,18 @@ do in = 1, n_node
       if (ix > 0) saved_prefix = tao_tree%node(in-1)%name(1:ix-1)
     endif
 
-    ! Don't try to find the value of a species name.
-    ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
-    if (in < n_node) then
-      select case (tao_tree%node(in+1)%name)
-      case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
-        tnode%type = species_const$
-        cycle
-      end select
-    endif
-
     call tao_param_value_routine (tnode%name, use_good_user, saved_prefix, tnode, err_flag, printit, &
                dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
                dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
     if (err_flag) return
 
-  case (compound$)
-    in_comp = .true.
-    call expression_tree_to_tao_tree(tree%node(in), tao_tree%node(in), expression, err_flag, in_comp, parent)
-    if (err_flag) return
-
-  case (square_brackets$, func_parens$, parens$, comma$)
-    call expression_tree_to_tao_tree(tree%node(in), tao_tree%node(in), expression, err_flag, in_comp, parent)
+  case (square_brackets$, func_parens$, parens$, comma$, compound$)
+    call tree_param_evaluate(tnode, expression, err_flag, parent)
     if (err_flag) return
   end select
 enddo
 
-!
-
-select case (tree%type)
-case (curly_brackets$)
-!  if (in_compound) stk(n_stk)%name = '}' // stk(n_stk)%name
-case (square_brackets$)
-!  if (in_compound) stk(n_stk)%name = ']' // stk(n_stk)%name
-end select
-
-end subroutine expression_tree_to_tao_tree
+end subroutine tree_param_evaluate
 
 end subroutine tao_evaluate_expression_new
 

@@ -98,7 +98,10 @@ i2 = 0
 do i = 1, nn
   node1 => tao_tree%node(i)
 
-  if (node1%type == square_brackets$) then
+  !
+
+  select case (node1%type)
+  case (square_brackets$, func_parens$)
     nj = size(node1%node)
     call re_allocate(node1%value, nj)
     call tao_re_allocate_expression_info(node1%info, nj)
@@ -109,7 +112,18 @@ do i = 1, nn
       node1%value(j) = val2(1)
       node1%info(j) = info2(1)
     enddo
-  endif
+
+  case (compound$, parens$, comma$)
+    call tao_evaluate_tree (node1, 0, use_good_user, val2, err, print_err, expression, info2)
+    if (err) return
+    nj = size(val2)    
+    call re_allocate(node1%value, nj)
+    call tao_re_allocate_expression_info(node1%info, nj)
+    node1%value = val2
+    node1%info = info2
+  end select
+
+  !
 
   if (allocated(node1%info)) then
     ns = size(node1%info)
@@ -138,16 +152,17 @@ do i = 1, nn
 
   select case (node1%type)
 
-  case (numeric$, constant$, square_brackets$)
+  case (numeric$, constant$, square_brackets$, compound$, func_parens$, parens$, comma$)
     i2 = i2 + 1
     call value_transfer (stk2(i2)%value, node1%value)
 
   case (species_const$) ! Something like "electron". Just push on stack.
     i2 = i2 + 1
     stk2(i2)%name = node1%name
+    stk2(i2)%type = species_const$
     call re_allocate(stk2(i2)%value, 1)
 
-  case (species$)
+  case (species$)  ! Species function
     stk2(i2)%value = species_id(stk2(i2)%name)
 
   case (lat_num$, ele_num$)
@@ -251,9 +266,9 @@ do i = 1, nn
     case ('asin');      stk2(i2)%value = asin(stk2(i2)%value)
     case ('acos');      stk2(i2)%value = acos(stk2(i2)%value)
     case ('atan');      stk2(i2)%value = atan(stk2(i2)%value)
-    case ('atan2');     stk2(i2-1)%value = atan2(stk2(i2-1)%value, stk2(i2)%value)
+    case ('atan2');     stk2(i2-1)%value = atan2(stk2(i2)%value(1), stk2(i2)%value(2))
       i2 = i2 - 1
-    case ('modulo');    stk2(i2-1)%value = modulo(stk2(i2-1)%value, stk2(i2)%value)
+    case ('modulo');    stk2(i2-1)%value = modulo(stk2(i2)%value(1), stk2(i2)%value(2))
       i2 = i2 - 1
     case ('sinh');      stk2(i2)%value = sinh(stk2(i2)%value)
     case ('cosh');      stk2(i2)%value = cosh(stk2(i2)%value)
@@ -297,19 +312,19 @@ do i = 1, nn
       call tao_re_allocate_expression_info(info_loc, 1)
 
     case ('factorial');
-    do n = 1, size(stk2(i2)%value)
-      stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
-    enddo
+      do n = 1, size(stk2(i2)%value)
+        stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
+      enddo
 
-    case ('ran');
-    i2 = i2 + 1
-    call re_allocate(stk2(i2)%value, n_size)
-    call ran_uniform(stk2(i2)%value)
+      case ('ran');
+      i2 = i2 + 1
+      call re_allocate(stk2(i2)%value, n_size)
+      call ran_uniform(stk2(i2)%value)
 
-    if (size(info_loc) == 1) then
-      call tao_re_allocate_expression_info(info_loc, n_size)
-      info_loc%good = info_loc(1)%good
-    endif
+      if (size(info_loc) == 1) then
+        call tao_re_allocate_expression_info(info_loc, n_size)
+        info_loc%good = info_loc(1)%good
+      endif
 
     case ('ran_gauss')
       if (nint(tao_tree%node(i-1)%value(1)) == 0) then

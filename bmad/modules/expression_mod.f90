@@ -32,7 +32,7 @@ contains
 !   plus$, minus$, times$, divide$, power$, unary_minus$, unary_plus$
 !   constant$, numeric$, variable$, function$
 !   root$, parens$, func_parens$, square_brackets$, curly_brackets$
-!   arrow$, equal$, colon$, double_colon$, compound$
+!   arrow$, equal$, colon$, double_colon$, vertical_bar$, compound$
 ! 
 ! An expression string will be split on:
 !   Two character operators: "->", "::" 
@@ -139,7 +139,7 @@ n_node = 0
 !
 
 parsing_loop: do
-  call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,{}=:', delim, delim_found)
+  call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,{}=:|', delim, delim_found)
   if (ix_word == 0 .and. .not. delim_found) then
     if (tree%type /= root$ .and. tree%type /= equal$) then
       call set_this_err('Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
@@ -161,7 +161,7 @@ parsing_loop: do
     if (do_combine) then
       cc = upcase(word(ix_word:ix_word))
       if (cc /= 'E' .and. cc /= 'D') do_combine = .false.
-      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{}=: ', ix_word = ixe)) do_combine = .false.
+      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{}=:| ', ix_word = ixe)) do_combine = .false.
 
       do i = 1, ix_word-1
         if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
@@ -250,7 +250,9 @@ do in = 1, n_node
   case ('*');                    node%type = times$
   case ('/');                    node%type = divide$
   case ('^');                    node%type = power$
+  case (':');                    node%type = colon$
   case ('::');                   node%type = double_colon$
+  case ('|');                    node%type = vertical_bar$
   case (',');                    node%type = comma$
   case ('{}', '[]', '=')        ! Already marked
 
@@ -670,20 +672,24 @@ end subroutine type_expression_tree
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function expression_tree_to_string (tree, n_node, parent) result(str_out)
+! Function expression_tree_to_string (tree, include_root, n_node, parent) result(str_out)
 !
 ! Routine to convert an expression tree to a expression string.
 !
 ! Input:
-!   tree        -- expression_tree_struct: Tree to print.
-!   n_node      -- integer, optional: Internal use only. Used with recursive calls.
-!   parent      -- expression_tree_struct, optional: Internal use only. Used with recusive calls.
+!   tree          -- expression_tree_struct: Root of tree to print.
+!   include_root  -- logical, optional: Default is True. If True, do not inculde in the output 
+!                     string the root node. Note: If the root node is of type root$, this node is
+!                     always ignored. 
+!   n_node        -- integer, optional: Node index. parent%node(n_node) === tree.
+!                       Internal use only. Used with recursive calls.
+!   parent        -- expression_tree_struct, optional: Internal use only. Used with recusive calls.
 !
 ! Output:
-!   str_out         -- character(*): Expression string.
+!   str_out       -- character(*): Expression string.
 !-
 
-recursive function expression_tree_to_string (tree, n_node, parent) result (str_out)
+recursive function expression_tree_to_string (tree, include_root, n_node, parent) result (str_out)
 
 type (expression_tree_struct) tree
 type (expression_tree_struct), optional :: parent
@@ -691,39 +697,45 @@ integer, optional :: n_node
 integer n, iss, ns, n_sub
 character(:), allocatable :: str_out
 character(2000) str, ss(10)
+logical, optional :: include_root
+logical rt_inc
 
 !
 
 str = ''
+rt_inc = logic_option(.true., include_root)
+
 if (.not. associated(tree%node)) then
   n_sub = 0
 else
   n_sub = size(tree%node)
 endif
 
+!
+
 select case (tree%type)
 case (root$, compound$)
   ! No printing
 
 case (square_brackets$, parens$, func_parens$, curly_brackets$)
-  str = tree%name(1:1)
+  if (rt_inc) str = tree%name(1:1)
   do n = 1, n_sub
-    str = trim(str) //  expression_tree_to_string(tree%node(n), n, tree)
+    str = trim(str) //  expression_tree_to_string(tree%node(n), .true., n, tree)
   enddo
-  str = trim(str) // tree%name(2:2)
+  if (rt_inc) str = trim(str) // tree%name(2:2)
   allocate(character(len_trim(str)) :: str_out)
   str_out = trim(str)
-  if (tree%type == func_parens$) str_out = trim(parent%node(n_node+1)%name) // str_out
+  if (tree%type == func_parens$ .and. rt_inc) str_out = trim(parent%node(n_node+1)%name) // str_out
   return
 
 case (function$)
   ! Handled by func_parens$ case.
 
 case (comma$, equal$)
-  if (integer_option(2, n_node) > 1) str = trim(str) // tree%name
+  if (integer_option(2, n_node) > 1 .and. rt_inc) str = tree%name
 
 case default
-  str = trim(str) // tree%name 
+  if (rt_inc) str = tree%name 
 end select
 
 !
@@ -739,7 +751,7 @@ do n = 1, n_sub
     iss = iss + 1
   endif
 
-  ss(iss) = expression_tree_to_string(tree%node(n), n, tree)
+  ss(iss) = expression_tree_to_string(tree%node(n), .true., n, tree)
 
   select case (tree%node(n)%type)
   case (plus$, minus$, times$, divide$, power$)
@@ -759,96 +771,6 @@ allocate(character(len_trim(str)) :: str_out)
 str_out = trim(str)
 
 end function expression_tree_to_string
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Function expression_tree_node_array_to_string (tree) result(str)
-!
-! Routine to convert an expression tree to a expression string.
-!
-! Input:
-!   tree        -- expression_tree_struct: Tree to print.
-!
-! Output:
-!   str         -- character(2000): Expression string.
-!-
-
-recursive function expression_tree_node_array_to_string (tree) result (str)
-
-type (expression_tree_struct), target :: tree
-type (expression_tree_struct), pointer :: node
-integer n, i_str, i_parens
-character(2000) str
-character(2000) strs(20)
-character(*), parameter :: r_name = 'expression_tree_node_array_to_string'
-
-!
-
-if (.not. associated(tree%node)) then
-  str = ''
-  return
-endif
-
-strs(1) = ''
-i_str = 1
-i_parens = 0
-
-do n = 1, size(tree%node)
-  node => tree%node(n)
-  select case (node%type)
-  case(plus$, minus$, times$, divide$, power$)
-    i_str = i_str - 2
-    strs(i_str) = trim(strs(i_str)) // trim(node%name) // strs(i_str+1)
-
-  case(unary_plus$, unary_minus$)
-    i_str = i_str - 1
-    strs(i_str) = trim(node%name) // trim(strs(i_str))
-
-  case(parens$, square_brackets$, curly_brackets$)
-    i_str = i_str + 1
-    strs(i_str) = node%name(1:1) // expression_tree_node_array_to_string(node) // node%name(2:2)
-
-  case (func_parens$)
-    strs(i_str) = trim(strs(i_str)) // node%name(1:1) // &
-                      expression_tree_node_array_to_string(node) // node%name(2:2)
-
-  case(comma$)
-    i_parens = i_parens + 1
-    if (i_parens == 1) then
-      strs(i_str) = trim(strs(i_str)) // expression_tree_node_array_to_string(node)
-    else
-      strs(i_str) = trim(strs(i_str)) // ',' // expression_tree_node_array_to_string(node)
-    endif
-
-  case default
-    i_str = i_str + 1
-    strs(i_str) = trim(node%name)
-  end select
-enddo
-
-if (i_str /= 1) then
-  call out_io(s_error$, r_name, 'BOOKKEEPING ERROR! PLEASE REPORT!')
-endif  
-
-str = strs(1)
-
-end function expression_tree_node_array_to_string
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Function expression_tree_value(tree) result (value)
-!
-! Routine to evaluate and expression tree.
-!
-! Input:
-!   tree          -- expression_tree_struct
-
-
-
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -874,7 +796,7 @@ end function expression_tree_node_array_to_string
 subroutine re_associate_node_array(tree, n, exact)
 
 type (expression_tree_struct), target :: tree, temp_tree
-integer n, n_old, n_save
+integer n, n_old, n_save, in
 logical, optional :: exact
 
 !
@@ -887,12 +809,47 @@ if (associated(tree%node)) then
   temp_tree%node => tree%node
   allocate (tree%node(n))
   tree%node(1:n_save) = temp_tree%node(1:n_save)
+  do in = n_save+1, n
+    call deallocate_tree(temp_tree%node(in))
+  enddo
   call deallocate_node (temp_tree%node)  
 else
   allocate (tree%node(n))
 endif
 
 end subroutine re_associate_node_array
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine deallocate_tree (tree)
+!
+! Routine to deallocate tree%node(:) and everything below it
+!
+! Input:
+!   tree      -- expression_tree_struct: Root of tree to deallocate.
+!
+! Output:
+!   tree      -- expression_tree_struct: Deallocated tree.
+!-
+
+recursive subroutine deallocate_tree(tree)
+
+type (expression_tree_struct) tree
+integer in
+
+!
+
+if (.not. associated(tree%node)) return
+
+do in = 1, size(tree%node)
+  call deallocate_tree(tree%node(in))
+enddo
+
+deallocate(tree%node)
+
+end subroutine 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
