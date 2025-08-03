@@ -138,96 +138,6 @@ end function tao_expression_tree_to_string
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function tao_expression_tree_node_array_to_string (tree) result(str)
-!
-! Routine to convert an expression tree to a expression string.
-!
-! Input:
-!   tree        -- tao_eval_node_struct: Tree to print.
-!
-! Output:
-!   str         -- character(2000): Expression string.
-!-
-
-recursive function tao_expression_tree_node_array_to_string (tree) result (str)
-
-type (tao_eval_node_struct), target :: tree
-type (tao_eval_node_struct), pointer :: node
-integer n, i_str, i_parens
-character(2000) str
-character(2000) strs(20)
-character(*), parameter :: r_name = 'expression_tree_node_array_to_string'
-
-!
-
-if (.not. associated(tree%node)) then
-  str = ''
-  return
-endif
-
-strs(1) = ''
-i_str = 1
-i_parens = 0
-
-do n = 1, size(tree%node)
-  node => tree%node(n)
-  select case (node%type)
-  case(plus$, minus$, times$, divide$, power$)
-    i_str = i_str - 2
-    strs(i_str) = trim(strs(i_str)) // trim(node%name) // strs(i_str+1)
-
-  case(unary_plus$, unary_minus$)
-    i_str = i_str - 1
-    strs(i_str) = trim(node%name) // trim(strs(i_str))
-
-  case(parens$, square_brackets$, curly_brackets$)
-    i_str = i_str + 1
-    strs(i_str) = node%name(1:1) // tao_expression_tree_node_array_to_string(node) // node%name(2:2)
-
-  case (func_parens$)
-    strs(i_str) = trim(strs(i_str)) // node%name(1:1) // &
-                      tao_expression_tree_node_array_to_string(node) // node%name(2:2)
-
-  case(comma$)
-    i_parens = i_parens + 1
-    if (i_parens == 1) then
-      strs(i_str) = trim(strs(i_str)) // tao_expression_tree_node_array_to_string(node)
-    else
-      strs(i_str) = trim(strs(i_str)) // ',' // tao_expression_tree_node_array_to_string(node)
-    endif
-
-  case default
-    i_str = i_str + 1
-    strs(i_str) = trim(node%name)
-  end select
-enddo
-
-if (i_str /= 1) then
-  call out_io(s_error$, r_name, 'BOOKKEEPING ERROR! PLEASE REPORT!')
-endif  
-
-str = strs(1)
-
-end function tao_expression_tree_node_array_to_string
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Function tao_expression_tree_value(tree) result (value)
-!
-! Routine to evaluate and expression tree.
-!
-! Input:
-!   tree          -- tao_eval_node_struct
-
-
-
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
 ! Subroutine tao_re_associate_node_array(tree, n, exact)
 !
 ! Routine to resize the tree%node(:) array.
@@ -248,7 +158,7 @@ end function tao_expression_tree_node_array_to_string
 subroutine tao_re_associate_node_array(tree, n, exact)
 
 type (tao_eval_node_struct), target :: tree, temp_tree
-integer n, n_old, n_save
+integer n, n_old, n_save, in
 logical, optional :: exact
 
 !
@@ -261,11 +171,46 @@ if (associated(tree%node)) then
   temp_tree%node => tree%node
   allocate (tree%node(n))
   tree%node(1:n_save) = temp_tree%node(1:n_save)
+  do in = n_save+1, n_old
+    call tao_deallocate_tree(temp_tree%node(in))
+  enddo
   deallocate (temp_tree%node)  
 else
   allocate (tree%node(n))
 endif
 
 end subroutine tao_re_associate_node_array
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine tao_deallocate_tree (tree)
+!
+! Routine to deallocate tree%node(:) and everything below it
+!
+! Input:
+!   tree      -- tao_eval_node_struct: Root of tree to deallocate.
+!
+! Output:
+!   tree      -- tao_eval_node_struct: Deallocated tree.
+!-
+
+recursive subroutine tao_deallocate_tree(tree)
+
+type (tao_eval_node_struct) tree
+integer in
+
+!
+
+if (.not. associated(tree%node)) return
+
+do in = 1, size(tree%node)
+  call tao_deallocate_tree(tree%node(in))
+enddo
+
+deallocate(tree%node)
+
+end subroutine 
 
 end module
