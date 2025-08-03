@@ -46,13 +46,13 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(47) = [character(16):: &
+character(16) :: cmd_names(48) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'create', 'cut_ring', 'derivative', &
                       'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
                       'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'regression', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
                       'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale', &
-                      'debug', 'verbose']
+                      'debug', 'verbose', 'tree']
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
@@ -371,14 +371,16 @@ case ('cut_ring')
   call tao_lattice_calc (ok)
 
 !--------------------------------
-! DEBUG / VERBOSE
+! DEBUG / VERBOSE / TREE
 
 case ('debug')
-
   s%global%debug_on = (.not. s%global%debug_on)
 
-case ('verbose')
+case ('tree')
+  s%global%expression_tree_on = (.not. s%global%expression_tree_on)
+  print *, 'Using an expression tree: ', s%global%expression_tree_on
 
+case ('verbose')
   s%global%verbose_on = (.not. s%global%verbose_on)
 
 !--------------------------------

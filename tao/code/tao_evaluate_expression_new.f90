@@ -46,14 +46,14 @@ subroutine tao_evaluate_expression_new (expression, n_size, use_good_user, value
                       dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 
 use tao_data_and_eval_mod, dummy => tao_evaluate_expression_new
+use tao_expression_tree_mod, dummy2 => tao_evaluate_expression_new
 use expression_mod
 
 implicit none
 
 type (expression_tree_struct), target :: tree
-type (expression_tree_struct), pointer :: base
-type (tao_eval_stack1_struct), allocatable, optional :: stack(:)
-type (tao_eval_stack1_struct), allocatable :: stk(:)
+type (tao_eval_node_struct), allocatable, optional :: stack(:)
+type (tao_eval_node_struct) tao_tree
 type (ele_struct), optional, pointer :: dflt_ele_ref, dflt_ele_start, dflt_ele
 type (coord_struct), optional :: dflt_orbit
 type (tao_expression_info_struct), allocatable, optional :: info(:)
@@ -64,7 +64,7 @@ real(rp), optional :: dflt_s_offset
 
 integer n_size
 integer, optional :: dflt_uni, dflt_eval_point
-integer i, n, n_stk, ix
+integer i, n, ix
 
 logical use_good_user, err_flag
 logical, optional :: print_err
@@ -82,7 +82,7 @@ character(*), parameter :: r_name = "tao_evaluate_expression_new"
 
 ! 
 
-err_flag = .true.
+ err_flag = .true.
 printit = logic_option(.true., print_err)
 default_source = ''
 if (present(dflt_source)) default_source = dflt_source
@@ -118,80 +118,23 @@ if (size(tree%node) /= 1 .or. tree%node(1)%type /= comma$) then
   return
 endif
 
-base => tree%node(1)
-call expression_tree_asterisk_restore(base)
+call expression_tree_asterisk_restore(tree)
 
 if (s%global%verbose_on) then
   call type_expression_tree(tree)
 endif
 
 err_flag = .false.
-n_stk = 0
-call expression_tree_to_stack(base, stk, n_stk, expression, err_flag, .false.)
+call expression_tree_to_tao_tree(tree, tao_tree, expression, err_flag, .false.)
 if (err_flag) return
 
 if (s%global%verbose_on) then
-  print *, '! New =========================================='
-  do i = 1, n_stk
-    if (allocated(stk(i)%value)) then
-      print '(a20, es12.4, t50, i0)', stk(i)%name, stk(i)%value(1), stk(i)%type
-    else
-      print '(a20, t50, i0)', stk(i)%name, stk(i)%type
-    endif
-  enddo
-  print *, '!=========================================='
-  print *
+  call tao_type_expression_tree(tao_tree)
 endif
-
-! Evaluate individual values
-
-do i = 1, n_stk
-  select case (stk(i)%type)
-  case (plus$, unary_plus$, minus$, unary_minus$, times$, divide$, power$, function$)
-  case default
-    ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
-    saved_prefix = ''
-    if (i > 1) then
-      ix = index(stk(i-1)%name, '|')
-      if (ix > 0) saved_prefix = stk(i-1)%name(1:ix-1)
-    endif
-
-    ! Don't try to find the value of a species name.
-    ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
-    if (i < n_stk) then
-      select case (stk(i+1)%name)
-      case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
-        stk(i)%type = species_const$
-        cycle
-      end select
-    endif
-
-    call tao_param_value_routine (stk(i)%name, use_good_user, saved_prefix, stk(i), err_flag, printit, &
-               dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
-               dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
-    if (err_flag) return
-  end select
-enddo
 
 ! Evaluate expression
 
-call tao_evaluate_stack_new (stk(1:n_stk), n_size, use_good_user, value, err_flag, printit, expression, info)
-
-! If the stack argument is present then copy stk to stack
-
-if (present(stack)) then
-  if (allocated(stack)) deallocate(stack)
-  allocate (stack(n_stk))
-  do i = 1, n_stk
-    if (allocated (stk(i)%value)) then
-      n = size(stk(i)%value)
-      allocate (stack(i)%value(n), stack(i)%info(n))
-      if (allocated (stack(i)%value_ptr)) allocate (stack(i)%value_ptr(n))
-    endif
-    stack(i) = stk(i)
-  enddo
-endif
-
+call tao_evaluate_tree (tao_tree, n_size, use_good_user, value, err_flag, printit, expression, info)
 
 !------------------------------------------------------------------------------------
 contains
@@ -281,101 +224,84 @@ end subroutine
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-recursive subroutine expression_tree_to_stack(tree, stk, n_stk, expression, err_flag, in_compound)
+recursive subroutine expression_tree_to_tao_tree(tree, tao_tree, expression, err_flag, in_compound, parent)
 
 implicit none
 
 type (expression_tree_struct), target :: tree
-type (tao_eval_stack1_struct), allocatable :: stk(:)
+type (expression_tree_struct), optional :: parent 
+type (tao_eval_node_struct), target :: tao_tree
+type (tao_eval_node_struct), pointer :: tnode
 
-integer in, n_stk
+integer in, ix, n_node
 logical err_flag, in_compound, in_comp
 
 character(*) expression
-character(*), parameter :: r_name = 'expression_tree_to_stack'
+character(*), parameter :: r_name = 'expression_tree_to_tao_tree'
 
 ! Note: Tao variable, data, and paramter name syntax does not use parens.
 
 in_comp = in_compound
 
+tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
+
 select case (tree%type)
-case (function$)
-  call push_stack (stk, n_stk, tree%type, tree%name)
-
-case (comma$, parens$, func_parens$)
-  ! No op
-
-case (compound$)
-  !in_comp = .true.
-
-case (curly_brackets$)
-  if (in_compound) stk(n_stk)%name = '{' // stk(n_stk)%name
-
-case (square_brackets$)
-  if (in_compound) stk(n_stk)%name = '[' // stk(n_stk)%name
-
-
-case default
-  if (in_compound) then
-    stk(n_stk)%name = trim(tree%name) // stk(n_stk)%name
-  else
-    call push_stack (stk, n_stk, tree%type, tree%name)
-  endif
 end select
 
-!
-
 if (.not. associated(tree%node)) return
-do in = 1, size(tree%node)
-  call expression_tree_to_stack(tree%node(in), stk, n_stk, expression, err_flag, in_comp)
-  if (err_flag) return
+n_node = size(tree%node)
+allocate(tao_tree%node(n_node))
+
+! Evaluate
+
+do in = 1, n_node
+  tnode => tao_tree%node(in)
+  tnode = tao_eval_node_struct(tree%node(in)%type, tree%node(in)%name, 1.0_rp, null(), null(), null(), null())
+  select case (tnode%type)
+  case (variable$, numeric$, constant$)
+    ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
+    saved_prefix = ''
+    if (in > 1) then
+      ix = index(tao_tree%node(in-1)%name, '|')
+      if (ix > 0) saved_prefix = tao_tree%node(in-1)%name(1:ix-1)
+    endif
+
+    ! Don't try to find the value of a species name.
+    ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
+    if (in < n_node) then
+      select case (tao_tree%node(in+1)%name)
+      case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
+        tnode%type = species_const$
+        cycle
+      end select
+    endif
+
+    call tao_param_value_routine (tnode%name, use_good_user, saved_prefix, tnode, err_flag, printit, &
+               dflt_component, default_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, &
+               dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
+    if (err_flag) return
+
+  case (compound$)
+    in_comp = .true.
+    call expression_tree_to_tao_tree(tree%node(in), tao_tree%node(in), expression, err_flag, in_comp, parent)
+    if (err_flag) return
+
+  case (square_brackets$, func_parens$, parens$, comma$)
+    call expression_tree_to_tao_tree(tree%node(in), tao_tree%node(in), expression, err_flag, in_comp, parent)
+    if (err_flag) return
+  end select
 enddo
 
 !
 
 select case (tree%type)
 case (curly_brackets$)
-  if (in_compound) stk(n_stk)%name = '}' // stk(n_stk)%name
+!  if (in_compound) stk(n_stk)%name = '}' // stk(n_stk)%name
 case (square_brackets$)
-  if (in_compound) stk(n_stk)%name = ']' // stk(n_stk)%name
+!  if (in_compound) stk(n_stk)%name = ']' // stk(n_stk)%name
 end select
 
-end subroutine expression_tree_to_stack
+end subroutine expression_tree_to_tao_tree
 
-!-------------------------------------------------------------------------
-! contains
-
-subroutine push_stack (stack, n_stk, this_type, this_name)
-
-type (tao_eval_stack1_struct), allocatable :: stack(:), tmp_stk(:)
-integer n_stk, this_type
-
-character(*) this_name
-character(*), parameter :: r_name = "push_stack"
-
-!
-
-n_stk = n_stk + 1
-
-if (n_stk > size(stack)) then
-  call move_alloc(stack, tmp_stk)
-  allocate(stack(2*n_stk))
-  stack(1:n_stk-1) = tmp_stk
-endif
-
-! Tao uses numeric$ instead of variable$ or constant#
-
-select case (this_type)
-case (variable$, constant$)
-  stack(n_stk)%type = numeric$
-case default
-  stack(n_stk)%type = this_type
-end select
-
-stack(n_stk)%name = this_name
-stack(n_stk)%scale = 1
-
-end subroutine push_stack
-                       
 end subroutine tao_evaluate_expression_new
 

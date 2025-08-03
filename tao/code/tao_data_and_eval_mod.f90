@@ -1141,8 +1141,8 @@ subroutine tao_param_value_routine (str, use_good_user, saved_prefix, stack, err
                     dflt_source, dflt_ele_ref, dflt_ele_start, dflt_ele, dflt_dat_or_var_index, dflt_uni, &
                     dflt_eval_point, dflt_s_offset, dflt_orbit, datum)
 
-type (tao_eval_stack1_struct) stack
-type (tao_eval_stack1_struct), allocatable :: stack2(:)
+type (tao_eval_node_struct) stack
+type (tao_eval_node_struct), allocatable :: stack2(:)
 type (tao_real_pointer_struct), allocatable :: re_array(:)
 type (tao_data_array_struct), allocatable :: d_array(:)
 type (tao_integer_array_struct), allocatable :: int_array(:)
@@ -1200,36 +1200,38 @@ if (allocated(s%com%symbolic_num)) then
 endif
 
 ! An array "[...]", but not "[1,2]@ele::q[k1]"
+! This is only a problem with the old expression evaluator.
 
-if (str(1:1) == '[' .and. index(str, ']@') == 0) then
-  n = len_trim(str)
-  if (str(n:n) /= ']') then
-    if (print_err) call out_io (s_error$, r_name, "Malformed array: " // str)
-    err_flag = .true.
-    return
-  endif
+if (.not. s%global%expression_tree_on) then
+  if (str(1:1) == '[' .and. index(str, ']@') == 0) then
+    n = len_trim(str)
+    if (str(n:n) /= ']') then
+      if (print_err) call out_io (s_error$, r_name, "Malformed array: " // str)
+      err_flag = .true.
+      return
+    endif
 
-  str2 = str(2:n-1)
-  call re_allocate (stack%value, 0)
+    str2 = str(2:n-1)
+    call re_allocate (stack%value, 0)
 
-  do
-    call word_read (str2, ',', word2, ix_word, delim, delim_found, str2, ignore_interior = .true.)
-    call tao_evaluate_expression (word2, 1, use_good_user, value, err_flag, print_err, &
-                         info, stack2, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, &
-                         dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
-    if (err_flag) return
-    m = size(stack%value)
-    call re_allocate(stack%value, m+1)
-    call tao_re_allocate_expression_info (stack%info, m+1)
-    stack%value(m+1) = value(1)
-    stack%info(m+1)%good = .true.
-    do i = 1, size(stack2)
-      if (.not. allocated(stack2(i)%info)) cycle
-      stack%info(m+1)%good = (stack%info(m+1)%good .and. stack2(i)%info(1)%good)
+    do
+      call word_read (str2, ',', word2, ix_word, delim, delim_found, str2, ignore_interior = .true.)
+      call tao_evaluate_expression (word2, 1, use_good_user, value, err_flag, print_err, &
+                           info, stack2, dflt_component, dflt_source, dflt_ele_ref, dflt_ele_start, &
+                           dflt_ele, dflt_dat_or_var_index, dflt_uni, dflt_eval_point, dflt_s_offset, dflt_orbit)
+      if (err_flag) return
+      m = size(stack%value)
+      call re_allocate(stack%value, m+1)
+      call tao_re_allocate_expression_info (stack%info, m+1)
+      stack%value(m+1) = value(1)
+      stack%info(m+1)%good = .true.
+      do i = 1, size(stack2)
+        if (.not. allocated(stack2(i)%info)) cycle
+        stack%info(m+1)%good = (stack%info(m+1)%good .and. stack2(i)%info(1)%good)
+      enddo
+      if (.not. delim_found) return
     enddo
-    if (.not. delim_found) return
-  enddo
-
+  endif
 endif
 
 ! Case where str represents a number.
@@ -1576,7 +1578,7 @@ end function tao_evaluate_datum_at_s
 ! Routine to evaluate an expression stack.
 !
 ! Input:
-!   stack(:)      -- tao_eval_stack1_struct: Expression stack
+!   stack(:)      -- tao_eval_node_struct: Expression stack
 !   n_size_in     -- integer: Desired array size. If the expression evaluates to a
 !                      a scalar, each value in the value array will get this value.
 !                      If n_size = 0, the natural size is determined by the expression itself.
@@ -1597,10 +1599,10 @@ subroutine tao_evaluate_stack_old (stack, n_size_in, use_good_user, value, err_f
 
 use expression_mod
 
-type (tao_eval_stack1_struct), target :: stack(:)
-type (tao_eval_stack1_struct), pointer :: ss
-type (tao_eval_stack1_struct), pointer :: s(:)
-type (tao_eval_stack1_struct) stk2(20)
+type (tao_eval_node_struct), target :: stack(:)
+type (tao_eval_node_struct), pointer :: ss
+type (tao_eval_node_struct), pointer :: s(:)
+type (tao_eval_node_struct) stk2(20)
 type (tao_expression_info_struct), allocatable, optional :: info_in(:)
 type (tao_expression_info_struct), allocatable :: info(:)
 
