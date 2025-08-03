@@ -171,7 +171,7 @@ if (associated(tree%node)) then
   temp_tree%node => tree%node
   allocate (tree%node(n))
   tree%node(1:n_save) = temp_tree%node(1:n_save)
-  do in = n_save+1, n
+  do in = n_save+1, n_old
     call tao_deallocate_tree(temp_tree%node(in))
   enddo
   deallocate (temp_tree%node)  
