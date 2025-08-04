@@ -5931,7 +5931,7 @@ case ('universe')
         'Note1: This may not be a problem if the amount of radiation generated is low (like for protons).', &
         'Note2: Instability with respect to radiation excitations does not affect such things as the closed orbit calculation.')
     endif
-    call chrom_calc (lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
+    call chrom_calc (lat, s%global%delta_e_chrom, branch%a%chrom, branch%b%chrom, &
                                    pz = tao_branch%orbit(0)%vec(6), ix_branch = ix_branch, orb0 = tao_branch%orbit(0))
 
     mode_d => design_tao_branch%modes_6d
@@ -5944,7 +5944,7 @@ case ('universe')
 
     nl=nl+1; write(lines(nl), fmt2) 'Q', phase_units*branch%ele(nt)%a%phi, &
           phase_units*design_branch%ele(nt)%a%phi, phase_units*branch%ele(nt)%b%phi, phase_units*design_branch%ele(nt)%b%phi,  '! Tune'
-    nl=nl+1; write(lines(nl), fmt2) 'Chrom', tao_branch%a%chrom, design_tao_branch%a%chrom, tao_branch%b%chrom, design_tao_branch%b%chrom, '! dQ/(dE/E)'
+    nl=nl+1; write(lines(nl), fmt2) 'Chrom', branch%a%chrom, design_branch%a%chrom, branch%b%chrom, design_branch%b%chrom, '! dQ/(dE/E)'
     nl=nl+1; write(lines(nl), fmt2) 'J_damp', mode_m%a%j_damp, mode_d%a%j_damp, mode_m%b%j_damp, mode_d%b%j_damp, '! Damping Partition #'
     nl=nl+1; write(lines(nl), fmt) 'Emittance', mode_m%a%emittance, mode_d%a%emittance, mode_m%b%emittance, mode_d%b%emittance, '! Unnormalized'
     nl=nl+1; write(lines(nl), '(a43, 2x, 2es13.5)') 'Emit (photon vert opening angle ignored)', &

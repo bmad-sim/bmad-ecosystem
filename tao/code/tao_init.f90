@@ -322,7 +322,7 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
       if (tao_branch%track_state == moving_forward$) then
         if (s%global%rad_int_user_calc_on) call emit_6d(branch%ele(0), .false., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
         if (s%global%rad_int_user_calc_on) call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
-        call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, tao_branch%orbit(0)%vec(6), &
+        call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, branch%a%chrom, branch%b%chrom, err, tao_branch%orbit(0)%vec(6), &
                               tao_lat%low_E_lat, tao_lat%high_E_lat, tao_branch%low_E_orb, tao_branch%high_E_orb, ib, tao_branch%orbit(0))
       endif
 

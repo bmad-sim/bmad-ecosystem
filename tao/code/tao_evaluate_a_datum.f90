@@ -774,12 +774,12 @@ case ('chrom.')
 
   case ('chrom.dtune.a', 'chrom.a')
     if (data_type == 'chrom.dtune.a') call out_io (s_warn$, r_name, '"chrom.dtune.a" IS DEPRECATED. PLEASE CHANGE TO "chrom.a".')
-    datum_value = tao_branch%a%chrom
+    datum_value = branch%a%chrom
     valid_value = .true.
 
   case ('chrom.dtune.b', 'chrom.b')
     if (data_type == 'chrom.dtune.b') call out_io (s_warn$, r_name, '"chrom.dtune.b" IS DEPRECATED. PLEASE CHANGE TO "chrom.b".')
-    datum_value = tao_branch%b%chrom
+    datum_value = branch%b%chrom
     valid_value = .true.
 
   case ('chrom.dbeta.a')

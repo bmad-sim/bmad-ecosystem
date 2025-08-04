@@ -389,10 +389,9 @@ allocate(t2a%node(nn + 1 - n0))
 do ia = 1, nn + 1 - n0
   t2a%node(ia) = tree%node(ia + n0 - 1)
 enddo
-call re_associate_node_array(t2, n_comma, exact = .true.)
 
-call deallocate_node(tree%node)
-allocate(tree%node(n_comma))
+call re_associate_node_array(t2, n_comma, exact = .true.)
+deallocate(tree%node)
 tree%node => t2%node
 
 end subroutine comma_pass
@@ -402,8 +401,8 @@ end subroutine comma_pass
 
 recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 
-type (expression_tree_struct), target :: tree, t2, op
-type (expression_tree_struct), pointer :: node
+type (expression_tree_struct), target :: tree, t2, op(20)
+type (expression_tree_struct), pointer :: node2
 
 integer i, it2, it, n_node, i_op, n_nonop
 logical err_flag, has_op
@@ -416,9 +415,9 @@ n_node = size(tree%node)
 
 has_op = .false.
 do it2 = 1, n_node
-  node => tree%node(it2)
-  call reverse_polish_pass(node, err_flag, err_str); if (err_flag) return
-  select case (node%type)
+  node2 => tree%node(it2)
+  call reverse_polish_pass(node2, err_flag, err_str); if (err_flag) return
+  select case (node2%type)
   case (plus$, minus$, times$, divide$, power$, unary_plus$, unary_minus$, func_parens$)
     has_op = .true.
   end select
@@ -428,9 +427,6 @@ if (.not. has_op) return
 
 !
 
-allocate(t2%node(n_node))
-allocate(op%node(100))
-
 t2%node => tree%node
 allocate(tree%node(n_node))
 
@@ -439,9 +435,9 @@ it = 0
 n_nonop = 0
 
 do it2 = 1, n_node
-  node => t2%node(it2)
+  node2 => t2%node(it2)
 
-  select case (node%type)
+  select case (node2%type)
   case (plus$, minus$, times$, divide$, power$)
     if (n_nonop > 1) call make_compound_node(tree, it, n_nonop)
     n_nonop = 0
@@ -450,28 +446,30 @@ do it2 = 1, n_node
     ! to the tree%node array.
 
     do i = i_op, 1, -1
-      if (expression_eval_level(op%node(i)%type) < expression_eval_level(node%type)) exit
+      if (expression_eval_level(op(i)%type) < expression_eval_level(node2%type)) exit
       it = it + 1
-      tree%node(it) = op%node(i)
+      tree%node(it) = op(i)
     enddo
     i_op = i
 
     i_op = i_op + 1
-    op%node(i_op) = node
+    op(i_op) = node2
 
   case (unary_plus$, unary_minus$)
     i_op = i_op + 1
-    op%node(i_op) = node
+    op(i_op) = node2
 
   case (func_parens$)
     it = it + 1
     tree%node(it) = tree%node(it-1)
-    tree%node(it-1) = node
+    tree%node(it-1) = node2
+    nullify(node2%node)
     n_nonop = n_nonop + 1
 
   case default
     it = it + 1
-    tree%node(it) = node
+    tree%node(it) = node2
+    nullify(node2%node)
     n_nonop = n_nonop + 1
   end select
 enddo
@@ -480,13 +478,12 @@ if (n_nonop > 1) call make_compound_node(tree, it, n_nonop)
 
 do i = i_op, 1, -1
   it = it + 1
-  tree%node(it) = op%node(i)
+  tree%node(it) = op(i)
 enddo
 
 !
 
-call deallocate_node(op%node)
-call deallocate_node(t2%node)
+deallocate(t2%node)
 call re_associate_node_array(tree, it, exact = .true.)
 
 end subroutine reverse_polish_pass
@@ -507,6 +504,7 @@ compound%type = compound$
 compound%name = 'compound'
 do j = 1, n_nonop
   compound%node(j) = tree%node(it-n_nonop+j)
+  nullify(tree%node(it-n_nonop+j)%node)
 enddo
 
 it = it - n_nonop + 1
@@ -590,16 +588,6 @@ end subroutine set_this_err
 
 end subroutine expression_string_to_tree
 
-!------------------------------------------------------------------------
-
-subroutine deallocate_node(node_array)
-type (expression_tree_struct), pointer :: node_array(:)
-!!call type_expression_tree(tree_root)
-!!print '(l3, z12)', associated(node_array), loc(node_array)
-deallocate(node_array)
-end subroutine deallocate_node
-
-
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
@@ -627,7 +615,7 @@ if (associated(tree%node)) then
     call deallocate_expression_tree(tree%node(in))
   enddo
 
-  call deallocate_node(tree%node)
+  deallocate(tree%node)
 endif
 
 end subroutine deallocate_expression_tree
@@ -812,7 +800,7 @@ if (associated(tree%node)) then
   do in = n_save+1, n_old
     call deallocate_tree(temp_tree%node(in))
   enddo
-  call deallocate_node (temp_tree%node)  
+  deallocate (temp_tree%node)  
 else
   allocate (tree%node(n))
 endif
