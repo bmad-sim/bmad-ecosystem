@@ -3826,7 +3826,7 @@ case ('ele:wake')
   case ('sr_long_table')
     do i = 1, size(wake%sr%long)
       wsr => wake%sr%long(i)
-      nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
+      nl=incr(nl); write (li(nl), '(4(es16.8, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
           sr_longitudinal_position_dep_name(wsr%position_dependence)
     enddo
 
