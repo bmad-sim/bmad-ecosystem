@@ -12,7 +12,8 @@
 !                      between high and low is 2 * delta_e. If 0 then default of 1.0d-4 is used.
 !   pz            -- real(rp), optional: reference momentum about which to calculate. Default is 0. 
 !   ix_branch     -- integer, optional: Index of the lattice branch to use. Default is 0.
-!   orb0          -- coord_struct, optional: On-energy orbit at start. Only needed if lattice branch has an open geometry.
+!   orb0          -- coord_struct, optional: On-energy orbit at start. Default is the zero orbit.
+!                     Only needed if lattice branch has an open geometry.
 !
 ! Output:
 !   delta_e       -- real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
@@ -119,7 +120,11 @@ if (branch%param%geometry == closed$) then
 
 else
   i0 = 1
-  orb_ptr(0) = orb0
+  if (present(orb0)) then
+    orb_ptr(0) = orb0
+  else
+    call init_coord(orb_ptr(0), branch2%ele(0), downstream_end$)
+  endif
   orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(low_E_orb)) then; call track_all(lat2, low_E_orb, ix_br)
   else;                         call track_all(lat2, this_orb, ix_br)
@@ -205,7 +210,11 @@ if (branch%param%geometry == closed$) then
   endif
 
 else
-  orb_ptr(0) = orb0
+  if (present(orb0)) then
+    orb_ptr(0) = orb0
+  else
+    call init_coord(orb_ptr(0), branch2%ele(0), downstream_end$)
+  endif
   orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(high_E_orb)) then; call track_all(lat2, high_E_orb, ix_br)
   else;                          call track_all(lat2, this_orb, ix_br)
