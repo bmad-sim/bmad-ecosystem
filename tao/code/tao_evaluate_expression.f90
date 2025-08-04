@@ -28,16 +28,14 @@
 !                       a datum that will be evaluated after this datum. If so, this is an error.
 !
 ! Output:
-!   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
-!   err_flag  -- Logical: True on an error. EG: Invalid expression.
-!                  A divide by zero is not an error but good(:) will be set to False.
-!   info(:)    -- tao_expression_info_struct, allocatable, optional: Is the value valid?, etc.
-!                  Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                  orbit.x[23]|good_user is False.
-!   stack(:)  -- Tao_eval_stack1_struct, allocatable, optional: Evaluation stack for the
-!                  expression. This is useful to save if the same expression is
-!                  to be evaluated repeatedly. 
-!                  With this, tao_evaluate_stack can be called directly.
+!   value(:)    -- Real(rp), allocatable: Value of arithmetic expression.
+!   err_flag    -- Logical: True on an error. EG: Invalid expression.
+!                    A divide by zero is not an error but good(:) will be set to False.
+!   info(:)     -- tao_expression_info_struct, allocatable, optional: Is the value valid?, etc.
+!                   Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
+!                   orbit.x[23]|good_user is False.
+!   stack(:)    -- tao_eval_node_struct, allocatable, optional: Array of nodes of variable names.
+!                   This is useful to check what datums or variables are used in the expression.
 !-
 
 recursive &

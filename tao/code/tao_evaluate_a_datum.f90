@@ -60,6 +60,7 @@ type (all_pointer_struct) a_ptr
 type (rad_int_branch_struct), pointer :: branch_ri, branch_6d
 type (c_taylor), pointer :: phase_map
 type (twiss_struct), pointer :: z0, z1, z2
+type (tao_eval_node_struct), allocatable :: stack(:)
 
 real(rp) datum_value, mat6(6,6), vec0(6), angle, px, py, vec2(2)
 real(rp) eta_vec(4), v_mat(4,4), v_inv_mat(4,4), a_vec(4), mc2, charge
@@ -1414,7 +1415,7 @@ case ('expression:', 'expression.')
 
   printit = (s%com%n_err_messages_printed < s%global%datum_err_messages_max) 
   call tao_evaluate_expression (e_str, 0, .false., expression_value_vec, err, printit, info, &
-                  datum%stack, tao_lat%name, datum%data_source, ele_ref, ele_start, ele, &
+                  stack, tao_lat%name, datum%data_source, ele_ref, ele_start, ele, &
                   dflt_dat_index, u%ix_uni, datum%eval_point, datum%s_offset, datum = datum)
   if (err) then
     call tao_set_invalid (datum, 'CANNOT EVALUATE EXPRESSION: ' // e_str, why_invalid)
@@ -1469,16 +1470,16 @@ case ('expression:', 'expression.')
   end select
 
   ! Make sure that any datums used in the expression have already been evaluated.
-  do i = 1, size(datum%stack)
-    if (datum%stack(i)%type /= numeric$) cycle
-    call tao_find_data (err, datum%stack(i)%name, d_array = d_array, print_err = .false.)
+  do i = 1, size(stack)
+    if (stack(i)%type /= numeric$) cycle
+    call tao_find_data (err, stack(i)%name, d_array = d_array, print_err = .false.)
     if (err .or. size(d_array) == 0) cycle  ! Err -> This is not associated then not a datum.
     dptr => d_array(1)%d
     if (dptr%d1%d2%ix_universe < u%ix_uni) cycle ! OK
     if (dptr%d1%d2%ix_universe == u%ix_uni .and. dptr%ix_data < datum%ix_data) cycle
     call out_io (s_error$, r_name, 'DATUM: ' // tao_datum_name(datum), &
                     'WHICH IS OF TYPE EXPRESSION:' // datum%data_type, &
-                    'THE EXPRESSION HAS A COMPONENT: ' // datum%stack(i)%name, &
+                    'THE EXPRESSION HAS A COMPONENT: ' // stack(i)%name, &
                     'AND THIS COMPONENT IS EVALUATED AFTER THE EXPRESSION!', &
                     'TO FIX: MOVE THE EXPRESSION DATUM TO BE AFTER THE COMPONENT DATUM IN THE FILE THAT DEFINES THE DATA.')
     return

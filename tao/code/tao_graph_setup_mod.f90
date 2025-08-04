@@ -1258,6 +1258,7 @@ type (ele_struct), pointer :: ele, ele1, ele2, slave
 type (branch_struct), pointer :: branch
 type (tao_curve_array_struct), allocatable :: curves(:)
 type (all_pointer_struct) var_ptr
+type (tao_eval_node_struct), allocatable :: eval_stack(:)
 
 real(rp) f, eps, gs, l_tot, s0, s1, x_max, x_min, val, val0, dx, limit, len_branch
 real(rp), allocatable :: value_arr(:), x_arr(:), y_arr(:)
@@ -1345,7 +1346,7 @@ case ('expression')
     do i = nint(graph%x%eval_min), nint(graph%x%eval_max)
       write (dflt_index, '(i0)') i
       call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
-                   err, .false., scratch%info, scratch%stack, curve%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
+                   err, .false., scratch%info, eval_stack, curve%component, curve%data_source, dflt_dat_or_var_index = dflt_index)
       if (err .or. .not. scratch%info(1)%good) cycle
       n_dat = n_dat + 1
 
@@ -1356,7 +1357,7 @@ case ('expression')
 
   else
     call tao_evaluate_expression  (curve%data_type(12:), 0, graph%draw_only_good_user_data_or_vars, value_arr, &
-                                            err, .true., scratch%info, scratch%stack, curve%component, curve%data_source)
+                                            err, .true., scratch%info, eval_stack, curve%component, curve%data_source)
     if (err) return
     n_dat = count(scratch%info%good)
     call re_allocate (curve%ix_symb, n_dat)
@@ -1504,7 +1505,7 @@ case ('data')
 
   call tao_data_type_substitute (curve%data_type, data_type, curve, graph)
   call tao_evaluate_expression  (data_type, 0, graph%draw_only_good_user_data_or_vars, value_arr, err, &
-                          stack = scratch%stack, dflt_component = curve%component, dflt_source = 'data', dflt_uni = u%ix_uni)
+                          stack = eval_stack, dflt_component = curve%component, dflt_source = 'data', dflt_uni = u%ix_uni)
   if (err) then
     call tao_set_curve_invalid (curve, 'CANNOT FIND DATA CORRESPONDING: ' // data_type)
     return
@@ -1512,15 +1513,15 @@ case ('data')
 
   ! point d1_array to the data to be plotted
 
-  do i = 1, size(scratch%stack)
-    if (scratch%stack(i)%type == data_num$) exit
-    if (i == size(scratch%stack)) then
+  do i = 1, size(eval_stack)
+    if (eval_stack(i)%type == data_num$) exit
+    if (i == size(eval_stack)) then
       call tao_set_curve_invalid (curve, 'CANNOT FIND DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
       return
     endif
   enddo
 
-  call tao_find_data (err, scratch%stack(i)%name, d2_array, scratch%d1_array, ix_uni = tao_curve_ix_uni(curve))
+  call tao_find_data (err, eval_stack(i)%name, d2_array, scratch%d1_array, ix_uni = tao_curve_ix_uni(curve))
   if (err .or. size(scratch%d1_array) /= 1) then
     call tao_set_curve_invalid (curve, 'CANNOT FIND VALID DATA ARRAY TO PLOT CURVE: ' // curve%data_type)
     return

@@ -28,16 +28,14 @@
 !                       a datum that will be evaluated after this datum. If so, this is an error.
 !
 ! Output:
-!   value(:)  -- Real(rp), allocatable: Value of arithmetic expression.
-!   err_flag  -- Logical: True on an error. EG: Invalid expression.
-!                  A divide by zero is not an error but good(:) will be set to False.
+!   value(:)   -- Real(rp), allocatable: Value of arithmetic expression.
+!   err_flag   -- Logical: True on an error. EG: Invalid expression.
+!                   A divide by zero is not an error but good(:) will be set to False.
 !   info(:)    -- tao_expression_info_struct, allocatable, optional: Is the value valid?, etc.
-!                  Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
-!                  orbit.x[23]|good_user is False.
-!   stack(:)  -- Tao_eval_stack1_struct, allocatable, optional: Evaluation stack for the
-!                  expression. This is useful to save if the same expression is
-!                  to be evaluated repeatedly. 
-!                  With this, tao_evaluate_stack can be called directly.
+!                   Example: 'orbit.x[23]|meas' is not good if orbit.x[23]|good_meas or
+!                   orbit.x[23]|good_user is False.
+!   stack(:)   -- tao_eval_node_struct, allocatable, optional: Array of nodes of variable names.
+!                   This is useful to check what datums or variables are used in the expression.
 !-
 
 recursive &
@@ -128,6 +126,12 @@ call tree_param_evaluate(tao_tree, expression, err_flag); if (err_flag) return
 if (s%global%verbose_on) call tao_type_expression_tree(tao_tree)
 
 call tao_evaluate_tree (tao_tree, n_size, use_good_user, value, err_flag, printit, expression, info)
+
+!
+
+if (present(stack)) call tree_to_stack(tao_tree, stack, 0)
+
+call tao_deallocate_tree(tao_tree)
 
 !------------------------------------------------------------------------------------
 contains
@@ -324,6 +328,47 @@ do in = 1, n_node
 enddo
 
 end subroutine tree_param_evaluate
+
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+! contains
+
+! Note: This just flattens the tree. The resulting stack is not usable for expression evaluation.
+
+recursive subroutine tree_to_stack(tao_tree, stack, n_stk)
+
+type (tao_eval_node_struct) :: tao_tree
+type (tao_eval_node_struct), allocatable :: stack(:), tmp_stk(:)
+integer in
+integer n_stk
+
+!
+
+if (n_stk == 0) then
+  if (allocated(stack)) deallocate(stack)
+  allocate(stack(0))
+endif
+
+if (.not. associated(tao_tree%node)) return
+
+do in = 1, size(tao_tree%node)
+  n_stk = n_stk + 1
+  if (n_stk > size(stack)) then
+    call move_alloc(stack, tmp_stk)
+    allocate(stack(2*n_stk))
+    stack(1:n_stk-1) = tmp_stk(1:n_stk-1)
+    deallocate(tmp_stk)
+  endif
+  stack(n_stk) = tao_tree%node(in)
+  call tree_to_stack(tao_tree%node(in), stack, n_stk)
+enddo
+
+call move_alloc(stack, tmp_stk)
+allocate(stack(n_stk))
+stack(1:n_stk) = tmp_stk(1:n_stk)
+
+end subroutine tree_to_stack
 
 end subroutine tao_evaluate_expression_new
 
