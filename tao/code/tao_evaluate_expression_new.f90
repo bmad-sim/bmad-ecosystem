@@ -143,12 +143,12 @@ contains
 !    "quad_k1[*]|model"
 ! Non-wildcard examples:
 ! "emit*data::mf.xm|model", "3*[1,2]", "3*.42", "a*[b,c]"
-
+!
 ! Wild if "*" is bounded by:
 !   "::" < "*" < "|"  or
 !   "::" < "*" < "["  or
 !   "*@"
-
+ 
 subroutine expression_asterisk_substitute(phrase)
 
 character(*) phrase
@@ -266,7 +266,8 @@ do in = 1, n_node
         return
       endif
 
-      tao_tree%node(in-1) = tao_tree%node(in-1)%node(1)%node(1)  ! node(in-1) func_parens has comma child
+      ! The species name may be in reverse Polish if something like "He+3".
+      tao_tree%node(in-1)%name = tao_expression_tree_to_string(tao_tree%node(in-1)%node(1), .false.) 
       tao_tree%node(in-1)%type = species_const$
       call tao_deallocate_tree(tao_tree%node(in-1))
     end select

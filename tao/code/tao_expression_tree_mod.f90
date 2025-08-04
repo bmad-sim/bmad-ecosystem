@@ -44,12 +44,15 @@ end subroutine tao_type_expression_tree
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Function tao_expression_tree_to_string (tree, n_node, parent) result(str_out)
+! Function tao_expression_tree_to_string (tree, include_root, n_node, parent) result(str_out)
 !
 ! Routine to convert an expression tree to a expression string.
 !
 ! Input:
 !   tree        -- tao_eval_node_struct: Tree to print.
+!   include_root  -- logical, optional: Default is True. If True, do not inculde in the output 
+!                     string the root node. Note: If the root node is of type root$, this node is
+!                     always ignored. 
 !   n_node      -- integer, optional: Internal use only. Used with recursive calls.
 !   parent      -- tao_eval_node_struct, optional: Internal use only. Used with recusive calls.
 !
@@ -57,47 +60,53 @@ end subroutine tao_type_expression_tree
 !   str_out         -- character(*): Expression string.
 !-
 
-recursive function tao_expression_tree_to_string (tree, n_node, parent) result (str_out)
+recursive function tao_expression_tree_to_string (tree, include_root, n_node, parent) result (str_out)
 
 type (tao_eval_node_struct) tree
 type (tao_eval_node_struct), optional :: parent
 integer, optional :: n_node
 integer n, iss, ns, n_sub
+logical, optional :: include_root
+logical rt_inc
 character(:), allocatable :: str_out
 character(2000) str, ss(10)
 
 !
 
 str = ''
+rt_inc = logic_option(.true., include_root)
+
 if (.not. associated(tree%node)) then
   n_sub = 0
 else
   n_sub = size(tree%node)
 endif
 
+!
+
 select case (tree%type)
 case (root$, compound$)
   ! No printing
 
 case (square_brackets$, parens$, func_parens$, curly_brackets$)
-  str = tree%name(1:1)
+  if (rt_inc) str = tree%name(1:1)
   do n = 1, n_sub
-    str = trim(str) //  tao_expression_tree_to_string(tree%node(n), n, tree)
+    str = trim(str) //  tao_expression_tree_to_string(tree%node(n), .true., n, tree)
   enddo
-  str = trim(str) // tree%name(2:2)
+  if (rt_inc) str = trim(str) // tree%name(2:2)
   allocate(character(len_trim(str)) :: str_out)
   str_out = trim(str)
-  if (tree%type == func_parens$) str_out = trim(parent%node(n_node+1)%name) // str_out
+  if (tree%type == func_parens$ .and. rt_inc) str_out = trim(parent%node(n_node+1)%name) // str_out
   return
 
 case (function$)
   ! Handled by func_parens$ case.
 
 case (comma$, equal$)
-  if (integer_option(2, n_node) > 1) str = trim(str) // tree%name
+  if (integer_option(2, n_node) > 1 .and. rt_inc) str = tree%name
 
 case default
-  str = trim(str) // tree%name 
+  if (rt_inc) str = tree%name 
 end select
 
 !
@@ -113,7 +122,7 @@ do n = 1, n_sub
     iss = iss + 1
   endif
 
-  ss(iss) = tao_expression_tree_to_string(tree%node(n), n, tree)
+  ss(iss) = tao_expression_tree_to_string(tree%node(n), .true., n, tree)
 
   select case (tree%node(n)%type)
   case (plus$, minus$, times$, divide$, power$)
