@@ -83,13 +83,13 @@ do
     negate = .false.
   endif
 
-  call match_word (arg1, [character(44):: '-?', '-init_file', '-noinit', '-nostartup', '-beam0', '-clear', &
+  call match_word (arg1, [character(45):: '-?', '-init_file', '-noinit', '-nostartup', '-beam0', '-clear', &
         '-noplot', '-lattice_file', '-log_startup', '-beam_file', '-var_file', '-data_file', &
         '-startup_file', 'help', '-help', '?', '-geometry', '-rf_on', '-debug', '-disable_smooth_line_calc', &
         '-color_prompt', '-no_stopping', '-hook_init_file', '-beam_position0', '-silent_run', &
         '-beam_init_file_name', '-slice_lattice', '-start_branch_at', '-prompt_color', '-beam_init_position_file', &
         '-plot_file', '-external_plotting', '-quiet', '-no_rad_int', '-command', &
-        '-symbol_import', '-building_wall_file', '-reverse'], ix, .true., matched_name=switch)
+        '-symbol_import', '-building_wall_file', '-reverse', '-tree'], ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
@@ -211,6 +211,9 @@ do
 
   case ('-symbol_import')
     s%init%symbol_import_arg = present_str
+
+  case ('-tree')
+    s%global%expression_tree_on = .true.
 
   case ('-var_file')
     call get_next_arg (arg0, s%init%var_file_arg, i_arg, n_arg)
