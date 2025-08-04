@@ -469,7 +469,6 @@ type tao_data_struct
   logical :: useit_opt = .false.           ! See above
   type (tao_spin_map_struct) :: spin_map
   type (tao_d1_data_struct), pointer :: d1 => null() ! Pointer to the parent d1_data_struct 
-  type (tao_eval_node_struct), allocatable :: stack(:)
 end type tao_data_struct
 
 ! A d1_data_struct represents, say, all the horizontal orbit data.
@@ -856,7 +855,6 @@ type tao_scratch_space_struct
   type (ele_pointer_struct), allocatable :: eles(:)
   type (tao_d1_data_array_struct), allocatable :: d1_array(:)
   type (tao_v1_var_array_struct), allocatable :: v1_array(:)
-  type (tao_eval_node_struct), allocatable :: stack(:)
   type (tao_var_array_struct), allocatable :: var_array(:)
   type (all_pointer_struct), allocatable :: attribs(:)
   type (tao_data_var_component_struct), allocatable :: comp(:)
