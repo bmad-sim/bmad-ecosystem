@@ -125,7 +125,8 @@ else
   else
     call init_coord(orb_ptr(0), branch2%ele(0), downstream_end$)
   endif
-  orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+  orb_ptr(0)%vec = orb_ptr(0)%vec + &
+        (pz0-orb_ptr(0)%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(low_E_orb)) then; call track_all(lat2, low_E_orb, ix_br)
   else;                         call track_all(lat2, this_orb, ix_br)
   endif
@@ -215,7 +216,8 @@ else
   else
     call init_coord(orb_ptr(0), branch2%ele(0), downstream_end$)
   endif
-  orb_ptr(0)%vec = orb0%vec + (pz0-orb0%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+  orb_ptr(0)%vec = orb_ptr(0)%vec + &
+            (pz0-orb_ptr(0)%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(high_E_orb)) then; call track_all(lat2, high_E_orb, ix_br)
   else;                          call track_all(lat2, this_orb, ix_br)
   endif
