@@ -145,13 +145,14 @@ contains
 ! "emit*data::mf.xm|model", "3*[1,2]", "3*.42", "a*[b,c]"
 
 ! Wild if "*" is bounded by:
-!   "::" < "*" < "|"
-!   "::" < "*" < "["
+!   "::" < "*" < "|"  or
+!   "::" < "*" < "["  or
+!   "*@"
 
 subroutine expression_asterisk_substitute(phrase)
 
 character(*) phrase
-character(1) left_char, right_char
+character(1) left_char, right_char, ch
 integer i0, istar, ii
 logical wild
 
@@ -167,22 +168,29 @@ main_loop: do
 
   left_char = '!'   ! Beginning of line
   do ii = istar-1, 1, -1
-    left_char = phrase(ii:istar)
-    select case (left_char)
-    case ('+', '-', '*', '/', '^', ' ', ']', '[', '@', '(', ')'); exit
+    ch = phrase(ii:ii)
+    select case (ch)
+    case (':', '|', '+', '-', '*', '/', '^', ' ', ']', '[', '@', '(', ')')
+      left_char = ch
+      exit
     end select
   enddo
 
+  right_char = '!'
   do ii = istar+1, len_trim(phrase)
-    right_char = phrase(ii:istar)
-    select case (right_char)
-    case ('+', '-', '/', '^', ' ', ']', '[', '@', '(', ')'); exit
+    ch = phrase(ii:ii)
+    select case (ch)
+    case (':', '|', '+', '-', '/', '^', ' ', ']', '[', '@', '(', ')')
+      right_char = ch
+      exit
     end select
   enddo
 
   wild = .false.
   if (left_char == ':' .and. (right_char == '[' .or. right_char == '|')) wild = .true.
-  if (phrase(istar-1:istar-1) == '[' .and. phrase(istar+1:istar+1) == ']') wild = .true.
+  if (istar > 1) then
+    if (phrase(istar-1:istar-1) == '[' .and. phrase(istar+1:istar+1) == ']') wild = .true.
+  endif
   if (phrase(istar+1:istar+1) == '@') wild = .true.
   if (.not. wild) cycle
 
@@ -302,9 +310,9 @@ do in = 1, n_node
   tnode => tao_tree%node(in)
 
   do
-    ix = index(tao_tree%name, '??')
+    ix = index(tnode%name, '??')
     if (ix == 0) exit
-    tao_tree%name = tao_tree%name(1:ix-1) // '*' // tao_tree%name(ix+1:)
+    tnode%name = tnode%name(1:ix-1) // '*' // tnode%name(ix+2:)
   enddo
 
   select case (tnode%type)
