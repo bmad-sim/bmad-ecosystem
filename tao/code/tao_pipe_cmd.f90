@@ -6399,7 +6399,7 @@ case ('ring_general')
     return
   endif
 
-  call chrom_calc (branch%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, &
+  call chrom_calc (branch%lat, s%global%delta_e_chrom, branch%a%chrom, branch%b%chrom, &
                                   pz = tao_branch%orbit(0)%vec(6), ix_branch = branch%ix_branch, orb0 = tao_branch%orbit(0))
   call calc_z_tune(branch)
   call radiation_integrals (branch%lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, branch%ix_branch)
@@ -6413,8 +6413,8 @@ case ('ring_general')
   nl=incr(nl); write (li(nl), rmt) 'Q_b;REAL;F;',                               branch%ele(n)%b%phi/twopi
   nl=incr(nl); write (li(nl), rmt) 'Q_z;REAL;F;',                              -branch%z%tune/twopi
   nl=incr(nl); write (li(nl), rmt) 'Q_spin;REAL;F;',                            branch%param%spin_tune/twopi
-  nl=incr(nl); write (li(nl), rmt) 'chrom_a;REAL;F;',                           tao_branch%a%chrom
-  nl=incr(nl); write (li(nl), rmt) 'chrom_b;REAL;F;',                           tao_branch%b%chrom
+  nl=incr(nl); write (li(nl), rmt) 'chrom_a;REAL;F;',                           branch%a%chrom
+  nl=incr(nl); write (li(nl), rmt) 'chrom_b;REAL;F;',                           branch%b%chrom
   nl=incr(nl); write (li(nl), rmt) 'J_damp_a;REAL;F;',                          tao_branch%modes_6d%a%j_damp
   nl=incr(nl); write (li(nl), rmt) 'J_damp_b;REAL;F;',                          tao_branch%modes_6d%b%j_damp
   nl=incr(nl); write (li(nl), rmt) 'J_damp_z;REAL;F;',                          tao_branch%modes_6d%z%j_damp

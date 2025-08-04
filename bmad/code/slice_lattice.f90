@@ -22,8 +22,8 @@
 !   ele_list       -- character(*): List of elements to retain. See the documentation for
 !                      the lat_ele_locator routine for the syntax of the list.
 !   do_bookkeeping -- logical, optional: Default is True. If false, the calling routine is responsible for:
-!                       Modifying lat%particle_start if needed.
-!                       Calculating Twiss functions.
+!                       * Modifying lat%particle_start if needed.
+!                       * Calculating Twiss functions.
 !
 ! Output:
 !   lat           -- lat_struct: Lattice with unwanted elements sliced out.
@@ -98,7 +98,7 @@ enddo
 ! Transfer particle_start orbit
 
 if (logic_option(.true., do_bookkeeping)) then
-  call twiss_and_track(lat, orbit, status, 0, .true.)
+  call twiss_and_track(lat, orbit, status, 0, .true., calc_chrom = .true.)
   if (status == ok$) then
     do ie = 1, lat%n_ele_track
       if (lat%ele(ie)%izz == -1) cycle

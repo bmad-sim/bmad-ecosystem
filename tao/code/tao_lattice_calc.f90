@@ -151,7 +151,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
       tao_lat%chrom_calc_ok = .false.
       if (s%com%force_chrom_calc .or. u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
-        call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, tao_branch%a%chrom, tao_branch%b%chrom, err, &
+        call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, branch%a%chrom, branch%b%chrom, err, &
                 tao_branch%orbit(0)%vec(6), tao_lat%low_E_lat, tao_lat%high_E_lat, &
                 tao_branch%low_E_orb, tao_branch%high_E_orb, ib, orb0 = tao_branch%orbit(0))
         tao_lat%chrom_calc_ok = (.not. err)

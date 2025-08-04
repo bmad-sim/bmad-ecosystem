@@ -60,6 +60,7 @@ if (nargs > 0) then
   print *, '---------------'
   print '(a)', quote(str)
   print '(a)', quote(err_str)
+  call deallocate_tree(tree)
   stop
 endif
 
@@ -93,6 +94,7 @@ do i = 1, size(exp_str)
   call expression_string_to_tree(exp_str(i), tree, err, err_str)
   str = expression_tree_to_string(tree)
   write (1, '(a, i0, 2a)') '"Tree-str', i, '" STR        ', quote(str)
+  call deallocate_tree(tree)
 enddo
 
 !-----------------------------------------

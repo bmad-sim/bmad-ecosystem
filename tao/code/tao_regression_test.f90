@@ -22,8 +22,8 @@ logical err
 character(200) excite_zero(3), veto
 character(60) :: expr(10) = [character(60):: &
                   '[anomalous_moment_of(proton), mass_of(electron)]', &
-                  '(46.5/anomalous_moment_of(proton))^2-1', &
-                  '[3,4] * [1,2]@ele::q[k1]', &
+                  '(46.5/anomalous_moment_of(proton))^2-pi', &
+                  '[3,4] * [1]@ele::q[k1]', &
                   '1', &
                   '1', &
                   '1', &

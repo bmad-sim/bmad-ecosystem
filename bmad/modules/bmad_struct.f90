@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 340
+integer, parameter :: bmad_inc_version$ = 341
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -187,7 +187,7 @@ character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND',
 
 type twiss_struct
   real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
-  real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0
+  real(rp) :: sigma = 0, sigma_p = 0, emit = 0, norm_emit = 0, chrom = 0
   real(rp) :: dbeta_dpz = 0, dalpha_dpz = 0, deta_dpz = 0, detap_dpz = 0
 end type
 
