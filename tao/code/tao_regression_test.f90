@@ -26,7 +26,7 @@ character(60) :: expr(10) = [character(60):: &
                   '[3,4] * [1]@ele::q[k1]', &
                   '10**@data::*|model*7', &
                   '100*var::*[*]|model*10', &
-                  '1', &
+                  'mass_of(#3He+2)', &
                   '1', &
                   '1', &
                   '1', &
