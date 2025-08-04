@@ -25,7 +25,7 @@ character(40) :: loc_str(19) = [character(40):: 'qu1-1', 'qu1-5', 'qu2+1', 'qu2+
           'sb##2', 'type::*', 'alias::"q*t"', 'descrip::"So Long"', 'sb%', &
           '0>>drift::qu1:qu2', '1>>drift::qu1:qu2', 'sbend::17:5', 'quad::*,~2>>*', 'Quad::*&*9*']
 character(60) :: exp_str(4) = [character(60):: &
-                      '1e-9*mass_of(#3He++) + charge_of(Al+3)', &
+                      '1e-9*mass_of(#3He+2) + charge_of(Al+3)', &
                       'atan2(atan2(1,2), atan(0.5)) + ran()', &
                       'atan(atan((1/(3+4))))', &
                       'ran_gauss(0.3*2) + ran_gauss()']
