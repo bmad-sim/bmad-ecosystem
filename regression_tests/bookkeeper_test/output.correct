@@ -8,12 +8,12 @@
 "Tree2-err4" STR        ""
 "Tree2-str5" STR        "abc{ran(),gar}^5+[4*5]"
 "Tree2-err5" STR        "End bracket: ")" has no beginning bracket.  In: "abc {ran(), gar}^5 + [4*5 ] ) ), + 64""
-"Expression-val1" ABS 1E-10     0.58849050
-"Expression-str1" STR  "atan2(1,2)+ran()"
-"Tree-str1" STR        "atan2(1,2)+ran()"
-"Expression-val2" ABS 1E-10     0.78539816
-"Expression-str2" STR  "atan2(atan2(1,2),atan(0.5))"
-"Tree-str2" STR        "atan2(atan2(1,2),atan(0.5))"
+"Expression-val1" ABS 1E-10     5.80839153
+"Expression-str1" STR  "1e-9*mass_of(#3He+2)+charge_of(Al+3)"
+"Tree-str1" STR        "1e-9*mass_of(#3He+2)+charge_of(Al+3)"
+"Expression-val2" ABS 1E-10     0.91024105
+"Expression-str2" STR  "atan2(atan2(1,2),atan(0.5))+ran()"
+"Tree-str2" STR        "atan2(atan2(1,2),atan(0.5))+ran()"
 "Expression-val3" ABS 1E-10     0.14095604
 "Expression-str3" STR  "atan(atan(1/(3+4)))"
 "Tree-str3" STR        "atan(atan((1/(3+4))))"

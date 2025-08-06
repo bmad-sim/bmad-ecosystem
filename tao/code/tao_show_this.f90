@@ -1738,10 +1738,10 @@ case ('element')
       nl=nl+1; lines(nl) = 'Tracking: ' // trim(species_name(orb%species)) // ',   State: Orbit not computed.'
     else
       nl=nl+1; lines(nl) = ' '
-      nl=nl+1; write(lines(nl), '(4a)') 'Tracking: ', trim(species_name(orb%species)), ',   State: ', trim(coord_state_name(orb%state))
       if (lat%branch(ele%ix_branch)%param%particle == photon$) then
         fmt  = '(2x, a, 2f15.8, f15.6, f11.6, 7x, a, f11.3)'
         fmt2 = '(2x, a, 2f15.8, a, es16.8)'
+        nl=nl+1; write(lines(nl), '(4a)') 'Tracking: ', trim(species_name(orb%species)), ',   State: ', trim(coord_state_name(orb%state))
         nl=nl+1; lines(nl) = '         Position[mm]            V/C      Intensity      Phase  '
         nl=nl+1; write(lines(nl), fmt)  'X:  ', 1000*orb%vec(1), orb%vec(2), orb%field(1)**2, orb%phase(1), 'E: ', orb%p0c
         nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3), orb%vec(4), orb%field(2)**2, orb%phase(2), 'dE:', orb%p0c - ele%value(p0c$)
@@ -1757,7 +1757,9 @@ case ('element')
         z = (ele%ref_time - orb%t) * orb%beta * c_light
         dt = orb%t - ele%ref_time
         pc = orb%p0c * (1 + orb%vec(6))
-        call convert_pc_to (pc, orb%species, e_tot = e_tot) 
+        call convert_pc_to (pc, orb%species, e_tot = e_tot)
+        nl=nl+1; write(lines(nl), '(5a, l1)') 'Tracking: ', trim(species_name(orb%species)), &
+                    ',   State: ', trim(coord_state_name(orb%state)), ',  bmad_com[spin_tracking_on] = ', bmad_com%spin_tracking_on
         nl=nl+1; lines(nl) = '         Position[mm] Momentum[1E-3]        Spin   |'
         if (bmad_com%spin_tracking_on) then
           fmt  = '(2x, a, 2f15.8, x, a, a, es16.8, 2x, a, es12.5)'

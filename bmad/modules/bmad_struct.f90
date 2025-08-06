@@ -2454,6 +2454,7 @@ integer, parameter :: vertical_bar$ = 71
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "min", "max", "rms" and "average" are not implemented in Bmad but is used by Tao.
+! Note: "species" is a function and "species_const" is a specified species like "electron".
 
 character(20), parameter :: expression_op_name(71) = [character(20) :: '+', '-', '*', '/', &
                                 '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &

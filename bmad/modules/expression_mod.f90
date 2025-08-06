@@ -65,6 +65,9 @@ contains
 ! Also functions line "atan()" are considered compound vars with children
 !   "atan",  "()"
 !
+! The funciton argument of a species related function like "He++" in the construct "mass_of(He++)",
+!  will not get split and will get marked as a species_const$. 
+!
 ! Input:
 !   root_tree -- expression_tree_struct: Only used when recursively called.
 !   string    -- character(*): Expression to be converted.
@@ -286,24 +289,13 @@ do in = 1, n_node
   ! Some error checks
 
   select case (node%type)
-  case (plus$, minus$, times$, divide$, power$, unary_plus$, unary_minus$)
+  case (function$)
     if (in == n_node) then
-      call set_this_err('Operator: ' // node%name // 'is at the end of the expression: ' // string, err_str, err_flag)
-      return
-    endif
-
-  case (constant$, variable$)
-  case (square_brackets$, parens$, curly_brackets$, arrow$, comma$)
-
-  case default
-    if (node%type == function$) then
-      if (in == n_node) then
-        call set_this_err('Function: ' // quote(node%name) // &
-                             ' is not followed by parenteses character "(" in: ' // string, err_str, err_flag)
-      elseif (tree%node(in+1)%type /= parens$) then
-        call set_this_err('Function: ' // quote(node%name) // &
-                             ' is not followed by parenteses character "(" in: ' // string, err_str, err_flag)
-      endif
+      call set_this_err('Function: ' // quote(node%name) // &
+                           ' is not followed by parenteses character "(" in: ' // string, err_str, err_flag)
+    elseif (tree%node(in+1)%type /= parens$) then
+      call set_this_err('Function: ' // quote(node%name) // &
+                           ' is not followed by parenteses character "(" in: ' // string, err_str, err_flag)
     endif
   end select
 enddo
@@ -312,18 +304,12 @@ enddo
 
 do in = n_node-1, 1, -1
   if (tree%node(in+1)%type /= constant$) cycle
-  node => tree%node(in)
-  select case (node%type)
-  case (unary_minus$)
-    node = tree%node(in+1)
-    node%name = '-' // node%name
+  select case (tree%node(in)%type)
+  case (unary_minus$, unary_plus$)
+    tree%node(in+1)%name = tree%node(in)%name(1:1) // tree%node(in+1)%name
     n_node = n_node - 1
-    tree%node(in+1:n_node) = tree%node(in+2:n_node+1)
-  case (unary_plus$)
-    node = tree%node(in+1)
-    node%name = '+' // node%name
-    n_node = n_node - 1
-    tree%node(in+1:n_node) = tree%node(in+2:n_node+1)
+    tree%node(in:n_node) = tree%node(in+1:n_node+1)
+    nullify(tree%node(n_node+1)%node)
   end select
 enddo
 
@@ -402,10 +388,10 @@ end subroutine comma_pass
 recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 
 type (expression_tree_struct), target :: tree, t2, op(20)
-type (expression_tree_struct), pointer :: node2
+type (expression_tree_struct), pointer :: node2, snode
 
 integer i, it2, it, n_node, i_op, n_nonop
-logical err_flag, has_op
+logical err_flag, has_op, callit
 character(*) err_str
 
 ! If tree%node(:) array does not represent an expression, skip reverse Polish step.
@@ -416,7 +402,26 @@ n_node = size(tree%node)
 has_op = .false.
 do it2 = 1, n_node
   node2 => tree%node(it2)
-  call reverse_polish_pass(node2, err_flag, err_str); if (err_flag) return
+
+  ! Species names "He++" are not to be put are to be consoladated
+  callit = .true.
+  if (node2%type == func_parens$) then
+    select case (tree%node(it2-1)%name)
+    case ('mass_of', 'charge_of', 'anomalous_moment_of', 'species')
+      callit = .false.
+      snode => node2%node(1)   ! Comma node
+      t2%node => snode%node
+      allocate (snode%node(1))
+      snode%node(1)%type = species$
+      do i = 1, size(t2%node)
+        snode%node(1)%name = trim(snode%node(1)%name) // t2%node(i)%name
+      enddo
+      call deallocate_expression_tree(t2)
+    end select
+  endif
+
+  if (callit) call reverse_polish_pass(node2, err_flag, err_str); if (err_flag) return
+
   select case (node2%type)
   case (plus$, minus$, times$, divide$, power$, unary_plus$, unary_minus$, func_parens$)
     has_op = .true.

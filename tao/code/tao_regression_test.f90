@@ -6,7 +6,7 @@
 
 subroutine tao_regression_test()
 
-use tao_interface, dummy => tao_regression_test
+use tao_set_mod, dummy => tao_regression_test
 
 implicit none
 
@@ -26,27 +26,29 @@ character(60) :: expr(10) = [character(60):: &
                   '[3,4] * [1]@ele::q[k1]', &
                   '10**@data::*|model*7', &
                   '100*var::*[*]|model*10', &
-                  'mass_of(#3He+2)', &
-                  '1', &
+                  'mass_of(#3He+2) / charge_of(Si++)', &
+                  'bbb*charge_of(aaa)', &
                   '1', &
                   '1', &
                   '1' &
                 ]
+
 !
-
-if (s%global%verbose_on) then
-  do ii = 1, size(expr)
-    call tao_evaluate_expression(expr(ii), 0, .false., val, err)
-    print '(a, t40, 10es12.4)', quote(expr(ii)), val
-  enddo
-  return
-endif
-
 
 iu = lunget()
 open (iu, file = 'output.now')
 
 !
+
+s%global%expression_tree_on = .true.
+call tao_set_symbolic_number_cmd ('aaa', 'species(Li+5)')
+call tao_set_symbolic_number_cmd ('bbb', '34*2')
+
+do ii = 1, size(expr)
+  call tao_evaluate_expression(expr(ii), 0, .false., val, err)
+  write (iu, '(2a, 9es18.10)') quote(expr(ii)), ' REL 1E-9', val
+enddo
+
 
 !
 

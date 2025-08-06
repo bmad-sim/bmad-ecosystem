@@ -231,9 +231,10 @@ endif
 if (this_err .or. .not. found_data) then
   if (print_error) then
     if (.not. data_exists) then
-      call out_io (s_error$, r_name, "No data defined in universes searched. [Check your init file?!]")
+      call out_io (s_error$, r_name, 'Cannot find: ' // dat_name, &
+                                     'No data defined in universes searched. [Check your init file?!]')
     else
-      call out_io (s_error$, r_name, "Couldn't find data: " // data_name)
+      call out_io (s_error$, r_name, 'Could not find data: ' // data_name)
     endif
   endif
   return
