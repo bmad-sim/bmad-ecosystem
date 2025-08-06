@@ -129,7 +129,10 @@ call tao_evaluate_tree (tao_tree, n_size, use_good_user, value, err_flag, printi
 
 !
 
-if (present(stack)) call tree_to_stack(tao_tree, stack, 0)
+if (present(stack)) then
+  n = 0
+  call tree_to_stack(tao_tree, stack, n)
+endif
 
 call tao_deallocate_tree(tao_tree)
 
@@ -226,6 +229,9 @@ tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), nu
 if (.not. associated(tree%node)) return
 n_node = size(tree%node)
 
+! A variable or datume like "3@orbit.x|model" is split by the parser into an array of nodes.
+! Needed is to combine the nodes
+
 split_variable = .false.
 do in = 1, n_node
   node => tree%node(in)
@@ -233,6 +239,12 @@ do in = 1, n_node
   case (colon$, double_colon$, vertical_bar$)
     split_variable = .true.
     exit
+  case (square_brackets$)   ! "abc[...]" is a var or datum. "abc + [...]" is not.
+    if (in == 1) cycle
+    if (is_alphabetic(tree%node(in-1)%name(1:1))) then
+      split_variable = .true.
+      exit
+    endif
   end select
 enddo
 
@@ -252,26 +264,6 @@ do in = 1, n_node
   tnode => tao_tree%node(in)
   tnode = tao_eval_node_struct(tree%node(in)%type, tree%node(in)%name, 1.0_rp, null(), null(), null(), null())
   select case (tnode%type)
-  ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
-  case (function$)
-    select case (tnode%name)
-    case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
-      if (in == 1) then
-        call out_io(s_error$, r_name, 'Misplaced function: ' // quote(tnode%name) // ' in expression: ' // expression)
-        err_flag = .true.
-        return
-      elseif (tao_tree%node(in-1)%type /= func_parens$) then
-        call out_io(s_error$, r_name, 'Missing parentheses for function: ' // quote(tnode%name) // ' in expression: ' // expression)
-        err_flag = .true.
-        return
-      endif
-
-      ! The species name may be in reverse Polish if something like "He+3".
-      tao_tree%node(in-1)%name = tao_expression_tree_to_string(tao_tree%node(in-1)%node(1), .false.) 
-      tao_tree%node(in-1)%type = species_const$
-      call tao_deallocate_tree(tao_tree%node(in-1))
-    end select
-
   case (square_brackets$, func_parens$, parens$, comma$, compound$)
     call bmad_tree_to_tao_tree(tree%node(in), tao_tree%node(in), expression, err_flag)
     if (err_flag) return
@@ -290,7 +282,7 @@ recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag, parent)
 implicit none
 
 type (tao_eval_node_struct), target :: tao_tree
-type (tao_eval_node_struct), pointer :: tnode
+type (tao_eval_node_struct), pointer :: tnode, snode
 type (expression_tree_struct), optional :: parent 
 
 integer in, ix, n_node
@@ -317,6 +309,39 @@ do in = 1, n_node
   enddo
 
   select case (tnode%type)
+  ! A species name will appear just before (since the stack is in reverse Polish) a species related function.
+  case (function$)
+    select case (tnode%name)
+    case ('species', 'mass_of', 'charge_of', 'anomalous_moment_of')
+      if (in == 1) then
+        call out_io(s_error$, r_name, 'Misplaced function: ' // quote(tnode%name) // ' in expression: ' // expression)
+        err_flag = .true.
+        return
+      elseif (tao_tree%node(in-1)%type /= func_parens$) then
+        call out_io(s_error$, r_name, 'Missing parentheses for function: ' // quote(tnode%name) // ' in expression: ' // expression)
+        err_flag = .true.
+        return
+      endif
+
+      snode => tao_tree%node(in-1)
+      snode = snode%node(1)%node(1)  ! Note: snode has a comma child
+      snode%type = species_const$
+      call tao_deallocate_tree(snode)
+
+
+      if (allocated(s%com%symbolic_num)) then
+        call match_word(snode%name, s%com%symbolic_num%name, ix, .true., .false.)
+        if (ix > 0) then
+          call re_allocate(snode%value, 1)
+          snode%value(1) = s%com%symbolic_num(ix)%value
+          call tao_re_allocate_expression_info (snode%info, 1)
+          snode%info%good = .true.
+          snode%type = constant$
+        endif
+      endif
+
+    end select
+
   case (variable$, numeric$, constant$)
     ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
     saved_prefix = ''
@@ -356,7 +381,7 @@ integer n_stk
 
 if (n_stk == 0) then
   if (allocated(stack)) deallocate(stack)
-  allocate(stack(0))
+  allocate(stack(50))
 endif
 
 if (.not. associated(tao_tree%node)) return

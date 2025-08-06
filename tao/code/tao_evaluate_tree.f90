@@ -154,22 +154,18 @@ do i = 1, nn
 
   case (numeric$, constant$, square_brackets$, compound$, func_parens$, parens$, comma$, variable$)
     i2 = i2 + 1
-    call value_transfer (stk2(i2)%value, node1%value)
+    call node_transfer (stk2(i2), node1)
 
   case (species_const$) ! Something like "electron". Just push on stack.
     i2 = i2 + 1
-    stk2(i2)%name = node1%name
-    stk2(i2)%type = species_const$
+    call node_transfer (stk2(i2), node1)
     call re_allocate(stk2(i2)%value, 1)
-
-  case (species$)  ! Species function
-    stk2(i2)%value = species_id(stk2(i2)%name)
 
   case (lat_num$, ele_num$)
     !!! This needs to be fixed to include default stuff
     !!! call tao_param_value_routine (node1%name, '', node1, err_flag, print_err)
     i2 = i2 + 1
-    call value_transfer (stk2(i2)%value, node1%value)
+    call node_transfer (stk2(i2), node1)
 
   case (var_num$, data_num$)
     do j = 1, size(node1%value)
@@ -177,7 +173,7 @@ do i = 1, nn
     enddo
     node1%value = node1%value * node1%scale
     i2 = i2 + 1
-    call value_transfer (stk2(i2)%value, node1%value)
+    call node_transfer (stk2(i2), node1)
 
   case (unary_minus$) 
     stk2(i2)%value = -stk2(i2)%value
@@ -343,17 +339,22 @@ do i = 1, nn
         info_loc%good = info_loc(1)%good
       endif
 
-    case ('mass_of', 'charge_of', 'anomalous_moment_of')
-      species = species_id(stk2(i2)%name)
-      if (species == invalid$) then
-        if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
-        err_flag = .true.
-        return
+    case ('mass_of', 'charge_of', 'anomalous_moment_of', 'species')
+      if (stk2(i2)%type == species_const$) then
+        species = species_id(stk2(i2)%name)
+        if (species == invalid$) then
+          if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
+          err_flag = .true.
+          return
+        endif
+      else
+        species = nint(stk2(i2)%value(1))
       endif
       select case (node1%name)
       case ('mass_of');              stk2(i2)%value = mass_of(species)
       case ('charge_of');            stk2(i2)%value = charge_of(species)
       case ('anomalous_moment_of');  stk2(i2)%value = anomalous_moment_of(species)
+      case ('species');              stk2(i2)%value = species
       end select
     end select
 
@@ -366,8 +367,8 @@ enddo
 !
 
 if (i2 /= 1) then
-  call out_io (s_error$, r_name, 'INTERNAL ERROR')
-  call err_exit
+  call out_io (s_error$, r_name, 'Malformed expression: ' // expression)
+  return
 endif
 
 if (size(stk2(1)%value) == 1 .and. n_size_in > 1) then
@@ -411,6 +412,22 @@ call re_allocate (to_array, size(from_array))
 to_array = from_array
 
 end subroutine value_transfer
+
+!-------------------------------------------------------------------------
+! contains
+
+subroutine node_transfer (to_node, from_node)
+
+type (tao_eval_node_struct) to_node, from_node
+
+!
+
+call re_allocate (to_node%value, size(from_node%value))
+to_node%value = from_node%value
+to_node%type = from_node%type
+to_node%name = from_node%name
+
+end subroutine node_transfer
 
 !-------------------------------------------------------------------------
 ! contains
