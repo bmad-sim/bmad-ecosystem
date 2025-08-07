@@ -1,23 +1,23 @@
 "[anomalous_moment_of(proton), mass_of(electron)]" REL 1E-9  1.7928473446E+00  5.1099895069E+05
 "(46.5/anomalous_moment_of(proton))^2-pi" REL 1E-9  6.6955508249E+02
-"[3,4] * [1]@ele::q[k1]" REL 1E-9  6.6955508249E+02
-"10**@data::*|model*7" REL 1E-9  6.6955508249E+02
-"100*var::*[*]|model*10" REL 1E-9  6.6955508249E+02
+"[3,4] * [1]@ele::q1[k1]" REL 1E-9  0.0000000000E+00  0.0000000000E+00
+"pi + 10**@data::*|model*7" REL 1E-9  8.3560488452E+02 -7.9044087888E+01  1.2525485058E+02 -2.9790884175E+01  3.1415926536E+00  3.1415926536E+00  8.3560488452E+02  1.8149753565E+01
+"100*var::*[*]|model*10" REL 1E-9  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
 "mass_of(#3He+2) / charge_of(Si++)" REL 1E-9  1.4041957652E+09
 "bbb*charge_of(aaa)" REL 1E-9  3.4000000000E+02
 "1" REL 1E-9  1.0000000000E+00
 "1" REL 1E-9  1.0000000000E+00
 "1" REL 1E-9  1.0000000000E+00
-"spin-tune" ABS 4E-9  7.8680758432E-02
-"Polarization Limit ST" REL 4E-9                    8.2401772698E-01
-"Polarization Limit DK" REL 4E-9                     3.0639976584E-01
-"Polarization Limits DK (a,b,c-modes)" REL 4E-9      8.4610268987E-01  7.7430731666E-01  3.1362070694E-01
-"Polarization Limits DK (bc,ac,ab-modes)" REL 4E-9   2.6156335986E-01  3.6466666282E-01  8.0652175998E-01
-"Polarization Rate BKS" REL 4E-9  2.5298437975E-03
-"Depolarization Rate" REL 4E-9  1.4282072685E-03
-"Depolarization Rate" REL 4E-9  4.2702606295E-05  2.2922954803E-05  1.3881174779E-03
-"Depolarization Rate" REL 4E-9  1.7549445000E-03  1.0919736486E-03  3.5032158902E-05
-"Integral g^3 * b_hat * n_0" REL 4E-9           2.0501003097E-10
-"Integral g^3 * b_hat * dn/ddelta" REL 4E-9     8.5744575319E-11
-"Integral g^3 (1 - 2(n * s_hat)/9)" REL 4E-9    2.2982534029E-10
-"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 4E-9  1.2974643803E-10
+"spin-tune" ABS 4E-9 -1.5719006590E+05
+"Polarization Limit ST" REL 4E-9                    0.0000000000E+00
+"Polarization Limit DK" REL 4E-9                     0.0000000000E+00
+"Polarization Limits DK (a,b,c-modes)" REL 4E-9      0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+"Polarization Limits DK (bc,ac,ab-modes)" REL 4E-9   0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+"Polarization Rate BKS" REL 4E-9  9.2910258533E-14
+"Depolarization Rate" REL 4E-9  0.0000000000E+00
+"Depolarization Rate" REL 4E-9  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+"Depolarization Rate" REL 4E-9  0.0000000000E+00  0.0000000000E+00  0.0000000000E+00
+"Integral g^3 * b_hat * n_0" REL 4E-9           0.0000000000E+00
+"Integral g^3 * b_hat * dn/ddelta" REL 4E-9     0.0000000000E+00
+"Integral g^3 (1 - 2(n * s_hat)/9)" REL 4E-9    5.3165769342E-01
+"Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 4E-9  0.0000000000E+00
