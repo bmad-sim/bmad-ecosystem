@@ -119,6 +119,7 @@ endif
 if (s%global%verbose_on) call type_expression_tree(tree)
 
 err_flag = .false.
+tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
 call bmad_tree_to_tao_tree(tree, tao_tree, expression, err_flag); if (err_flag) return
 call deallocate_tree(tree)
 call tree_param_evaluate(tao_tree, expression, err_flag); if (err_flag) return
@@ -225,7 +226,6 @@ character(*), parameter :: r_name = 'bmad_tree_to_tao_tree'
 
 ! Note: Tao variable, data, and paramter name syntax does not use parens.
 
-tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
 if (.not. associated(tree%node)) return
 n_node = size(tree%node)
 
@@ -277,13 +277,12 @@ end subroutine bmad_tree_to_tao_tree
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag, parent)
+recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag)
 
 implicit none
 
 type (tao_eval_node_struct), target :: tao_tree
 type (tao_eval_node_struct), pointer :: tnode, snode
-type (expression_tree_struct), optional :: parent 
 
 integer in, ix, n_node
 logical err_flag, in_compound, in_comp
@@ -324,22 +323,30 @@ do in = 1, n_node
       endif
 
       snode => tao_tree%node(in-1)
-      snode = snode%node(1)%node(1)  ! Note: snode has a comma child
+      snode%name = snode%node(1)%node(1)%name  ! Note: snode has a comma child
       snode%type = species_const$
       call tao_deallocate_tree(snode)
-
+      call re_allocate(snode%value, 1)
+      call tao_re_allocate_expression_info (snode%info, 1)
+      snode%info%good = .true.
 
       if (allocated(s%com%symbolic_num)) then
         call match_word(snode%name, s%com%symbolic_num%name, ix, .true., .false.)
         if (ix > 0) then
-          call re_allocate(snode%value, 1)
           snode%value(1) = s%com%symbolic_num(ix)%value
-          call tao_re_allocate_expression_info (snode%info, 1)
-          snode%info%good = .true.
           snode%type = constant$
         endif
       endif
 
+      if (snode%type == species_const$) then
+        snode%value(1) = species_id(snode%name)
+        if (snode%value(1) == invalid$) then
+          call out_io (s_error$, r_name, 'Not a valid species name or symbol: ' // snode%name, &
+                                         ' in expression: ' // expression)
+          err_flag = .true.
+          return
+        endif
+      endif
     end select
 
   case (variable$, numeric$, constant$)
@@ -356,7 +363,7 @@ do in = 1, n_node
     if (err_flag) return
 
   case (square_brackets$, func_parens$, parens$, comma$, compound$)
-    call tree_param_evaluate(tnode, expression, err_flag, parent)
+    call tree_param_evaluate(tnode, expression, err_flag)
     if (err_flag) return
   end select
 enddo

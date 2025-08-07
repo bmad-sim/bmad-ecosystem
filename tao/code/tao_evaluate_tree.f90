@@ -35,7 +35,7 @@ type (tao_expression_info_struct), allocatable :: info_loc(:), info2(:)
 
 real(rp), allocatable :: value(:), val2(:)
 
-integer n_size_in, n_size, species
+integer n_size_in, n_size, id_species
 integer i, i2, j, n, nn, nj, ns, ni
 
 logical err_flag, use_good_user, print_err, info_allocated, err
@@ -340,21 +340,12 @@ do i = 1, nn
       endif
 
     case ('mass_of', 'charge_of', 'anomalous_moment_of', 'species')
-      if (stk2(i2)%type == species_const$) then
-        species = species_id(stk2(i2)%name)
-        if (species == invalid$) then
-          if (print_err) call out_io (s_error$, r_name, 'Not a valid species name: ' // stk2(i2)%name)
-          err_flag = .true.
-          return
-        endif
-      else
-        species = nint(stk2(i2)%value(1))
-      endif
+      id_species = nint(stk2(i2)%value(1))
       select case (node1%name)
-      case ('mass_of');              stk2(i2)%value = mass_of(species)
-      case ('charge_of');            stk2(i2)%value = charge_of(species)
-      case ('anomalous_moment_of');  stk2(i2)%value = anomalous_moment_of(species)
-      case ('species');              stk2(i2)%value = species
+      case ('mass_of');              stk2(i2)%value = mass_of(id_species)
+      case ('charge_of');            stk2(i2)%value = charge_of(id_species)
+      case ('anomalous_moment_of');  stk2(i2)%value = anomalous_moment_of(id_species)
+      case ('species');              stk2(i2)%value = id_species
       end select
     end select
 

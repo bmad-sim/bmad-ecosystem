@@ -23,7 +23,7 @@ character(200) excite_zero(3), veto
 character(60) :: expr(10) = [character(60):: &
                   '[anomalous_moment_of(proton), mass_of(electron)]', &
                   '(46.5/anomalous_moment_of(proton))^2-pi', &
-                  '[3,4] * [1]@ele::q[k1]', &
+                  '[3,4] * [1]@ele::q1[k1]', &
                   '10**@data::*|model*7', &
                   '100*var::*[*]|model*10', &
                   'mass_of(#3He+2) / charge_of(Si++)', &

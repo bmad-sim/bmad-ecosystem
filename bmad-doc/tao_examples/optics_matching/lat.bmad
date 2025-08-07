@@ -9,11 +9,11 @@ parameter[geometry] = open
 parameter[e_tot] = 10e6
 
 
-p1: pipe, L = 1
-p2: pipe, L = 1
-p3: pipe, L = 1
-p4: pipe, L = 1
-p5: pipe, L = 1
+p1: drift, L = 1
+p2: drift, L = 1
+p3: drift, L = 1
+p4: drift, L = 1
+p5: drift, L = 1
 
 chicange_angle = 10*pi/180
 

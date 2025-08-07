@@ -5,8 +5,6 @@
 /
 
 
-
-
 !--------------------------------------------------------
 &tao_design_lattice
   design_lattice(1)%file='fodo.bmad'
@@ -26,29 +24,6 @@
   bmad_com%radiation_damping_on = F
   bmad_com%radiation_fluctuations_on = T
 /
-
-
-!----MODE X ----
-&tao_beam_init
-  beam_init%n_particle = 10000
-  beam_init%random_engine = 'quasi'
-  !beam_init%random_engine = 'pseudo'
-  ix_universe = 1
-  beam_saved_at =  "MARKER::*"
-  beam_dump_file = 'beam_dump.h5'
-  beam_dump_at = 'm_*'
-  beam_init%a_norm_emit = 2.5e-6
-  beam_init%b_norm_emit = 2.5e-6
-  beam_init%dPz_dz = 0.0
-  beam_init%n_bunch = 1     
-  beam_init%bunch_charge = 1e-9
-  beam_init%sig_pz = 2.5e-4
-  beam_init%sig_z = 0.005
-/
-
-
-
-
 
 
 &tao_d2_data
