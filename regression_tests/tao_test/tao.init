@@ -9,7 +9,7 @@
 &tao_design_lattice
   n_universes =1
  ! unique_name_suffix="*::_?"
-  design_lattice(1)%file = "lat.bmad"
+  design_lattice(1)%file = "tao_test.bmad"
 /
 
 !------------------------------------------------------------------------
