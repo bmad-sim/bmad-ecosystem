@@ -142,7 +142,7 @@ n_node = 0
 !
 
 parsing_loop: do
-  call get_next_chunk (parse_line, word, ix_word, '[]+-*/()^,{}=:|', delim, delim_found)
+  call get_next_chunk (parse_line, word, ix_word, ' []+-*/()^,{}=:|', delim, delim_found)
   if (ix_word == 0 .and. .not. delim_found) then
     if (tree%type /= root$ .and. tree%type /= equal$) then
       call set_this_err('Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
@@ -211,7 +211,7 @@ parsing_loop: do
 
   case default
     call push_node(tree, n_node, word)
-    call push_node(tree, n_node, delim)
+    call push_node(tree, n_node, delim, keep_blank = delim_found)
   end select
 enddo parsing_loop
 
@@ -257,10 +257,11 @@ do in = 1, n_node
   case ('::');                   node%type = double_colon$
   case ('|');                    node%type = vertical_bar$
   case (',');                    node%type = comma$
+  case (' ');                    node%type = blank$
   case ('{}', '[]', '=')        ! Already marked
 
   case ('()')
-    if (index('ABCDEFGHIJKLMNOPQRSTUVWXYZ', upcase(tree%node(max(1,in-1))%name(1:1))) > 0) node%type = func_parens$
+    if (is_alphabetic(tree%node(max(1,in-1))%name(1:1))) node%type = func_parens$
 
   case ('+')
     node%type = plus$
@@ -520,13 +521,14 @@ end subroutine make_compound_node
 !------------------------------------------------------------------------
 ! contains
 
-subroutine push_node(tree, n_node, str)
+subroutine push_node(tree, n_node, str, keep_blank)
 
 type (expression_tree_struct), target :: tree
 integer n_node
+logical, optional :: keep_blank
 character(*) str
 
-if (len_trim(str) == 0) return
+if (len_trim(str) == 0 .and. .not. logic_option(.false., keep_blank)) return
 call increment_n_node(tree, n_node)
 tree%node(n_node)%name = str
 
@@ -748,8 +750,10 @@ do n = 1, n_sub
 
   select case (tree%node(n)%type)
   case (plus$, minus$, times$, divide$, power$)
-    ss(iss-2) = trim(ss(iss-2)) // trim(ss(iss)) // ss(iss-1)
-    iss = iss - 2
+    if (iss > 2) then
+      ss(iss-2) = trim(ss(iss-2)) // trim(ss(iss)) // ss(iss-1)
+      iss = iss - 2
+    endif
   case (unary_plus$, unary_minus$)
     ss(iss-1) = trim(ss(iss)) // ss(iss-1)
     iss = iss - 1
@@ -757,7 +761,11 @@ do n = 1, n_sub
 enddo
 
 do n = 1, iss
-  str = trim(str) // ss(n)
+  if (ss(max(1,n-1)) == ' ') then
+    str = trim(str) // ' ' //  ss(n)
+  else
+    str = trim(str) // ss(n)
+  endif
 enddo
 
 allocate(character(len_trim(str)) :: str_out)
