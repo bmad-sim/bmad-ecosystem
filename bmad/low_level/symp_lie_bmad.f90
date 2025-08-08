@@ -742,7 +742,7 @@ real(rp) factor, coef
 integer j
 logical do_mat6
 
-factor = charge_of(start_orb%species) * c_light * field_ele%value(polarity$) / ele%value(p0c$)
+factor = charge_of(start_orb%species) * c_light * field_ele%value(polarity$) * ct_map%field_scale / ele%value(p0c$)
 
 do j = 1, num_wig_terms
   wt => wig_term(j)
