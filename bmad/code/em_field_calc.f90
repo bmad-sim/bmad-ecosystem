@@ -338,8 +338,9 @@ case (bmad_standard$)
       else
         time = particle_rf_time(orbit, ele, .false., s_body, rf_freq = ele%value(rf_frequency$))
       endif
-      phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_autoscale$) - &
+      phase = twopi * (ele%value(phi0$) + ele%value(phi0_autoscale$) - &
                       (time - rf_ref_time_offset(ele) - s_body/c_light) * ele%value(rf_frequency$))
+      if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * ele%value(phi0_multipass$)
 
       k_rf = twopi * ele%value(rf_frequency$) / c_light
       field%B(2) = -voltage * sin(phase) / (c_light * ele%value(l$))
@@ -363,7 +364,7 @@ case (bmad_standard$)
       else
         time = particle_rf_time(orbit, ele, .true., s_body, rf_freq = ele%value(rf_frequency$))
       endif
-      phase = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
+      phase = (ele%value(phi0$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
       field%e(3) = e_accel_field (ele, gradient$) * cos(twopi * (time * ele%value(rf_frequency$) + phase)) / ref_charge
     endif
 
@@ -415,7 +416,8 @@ case (bmad_standard$)
 
     if (ele%value(rf_frequency$) == 0) return
 
-    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
+    phase = twopi * (ele%value(phi0$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
+    if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * ele%value(phi0_multipass$)
     if (ele%key == rfcavity$) phase = pi/2 - phase
     orbit%phase(1) = phase  ! RF phase is needed by apply_element_edge_kick when calling rf_coupler_kick.
 
@@ -1127,8 +1129,8 @@ case(fieldmap$)
           if (present(err_flag)) err_flag = .true.
           return  
         endif
-        t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
-                                             phi0_autoscale + cl_map%phi0_fieldmap) / freq0
+        t_ref = (ele%value(phi0$) + ele%value(phi0_err$) + phi0_autoscale + cl_map%phi0_fieldmap) / freq0
+        if (.not. bmad_com%absolute_time_tracking) t_ref = t_ref + ele%value(phi0_multipass$) / freq0
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 
@@ -1333,8 +1335,8 @@ case(fieldmap$)
           time = particle_rf_time(orbit, ele, .false., s_body, rf_freq = freq0)
         endif
 
-        t_ref = (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(phi0_err$) + &
-                                                  phi0_autoscale + g_field%phi0_fieldmap) / freq0
+        t_ref = (ele%value(phi0$) + ele%value(phi0_err$) + phi0_autoscale + g_field%phi0_fieldmap) / freq0
+        if (.not. bmad_com%absolute_time_tracking) t_ref = t_ref + ele%value(phi0_multipass$) / freq0
         if (ele%key == rfcavity$) t_ref = 0.25/freq0 - t_ref
       endif
 

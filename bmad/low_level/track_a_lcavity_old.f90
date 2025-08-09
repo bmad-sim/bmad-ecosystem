@@ -142,8 +142,10 @@ do i = 1, n_step
   ! Note: phi0_autoscale is not used here since bmad_standard tracking by design gives the correct tracking.
   ! In fact, using phi0_autoscale would be a mistake if, say, tracking_method = runge_kutta, mat6_calc_method = bmad_standard.
 
-  phase = twopi * (ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
+  phase = twopi * (ele%value(phi0_err$) + ele%value(phi0$) + &
              (particle_rf_time (orbit, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$))
+
+  if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * ele%value(phi0_multipass$)
   if (bmad_com%absolute_time_tracking .and. ele%orientation*orbit%time_dir*orbit%direction == -1) then
     phase = phase - twopi * ele%value(rf_frequency$) * ele%value(delta_ref_time$)
   endif
