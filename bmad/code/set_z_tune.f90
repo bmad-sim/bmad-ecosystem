@@ -88,7 +88,6 @@ do i = 1, branch%n_ele_max
   ! RFcavity element
 
   if (ele%key == rfcavity$) then
-
     if (ele%slave_status == super_slave$) cycle 
     if (.not. ele%is_on) cycle
     if (ele%value(rf_frequency$) == 0) cycle
@@ -100,10 +99,10 @@ do i = 1, branch%n_ele_max
 
     n_rf = n_rf + 1
     ix_rf(n_rf) = i
-    phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$))
+    phase = twopi * ele%value(phi0$)
+    if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * ele%value(phi0_multipass$)
     coef_tot = coef_tot + twopi * cos(phase) * ele%value(rf_frequency$) / (c_light * E0)
     voltage_control(n_rf)%r => ele%value(voltage$)
-
   endif
 
   ! Overlay element
@@ -125,7 +124,8 @@ do i = 1, branch%n_ele_max
 
       if (.not. found_control) n_rf = n_rf + 1
       found_control = .true.
-      phase = twopi * (ele2%value(phi0$) + ele2%value(phi0_multipass$))
+      phase = twopi * ele%value(phi0$)
+      if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * ele%value(phi0_multipass$)
       coef_tot = coef_tot + linear_coef(ctl%stack, err_flag) * twopi * &
                cos(phase) * ele2%value(rf_frequency$) / (c_light * E0)
       voltage_control(n_rf)%r => ele%control%var(1)%value

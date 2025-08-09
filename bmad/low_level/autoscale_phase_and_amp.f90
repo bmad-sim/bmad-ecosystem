@@ -111,7 +111,9 @@ if (tm == bmad_standard$ .or. (ele%key == rfcavity$ .and. ele%value(l$) == 0 .an
           tm == fixed_step_runge_kutta$ .or. tm == time_runge_kutta$ .or. tm == fixed_step_time_runge_kutta$))) then
   if (ele%key == lcavity$) then 
     ! Set e_tot$ and p0c$ 
-    phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$)) 
+    phi = twopi * ele%value(phi0$)
+    if (.not. bmad_com%absolute_time_tracking) phi = phi + twopi * ele%value(phi0_multipass$)
+
     e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
     if (err_flag) then

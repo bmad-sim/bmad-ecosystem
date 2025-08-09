@@ -196,7 +196,9 @@ do i = 1, size(ele%wake%lr%mode)
 
     dt = ele%wake%lr%time_scale * (particle%t - ele%wake%lr%t_ref)
     dt_phase = dt
-    if (mode%freq_in < 0) dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
+    if (mode%freq_in < 0 .and. .not. bmad_com%absolute_time_tracking) then
+      dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
+    endif
 
     ! The spatial variation of the normal and skew
     ! components is the same as the spatial variation of a multipole kick.

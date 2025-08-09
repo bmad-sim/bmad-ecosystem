@@ -5,21 +5,22 @@ beginning[beta_b]  = 12
 parameter[geometry] = open
 beginning[p0c]  = 1e6
 
-particle_start[x] = 0e-4
+particle_start[x] = 1e-3
 particle_start[px] = 1e-4
-particle_start[z] = 0.123e-3
+particle_start[y] = 2e-3
+particle_start[py] = 1e-4
+particle_start[z] = 3e-4
+particle_start[pz] = 1e-2
 
 !
 
 d: drift, l = 1
-rf: lcavity, l = 1, rf_frequency = 1e9, gradient = 1e6, phi0 = 0.1, num_steps = 1
+lc_old: lcavity, l = 1, rf_frequency = 1e9, gradient = 1e5, voltage_err = 0.2e5, 
+              phi0 = 0.1, phi0_err = -0.2, num_steps = 1
+lc_new: lc_old, n_rf_steps = 10
 
-lat: line = (d, rf)
+latm: line[multipass] = (d, lc_old, lc_new)
+lat: line = (latm, latm)
 
-rf3: lcavity, l = 1, rf_frequency = 3e9, gradient = 1e6, phi0 = 0.1, num_steps = 1
-lat3: line = (d, rf, rf3, rf, rf3)
-lat3[beta_a] = 10
-lat3[beta_b] = 10
-lat3[geometry] = open
 
-use, lat, lat3
+use, lat

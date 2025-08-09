@@ -420,8 +420,8 @@ endif
 
 !
 
-phase = twopi * (lord%value(phi0_err$) + lord%value(phi0$) + lord%value(phi0_multipass$) + &
-                                                                 particle_time * lord%value(rf_frequency$))
+phase = twopi * (lord%value(phi0_err$) + lord%value(phi0$) + particle_time * lord%value(rf_frequency$))
+if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * lord%value(phi0_multipass$)
 if (bmad_com%absolute_time_tracking .and. lord%orientation*orbit%time_dir*orbit%direction == -1) then
   phase = phase - twopi * lord%value(rf_frequency$) * lord%value(delta_ref_time$)
 endif
