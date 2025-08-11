@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 341
+integer, parameter :: bmad_inc_version$ = 342
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1602,6 +1602,7 @@ type branch_struct
   integer :: ix_from_branch = -1   ! -1 => No creating fork element to this branch.
   integer :: ix_from_ele = -1      ! Index of creating fork element which forks to this branch.
   integer :: ix_to_ele = -1        ! Index of element in this branch that creating fork element forks to.
+  integer :: ix_fixer = 0          ! Index of active fixer or beginning_ele element.
   integer :: n_ele_track
   integer :: n_ele_max
   type (lat_struct), pointer :: lat => null()
@@ -1754,13 +1755,13 @@ integer, parameter :: e_photon$ = 9
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
-integer, parameter :: x_set$ = 15, px_set$ = 16, y_set$ = 17, py_set$ = 18, z_set$ = 19, pz_set$ = 20
-integer, parameter :: beta_a_set$ = 21, alpha_a_set$ = 22, beta_b_set$ = 23, alpha_b_set$ = 24
-integer, parameter :: phi_a_set$ = 25, phi_b_set$ = 26, mode_flip_set$ = 27
-integer, parameter :: eta_x_set$ = 34, etap_x_set$ = 35, eta_y_set$ = 36, etap_y_set$ = 37
-integer, parameter :: cmat_11_set$ = 38, cmat_12_set$ = 39, cmat_21_set$ = 40, cmat_22_set$ = 41
-integer, parameter :: dbeta_dpz_a_set$ = 42, dbeta_dpz_b_set$ = 43, dalpha_dpz_a_set$ = 44, dalpha_dpz_b_set$ = 45
-integer, parameter :: deta_dpz_x_set$ = 46, deta_dpz_y_set$ = 47, detap_dpz_x_set$ = 48, detap_dpz_y_set$ = 49
+integer, parameter :: x_stored$ = 15, px_stored$ = 16, y_stored$ = 17, py_stored$ = 18, z_stored$ = 19, pz_stored$ = 20
+integer, parameter :: beta_a_stored$ = 21, alpha_a_stored$ = 22, beta_b_stored$ = 23, alpha_b_stored$ = 24
+integer, parameter :: phi_a_stored$ = 25, phi_b_stored$ = 26, mode_flip_stored$ = 27
+integer, parameter :: eta_x_stored$ = 34, etap_x_stored$ = 35, eta_y_stored$ = 36, etap_y_stored$ = 37
+integer, parameter :: cmat_11_stored$ = 38, cmat_12_stored$ = 39, cmat_21_stored$ = 40, cmat_22_stored$ = 41
+integer, parameter :: dbeta_dpz_a_stored$ = 42, dbeta_dpz_b_stored$ = 43, dalpha_dpz_a_stored$ = 44, dalpha_dpz_b_stored$ = 45
+integer, parameter :: deta_dpz_x_stored$ = 46, deta_dpz_y_stored$ = 47, detap_dpz_x_stored$ = 48, detap_dpz_y_stored$ = 49
 
 integer, parameter :: radius$ = 3, focal_strength$ = 5
 

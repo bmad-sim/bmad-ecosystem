@@ -945,65 +945,65 @@ call init_attribute_name1 (def_line$, default_tracking_species$,    'DEFAULT_TRA
 call init_attribute_name1 (def_line$, ix_branch$,                   'ix_branch', private$)
 call init_attribute_name1 (def_line$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
 
-call init_attribute_name1 (beginning_ele$, x_set$,                       'X_SET')
-call init_attribute_name1 (beginning_ele$, px_set$,                      'PX_SET')
-call init_attribute_name1 (beginning_ele$, y_set$,                       'Y_SET')
-call init_attribute_name1 (beginning_ele$, py_set$,                      'PY_SET')
-call init_attribute_name1 (beginning_ele$, z_set$,                       'Z_SET')
-call init_attribute_name1 (beginning_ele$, pz_set$,                      'PZ_SET')
-call init_attribute_name1 (beginning_ele$, beta_a_set$,                  'BETA_A_SET')
-call init_attribute_name1 (beginning_ele$, beta_b_set$,                  'BETA_B_SET')
-call init_attribute_name1 (beginning_ele$, alpha_a_set$,                 'ALPHA_A_SET')
-call init_attribute_name1 (beginning_ele$, alpha_b_set$,                 'ALPHA_B_SET')
-call init_attribute_name1 (beginning_ele$, dbeta_dpz_a_set$,             'DBETA_DPZ_A_SET')
-call init_attribute_name1 (beginning_ele$, dbeta_dpz_b_set$,             'DBETA_DPZ_B_SET')
-call init_attribute_name1 (beginning_ele$, dalpha_dpz_a_set$,            'DALPHA_DPZ_A_SET')
-call init_attribute_name1 (beginning_ele$, dalpha_dpz_b_set$,            'DALPHA_DPZ_B_SET')
-call init_attribute_name1 (beginning_ele$, deta_dpz_x_set$,              'DETA_DPZ_X_SET')
-call init_attribute_name1 (beginning_ele$, deta_dpz_y_set$,              'DETA_DPZ_Y_SET')
-call init_attribute_name1 (beginning_ele$, detap_dpz_x_set$,             'DETAP_DPZ_X_SET')
-call init_attribute_name1 (beginning_ele$, detap_dpz_y_set$,             'DETAP_DPZ_Y_SET')
-call init_attribute_name1 (beginning_ele$, eta_x_set$,                   'ETA_X_SET')
-call init_attribute_name1 (beginning_ele$, eta_y_set$,                   'ETA_Y_SET')
-call init_attribute_name1 (beginning_ele$, etap_x_set$,                  'ETAP_X_SET')
-call init_attribute_name1 (beginning_ele$, etap_y_set$,                  'ETAP_Y_SET')
-call init_attribute_name1 (beginning_ele$, phi_a_set$,                   'PHI_A_SET')
-call init_attribute_name1 (beginning_ele$, phi_b_set$,                   'PHI_B_SET')
-call init_attribute_name1 (beginning_ele$, cmat_11_set$,                 'CMAT_11_SET')
-call init_attribute_name1 (beginning_ele$, cmat_12_set$,                 'CMAT_12_SET')
-call init_attribute_name1 (beginning_ele$, cmat_21_set$,                 'CMAT_21_SET')
-call init_attribute_name1 (beginning_ele$, cmat_22_set$,                 'CMAT_22_SET')
-call init_attribute_name1 (beginning_ele$, mode_flip_set$,               'MODE_FLIP_SET')
+call init_attribute_name1 (beginning_ele$, x_stored$,                       'X_STORED')
+call init_attribute_name1 (beginning_ele$, px_stored$,                      'PX_STORED')
+call init_attribute_name1 (beginning_ele$, y_stored$,                       'Y_STORED')
+call init_attribute_name1 (beginning_ele$, py_stored$,                      'PY_STORED')
+call init_attribute_name1 (beginning_ele$, z_stored$,                       'Z_STORED')
+call init_attribute_name1 (beginning_ele$, pz_stored$,                      'PZ_STORED')
+call init_attribute_name1 (beginning_ele$, beta_a_stored$,                  'BETA_A_STORED')
+call init_attribute_name1 (beginning_ele$, beta_b_stored$,                  'BETA_B_STORED')
+call init_attribute_name1 (beginning_ele$, alpha_a_stored$,                 'ALPHA_A_STORED')
+call init_attribute_name1 (beginning_ele$, alpha_b_stored$,                 'ALPHA_B_STORED')
+call init_attribute_name1 (beginning_ele$, dbeta_dpz_a_stored$,             'DBETA_DPZ_A_STORED')
+call init_attribute_name1 (beginning_ele$, dbeta_dpz_b_stored$,             'DBETA_DPZ_B_STORED')
+call init_attribute_name1 (beginning_ele$, dalpha_dpz_a_stored$,            'DALPHA_DPZ_A_STORED')
+call init_attribute_name1 (beginning_ele$, dalpha_dpz_b_stored$,            'DALPHA_DPZ_B_STORED')
+call init_attribute_name1 (beginning_ele$, deta_dpz_x_stored$,              'DETA_DPZ_X_STORED')
+call init_attribute_name1 (beginning_ele$, deta_dpz_y_stored$,              'DETA_DPZ_Y_STORED')
+call init_attribute_name1 (beginning_ele$, detap_dpz_x_stored$,             'DETAP_DPZ_X_STORED')
+call init_attribute_name1 (beginning_ele$, detap_dpz_y_stored$,             'DETAP_DPZ_Y_STORED')
+call init_attribute_name1 (beginning_ele$, eta_x_stored$,                   'ETA_X_STORED')
+call init_attribute_name1 (beginning_ele$, eta_y_stored$,                   'ETA_Y_STORED')
+call init_attribute_name1 (beginning_ele$, etap_x_stored$,                  'ETAP_X_STORED')
+call init_attribute_name1 (beginning_ele$, etap_y_stored$,                  'ETAP_Y_STORED')
+call init_attribute_name1 (beginning_ele$, phi_a_stored$,                   'PHI_A_STORED')
+call init_attribute_name1 (beginning_ele$, phi_b_stored$,                   'PHI_B_STORED')
+call init_attribute_name1 (beginning_ele$, cmat_11_stored$,                 'CMAT_11_STORED')
+call init_attribute_name1 (beginning_ele$, cmat_12_stored$,                 'CMAT_12_STORED')
+call init_attribute_name1 (beginning_ele$, cmat_21_stored$,                 'CMAT_21_STORED')
+call init_attribute_name1 (beginning_ele$, cmat_22_stored$,                 'CMAT_22_STORED')
+call init_attribute_name1 (beginning_ele$, mode_flip_stored$,               'MODE_FLIP_STORED')
 
-call init_attribute_name1 (fixer$, x_set$,                           'X_SET')
-call init_attribute_name1 (fixer$, px_set$,                          'PX_SET')
-call init_attribute_name1 (fixer$, y_set$,                           'Y_SET')
-call init_attribute_name1 (fixer$, py_set$,                          'PY_SET')
-call init_attribute_name1 (fixer$, z_set$,                           'Z_SET')
-call init_attribute_name1 (fixer$, pz_set$,                          'PZ_SET')
-call init_attribute_name1 (fixer$, beta_a_set$,                      'BETA_A_SET')
-call init_attribute_name1 (fixer$, beta_b_set$,                      'BETA_B_SET')
-call init_attribute_name1 (fixer$, alpha_a_set$,                     'ALPHA_A_SET')
-call init_attribute_name1 (fixer$, alpha_b_set$,                     'ALPHA_B_SET')
-call init_attribute_name1 (fixer$, dbeta_dpz_a_set$,                 'DBETA_DPZ_A_SET')
-call init_attribute_name1 (fixer$, dbeta_dpz_b_set$,                 'DBETA_DPZ_B_SET')
-call init_attribute_name1 (fixer$, dalpha_dpz_a_set$,                'DALPHA_DPZ_A_SET')
-call init_attribute_name1 (fixer$, dalpha_dpz_b_set$,                'DALPHA_DPZ_B_SET')
-call init_attribute_name1 (fixer$, deta_dpz_x_set$,                  'DETA_DPZ_X_SET')
-call init_attribute_name1 (fixer$, deta_dpz_y_set$,                  'DETA_DPZ_Y_SET')
-call init_attribute_name1 (fixer$, detap_dpz_x_set$,                 'DETAP_DPZ_X_SET')
-call init_attribute_name1 (fixer$, detap_dpz_y_set$,                 'DETAP_DPZ_Y_SET')
-call init_attribute_name1 (fixer$, eta_x_set$,                       'ETA_X_SET')
-call init_attribute_name1 (fixer$, eta_y_set$,                       'ETA_Y_SET')
-call init_attribute_name1 (fixer$, etap_x_set$,                      'ETAP_X_SET')
-call init_attribute_name1 (fixer$, etap_y_set$,                      'ETAP_Y_SET')
-call init_attribute_name1 (fixer$, phi_a_set$,                       'PHI_A_SET')
-call init_attribute_name1 (fixer$, phi_b_set$,                       'PHI_B_SET')
-call init_attribute_name1 (fixer$, cmat_11_set$,                     'CMAT_11_SET')
-call init_attribute_name1 (fixer$, cmat_12_set$,                     'CMAT_12_SET')
-call init_attribute_name1 (fixer$, cmat_21_set$,                     'CMAT_21_SET')
-call init_attribute_name1 (fixer$, cmat_22_set$,                     'CMAT_22_SET')
-call init_attribute_name1 (fixer$, mode_flip_set$,                   'MODE_FLIP_SET')
+call init_attribute_name1 (fixer$, x_stored$,                           'X_STORED')
+call init_attribute_name1 (fixer$, px_stored$,                          'PX_STORED')
+call init_attribute_name1 (fixer$, y_stored$,                           'Y_STORED')
+call init_attribute_name1 (fixer$, py_stored$,                          'PY_STORED')
+call init_attribute_name1 (fixer$, z_stored$,                           'Z_STORED')
+call init_attribute_name1 (fixer$, pz_stored$,                          'PZ_STORED')
+call init_attribute_name1 (fixer$, beta_a_stored$,                      'BETA_A_STORED')
+call init_attribute_name1 (fixer$, beta_b_stored$,                      'BETA_B_STORED')
+call init_attribute_name1 (fixer$, alpha_a_stored$,                     'ALPHA_A_STORED')
+call init_attribute_name1 (fixer$, alpha_b_stored$,                     'ALPHA_B_STORED')
+call init_attribute_name1 (fixer$, dbeta_dpz_a_stored$,                 'DBETA_DPZ_A_STORED')
+call init_attribute_name1 (fixer$, dbeta_dpz_b_stored$,                 'DBETA_DPZ_B_STORED')
+call init_attribute_name1 (fixer$, dalpha_dpz_a_stored$,                'DALPHA_DPZ_A_STORED')
+call init_attribute_name1 (fixer$, dalpha_dpz_b_stored$,                'DALPHA_DPZ_B_STORED')
+call init_attribute_name1 (fixer$, deta_dpz_x_stored$,                  'DETA_DPZ_X_STORED')
+call init_attribute_name1 (fixer$, deta_dpz_y_stored$,                  'DETA_DPZ_Y_STORED')
+call init_attribute_name1 (fixer$, detap_dpz_x_stored$,                 'DETAP_DPZ_X_STORED')
+call init_attribute_name1 (fixer$, detap_dpz_y_stored$,                 'DETAP_DPZ_Y_STORED')
+call init_attribute_name1 (fixer$, eta_x_stored$,                       'ETA_X_STORED')
+call init_attribute_name1 (fixer$, eta_y_stored$,                       'ETA_Y_STORED')
+call init_attribute_name1 (fixer$, etap_x_stored$,                      'ETAP_X_STORED')
+call init_attribute_name1 (fixer$, etap_y_stored$,                      'ETAP_Y_STORED')
+call init_attribute_name1 (fixer$, phi_a_stored$,                       'PHI_A_STORED')
+call init_attribute_name1 (fixer$, phi_b_stored$,                       'PHI_B_STORED')
+call init_attribute_name1 (fixer$, cmat_11_stored$,                     'CMAT_11_STORED')
+call init_attribute_name1 (fixer$, cmat_12_stored$,                     'CMAT_12_STORED')
+call init_attribute_name1 (fixer$, cmat_21_stored$,                     'CMAT_21_STORED')
+call init_attribute_name1 (fixer$, cmat_22_stored$,                     'CMAT_22_STORED')
+call init_attribute_name1 (fixer$, mode_flip_stored$,                   'MODE_FLIP_STORED')
 
 call init_attribute_name1 (feedback$, input_ele$,                        'INPUT_ELE')
 call init_attribute_name1 (feedback$, output_ele$,                       'OUTPUT_ELE')
@@ -2009,7 +2009,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', 'DELTA_REF_TIME_USER_SET', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
-      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', 'MODE_FLIP_SET', &
+      'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', 'MODE_FLIP_STORED', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', 'DETA_DS_MASTER', &
       'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
@@ -2104,9 +2104,9 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'VAL1', 'VAL2', 'VAL3', 'VAL4', 'VAL5', 'VAL6', 'VAL7', 'VAL8', 'VAL9', 'VAL10', 'VAL11', 'VAL12', &
       'C11_MAT0', 'C11_MAT1', 'C22_MAT0', 'C22_MAT1', 'E2_PROBABILITY', 'CRAB_X1', 'PZ_APERTURE_CENTER', &
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2', &
-      'ALPHA_A_SET', 'ALPHA_B_SET', 'DALPHA_DPZ_A_SET', 'DALPHA_DPZ_B_SET', 'DETAP_DPZ_X_SET', 'DETAP_DPZ_Y_SET', &
-      'ETAP_X_SET', 'ETAP_Y_SET', 'PHI_A_SET', 'PHI_B_SET', 'CMAT_11_SET', 'CMAT_22_SET', &
-      'PX_SET', 'PY_SET', 'PZ_SET')
+      'ALPHA_A_STORED', 'ALPHA_B_STORED', 'DALPHA_DPZ_A_STORED', 'DALPHA_DPZ_B_STORED', 'DETAP_DPZ_X_STORED', 'DETAP_DPZ_Y_STORED', &
+      'ETAP_X_STORED', 'ETAP_Y_STORED', 'PHI_A_STORED', 'PHI_B_STORED', 'CMAT_11_STORED', 'CMAT_22_STORED', &
+      'PX_STORED', 'PY_STORED', 'PZ_STORED')
   attrib_units = ''
 
 case ('SIG_VX', 'SIG_VY')
@@ -2127,11 +2127,11 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'X_OFFSET_TOT', 'Y_OFFSET_TOT', 'X_POSITION', 'Y_POSITION', 'X_QUAD', 'Y_QUAD', &
       'X_REF', 'Y_REF', 'Z', 'Z0', 'Z1', 'Z_OFFSET', 'Z_OFFSET_TOT', 'Z_POSITION', 'Z_REF', 'MOSAIC_THICKNESS', &
       'CMAT_12', 'C12_MAT0', 'C12_MAT1', 'X_GAIN_CALIB', 'Y_GAIN_CALIB', 'X_GAIN_ERR', 'Y_GAIN_ERR', 'RADIUS', &
-      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'BETA_A_SET', 'BETA_B_SET', &
-      'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', 'L_RECTANGLE', 'S_TWISS_REF', 'DBETA_DPZ_A_SET', 'DBETA_DPZ_B_SET', &
-      'DETA_DPZ_X_SET', 'DETA_DPZ_Y_SET', 'ETA_X_SET', 'ETA_Y_SET', 'CMAT_12_SET', &
+      'Z_APERTURE_WIDTH2', 'Z_APERTURE_CENTER', 'RF_WAVELENGTH', 'BETA_A_STORED', 'BETA_B_STORED', &
+      'X1_EDGE', 'X2_EDGE', 'Y1_EDGE', 'Y2_EDGE', 'L_RECTANGLE', 'S_TWISS_REF', 'DBETA_DPZ_A_STORED', 'DBETA_DPZ_B_STORED', &
+      'DETA_DPZ_X_STORED', 'DETA_DPZ_Y_STORED', 'ETA_X_STORED', 'ETA_Y_STORED', 'CMAT_12_STORED', &
       'X_DISPERSION_ERR', 'Y_DISPERSION_ERR', 'X_DISPERSION_CALIB', 'Y_DISPERSION_CALIB', &
-      'X_SET', 'Y_SET', 'Z_SET')
+      'X_STORED', 'Y_STORED', 'Z_STORED')
   attrib_units = 'm'
 
 
@@ -2158,7 +2158,7 @@ case ('CRITICAL_ANGLE_FACTOR')
 
 case ('CMAT_21', 'C21_MAT0', 'C21_MAT1', 'CURVATURE_X0_Y2', 'CURVATURE_X1_Y1', 'CURVATURE_X2_Y0', 'G', 'DG', 'G_MAX', &
       'G_TOT', 'H1', 'H2', 'CRAB_X2', 'SPHERICAL_CURVATURE', 'ELLIPTICAL_CURVATURE_X', 'ELLIPTICAL_CURVATURE_Y', &
-      'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH', 'CMAT_21_SET')
+      'ELLIPTICAL_CURVATURE_Z', 'FOCAL_STRENGTH', 'CMAT_21_STORED')
   attrib_units = '1/m'
 
 case ('CURVATURE_X0_Y3', 'CURVATURE_X1_Y2', 'CURVATURE_X2_Y1', 'CURVATURE_X3_Y0', 'DKS_DS', 'CRAB_X3')

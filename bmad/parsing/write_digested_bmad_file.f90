@@ -136,14 +136,14 @@ enddo
 
 call write_this_wall3d (lat%branch(0)%wall3d, associated(lat%branch(0)%wall3d))
 
-write (d_unit) lat%branch(0)%name
+write (d_unit) lat%branch(0)%name, lat%branch(0)%ix_fixer
 
 do i = 1, ubound(lat%branch, 1)
   n_wake = 0  ! number of wakes written to the digested file for this branch.
   branch => lat%branch(i)
   write (d_unit) branch%param
   write (d_unit) branch%name, branch%ix_from_branch, branch%ix_to_ele, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%ix_fixer
   do j = 0, branch%n_ele_max
     call write_this_ele(branch%ele(j))
   enddo
