@@ -237,14 +237,14 @@ call allocate_branch_array (lat, n_branch)  ! Initial allocation
 call read_this_wall3d (lat%branch(0)%wall3d, error)
 if (error) return
 
-read (d_unit, err = 9070, end = 9070) lat%branch(0)%name
+read (d_unit, err = 9070, end = 9070) lat%branch(0)%name, lat%branch(0)%ix_fixer
 
 do i = 1, n_branch
   branch => lat%branch(i)
   branch%ix_branch = i
   read (d_unit, err = 9070, end = 9070) branch%param
   read (d_unit, err = 9070, end = 9070) branch%name, branch%ix_from_branch, branch%ix_to_ele, &
-                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max
+                 branch%ix_from_ele, branch%n_ele_track, branch%n_ele_max, branch%ix_fixer
 
   call allocate_lat_ele_array (lat, branch%n_ele_max, i)
   do j = 0, branch%n_ele_max

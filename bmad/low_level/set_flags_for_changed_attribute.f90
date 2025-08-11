@@ -138,6 +138,7 @@ end subroutine set_flags_for_changed_integer_attribute
 subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
 
 use bmad_routine_interface, dummy => set_flags_for_changed_logical_attribute
+use fixer_mod, dummy2 => set_flags_for_changed_logical_attribute
 
 implicit none
 
@@ -202,6 +203,15 @@ if (ele%lord_status == multipass_lord$) then
     endif
   enddo
 
+endif
+
+! is_on for fixer element.
+
+if (associated(a_ptr, ele%is_on)) then
+  select case (ele%key)
+  case (beginning_ele$, fixer$)
+    call set_active_fixer(ele, ele%is_on)
+  end select
 endif
 
 end subroutine set_flags_for_changed_logical_attribute

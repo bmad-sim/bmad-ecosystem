@@ -171,6 +171,9 @@ case (floor_shift$)
   ele%value(upstream_coord_dir$) = 1
   ele%value(downstream_coord_dir$) = 1
 
+case (fixer$)
+  ele%is_on = .false.
+
 case (foil$)
   ele%value(num_steps$) = 10
   ele%value(final_charge$) = real_garbage$
