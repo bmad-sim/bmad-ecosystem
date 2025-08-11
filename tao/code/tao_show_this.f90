@@ -79,7 +79,7 @@ type (wake_lr_mode_struct), pointer :: lr_mode
 type (coord_struct), target :: orb, orb0, orb2, orbit
 type (bunch_params_struct), target :: bunch_params
 type (bunch_params_struct), pointer :: bunch_p
-type (taylor_struct) taylor(6)
+type (taylor_struct) taylor(6), spin_taylor(0:3)
 type (ele_pointer_struct), allocatable :: eles(:)
 type (branch_struct), pointer :: branch, branch2, design_branch
 type (tao_model_branch_struct), pointer :: model_branch
@@ -5292,7 +5292,7 @@ case ('taylor_map', 'matrix')
 
     if (output_type /= 'MATRIX' .or. force_use_ptc) then
       call transfer_map_calc (lat, taylor, err, ix1, ix2, u%model%tao_branch(ix_branch)%orbit(ix1), ix_branch, &
-                                                      one_turn = .true., concat_if_possible = s%global%concatenate_maps)
+                                                      one_turn = .true., concat_if_possible = s%global%concatenate_maps, spin_map = spin_taylor)
       if (err) then
         nl = 1; lines(1) = 'TAYLOR MAP TERM OVERFLOW.'
         return
@@ -5356,21 +5356,23 @@ case ('taylor_map', 'matrix')
 
       else  ! output_type /= 'MATRIX'
         i0 = ele%ix_ele-1
-        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch)
-        if (do_inverse) call taylor_inverse(taylor, taylor)
-        call truncate_taylor_to_order (taylor, n_order, taylor)
-        call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
-!        if (bmad_com%spin_tracking_on) then
-!          call type_taylors (taylor, n_order, alloc_lines, n, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
-!        endif
+        call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch, spin_map = spin_taylor)
+        call type_taylors (taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
+        if (bmad_com%spin_tracking_on) then
+          nl=nl+1; lines(nl) = ''
+          call type_taylors (spin_taylor, n_order, lines, n_lines = nl, clean = clean, append = .true.)
+        endif
       endif
     enddo
 
   else
     if (output_type /= 'MATRIX') then
       if (angle_units) call map_to_angle_coords (taylor, taylor)
-      if (n_order > 1) call truncate_taylor_to_order (taylor, n_order, taylor)
       call type_taylors (taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, out_var_suffix = var_name)
+      if (bmad_com%spin_tracking_on) then
+        nl=nl+1; lines(nl) = ''
+        call type_taylors (spin_taylor, n_order, lines, n_lines = nl, clean = clean, append = .true.)
+      endif
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
 
     elseif (output_type == 'BMAD_LATTICE_FORMAT') then
