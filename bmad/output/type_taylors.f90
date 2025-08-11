@@ -72,7 +72,11 @@ if (.not. associated(bmad_taylor(1)%term)) then
   nl = 2
   allocate (li(nl))
   li(1) = '---------------------------------------------------'
-  li(2) = 'A Taylor Map Does Not Exist.' 
+  if (size(bmad_taylor) == 4) then
+    li(2) = 'A Spin Taylor Map does not Exist.' 
+  else
+    li(2) = 'A Taylor Map does not Exist.' 
+  endif
 
 ! SciBmad format
 

@@ -45,17 +45,19 @@
 !                      Default = True
 !   concat_if_possible
 !                 -- logical, optional: If present and True then use map concatenation rather than tracking 
-!                    if a map is present for a given lattice element. See above. Default is False.
-!   spin_map(4)   -- taylor_struct, optional: Quaternion spin map.
+!                      if a map is present for a given lattice element. See above. Default is False.
+!   spin_map(4)   -- taylor_struct, optional: Input quaternion spin map. 
+!                      Output only computed if bmad_com%spin_tracking_on = T
 !
 ! Output:
 !   orb_map(6)    -- Taylor_struct: Transfer map.
 !   err_flag      -- logical: Set True if problem like number overflow, etc.
 !   spin_map(4)   -- taylor_struct, optional: Quaternion spin map.
+!                     Only computed if bmad_com%spin_tracking_on = T
 !-
 
 subroutine transfer_map_calc (lat, orb_map, err_flag, ix1, ix2, ref_orb, ix_branch, one_turn, &
-                                                                unit_start, concat_if_possible, spin_map)
+                                                           unit_start, concat_if_possible, spin_map)
 
 use bmad_interface, except_dummy => transfer_map_calc
 use ptc_interface_mod, only: concat_ele_taylor, taylor_propagate1, taylor_inverse, concat_taylor
@@ -92,6 +94,7 @@ err_flag = .false.
 
 if (unit_start_this) then
   call taylor_make_unit (orb_map, ref_orb%vec)
+  if (present(spin_map) .and. bmad_com%spin_tracking_on) call taylor_make_quaternion_unit (spin_map)
 endif
 
 if (i1 == i2 .and. (lat%param%geometry == open$ .or. .not. logic_option (.false., one_turn))) return

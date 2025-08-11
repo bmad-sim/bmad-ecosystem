@@ -52,17 +52,21 @@ integer, parameter :: var_offset$ = 2000              ! Important: var_offset$ >
 integer, parameter :: n_var_max$ = 999                ! Maximum number of variables per controller.
 integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset.
 
+! See the documentation in the Bmad manual for more details.
+
 type expression_atom_struct
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
   real(rp) :: value = 0
 end type
 
+! See the documentation in the Bmad manual for more details.
+
 type expression_tree_struct
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. 
   real(rp) :: value = 0
-  type (expression_tree_struct), pointer :: node(:) => null()  ! Child nodes.
+  type (expression_tree_struct), pointer :: node(:) => null()  ! Child nodes. Note: Pointer used here since Ifort does not support allocatable.
 end type
 
 !-------------------------------------------------------------------------

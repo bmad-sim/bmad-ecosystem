@@ -453,3 +453,31 @@ safe. Another exception is that PTC code (\sref{c:ptc.use}) is not thread safe.
 In order to signal routines that have MP code whether it is safe to using threading, there is the
 global switch \vn{global_com%mp_threading_is_safe}. The default is True. 
 
+%-----------------------------------------------------------------------------
+\section{Expression Trees and Expression Stacks)
+
+Expression trees and expression stacks are how \bmad and \tao handle arithmetical expressions. There
+is a bit of history here. Originally, there was only expression stacks. An expression stack is an
+array of \vn{expression_atom_struct}s. The main routines to manipulate stacks are:
+\begin{example}
+  expression_string_to_stack  ! Convert expression string to a reverse Polish stack.
+  express_stack_value         ! Evaluate expression stack.
+  expression_value            ! Combines expression_string_to_stack and expression_stack_value.
+  expression_stack_to_string  ! Creates an expression string from a stack.
+\end{example}
+
+After the stack code was developed, and when \tao was created, since the needs of \tao were more
+extensive (needed to handle arrays, needed to handle variable, data and lattice element names that
+used the asterisk as a wild card while, at the same time the asterisk was used as the multiplication
+symbol), a different evaluation method using expression trees was implemented. Note: While trees are
+more flexible than stacks, they also are more complicated and for this reason, and the fact that
+stacks work perfectly well for \bmad, the stacks that are built into \bmad have been left untouched.
+
+The main routines to manipulate trees are:
+\begin{example}
+  expression_string_to_tree  ! Convert expression string to tree form.
+  type_expression_tree       ! Print an expression tree in tree form.
+  expression_tree_to_string  ! Convert a tree to a string.
+\end{example}
+Note These routines are in \bmad. \tao implements other routines. for evaluation.
+ 

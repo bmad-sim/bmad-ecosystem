@@ -13,9 +13,10 @@ use attribute_mod
 interface assignment (=)
   module procedure damap_equal_bmad_taylor
   module procedure bmad_taylor_equal_damap
-  module procedure real_8_equal_bmad_taylor
+  module procedure reals_8_equal_bmad_taylors
   module procedure ptc_taylor_equal_bmad_taylor
-  module procedure bmad_taylor_equal_real_8
+  module procedure ptc_taylors_equal_bmad_taylors
+  module procedure bmad_taylors_equal_reals_8
   module procedure universal_equal_universal
   module procedure bmad_taylor_equal_ptc_taylor
   module procedure bmad_taylors_equal_ptc_taylors
@@ -1116,7 +1117,7 @@ end subroutine damap_equal_bmad_taylor
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine bmad_taylor_equal_real_8 (bmad_taylor, y8)
+! Subroutine bmad_taylors_equal_reals_8 (bmad_taylor, y8)
 !
 ! Subroutine to convert from a real_8 taylor map in Etienne's PTC 
 ! to a taylor map in Bmad. This does not do any
@@ -1132,7 +1133,7 @@ end subroutine damap_equal_bmad_taylor
 !   bmad_taylor(:) -- Taylor_struct: Input taylor map.
 !-
 
-subroutine bmad_taylor_equal_real_8 (bmad_taylor, y8)
+subroutine bmad_taylors_equal_reals_8 (bmad_taylor, y8)
 
 use polymorphic_taylor, only: assignment (=), universal_taylor, real_8
 use definition, only: real_8
@@ -1154,13 +1155,13 @@ do i = 1, size(y8)
   u_t(i) = -1  ! deallocate
 enddo
 
-end subroutine bmad_taylor_equal_real_8
+end subroutine bmad_taylors_equal_reals_8
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine real_8_equal_bmad_taylor (y8, bmad_taylor)
+! Subroutine reals_8_equal_bmad_taylors (y8, bmad_taylor)
 !
 ! Subroutine to convert from a taylor map in Bmad to a real_8 taylor map in Etienne's PTC. 
 !
@@ -1174,7 +1175,7 @@ end subroutine bmad_taylor_equal_real_8
 !   y8(:) -- real_8: PTC Taylor map.
 !-
 
-subroutine real_8_equal_bmad_taylor (y8, bmad_taylor)
+subroutine reals_8_equal_bmad_taylors (y8, bmad_taylor)
 
 use polymorphic_taylor, only: kill, assignment(=), real_8, universal_taylor, alloc
 
@@ -1195,9 +1196,8 @@ call alloc(y8)
 
 n_taylor = size(bmad_taylor)  ! Generally n_taylor = 6
 do i = 1, n_taylor
-
   n = size(bmad_taylor(i)%term)
-  allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n,n_taylor))
+  allocate (u_t%n, u_t%nv, u_t%c(n), u_t%j(n,6))
   u_t%n = n
   u_t%nv = n_taylor
 
@@ -1210,7 +1210,7 @@ do i = 1, n_taylor
   u_t = -1   ! deallocate
 enddo
 
-end subroutine real_8_equal_bmad_taylor
+end subroutine reals_8_equal_bmad_taylors
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -1224,10 +1224,10 @@ end subroutine real_8_equal_bmad_taylor
 !       ptc_taylor = bmad_taylor
 !
 ! Input:
-!   bmad_taylor(:) -- taylor_struct: Input taylor map.
+!   bmad_taylor -- taylor_struct: Input taylor map.
 !
 ! Output:
-!   ptc_taylor(:)   -- taylor: PTC Taylor map.
+!   ptc_taylor   -- taylor: PTC Taylor map.
 !-
 
 subroutine ptc_taylor_equal_bmad_taylor (ptc_taylor, bmad_taylor)
@@ -1264,6 +1264,43 @@ ptc_taylor = u_t
 u_t = -1   ! deallocate
 
 end subroutine ptc_taylor_equal_bmad_taylor
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine ptc_taylors_equal_bmad_taylors (ptc_taylor, bmad_taylor)
+!
+! Subroutine to convert from a taylor map in Bmad to a taylor map in Etienne's PTC. 
+!
+! Subroutine overloads "=" in expressions
+!       ptc_taylor = bmad_taylor
+!
+! Input:
+!   bmad_taylor(:) -- taylor_struct: Input taylor map.
+!
+! Output:
+!   ptc_taylor(:)   -- taylor: PTC Taylor map.
+!-
+
+subroutine ptc_taylors_equal_bmad_taylors (ptc_taylor, bmad_taylor)
+
+use polymorphic_taylor, only: alloc, kill, assignment(=), taylor, universal_taylor
+
+implicit none
+
+type (taylor), intent(inout) :: ptc_taylor(:)
+type (taylor_struct), intent(in) :: bmad_taylor(:)
+integer it
+character(*), parameter :: r_name = 'ptc_taylors_equal_bmad_taylors'
+
+!
+
+do it = 1, size(bmad_taylor)
+  ptc_taylor(it) = bmad_taylor(it)
+enddo
+
+end subroutine ptc_taylors_equal_bmad_taylors
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -2496,28 +2533,18 @@ if (err_flag) then
   return
 endif
 
-if (.false. .and. bmad_com%spin_tracking_on .and. present(spin_taylor)) then
+if (bmad_com%spin_tracking_on .and. present(spin_taylor)) then
   call alloc (ptc_prb)
-  call alloc (ptc_re8)
 
-!  ptaylor = orb_taylor
-!  ptc_re8 = ptaylor
-!  ptc_prb = ptc_re8
+  ptc_prb%x = orb_taylor
+  ptc_prb%q%x = spin_taylor
 
-!  do ii = 0, 3
-!    ptc_prb%q%x(ii) = spin_taylor(ii)
-!  enddo
+  call track_probe (ptc_prb, ptc_private%base_state+spin0, fibre1 = bmadl%start)
 
-!  call track_probe (ptc_prb, ptc_private%base_state+spin0, fibre1 = bmadl%start)
-
-!  orb_taylor = ptc_re8
-!  do ii = 0, 3
-!    ptaylor(1) = ptc_prb%q%x(j)
-!    spin_taylor(ii) = ptaylor(1)
-!  enddo
+  orb_taylor = ptc_prb%x
+  spin_taylor = ptc_prb%q%x
 
   call kill (ptc_prb)
-  call kill (ptc_re8)
 
 else
   call alloc (ptc_re8)
