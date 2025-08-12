@@ -5359,8 +5359,9 @@ case ('taylor_map', 'matrix')
         call transfer_map_calc (lat, taylor, err, i0, ele%ix_ele, u%model%tao_branch(ix_branch)%orbit(i0), ele%ix_branch, spin_map = spin_taylor)
         call type_taylors (taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, out_var_suffix = var_name, append = .true.)
         if (bmad_com%spin_tracking_on) then
+          call re_allocate(lines, 2*nl)
           nl=nl+1; lines(nl) = ''
-          call type_taylors (spin_taylor, n_order, lines, n_lines = nl, clean = clean, append = .true.)
+          call type_taylors (spin_taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, append = .true.)
         endif
       endif
     enddo
@@ -5370,8 +5371,9 @@ case ('taylor_map', 'matrix')
       if (angle_units) call map_to_angle_coords (taylor, taylor)
       call type_taylors (taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, out_var_suffix = var_name)
       if (bmad_com%spin_tracking_on) then
+        call re_allocate(lines, 2*nl)
         nl=nl+1; lines(nl) = ''
-        call type_taylors (spin_taylor, n_order, lines, n_lines = nl, clean = clean, append = .true.)
+        call type_taylors (spin_taylor, n_order, lines, n_lines = nl, out_style = style, clean = clean, append = .true.)
       endif
       if (print_eigen) call taylor_to_mat6 (taylor, taylor%ref, vec0, mat6)
 

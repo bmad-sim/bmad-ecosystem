@@ -111,7 +111,7 @@ elseif (style == 'SCIBMAD') then
     nl=nl+1; write (li(nl), '(5a)') 'v_', trim(suffix), ' = zeros(TPS64{d_', trim(suffix), '}, 6)'
   else
     nl=nl+1; li(nl) = 'using ReferenceFrameRotations'
-    nl=nl+1; write(li(nl), '(3a)') 'q_', trim(suffix), ' = Quaternion{TPS64{d_', trim(suffix), '}}(0,0,0,0)'
+    nl=nl+1; write(li(nl), '(5a)') 'q_', trim(suffix), ' = Quaternion{TPS64{d_', trim(suffix), '}}(0,0,0,0)'
   endif
 
   do i = 1, nt
@@ -130,7 +130,7 @@ elseif (style == 'SCIBMAD') then
       endif
 
       if (nt == 4) then
-        nl=nl+1; write (li(nl), '(5a, 7(i0, a), es24.16)') 'q_', trim(suffix), '.', q_out(i), '[', i, '][[', (tt%expn(k), ',', k = 1, 5), tt%expn(6), ']] =', tt%coef  
+        nl=nl+1; write (li(nl), '(5a, 6(i0, a), es24.16)') 'q_', trim(suffix), '.', q_out(i), '[[', (tt%expn(k), ',', k = 1, 5), tt%expn(6), ']] =', tt%coef  
       else
         nl=nl+1; write (li(nl), '(3a, 7(i0, a), es24.16)') 'v_', trim(suffix), '[', i, '][[', (tt%expn(k), ',', k = 1, 5), tt%expn(6), ']] =', tt%coef  
       endif
