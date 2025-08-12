@@ -50,7 +50,7 @@ endif
 branch => fixer%branch
 on = logic_option(.true., is_on)
 
-if (.not. is_on .and. .not. fixer%is_on) return
+if (.not. on .and. .not. fixer%is_on) return
 
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)

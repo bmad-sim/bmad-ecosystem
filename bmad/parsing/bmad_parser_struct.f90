@@ -134,10 +134,11 @@ type bp_common_struct
   integer :: i_const_tot = 0, i_const_init = 0
   integer :: ios_next_chunk = 0
   integer :: ios_this_chunk = 0
-  character(400), allocatable :: lat_file_names(:)     ! List of all files used to create lat
+  integer :: ix_fixer = 0    ! Indicates order of when fixers are turned on in parsing.
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
   character(400) :: line1_file_name = ''               ! Name of file from which %input_line1 was read
   character(400) :: line2_file_name = ''               ! Name of file from which %input_line2 was read
+  character(400), allocatable :: lat_file_names(:)     ! List of all files used to create lat
   character(n_parse_line_extended) :: parse_line = ''  ! Current string to be parsed.
   character(n_parse_line_extended) :: input_line1 = '' ! Line before current line. For debug messages.
   character(n_parse_line_extended) :: input_line2 = '' ! Current line. For debug messages.

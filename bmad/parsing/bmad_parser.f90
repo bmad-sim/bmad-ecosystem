@@ -36,6 +36,7 @@ use parser_set_attribute_mod, dummy1 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
 use photon_target_mod, dummy4 => bmad_parser
 use ptc_interface_mod, only: set_ptc_com_pointers
+use fixer_mod, only: set_active_fixer
 use random_mod
 
 implicit none
@@ -60,8 +61,8 @@ real(rp) beta, val
 integer, allocatable :: seq_indexx(:)
 
 integer :: ix_param_ele, ix_mad_beam_ele
-integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track
-integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con
+integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track, ix_ele_fix
+integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con, ix_set
 integer iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, n_loc
 integer ib, ie, ib2, ie2, flip, n_branch, n_forks, i_loop, n_branch_max
 integer, pointer :: n_max
@@ -95,6 +96,7 @@ if (present(err_flag)) err_flag = .true.
 bp_com = bp_common_struct()
 allocate(bp_com%lat_file_names(1))       !! To get around an ifort bug in Versions 18+
 bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
+bp_com%ix_fixer = 0                      ! Used to indicate last fixer set on.
 debug_line = ''
 err = .false.
 
@@ -1157,6 +1159,22 @@ if (bp_com%error_flag) then
   call parser_end_stuff (in_lat)
   return
 endif
+
+! Make sure there is only one active fixer
+
+do n = 0, ubound(lat%branch, 1)
+  branch => lat%branch(n)
+  ix_ele_fix = 0
+  ix_set = 0
+  do i = 0, branch%n_ele_max
+    ele => branch%ele(i)
+    if (ele%key /= beginning_ele$ .and. ele%key /= fixer$) cycle
+    if (.not. ele%is_on .or. ele%value(ix_fixer$) < ix_set) cycle
+    ix_set = nint(ele%value(ix_fixer$))
+    ix_ele_fix = i
+  enddo
+  call set_active_fixer(branch%ele(ix_ele_fix))
+enddo
 
 ! Bookkeeping...
 ! Must do this before calling bmad_parser2 since after an expand_lattice command the lattice 

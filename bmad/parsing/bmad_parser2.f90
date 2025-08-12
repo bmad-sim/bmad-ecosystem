@@ -56,11 +56,11 @@ integer, pointer :: n_max
 
 character(*) lat_file
 character(1) delim 
-character(16) :: r_name = 'bmad_parser2'
 character(40) word_1, slice_start, slice_end, temp_ele_name
 character(40) word_2, name, this_name, old_parser_name
 character(80) debug_line
 character(280) parse_line_save, string, extra_ele_names
+character(*), parameter :: r_name = 'bmad_parser2'
 
 logical, optional :: make_mats6, err_flag
 logical parsing, found, delim_found, err, key_here, move

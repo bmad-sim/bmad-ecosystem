@@ -42,6 +42,7 @@ subroutine parser_set_attribute (how, ele, delim, delim_found, err_flag, pele, c
                                                                  heterogeneous_ele_list, set_field_master)
 
 use photon_reflection_mod, only: finalize_reflectivity_table
+use fixer_mod, only: set_active_fixer
 
 implicit none
 
@@ -1922,6 +1923,14 @@ case ('SYMPLECTIFY')
   
 case ('IS_ON')
   call parser_get_logical (attrib_word, ele%is_on, ele%name, delim, delim_found, err_flag)
+  if (ele%key == beginning_ele$ .or. ele%key == fixer$) then
+    if (bp_com%parser_name == 'bmad_parser2') then
+      call set_active_fixer(ele)
+    elseif (ele%is_on) then
+      bp_com%ix_fixer = bp_com%ix_fixer + 1
+      ele%value(ix_fixer$) = bp_com%ix_fixer  ! Used to indicate last fixer set on.
+    endif
+  endif
 
 case ('SUPERIMPOSE')
   call parser_get_logical (attrib_word, logic, ele%name, delim, delim_found, err_flag); if (err_flag) return
