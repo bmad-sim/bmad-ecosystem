@@ -936,6 +936,7 @@ call init_attribute_name1 (beginning_ele$, s_long$,                      'S')
 call init_attribute_name1 (beginning_ele$, ref_time$,                    'REF_TIME')
 call init_attribute_name1 (beginning_ele$, inherit_from_fork$,           'INHERIT_FROM_FORK')
 call init_attribute_name1 (beginning_ele$, deta_ds_master$,              'deta_ds_master', private$)
+call init_attribute_name1 (beginning_ele$, ix_fixer$,                    'ix_fixer', private$)
 
 attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
 call init_attribute_name1 (def_line$, particle$,                    'PARTICLE')
@@ -1004,6 +1005,7 @@ call init_attribute_name1 (fixer$, cmat_12_stored$,                     'CMAT_12
 call init_attribute_name1 (fixer$, cmat_21_stored$,                     'CMAT_21_STORED')
 call init_attribute_name1 (fixer$, cmat_22_stored$,                     'CMAT_22_STORED')
 call init_attribute_name1 (fixer$, mode_flip_stored$,                   'MODE_FLIP_STORED')
+call init_attribute_name1 (fixer$, ix_fixer$,                           'ix_fixer', private$)
 
 call init_attribute_name1 (feedback$, input_ele$,                        'INPUT_ELE')
 call init_attribute_name1 (feedback$, output_ele$,                       'OUTPUT_ELE')

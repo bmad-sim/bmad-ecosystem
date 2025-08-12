@@ -1,4 +1,4 @@
- 2025-06-11 17:58:34 
+ 2025-08-11 20:22:55 
  
    1   Drift                 20   !Bmad_Com
    2   SBend                 29   !Line
@@ -25,50 +25,51 @@
   23   Solenoid              47   E_Gun
   24   Patch                 69   Feedback
   25   Lcavity               50   Fiducial
-  26   !Parameter            49   Floor_Shift
-  27   Null_Ele              66   Foil
-  28   Beginning_Ele         41   Fork
-  29   !Line                 65   GKicker
-  30   Match                 37   Girder
-  31   Monitor                4   Group
-  32   Instrument            33   HKicker
-  33   HKicker               16   Hybrid
-  34   VKicker               32   Instrument
-  35   RCollimator           15   Kicker
-  36   ECollimator           25   Lcavity
-  37   Girder                59   Lens
-  38   Converter             14   Marker
-  39   !Particle_Start       57   Mask
-  40   Photon_Fork           30   Match
-  41   Fork                  42   Mirror
-  42   Mirror                31   Monitor
-  43   Crystal               46   Multilayer_Mirror
-  44   Pipe                  19   Multipole
-  45   Capillary             27   Null_Ele
-  46   Multilayer_Mirror     17   Octupole
-  47   E_Gun                  6   Overlay
-  48   EM_Field              24   Patch
-  49   Floor_Shift           40   Photon_Fork
-  50   Fiducial              53   Photon_Init
-  51   Undulator             68   Pickup
-  52   Diffraction_Plate     44   Pipe
-  53   Photon_Init            3   Quadrupole
-  54   Sample                18   RBend
-  55   Detector              35   RCollimator
-  56   Sad_Mult               9   RFCavity
-  57   Mask                  64   RF_Bend
-  58   AC_Kicker             62   Ramper
-  59   Lens                   2   SBend
-  60   !Space_Charge_Com     56   Sad_Mult
-  61   Crab_Cavity           54   Sample
-  62   Ramper                 5   Sextupole
-  63   !PTC_Com              13   Sol_Quad
-  64   RF_Bend               23   Solenoid
-  65   GKicker                8   Taylor
-  66   Foil                  67   Thick_Multipole
-  67   Thick_Multipole       51   Undulator
-  68   Pickup                34   VKicker
-  69   Feedback              12   Wiggler
+  26   !Parameter            70   Fixer
+  27   Null_Ele              49   Floor_Shift
+  28   Beginning_Ele         66   Foil
+  29   !Line                 41   Fork
+  30   Match                 65   GKicker
+  31   Monitor               37   Girder
+  32   Instrument             4   Group
+  33   HKicker               33   HKicker
+  34   VKicker               16   Hybrid
+  35   RCollimator           32   Instrument
+  36   ECollimator           15   Kicker
+  37   Girder                25   Lcavity
+  38   Converter             59   Lens
+  39   !Particle_Start       14   Marker
+  40   Photon_Fork           57   Mask
+  41   Fork                  30   Match
+  42   Mirror                42   Mirror
+  43   Crystal               31   Monitor
+  44   Pipe                  46   Multilayer_Mirror
+  45   Capillary             19   Multipole
+  46   Multilayer_Mirror     27   Null_Ele
+  47   E_Gun                 17   Octupole
+  48   EM_Field               6   Overlay
+  49   Floor_Shift           24   Patch
+  50   Fiducial              40   Photon_Fork
+  51   Undulator             53   Photon_Init
+  52   Diffraction_Plate     68   Pickup
+  53   Photon_Init           44   Pipe
+  54   Sample                 3   Quadrupole
+  55   Detector              18   RBend
+  56   Sad_Mult              35   RCollimator
+  57   Mask                   9   RFCavity
+  58   AC_Kicker             64   RF_Bend
+  59   Lens                  62   Ramper
+  60   !Space_Charge_Com      2   SBend
+  61   Crab_Cavity           56   Sad_Mult
+  62   Ramper                54   Sample
+  63   !PTC_Com               5   Sextupole
+  64   RF_Bend               13   Sol_Quad
+  65   GKicker               23   Solenoid
+  66   Foil                   8   Taylor
+  67   Thick_Multipole       67   Thick_Multipole
+  68   Pickup                51   Undulator
+  69   Feedback              34   VKicker
+  70   Fixer                 12   Wiggler
  
  !---------------------------------
  20  !Bmad_Com           
@@ -430,11 +431,40 @@
          7  SPIN_DN_DPZ_X                           
          8  SPIN_DN_DPZ_Y                           
          9  SPIN_DN_DPZ_Z                           
+        15  X_STORED                                
+        16  PX_STORED                               
+        17  Y_STORED                                
+        18  PY_STORED                               
+        19  Z_STORED                                
+        20  PZ_STORED                               
+        21  BETA_A_STORED                           
+        22  ALPHA_A_STORED                          
+        23  BETA_B_STORED                           
+        24  ALPHA_B_STORED                          
+        25  PHI_A_STORED                            
+        26  PHI_B_STORED                            
+        27  MODE_FLIP_STORED                        
         29  CMAT_11                                 
         30  CMAT_12                                 
         31  CMAT_21                                 
         32  CMAT_22                                 
         33  MODE_FLIP                               
+        34  ETA_X_STORED                            
+        35  ETAP_X_STORED                           
+        36  ETA_Y_STORED                            
+        37  ETAP_Y_STORED                           
+        38  CMAT_11_STORED                          
+        39  CMAT_12_STORED                          
+        40  CMAT_21_STORED                          
+        41  CMAT_22_STORED                          
+        42  DBETA_DPZ_A_STORED                      
+        43  DBETA_DPZ_B_STORED                      
+        44  DALPHA_DPZ_A_STORED                     
+        45  DALPHA_DPZ_B_STORED                     
+        46  DETA_DPZ_X_STORED                       
+        47  DETA_DPZ_Y_STORED                       
+        48  DETAP_DPZ_X_STORED                      
+        49  DETAP_DPZ_Y_STORED                      
         50  delta_ref_time                            [private]
         51  P0C_START                               
         52  E_TOT_START                             
@@ -1461,6 +1491,58 @@
         93  PTC_INTEGRATION_TYPE                    
         94  SPIN_TRACKING_METHOD                    
        109  ORIGIN_ELE                              
+       112  DESCRIP                                 
+       117  TYPE                                    
+       118  REF_ORIGIN                              
+       119  ELE_ORIGIN                              
+       120  SUPERIMPOSE                             
+       121  OFFSET                                  
+       122  REFERENCE                               
+       133  WRAP_SUPERIMPOSE                        
+ 
+ !---------------------------------
+ 70  Fixer               
+        15  X_STORED                                
+        16  PX_STORED                               
+        17  Y_STORED                                
+        18  PY_STORED                               
+        19  Z_STORED                                
+        20  PZ_STORED                               
+        21  BETA_A_STORED                           
+        22  ALPHA_A_STORED                          
+        23  BETA_B_STORED                           
+        24  ALPHA_B_STORED                          
+        25  PHI_A_STORED                            
+        26  PHI_B_STORED                            
+        27  MODE_FLIP_STORED                        
+        34  ETA_X_STORED                            
+        35  ETAP_X_STORED                           
+        36  ETA_Y_STORED                            
+        37  ETAP_Y_STORED                           
+        38  CMAT_11_STORED                          
+        39  CMAT_12_STORED                          
+        40  CMAT_21_STORED                          
+        41  CMAT_22_STORED                          
+        42  DBETA_DPZ_A_STORED                      
+        43  DBETA_DPZ_B_STORED                      
+        44  DALPHA_DPZ_A_STORED                     
+        45  DALPHA_DPZ_B_STORED                     
+        46  DETA_DPZ_X_STORED                       
+        47  DETA_DPZ_Y_STORED                       
+        48  DETAP_DPZ_X_STORED                      
+        49  DETAP_DPZ_Y_STORED                      
+        50  DELTA_REF_TIME                          
+        51  p0c_start                                 [private]
+        52  e_tot_start                               [private]
+        53  P0C                                     
+        54  E_TOT                                   
+        64  REF_TIME_START                          
+        75  check_sum                                 [private]
+        82  ALIAS                                   
+        91  MAT6_CALC_METHOD                        
+        92  TRACKING_METHOD                         
+        93  PTC_INTEGRATION_TYPE                    
+        94  SPIN_TRACKING_METHOD                    
        112  DESCRIP                                 
        117  TYPE                                    
        118  REF_ORIGIN                              
@@ -4708,46 +4790,46 @@
     12     3
     13    30
     14     6
-    15    22
-    16    23
-    17    31
-    18     9
-    19    12
-    20    20
-    21    21
-    22    21
-    23    20
-    24    23
-    25    19
-    26    28
-    27    22
+    15    24
+    16    25
+    17    33
+    18    11
+    19    14
+    20    22
+    21    23
+    22    23
+    23    22
+    24    25
+    25    21
+    26    30
+    27    24
     28    22
     29    27
     30    24
     31    22
     32    16
     33    11
-    34    50
-    35    50
-    36    52
-    37    52
-    38    52
-    39    27
-    40    28
-    41    26
-    42    23
-    43    13
-    44     8
-    45     7
-    46     7
-    47    20
-    48     5
-    49    11
-    50    57
-    51    57
-    52    57
-    53    59
-    54    59
+    34    52
+    35    52
+    36    54
+    37    54
+    38    54
+    39    29
+    40    30
+    41    28
+    42    25
+    43    15
+    44    10
+    45     9
+    46     9
+    47    22
+    48     7
+    49    13
+    50    58
+    51    58
+    52    58
+    53    60
+    54    60
     55    47
     56    46
     57    48
@@ -4757,7 +4839,7 @@
     61     7
     62    29
     63    47
-    64    57
+    64    58
     65    31
     66    31
     67    30
@@ -4768,14 +4850,14 @@
     72    54
     73    54
     74    54
-    75    63
+    75    64
     76     0
     77     0
     78     0
     79     0
     80     0
     81     5
-    82    64
+    82    65
     83    37
     84    35
     85    33
@@ -4784,10 +4866,10 @@
     88    35
     89    43
     90    39
-    91    57
-    92    57
-    93    57
-    94    55
+    91    58
+    92    58
+    93    58
+    94    56
     95    54
     96    55
     97    54
@@ -4805,17 +4887,17 @@
    109     6
    110    31
    111    25
-   112    61
+   112    62
    113    20
    114    30
    115    29
    116     6
-   117    61
-   118    56
-   119    56
-   120    56
-   121    56
-   122    56
+   117    62
+   118    57
+   119    57
+   120    57
+   121    57
+   122    57
    123    20
    124    20
    125    21
@@ -4826,7 +4908,7 @@
    130    41
    131    41
    132     6
-   133    56
+   133    57
    134     0
    135     0
    136     0
@@ -5403,6 +5485,7 @@ Index: 15
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     Crystal             
     E_Gun               
@@ -5412,6 +5495,7 @@ Index: 15
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Fixer               
  
  !---------------------------------
 Index: 16
@@ -5428,6 +5512,7 @@ Index: 16
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     !Particle_Start     
     Crystal             
@@ -5438,6 +5523,7 @@ Index: 16
     AC_Kicker           
     Crab_Cavity         
     RF_Bend             
+    Fixer               
  
  !---------------------------------
 Index: 17
@@ -5455,6 +5541,7 @@ Index: 17
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5472,6 +5559,7 @@ Index: 17
     Crab_Cavity         
     RF_Bend             
     Thick_Multipole     
+    Fixer               
  
  !---------------------------------
 Index: 18
@@ -5480,10 +5568,12 @@ Index: 18
     Sol_Quad            
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     EM_Field            
     Photon_Init         
     Sad_Mult            
+    Fixer               
  
  !---------------------------------
 Index: 19
@@ -5492,6 +5582,7 @@ Index: 19
     RFCavity            
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     !Particle_Start     
     E_Gun               
@@ -5499,6 +5590,7 @@ Index: 19
     Photon_Init         
     Sad_Mult            
     Crab_Cavity         
+    Fixer               
  
  !---------------------------------
 Index: 20
@@ -5510,6 +5602,7 @@ Index: 20
     RBend               
     Lcavity             
     !Parameter          
+    Beginning_Ele       
     !Line               
     Match               
     Monitor             
@@ -5522,6 +5615,7 @@ Index: 20
     Detector            
     Sad_Mult            
     Crab_Cavity         
+    Fixer               
  
  !---------------------------------
 Index: 21
@@ -5533,6 +5627,7 @@ Index: 21
     Marker              
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5546,6 +5641,7 @@ Index: 21
     Detector            
     Sad_Mult            
     Foil                
+    Fixer               
  
  !---------------------------------
 Index: 22
@@ -5557,6 +5653,7 @@ Index: 22
     Marker              
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5570,6 +5667,7 @@ Index: 22
     Detector            
     Sad_Mult            
     Foil                
+    Fixer               
  
  !---------------------------------
 Index: 23
@@ -5581,6 +5679,7 @@ Index: 23
     Wiggler             
     Marker              
     RBend               
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5593,6 +5692,7 @@ Index: 23
     Detector            
     Sad_Mult            
     Foil                
+    Fixer               
  
  !---------------------------------
 Index: 24
@@ -5604,6 +5704,7 @@ Index: 24
     Marker              
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5619,6 +5720,7 @@ Index: 24
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Fixer               
  
  !---------------------------------
 Index: 25
@@ -5629,6 +5731,7 @@ Index: 25
     Marker              
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5641,6 +5744,7 @@ Index: 25
     Photon_Init         
     Detector            
     Foil                
+    Fixer               
  
  !---------------------------------
 Index: 26
@@ -5651,6 +5755,7 @@ Index: 26
     Marker              
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5672,6 +5777,7 @@ Index: 26
     Crab_Cavity         
     RF_Bend             
     Foil                
+    Fixer               
  
  !---------------------------------
 Index: 27
@@ -5682,6 +5788,7 @@ Index: 27
     Marker              
     RBend               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5697,6 +5804,7 @@ Index: 27
     Detector            
     Crab_Cavity         
     RF_Bend             
+    Fixer               
  
  !---------------------------------
 Index: 28
@@ -5858,6 +5966,7 @@ Index: 34
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5890,6 +5999,7 @@ Index: 34
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 35
@@ -5911,6 +6021,7 @@ Index: 35
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5943,6 +6054,7 @@ Index: 35
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 36
@@ -5966,6 +6078,7 @@ Index: 36
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -5998,6 +6111,7 @@ Index: 36
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 37
@@ -6021,6 +6135,7 @@ Index: 37
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -6053,6 +6168,7 @@ Index: 37
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 38
@@ -6076,6 +6192,7 @@ Index: 38
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -6108,6 +6225,7 @@ Index: 38
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 39
@@ -6124,6 +6242,7 @@ Index: 39
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -6138,6 +6257,7 @@ Index: 39
     Crab_Cavity         
     RF_Bend             
     Thick_Multipole     
+    Fixer               
  
  !---------------------------------
 Index: 40
@@ -6155,6 +6275,7 @@ Index: 40
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -6169,6 +6290,7 @@ Index: 40
     Crab_Cavity         
     RF_Bend             
     Thick_Multipole     
+    Fixer               
  
  !---------------------------------
 Index: 41
@@ -6185,6 +6307,7 @@ Index: 41
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -6198,6 +6321,7 @@ Index: 41
     Crab_Cavity         
     RF_Bend             
     Thick_Multipole     
+    Fixer               
  
  !---------------------------------
 Index: 42
@@ -6213,6 +6337,7 @@ Index: 42
     RBend               
     Solenoid            
     Lcavity             
+    Beginning_Ele       
     Match               
     Monitor             
     Instrument          
@@ -6224,6 +6349,7 @@ Index: 42
     Crab_Cavity         
     RF_Bend             
     Thick_Multipole     
+    Fixer               
  
  !---------------------------------
 Index: 43
@@ -6234,12 +6360,14 @@ Index: 43
     RBend               
     Lcavity             
     !Parameter          
+    Beginning_Ele       
     !Line               
     Match               
     HKicker             
     VKicker             
     Crab_Cavity         
     RF_Bend             
+    Fixer               
  
  !---------------------------------
 Index: 44
@@ -6249,8 +6377,10 @@ Index: 44
     RBend               
     Lcavity             
     !Parameter          
+    Beginning_Ele       
     Match               
     RF_Bend             
+    Fixer               
  
  !---------------------------------
 Index: 45
@@ -6261,6 +6391,8 @@ Index: 45
     RBend               
     Lcavity             
     !Parameter          
+    Beginning_Ele       
+    Fixer               
  
  !---------------------------------
 Index: 46
@@ -6270,7 +6402,9 @@ Index: 46
     RBend               
     Lcavity             
     !Parameter          
+    Beginning_Ele       
     !Line               
+    Fixer               
  
  !---------------------------------
 Index: 47
@@ -6288,12 +6422,14 @@ Index: 47
     Patch               
     Lcavity             
     !Parameter          
+    Beginning_Ele       
     !Line               
     HKicker             
     VKicker             
     EM_Field            
     Undulator           
     Thick_Multipole     
+    Fixer               
  
  !---------------------------------
 Index: 48
@@ -6301,7 +6437,9 @@ Index: 48
     Octupole            
     RBend               
     Patch               
+    Beginning_Ele       
     Match               
+    Fixer               
  
  !---------------------------------
 Index: 49
@@ -6314,8 +6452,10 @@ Index: 49
     Solenoid            
     Patch               
     Lcavity             
+    Beginning_Ele       
     Undulator           
     Sad_Mult            
+    Fixer               
  
  !---------------------------------
 Index: 50
@@ -6376,6 +6516,7 @@ Index: 50
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 51
@@ -6436,6 +6577,7 @@ Index: 51
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 52
@@ -6496,6 +6638,7 @@ Index: 52
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 53
@@ -6558,6 +6701,7 @@ Index: 53
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 54
@@ -6620,6 +6764,7 @@ Index: 54
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 55
@@ -7075,6 +7220,7 @@ Index: 64
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 65
@@ -7575,6 +7721,7 @@ Index: 75
     Thick_Multipole     
     Pickup              
     Feedback            
+    Fixer               
  
  !---------------------------------
 Index: 76
@@ -7665,6 +7812,7 @@ Index: 82
     Thick_Multipole     
     Pickup              
     Feedback            
+    Fixer               
  
  !---------------------------------
 Index: 83
@@ -8053,6 +8201,7 @@ Index: 91
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 92
@@ -8113,6 +8262,7 @@ Index: 92
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 93
@@ -8173,6 +8323,7 @@ Index: 93
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 94
@@ -8231,6 +8382,7 @@ Index: 94
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 95
@@ -8903,6 +9055,7 @@ Index: 112
     Thick_Multipole     
     Pickup              
     Feedback            
+    Fixer               
  
  !---------------------------------
 Index: 113
@@ -9064,6 +9217,7 @@ Index: 117
     Thick_Multipole     
     Pickup              
     Feedback            
+    Fixer               
  
  !---------------------------------
 Index: 118
@@ -9123,6 +9277,7 @@ Index: 118
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 119
@@ -9182,6 +9337,7 @@ Index: 119
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 120
@@ -9241,6 +9397,7 @@ Index: 120
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 121
@@ -9300,6 +9457,7 @@ Index: 121
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 122
@@ -9359,6 +9517,7 @@ Index: 122
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 123
@@ -9753,6 +9912,7 @@ Index: 133
     Foil                
     Thick_Multipole     
     Pickup              
+    Fixer               
  
  !---------------------------------
 Index: 134
