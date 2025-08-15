@@ -1,6 +1,7 @@
 from pathlib import Path
-import numpy as np
 from pytao import SubprocessTao
+import numpy as np
+import pytest
 
 
 def test_beam_energy_n_rf_steps():
@@ -50,4 +51,29 @@ def test_segfault_multiple_tracking_mode_n_rf_steps():
             tao.ele_gen_attribs(r"beginning")["E_TOT"],
             10e6,
             err_msg="Could not read starting energy of lattice."
+        )
+
+
+# Run on eight t_offsets ignoring t_offset = 0.0 and t_offset = RF_PERIOD
+@pytest.mark.parametrize("t_offset", np.linspace(0, 1/1e9, 10)[1:-1])
+def test_n_rf_steps_patch(t_offset):
+    """
+    Confirm second pass cavity timing does not depend on T_OFFSET of patch element placed before.
+    """
+    lat_path = Path(__file__).parent / "lat3.bmad"
+    assert lat_path.is_file(), f"Lattice file not found: {lat_path}"
+
+    # Check beam energy
+    with SubprocessTao(lattice_file=str(lat_path), noplot=True) as tao:
+        # Grab energy of unmodified lattice
+        energy1 = tao.ele_gen_attribs(r"cav\2")["E_TOT"]
+        
+        # Apply t_offset to the patch
+        tao.cmd(f"set ele p t_offset = {t_offset}")
+        
+        # Grab second pass energy and compare
+        np.testing.assert_allclose(
+            energy1,
+            tao.ele_gen_attribs(r"cav\2")["E_TOT"],
+            err_msg="Expected second pass energy to not vary with PATCH[T_OFFSET]."
         )
