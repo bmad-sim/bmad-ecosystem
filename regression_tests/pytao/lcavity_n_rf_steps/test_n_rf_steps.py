@@ -58,6 +58,7 @@ def test_segfault_multiple_tracking_mode_n_rf_steps():
 @pytest.mark.parametrize("t_offset", np.linspace(0, 1/1e9, 10)[1:-1])
 def test_n_rf_steps_patch(t_offset):
     """
+    Regression test for issue #1693
     Confirm second pass cavity timing does not depend on T_OFFSET of patch element placed before.
     """
     lat_path = Path(__file__).parent / "lat3.bmad"
