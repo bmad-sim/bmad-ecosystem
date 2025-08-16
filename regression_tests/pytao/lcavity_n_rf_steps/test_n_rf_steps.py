@@ -64,17 +64,20 @@ def test_n_rf_steps_patch(t_offset):
     lat_path = Path(__file__).parent / "lat3.bmad"
     assert lat_path.is_file(), f"Lattice file not found: {lat_path}"
 
+    def ptot(orbit):
+        return (1+orbit['pz']) * orbit['p0c']
+    
     # Check beam energy
     with SubprocessTao(lattice_file=str(lat_path), noplot=True) as tao:
         # Grab energy of unmodified lattice
-        energy1 = tao.ele_gen_attribs(r"cav\2")["E_TOT"]
-        
+        energy1 = ptot(tao.ele_orbit(r"cav\2"))
+
         # Apply t_offset to the patch
         tao.cmd(f"set ele p t_offset = {t_offset}")
         
         # Grab second pass energy and compare
         np.testing.assert_allclose(
             energy1,
-            tao.ele_gen_attribs(r"cav\2")["E_TOT"],
+            ptot(tao.ele_orbit(r"cav\2")),
             err_msg="Expected second pass energy to not vary with PATCH[T_OFFSET]."
         )
