@@ -484,7 +484,7 @@ end subroutine lat_compute_ref_energy_and_time
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
+! Subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag, include_downstream_end)
 !
 ! Routine to compute the reference energy and reference time at the end of an element 
 ! given the reference enegy and reference time at the start of the element.
@@ -603,24 +603,7 @@ case (lcavity$, const_ref_energy$)
 
   n = nint(ele%value(n_rf_steps$))
   if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$ .and. n > 0) then
-    if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
-      lord => pointer_to_super_lord(ele)
-      i0 = ele_rf_step_index(-1.0_rp, ele%s_start - lord%s_start, lord)
-      i1 = ele_rf_step_index(-1.0_rp, ele%s - lord%s_start, lord, include_downstream_end)
-
-      ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
-      ele%value(p0c$) = lord%rf%steps(i1)%p0c
-
-      t = (lord%rf%steps(i0)%s - ele%s_start) * lord%rf%steps(i0)%time / lord%rf%ds_step
-      if (i1 /= i0) t = t + (ele%s - lord%rf%steps(i1)%s) * lord%rf%steps(i1)%time / lord%rf%ds_step
-      
-      do i = i0+1, i1-1
-        t = t + lord%rf%steps(i)%time
-      enddo
-
-    else
-      call lcavity_rf_step_setup(ele)
-    endif
+    call lcavity_rf_step_setup(ele, include_downstream_end)
     do_track = .false.
   endif
 

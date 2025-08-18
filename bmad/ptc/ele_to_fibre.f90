@@ -397,7 +397,8 @@ case (rfcavity$, lcavity$)
   end select
 
   ptc_key%list%freq0 = val(rf_frequency$)
-  phi_tot = val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$)
+  phi_tot = val(phi0$) + val(phi0_multipass$) + val(phi0_err$)
+  if (ele%tracking_method /= bmad_standard$) phi_tot = phi_tot + val(phi0_autoscale$)
 
   if (key == lcavity$) then
     ptc_key%list%lag = pi / 2 - twopi * phi_tot

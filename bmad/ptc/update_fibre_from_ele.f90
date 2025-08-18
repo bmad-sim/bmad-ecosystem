@@ -149,7 +149,8 @@ case (sol_quad$)
   call set_real (mag%b_sol, magp%b_sol, val(ks$))
 
 case (rfcavity$, lcavity$, crab_cavity$)
-  phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$) + val(phi0_autoscale$))
+  phi_tot = twopi * (val(phi0$) + val(phi0_multipass$) + val(phi0_err$))
+  if (ele%tracking_method /= bmad_standard$) phi_tot = phi_tot + val(phi0_autoscale$)
   if (ele%key == lcavity$) phi_tot = pi / 2 - twopi * phi_tot
 
   select case (cavity_type)

@@ -73,7 +73,7 @@ end subroutine set_active_fixer
 !----------------------------------------------------------------------------------------------------
 
 !+
-! Subroutine fix(branch, to_active, who, err_flag)
+! Function fix(branch, to_active) result (is_ok)
 !
 ! Input:
 !   to_active   -- logical: If True, set active Twiss from stored. If False, set stored Twiss from active.
@@ -84,17 +84,74 @@ end subroutine set_active_fixer
 !                   and individual parameters like 'x', 'px', 'cmat_11', etc.
 !-
 
-!----------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------
-!+
-! Function find_active_fixer(branch) result (fixer)
+function fix(branch, to_active, who) result (is_ok)
+
+type (branch_struct), target :: branch
+type (ele_struct), pointer :: fixer
+
+logical to_active, is_ok
+character(*), optional :: who
+character(40) whom
+
 !
-! Input:
-!   branch
-!
-! Output:
-!   fixer
-!-
+
+whom = ''
+if (present(who)) whom = who
+
+fixer => branch%ele(branch%ix_fixer)
+
+if (to_active) then
+  select case (whom)
+  case ('all', '')
+  case ('twiss')
+  case ('a-mode')
+  case ('b-mode')
+  case ('c-mode')
+  case ('x-twiss')
+  case ('y-twiss')
+  case ('cmat')
+  case ('dispersion')
+  case ('chromatic')
+  case ('orbit')
+  case ('x-plane')
+  case ('y-plane')
+  case ('z-plane')
+  case ('x');               fixer%value(x_stored$)            = fixer%value(x_stored$)
+  case ('px');              fixer%value(px_stored$)           = fixer%value(x_stored$)
+  case ('y');               fixer%value(y_stored$)            = fixer%value(x_stored$)
+  case ('py');              fixer%value(py_stored$)           = fixer%value(x_stored$)
+  case ('z');               fixer%value(z_stored$)            = fixer%value(x_stored$)
+  case ('pz');              fixer%value(pz_stored$)           = fixer%value(x_stored$)
+  case ('beta_a');          fixer%value(beta_a_stored$)       = fixer%value(x_stored$)
+  case ('alpha_a');         fixer%value(alpha_a_stored$)      = fixer%value(x_stored$)
+  case ('beta_b');          fixer%value(beta_b_stored$)       = fixer%value(x_stored$)
+  case ('alpha_b');         fixer%value(alpha_b_stored$)      = fixer%value(x_stored$)
+  case ('phi_a');           fixer%value(phi_a_stored$)        = fixer%value(x_stored$)
+  case ('phi_b');           fixer%value(phi_b_stored$)        = fixer%value(x_stored$)
+  case ('mode_flip');       fixer%value(mode_flip_stored$)    = fixer%value(x_stored$)
+  case ('eta_x');           fixer%value(eta_x_stored$)        = fixer%value(x_stored$)
+  case ('etap_x');          fixer%value(etap_x_stored$)       = fixer%value(x_stored$)
+  case ('eta_y');           fixer%value(eta_y_stored$)        = fixer%value(x_stored$)
+  case ('etap_y');          fixer%value(etap_y_stored$)       = fixer%value(x_stored$)
+  case ('cmat_11');         fixer%value(cmat_11_stored$)      = fixer%value(x_stored$)
+  case ('cmat_12');         fixer%value(cmat_12_stored$)      = fixer%value(x_stored$)
+  case ('cmat_21');         fixer%value(cmat_21_stored$)      = fixer%value(x_stored$)
+  case ('cmat_22');         fixer%value(cmat_22_stored$)      = fixer%value(x_stored$)
+  case ('dbeta_dpz_a');     fixer%value(dbeta_dpz_a_stored$)  = fixer%value(x_stored$)
+  case ('dbeta_dpz_b');     fixer%value(dbeta_dpz_b_stored$)  = fixer%value(x_stored$)
+  case ('dalpha_dpz_a');    fixer%value(dalpha_dpz_a_stored$) = fixer%value(x_stored$)
+  case ('dalpha_dpz_b');    fixer%value(dalpha_dpz_b_stored$) = fixer%value(x_stored$)
+  case ('deta_dpz_x');      fixer%value(deta_dpz_x_stored$)   = fixer%value(x_stored$)
+  case ('deta_dpz_y');      fixer%value(deta_dpz_y_stored$)   = fixer%value(x_stored$)
+  case ('detap_dpz_x');     fixer%value(detap_dpz_x_stored$)  = fixer%value(x_stored$)
+  case ('detap_dpz_y');     fixer%value(detap_dpz_y_stored$)  = fixer%value(x_stored$)
+  case default;             is_ok = .false.
+end select
+
+else
+
+endif
+
+end function fix
 
 end module
