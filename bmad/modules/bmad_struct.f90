@@ -1305,11 +1305,9 @@ type rf_stair_step_struct
   real(rp) :: p1c = 0         ! Reference momentum after the kick point.
   real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
-  real(rp) :: time = 0        ! Reference time at the kick point with respect to beginning of element.
-  real(rp) :: dt_rf = 0       ! Difference between zero reference time and RF clock.
+  real(rp) :: time = 0        ! Reference particle time at the kick point with respect to beginning of element.
+  real(rp) :: dt_rf = 0       ! Difference between zero reference time and RF clock with relative time tracking.
                               !   dt_rf will be zero except for multipass_slave elements.
-                              !   For all the slaves of a given multipass_lord and for a given step, 
-                              !   %time - %dt_rf will all be the same.
   real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
   integer :: ix_step = 0      ! Step index in ele%rf%steps(:) array
 end type

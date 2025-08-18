@@ -137,10 +137,10 @@ subroutine this_rf_multipass_slave_setup(ele, lord)
 
 type (ele_struct), target :: ele, lord
 type (ele_struct), pointer :: slave1
-type (rf_stair_step_struct), pointer :: steps(:)
+type (rf_stair_step_struct), pointer :: steps(:), lord_steps(:)
 type (rf_stair_step_struct), pointer :: step, step1
 
-real(rp) dt_rf, time_ref, dt_ref, p0c, mass, phase, dE, beta, p1c, dt
+real(rp) dt_rf, time_ref, dt_ref, p0c, mass, phase, dE, beta, p1c, dt0
 integer i, n
 
 ! It can happen that if the slave tracking_method is switched to bmad_standard, the lord has
@@ -149,15 +149,17 @@ integer i, n
 if (.not. associated(lord%rf)) call lcavity_rf_step_setup(lord)
 
 ! Correct for the fact that reference particle transit time through the slave will be different than the 
-! reference transit time through the multipass_lord and this will give RF phase shifts and will shift
+! reference transit time through the multipass_lord and this will give RF phase shifts which will shift
 ! the reference energy of the slave.
 
 if (bmad_com%absolute_time_tracking) then
   slave1 => pointer_to_slave(lord, 1)
-  dt = ele%value(ref_time_start$) - slave1%value(ref_time_start$)
+  dt0 = modulo2(ele%value(ref_time_start$) - slave1%value(ref_time_start$), &
+                                                            0.5_rp / lord%value(rf_frequency$))
 endif
 
 ele%rf = lord%rf
+lord_steps => lord%rf%steps
 steps => ele%rf%steps
 mass = mass_of(ele%ref_species)
 n = nint(lord%value(n_rf_steps$))
@@ -174,12 +176,14 @@ do i = 0, n
   step => steps(i)
   phase = ele%value(rf_frequency$) * dt_rf + ele%value(phi0$)
   if (bmad_com%absolute_time_tracking) then
-    phase = phase + dt * ele%value(rf_frequency$)
+    phase = phase + dt0 * ele%value(rf_frequency$)
   else
     phase = phase + ele%value(phi0_multipass$)
   endif
 
-  dE = step%scale * lord%value(voltage$) * cos(twopi * phase)
+  phase = twopi * phase
+  dE = step%scale * lord%value(voltage$) * cos(phase)
+
   step%E_tot1 = step%E_tot0 + dE
   call convert_total_energy_to(step%E_tot1, ele%ref_species, pc = p1c)
   step%p1c = p1c
