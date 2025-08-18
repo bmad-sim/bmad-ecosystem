@@ -426,6 +426,7 @@ if (bmad_com%absolute_time_tracking .and. lord%orientation*orbit%time_dir*orbit%
   phase = phase - twopi * lord%value(rf_frequency$) * lord%value(delta_ref_time$)
 endif
 phase = modulo2(phase, pi)
+orbit%phase(1) = modulo2(phase/twopi, 0.5_rp)
 
 end function this_rf_phase
 

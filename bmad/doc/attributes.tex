@@ -2868,7 +2868,9 @@ the ``desired'' is set by the \vn{voltage} or \vn{gradient} attribute of the ele
 
 The scaling problem is not present when \vn{bmad_standard} tracking (\sref{s:tkm}) is used since
 \vn{bmad_standard} tracking uses an integrated formula that is designed to give the proper
-acceleration. Rather it is a problem for Runge-Kutta and other integration methods.
+acceleration. Rather it is a problem for Runge-Kutta and other integration methods. 
+In consequence of this, the \vn{field_autoscale} and \vn{phi0_autoscale} parameters are ignored
+with \vn{bmad_standard} tracking.
 
 The problem becomes even more complicated at non-ultra relativistic energies where the particle
 velocity is not a constant. In this case, the proper amplitude and/or phase settings will depend
