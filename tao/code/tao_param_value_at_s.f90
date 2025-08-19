@@ -380,6 +380,23 @@ case ('floor')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
+case ('floor_orbit')
+  floor = orbit_to_local_curvilinear(orb, ele_to_s, relative_to = downstream_end$)
+  floor = coords_local_curvilinear_to_floor (floor, ele_to_s, .false., relative_to = downstream_end$)
+
+  select case (d_type)
+  case ('floor_orbit.x');       value = floor%r(1)
+  case ('floor_orbit.y');       value = floor%r(2)
+  case ('floor_orbit.z');       value = floor%r(3)
+  case ('floor_orbit.theta');   value = floor%theta
+  case ('floor_orbit.phi');     value = floor%phi
+  case ('floor_orbit.psi');     value = floor%psi
+  case default
+    err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
+    if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
+  end select
+
 case ('gamma')
   select case (d_type)
   case ('gamma.a');          value = ele_to_s%a%gamma
