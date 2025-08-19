@@ -45,7 +45,7 @@ do is = 0, 2
     step => ele%rf%steps(ii)
     write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-a-', int_str(ii), '" REL 1E-8', step%E_tot0, &
                                             step%E_tot1, step%p0c, step%p1c, step%dE_amp, step%s
-    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" ABS 1E-18', step%time, step%dt_rf
+    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" ABS 1E-18', step%time
   enddo
 enddo
 

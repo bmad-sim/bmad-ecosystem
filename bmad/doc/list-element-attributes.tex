@@ -96,8 +96,8 @@ beta_b_strong [m]                & ele_origin                       & sig_y [m] 
 bs_field [T]                     & field_calc                       & sig_z [m]                        & y2_limit [m]                     \\
 charge                           & is_on                            & species_strong                   & y_limit [m]                      \\
 cmat_11                          & ks [1/m]                         & spin_tracking_method             & y_offset [m]                     \\
-cmat_12                          & l [m]                            & superimpose                      & y_offset_tot [m]                 \\
-cmat_21                          & mat6_calc_method                 & symplectify                      & y_pitch [rad]                    \\
+cmat_12 [m]                      & l [m]                            & superimpose                      & y_offset_tot [m]                 \\
+cmat_21 [1/m]                    & mat6_calc_method                 & symplectify                      & y_pitch [rad]                    \\
 cmat_22                          & n_particle                       & tilt [rad]                       & y_pitch_tot [rad]                \\
 crab_tilt [rad]                  & n_slice                          & tilt_tot [rad]                   & z_offset [m]                     \\
 crab_x1                          & offset [m]                       & tracking_method                  & z_offset_tot [m]                 \\
@@ -112,16 +112,24 @@ crab_x3 [1/m$^2$]                & p0c [eV]                         & wall      
  \label{s:list.beginning}
  
  \begin{tabular}{llll} \toprule
-alpha_a                          & dbeta_dpz_a [m]                  & eta_z [m]                        & psi_position [rad]               \\
-alpha_b                          & dbeta_dpz_b [m]                  & etap_x                           & ref_time [sec]                   \\
-beta_a [m]                       & deta_dpz_x [m]                   & etap_y                           & s [m]                            \\
-beta_b [m]                       & deta_dpz_y [m]                   & inherit_from_fork                & spin_dn_dpz_x                    \\
-cmat_11                          & detap_dpz_x                      & mode_flip                        & spin_dn_dpz_y                    \\
-cmat_12                          & detap_dpz_y                      & p0c [eV]                         & spin_dn_dpz_z                    \\
-cmat_21                          & e_tot [eV]                       & p0c_start [eV]                   & theta_position [rad]             \\
-cmat_22                          & e_tot_start [eV]                 & phi_a [rad]                      & x_position [m]                   \\
-dalpha_dpz_a                     & eta_x [m]                        & phi_b [rad]                      & y_position [m]                   \\
-dalpha_dpz_b                     & eta_y [m]                        & phi_position [rad]               & z_position [m]                   \\
+alpha_a                          & dalpha_dpz_b                     & eta_y [m]                        & px_stored                        \\
+alpha_a_stored                   & dalpha_dpz_b_stored              & eta_y_stored [m]                 & py_stored                        \\
+alpha_b                          & dbeta_dpz_a [m]                  & eta_z [m]                        & pz_stored                        \\
+alpha_b_stored                   & dbeta_dpz_a_stored [m]           & etap_x                           & ref_time [sec]                   \\
+beta_a [m]                       & dbeta_dpz_b [m]                  & etap_x_stored                    & s [m]                            \\
+beta_a_stored [m]                & dbeta_dpz_b_stored [m]           & etap_y                           & spin_dn_dpz_x                    \\
+beta_b [m]                       & deta_dpz_x [m]                   & etap_y_stored                    & spin_dn_dpz_y                    \\
+beta_b_stored [m]                & deta_dpz_x_stored [m]            & inherit_from_fork                & spin_dn_dpz_z                    \\
+cmat_11                          & deta_dpz_y [m]                   & mode_flip                        & theta_position [rad]             \\
+cmat_11_stored                   & deta_dpz_y_stored [m]            & mode_flip_stored                 & x_position [m]                   \\
+cmat_12 [m]                      & detap_dpz_x                      & p0c [eV]                         & x_stored [m]                     \\
+cmat_12_stored [m]               & detap_dpz_x_stored               & p0c_start [eV]                   & y_position [m]                   \\
+cmat_21 [1/m]                    & detap_dpz_y                      & phi_a [rad]                      & y_stored [m]                     \\
+cmat_21_stored [1/m]             & detap_dpz_y_stored               & phi_a_stored                     & z_position [m]                   \\
+cmat_22                          & e_tot [eV]                       & phi_b [rad]                      & z_stored [m]                     \\
+cmat_22_stored                   & e_tot_start [eV]                 & phi_b_stored                     &                                  \\
+dalpha_dpz_a                     & eta_x [m]                        & phi_position [rad]               &                                  \\
+dalpha_dpz_a_stored              & eta_x_stored [m]                 & psi_position [rad]               &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -521,6 +529,27 @@ dx_origin [m]                    & offset [m]                       & reference 
  \vfill
  
  %---------------------------------
+ \section{Fixer Element Attributes}
+ \label{s:list.fixer}
+ 
+ \begin{tabular}{llll} \toprule
+alias                            & dbeta_dpz_b_stored [m]           & etap_y_stored                    & ref_time_start [sec]             \\
+alpha_a_stored                   & delta_ref_time [sec]             & mat6_calc_method                 & reference                        \\
+alpha_b_stored                   & descrip                          & mode_flip_stored                 & spin_tracking_method             \\
+beta_a_stored [m]                & deta_dpz_x_stored [m]            & offset [m]                       & superimpose                      \\
+beta_b_stored [m]                & deta_dpz_y_stored [m]            & p0c [eV]                         & tracking_method                  \\
+cmat_11_stored                   & detap_dpz_x_stored               & phi_a_stored                     & type                             \\
+cmat_12_stored [m]               & detap_dpz_y_stored               & phi_b_stored                     & wrap_superimpose                 \\
+cmat_21_stored [1/m]             & e_tot [eV]                       & ptc_integration_type             & x_stored [m]                     \\
+cmat_22_stored                   & ele_origin                       & px_stored                        & y_stored [m]                     \\
+dalpha_dpz_a_stored              & eta_x_stored [m]                 & py_stored                        & z_stored [m]                     \\
+dalpha_dpz_b_stored              & eta_y_stored [m]                 & pz_stored                        &                                  \\
+dbeta_dpz_a_stored [m]           & etap_x_stored                    & ref_origin                       &                                  \\
+ \bottomrule
+ \end{tabular}
+ \vfill
+ 
+ %---------------------------------
  \section{Floor_Shift Element Attributes}
  \label{s:list.floor.shift}
  
@@ -802,8 +831,8 @@ alpha_b                          & deta_dpz_x [m]                   & high_energ
 beta_a [m]                       & deta_dpz_y [m]                   & inherit_from_fork                & spin_dn_dpz_x                    \\
 beta_b [m]                       & detap_dpz_x                      & live_branch                      & spin_dn_dpz_y                    \\
 cmat_11                          & detap_dpz_y                      & mode_flip                        & spin_dn_dpz_z                    \\
-cmat_12                          & e_tot [eV]                       & p0c [eV]                         & theta_position [rad]             \\
-cmat_21                          & e_tot_start [eV]                 & p0c_start [eV]                   & x_position [m]                   \\
+cmat_12 [m]                      & e_tot [eV]                       & p0c [eV]                         & theta_position [rad]             \\
+cmat_21 [1/m]                    & e_tot_start [eV]                 & p0c_start [eV]                   & x_position [m]                   \\
 cmat_22                          & eta_x [m]                        & particle                         & y_position [m]                   \\
 dalpha_dpz_a                     & eta_y [m]                        & phi_a [rad]                      & z_position [m]                   \\
 dalpha_dpz_b                     & eta_z [m]                        & phi_b [rad]                      &                                  \\

@@ -394,12 +394,17 @@ function this_rf_phase(orbit, ele, lord, step) result (phase)
 
 type (coord_struct) orbit
 type (ele_struct), target :: ele, lord
+type (ele_struct), pointer :: mlord
 type (rf_stair_step_struct) step
 type (ele_pointer_struct), allocatable :: chain(:)
 real(rp) phase, particle_time
 integer ix_pass, n_links
 
-!
+! Lord will be something like the super_lord to a super_slave. 
+! The lord can be a multipass_slave.
+
+mlord => lord
+if (lord%slave_status == multipass_slave$) mlord => pointer_to_lord(lord, 1)
 
 if (absolute_time_tracking(lord)) then
   particle_time = modulo2(orbit%t, 0.5_qp / lord%value(rf_frequency$))
@@ -412,21 +417,23 @@ if (absolute_time_tracking(lord)) then
     endif
   endif
 
-  particle_time = particle_time - step%time
+  particle_time = particle_time - mlord%rf%steps(step%ix_step)%time
 
 else  ! Relative time tracking
-  particle_time = particle_rf_time (orbit, lord, .false.) + step%dt_rf
+  particle_time = particle_rf_time (orbit, lord, .false.) + step%time - mlord%rf%steps(step%ix_step)%time
 endif
 
 !
 
 phase = twopi * (lord%value(phi0_err$) + lord%value(phi0$) + particle_time * lord%value(rf_frequency$))
 if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * lord%value(phi0_multipass$)
+
 if (bmad_com%absolute_time_tracking .and. lord%orientation*orbit%time_dir*orbit%direction == -1) then
   phase = phase - twopi * lord%value(rf_frequency$) * lord%value(delta_ref_time$)
 endif
+
 phase = modulo2(phase, pi)
-orbit%phase(1) = modulo2(phase/twopi, 0.5_rp)
+orbit%phase(1) = phase/twopi
 
 end function this_rf_phase
 

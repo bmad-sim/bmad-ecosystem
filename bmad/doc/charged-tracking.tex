@@ -59,7 +59,7 @@ reference particle at the entrance end of the element on the first pass. For abs
 it is important to keep in mind that $t_0(s_\text{ent})$ is a property of the element independent of
 how tracking is done. Thus, if a particle goes through a particular element multiple times, the
 value of $t_\text{ent}$ will be the same for each transit. If \vn{bmad_com[absolute_time_ref_shift]}
-set to True, $t_\text{eff}$ is simply
+set to False, $t_\text{eff}$ is simply
 \begin{equation}
   t_\text{eff}(s) = t(s) 
 \end{equation}
@@ -1184,9 +1184,9 @@ The reference energy in each section is adjusted to match the energy of the refe
 point is obtained from the reference RF phase $\phi_\REF(0)$ at the beginning of the element with a
 phase offset due to the transit time from the beginning to the kick point of the reference particle:
 \begin{equation}
-  \phi_\REF(n) = \phi_\REF(0) + \sum_{j = 1}^n t_{0j}
+  \phi_\REF(n) = \phi_\REF(0) + f_\text{rf} \, \sum_{j = 1}^n t_{0j}
 \end{equation}
-where $t_0j = L / c \beta_{0j} \, N_s$ is the transit time of the reference particle across the
+where $t_{0j} = L / c \beta_{0j} \, N_s$ is the transit time of the reference particle across the
 $j$\Th section with $L$ being the element length, and $\beta_{0j}$ the velocity of the reference
 particle in the $j$\Th section. With this construction, a particle on the zero orbit will see a
 constant RF phase.
