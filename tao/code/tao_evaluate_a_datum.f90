@@ -50,7 +50,7 @@ type (coord_struct) :: orb_at_s, orb1
 type (bpm_phase_coupling_struct) bpm_data
 type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
 type (floor_position_struct) floor
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, high_branch, low_branch
 type (bunch_params_struct), pointer :: bunch_params(:)
 type (bmad_normal_form_struct), pointer :: bmad_nf
 type (ptc_normal_form_struct), pointer :: ptc_nf
@@ -794,6 +794,8 @@ case ('chrom.')
       do i = ix_start, ix_ele
         value_vec(i) = tao_lat%lat%ele(i)%a%dbeta_dpz / tao_lat%lat%ele(i)%a%beta
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = tao_lat%lat%ele(ix_ref)%a%dbeta_dpz / tao_lat%lat%ele(ix_ref)%a%beta
+
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
@@ -809,60 +811,73 @@ case ('chrom.')
       do i = ix_start, ix_ele
         value_vec(i) = tao_lat%lat%ele(i)%b%dbeta_dpz / tao_lat%lat%ele(i)%b%beta
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = tao_lat%lat%ele(ix_ref)%b%dbeta_dpz / tao_lat%lat%ele(ix_ref)%b%beta
+
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
   
   case ('chrom.dphi.a')
     if (data_source == 'lat') then
+      high_branch => tao_lat%high_E_lat%branch(ix_branch)
+      low_branch => tao_lat%low_E_lat%branch(ix_branch)
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%a%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%a%phi)/ dpz
+        value_vec(i) = (high_branch%ele(i)%a%phi - low_branch%ele(i)%a%phi) / &
+                                    (tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6))
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = (high_branch%ele(ix_ref)%a%phi - low_branch%ele(ix_ref)%a%phi) / &
+                                    (tao_branch%high_E_orb(ix_ref)%vec(6) - tao_branch%low_E_orb(ix_ref)%vec(6))
+
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('chrom.dphi.b')
     if (data_source == 'lat') then
+      high_branch => tao_lat%high_E_lat%branch(ix_branch)
+      low_branch => tao_lat%low_E_lat%branch(ix_branch)
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
-        value_vec(i) = (tao_lat%high_E_lat%branch(ix_branch)%ele(i)%b%phi - tao_lat%low_E_lat%branch(ix_branch)%ele(i)%b%phi)/ dpz
+        value_vec(i) = (high_branch%ele(i)%b%phi - low_branch%ele(i)%b%phi) / &
+                                    (tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6))
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = (high_branch%ele(ix_ref)%b%phi - low_branch%ele(ix_ref)%b%phi) / &
+                                    (tao_branch%high_E_orb(ix_ref)%vec(6) - tao_branch%low_E_orb(ix_ref)%vec(6))
+
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('chrom.deta.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
         value_vec(i) = tao_lat%lat%ele(i)%x%deta_dpz
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = tao_lat%lat%ele(ix_ref)%x%deta_dpz
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('chrom.deta.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
         value_vec(i) = tao_lat%lat%ele(i)%y%deta_dpz
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = tao_lat%lat%ele(ix_ref)%y%deta_dpz
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('chrom.detap.x')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
         value_vec(i) = tao_lat%lat%ele(i)%x%detap_dpz
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = tao_lat%lat%ele(ix_ref)%x%detap_dpz
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
   case ('chrom.detap.y')
     if (data_source == 'lat') then
       do i = ix_start, ix_ele
-        dpz = tao_branch%high_E_orb(i)%vec(6) - tao_branch%low_E_orb(i)%vec(6)
         value_vec(i) = tao_lat%lat%ele(i)%y%detap_dpz
       end do
+      if (associated(ele_ref)) value_vec(ix_ref) = tao_lat%lat%ele(ix_ref)%y%detap_dpz
+
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif
 
@@ -885,6 +900,18 @@ case ('chrom.')
         aa = z0%dalpha_dpz - z0%alpha * bb
         value_vec(i) = sqrt(aa**2 + bb**2)
       end do
+
+      if (associated(ele_ref)) then
+        if (data_type == 'chrom.w.a') then
+          z0 => branch%ele(ix_ref)%a
+        else
+          z0 => branch%ele(ix_ref)%b
+        endif
+        bb = z0%dbeta_dpz / z0%beta
+        aa = z0%dalpha_dpz - z0%alpha * bb
+        value_vec(ix_ref) = sqrt(aa**2 + bb**2)
+      endif
+
       call tao_load_this_datum (value_vec, ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
     endif      
 
