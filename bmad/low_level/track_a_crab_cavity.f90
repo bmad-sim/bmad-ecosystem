@@ -135,6 +135,8 @@ do i = 1, n_slice
 enddo
 
 call track_this_drift(orbit, dl/2, ele, mat6, make_matrix)
+orbit%phase(1) = modulo2(phase, 0.5_rp)
+
 
 ! coupler kick, multipoles, back to lab coords.
 

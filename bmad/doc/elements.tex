@@ -3206,17 +3206,16 @@ The energy kick felt by a particle, assuming no phase slippage, is
   \text{dE} = r_q \cdot \text{gradient_tot} \cdot L  \cdot \cos(2 \, \pi \, (\phi_t + \phi_\REF))
   \label{dergl}
 \end{equation}
-where $r_q$ is the charge of the particle relative to the charge of the reference particle.
-\index{multipass}
+where $r_q$ is the charge of the particle relative to the charge of the reference particle and
 where the total gradient is
 \begin{example}
-  gradient_tot = (gradient + gradient_err) * field_autoscale
+  gradient_tot = gradient + gradient_err
 \end{example}
 $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends upon
 whether \vn{absolute time tracking} or \vn{relative time tracking} is being used as discussed in
 \sref{s:rf.time}. The phase $\phi_\REF$ is
 \begin{example}
-  \(\phi_\REF\) = phi0 + phi0_multipass + phi0_err + phi0_autoscale
+  \(\phi_\REF\) = phi0 + phi0_multipass + phi0_err
   \label{lcav.phi}
 \end{example}
 In the above equation $r_q$ is the relative charge between the reference particle (set by the
@@ -3227,9 +3226,19 @@ unity independent of the type of particle tracked.
 \vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
 pass. See \sref{c:multipass}.
 
-\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
-Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
-\vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
+The \vn{phi0_autoscale} and \vn{field_autoscale} parameters are
+calculated by \bmad's auto-scale module to adjust the RF amplitude and phase so that during tracking,
+the energy gain of
+a particle on the reference orb is what the user expects based upon the set set volateage and phase. See
+Section~\sref{s:autoscale} for more details. In particular, the gradient and phase are adjusted by
+\begin{example}
+  gradient (tracking) = gradient_tot * field_autoscale
+  \(\phi_\REF\) (tracking) = \(\phi_\REF\) + phi0_autoscale
+\end{example}
+These autoscale shifts are not used when an element's \vn{tracking_method} is \vn{bmad_standard} since,
+in this case, the tracking algoithms is such that no adjustments are needed.
+The calculation of autoscale values
+can be toggled on/off by setting the \vn{autoscale_phase} and \vn{autoscale_amplitude} logicals.
 
 The energy change of the reference particle is just the energy change for a 
 particle with $z = 0$ and no phase or gradient errors. Thus
@@ -4746,7 +4755,7 @@ The integrated energy kick felt by a particle, assuming no phase slippage, is
 \index{multipass}
 where
 \begin{example}
-  \(\phi_\REF\) = phi0 + phi0_multipass + phi0_autoscale
+  \(\phi_\REF\) = phi0 + phi0_multipass
   \label{rfcav.phi}
 \end{example}
 and $\phi_t$ is the part of the phase due to when the particle arrives at the cavity and depends
@@ -4769,9 +4778,19 @@ The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attrib
 (Table~\ref{t:constants}). Notice that the energy kick is independent of the sign of the charge of
 the particle
 
-\vn{phi0_autoscale} and \vn{field_autoscale} are calculated by \bmad's auto-scale module. See
-Section~\sref{s:autoscale} for more details. Autoscaling can be toggled on/off by using the
-\vn{autoscale_phase} and \vn{autoscale_amplitude} toggles.
+The \vn{phi0_autoscale} and \vn{field_autoscale} parameters are
+calculated by \bmad's auto-scale module to adjust the RF amplitude and phase so that during tracking,
+the energy gain of
+a particle on the reference orb is what the user expects based upon the set set volateage and phase. See
+Section~\sref{s:autoscale} for more details. In particular, the gradient and phase are adjusted by
+\begin{example}
+  gradient (tracking) = gradient * field_autoscale
+  \(\phi_\REF\) (tracking) = \(\phi_\REF\) + phi0_autoscale
+\end{example}
+These autoscale shifts are not used when an element's \vn{tracking_method} is \vn{bmad_standard} since,
+in this case, the tracking algoithms is such that no adjustments are needed.
+The calculation of autoscale values
+can be toggled on/off by setting the \vn{autoscale_phase} and \vn{autoscale_amplitude} logicals.
 
 Note: Zero phase for $\phi_\REF$ corresponds to the stable fixed point above transition.
 

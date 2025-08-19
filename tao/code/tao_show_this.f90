@@ -1774,16 +1774,8 @@ case ('element')
           nl=nl+1; write(lines(nl), fmt)  'Y:  ', 1000*orb%vec(3:4), '  | t_part-t_ref [sec]:    ', dt,    'PC:   ', pc
           nl=nl+1; write(lines(nl), fmt2) 'Z:  ', 1000*orb%vec(5:6), '  | (t_ref-t_part)*Vel [m]:', z,     'Beta: ', orb%beta
         endif
-        if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
-          if (ele%key == rfcavity$) then
-            phase = ele%value(phi0$) + ele%value(phi0_multipass$) - &
-                  (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
-          else
-            phase = ele%value(phi0_err$) + ele%value(phi0$) + ele%value(phi0_multipass$) + &
-                  (particle_rf_time (orb, ele, .false.) - rf_ref_time_offset(ele)) * ele%value(rf_frequency$)
-          endif
-          if (ele%tracking_method /= bmad_standard$) phase = phase + ele%value(phi0_autoscale$)
-          nl=nl+1; write(lines(nl), '(2x, 2a)') 'Particle Phase relative to RF Phase (rad/2pi): ', real_str(phase, 9, 6)
+        if (ele%key == rfcavity$ .or. ele%key == lcavity$ .or. ele%key == crab_cavity$) then
+          nl=nl+1; write(lines(nl), '(2x, 2a)') 'Particle Phase relative to RF Phase (rad/2pi): ', real_str(orb%phase(1), 9, 6)
         endif
       endif
     endif

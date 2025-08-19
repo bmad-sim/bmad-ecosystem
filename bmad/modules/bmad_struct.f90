@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 342
+integer, parameter :: bmad_inc_version$ = 343
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -544,7 +544,7 @@ type coord_struct                 ! Particle coordinates at a single point
   real(qp) :: t = 0               ! Absolute time (not relative to reference). Note: Quad precision!
   real(rp) :: spin(3) = 0         ! Spin.
   real(rp) :: field(2) = 0        ! Photon E-field intensity (x,y).
-  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y).
+  real(rp) :: phase(2) = 0        ! Photon E-field phase (x,y). For charged particles, phase(1) is RF phase.
   real(rp) :: charge = 0          ! Macroparticle weight (which is different from particle species charge). 
                                   !   For some space charge calcs the weight is in Coulombs.
   real(rp) :: dt_ref = 0          ! Used in:
@@ -1305,11 +1305,7 @@ type rf_stair_step_struct
   real(rp) :: p1c = 0         ! Reference momentum after the kick point.
   real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
-  real(rp) :: time = 0        ! Reference time at the kick point with respect to beginning of element.
-  real(rp) :: dt_rf = 0       ! Difference between zero reference time and RF clock.
-                              !   dt_rf will be zero except for multipass_slave elements.
-                              !   For all the slaves of a given multipass_lord and for a given step, 
-                              !   %time - %dt_rf will all be the same.
+  real(rp) :: time = 0        ! Reference particle time at the kick point with respect to beginning of element.
   real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
   integer :: ix_step = 0      ! Step index in ele%rf%steps(:) array
 end type
@@ -1607,12 +1603,13 @@ type branch_struct
   integer :: ix_from_ele = -1      ! Index of creating fork element which forks to this branch.
   integer :: ix_to_ele = -1        ! Index of element in this branch that creating fork element forks to.
   integer :: ix_fixer = 0          ! Index of active fixer or beginning_ele element.
-  integer :: n_ele_track
-  integer :: n_ele_max
+  integer :: n_ele_track = 0
+  integer :: n_ele_max = 0
   type (lat_struct), pointer :: lat => null()
   type (mode_info_struct) :: a , b , z  ! Note: Tunes are the fractional part.
   type (ele_struct), pointer :: ele(:) => null()
-  type (lat_param_struct) :: param 
+  type (lat_param_struct) :: param
+  type (coord_struct) :: particle_start 
   type (wall3d_struct), pointer :: wall3d(:) => null()
   type (ptc_branch1_struct) ptc              ! Pointer to layout. Note: ptc info not transferred with "branch1 = branch2" set.
 end type

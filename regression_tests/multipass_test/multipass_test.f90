@@ -1,3 +1,4 @@
+
 program multipass_test
 
 use bmad
@@ -44,7 +45,7 @@ do is = 0, 2
     step => ele%rf%steps(ii)
     write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-a-', int_str(ii), '" REL 1E-8', step%E_tot0, &
                                             step%E_tot1, step%p0c, step%p1c, step%dE_amp, step%s
-    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" ABS 1E-18', step%time, step%dt_rf
+    write (1, '(5a, 6es22.14)') '"', trim(ele%name), '-b-', int_str(ii), '" ABS 1E-18', step%time
   enddo
 enddo
 
@@ -58,7 +59,7 @@ write (1, '(a, 2es22.14)') '"END-energy" REL 1E-8', ele%value(p0c$), ele%value(E
 
 call bmad_parser ('branch_fork.bmad', lat)
 call write_bmad_lattice_file ('lat_out1.bmad', lat)
-call bmad_parser ('lat1.bmad', lat)
+call bmad_parser ('lat_out1.bmad', lat)
 
 ele => lat%branch(1)%ele(2)
 write (1, '(3a)')       '"BF-01"  STR  "', trim(ele%name), '"'
@@ -87,7 +88,7 @@ write (1, '(3a)') '"MS-13"  STR  "', trim(lat%ele(13)%name), '"'
 
 call bmad_parser ('patch.bmad', lat)
 call write_bmad_lattice_file ('lat_out2.bmad', lat)
-call bmad_parser ('lat2.bmad', lat)
+call bmad_parser ('lat_out2.bmad', lat)
 
 write (1, '(a, f12.6)')  '"P-0S" ABS 0', lat%branch(1)%ele(0)%s
 write (1, '(a, es14.6)') '"P-0T" ABS 0', lat%branch(1)%ele(0)%ref_time
