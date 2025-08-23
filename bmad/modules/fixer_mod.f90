@@ -247,7 +247,7 @@ if (to_active) then
   case ('deta_dpz_y');      fixer%y%deta_dpz                  = fixer%value(deta_dpz_y_stored$)
   case ('detap_dpz_y');     fixer%y%detap_dpz                 = fixer%value(detap_dpz_y_stored$)
 
-  case ('mode_flip');       fixer%mode_flip                   = fixer%value(mode_flip_stored$)
+  case ('mode_flip');       fixer%mode_flip                   = is_true(fixer%value(mode_flip_stored$))
   case ('cmat_11');         fixer%c_mat(1,1)                  = fixer%value(cmat_11_stored$)
   case ('cmat_12');         fixer%c_mat(1,2)                  = fixer%value(cmat_12_stored$)
   case ('cmat_21');         fixer%c_mat(2,1)                  = fixer%value(cmat_21_stored$)
@@ -289,7 +289,7 @@ else
   case ('deta_dpz_y');      fixer%value(deta_dpz_y_stored$)   = fixer%y%deta_dpz
   case ('detap_dpz_y');     fixer%value(detap_dpz_y_stored$)  = fixer%y%detap_dpz
 
-  case ('mode_flip');       fixer%value(mode_flip_stored$)    = fixer%mode_flip
+  case ('mode_flip');       fixer%value(mode_flip_stored$)    = int_logic(fixer%mode_flip)
   case ('cmat_11');         fixer%value(cmat_11_stored$)      = fixer%c_mat(1,1)
   case ('cmat_12');         fixer%value(cmat_12_stored$)      = fixer%c_mat(1,2)
   case ('cmat_21');         fixer%value(cmat_21_stored$)      = fixer%c_mat(2,1)
