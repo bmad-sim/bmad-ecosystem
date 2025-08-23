@@ -185,7 +185,7 @@ character(n_char_show), pointer :: li_ptr(:)
 character(n_char_show) li2
 character(300), allocatable :: name_arr(:)
 character(200) file_name, all_who, tail_str
-character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
+character(40) imt, iamt, jmt, rmt, lmt, amt, amt2, vamt, rmt2, ramt, cmt, label_name
 character(40) who, max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(40), allocatable :: str_arr(:)
 character(40), allocatable :: name_list(:)
@@ -273,6 +273,7 @@ endif
 amt  = '(100a)'
 amt2 = '(a, l1, 10a)'
 imt  = '(a, 100(i0, a))'
+iamt  = '(a, 100(a, i0))'
 jmt  = '(i0, a, i0)'
 rmt  = '(a, 100(es22.14, a))'
 ramt = '(a, 100(a, es22.14))'
@@ -412,6 +413,21 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), lmt) 'use_particle_start;LOGIC;T;',              beam_init%use_particle_start
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
+
+  nl=incr(nl); write (li(nl), iamt) 'ellipse_n_ellipse;INT_ARR;T',             (';', beam_init%ellipse(k)%n_ellipse, k = 1, 3)
+  nl=incr(nl); write (li(nl), iamt) 'ellipse_part_per_ellipse;INT_ARR;T',      (';', beam_init%ellipse(k)%part_per_ellipse, k = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'ellipse_sigma_cutoff;REAL_ARR;T',         (';', beam_init%ellipse(k)%sigma_cutoff, k = 1, 3)
+  
+  nl=incr(nl); write (li(nl), iamt) 'kv_part_per_phi;INT_ARR;T',               (';', beam_init%kv%part_per_phi(k), k = 1, 2)
+  nl=incr(nl); write (li(nl), imt) 'kv_n_I2;INT;T;',                           beam_init%kv%n_i2
+  nl=incr(nl); write (li(nl), rmt) 'kv_A;REAL;T;',                             beam_init%kv%A
+
+  nl=incr(nl); write (li(nl), iamt) 'grid_n_x;INT_ARR;T',                      (';', beam_init%grid(k)%n_x, k = 1, 3)
+  nl=incr(nl); write (li(nl), iamt) 'grid_n_px;INT_ARR;T',                     (';', beam_init%grid(k)%n_px, k = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'grid_x_min;REAL_ARR;T',                   (';', beam_init%grid(k)%x_min, k = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'grid_x_max;REAL_ARR;T',                   (';', beam_init%grid(k)%x_max, k = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'grid_px_min;REAL_ARR;T',                  (';', beam_init%grid(k)%px_min, k = 1, 3)
+  nl=incr(nl); write (li(nl), ramt) 'grid_px_max;REAL_ARR;T',                  (';', beam_init%grid(k)%px_max, k = 1, 3)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -6882,25 +6898,25 @@ case ('show')
 
 case ('space_charge_com')
 
-  nl=incr(nl); write(li(nl), rmt) 'ds_track_step;REAL;T;',                    space_charge_com%ds_track_step
-  nl=incr(nl); write(li(nl), rmt) 'dt_track_step;REAL;T;',                    space_charge_com%dt_track_step
-  nl=incr(nl); write(li(nl), rmt) 'cathode_strength_cutoff;REAL;T;',          space_charge_com%cathode_strength_cutoff
-  nl=incr(nl); write(li(nl), rmt) 'rel_tol_tracking;REAL;T;',                 space_charge_com%rel_tol_tracking
-  nl=incr(nl); write(li(nl), rmt) 'abs_tol_tracking;REAL;T;',                 space_charge_com%abs_tol_tracking
-  nl=incr(nl); write(li(nl), rmt) 'beam_chamber_height;REAL;T;',              space_charge_com%beam_chamber_height
-  nl=incr(nl); write(li(nl), rmt) 'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
-  nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'ds_track_step;REAL;T;',                    space_charge_com%ds_track_step
+  nl=incr(nl); write(li(nl), rmt)  'dt_track_step;REAL;T;',                    space_charge_com%dt_track_step
+  nl=incr(nl); write(li(nl), rmt)  'cathode_strength_cutoff;REAL;T;',          space_charge_com%cathode_strength_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'rel_tol_tracking;REAL;T;',                 space_charge_com%rel_tol_tracking
+  nl=incr(nl); write(li(nl), rmt)  'abs_tol_tracking;REAL;T;',                 space_charge_com%abs_tol_tracking
+  nl=incr(nl); write(li(nl), rmt)  'beam_chamber_height;REAL;T;',              space_charge_com%beam_chamber_height
+  nl=incr(nl); write(li(nl), rmt)  'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
 
-  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'space_charge_mesh_size;INT_ARR;T', (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
-  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',        (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
-  nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
-  nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
-  nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
-  nl=incr(nl); write(li(nl), imt) 'sc_min_in_bin;INT;T;',                     space_charge_com%sc_min_in_bin
+  nl=incr(nl); write(li(nl), iamt) 'space_charge_mesh_size;INT_ARR;T',         (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), iamt) 'csr3d_mesh_size;INT_ARR;T',                (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), imt)  'n_bin;INT;T;',                             space_charge_com%n_bin
+  nl=incr(nl); write(li(nl), imt)  'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
+  nl=incr(nl); write(li(nl), imt)  'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
+  nl=incr(nl); write(li(nl), imt)  'sc_min_in_bin;INT;T;',                     space_charge_com%sc_min_in_bin
 
-  nl=incr(nl); write(li(nl), lmt) 'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
+  nl=incr(nl); write(li(nl), lmt)  'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
 
-  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            trim(space_charge_com%diagnostic_output_file)
+  nl=incr(nl); write(li(nl), amt)  'diagnostic_output_file;STR;T;',            trim(space_charge_com%diagnostic_output_file)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
