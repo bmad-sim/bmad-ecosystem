@@ -3549,11 +3549,11 @@ subroutine twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb)
   logical err_flag
 end subroutine
 
-subroutine twiss_propagate1 (ele1, ele2, err)
+subroutine twiss_propagate1 (ele1, ele2, err_flag, forward)
   import
   implicit none
   type (ele_struct), target :: ele1, ele2
-  logical, optional :: err
+  logical, optional :: err_flag, forward
 end subroutine
 
 subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end)

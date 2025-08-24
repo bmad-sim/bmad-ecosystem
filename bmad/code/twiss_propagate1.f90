@@ -1,28 +1,31 @@
 !+
-! Subroutine twiss_propagate1 (ele1, ele2, err_flag)
+! Subroutine twiss_propagate1 (ele1, ele2, err_flag, forward)
 !
-! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
-! the exit end of ele1 to the exit end of ele2.
+! Subroutine to propagate the twiss, coupling, and dispersion parameters from the exit end of ele1 to 
+! the exit end of ele2 if forward is True and propagate in the reverse direciton if forward is False.
 !
 ! Input:
-!   ele1        -- Ele_struct: Structure holding the starting parameters.
-!   ele2        -- Ele_struct: Structure holding the transfer matrix.
+!   ele1        -- ele_struct: Element holding the starting Twiss parameters for forwards propagation.
+!   ele2        -- ele_struct: Element holding the transfer matrix and, if backwards propagation, the starting Twiss.
 !     %key                -- Needed since, for example, Match element are handled 
 !                              differently from other elements.
 !     %map_ref_orb_in     -- Important for the dispersion calc.
 !     %map_ref_orb_out    -- Important for the dispersion calc.
+!   forward     -- logical, optional: Default is True. If false, propagate the Twiss backwards.
 !
 ! Output:
-!   ele2     -- Ele_struct: Structure for the ending parameters.
-!   err_flag -- Logical, optional: Set True if there is an error. False otherwise.
+!   ele1     -- ele_struct: Element for the ending Twiss parameters for backwards propagation.
+!   ele2     -- ele_struct: Element for the ending Twiss parameters for forward propagation.
+!   err_flag -- logical, optional: Set True if there is an error. False otherwise.
 !-
 
-subroutine twiss_propagate1 (ele1, ele2, err_flag)
+subroutine twiss_propagate1 (ele1, ele2, err_flag, forward)
 
 use bmad_interface, except_dummy => twiss_propagate1
 
 implicit none
 type (ele_struct), target :: ele1, ele2
+type (ele_struct), pointer :: ele_in, ele_out
 type (twiss_struct) twiss_a
 type (lat_param_struct) param
 type (coord_struct), pointer :: orb_in, orb_out
@@ -34,16 +37,18 @@ real(rp) det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
 real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p, rel_p2
-real(rp) det_factor, deriv_rel, gamma2_c, df
+real(rp) det_factor, deriv_rel, gamma2_c, df, ele_len
 
-logical error
-logical, optional :: err_flag
+logical error, fwrd
+logical, optional :: err_flag, forward
 
 character(*), parameter :: r_name = 'twiss_propagate1'
 
 ! Beginning element bookkeeping. rel_p1 ~ 0 typically happens when there is an e_gun element downstream.
 
-if (ele1%key == beginning_ele$) then
+fwrd = logic_option(.true., forward)
+
+if (fwrd .and. ele1%key == beginning_ele$) then
   ele1%map_ref_orb_out = ele2%map_ref_orb_in
   rel_p = 1 + ele1%map_ref_orb_out%vec(6)
   if (rel_p > 1e-3_rp) then
@@ -63,6 +68,21 @@ endif
 
 if (present(err_flag)) err_flag = .true.
 
+if (fwrd) then
+  ele_in  => ele1
+  ele_out => ele2
+  orb_in  => ele2%map_ref_orb_in
+  orb_out => ele2%map_ref_orb_out
+  ele_len =  ele2%value(l$)
+
+else
+  ele_in  => ele2
+  ele_out => ele1
+  orb_in  => ele2%map_ref_orb_out
+  orb_out => ele2%map_ref_orb_in
+  ele_len = -ele2%value(l$)
+endif
+
 if (ele2%key == match$ .and. is_true(ele2%value(recalc$)) .and. &
     (nint(ele2%value(matrix$)) == match_twiss$ .or. nint(ele2%value(matrix$)) == phase_trombone$)) then
   call match_ele_to_mat6(ele2, ele1%map_ref_orb_out, ele2%mat6, ele2%vec0, error, set_trombone = .true.)
@@ -75,22 +95,22 @@ if (associated(ele1%branch)) geometry = ele1%branch%param%geometry
 !---------------------------------------------------------------------
 ! init
 
-if (ele1%a%beta <= 0 .or. ele1%b%beta <= 0) then
+if (ele_in%a%beta <= 0 .or. ele_in%b%beta <= 0) then
 
   ! For x-ray lines assume that since beta = 0 there is no interest in calculating the Twiss parameters.
   ! So this is not treated as an error.
-  if (associated(ele1%branch)) then
-    if (ele1%branch%param%particle == photon$) then
+  if (associated(ele_in%branch)) then
+    if (ele_in%branch%param%particle == photon$) then
       if (present(err_flag)) err_flag = .false.
       return
     endif
   endif
 
-  call out_io (s_error$, r_name, 'NON-POSITIVE BETA DETECTED AT ELEMENT: ' // ele_full_name(ele1))
+  call out_io (s_error$, r_name, 'NON-POSITIVE BETA DETECTED AT ELEMENT: ' // ele_full_name(ele_in))
   return
 endif
 
-ele2%mode_flip = ele1%mode_flip          ! assume no flip
+ele_out%mode_flip = ele_in%mode_flip          ! assume no flip
 key2 = ele2%key
 
 !---------------------------------------------------------------------
@@ -98,20 +118,17 @@ key2 = ele2%key
 
 select case (key2)
 case (marker$, photon_fork$, fork$, fixer$)
-  call transfer_twiss (ele1, ele2)
+  call transfer_twiss (ele_in, ele_out)
   if (present(err_flag)) err_flag = .false.
   return
 end select
 
 !
 
-orb_in  => ele2%map_ref_orb_in
-orb_out => ele2%map_ref_orb_out
-
 rel_p1 = 1 + orb_in%vec(6)    ! Map reference momentum
 rel_p2 = 1 + orb_out%vec(6)
-
 mat6 = ele2%mat6
+
 if (ele2%key /= e_gun$) then   ! Energy change normalization is not applied to an e-gun
   if (bmad_com%normalize_twiss) then
     mat6(:, 2:6:2) = mat6(:, 2:6:2) * rel_p1
@@ -121,6 +138,8 @@ if (ele2%key /= e_gun$) then   ! Energy change normalization is not applied to a
   rel_p2 = rel_p2 / rel_p1
   rel_p1 = 1
 endif
+
+if (.not. fwrd) mat6 = mat_symp_conj(mat6)
 
 !---------------------------------------------------------------------
 ! det_factor is a renormalization factor to handle non-symplectic errors.
@@ -136,8 +155,8 @@ if (all(mat6(1:2,3:4) == 0)) then
   mat2_a = mat6(1:2,1:2)
   mat2_b = mat6(3:4,3:4) 
 
-  ele2%c_mat = matmul(matmul(mat2_a, ele1%c_mat), mat_symp_conj(mat2_b)) / det_factor ! conj == inverse
-  ele2%gamma_c = ele1%gamma_c
+  ele_out%c_mat = matmul(matmul(mat2_a, ele_in%c_mat), mat_symp_conj(mat2_b)) / det_factor ! conj == inverse
+  ele_out%gamma_c = ele_in%gamma_c
 
 !---------------------------------------------------------------------
 ! here if we are dealing with a coupled transfer matrix
@@ -149,41 +168,41 @@ else
   big_N   = df * mat6(3:4,3:4)
   small_n = df * mat6(3:4,1:2)
 
-  c_conj_mat = mat_symp_conj (ele1%c_mat)
-  mat2 = ele1%gamma_c * big_M - matmul(small_m, c_conj_mat)
+  c_conj_mat = mat_symp_conj (ele_in%c_mat)
+  mat2 = ele_in%gamma_c * big_M - matmul(small_m, c_conj_mat)
   det = determinant(mat2)
 
   ! we demand that gamma_c > 0.3 (ie det > 0.1)
   ! try to make it so that there is no net mode flip here
 
-  if (det > 0.9 .or. (det > 0.1 .and. .not. ele1%mode_flip)) then
+  if (det > 0.9 .or. (det > 0.1 .and. .not. ele_in%mode_flip)) then
 
     gamma2_c = sqrt(det)
     mat2_a = mat2 / gamma2_c
-    mat2_b = (ele1%gamma_c * big_N + matmul(small_n, ele1%c_mat)) / gamma2_c
+    mat2_b = (ele_in%gamma_c * big_N + matmul(small_n, ele_in%c_mat)) / gamma2_c
     F_inv_mat = mat_symp_conj (mat2_b)
-    ele2%c_mat = matmul(matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m, F_inv_mat)
-    ele2%gamma_c = sqrt(1.0_rp - determinant(ele2%c_mat))
+    ele_out%c_mat = matmul(matmul(big_M, ele_in%c_mat) + ele_in%gamma_c * small_m, F_inv_mat)
+    ele_out%gamma_c = sqrt(1.0_rp - determinant(ele_out%c_mat))
 
   ! else we flip the modes
 
   else
-    mat2 = matmul(big_M, ele1%c_mat) + ele1%gamma_c * small_m
+    mat2 = matmul(big_M, ele_in%c_mat) + ele_in%gamma_c * small_m
     det = determinant(mat2)
     if (det < 0) then
       call out_io (s_error$, r_name,  '||mat2|| < 0! (Due to roundoff?) \f12.4\ ', &
-                                      'When propagating through: [\i0\]  ' // trim(ele2%name), &
-                                      r_array = [det], i_array = [ele2%ix_ele])
+                                      'When propagating through: [\i0\]  ' // trim(ele_out%name), &
+                                      r_array = [det], i_array = [ele_out%ix_ele])
     endif
 
     gamma2_c = sqrt(abs(det))
-    mat2_a = (ele1%gamma_c * small_n - matmul(big_N, c_conj_mat)) / gamma2_c
+    mat2_a = (ele_in%gamma_c * small_n - matmul(big_N, c_conj_mat)) / gamma2_c
     mat2_b = mat2 / gamma2_c
 
     E_inv_mat = mat_symp_conj (mat2_a)
-    ele2%c_mat = matmul(ele1%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
-    ele2%mode_flip = .not. ele1%mode_flip
-    ele2%gamma_c = sqrt(1.0_rp - determinant(ele2%c_mat))
+    ele_out%c_mat = matmul(ele_in%gamma_c * big_M - matmul(small_m, c_conj_mat), E_inv_mat)
+    ele_out%mode_flip = .not. ele_in%mode_flip
+    ele_out%gamma_c = sqrt(1.0_rp - determinant(ele_out%c_mat))
   endif
 
 endif
@@ -194,12 +213,12 @@ endif
 ! the lower right block of the U matrix (See Sagan & Rubin: Linear Analysis of Coupled Lattices).
 ! Another way of saying this: ele%a always represents the same physical mode.
 
-if (ele1%mode_flip) then
-  call twiss1_propagate (ele1%a, mat2_b, ele2%key, ele2%value(l$), ele2%a, error); if (error) return
-  call twiss1_propagate (ele1%b, mat2_a, ele2%key, ele2%value(l$), ele2%b, error); if (error) return
+if (ele_in%mode_flip) then
+  call twiss1_propagate (ele_in%a, mat2_b, ele2%key, ele_len, ele_out%a, error); if (error) return
+  call twiss1_propagate (ele_in%b, mat2_a, ele2%key, ele_len, ele_out%b, error); if (error) return
 else
-  call twiss1_propagate (ele1%a, mat2_a, ele2%key, ele2%value(l$), ele2%a, error); if (error) return
-  call twiss1_propagate (ele1%b, mat2_b, ele2%key, ele2%value(l$), ele2%b, error); if (error) return
+  call twiss1_propagate (ele_in%a, mat2_a, ele2%key, ele_len, ele_out%a, error); if (error) return
+  call twiss1_propagate (ele_in%b, mat2_b, ele2%key, ele_len, ele_out%b, error); if (error) return
 endif
 
 ! Comming out of a flipped state, the phase is often off by a factor of twopi from what one would expect.
@@ -207,14 +226,14 @@ endif
 ! Unfortunately there is no definitive way to calcuate what the "right" way to handle this is.
 ! Subtracting off a factor of twopi is a bit of a kludge but it is better than nothing. 
 
-if (ele1%mode_flip .and. .not. ele2%mode_flip) then
-  ele2%a%phi = ele2%a%phi - twopi
-  ele2%b%phi = ele2%b%phi - twopi
+if (ele_in%mode_flip .and. .not. ele_out%mode_flip) then
+  ele_out%a%phi = ele_out%a%phi - twopi
+  ele_out%b%phi = ele_out%b%phi - twopi
 endif
 
 !----------------------------------------------------
 ! Dispersion calc.
-! p_z2 is p_z at end of ele2 assuming p_z = 1 at end of ele1.
+! p_z2 is p_z at end of ele_out assuming p_z = 1 at end of ele_in.
 ! This is just 1.0 (except for RF cavities).
 
 ! For a circular ring, defining the dependence of z on pz is problematical.
@@ -222,7 +241,7 @@ endif
 ! With the RF on, dz/dpz, along with the other dispersion components, is not well defined.
 ! This being the case, eta1_vec(5) is just treated as zero for a closed branch
 
-eta1_vec = [ele1%x%eta, ele1%x%etap, ele1%y%eta, ele1%y%etap, ele1%z%eta, 1.0_rp]
+eta1_vec = [ele_in%x%eta, ele_in%x%etap, ele_in%y%eta, ele_in%y%etap, ele_in%z%eta, 1.0_rp]
 if (geometry == closed$) eta1_vec(5) = 0
 
 ! Must avoid 0/0 divide at zero reference momentum. 
@@ -232,7 +251,7 @@ if (geometry == closed$) eta1_vec(5) = 0
 ! mat6(6,:) terms should be all zero. However Bmad is not using proper canonical coords so the
 ! mat6(6,:) terms are forced to zero.
 
-if (rel_p1 == 0 .or. key2 == rfcavity$ .or. key2 == lcavity$ .or. ele1%value(p0c$) /= ele2%value(p0c$)) then
+if (rel_p1 == 0 .or. key2 == rfcavity$ .or. key2 == lcavity$ .or. ele_in%value(p0c$) /= ele_out%value(p0c$)) then
   dpz2_dpz1 = dot_product(mat6(6,:), eta1_vec)
 else
   dpz2_dpz1 = rel_p1 / rel_p2
@@ -240,24 +259,24 @@ endif
 
 eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
 
-ele2%x%eta     = eta_vec(1)
-ele2%x%etap    = eta_vec(2)
-ele2%x%deta_ds = eta_vec(2) / rel_p2 - orb_out%vec(2) / rel_p2**2
+ele_out%x%eta     = eta_vec(1)
+ele_out%x%etap    = eta_vec(2)
+ele_out%x%deta_ds = eta_vec(2) / rel_p2 - orb_out%vec(2) / rel_p2**2
 
-ele2%y%eta     = eta_vec(3)
-ele2%y%etap    = eta_vec(4)
-ele2%y%deta_ds = eta_vec(4) / rel_p2 - orb_out%vec(4) / rel_p2**2
+ele_out%y%eta     = eta_vec(3)
+ele_out%y%etap    = eta_vec(4)
+ele_out%y%deta_ds = eta_vec(4) / rel_p2 - orb_out%vec(4) / rel_p2**2
 
 if (geometry == closed$) then
-  ele2%z%eta     = 0
+  ele_out%z%eta     = 0
 else
-  ele2%z%eta     = eta_vec(5)
+  ele_out%z%eta     = eta_vec(5)
 endif
 
-ele2%z%etap    = 1
-ele2%z%deta_ds = 1
+ele_out%z%etap    = 1
+ele_out%z%deta_ds = 1
 
-call normal_mode_dispersion(ele2)
+call normal_mode_dispersion(ele_out)
 
 !
 
