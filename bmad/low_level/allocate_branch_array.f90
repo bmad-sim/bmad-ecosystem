@@ -80,6 +80,7 @@ lat%b              => lat%branch(0)%b
 lat%z              => lat%branch(0)%z
 lat%n_ele_track    => lat%branch(0)%n_ele_track
 lat%n_ele_max      => lat%branch(0)%n_ele_max
+lat%particle_start => lat%branch(0)%particle_start
 
 end subroutine allocate_branch_array
 
