@@ -13,7 +13,7 @@
 
 subroutine tao_fixer (word1, word2)
 
-use tao_interface
+use tao_interface, dummy => tao_fixer
 
 implicit none
 
