@@ -36,7 +36,7 @@ use parser_set_attribute_mod, dummy1 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
 use photon_target_mod, dummy4 => bmad_parser
 use ptc_interface_mod, only: set_ptc_com_pointers
-use fixer_mod
+use fixer_mod, only:set_fixer, set_active_fixer
 use random_mod
 
 implicit none
