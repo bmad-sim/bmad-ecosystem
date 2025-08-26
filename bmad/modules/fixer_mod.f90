@@ -36,7 +36,7 @@ type (branch_struct), pointer :: branch
 
 integer ie
 logical, optional :: is_on
-logical on
+logical on, is_ok
 character(*), parameter :: r_name = 'set_active_fixer'
 
 
@@ -66,6 +66,8 @@ else
   branch%ix_fixer = 0
 endif
 
+is_ok = set_fixer(branch%ele(branch%ix_fixer), .true.)
+
 end subroutine set_active_fixer
 
 !----------------------------------------------------------------------------------------------------
@@ -73,10 +75,10 @@ end subroutine set_active_fixer
 !----------------------------------------------------------------------------------------------------
 
 !+
-! Function fix(branch, to_active, who) result (is_ok)
+! Function set_fixer(fixer, to_active, who) result (is_ok)
 !
 ! Input:
-!   branch      -- branch_struct
+!   fixer       -- ele_struct: Fixer element to set.
 !   to_active   -- logical: If True, set active Twiss from stored. If False, set stored Twiss from active.
 !   who         -- logical, optional: Who to set. Possibilities are:
 !                   'all', ' ' (default and same as 'all'),
@@ -88,25 +90,23 @@ end subroutine set_active_fixer
 !   is_ok       -- logical
 !-
 
-function fix(branch, to_active, who) result (is_ok)
+function set_fixer(fixer, to_active, who) result (is_ok)
 
-type (branch_struct), target :: branch
-type (ele_struct), pointer :: fixer
+type (ele_struct), target :: fixer
+type (branch_struct), pointer :: branch
 
 logical to_active, is_ok
 character(*), optional :: who
 character(40) whom
-character(*), parameter :: r_name = 'fix'
+character(*), parameter :: r_name = 'set_fixer'
 
 !
 
 whom = ''
 if (present(who)) whom = who
 is_ok = .true.
-fixer => branch%ele(branch%ix_fixer)
+branch => fixer%branch
 call fix_this(branch, fixer, to_active, is_ok, whom)
-
-
 
 !----------------------------------------------------------------------------------------------------
 contains
@@ -130,7 +130,7 @@ case ('twiss')
   call fix_this(branch, fixer, to_active, is_ok, 'b_twiss')
   call fix_this(branch, fixer, to_active, is_ok, 'x_dispersion')
   call fix_this(branch, fixer, to_active, is_ok, 'y_dispersion')
-  call fix_this(branch, fixer, to_active, is_ok, 'c_mat')
+  call fix_this(branch, fixer, to_active, is_ok, 'cmat')
   call fix_this(branch, fixer, to_active, is_ok, 'dispersion')
 
 case ('a_twiss')
@@ -303,6 +303,6 @@ endif
 
 end subroutine fix_this1
 
-end function fix
+end function set_fixer
 
 end module

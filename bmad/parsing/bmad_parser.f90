@@ -36,7 +36,7 @@ use parser_set_attribute_mod, dummy1 => bmad_parser
 use wall3d_mod, dummy3 => bmad_parser
 use photon_target_mod, dummy4 => bmad_parser
 use ptc_interface_mod, only: set_ptc_com_pointers
-use fixer_mod, only: set_active_fixer
+use fixer_mod
 use random_mod
 
 implicit none
@@ -81,7 +81,7 @@ character(280) parse_line_save, line, use_line_str
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, wild_here
 logical end_of_file, ele_found, match_found, err, finished, exit_on_error
-logical multipass, heterogeneous_ele_list
+logical multipass, heterogeneous_ele_list, is_ok
 logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
 
 ! See if digested file is open and current. If so read in and return.
@@ -1164,6 +1164,7 @@ endif
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
+  is_ok = set_fixer(branch%ele(0), .false.)
   ix_ele_fix = 0
   ix_set = 0
   do i = 0, branch%n_ele_max

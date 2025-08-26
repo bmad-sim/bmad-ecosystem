@@ -1631,9 +1631,10 @@ character(42), parameter :: att_name(118) = [character(42):: 'X_PITCH', 'Y_PITCH
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
                 'F_FACTOR', 'EXACT_MULTIPOLES', 'CROSSING_TIME', 'SPIN_TRACKING_MODEL', 'VOLTAGE_ERR', &
                 'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX', 'PC_STRONG', &
-                'BETA_A_SET', 'ALPHA_A_SET', 'ETA_X_SET', 'ETAP_X_SET', 'PHI_A_SET', 'CMAT_11_SET', 'CMAT_21_SET', &
-                'DBETA_DPZ_A_SET', 'DALPHA_DPZ_A_SET', 'DETA_DPZ_X_SET', 'DETAP_DPZ_X_SET', &
-                'X_SET', 'Y_SET', 'Z_SET', 'PHI_A_SET']
+                'BETA_A_STORED', 'ALPHA_A_STORED', 'ETA_X_STORED', 'ETAP_X_STORED', 'PHI_A_STORED', &
+                'CMAT_11_STORED', 'CMAT_21_STORED', &
+                'DBETA_DPZ_A_STORED', 'DALPHA_DPZ_A_STORED', 'DETA_DPZ_X_STORED', 'DETAP_DPZ_X_STORED', &
+                'X_STORED', 'Y_STORED', 'Z_STORED', 'PHI_A_STORED']
 
 character(42), parameter :: att2_name(118) = [character(42):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
@@ -1651,9 +1652,10 @@ character(42), parameter :: att2_name(118) = [character(42):: 'X_PITCH_TOT', 'Y_
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
                 'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', 'GRADIENT_ERR', &
                 'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX', 'E_TOT_STRONG', &
-                'BETA_B_SET', 'ALPHA_B_SET', 'ETA_Y_SET', 'ETAP_Y_SET', 'PHI_N_SET', 'CMAT_12_SET', 'CMAT_22_SET', &
-                'DBETA_DPZ_B_SET', 'DALPHA_DPZ_B_SET', 'DETA_DPZ_Y_SET', 'DETAP_DPZ_Y_SET', &
-                'PX_SET', 'PY_SET', 'PZ_SET', 'PHI_B_SET']
+                'BETA_B_STORED', 'ALPHA_B_STORED', 'ETA_Y_STORED', 'ETAP_Y_STORED', 'PHI_N_STORED', &
+                'CMAT_12_STORED', 'CMAT_22_STORED', &
+                'DBETA_DPZ_B_STORED', 'DALPHA_DPZ_B_STORED', 'DETA_DPZ_Y_STORED', 'DETAP_DPZ_Y_STORED', &
+                'PX_STORED', 'PY_STORED', 'PZ_STORED', 'PHI_B_STORED']
 
 ! Exceptional cases
 
