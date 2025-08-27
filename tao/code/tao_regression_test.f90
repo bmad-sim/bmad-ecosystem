@@ -28,8 +28,8 @@ character(60) :: expr(10) = [character(60):: &
                   '100*var::*[*]|model*10', &
                   'mass_of(#3He+2) / charge_of(Si++)', &
                   'bbb*charge_of(aaa)', &
-                  '1', &
-                  '1', &
+                  'max([1,2,3]) + min(4,2,3)', &
+                  'atan2(1,2)', &
                   '1' &
                 ]
 

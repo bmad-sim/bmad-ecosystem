@@ -414,20 +414,24 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
 
-  nl=incr(nl); write (li(nl), iamt) 'ellipse_n_ellipse;INT_ARR;T',             (';', beam_init%ellipse(k)%n_ellipse, k = 1, 3)
-  nl=incr(nl); write (li(nl), iamt) 'ellipse_part_per_ellipse;INT_ARR;T',      (';', beam_init%ellipse(k)%part_per_ellipse, k = 1, 3)
-  nl=incr(nl); write (li(nl), ramt) 'ellipse_sigma_cutoff;REAL_ARR;T',         (';', beam_init%ellipse(k)%sigma_cutoff, k = 1, 3)
+  do k = 1, 3
+    nl=incr(nl); write (li(nl), imt)  'ellipse(', k, ')%n_ellipse;INT;T;',           beam_init%ellipse(k)%n_ellipse
+    nl=incr(nl); write (li(nl), imt)  'ellipse(', k, ')%part_per_ellipse;INT;T;',    beam_init%ellipse(k)%part_per_ellipse
+    nl=incr(nl); write (li(nl), vamt) 'ellipse(', k, ')%sigma_cutoff;REAL;T;',       re_str(beam_init%ellipse(k)%sigma_cutoff, 10)
+  enddo
   
-  nl=incr(nl); write (li(nl), iamt) 'kv_part_per_phi;INT_ARR;T',               (';', beam_init%kv%part_per_phi(k), k = 1, 2)
-  nl=incr(nl); write (li(nl), imt) 'kv_n_I2;INT;T;',                           beam_init%kv%n_i2
-  nl=incr(nl); write (li(nl), rmt) 'kv_A;REAL;T;',                             beam_init%kv%A
+  nl=incr(nl); write (li(nl), iamt) 'kv%part_per_phi;INT_ARR;T',               (';', beam_init%kv%part_per_phi(k), k = 1, 2)
+  nl=incr(nl); write (li(nl), imt)  'kv%n_I2;INT;T;',                          beam_init%kv%n_i2
+  nl=incr(nl); write (li(nl), amt)  'kv%A;REAL;T;',                            re_str(beam_init%kv%A, 10)
 
-  nl=incr(nl); write (li(nl), iamt) 'grid_n_x;INT_ARR;T',                      (';', beam_init%grid(k)%n_x, k = 1, 3)
-  nl=incr(nl); write (li(nl), iamt) 'grid_n_px;INT_ARR;T',                     (';', beam_init%grid(k)%n_px, k = 1, 3)
-  nl=incr(nl); write (li(nl), ramt) 'grid_x_min;REAL_ARR;T',                   (';', beam_init%grid(k)%x_min, k = 1, 3)
-  nl=incr(nl); write (li(nl), ramt) 'grid_x_max;REAL_ARR;T',                   (';', beam_init%grid(k)%x_max, k = 1, 3)
-  nl=incr(nl); write (li(nl), ramt) 'grid_px_min;REAL_ARR;T',                  (';', beam_init%grid(k)%px_min, k = 1, 3)
-  nl=incr(nl); write (li(nl), ramt) 'grid_px_max;REAL_ARR;T',                  (';', beam_init%grid(k)%px_max, k = 1, 3)
+  do k = 1, 3
+    nl=incr(nl); write (li(nl), imt)  'grid(', k, ')%n_x;INT;T;',              beam_init%grid(k)%n_x
+    nl=incr(nl); write (li(nl), imt)  'grid(', k, ')%n_px;INT;T;',             beam_init%grid(k)%n_px
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%x_min;REAL;T;',           re_str(beam_init%grid(k)%x_min, 10)
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%x_max;REAL;T;',           re_str(beam_init%grid(k)%x_max, 10)
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%px_min;REAL;T;',          re_str(beam_init%grid(k)%px_min, 10)
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%px_max;REAL;T;',          re_str(beam_init%grid(k)%px_max, 10)
+  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------

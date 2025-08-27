@@ -413,7 +413,12 @@ subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, bla
   logical, optional :: print_flag, blank_means_all, only_visible
   logical err
 end subroutine
- 
+
+subroutine tao_fixer (word1, word2)
+  implicit none
+  character(*) word1, word2
+end subroutine
+
 subroutine tao_floor_to_screen (graph, r_floor, x_screen, y_screen)
   import
   implicit none

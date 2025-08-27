@@ -33,6 +33,7 @@ type (tao_eval_node_struct) stk2(20)
 type (tao_expression_info_struct), allocatable, optional :: info_in(:)
 type (tao_expression_info_struct), allocatable :: info_loc(:), info2(:)
 
+real(rp) val
 real(rp), allocatable :: value(:), val2(:)
 
 integer n_size_in, n_size, id_species
@@ -101,7 +102,32 @@ do i = 1, nn
   !
 
   select case (node1%type)
-  case (square_brackets$, func_parens$)
+  case (func_parens$)
+    ! Can be something like "max([1,2,3])" or "max(1,2,3)"
+    nj = size(node1%node)
+
+    if (nj == 1) then
+      call tao_evaluate_tree (node1, 0, use_good_user, val2, err, print_err, expression, info2)
+      if (err) return
+      nj = size(val2)    
+      call re_allocate(node1%value, nj)
+      call tao_re_allocate_expression_info(node1%info, nj)
+      node1%value = val2
+      node1%info = info2
+
+    else
+      call re_allocate(node1%value, nj)
+      call tao_re_allocate_expression_info(node1%info, nj)
+
+      do j = 1, nj
+        call tao_evaluate_tree (node1%node(j), 1, use_good_user, val2, err, print_err, expression, info2)
+        if (err) return
+        node1%value(j) = val2(1)
+        node1%info(j) = info2(1)
+      enddo
+    endif
+
+  case (square_brackets$)
     nj = size(node1%node)
     call re_allocate(node1%value, nj)
     call tao_re_allocate_expression_info(node1%info, nj)
@@ -262,10 +288,14 @@ do i = 1, nn
     case ('asin');      stk2(i2)%value = asin(stk2(i2)%value)
     case ('acos');      stk2(i2)%value = acos(stk2(i2)%value)
     case ('atan');      stk2(i2)%value = atan(stk2(i2)%value)
-    case ('atan2');     stk2(i2-1)%value = atan2(stk2(i2)%value(1), stk2(i2)%value(2))
-      i2 = i2 - 1
-    case ('modulo');    stk2(i2-1)%value = modulo(stk2(i2)%value(1), stk2(i2)%value(2))
-      i2 = i2 - 1
+    case ('atan2')
+      val = atan2(stk2(i2)%value(1), stk2(i2)%value(2))
+      call re_allocate(stk2(i2)%value, 1)
+      stk2(i2)%value = val
+    case ('modulo')
+      val = modulo(stk2(i2)%value(1), stk2(i2)%value(2))
+      call re_allocate(stk2(i2)%value, 1)
+      stk2(i2)%value = val
     case ('sinh');      stk2(i2)%value = sinh(stk2(i2)%value)
     case ('cosh');      stk2(i2)%value = cosh(stk2(i2)%value)
     case ('tanh');      stk2(i2)%value = tanh(stk2(i2)%value)
