@@ -1991,6 +1991,7 @@ if (curve%draw_line) then
     if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
     if (substr(curve%data_type,1,7) == 'spin_dn') smooth_curve = .false.
     if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
+    if (substr(curve%data_type,1,11) == 'expression:') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
 
     if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
