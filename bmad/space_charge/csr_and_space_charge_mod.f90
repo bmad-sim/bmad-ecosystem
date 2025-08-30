@@ -251,7 +251,7 @@ do i = 0, n
   theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi/2)
   theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi/2)
   eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
-  if (eleinfo%L_chord == 0) then
+  if (abs(eleinfo%L_chord) < 1d-8) then   ! 1d-8 is rather arbitrary.
     eleinfo%spline = spline_struct()
     eleinfo%dL_s = 0
     cycle

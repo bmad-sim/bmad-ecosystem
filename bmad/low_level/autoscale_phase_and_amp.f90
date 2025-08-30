@@ -159,7 +159,11 @@ sign_of_dE = sign_of(dE_peak_wanted)
 
 if (do_scale_amp) then
   dE_cut = 10 ! eV
-  if (abs(dE_peak_wanted) < dE_cut) return
+  if (abs(dE_peak_wanted) < dE_cut) then
+    call out_io (s_warn$, r_name, 'No autoscaling will be performed for: ' // ele_full_name(ele) // &
+                          ' since the voltage is below ' // real_str(dE_cut, n_decimal = 1) // ' eV.')
+    return
+  endif
   scale_tol = max(bmad_com%autoscale_amp_rel_tol, bmad_com%autoscale_amp_abs_tol / abs(dE_peak_wanted))
 else
   if (dE_peak_wanted == 0) sign_of_dE = 1    ! Assume want accelerating.
