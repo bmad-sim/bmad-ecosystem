@@ -707,7 +707,7 @@ type tao_global_struct
   logical :: symbol_import = .false.                  ! Import symbols from lattice file(s)?
   ! Internal stuff
   logical :: debug_on = .false.                       ! For debugging.
-  logical :: expression_tree_on = .false.             ! Use an expression tree instead of a stack?
+  logical :: expression_tree_on = .true.              ! Use an expression tree instead of a stack?
   logical :: verbose_on = .false.                     ! For verbose output. Used with debugging.
 end type
 

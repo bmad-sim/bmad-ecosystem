@@ -213,7 +213,7 @@ do
     s%init%symbol_import_arg = present_str
 
   case ('-tree')
-    s%global%expression_tree_on = .true.
+    s%global%expression_tree_on = (.not. s%global%expression_tree_on)
 
   case ('-var_file')
     call get_next_arg (arg0, s%init%var_file_arg, i_arg, n_arg)
