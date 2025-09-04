@@ -41,7 +41,7 @@ if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
   return
 endif
 
-call tao_next_switch (switch, ['-activate', '-on', '-save'], .false., action, err);  if (err) return
+call tao_next_switch (switch, [character(20):: '-activate', '-on', '-save'], .false., action, err);  if (err) return
 
 select case (action)
 case ('-activate', '-on')
