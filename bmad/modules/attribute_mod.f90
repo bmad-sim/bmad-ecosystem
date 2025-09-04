@@ -946,6 +946,9 @@ call init_attribute_name1 (def_line$, default_tracking_species$,    'DEFAULT_TRA
 call init_attribute_name1 (def_line$, ix_branch$,                   'ix_branch', private$)
 call init_attribute_name1 (def_line$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
 
+call init_attribute_name1 (beginning_ele$, spin_x_stored$,                  'SPIN_X_STORED')
+call init_attribute_name1 (beginning_ele$, spin_y_stored$,                  'SPIN_Y_STORED')
+call init_attribute_name1 (beginning_ele$, spin_z_stored$,                  'SPIN_Z_STORED')
 call init_attribute_name1 (beginning_ele$, x_stored$,                       'X_STORED')
 call init_attribute_name1 (beginning_ele$, px_stored$,                      'PX_STORED')
 call init_attribute_name1 (beginning_ele$, y_stored$,                       'Y_STORED')
@@ -976,6 +979,9 @@ call init_attribute_name1 (beginning_ele$, cmat_21_stored$,                 'CMA
 call init_attribute_name1 (beginning_ele$, cmat_22_stored$,                 'CMAT_22_STORED')
 call init_attribute_name1 (beginning_ele$, mode_flip_stored$,               'MODE_FLIP_STORED')
 
+call init_attribute_name1 (fixer$, spin_x_stored$,                      'SPIN_X_STORED')
+call init_attribute_name1 (fixer$, spin_y_stored$,                      'SPIN_Y_STORED')
+call init_attribute_name1 (fixer$, spin_z_stored$,                      'SPIN_Z_STORED')
 call init_attribute_name1 (fixer$, x_stored$,                           'X_STORED')
 call init_attribute_name1 (fixer$, px_stored$,                          'PX_STORED')
 call init_attribute_name1 (fixer$, y_stored$,                           'Y_STORED')
@@ -2108,7 +2114,7 @@ case ('ALPHA_A', 'ALPHA_A0', 'ALPHA_A1', 'ALPHA_ANGLE', 'ALPHA_B', 'ALPHA_B0', '
       'PX_APERTURE_WIDTH2', 'PX_APERTURE_CENTER', 'PY_APERTURE_WIDTH2', 'PY_APERTURE_CENTER', 'PZ_APERTURE_WIDTH2', &
       'ALPHA_A_STORED', 'ALPHA_B_STORED', 'DALPHA_DPZ_A_STORED', 'DALPHA_DPZ_B_STORED', 'DETAP_DPZ_X_STORED', 'DETAP_DPZ_Y_STORED', &
       'ETAP_X_STORED', 'ETAP_Y_STORED', 'PHI_A_STORED', 'PHI_B_STORED', 'CMAT_11_STORED', 'CMAT_22_STORED', &
-      'PX_STORED', 'PY_STORED', 'PZ_STORED')
+      'PX_STORED', 'PY_STORED', 'PZ_STORED', 'SPIN_X_STORED', 'SPIN_Y_STORED', 'SPIN_Z_STORED')
   attrib_units = ''
 
 case ('SIG_VX', 'SIG_VY')

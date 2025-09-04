@@ -1,5 +1,5 @@
 !+                       
-! Subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
+! Subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0, init_lost)
 !
 ! Subroutine to track through the lat.
 !
@@ -8,21 +8,23 @@
 !
 ! Input:
 !   lat         -- lat_struct: Lat to track through.
-!   orbit(0:)   -- Coord_struct, allocatable: orbit(0) is the starting coordinates for tracking.
+!   orbit(0:)   -- coord_struct, allocatable: orbit(0) is the starting coordinates for tracking.
 !                   If not allocated, the zero orbit will be used.
-!   ix_branch   -- Integer, optional: Index of branch to track. Default is 0 (main branch).
+!   ix_branch   -- integer, optional: Index of branch to track. Default is 0 (main branch).
+!   init_lost   -- logical, option: Default if False. If True, initialize orbit(N) terms that
+!                    are not tracked through due to particle loss.
 !
 ! Output:
-!   orbit(0:)    -- Coord_struct, allocatable: Orbit array.
-!   track_state  -- Integer, optional: Set to moving_forward$ if everything is OK.
+!   orbit(0:)    -- coord_struct, allocatable: Orbit array.
+!   track_state  -- integer, optional: Set to moving_forward$ if everything is OK.
 !                     Otherwise: set to index of element where particle was lost.
-!   err_flag     -- Logical, optional: Set true if particle lost or error. False otherwise
-!   orbit0(0:)   -- Coord_struct, allocatable, optional: Orbit array for branch 0. Used to fill 
+!   err_flag     -- logical, optional: Set true if particle lost or error. False otherwise
+!   orbit0(0:)   -- coord_struct, allocatable, optional: Orbit array for branch 0. Used to fill 
 !                     in the orbit at lord elemenets. 
 !                     Only needed when orbit(:) is not the orbit for branch 0.
 !-
 
-subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
+subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0, init_lost)
 
 use bmad_interface, except_dummy => track_all
 
@@ -39,7 +41,7 @@ type (ele_struct), pointer :: ele
 integer n, i, nn, ix_br, ix_fix
 integer, optional :: ix_branch, track_state
 
-logical, optional :: err_flag
+logical, optional :: err_flag, init_lost
 logical err
 logical :: debug = .false.
 
@@ -84,6 +86,7 @@ do n = ix_fix+1, branch%n_ele_track
     call set_orbit_to_zero (orbit, n+1, branch%n_ele_track)
     if (orbit(n)%location == upstream_end$) orbit(n)%vec = 0 ! But do not reset orbit(n)%state
     if (present(err_flag)) err_flag = .true.
+    if (logic_option(.false., init_lost)) orbit(n+1:branch%n_ele_track) = coord_struct()
     exit
   endif
 
@@ -105,11 +108,12 @@ if (ix_fix > 0) then
 
     ! check for lost particles
 
-    if (err .or. .not. particle_is_moving_forward(orbit(n-1))) then
+    if (err .or. .not. particle_is_moving_forward(orbit(n-1), -1)) then
       if (present(track_state)) track_state = n-1
       call set_orbit_to_zero (orbit, 0, n-1)
       if (orbit(n-1)%location == downstream_end$) orbit(n-1)%vec = 0 ! But do not reset orbit(n-1)%state
       if (present(err_flag)) err_flag = .true.
+      if (logic_option(.false., init_lost)) orbit(0:n-2) = coord_struct()
       exit
     endif
 

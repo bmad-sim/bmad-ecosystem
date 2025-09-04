@@ -50,18 +50,19 @@ possible
 \centering {\tt
 \begin{tabular}{ll|ll} \toprule
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
-  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
-  call          & \sref{s:call}     & read          & \sref{s:read}     \\
-  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
-  clear         & \sref{s:clear}    & restore       & \sref{s:restore}  \\ 
-  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
-  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
-  create        & \sref{s:create}   & set           & \sref{s:set}      \\  
-  cut_ring      & \sref{s:cut.ring} & show          & \sref{s:show}     \\ 
-  derivative    & \sref{s:deriv}    & single_mode   & \sref{s:sing}     \\ 
-  do, enddo     & \sref{s:do}       & spawn         & \sref{s:spawn}    \\ 
-  end_file      & \sref{s:end.file} & taper         & \sref{s:taper}    \\
-  exit          & \sref{s:exit}     & timer         & \sref{s:timer}    \\
+  alias         & \sref{s:alias}    &   quit          & \sref{s:quit}   \\
+  call          & \sref{s:call}     & re_execute    & \sref{s:re.exe}   \\
+  change        & \sref{s:change}   & read          & \sref{s:read}     \\
+  clear         & \sref{s:clear}    & reinitialize  & \sref{s:reinit}   \\ 
+  clip          & \sref{s:clip}     & restore       & \sref{s:restore}  \\ 
+  continue      & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ 
+  create        & \sref{s:create}   & scale         & \sref{s:scale}    \\ 
+  cut_ring      & \sref{s:cut.ring} & set           & \sref{s:set}      \\  
+  derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ 
+  do, enddo     & \sref{s:do}       & single_mode   & \sref{s:sing}     \\ 
+  end_file      & \sref{s:end.file} & spawn         & \sref{s:spawn}    \\ 
+  exit          & \sref{s:exit}     & taper         & \sref{s:taper}    \\
+  fixer         & \sref{s:fixer}    & timer         & \sref{s:timer}    \\
   flatten       & \sref{s:flatten}  & use           & \sref{s:use}      \\ 
   help          & \sref{s:help}     & veto          & \sref{s:veto}     \\ 
   ls            & \sref{s:ls}       & view          & \sref{s:view}     \\
@@ -70,7 +71,6 @@ possible
   place         & \sref{s:place}    & x_axis        & \sref{s:x.axis}   \\ 
   ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
   python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\ 
-  quit          & \sref{s:quit}     &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -459,6 +459,68 @@ The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matr
 \begin{example}
   derivative
 \end{example}
+
+%% fixer --------------------------------------------------------------
+\section{fixer}\index{commands!fixer}
+\label{s:fixer}
+
+<b>NOTE: The fixer element is in construction and is not yet usable.</b>
+
+The \vn{Fixer} command can be used to set the active fixer and can be used to transfer fixer parameters
+from the from the actual to the stored.
+Format:
+\begin{example}
+  fixer -activate <fixer>
+  fixer -transfer <fixer> <parameters> 
+\end{example}
+
+The basic stored parameters are:
+\begin{example}
+  spin_x_stored, spin_y_stored, spin_z_stored     ! Particle spin
+
+  x_stored, px_stored
+  y_stored, py_stored                             ! Particle phase space coordinates
+  z_stored, pz_stored
+
+  beta_a_stored, alpha_a_stored, phi_a_stored     ! a-mode Twiss
+  dbeta_dpz_a_stored, dalpha_dpz_a_stored
+
+  beta_b_stored, alpha_b_stored, phi_b_stored     ! b-mode Twiss
+  dbeta_dpz_b_stored, dalpha_dpz_b_stored
+
+  eta_x_stored, etap_x_stored                     ! Horizontal dispersion
+  deta_dpz_x_stored, detap_dpz_x_stored
+
+  eta_y_stored, etap_y_stored                     ! Vertical dispersion
+  deta_dpz_y_stored, detap_dpz_y_stored
+
+  mode_flip_stored                                ! Logical: Normal modes flipped? 
+  cmat_11_stored, cmat_12_stored                  ! Coupling
+  cmat_21_stored, cmat_22_stored
+\end{example}
+
+In addition, the following sets groups of stored values
+\begin{example}
+  all (or blank string)   ! All parameters
+  twiss                   ! A
+  a_twiss
+  b_twiss
+  dispersion
+  x_dispersion
+  y_dispersion
+  cmat
+  chromatic
+  spin
+  orbit
+  x_plane
+  y_plane
+  z_plane
+\end{example}
+
+The \vn{-activate} command activates (turns on) a given fixer element.
+
+The \vn{
+
 
 %% flatten --------------------------------------------------------------
 \section{flatten}\index{commands!flatten}

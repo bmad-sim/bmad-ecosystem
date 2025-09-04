@@ -1756,6 +1756,7 @@ integer, parameter :: e_photon$ = 9
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
+integer, parameter :: spin_x_stored$ = 55, spin_y_stored$ = 56, spin_z_stored$ = 57
 integer, parameter :: x_stored$ = 15, px_stored$ = 16, y_stored$ = 17, py_stored$ = 18, z_stored$ = 19, pz_stored$ = 20
 integer, parameter :: beta_a_stored$ = 21, alpha_a_stored$ = 22, beta_b_stored$ = 23, alpha_b_stored$ = 24
 integer, parameter :: phi_a_stored$ = 25, phi_b_stored$ = 26, mode_flip_stored$ = 27

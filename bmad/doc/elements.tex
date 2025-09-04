@@ -2111,14 +2111,66 @@ machine.
 \section{Fixer}
 \label{s:fixer}
 
+<b>This element is in construction and is not yet usable.</b>
+
 A \vn{fixer} element is used to set the particle orbit and/or the Twiss parameters at
 any point in an open geometry lattice branch. The orbit and/or Twiss parameter can then
 be propagated both forward and backwards.
 
-<b>This element is in construction and is not yet usable.</b>
+General \vn{floor_shift} element attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Reference energy           & \ref{s:energy}    &                            &                 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.floor.shift} for a full list of element attributes along with a their units.
 
-A \vn{fixer} element has zero length. For tracking particles, a \vn{fixer} element is like a \vn{marker}. That is, there is no change in phase space coordinates when a particle is tracked
+Attributes specific to a \vn{fixer} elements are:
+\begin{example}
+  spin_x_stored, spin_y_stored, spin_z_stored     ! Particle spin
+
+  x_stored, px_stored
+  y_stored, py_stored                             ! Particle phase space coordinates
+  z_stored, pz_stored
+
+  beta_a_stored, alpha_a_stored, phi_a_stored     ! a-mode Twiss
+  dbeta_dpz_a_stored, dalpha_dpz_a_stored
+
+  beta_b_stored, alpha_b_stored, phi_b_stored     ! b-mode Twiss
+  dbeta_dpz_b_stored, dalpha_dpz_b_stored
+
+  eta_x_stored, etap_x_stored                     ! Horizontal dispersion
+  deta_dpz_x_stored, detap_dpz_x_stored
+
+  eta_y_stored, etap_y_stored                     ! Vertical dispersion
+  deta_dpz_y_stored, detap_dpz_y_stored
+
+  mode_flip_stored                                ! Logical: Normal modes flipped? 
+  cmat_11_stored, cmat_12_stored                  ! Coupling
+  cmat_21_stored, cmat_22_stored
+\end{example}
+
+A \vn{fixer} element has zero length. For tracking particles, a \vn{fixer} element is like a
+\vn{marker}. That is, there is no change in phase space coordinates when a particle is tracked
 through a \vn{fixer} element.
+
+If the geometry of a branch is \vn{closed} (\sref{s:param}), \vn{fixer} elements have no effect.
+Thus, in the following discussion, it is assumed that the branch geometry is set to \vn{open}.
+Additionally, for this discussion, the term ``\vn{fixer}'' element will include \vn{beginning_ele}
+elements since \vn{beginning_ele} elements essentially act as a fixer element at the beginning
+of a branch.
+
+A fixer element is ``active'' if its \vn{is_on} parameter (\sref{s:is.on}) is True. One and only one
+fixer element in a branch can be active at a given time. The \bmad bookkeeping routines will ensure
+that this rule is enforced and turning on a given fixer will result in all others being turned off.
+Turning off the active fixer will result in the \vn{beginning_ele} being turned on.
+
 
 \newpage
 
