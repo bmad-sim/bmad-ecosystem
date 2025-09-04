@@ -436,9 +436,8 @@ case ('exit', 'quit')
 
 case ('fixer')
 
-  call tao_cmd_split (cmd_line, 2, cmd_word, .true., err_flag); if (err_flag) return
-  call tao_fixer(cmd_word(1), cmd_word(2))
-
+  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err_flag); if (err_flag) return
+  call tao_fixer(cmd_word(1), cmd_word(2), cmd_word(3))
 
 !--------------------------------
 ! HELP

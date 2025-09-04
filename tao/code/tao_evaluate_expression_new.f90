@@ -241,10 +241,11 @@ do in = 1, n_node
     exit
   case (square_brackets$)   ! "abc[...]" is a var or datum. "abc + [...]" is not.
     if (in == 1) cycle
-    if (is_alphabetic(tree%node(in-1)%name(1:1))) then
+    select case (tree%node(in-1)%name)
+    case ('+', '-', '*', '/', '^')
+    case default
       split_variable = .true.
-      exit
-    endif
+    end select
   end select
 enddo
 

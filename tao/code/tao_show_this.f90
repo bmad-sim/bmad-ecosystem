@@ -729,11 +729,11 @@ case ('branch')
     nl=nl+1; write(lines(nl), '(a, i0)') 'For the lattice of universe: ', ix_u
   endif
 
-  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live'  
-  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork'
+  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live                Active'
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork   Fixer'
 
 
-  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a)'
+  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a, t116, a)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     ele_name = ''
@@ -741,7 +741,7 @@ case ('branch')
 
     nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
               trim(species_name(branch%param%particle)), trim(species_name(branch%param%default_tracking_species)), &
-              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name
+              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name, branch%ele(branch%ix_fixer)%name
   enddo
 
   nl=nl+1; lines(nl) = ''
@@ -5862,10 +5862,11 @@ case ('universe')
     nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
     nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
   else
-    nl=nl+1; write(lines(nl), rmt) 'Starting reference energy:   ', branch%ele(0)%value(e_tot$)
-    nl=nl+1; write(lines(nl), rmt) 'Starting reference momentum: ', branch%ele(0)%value(p0c$)
-    nl=nl+1; write(lines(nl), rmt) 'Ending reference energy:     ', branch%ele(nt)%value(e_tot$)
-    nl=nl+1; write(lines(nl), rmt) 'Ending reference momentum:   ', branch%ele(nt)%value(p0c$)
+    nl=nl+1; write(lines(nl), rmt) 'Starting reference energy:     ', branch%ele(0)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Starting reference momentum:   ', branch%ele(0)%value(p0c$)
+    nl=nl+1; write(lines(nl), rmt) 'Ending reference energy:       ', branch%ele(nt)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Ending reference momentum:     ', branch%ele(nt)%value(p0c$)
+    nl=nl+1; write(lines(nl), amt) 'Twiss and orbit fixer element: ', ele_full_name(branch%ele(branch%ix_fixer))
   endif
 
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', bmad_com%absolute_time_tracking

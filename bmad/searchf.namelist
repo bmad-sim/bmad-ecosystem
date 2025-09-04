@@ -334,9 +334,6 @@ stream_ele_end
 File: code/tilt_coords.f90
 tilt_coords
 
-File: code/track_all.f90
-track_all
-
 File: code/set_twiss.f90
 set_twiss
 
@@ -427,6 +424,9 @@ start_branch_at
 
 File: code/twiss_at_element.f90
 twiss_at_element
+
+File: code/track_all.f90
+track_all
 
 File: code/init_custom.f90
 init_custom
@@ -1135,9 +1135,6 @@ unlink_fieldmap
 File: low_level/unlink_wall3d.f90
 unlink_wall3d
 
-File: low_level/track_a_lcavity_old.f90
-track_a_lcavity_old
-
 File: low_level/lcavity_rf_step_setup.f90
 lcavity_rf_step_setup
 
@@ -1156,6 +1153,13 @@ pointer_to_field_ele
 File: low_level/add_lattice_control_structs.f90
 add_lattice_control_structs
 
+File: low_level/set_flags_for_changed_attribute.f90
+set_flags_for_changed_all_attribute
+set_flags_for_changed_integer_attribute
+set_flags_for_changed_logical_attribute
+set_flags_for_changed_lat_attribute
+set_flags_for_changed_real_attribute
+
 File: low_level/ramper_value.f90
 ramper_value
 
@@ -1164,13 +1168,6 @@ bend_length_has_been_set
 
 File: low_level/tracking_rad_map_setup.f90
 tracking_rad_map_setup
-
-File: low_level/set_flags_for_changed_attribute.f90
-set_flags_for_changed_all_attribute
-set_flags_for_changed_integer_attribute
-set_flags_for_changed_logical_attribute
-set_flags_for_changed_lat_attribute
-set_flags_for_changed_real_attribute
 
 File: low_level/ele_reference_energy_correction.f90
 ele_reference_energy_correction
@@ -1200,6 +1197,9 @@ normal_mode_dispersion
 
 File: low_level/ele_rf_step_index.f90
 ele_rf_step_index
+
+File: low_level/track_a_lcavity_old.f90
+track_a_lcavity_old
 
 File: modules/bmad.f90
 bmad
@@ -1231,68 +1231,6 @@ split_this_lat
 delete_underscore
 adjust_super_slave_names
 adjust_drift_names
-
-File: modules/twiss_and_track_mod.f90
-twiss_and_track_mod
-twiss_and_track
-procedure
-procedure
-twiss_and_track_branch
-twiss_and_track_all
-twiss_and_track1
-twiss_and_track_at_s
-
-File: modules/attribute_mod.f90
-attribute_mod
-does_not_exist$
-is_free$
-quasi_free$
-dependent$
-private$
-overlay_slave$
-field_master_dependent$
-super_lord_align$
-ele_attribute_struct
-attribute_free
-procedure
-procedure
-procedure
-attribute_index
-procedure
-procedure
-attribute_name
-procedure
-procedure
-attribute_index1
-attribute_index2
-attribute_name1
-attribute_name2
-attribute_info
-init_attribute_name_array
-init_short_attrib_array
-init_attribute_name1
-has_orientation_attributes
-attribute_type
-attribute_units
-string_attrib
-switch_attrib_value_name
-n_attrib_string_max_len
-has_attribute
-custom_attribute_ubound_index
-set_custom_attribute_name
-custom_ele_attrib_name_list
-attribute_free1
-attribute_free2
-attribute_free3
-check_this_attribute_free
-field_attribute_free
-
-File: modules/radiation_mod.f90
-radiation_mod
-release_rad_int_cache
-track1_radiation
-radiation_map_setup
-track1_radiation_center
 
 File: modules/measurement_mod.f90
 measurement_mod
@@ -1342,6 +1280,22 @@ ab_multipole_kicks
 multipole_kick
 ab_multipole_kick
 
+File: modules/expression_mod.f90
+expression_mod
+expression_string_to_tree
+deallocate_expression_tree
+type_expression_tree
+expression_tree_to_string
+re_associate_node_array
+deallocate_tree
+expression_string_to_stack
+pushit
+expression_value
+expression_stack_value
+expression_stack_to_string
+split_expression_string
+linear_coef
+
 File: modules/bmad_interface.f90
 bmad_interface
 
@@ -1370,6 +1324,239 @@ particle_in_global_frame
 drift_orbit_time
 write_time_particle_distribution
 track_until_dead
+
+File: modules/fixer_mod.f90
+fixer_mod
+set_active_fixer
+set_fixer_params
+
+File: modules/radiation_mod.f90
+radiation_mod
+release_rad_int_cache
+track1_radiation
+radiation_map_setup
+track1_radiation_center
+
+File: modules/complex_taylor_mod.f90
+complex_taylor_mod
+complex_taylor_coef
+procedure
+procedure
+complex_taylor_clean
+complex_taylor_coef1
+complex_taylor_coef2
+type_complex_taylors
+complex_taylor_make_unit
+add_complex_taylor_term1
+add_complex_taylor_term2
+kill_complex_taylor
+sort_complex_taylor_terms
+complex_taylor_exponent_index
+complex_taylor_to_mat6
+mat6_to_complex_taylor
+track_complex_taylor
+truncate_complex_taylor_to_order
+
+File: modules/element_at_s_mod.f90
+element_at_s_mod
+element_at_s
+procedure
+procedure
+element_at_s_branch
+element_at_s_lat
+pointer_to_element_at_s
+
+File: modules/mode3_mod.f90
+mode3_mod
+m
+o
+l
+t6_to_b123
+normal_mode3_calc
+make_hvbp
+xyz_to_action
+action_to_xyz
+eigen_decomp_6mat
+mytan
+order_evecs_by_n_similarity
+order_evecs_by_plane_dominance
+order_evecs_by_tune
+make_n
+get_emit_from_sigma_mat
+beam_tilts
+make_smat_from_abc
+normalize_evecs
+project_emit_to_xyz
+twiss3_propagate_all
+twiss3_propagate1
+twiss3_from_twiss2
+twiss3_at_start
+
+File: modules/transfer_map_mod.f90
+transfer_map_mod
+transfer_map_from_s_to_s
+transfer_this_map
+mat6_from_s_to_s
+transfer_this_mat
+concat_transfer_mat
+
+File: modules/rad_int_common.f90
+rad_int_common
+no_cache$
+cache_no_misalign$
+rad_int_track_point_struct
+rad_int_cache1_struct
+rad_int_cache_struct
+rad_int_info_struct
+qromb_rad_int
+propagate_part_way
+calc_wiggler_g_params
+
+File: modules/attribute_mod.f90
+attribute_mod
+does_not_exist$
+is_free$
+quasi_free$
+dependent$
+private$
+overlay_slave$
+field_master_dependent$
+super_lord_align$
+ele_attribute_struct
+attribute_free
+procedure
+procedure
+procedure
+attribute_index
+procedure
+procedure
+attribute_name
+procedure
+procedure
+attribute_index1
+attribute_index2
+attribute_name1
+attribute_name2
+attribute_info
+init_attribute_name_array
+init_short_attrib_array
+init_attribute_name1
+has_orientation_attributes
+attribute_type
+attribute_units
+string_attrib
+switch_attrib_value_name
+n_attrib_string_max_len
+has_attribute
+custom_attribute_ubound_index
+set_custom_attribute_name
+custom_ele_attrib_name_list
+attribute_free1
+attribute_free2
+attribute_free3
+check_this_attribute_free
+field_attribute_free
+
+File: modules/wall3d_mod.f90
+wall3d_mod
+re_allocate
+procedure
+procedure
+re_allocate_wall3d_vertex_array
+re_allocate_wall3d_section_array
+wall3d_initializer
+wall3d_section_initializer
+calc_wall_radius
+wall3d_d_radius
+pointer_to_wall3d
+wall3d_to_position
+create_concatenated_wall3d
+mark_patch_regions
+
+File: modules/bmad_routine_interface.f90
+bmad_routine_interface
+assignment
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+procedure
+operator
+procedure
+operator
+procedure
+pointer_to_branch
+pointer_to_branch_given_name
+pointer_to_branch_given_ele
+pointer_to_ele
+procedure
+procedure
+procedure
+procedure
+reallocate_coord
+reallocate_coord_n
+reallocate_coord_lat
+reallocate_coord_array
+init_coord
+init_coord1
+init_coord2
+init_coord3
+set_flags_for_changed_attribute
+set_flags_for_changed_all_attribute
+set_flags_for_changed_integer_attribute
+set_flags_for_changed_logical_attribute
+set_flags_for_changed_lat_attribute
+set_flags_for_changed_real_attribute
+apply_element_edge_kick_hook_def
+check_aperture_limit_custom_def
+distance_to_aperture_custom_def
+ele_geometry_hook_def
+em_field_custom_def
+ele_to_fibre_hook_def
+lat_make_mat6_hook_def
+radiation_integrals_custom_def
+init_custom_def
+make_mat6_custom_def
+time_runge_kutta_periodic_kick_hook_def
+track1_bunch_hook_def
+track1_custom_def
+track_many_hook_def
+track1_postprocess_def
+track1_preprocess_def
+track1_spin_custom_def
+track1_wake_hook_def
+wall_hit_handler_custom_def
+pointer_to_ele1
+pointer_to_ele2
+pointer_to_ele3
+pointer_to_ele4
+map1_times_map1
+em_field_plus_em_field
+ele_equal_ele
+ele_equals_ele
+ele_vec_equal_ele_vec
+lat_equal_lat
+lat_vec_equal_lat_vec
+branch_equal_branch
+coord_equal_coord
+taylor_equal_taylor
+taylors_equal_taylors
+em_taylor_equal_em_taylor
+em_taylors_equal_em_taylors
+init_em_taylor_series
+complex_taylor_equal_complex_taylor
+complex_taylors_equal_complex_taylors
+init_complex_taylor_series
+bunch_equal_bunch
+beam_equal_beam
 
 File: modules/bmad_struct.f90
 bmad_struct
@@ -1896,35 +2083,38 @@ hgap$
 hgapx$
 h1$
 h2$
-x_set$
-px_set$
-y_set$
-py_set$
-z_set$
-pz_set$
-beta_a_set$
-alpha_a_set$
-beta_b_set$
-alpha_b_set$
-phi_a_set$
-phi_b_set$
-mode_flip_set$
-eta_x_set$
-etap_x_set$
-eta_y_set$
-etap_y_set$
-cmat_11_set$
-cmat_12_set$
-cmat_21_set$
-cmat_22_set$
-dbeta_dpz_a_set$
-dbeta_dpz_b_set$
-dalpha_dpz_a_set$
-dalpha_dpz_b_set$
-deta_dpz_x_set$
-deta_dpz_y_set$
-detap_dpz_x_set$
-detap_dpz_y_set$
+spin_x_stored$
+spin_y_stored$
+spin_z_stored$
+x_stored$
+px_stored$
+y_stored$
+py_stored$
+z_stored$
+pz_stored$
+beta_a_stored$
+alpha_a_stored$
+beta_b_stored$
+alpha_b_stored$
+phi_a_stored$
+phi_b_stored$
+mode_flip_stored$
+eta_x_stored$
+etap_x_stored$
+eta_y_stored$
+etap_y_stored$
+cmat_11_stored$
+cmat_12_stored$
+cmat_21_stored$
+cmat_22_stored$
+dbeta_dpz_a_stored$
+dbeta_dpz_b_stored$
+dalpha_dpz_a_stored$
+dalpha_dpz_b_stored$
+deta_dpz_x_stored$
+deta_dpz_y_stored$
+detap_dpz_x_stored$
+detap_dpz_y_stored$
 radius$
 focal_strength$
 l$
@@ -1951,6 +2141,7 @@ critical_angle_factor$
 tilt_corr$
 ref_coords$
 dt_max$
+ix_fixer$
 graze_angle$
 k2$
 b_max$
@@ -2517,6 +2708,8 @@ colon$
 double_colon$
 compound$
 function$
+vertical_bar$
+blank$
 expression_op_name
 expression_eval_level
 next_in_branch
@@ -2524,199 +2717,6 @@ coord_state_name
 is_attribute
 pointer_to_slave
 ele_finalizer
-
-File: modules/complex_taylor_mod.f90
-complex_taylor_mod
-complex_taylor_coef
-procedure
-procedure
-complex_taylor_clean
-complex_taylor_coef1
-complex_taylor_coef2
-type_complex_taylors
-complex_taylor_make_unit
-add_complex_taylor_term1
-add_complex_taylor_term2
-kill_complex_taylor
-sort_complex_taylor_terms
-complex_taylor_exponent_index
-complex_taylor_to_mat6
-mat6_to_complex_taylor
-track_complex_taylor
-truncate_complex_taylor_to_order
-
-File: modules/element_at_s_mod.f90
-element_at_s_mod
-element_at_s
-procedure
-procedure
-element_at_s_branch
-element_at_s_lat
-pointer_to_element_at_s
-
-File: modules/mode3_mod.f90
-mode3_mod
-m
-o
-l
-t6_to_b123
-normal_mode3_calc
-make_hvbp
-xyz_to_action
-action_to_xyz
-eigen_decomp_6mat
-mytan
-order_evecs_by_n_similarity
-order_evecs_by_plane_dominance
-order_evecs_by_tune
-make_n
-get_emit_from_sigma_mat
-beam_tilts
-make_smat_from_abc
-normalize_evecs
-project_emit_to_xyz
-twiss3_propagate_all
-twiss3_propagate1
-twiss3_from_twiss2
-twiss3_at_start
-
-File: modules/transfer_map_mod.f90
-transfer_map_mod
-transfer_map_from_s_to_s
-transfer_this_map
-mat6_from_s_to_s
-transfer_this_mat
-concat_transfer_mat
-
-File: modules/rad_int_common.f90
-rad_int_common
-no_cache$
-cache_no_misalign$
-rad_int_track_point_struct
-rad_int_cache1_struct
-rad_int_cache_struct
-rad_int_info_struct
-qromb_rad_int
-propagate_part_way
-calc_wiggler_g_params
-
-File: modules/wall3d_mod.f90
-wall3d_mod
-re_allocate
-procedure
-procedure
-re_allocate_wall3d_vertex_array
-re_allocate_wall3d_section_array
-wall3d_initializer
-wall3d_section_initializer
-calc_wall_radius
-wall3d_d_radius
-pointer_to_wall3d
-wall3d_to_position
-create_concatenated_wall3d
-mark_patch_regions
-
-File: modules/expression_mod.f90
-expression_mod
-expression_string_to_tree
-deallocate_node
-deallocate_expression_tree
-type_expression_tree
-expression_tree_to_string
-expression_tree_node_array_to_string
-re_associate_node_array
-expression_string_to_stack
-pushit
-expression_value
-expression_stack_value
-expression_stack_to_string
-split_expression_string
-linear_coef
-
-File: modules/bmad_routine_interface.f90
-bmad_routine_interface
-assignment
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-operator
-procedure
-operator
-procedure
-pointer_to_branch
-pointer_to_branch_given_name
-pointer_to_branch_given_ele
-pointer_to_ele
-procedure
-procedure
-procedure
-procedure
-reallocate_coord
-reallocate_coord_n
-reallocate_coord_lat
-reallocate_coord_array
-init_coord
-init_coord1
-init_coord2
-init_coord3
-set_flags_for_changed_attribute
-set_flags_for_changed_all_attribute
-set_flags_for_changed_integer_attribute
-set_flags_for_changed_logical_attribute
-set_flags_for_changed_lat_attribute
-set_flags_for_changed_real_attribute
-apply_element_edge_kick_hook_def
-check_aperture_limit_custom_def
-distance_to_aperture_custom_def
-ele_geometry_hook_def
-em_field_custom_def
-ele_to_fibre_hook_def
-lat_make_mat6_hook_def
-radiation_integrals_custom_def
-init_custom_def
-make_mat6_custom_def
-time_runge_kutta_periodic_kick_hook_def
-track1_bunch_hook_def
-track1_custom_def
-track_many_hook_def
-track1_postprocess_def
-track1_preprocess_def
-track1_spin_custom_def
-track1_wake_hook_def
-wall_hit_handler_custom_def
-pointer_to_ele1
-pointer_to_ele2
-pointer_to_ele3
-pointer_to_ele4
-map1_times_map1
-em_field_plus_em_field
-ele_equal_ele
-ele_equals_ele
-ele_vec_equal_ele_vec
-lat_equal_lat
-lat_vec_equal_lat_vec
-branch_equal_branch
-coord_equal_coord
-taylor_equal_taylor
-taylors_equal_taylors
-em_taylor_equal_em_taylor
-em_taylors_equal_em_taylors
-init_em_taylor_series
-complex_taylor_equal_complex_taylor
-complex_taylors_equal_complex_taylors
-init_complex_taylor_series
-bunch_equal_bunch
-beam_equal_beam
 
 File: modules/taylor_mod.f90
 taylor_mod
@@ -2748,6 +2748,16 @@ field_interpolate_3d
 em_field_derivatives
 gen_grad_field
 convert_field_ele_to_lab
+
+File: modules/twiss_and_track_mod.f90
+twiss_and_track_mod
+twiss_and_track
+procedure
+procedure
+twiss_and_track_branch
+twiss_and_track_all
+twiss_and_track1
+twiss_and_track_at_s
 
 File: modules/equality_mod.f90
 equality_mod
@@ -3094,6 +3104,9 @@ write_binary_grid_field
 read_binary_grid_field
 open_binary_file
 
+File: parsing/set_ele_defaults.f90
+set_ele_defaults
+
 File: parsing/bmad_parser_mod.f90
 bmad_parser_mod
 nint_chk
@@ -3167,8 +3180,11 @@ check_controller_controls
 File: parsing/create_overlay.f90
 create_overlay
 
-File: parsing/bmad_parser2.f90
-bmad_parser2
+File: parsing/read_digested_bmad_file.f90
+read_digested_bmad_file
+
+File: parsing/write_digested_bmad_file.f90
+write_digested_bmad_file
 
 File: parsing/bmad_parser.f90
 bmad_parser
@@ -3178,6 +3194,12 @@ create_feedback
 
 File: parsing/create_ramper.f90
 create_ramper
+
+File: parsing/converter_distribution_parser.f90
+converter_distribution_parser
+
+File: parsing/bmad_parser2.f90
+bmad_parser2
 
 File: parsing/bmad_parser_struct.f90
 bmad_parser_struct
@@ -3200,18 +3222,6 @@ redef$
 bp_const_struct
 bp_common_struct
 bp_common2_struct
-
-File: parsing/converter_distribution_parser.f90
-converter_distribution_parser
-
-File: parsing/set_ele_defaults.f90
-set_ele_defaults
-
-File: parsing/write_digested_bmad_file.f90
-write_digested_bmad_file
-
-File: parsing/read_digested_bmad_file.f90
-read_digested_bmad_file
 
 File: parsing/parser_set_attribute_mod.f90
 parser_set_attribute_mod
@@ -3419,12 +3429,10 @@ ptc_check_for_lost_particle
 File: ptc/ele_to_taylor.f90
 ele_to_taylor
 
-File: ptc/ele_to_fibre.f90
-ele_to_fibre
-
 File: ptc/ptc_interface_mod.f90
 ptc_interface_mod
 assignment
+procedure
 procedure
 procedure
 procedure
@@ -3451,9 +3459,10 @@ kind_name
 set_ptc_com_pointers
 bmad_taylor_equal_damap
 damap_equal_bmad_taylor
-bmad_taylor_equal_real_8
-real_8_equal_bmad_taylor
+bmad_taylors_equal_reals_8
+reals_8_equal_bmad_taylors
 ptc_taylor_equal_bmad_taylor
+ptc_taylors_equal_bmad_taylors
 sigma_mat_ptc_to_bmad
 universal_equal_universal
 universal_to_bmad_taylor
@@ -3480,6 +3489,9 @@ bmad_patch_parameters_to_ptc
 ele_to_ptc_magnetic_bn_an
 apply_patch_to_ptc_fibre
 set_ptc_quiet
+
+File: ptc/ele_to_fibre.f90
+ele_to_fibre
 
 File: ptc/update_fibre_from_ele.f90
 update_fibre_from_ele
@@ -3555,6 +3567,16 @@ setup_high_energy_space_charge_calc
 track1_high_energy_space_charge
 make_mat6_high_energy_space_charge
 
+File: space_charge/space_charge_mod.f90
+space_charge_mod
+sc_field_calc
+sc_step
+sc_adaptive_step
+track_bunch_to_s
+track_bunch_to_t
+drift_particle_to_s
+drift_particle_to_t
+
 File: space_charge/csr_and_space_charge_mod.f90
 csr_and_space_charge_mod
 csr_ele_info_struct
@@ -3573,16 +3595,6 @@ csr_and_sc_apply_kicks
 dspline_len
 s_ref_to_s_chord
 track1_bunch_csr3d
-
-File: space_charge/space_charge_mod.f90
-space_charge_mod
-sc_field_calc
-sc_step
-sc_adaptive_step
-track_bunch_to_s
-track_bunch_to_t
-drift_particle_to_s
-drift_particle_to_t
 
 File: spin/map1_inverse.f90
 map1_inverse
@@ -3714,11 +3726,11 @@ write_lattice_in_mad_format
 File: output/type_taylors.f90
 type_taylors
 
-File: output/type_ele.f90
-type_ele
-
 File: output/write_lattice_in_julia.f90
 write_lattice_in_julia
 
 File: output/write_lattice_in_sad_format.f90
 write_lattice_in_sad_format
+
+File: output/type_ele.f90
+type_ele

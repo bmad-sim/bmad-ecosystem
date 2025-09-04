@@ -3153,14 +3153,14 @@ subroutine track_a_zero_length_element (orbit, ele, param, err_flag, track)
   type (track_struct), optional :: track
 end subroutine
 
-subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
+subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0, init_lost)
   import
   implicit none
   type (lat_struct), target :: lat
   type (coord_struct), allocatable, target :: orbit(:)
   type (coord_struct), optional, allocatable, target :: orbit0(:)
   integer, optional :: ix_branch, track_state
-  logical, optional :: err_flag
+  logical, optional :: err_flag, init_lost
 end subroutine
 
 subroutine track_bunch_time (bunch, branch, t_end, s_end, dt_step, extra_field)

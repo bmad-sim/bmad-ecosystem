@@ -147,13 +147,12 @@ if (u%calc%track) then
 
     else
       call track_all (lat, tao_branch%orbit, ix_branch, tao_branch%track_state, &
-                                                            orbit0 = tao_lat%tao_branch(0)%orbit)
+                                 orbit0 = tao_lat%tao_branch(0)%orbit, init_lost = .true.)
     endif
 
     if (tao_branch%track_state /= moving_forward$) then
       calc_ok = .false.
       ix_lost = tao_branch%track_state
-      orbit(ix_lost+1:branch%n_ele_track) = coord_struct()
       call out_io (s_blank$, r_name, &
               "tao_single_track: particle lost in single particle tracking at branch>>element \I0\>>\I0\: " // &
               trim(branch%ele(ix_lost)%name) // '  [s =\F9.2\]', &
@@ -763,7 +762,7 @@ type (coord_struct), pointer :: orb_out, orb_in
 type (branch_struct), pointer :: branch, branch_from
 
 real(rp) e_photon
-integer ix_branch, i_ele_from, i_br_from
+integer ix_branch, i_ele_from, i_br_from, ix_fix
 
 character(*), parameter :: r_name = "tao_inject_particle"
 
@@ -771,8 +770,9 @@ character(*), parameter :: r_name = "tao_inject_particle"
 
 branch => model%lat%branch(ix_branch)
 i_br_from  = branch%ix_from_branch
+ix_fix = branch%ix_fixer
 
-if (i_br_from > -1) then
+if (i_br_from > -1 .and. ix_fix == 0) then
   i_ele_from = branch%ix_from_ele
   branch_from => model%lat%branch(i_br_from)
   from_ele => branch_from%ele(i_ele_from)
@@ -803,22 +803,22 @@ endif
 ! Not injecting from another branch.
 ! In model%tao_branch()%orb0 is saved the last computed orbit. 
 
-orb_out => model%tao_branch(ix_branch)%orbit(0)
+orb_out => model%tao_branch(ix_branch)%orbit(ix_fix)
 
 if (branch%param%geometry == closed$) then
   orb_in => model%tao_branch(ix_branch)%orb0
   if (.not. rf_is_on(branch)) orb_in%vec(6) = model%lat%particle_start%vec(6)
 else
-  orb_in => branch%lat%particle_start
+  orb_in => branch%particle_start
 endif
 
 e_photon = 0
-if (branch%ele(0)%ref_species == photon$) then
-  e_photon = branch%ele(0)%value(p0c$) * (1.0_rp + orb_in%vec(6))
+if (branch%ele(ix_fix)%ref_species == photon$) then
+  e_photon = branch%ele(ix_fix)%value(p0c$) * (1.0_rp + orb_in%vec(6))
   if (orb_in%p0c /= 0) e_photon = orb_in%p0c
 endif
 
-call init_coord (orb_out, orb_in, branch%ele(0), downstream_end$, &
+call init_coord (orb_out, orb_in, branch%ele(ix_fix), downstream_end$, &
                     default_tracking_species(branch%param), 1, e_photon = e_photon)
 
 end subroutine tao_inject_particle
