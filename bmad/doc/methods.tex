@@ -79,10 +79,8 @@ be small so that \vn{bmad_standard} can be used in the vast majority of cases (\
 
 \index{custom!tracking_method}
 \item[\vn{Custom}]
-This method will call a routine \vn{track1_custom} which must be supplied by the programmer
-implementing the custom tracking. The default \vn{track1_custom} supplied with the \bmad release
-will print an error message and stop the program if it is called which probably indicates a program
-linking problem. See \vn{s:custom.ele} for more details.
+This method can be used to call custom tracking code supplied by the User. See \vn{s:custom.ele}
+for more details.
 
 \index{fixed_step_runge_kutta!tracking_method}
 \item[\vn{fixed_step_runge_kutta}]
@@ -317,10 +315,8 @@ emphasis here is on speed.
 
 \index{custom!mat6_calc_method}
 \item[\vn{Custom}]
-This method will call a routine \vn{make_mat6_custom} which must be supplied by the programmer
-implementing the custom transfer matrix calculation. The default \vn{make_mat6_custom} supplied with
-the \bmad release will print an error message and stop the program if it is called which probably
-indicates a program linking problem.  See \vn{s:custom.ele} for more details.
+This method can be used to call custom matrix calculation code supplied by the User. See
+\vn{s:custom.ele} for more details.
 
 \index{MAD!mat6_calc_method}
 \item[\vn{MAD}]
