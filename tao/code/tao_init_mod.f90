@@ -72,7 +72,8 @@ endif
 call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
 read (iu, nml = tao_params, iostat = ios)
 if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST.')
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST. NOTE: GLOBAL%INIT_LAT_SIGMA_FROM_BEAM PARAMETER', &
+                                 'IS NOW NAMED GLOBAL%LAT_SIGMA_CALC_USES_EMIT_FROM. SEE THE TAO MANUAL FOR DETAILS.')
   rewind (iu)
   read (iu, nml = tao_params)  ! To give error message
 endif

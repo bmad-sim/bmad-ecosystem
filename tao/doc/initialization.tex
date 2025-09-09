@@ -156,7 +156,7 @@ Sets the prompt string color to Blue. For different colors, use the \vn{set glob
 command (\sref{s:set}).
 %
 \item[-quiet <level>] \Newline
-Supress warning messages. For details, see the documentation for the \vn{call} command (\sref{s:call}).
+Suppress warning messages. For details, see the documentation for the \vn{call} command (\sref{s:call}).
 %
 \item[-reverse] \Newline
 Reverses the order of the lattice elements. Equivalent to setting
@@ -251,7 +251,7 @@ in the array are set.
 
 {\em IMPORTANT:} The notation \vn{n*number} does not denote multiplication but instead can be used to
 denote multiple values. There should be no blank spaces here. Some compilers may accept something
-like ``2 * 34'' but you cannot count on it. Using ``2*34'' is safe. Also the gfortran compiler has a known
+like ``2 * 34'' but you cannot count on it. Using ``2*34'' is safe. Also the GFortran compiler has a known
 repeat count bug.
 
 For string input it is always best to use quotes. Some compilers will accept strings without
@@ -276,7 +276,7 @@ The slash in the intended expression ``3.7/148'' will be taken as the namelist t
 will result in variable \vn{a} having the value 3.7 and the value of variable \vn{b} will not
 be set!
 
-{\em WARNING:} Currently there is a bug in the gcc/gfortran compiler up to version 9 (GCC Bugzilla
+{\em WARNING:} Currently there is a bug in the GCC/GFortran compiler up to version 9 (GCC Bugzilla
 \#82086) where repeat counts used with structure components cause \tao to halt with an error
 message. For example:
 \begin{example}
@@ -643,61 +643,61 @@ supersede everything else.
 The \vn{tao_global_struct} structure contains \tao global parameters. The components of this structure are:
 \begin{example}
 type tao_global_struct:
-  beam_dead_cutoff = 0.99          ! Dead particle cutoff for stopping beam tracking.
-  de_lm_step_ratio = 1             ! Step sizes between DE and LM optimizers.
+  beam_dead_cutoff = 0.99           ! Dead particle cutoff for stopping beam tracking.
+  de_lm_step_ratio = 1              ! Step sizes between DE and LM optimizers.
   de_var_to_population_factor = 5 
-  lm_opt_deriv_reinit = -1         ! Derivative matrix cutoff. -1 => ignore this.
-  lmdif_eps = 1e-12                ! Tolerance for lmdif optimizer.
-  lmdif_negligible_merit = 1d-30   ! lmdif stops if merit is smaller.
-  svd_cutoff = 1e-5                ! SVD singular value cutoff limit.
-  unstable_penalty = 1e-3          ! Used in unstable.lattice datum merit calculation.
-  merit_stop_value = 0             ! Value below which an optimizer will stop.
-  dmerit_stop_value = 0            ! Fractional change below which an optimizer will stop.
-  random_sigma_cutoff = -1         ! Cut-off in sigmas.
-  delta_e_chrom = 0                ! Delta E used from chromaticity calc.
-  n_opti_cycles = 20               ! number of optimization cycles
-  n_opti_loops = 1                 ! number of optimization loops
-  n_lat_layout_label_rows = 1      ! How many rows with a lat_layout
-  datum_err_messages_max = 10      ! Max number of error messages per cycle.
-  phase_units = radians\$          ! Phase units on output.
-  bunch_to_plot = 1                ! Which bunch to plot
-  random_seed = -1                 ! Use system clock by default
-  n_top10_merit = 10               ! Number of top constraints to print.
-  random_engine = "pseudo"         ! Random number engine to use
-  random_gauss_converter = "exact" ! Uniform to gauss conversion method
-  track_type = "single"            ! "single" or "beam" 
+  lm_opt_deriv_reinit = -1          ! Derivative matrix cutoff. -1 => ignore this.
+  lmdif_eps = 1e-12                 ! Tolerance for lmdif optimizer.
+  lmdif_negligible_merit = 1d-30    ! lmdif stops if merit is smaller.
+  svd_cutoff = 1e-5                 ! SVD singular value cutoff limit.
+  unstable_penalty = 1e-3           ! Used in unstable.lattice datum merit calculation.
+  merit_stop_value = 0              ! Value below which an optimizer will stop.
+  dmerit_stop_value = 0             ! Fractional change below which an optimizer will stop.
+  random_sigma_cutoff = -1          ! Cut-off in sigmas.
+  delta_e_chrom = 0                 ! Delta E used from chromaticity calc.
+  n_opti_cycles = 20                ! number of optimization cycles
+  n_opti_loops = 1                  ! number of optimization loops
+  n_lat_layout_label_rows = 1       ! How many rows with a lat_layout
+  datum_err_messages_max = 10       ! Max number of error messages per cycle.
+  phase_units = radians\$           ! Phase units on output.
+  bunch_to_plot = 1                 ! Which bunch to plot
+  random_seed = -1                  ! Use system clock by default
+  n_top10_merit = 10                ! Number of top constraints to print.
+  random_engine = "pseudo"          ! Random number engine to use
+  random_gauss_converter = "exact"  ! Uniform to gauss conversion method
+  track_type = "single"             ! "single" or "beam" 
   prompt_string = "Tao"
-  prompt_color = "DEFAULT"         ! See read_a_line routine for possible settings.
-  optimizer     = "de"             ! optimizer to use.
+  prompt_color = "DEFAULT"          ! See read_a_line routine for possible settings.
+  optimizer     = "de"              ! optimizer to use.
   print_command = "lpr"
   var_out_file  = "var#.out"
   history_file = "\(\sim\)/.history_tao"  ! Command history file.
-  beam_timer_on = F                ! For timing the beam tracking calculation.
-  cmd_file_abort_on_error = T      ! Close all open command files when there is an error?
-  concatenate_maps = F             ! False => tracking using DA.
-  derivative_recalc = T            ! Recalc derivatives before each optimizer loop?
-  derivative_uses_design = F       ! Derivative matrix uses the design lattice?
-  disable_smooth_line_calc = F     ! Disable the plotting smooth line calc?
-  draw_curve_off_scale_warn = T    ! Display warning on graphs when any part of the 
-                                   !   curve is out-of-bounds
-  init_lat_sigma_from_beam = F     ! Init sigma mat set equal to beam distribution? 
-  label_lattice_elements = T       ! For lat_layout plots
-  label_keys = T                   ! For lat_layout plots
-  lattice_calc_on = T              ! Turn on/off beam and single particle calculations.
-  only_limit_opt_vars = F          ! Apply limits only if variable is used in optimization?
-  opt_with_ref = F                 ! use reference data in optimization?
-  opt_with_base = F                ! use base data in optimization?
-  opti_var_write_file = T          ! ``run'' command writes var_out_file
-  optimizer_allow_user_abort = T   ! See below.
-  optimizer_var_limit_warn = T     ! Warn when vars reach a limit when optimizing?
-  plot_on = T                      ! Do plotting?
-  quiet = "off"                    ! Suppress informational output to terminal.
-  rf_on = F                        ! RF cavities on?
+  beam_timer_on = F                 ! For timing the beam tracking calculation.
+  cmd_file_abort_on_error = T       ! Close all open command files when there is an error?
+  concatenate_maps = F              ! False => tracking using DA.
+  derivative_recalc = T             ! Recalc derivatives before each optimizer loop?
+  derivative_uses_design = F        ! Derivative matrix uses the design lattice?
+  disable_smooth_line_calc = F      ! Disable the plotting smooth line calc?
+  draw_curve_off_scale_warn = T     ! Display warning on graphs when any part of the 
+                                    !   curve is out-of-bounds
+  lat_sigma_calc_uses_emit_from = F ! Init sigma mat set equal to beam distribution? 
+  label_lattice_elements = T        ! For lat_layout plots
+  label_keys = T                    ! For lat_layout plots
+  lattice_calc_on = T               ! Turn on/off beam and single particle calculations.
+  only_limit_opt_vars = F           ! Apply limits only if variable is used in optimization?
+  opt_with_ref = F                  ! use reference data in optimization?
+  opt_with_base = F                 ! use base data in optimization?
+  opti_var_write_file = T           ! ``run'' command writes var_out_file
+  optimizer_allow_user_abort = T    ! See below.
+  optimizer_var_limit_warn = T      ! Warn when vars reach a limit when optimizing?
+  plot_on = T                       ! Do plotting?
+  quiet = "off"                     ! Suppress informational output to terminal.
+  rf_on = F                         ! RF cavities on?
   svd_retreat_on_merit_increase = T    
-  single_step = F                  ! Single step through a command file?
-  stop_on_error = T                ! For debugging: True -> Tao will not exiting on an error.
-  symbol_import = F                ! Import symbols defined in any lattice files?
-  var_limits_on = T                ! Respect the variable limits?
+  single_step = F                   ! Single step through a command file?
+  stop_on_error = T                 ! For debugging: True -> Tao will not exiting on an error.
+  symbol_import = F                 ! Import symbols defined in any lattice files?
+  var_limits_on = T                 ! Respect the variable limits?
 \end{example}
 
 In an initialization file, this structure is set in the \vn{tao_params} namelist (\sref{s:globals})
@@ -771,13 +771,23 @@ the up-arrow key and eve recalled between run sessions. The default is to save t
 to the file \vn{\~/.history_tao}. Sometimes is is convenient to have multiple history files and
 in this case the setting of \vn{global%history_file} can varied from init file to init file.
 %
-  \item{\vn{global%init_lat_sigma_from_beam}} \Newline
-In parallel to calculating the beam sigma matrix from the beam distribution, \tao will calculate the
-sigma matrix using lattice twiss parameters and transport matrices (\sref{s:lat.sig.init}). If the
-\vn{global%init_lat_sigma_from_beam} parameter is set True, the initial $6\times6$ sigma matrix at
-the beginning of any lattice branch is set equal to the sigma matrix as calculated from the beam. If
-set False (the default), the initial sigma matrix calculation uses the lattice independent of any
-beam tracking.
+  \item{\vn{global%lat_sigma_calc_uses_emit_from}} \Newline
+In parallel to calculating the beam sigma matrix from the beam distribution, \tao can calculate the
+sigma matrix using lattice twiss parameters and transport matrices (\sref{s:lat.sig.init}). 
+This calculation also needs the following parameters:
+\begin{example}
+  a-mode and b-mode emittances
+  size (sigma) of z and pz phase-space coordinates.
+  dpz/dz dependence of pz centroid as a function of z.
+\end{example}
+The \vn{%lat_sigma_calc_uses_emit_from} switch determines how these parameters are computed. Possible
+values are:
+\begin{example}
+  "lat"           ! Default. Calculated from the lattice. For closed geometry branches. 
+  "beam"          ! Calculated from the beam.
+  "beam_init"     ! Calculated from the beam_init structure.
+\end{example}
+See \sref{s:lat.sig.init} for more details.
 %
   \item{\vn{global%merit_stop_value}} \Newline
 The value of \vn{global%merit_stop_value} establishes a point such that, during optimization, if the
@@ -950,7 +960,7 @@ The \vn{bmad_com_struct} holds bmad global variables.
     integer ptc_max_fringe_order = 2            ! PTC max fringe order (2  = > Quadrupole !).
     integer max_num_runge_kutta_step = 10000    ! Maximum number of RK steps before particle is considered lost.
 
-    logical rf_phase_below_transition_ref = F   ! Autoscale uses below transition stable point for RFCavities?
+    logical rf_phase_below_transition_ref = F   ! Autoscale uses below transition stable point for rfcavities?
     logical sr_wakes_on = T                     ! Short range wakefields?
     logical lr_wakes_on = T                     ! Long range wakefields
     logical mat6_track_symmetric = T            ! symmetric offsets
@@ -1256,28 +1266,40 @@ calculated from the lattice can be done faster than tracking a beam). The ``\vn{
 optimizations, the \vn{sigma} data type (pg.~\pref{sigma}) with \vn{data_source} is set to \vn{lat}
 can be used.
 
-Like tracking particle beams, the calculation of the lattice sigma matrix starts at the lattice
-element defined by the \vn{track_start} parameter in the \vn{tao_beam_init} namelist
-(\sref{s:beam.init}). Once the initial sigma matrix $\bfsig_0$ is calculated, the sigma matrix
-$\bfsig(s)$ at a point downstream is calculated using the standard formula
+The calculation of the lattice sigma matrix starts at some beginning element where, as detailed
+below, the sigma matrix is calculated. Once the initial sigma matrix has been calculated, the sigma
+matrix $\bfsig(s)$ at a point downstream is calculated using the standard formula
 \begin{equation}
   \bfsig(s) = \bfM \, \bfsig_0 \, \bfM^t
 \end{equation}
 where $\bfM$ is the transfer matrix from the beginning to $s$ and the $t$ exponent means
-transpose. This calculation in \tao ignores radiation effects. Again like tracking particle beams,
-lattice sigma matrices will be propagated through any fork lattice elements to downstream branches.
+transpose. Note: the calculation ignores radiation effects. 
 
-The calculation of the lattice based sigma matrix starts at the beginning of a \vn{root} lattice
-branch (a root branch is a branch where no other branch forks to that branch). If \vn{global}
-parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to True, the beginning
-sigma matrix is set equal to the initial sigma matrix as calculated from the beam
-(\sref{s:beam.init}).
+The initial sigma matrix is calculated as follows: If the lattice branch where the sigma matrix is
+being calculated is being forked to from a ``base'' branch, the sigma matrix as calculated at the
+fork element will be used. That is, the sigma matrix is propagated from the base branch to the
+forked-to branch.
 
-If the \vn{global} parameter \vn{init_lat_sigma_from_beam} (\sref{s:tao.global.struct}) is set to
-False, the calculation of the beginning sigma matrix depends upon the branch geometry.  If the
-branch has a closed geometry, the initial sigma matrix is calculated from the eigen modes of the one
-turn matrix along with the following parameters from the \vn{beam_init} structure:
-(\sref{s:beam.init}) are used:
+If there is no base branch that is forked from, the initial sigma matrix is determined in one of
+three ways depending upon the setting of the parameter \vn{global%lat_sigma_calc_uses_emit_from}
+(\sref{s:tao.global.struct}). Possible settings of this parameter are:
+\begin{example}
+  "lat"           ! Default. Calculated from the lattice. For closed geometry branches. 
+  "beam"          ! Calculated from the beam.
+  "beam_init"     ! Calculated from the beam_init structure.
+\end{example}
+If \vn{global%lat_sigma_calc_uses_emit_from} is set to \vn{"beam"}, the initial sigma matrix is calculated
+by the initial beam distribution used with beam tracking (\sref{s:beam.init}). 
+
+For the other two settings of \vn{global%lat_sigma_calc_uses_emit_from}, the calculation of the
+initial sigma matrix needs the following parameters:
+\begin{example}
+  a-mode and b-mode emittances
+  size (sigma) of z and pz phase-space coordinates.
+  dpz/dz dependence of pz centroid as a function of z.
+\end{example}
+With the \vn{"beam_init"} setting, the above parameters are taken from the \vn{beam_init} structure
+(\sref{s:beam.init}):
 \begin{example}
   beam_init%a_emit or beam_init%a_norm_emit
   beam_init%b_emit or beam_init%b_norm_emit
@@ -1285,13 +1307,21 @@ turn matrix along with the following parameters from the \vn{beam_init} structur
   beam_init%sig_pz
   beam_init%dpz_dz
 \end{example}
-If the branch has an open geometry, the calculation of the initial sigma matrix uses the parameters
-of the \vn{beam_init} structure as listed above along with the initial Twiss and coupling parameters
-set in the lattice file.
+Notice that the sigma matrix formed using the \vn{beam_init} parameters may be quite different from the
+sigma matrix formed using the initial beam distribution. For example, if the initial beam distribution
+is read from a file (done if \vn{beam_init%position_file} is set), there is generally no relationship
+between the \vn{beam_init} parameters and the initial beam distribution.
 
-If a branch has a fork element to another branch, like beam tracking, the lattice sigma matrix is propagated through
-from the fork element to the branch that is forked to. The sigma matrix can then be propagated throughout the second
-branch.
+The \vn{"lat"} setting of \vn{global%lat_sigma_calc_uses_emit_from} (which is the default) is for
+use with lattice branches that have a closed geometry where the emittances and other parameters can
+be computed from the lattice. For branches that are open, \tao will fall back to using the
+\vn{beam_init} structure (\sref{s:opti.de.param.struct}).
+
+For everything besides the \vn{"lat"} setting of \vn{global%lat_sigma_calc_uses_emit_from}, 
+the calculation of the sigma matrix starts at the lattice
+element defined by the \vn{track_start} parameter in the \vn{tao_beam_init} namelist
+(\sref{s:beam.init}). With the \vn{"lat"} setting, the initial sigma matrix is taken to be
+at the beginning of the lattice branch.
 
 %-----------------------------------------------------------------
 \section{Variable Initialization}
@@ -1551,7 +1581,7 @@ structure there must be a \vn{tao_d1_data} namelist which has the form:
     use_same_lat_eles_as   = "<d1_name>"         ! Reuse previous element list.
     search_for_lat_eles    = "<element_list>"    ! Find elements by name.
     d1_data%name           = "<d1_name>"         ! d1_data name.
-    default_data_type      = <type_name>         ! Eg: orbit.x, e_tot, etc...
+    default_data_type      = <type_name>         ! EG: orbit.x, e_tot, etc...
     default_weight         = <real>              ! Merit function weight. Dflt: 0.0
     default_meas           = <real>              ! Default datum "measured" value (\sref{s:opt.main}).
     default_data_source    = "<source>"          ! "lat" (dflt), "data", "var", or "beam". 
@@ -1673,7 +1703,7 @@ using branch/element index notation and on input the datum's \vn{ele_start_name}
 A range of elements can be specified by giving an \vn{ele_start_name} that is not a blank string.
 Thus, in the above example, the value of \vn{datum(2)} is the maximum horizontal dispersion in the range
 between the end of element \vn{B22} to the end of element \vn{Q16\#\#2}. Elements can be specified by
-name (Eg: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
+name (EG: \vn{Q16_1}) or by longitudinal position using the notation \vn{"S:<s_distance>"}. This
 will match to the element whose longitudinal position at the exit end is closest to
 \vn{<s_distance>}.
 %
@@ -2260,7 +2290,7 @@ respectively. The rectangle within this border is called the \vn{plot area}.
 \item[plot_page\%curve_legend] \Newline
 Sets parameters for the curve legend (\sref{s:plot.def}). \vn{%curve_legend} is an instance of a
 \vn{qp_legend_struct} (\sref{s:qp.legend.str}). Note: When drawing a curve legend for a particular
-graph, the placement of the legened is given by \vn{graph%curve_legend_origin}.
+graph, the placement of the legend is given by \vn{graph%curve_legend_origin}.
 %
 \item[plot_page\%delete_overlapping_plots] \Newline
 When \vn{plot_page%delete_overlapping_plots} is True (the default), Placing a plot (using

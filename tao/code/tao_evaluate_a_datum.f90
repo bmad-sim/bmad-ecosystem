@@ -22,11 +22,13 @@ recursive subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid
 
 use tao_init_data_mod, only: tao_add_to_normal_mode_h_array
 use tao_data_and_eval_mod, dummy => tao_evaluate_a_datum
+use tao_lattice_calc_mod, only: tao_lat_sigma_track
 use pointer_lattice, only: operator(.sub.)
 use ptc_interface_mod, only: taylor_inverse
 use ptc_layout_mod, only: normal_form_rd_terms
 use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
 use expression_mod, only: numeric$
+
 
 implicit none
 
@@ -750,7 +752,7 @@ case ('chrom.')
 
   ! Can happen with a command like "show lat -attribute chrom.a" that the chromaticity has not been computed.
   ! So try to compute it if needed.
-  if (.not. tao_lat%chrom_calc_ok) then
+  if (.not. tao_branch%chrom_calc_ok) then
     ok = .false.
     if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
       s%com%force_chrom_calc = .true.
@@ -759,7 +761,7 @@ case ('chrom.')
     endif
   endif
 
-  if (.not. allocated(tao_lat%low_E_lat%branch) .or. .not. tao_lat%chrom_calc_ok) then
+  if (.not. allocated(tao_lat%low_E_lat%branch) .or. .not. tao_branch%chrom_calc_ok) then
     if (branch%param%unstable_factor == 0) then
       call tao_set_invalid (datum, 'Chrom calculation problem.', why_invalid)
     else
@@ -2338,14 +2340,14 @@ case ('rad_int.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  if (.not. tao_lat%rad_int_calc_ok .or. .not. tao_lat%emit_6d_calc_ok) then
+  if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
     if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
       s%com%force_rad_int_calc = .true.
       u%calc%lattice = .true.
       call tao_lattice_calc(ok)
     endif
 
-    if (.not. tao_lat%rad_int_calc_ok .or. .not. tao_lat%emit_6d_calc_ok) then
+    if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
       call tao_set_invalid (datum, 'Radiation integral calc failed.', why_invalid)
       return
     endif
@@ -2643,6 +2645,17 @@ case ('s_position')
 !-----------
 
 case ('sigma.')
+  if (.not. tao_branch%sigma_track_ok) then
+    ok = .false.
+    if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
+      call tao_lat_sigma_track(tao_lat, ok, ix_branch, .true., .true.)
+    endif
+  endif
+
+  if (.not. tao_branch%sigma_track_ok) then
+    call tao_set_invalid (datum, 'Cannot calculate sigma matrix from lattice.', why_invalid)
+    return
+  endif  
 
   ! Looks for numbers: e.g. sigma.13
   i = index('123456', data_type(7:7))

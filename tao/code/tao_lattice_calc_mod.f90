@@ -214,18 +214,18 @@ endif
 if (s%com%force_rad_int_calc .or. (branch%param%particle /= photon$ .and. tao_branch%track_state == moving_forward$ .and. &
                           (u%calc%rad_int_for_data .or. u%calc%rad_int_for_plotting .or. s%global%track_type == 'beam'))) then
   if ((s%com%rad_int_6d_calc_on .and. s%global%rad_int_user_calc_on) .or. s%com%force_rad_int_calc) then
-    tao_lat%emit_6d_calc_ok = .true.
+    tao_branch%emit_6d_calc_ok = .true.
     call emit_6d(branch%ele(0), .true., tao_branch%modes_6d, sigma, tao_branch%orbit, tao_lat%rad_int_by_ele_6d)
   endif
 
   if ((s%com%rad_int_ri_calc_on .and. s%global%rad_int_user_calc_on) .or. s%com%force_rad_int_calc) then
     call radiation_integrals(lat, tao_branch%orbit, tao_branch%modes_ri, tao_branch%ix_rad_int_cache, ix_branch, tao_lat%rad_int_by_ele_ri)
-    tao_lat%rad_int_calc_ok = .true.
+    tao_branch%rad_int_calc_ok = .true.
   endif
 
 else
-  tao_lat%emit_6d_calc_ok = .false.
-  tao_lat%rad_int_calc_ok = .false.
+  tao_branch%emit_6d_calc_ok = .false.
+  tao_branch%rad_int_calc_ok = .false.
 endif
 
 end subroutine tao_single_track
@@ -234,20 +234,21 @@ end subroutine tao_single_track
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err)
+! Subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err, force_calc)
 !
 ! Routine to track the 6x6 sigma matrix through the lattice using the lattice linear transfer matrices.
 !
 ! Input:
 !   tao_lat     -- tao_lattice_struct: Structure containing the lattice.
 !   ix_branch   -- integer: Branch index to track through.
-!   print_err   -- logical, optional: Default False. Print error messages if, eg, lattice is unstable?
+!   print_err   -- logical, optional: Default is False. Print error messages if, eg, lattice is unstable?
+!   force_calc  -- logical, optional: Default is False. If True, force the calculation to be done.
 !
 ! Output:
 !   calc_ok     -- logical: Set True if there were no problems, False otherwise.
 !-
 
-subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err)
+subroutine tao_lat_sigma_track (tao_lat, calc_ok, ix_branch, print_err, force_calc)
 
 use mode3_mod
 
@@ -264,11 +265,12 @@ type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 
 real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6), abz_tunes(3)
+real(rp) mat6(6,6), vec0(6)
 
 integer ix_branch
 integer i, n, ie0, ibf, ief
 
-logical, optional :: print_err
+logical, optional :: print_err, force_calc
 logical calc_ok, err
 
 character(80) :: lines(10)
@@ -282,9 +284,10 @@ branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
 model_branch => u%model_branch(ix_branch)
 ie0 = model_branch%beam%ix_track_start
-if (ie0 == not_set$) return
 
-if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .or. branch%param%particle == photon$) return
+if (branch%param%particle == photon$) return
+if (ie0 == not_set$ .and. (s%global%lat_sigma_calc_uses_emit_from /= 'lat' .or. branch%param%geometry /= closed$)) return
+if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .and. .not. logic_option(.false., force_calc)) return
 
 ele => branch%ele(ie0)
 if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
@@ -297,12 +300,35 @@ if (branch%ix_from_branch >= 0) then  ! Propagate through fork
   ief = branch%ix_from_ele
   tao_branch%lat_sigma(ie0)%mat = tao_lat%tao_branch(ibf)%lat_sigma(ief)%mat
 
-elseif (s%global%init_lat_sigma_from_beam) then
+elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam') then
   call calc_bunch_params (model_branch%ele(ie0)%beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
   tao_branch%lat_sigma(ie0)%mat = bunch_params%sigma
 
 else
-  beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+  if (s%global%lat_sigma_calc_uses_emit_from == 'lat') then
+    if (branch%param%geometry == closed$) then
+      call transfer_matrix_calc(lat, mat6, vec0, 0, 0, ix_branch, .true.)
+      beam_init%a_emit = tao_branch%modes_6d%a%emittance
+      beam_init%b_emit = tao_branch%modes_6d%b%emittance
+      beam_init%sig_z  = tao_branch%modes_6d%sig_z
+      beam_init%sig_pz = tao_branch%modes_6d%sigE_E
+      beam_init%dPz_dz = mat6(6,5) / mat6(5,6)
+      ie0 = 0
+      ele => branch%ele(0)
+    else
+      call out_io (s_warn$, r_name, 'Setting sigma matrix from beam_init structure since branch geometry is open.', &
+                                    'To stop these messages set global%lat_sigma_calc_uses_emit_from = "beam_init".')
+      beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+    endif
+  elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam_init') then
+    beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+  else
+    call out_io (s_error$, r_name, 'Bad setting of global%lat_sigma_calc_uses_emit_from: ' // &
+                                                                  s%global%lat_sigma_calc_uses_emit_from)
+    calc_ok = .false.
+    return
+  endif
+
   D_mat = 0
   D_mat(1,1) = beam_init%a_emit   ! Set by calc_this_emit
   D_mat(2,2) = beam_init%a_emit
@@ -311,7 +337,7 @@ else
   D_mat(5,5) = beam_init%sig_z * beam_init%sig_pz
   D_mat(6,6) = beam_init%sig_z * beam_init%sig_pz
 
-  call transfer_matrix_calc (lat, t1, ix_branch = ix_branch, one_turn=.true.)
+  call transfer_matrix_calc (lat, t1, ix_branch = ix_branch, one_turn = .true.)
 
   if (branch%param%geometry == closed$ .and. t1(6,5) /= 0) then
     branch%param%t1_with_RF = t1
@@ -384,6 +410,8 @@ do
   ele => branch%ele(i)
   tao_branch%lat_sigma(i)%mat = matmul(matmul(ele%mat6, tao_branch%lat_sigma(i-1)%mat), transpose(ele%mat6))
 enddo
+
+tao_branch%sigma_track_ok = .true.
 
 end subroutine tao_lat_sigma_track
 

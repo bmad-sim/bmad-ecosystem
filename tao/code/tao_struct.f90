@@ -669,6 +669,8 @@ type tao_global_struct
   character(16) :: random_engine = ''            ! Non-beam random number engine
   character(16) :: random_gauss_converter = ''   ! Non-beam
   character(16) :: track_type    = 'single'      ! or 'beam'  
+  character(16) :: lat_sigma_calc_uses_emit_from = 'lat'   ! Lattice derived sigma matrix uses emit values from where?
+                                                           !  Other possibilities: "beam", "beam_init", "lat_init".
   character(40) :: prompt_string = 'Tao'
   character(16) :: prompt_color = 'DEFAULT'      ! See read_a_line routine for possible settings.
   character(16) :: optimizer     = 'lm'          ! optimizer to use.
@@ -685,7 +687,6 @@ type tao_global_struct
   logical :: disable_smooth_line_calc = .false.       ! Global disable of the smooth line calculation.
   logical :: draw_curve_off_scale_warn = .true.       ! Display warning on graphs?
   logical :: external_plotting = .false.              ! Used with matplotlib and gui.
-  logical :: init_lat_sigma_from_beam = .false.       ! Initial lattice derived sigma matrix derived from beam dist?
   logical :: label_lattice_elements = .true.          ! For lat_layout plots
   logical :: label_keys = .true.                      ! For lat_layout plots
   logical :: lattice_calc_on = .true.                 ! Turn on/off beam and single particle calculations.
@@ -947,6 +948,10 @@ type tao_lattice_branch_struct
   logical :: twiss_valid = .true.                         ! Invalid EG with unstable 1-turn matrix with a closed branch.
                                                           !   With open branch: twiss_valid = T even if some Twiss (and orbit) is invalid.
   logical :: mode_flip_here = .false.                     ! Twiss parameter mode flip seen?
+  logical :: chrom_calc_ok = .false.
+  logical :: rad_int_calc_ok = .false.
+  logical :: emit_6d_calc_ok = .false.
+  logical :: sigma_track_ok = .false.
 end type
 
 ! Structure to hold a single lat_struct (model, base, or design) in
@@ -960,9 +965,6 @@ type tao_lattice_struct
   type (rad_int_all_ele_struct) rad_int_by_ele_ri
   type (rad_int_all_ele_struct) rad_int_by_ele_6d
   type (tao_lattice_branch_struct), allocatable :: tao_branch(:)
-  logical :: chrom_calc_ok = .false.
-  logical :: rad_int_calc_ok = .false.
-  logical :: emit_6d_calc_ok = .false.
 end type
 
 ! Universe wide structure for information that does not fit anywhere else.
