@@ -2124,7 +2124,6 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
-    nl=nl+1; write(lines(nl), lmt) '  %init_lat_sigma_from_beam      = ', s%global%init_lat_sigma_from_beam
     nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
@@ -2144,6 +2143,7 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', quote(s%global%prompt_color)
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', quote(s%global%random_engine)
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', quote(s%global%random_gauss_converter)
+    nl=nl+1; write(lines(nl), amt) '  %lat_sigma_calc_uses_emit_from = ', s%global%lat_sigma_calc_uses_emit_from
     nl=nl+1; write(lines(nl), amt) '  %quiet                         = ', quote(s%global%quiet)
 
     nl=nl+1; write(lines(nl), amt) '  %random_engine (input)         = ', quote(s%global%random_engine)

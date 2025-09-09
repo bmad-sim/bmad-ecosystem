@@ -134,7 +134,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
       track_this_beam = (s%global%track_type == 'beam' .and. branch%param%particle /= photon$ .and. u%beam%track_beam_in_universe) 
 
-      if (track_this_beam .or. s%global%init_lat_sigma_from_beam) call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
+      if (track_this_beam .or. s%global%lat_sigma_calc_uses_emit_from == 'beam') call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
 
       if (track_this_beam) then
         if (.not. this_calc_ok) calc_ok = .false.

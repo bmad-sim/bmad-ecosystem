@@ -265,6 +265,7 @@ type (tao_model_branch_struct), pointer :: model_branch
 type (bunch_params_struct) :: bunch_params
 
 real(rp) covar, radix, tune3(3), N_mat(6,6), D_mat(6,6), G_inv(6,6), t1(6,6), abz_tunes(3)
+real(rp) mat6(6,6), vec0(6)
 
 integer ix_branch
 integer i, n, ie0, ibf, ief
@@ -283,9 +284,9 @@ branch => tao_lat%lat%branch(ix_branch)
 tao_branch => tao_lat%tao_branch(ix_branch)
 model_branch => u%model_branch(ix_branch)
 ie0 = model_branch%beam%ix_track_start
-if (ie0 == not_set$) return
 
 if (branch%param%particle == photon$) return
+if (ie0 == not_set$ .and. (s%global%lat_sigma_calc_uses_emit_from /= 'lat' .or. branch%param%geometry /= closed$)) return
 if ((.not. u%calc%lat_sigma_for_data .and. s%com%optimizer_running) .and. .not. logic_option(.false., force_calc)) return
 
 ele => branch%ele(ie0)
@@ -299,12 +300,35 @@ if (branch%ix_from_branch >= 0) then  ! Propagate through fork
   ief = branch%ix_from_ele
   tao_branch%lat_sigma(ie0)%mat = tao_lat%tao_branch(ibf)%lat_sigma(ief)%mat
 
-elseif (s%global%init_lat_sigma_from_beam) then
+elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam') then
   call calc_bunch_params (model_branch%ele(ie0)%beam%bunch(s%global%bunch_to_plot), bunch_params, err, print_err)
   tao_branch%lat_sigma(ie0)%mat = bunch_params%sigma
 
 else
-  beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+  if (s%global%lat_sigma_calc_uses_emit_from == 'lat') then
+    if (branch%param%geometry == closed$) then
+      call transfer_matrix_calc(lat, mat6, vec0, 0, 0, ix_branch, .true.)
+      beam_init%a_emit = tao_branch%modes_6d%a%emittance
+      beam_init%b_emit = tao_branch%modes_6d%b%emittance
+      beam_init%sig_z  = tao_branch%modes_6d%sig_z
+      beam_init%sig_pz = tao_branch%modes_6d%sigE_E
+      beam_init%dPz_dz = mat6(6,5) / mat6(5,6)
+      ie0 = 0
+      ele => branch%ele(0)
+    else
+      call out_io (s_warn$, r_name, 'Setting sigma matrix from beam_init structure since branch geometry is open.', &
+                                    'To stop these messages set global%lat_sigma_calc_uses_emit_from = "beam_init".')
+      beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+    endif
+  elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam_init') then
+    beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+  else
+    call out_io (s_error$, r_name, 'Bad setting of global%lat_sigma_calc_uses_emit_from: ' // &
+                                                                  s%global%lat_sigma_calc_uses_emit_from)
+    calc_ok = .false.
+    return
+  endif
+
   D_mat = 0
   D_mat(1,1) = beam_init%a_emit   ! Set by calc_this_emit
   D_mat(2,2) = beam_init%a_emit

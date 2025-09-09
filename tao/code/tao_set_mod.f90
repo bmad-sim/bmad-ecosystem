@@ -619,7 +619,7 @@ case ('track_type')
     return
   endif
   s%u%calc%lattice = .true.
-case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache', 'init_lat_sigma_from_beam')
+case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache', 'lat_sigma_calc_uses_emit_from')
   s%u%calc%lattice = .true.
 case ('symbol_import')
   if (global%symbol_import) then
