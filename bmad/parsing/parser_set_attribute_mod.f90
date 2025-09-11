@@ -1927,8 +1927,10 @@ case ('IS_ON')
     if (bp_com%parser_name == 'bmad_parser2') then
       call set_active_fixer(ele)
     elseif (ele%is_on) then
-      bp_com%ix_fixer = bp_com%ix_fixer + 1
-      ele%value(ix_fixer$) = bp_com%ix_fixer  ! Used to indicate last fixer set on.
+      bp_com%n_fixer_set = bp_com%n_fixer_set + 1
+      ele%value(ix_fixer$) = bp_com%n_fixer_set  ! Used to indicate last fixer set on.
+    else
+      ele%value(ix_fixer$) = 0
     endif
   endif
 

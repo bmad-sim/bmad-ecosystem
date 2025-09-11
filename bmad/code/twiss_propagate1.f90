@@ -3,6 +3,8 @@
 !
 ! Subroutine to propagate the twiss, coupling, and dispersion parameters from the exit end of ele1 to 
 ! the exit end of ele2 if forward is True and propagate in the reverse direciton if forward is False.
+! The Twiss propagation always uses the matrix of ele2 but the starting and ending Twiss is dependent 
+! on the direciton of propagation.
 !
 ! Input:
 !   ele1        -- ele_struct: Element holding the starting Twiss parameters for forwards propagation.

@@ -464,63 +464,75 @@ The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matr
 \section{fixer}\index{commands!fixer}
 \label{s:fixer}
 
-<b>NOTE: The fixer element is in construction and is not yet usable.</b>
+NOTE: The fixer element is in construction and is not yet usable.
 
-The \vn{Fixer} command can be used to set the active fixer and can be used to transfer fixer parameters
-from the from the actual to the stored.
-Format:
+The \vn{Fixer} command can be used to set the active fixer and can be used to transfer fixer
+parameters from the from the actual to the stored.  Format:
 \begin{example}
-  fixer -activate <fixer>
-  fixer -transfer <fixer> <parameters> 
+  fixer activate <fixer>
+  fixer save <fixer> <parameters> 
+  fixer write <fixer>
 \end{example}
+here \vn{<fixer>} is the name of a fixer
 
 The basic stored parameters are:
 \begin{example}
-  spin_x_stored, spin_y_stored, spin_z_stored     ! Particle spin
+  spin_x_stored, spin_y_stored, spin_z_stored     ! Spin group
 
   x_stored, px_stored
-  y_stored, py_stored                             ! Particle phase space coordinates
+  y_stored, py_stored                             ! phase space group
   z_stored, pz_stored
 
-  beta_a_stored, alpha_a_stored, phi_a_stored     ! a-mode Twiss
+  beta_a_stored, alpha_a_stored, phi_a_stored     ! a-mode Twiss group
   dbeta_dpz_a_stored, dalpha_dpz_a_stored
 
-  beta_b_stored, alpha_b_stored, phi_b_stored     ! b-mode Twiss
+  beta_b_stored, alpha_b_stored, phi_b_stored     ! b-mode Twiss group
   dbeta_dpz_b_stored, dalpha_dpz_b_stored
 
-  eta_x_stored, etap_x_stored                     ! Horizontal dispersion
+  eta_x_stored, etap_x_stored                     ! Horizontal dispersion group
   deta_dpz_x_stored, detap_dpz_x_stored
 
-  eta_y_stored, etap_y_stored                     ! Vertical dispersion
+  eta_y_stored, etap_y_stored                     ! Vertical dispersion group
   deta_dpz_y_stored, detap_dpz_y_stored
 
   mode_flip_stored                                ! Logical: Normal modes flipped? 
-  cmat_11_stored, cmat_12_stored                  ! Coupling
+  cmat_11_stored, cmat_12_stored                  ! Coupling group (includes mode flip)
   cmat_21_stored, cmat_22_stored
 \end{example}
 
 In addition, the following sets groups of stored values
 \begin{example}
   all (or blank string)   ! All parameters
-  twiss                   ! A
-  a_twiss
-  b_twiss
-  dispersion
-  x_dispersion
-  y_dispersion
-  cmat
-  chromatic
-  spin
-  orbit
-  x_plane
-  y_plane
-  z_plane
+  twiss                   ! All Twiss (non-orbit) parameters
+  a_twiss                 ! a-mode Twiss group
+  b_twiss                 ! b-mode Twiss group
+  dispersion              ! Both horizontal and vertical dispersion groups
+  x_dispersion            ! Horizontal dispersion group
+  y_dispersion            ! Vertical dispersion group
+  cmat                    ! Coupling group
+  chromatic               ! dbeta, dalpha, deta, and detap parameters
+  spin                    ! Spin group
+  phase_space             ! Phase space group
+  orbit                   ! Phase space and spin groups
+  x_plane                 ! x and px
+  y_plane                 ! y and py
+  z_plane                 ! z and pz
 \end{example}
 
-The \vn{-activate} command activates (turns on) a given fixer element.
+The \vn{activate} subcommand activates (turns on) a given fixer element.
 
-The \vn{}
+The \vn{save} subcommand takes actual parameter values and saves them in the corresponding
+stored parameters.
 
+The \vn{write} subcommand write a file of fixer stored values. This file is in Bmad lattice
+format.
+
+For example:
+\begin{example}
+  fixer save f1 orbit    ! Save orbit parameters in the fixer named f1.
+  fixer activate f1      ! Set fixer f1 to be active.
+  fixer write f1         ! Write out fixer stored values in Bmad lattice format.
+\end{example}
 
 %% flatten --------------------------------------------------------------
 \section{flatten}\index{commands!flatten}

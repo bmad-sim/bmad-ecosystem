@@ -94,9 +94,9 @@ bmad_com%auto_bookkeeper = .false.
 
 if (present(err_flag)) err_flag = .true.
 bp_com = bp_common_struct()
-allocate(bp_com%lat_file_names(1))       !! To get around an ifort bug in Versions 18+
-bp_com%parser_name = 'bmad_parser'       ! Used for error messages.
-bp_com%ix_fixer = 0                      ! Used to indicate last fixer set on.
+allocate(bp_com%lat_file_names(1))   !! To get around an ifort bug in Versions 18+
+bp_com%parser_name = 'bmad_parser'   ! Used for error messages.
+bp_com%n_fixer_set = 0               ! Used with ele%value(ix_fixer$) to indicate last fixer set on.
 debug_line = ''
 err = .false.
 

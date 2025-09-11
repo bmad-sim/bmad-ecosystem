@@ -1,13 +1,8 @@
 !+
 ! Subroutine tao_fixer (switch, word1, word2)
 !
-! Fixer commands which is one of:
-!   <ele_name>
-!   -active {<who>}
-!   -store {<who>}
-!
 ! Input:
-!   switch    -- character(*): Action to take. One on : '-activate', '-save'.
+!   switch    -- character(*): Action to take. One on : 'activate', 'save', 'write'.
 !   word1     -- character(*): First word of command.
 !   word2     -- character(*): Secton word of command.
 !-
@@ -41,10 +36,11 @@ if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
   return
 endif
 
-call tao_next_switch (switch, [character(20):: '-activate', '-on', '-save'], .false., action, err);  if (err) return
+call tao_next_switch (switch, [character(20):: 'activate', 'on', 'save', 'write'], &
+                                        .false., action, err);  if (err) return
 
 select case (action)
-case ('-activate', '-on')
+case ('activate', 'on')
   if (word2 /= '') then
     call out_io(s_error$, r_name, 'Extra stuff on line: ' // word2)
     return
@@ -53,8 +49,11 @@ case ('-activate', '-on')
   call set_active_fixer(fixer, .true.)
   u%calc%lattice = .true.
 
-case ('-save')
+case ('save')
   is_ok = transfer_fixer_params(fixer, .true., word2)
+
+case ('write')
+  
 
 case default
   call out_io(s_error$, r_name, 'Switch not recognized: ' // action)

@@ -453,6 +453,9 @@ reflection patch is not needed in this circumstance.
 
 See \sref{s:list.beginning} for a full list of element attributes.
 
+Note: To set Twiss and/or orbit parameters at a point not at the beginning of a branch,
+use a \vn{fixer} (\sref{s:fixer}) element.
+
 \newpage
 
 %-----------------------------------------------------------------
@@ -2113,9 +2116,12 @@ machine.
 
 <b>This element is in construction and is not yet usable.</b>
 
-A \vn{fixer} element is used to set the particle orbit and/or the Twiss parameters at
-any point in an open geometry lattice branch. The orbit and/or Twiss parameter can then
-be propagated both forward and backwards.
+A \vn{fixer} element is used to set the particle orbit and/or the Twiss parameters at any point in
+an open geometry lattice branch. The orbit and/or Twiss parameters can then be propagated from the
+fixer element both forward and backwards to the ends of the branch.
+
+Note: For the purposes of this discussion, the term ``Twiss'' parameters include coupling and
+dispersion parameters and ``orbit'' includes both phase space and spin coordinates.
 
 General \vn{floor_shift} element attributes are:
 \begin{center}
@@ -2156,22 +2162,38 @@ Attributes specific to a \vn{fixer} elements are:
   cmat_21_stored, cmat_22_stored
 \end{example}
 
-A \vn{fixer} element has zero length. For tracking particles, a \vn{fixer} element is like a
-\vn{marker}. That is, there is no change in phase space coordinates when a particle is tracked
-through a \vn{fixer} element.
+A \vn{fixer} element has zero length. For tracking particles, a \vn{fixer} element acts like a
+\vn{marker} element. That is, there is no change in phase space coordinates when a particle is
+tracked through a \vn{fixer} element.
 
 If the geometry of a branch is \vn{closed} (\sref{s:param}), \vn{fixer} elements have no effect.
 Thus, in the following discussion, it is assumed that the branch geometry is set to \vn{open}.
 Additionally, for this discussion, the term ``\vn{fixer}'' element will include \vn{beginning_ele}
-elements since \vn{beginning_ele} elements essentially act as a fixer element at the beginning
-of a branch.
+elements (\sref{s:begin.ele}) since, for the purposes of setting orbit and/or Twiss parameters
+\vn{beginning_ele} elements essentially act as a fixer element at the beginning of a branch.
 
 A fixer element is ``active'' if its \vn{is_on} parameter (\sref{s:is.on}) is True. One and only one
 fixer element in a branch can be active at a given time. The \bmad bookkeeping routines will ensure
 that this rule is enforced and turning on a given fixer will result in all others being turned off.
-Turning off the active fixer will result in the \vn{beginning_ele} being turned on.
+Turning off the active fixer will result in the \vn{beginning_ele} element being turned on. The
+default for a fixer element defined in a lattice file is to be non-active except for the
+\vn{beginning_ele} which defaults to being active. When a lattice is read in, for a given branch,
+the last fixer that is set active will be the active fixer and if non are set the \vn{beginning_ele}
+will be active.
 
+Essentially, a fixer elements has two classes of Twiss and orbit parameters. There are the
+``stored'' parameters listed above. These parameters may be set by the User. The other class are the
+``actual'' parameters which cannot be set by the User. For a \vn{fixer} element that is active, the
+actual parameters are set equal to the corresponding stored parameters and these actual parameters
+are then used by \Bmad to propagate the Twiss and orbit backwards and forwards through the rest of
+the branch. For fixer elements that are not active, the actual Twiss and orbit is calculated in the
+standard fashion by propagating the Twiss and orbit from the active fixer. The stored Twiss and
+orbit parameter values in a non-active fixer do not affect the Twiss and orbit calculation.
 
+Example:
+\begin{example}
+  f2: fixer, beta_a_stored = 11.37, beta_b_stored = 34.72, is_on = T
+\end{example}
 \newpage
 
 %-----------------------------------------------------------------

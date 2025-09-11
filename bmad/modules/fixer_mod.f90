@@ -85,7 +85,7 @@ end subroutine set_active_fixer
 !   who         -- logical, optional: Who to set. Possibilities are:
 !                   'all', ' ' (default and same as 'all'),
 !                   'twiss', 'a_twiss', 'b_twiss', 'cmat', 'x_dispersion', 'y_dispersion', 'dispersion', 'chromatic',
-!                   'spin', 'orbit', 'x_plane', 'y_plane', 'z_plane',
+!                   'orbit', 'phase_space', 'spin', 'x_plane', 'y_plane', 'z_plane',
 !                   and individual parameters like 'x', 'px', 'cmat_11', etc.
 !
 ! Output:
@@ -117,16 +117,26 @@ recursive subroutine fix_this(branch, fixer, to_stored, is_ok, whom)
 
 type (branch_struct) branch
 type (ele_struct) fixer
+integer ix
 logical to_stored, is_ok
 character(*) whom
+character(20) switch
 
 !
 
-select case (whom)
+call match_word(whom, [character(20):: &
+                  'all', '', 'twiss', 'a_twiss', 'b_twiss', 'x_dispersion', 'y_dispersion', 'cmat', 'dispersion', &
+                  'chromatic', 'orbit', 'spin', 'phase_space', 'x_plane', 'y_plane', 'z_plane', 'spin_x', 'spin_y', 'spin_z', &
+                  'x', 'px', 'y', 'py', 'z', 'pz', 'beta_a', 'alpha_a', 'phi_a', 'dbeta_dpz_a', 'dalpha_dpz_a', 'beta_b', &
+                  'alpha_b', 'phi_b', 'dbeta_dpz_b', 'dalpha_dpz_b', 'eta_x', 'etap_x', 'deta_dpz_x', 'detap_dpz_x', 'eta_y', &
+                  'etap_y', 'deta_dpz_y', 'detap_dpz_y', 'mode_flip', 'cmat_11', 'cmat_12', 'cmat_21', 'cmat_22'], &
+                      ix, .false., .true., switch)
+
+
+select case (switch)
 case ('all', '')
   call fix_this(branch, fixer, to_stored, is_ok, 'twiss')
   call fix_this(branch, fixer, to_stored, is_ok, 'orbit')
-  call fix_this(branch, fixer, to_stored, is_ok, 'spin')
 
 case ('twiss')
   call fix_this(branch, fixer, to_stored, is_ok, 'a_twiss')
@@ -184,12 +194,16 @@ case ('chromatic')
   call fix_this(branch, fixer, to_stored, is_ok, 'deta_dpz_y')
   call fix_this(branch, fixer, to_stored, is_ok, 'detap_dpz_y')
 
+case ('orbit')
+  call fix_this(branch, fixer, to_stored, is_ok, 'spin')
+  call fix_this(branch, fixer, to_stored, is_ok, 'phase_space')
+
 case ('spin')
   call fix_this(branch, fixer, to_stored, is_ok, 'spin_x')
   call fix_this(branch, fixer, to_stored, is_ok, 'spin_y')
   call fix_this(branch, fixer, to_stored, is_ok, 'spin_z')
 
-case ('orbit')
+case ('phase_space')
   call fix_this(branch, fixer, to_stored, is_ok, 'x_plane')
   call fix_this(branch, fixer, to_stored, is_ok, 'y_plane')
   call fix_this(branch, fixer, to_stored, is_ok, 'z_plane')
@@ -207,7 +221,17 @@ case ('z_plane')
   call fix_this(branch, fixer, to_stored, is_ok, 'pz')
 
 case default
-  call fix_this1(branch, fixer, to_stored, is_ok, whom)
+  if (ix == 0) then
+    is_ok = .false.
+    call out_io (s_error$, r_name, 'Fixer element parameter name not recognized: ' // whom)
+    return
+  elseif (ix < 0) then
+    is_ok = .false.
+    call out_io (s_error$, r_name, 'Multiple fixer element parameter name has multiple matches: ' // whom)
+    return
+  endif
+
+  call fix_this1(branch, fixer, to_stored, is_ok, switch)
 end select
 
 end subroutine fix_this
