@@ -134,7 +134,7 @@ type bp_common_struct
   integer :: i_const_tot = 0, i_const_init = 0
   integer :: ios_next_chunk = 0
   integer :: ios_this_chunk = 0
-  integer :: ix_fixer = 0    ! Indicates order of when fixers are turned on in parsing.
+  integer :: n_fixer_set = 0    ! Used to indicate order of when fixers are turned on in parsing.
   ! Note: use %line2_file_name to ID line. %line1_file_name may be blank!
   character(400) :: line1_file_name = ''               ! Name of file from which %input_line1 was read
   character(400) :: line2_file_name = ''               ! Name of file from which %input_line2 was read
