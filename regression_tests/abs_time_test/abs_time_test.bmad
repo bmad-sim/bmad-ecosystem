@@ -19,8 +19,10 @@ lc_old: lcavity, l = 1, rf_frequency = 1e9, gradient = 1e5, voltage_err = 0.2e5,
               phi0 = 0.1, phi0_err = -0.2, num_steps = 1
 lc_new: lc_old, n_rf_steps = 10
 
-latm: line[multipass] = (d, lc_old, lc_new)
-lat: line = (latm, latm)
+line_m: line[multipass] = (d, lc_new)
+aline: line = (d, lc_new)
 
+br_m: line = (line_m, line_m)
+abr: line = (aline, aline)
 
-use, lat
+use, br_m, abr
