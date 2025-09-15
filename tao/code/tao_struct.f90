@@ -669,8 +669,9 @@ type tao_global_struct
   character(16) :: random_engine = ''            ! Non-beam random number engine
   character(16) :: random_gauss_converter = ''   ! Non-beam
   character(16) :: track_type    = 'single'      ! or 'beam'  
-  character(16) :: lat_sigma_calc_uses_emit_from = 'lat'   ! Lattice derived sigma matrix uses emit values from where?
-                                                           !  Other possibilities: "beam", "beam_init", "lat_init".
+  character(20) :: lat_sigma_calc_uses_emit_from = 'lat_or_beam_init'   
+                                                 ! Lattice derived sigma matrix uses emit values from where?
+                                                 !  Other possibilities: "beam", "beam_init".
   character(40) :: prompt_string = 'Tao'
   character(16) :: prompt_color = 'DEFAULT'      ! See read_a_line routine for possible settings.
   character(16) :: optimizer     = 'lm'          ! optimizer to use.

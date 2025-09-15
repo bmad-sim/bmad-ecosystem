@@ -305,7 +305,7 @@ elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam') then
   tao_branch%lat_sigma(ie0)%mat = bunch_params%sigma
 
 else
-  if (s%global%lat_sigma_calc_uses_emit_from == 'lat') then
+  if (s%global%lat_sigma_calc_uses_emit_from == 'lat_or_beam_init') then
     if (branch%param%geometry == closed$) then
       call transfer_matrix_calc(lat, mat6, vec0, 0, 0, ix_branch, .true.)
       beam_init%a_emit = tao_branch%modes_6d%a%emittance
@@ -316,8 +316,6 @@ else
       ie0 = 0
       ele => branch%ele(0)
     else
-      call out_io (s_warn$, r_name, 'Setting sigma matrix from beam_init structure since branch geometry is open.', &
-                                    'To stop these messages set global%lat_sigma_calc_uses_emit_from = "beam_init".')
       beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
     endif
   elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam_init') then

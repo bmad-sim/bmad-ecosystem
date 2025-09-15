@@ -680,7 +680,8 @@ type tao_global_struct:
   disable_smooth_line_calc = F      ! Disable the plotting smooth line calc?
   draw_curve_off_scale_warn = T     ! Display warning on graphs when any part of the 
                                     !   curve is out-of-bounds
-  lat_sigma_calc_uses_emit_from = F ! Init sigma mat set equal to beam distribution? 
+  lat_sigma_calc_uses_emit_from = "lat_or_beam_init 
+                                    ! Init sigma mat set equal to beam distribution? 
   label_lattice_elements = T        ! For lat_layout plots
   label_keys = T                    ! For lat_layout plots
   lattice_calc_on = T               ! Turn on/off beam and single particle calculations.
@@ -783,9 +784,10 @@ This calculation also needs the following parameters:
 The \vn{%lat_sigma_calc_uses_emit_from} switch determines how these parameters are computed. Possible
 values are:
 \begin{example}
-  "lat"           ! Default. Calculated from the lattice. For closed geometry branches. 
-  "beam"          ! Calculated from the beam.
-  "beam_init"     ! Calculated from the beam_init structure.
+  "lat_or_beam_init"  ! Default. Calculated from the lattice For closed geometry branches and
+                      !   from the beam_init structure of open geometry branches. 
+  "beam"              ! Calculated from the beam.
+  "beam_init"         ! Calculated from the beam_init structure.
 \end{example}
 See \sref{s:lat.sig.init} for more details.
 %
@@ -1284,7 +1286,8 @@ If there is no base branch that is forked from, the initial sigma matrix is dete
 three ways depending upon the setting of the parameter \vn{global%lat_sigma_calc_uses_emit_from}
 (\sref{s:tao.global.struct}). Possible settings of this parameter are:
 \begin{example}
-  "lat"           ! Default. Calculated from the lattice. For closed geometry branches. 
+  "lat_or_beam_init"  ! Default. Calculated from the lattice For closed geometry branches and
+                      !   from the beam_init structure of open geometry branches. 
   "beam"          ! Calculated from the beam.
   "beam_init"     ! Calculated from the beam_init structure.
 \end{example}
@@ -1312,16 +1315,16 @@ sigma matrix formed using the initial beam distribution. For example, if the ini
 is read from a file (done if \vn{beam_init%position_file} is set), there is generally no relationship
 between the \vn{beam_init} parameters and the initial beam distribution.
 
-The \vn{"lat"} setting of \vn{global%lat_sigma_calc_uses_emit_from} (which is the default) is for
-use with lattice branches that have a closed geometry where the emittances and other parameters can
-be computed from the lattice. For branches that are open, \tao will fall back to using the
-\vn{beam_init} structure (\sref{s:opti.de.param.struct}).
+The \vn{"lat_or_beam_init"} setting of \vn{global%lat_sigma_calc_uses_emit_from} (which is the default) 
+calculates the emittances and other parameters from radiation integrals for lattice branches 
+that have a closed geometry. For branches that are open, the
+\vn{beam_init} structure (\sref{s:opti.de.param.struct}) will be used.
 
-For everything besides the \vn{"lat"} setting of \vn{global%lat_sigma_calc_uses_emit_from}, 
-the calculation of the sigma matrix starts at the lattice
+For everything besides closed branches with the \vn{"lat_or_beam_init"} setting for
+\vn{global%lat_sigma_calc_uses_emit_from}, the calculation of the sigma matrix starts at the lattice
 element defined by the \vn{track_start} parameter in the \vn{tao_beam_init} namelist
-(\sref{s:beam.init}). With the \vn{"lat"} setting, the initial sigma matrix is taken to be
-at the beginning of the lattice branch.
+(\sref{s:beam.init}). With the \vn{"lat"} setting, the initial sigma matrix is taken to be at the
+beginning of the lattice branch.
 
 %-----------------------------------------------------------------
 \section{Variable Initialization}

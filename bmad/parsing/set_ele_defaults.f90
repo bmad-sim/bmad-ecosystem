@@ -207,8 +207,10 @@ case (lcavity$)
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
   ele%value(longitudinal_mode$) = 0
+  ele%value(n_rf_steps$) = 10
   ! So to not affect the changeover when the step loop was finally implemented in 2/2024
-  ele%value(num_steps$) = 1       
+  ! With the new cavity model, bmad_standard no longer uses num_steps.
+  ele%value(num_steps$) = 1     
 
 case (marker$)
   ele%ref_species = not_set$    ! Used when element is after a converter
