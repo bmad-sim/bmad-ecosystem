@@ -391,7 +391,7 @@ recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 type (expression_tree_struct), target :: tree, t2, op(20)
 type (expression_tree_struct), pointer :: node2, snode
 
-integer i, it2, it, n_node, i_op, n_nonop
+integer i, it2, it, n_node, i_op, n_nonop, level
 logical err_flag, has_op, callit
 character(*) err_str
 
@@ -486,6 +486,35 @@ do i = i_op, 1, -1
   it = it + 1
   tree%node(it) = op(i)
 enddo
+
+! Error check
+
+level = 0
+
+do i = 1, it
+  select case (tree%node(i)%type)
+  case (plus$, minus$, times$, divide$, power$)
+    level = level - 1
+    if (level < 1) then
+      call set_this_err('Bad expression1:' // quote(string), err_str, err_flag)
+      return
+    endif
+  
+  case (unary_plus$, unary_minus$)
+    ! No op
+
+  case (func_parens$)
+    ! No op
+
+  case default
+    level = level + 1
+  end select
+enddo
+
+if (level /= 1) then
+  call set_this_err('Bad expression2:' // quote(string), err_str, err_flag)
+  return
+endif
 
 !
 
