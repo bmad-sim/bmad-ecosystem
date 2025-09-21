@@ -30,7 +30,7 @@ character(60) :: expr(10) = [character(60):: &
                   'bbb*charge_of(aaa)', &
                   'max([1,2,3]) + min(4,2,3)', &
                   'atan2(1,2)', &
-                  'data::twiss.end[1]|model-design']
+                  'data::twiss.end[1]|model-design+1e-10']
 
 !
 
