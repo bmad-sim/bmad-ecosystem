@@ -62,6 +62,7 @@ use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
 use opti_de_mod, only: opti_de_param
 use rad_6d_mod, only: emit_6d
+use expression_mod, only: expression_stack_to_string
 
 implicit none
 
@@ -153,6 +154,8 @@ type (tao_model_element_struct), pointer :: tao_ele
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (all_pointer_struct) a_ptr
 type (control_var1_struct), pointer :: cvar
+type (control_struct), pointer :: ctl
+type (control_ramp1_struct), pointer :: rmp
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy, time1, gamma
@@ -245,16 +248,17 @@ call match_word (cmd, [character(40) :: &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_grad_map', &
           'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
-          'ele:twiss', 'ele:wake', 'ele:wall3d', 'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
+          'ele:twiss', 'ele:wake', 'ele:wall3d', &
+          'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
-          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_header', 'lat_list', 'lat_param_units', &
+          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_header', 'lat_list', 'lat_param_units', 'lord_control', &
           'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_curve_manage', 'plot_graph', 'plot_graph_manage', 'plot_histogram', &
           'plot_lat_layout', 'plot_line', 'plot_list', &
           'plot_symbol', 'plot_template_manage', 'plot_transfer', 'plot1', &
           'ptc_com', 'ring_general', &
-          'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', &
-          'shape_pattern_point_manage', 'shape_set', 'show', 'space_charge_com', 'species_to_int', 'species_to_str', &
+          'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
+          'show', 'slave_control', 'space_charge_com', 'species_to_int', 'species_to_str', &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
@@ -3105,16 +3109,14 @@ case ('ele:head')
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe ele:lord_slave {ele_id}|{which}
+!   pipe ele:lord_slave {ele_id}
 !
 ! Where: 
 !   {ele_id} is an element name or index.
-!   {which} is one of: "model", "base" or "design"
 !
 ! Example:
-!   pipe ele:lord_slave 3@1>>7|model
+!   pipe ele:lord_slave 3@1>>7
 ! This gives lord and slave info on element number 7 in branch 1 of universe 3.
-! Note: The lord/slave info is independent of the setting of {which}.
 ! 
 ! The output is a number of lines.
 ! Each line gives information on an element (element index, etc.).
@@ -3126,7 +3128,6 @@ case ('ele:head')
 ! Parameters
 ! ----------
 ! ele_id
-! which : default=model
 !
 ! Returns
 ! -------
@@ -3138,7 +3139,6 @@ case ('ele:head')
 !  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
-!   which: model
  
 
 case ('ele:lord_slave')
@@ -5206,6 +5206,87 @@ case ('lat_param_units')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% lord_control
+!
+! Output lord information for a given slave element.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe lord_control {ele_id}
+!
+! Where:
+!   {ele_id} is the slave element.
+!
+! Example:
+!   pipe lord_control 2@1>>q01w
+!
+! The output is a number of lines with each line giving the information:
+!     Lord-index;Lord-name;Lord-type;Attribute-controlled;Control-expression;Value
+!
+! Note: The last three fields will only be non-blank for ramper, overlay and group lords with
+! the value field being blank for rampers.
+!
+! Note: For control expressed as a set of knot points (as opposed to an expression),
+! the control-expression will be "knots".
+!
+! Note: The Value field is the contribution to the slave attribute value due to the lord. 
+!
+! Parameters
+! ----------
+! ele_id
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
+!  args:
+!    ele_id: sex_20w
+
+case ('lord_control')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  ! Non-ramper lords
+
+  do ix = 1, ele%n_lord
+    lord => pointer_to_lord (ele, ix, ctl)
+    nl=incr(nl); write (li(nl), '(i0, 5a)') lord%ix_ele, ';', trim(lord%name), ';', trim(key_name(lord%key))
+
+    select case (lord%lord_status)
+    case (super_lord$, multipass_lord$, control_lord$, girder_lord$)
+      li(nl) = trim(li(nl)) // ';;;'
+    case default
+      if (allocated(ctl%stack)) then
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(ctl%stack) // ';' // rstr(ctl%value) 
+      else   ! Knots
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // rstr(ctl%value) // 'knots' // ';' // rstr(ctl%value) 
+      endif
+    end select
+  enddo
+
+  ! Ramper lords
+
+  do ix = 1, ele%n_lord_ramper
+    lord => pointer_to_lord(ele, ix, lord_type = ramper_lord$, ix_control = ic)
+    rmp => lord%control%ramp(ic)
+    nl=incr(nl); write (li(nl), '(i0, 5a)') lord%ix_ele, ';', trim(lord%name), ';', trim(key_name(lord%key))
+
+    if (allocated(rmp%stack)) then
+      li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(rmp%stack) // ';'
+    else  ! Spline
+      li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // 'knots' // ';'
+    endif
+  enddo
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% matrix
 !
 ! Output matrix value from the exit end of one element to the exit end of the other.
@@ -5241,7 +5322,6 @@ case ('lat_param_units')
 !  args:
 !    ele1_id: 1@0>>q01w|design
 !    ele2_id: q02w
-
 
 case ('matrix')
 
@@ -6876,6 +6956,88 @@ case ('shape_set')
 case ('show')
 
   call tao_show_this(trim(line), name, li, nl)
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% slave_control
+!
+! Output slave information for a given lord element.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe slave_control {ele_id}
+!
+! Where:
+!   {ele_id} is the lord element.
+!
+! Example:
+!   pipe slave_control 2@1>>q01w
+!
+! The output is a number of lines with each line giving the information:
+!     Slave-branch;Slave-index;Slave-name;Slave-type;Attribute-controlled;Control-expression;Value
+!
+! Note: The last three fields will only be non-blank for ramper, overlay and group lords with
+! the value field being blank for ramper lords.
+!
+! Note: For control expressed as a set of knot points (as opposed to an expression),
+! the control-expression will be "knots".
+!
+! Note: The Value field is the contribution to the slave attribute value due to the lord.
+!
+! Parameters
+! ----------
+! ele_id
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
+!  args:
+!    ele_id: ASYM_IR
+
+case ('slave_control')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  ! Non-ramper lords
+
+  do ix = 1, ele%n_slave
+    slave => pointer_to_slave (ele, ix, ctl)
+    nl=incr(nl); write (li(nl), '(i0, a, i0, 5a)') slave%ix_branch, ';', slave%ix_ele, ';', trim(slave%name), ';', trim(key_name(slave%key))
+
+    select case (ele%lord_status)
+    case (super_lord$, multipass_lord$, control_lord$, girder_lord$)
+      li(nl) = trim(li(nl)) // ';;;'
+    case default
+      if (allocated(ctl%stack)) then
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(ctl%stack) // ';' // rstr(ctl%value) 
+      else   ! Knots
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // rstr(ctl%value) // 'knots' // ';' // rstr(ctl%value) 
+      endif
+    end select
+  enddo
+
+  ! Ramper lord
+
+  if (ele%lord_status == ramper_lord$) then
+    do ix = 1, size(ele%control%ramp)
+      rmp => ele%control%ramp(ix)
+      nl=incr(nl); write (li(nl), '(i0, 5a)') slave%ix_branch, ';', slave%ix_ele, ';', trim(slave%name), ';', trim(key_name(slave%key))
+
+      if (allocated(rmp%stack)) then
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(rmp%stack) // ';'
+      else  ! Spline
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // 'knots' // ';'
+      endif
+    enddo
+  endif
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------

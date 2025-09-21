@@ -1152,10 +1152,7 @@ can be especially problematical when doing an optimization as it may hinder find
   \item[comb_ds_save] \Newline
 When tracking a beam, the beam parameters (like centroid, beam size matrix, etc) can be saved at 
 equally spaced points by setting \vn{comb_ds_save} to a positive number representing the
-spacing between points. Default is -1 which generates a comb spacing of
-\begin{example}
-  ds_save used = (lattice branch length) / plot_page%n_curve_pts
-\end{example}
+spacing between points. Default is -1. Any value less than zero means no comb will be calculated.
 Using a comb can give better detail when plotting beam parameters as a function of $s$. The comb
 points are index starting at zero and the actual spacing between points will be adjusted to give
 an integer number of points over the region of travel.

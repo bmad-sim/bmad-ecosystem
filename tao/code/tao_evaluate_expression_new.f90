@@ -296,6 +296,7 @@ character(*), parameter :: r_name = 'tree_param_evaluate'
 
 if (.not. associated(tao_tree%node)) return
 n_node = size(tao_tree%node)
+saved_prefix = ''
 
 ! Evaluate
 
@@ -352,10 +353,11 @@ do in = 1, n_node
 
   case (variable$, numeric$, constant$)
     ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
-    saved_prefix = ''
-    if (in > 1) then
-      ix = index(tao_tree%node(in-1)%name, '|')
-      if (ix > 0) saved_prefix = tao_tree%node(in-1)%name(1:ix-1)
+
+    if (saved_prefix /= '' .and. (tnode%name == 'design' .or. tnode%name == 'model' .or. tnode%name == 'base')) then
+      tnode%name = trim(saved_prefix) // tnode%name
+    else
+      saved_prefix = ''
     endif
 
     call tao_param_value_routine (tnode%name, use_good_user, saved_prefix, tnode, err_flag, printit, &
@@ -366,6 +368,10 @@ do in = 1, n_node
   case (square_brackets$, func_parens$, parens$, comma$, compound$)
     call tree_param_evaluate(tnode, expression, err_flag)
     if (err_flag) return
+    if (tnode%type == compound$) then
+      ix = index(tnode%node(1)%name, '|')
+      saved_prefix = tnode%node(1)%name(1:ix)
+    endif
   end select
 enddo
 
