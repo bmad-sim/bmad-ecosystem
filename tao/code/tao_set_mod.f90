@@ -3582,6 +3582,12 @@ character(*), parameter :: r_name = 'tao_set_symbolic_number_cmd'
 
 s_str = adjustl(sym_str)
 
+select case (s_str)
+case ('model', 'design', 'base')
+  call out_io (s_error$, r_name, 'Names "model", "design", and "base" are reserved and cannot be set.')
+  return
+end select
+
 do i = 1, size(physical_const_list)
   if (s_str == physical_const_list(i)%name) then
     call out_io (s_error$, r_name, 'NAME MATCHES NAME OF A PHYSICAL CONSTANT. SET IGNORED.')

@@ -132,7 +132,8 @@ character(12), parameter :: distribution_name(0:4) = [character(12):: 'GARBAGE!'
 
 ! Control element logicals.
 ! Note: super_slave$ and multipass_slave$ are also used as possible settings of the 
-! why_not_free argument in attribute_free(...).
+!   why_not_free argument in attribute_free(...).
+! Note: Currently only feedback elements are marked as a control_lord.
 
 integer, parameter :: ix_slice_slave$ = -2 ! Index to set slice_slave%ix_ele to.
 

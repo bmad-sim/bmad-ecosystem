@@ -433,7 +433,8 @@ integer plane
 
 call out_io (s_warn$, r_name, &
                 'FLOATING OVERFLOW IN TRACKING:' // ele%name, &
-                'PARTICLE WILL BE TAGGED AS LOST.')
+                'PARTICLE WILL BE TAGGED AS LOST.', &
+                'Phase-space position: ' // reals_to_string(orbit%vec, 16, 2, 6))
 
 if (plane == x_plane$) then
   orbit%vec(1) = sign(2 * bmad_com%max_aperture_limit, orbit%vec(1))
