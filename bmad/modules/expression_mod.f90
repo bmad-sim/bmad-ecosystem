@@ -36,8 +36,8 @@ contains
 ! 
 ! An expression string will be split on:
 !   Two character operators: "->", "::" 
-!   operators: +-*/^=:
-!   brackets: [](){}
+!   operators: + -  * / ^ = : &
+!   brackets: [] () {}
 !   comma: ,
 !
 ! Root node name is "root" and is of type root$
@@ -142,7 +142,7 @@ n_node = 0
 !
 
 parsing_loop: do
-  call get_next_chunk (parse_line, word, ix_word, ' []+-*/()^,{}=:|', delim, delim_found)
+  call get_next_chunk (parse_line, word, ix_word, ' &[]+-*/()^,{}=:|', delim, delim_found)
   if (ix_word == 0 .and. .not. delim_found) then
     if (tree%type /= root$ .and. tree%type /= equal$) then
       call set_this_err('Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
@@ -164,7 +164,7 @@ parsing_loop: do
     if (do_combine) then
       cc = upcase(word(ix_word:ix_word))
       if (cc /= 'E' .and. cc /= 'D') do_combine = .false.
-      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{}=:| ', ix_word = ixe)) do_combine = .false.
+      if (.not. is_integer(parse_line, delims = '&+-*/()^,[]{}=:| ', ix_word = ixe)) do_combine = .false.
 
       do i = 1, ix_word-1
         if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
@@ -249,6 +249,7 @@ do in = 1, n_node
            'SIGN', 'NINT', 'FLOOR', 'CEILING', 'CHARGE_OF', 'MASS_OF', 'SPECIES', 'ANTIPARTICLE', &
            'ANOMALOUS_MOMENT_OF', 'COTH', 'SINH', 'COSH', 'TANH', 'ACOTH', 'ASINH')
     node%type = function$
+  case ('&');                    node%type = ampersand$
   case ('->');                   node%type = arrow$
   case ('*');                    node%type = times$
   case ('/');                    node%type = divide$
@@ -267,16 +268,24 @@ do in = 1, n_node
     node%type = plus$
     if (in == 1) then
       node%type = unary_plus$
-    elseif (index('+-*/^', trim(tree%node(in-1)%name)) > 0) then
-      node%type = unary_plus$
+    else
+      select case(tree%node(in-1)%type)
+      case(constant$, variable$, func_parens$, parens$, square_brackets$, curly_brackets$)
+      case default
+        node%type = unary_plus$
+      end select
     endif
 
   case ('-')
     node%type = minus$
     if (in == 1) then
       node%type = unary_minus$
-    elseif (index('+-*/^', trim(tree%node(in-1)%name)) > 0) then
-      node%type = unary_minus$
+    else
+      select case(tree%node(in-1)%type)
+      case(constant$, variable$, func_parens$, parens$, square_brackets$, curly_brackets$)
+      case default
+        node%type = unary_plus$
+      end select
     endif
 
   case default

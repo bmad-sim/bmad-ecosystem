@@ -231,23 +231,21 @@ n_node = size(tree%node)
 
 ! A variable or datume like "3@orbit.x|model" is split by the parser into an array of nodes.
 ! Needed is to combine the nodes
+! Note: "abc[...]" is a var or datum. "abc + [...]" is not.
 
-split_variable = .false.
-do in = 1, n_node
-  node => tree%node(in)
-  select case (node%type)
-  case (colon$, double_colon$, vertical_bar$)
-    split_variable = .true.
-    exit
-  case (square_brackets$)   ! "abc[...]" is a var or datum. "abc + [...]" is not.
-    if (in == 1) cycle
-    select case (tree%node(in-1)%name)
-    case ('+', '-', '*', '/', '^')
-    case default
-      split_variable = .true.
+select case (tree%type)
+case(square_brackets$, func_parens$, parens$, curly_brackets$)
+  split_variable = .false.
+case default
+  split_variable = (n_node > 1)
+  do in = 1, n_node
+    node => tree%node(in)
+    select case (node%type)
+    case (plus$, minus$, unary_plus$, unary_minus$, times$, divide$, power$, func_parens$)
+      split_variable = .false.
     end select
-  end select
-enddo
+  enddo
+end select
 
 if (split_variable) then
   allocate(tao_tree%node(1))

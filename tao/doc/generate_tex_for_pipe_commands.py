@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 # coding: utf-8
 
-# # Generate documentation for Tao pipe commands.
-# This will auto-generate documentation for the tao pipe commands. 
-# It extracts a formatted comment above each case statement.
+# This script will:
+#   1) Generate documentation (pipe-interface-commands.tex) for the tao pipe commands. 
+#       This is done by extracting the formatted comment above each case statement in tao_pipe_cmd.f90.
+#   2) Generate the pipe-interface-commands.json file for use in testing.
 
-# Note: To run tests, do the following:
-#   1) python generate_tex_for_pipe_commands.py   # Run this file
-#   2) cd to pytao directory
-#   3) python generate_interface_commands.py
-#   4) python run_tests.py
+# Note: To run tests, see the documentation in the regression_tests/README.md file.
 
 import json
 import os

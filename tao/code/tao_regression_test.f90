@@ -20,7 +20,7 @@ integer iu, ii
 logical err
 
 character(200) excite_zero(3), veto
-character(60) :: expr(10) = [character(60):: &
+character(60) :: expr(11) = [character(60):: &
                   '[anomalous_moment_of(proton), mass_of(electron)]', &
                   '(46.5/anomalous_moment_of(proton))^2-pi', &
                   '[3,4] * [1]@ele::q1[k1]', &
@@ -30,7 +30,9 @@ character(60) :: expr(10) = [character(60):: &
                   'bbb*charge_of(aaa)', &
                   'max([1,2,3]) + min(4,2,3)', &
                   'atan2(1,2)', &
-                  'data::twiss.end[1]|model-design+1e-10']
+                  'data::twiss.end[1]|model-design+1e-10', &
+                  '[1,2] - [3, lat::r.11[beginning&end->-0.5*l]]' &
+                            ]
 
 !
 
