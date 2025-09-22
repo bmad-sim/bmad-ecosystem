@@ -6,6 +6,9 @@
 ! This will handle open geometry lattices. In this case, dbeta/dpz and dalpha/dpz are are
 ! taken to be what is set in the beginning element.
 !
+! Note: If chrom_calc is to be repeatedly called, supplying low_E_lat, high_E_lat, low_E_orb, and/or high_E_orb will save time
+! since memory will not have to be repeatedly allocated.
+!
 ! Input:
 !   lat           -- lat_struct: Lat
 !   delta_e       -- real(rp): +/- Delta energy used for the calculation. Notice that the energy difference
@@ -35,7 +38,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (lat_struct), optional, target :: low_E_lat, high_E_lat
-type (lat_struct), target :: this_lat
+type (lat_struct), target :: temp_lat
 type (lat_struct), pointer :: lat2
 type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
 type (coord_struct), optional :: orb0
@@ -53,7 +56,7 @@ integer, optional :: ix_branch
 integer nt, nm, stat, ix_br, ie, i0, ix_fix
 
 logical, optional, intent(out) :: err_flag
-logical err, used_this_lat
+logical err
 
 character(*), parameter :: r_name = 'chrom_calc'
 
@@ -78,14 +81,12 @@ dE2 = 0.5_rp * dE
 nt = branch%n_ele_track
 nm = branch%n_ele_max
 
-! lower energy tune
+! Low energy calc.
 
 if (present(low_E_lat)) then
   lat2 => low_E_lat
-  used_this_lat = .false.
 else
-  lat2 => this_lat
-  used_this_lat = .true.
+  lat2 => temp_lat
 endif
 
 lat2 = lat
@@ -171,20 +172,17 @@ branch%ele(i0:nm)%x%detap_dpz = branch2%ele(i0:nm)%x%etap
 branch%ele(i0:nm)%y%detap_dpz = branch2%ele(i0:nm)%y%etap
 branch%ele(i0:nm)%z%detap_dpz = branch2%ele(i0:nm)%z%etap
 
-! higher energy tune
+! Higher energy lattice
 
 if (present(high_E_lat)) then
   lat2 => high_E_lat
-  used_this_lat = .false.
 else
-  lat2 => this_lat
+  lat2 => temp_lat
 endif
 
-if (.not. used_this_lat) then
-  lat2 = lat
-  branch2 => lat2%branch(ix_br)
-  call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
-endif
+lat2 = lat
+branch2 => lat2%branch(ix_br)
+call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
 
 if (present(high_E_orb)) then
   call reallocate_coord (high_E_orb, branch%n_ele_max)
@@ -268,5 +266,6 @@ branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y
 branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%detap_dpz) / dE
 
 if (present(err_flag)) err_flag = .false.
+if (.not. present(low_E_lat) .or. .not. present(high_E_lat)) call deallocate_lat_pointers(temp_lat)
 
 end subroutine

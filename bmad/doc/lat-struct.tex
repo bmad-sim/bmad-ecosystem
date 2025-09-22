@@ -69,7 +69,7 @@ branches. Example:
 
 
 %----------------------------------------------------------------------------
-\section{Pointers}
+\section{Pointers: Allocation and Deallocation}
 \label{s:lat:point}
 \index{lat_struct!pointers}
 
@@ -86,8 +86,8 @@ lattice1 will hold the same information as \vn{lattice2} with all the lattice el
 place but the pointers in \vn{lattice1} will point to different locations in physical memory so that
 changes to one lattice will not affect the other.
 
-\Hyperref{r:deallocate.lat.pointers}{deallocate_lat_pointers} Initial allocation of the pointers in
-a \vn{lat_struct} variable is generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} and
+Initial allocation of the pointers in
+a \vn{lat_struct} instance is generally handled by the \Hyperref{r:bmad.parser}{bmad_parser} and
 \Hyperref{r:lat.equal.lat}{lat_equal_lat} routines.  Once allocated, local \vn{lat_struct} variables
 must have the save attribute or the pointers within must be appropriately deallocated before leaving
 the routine.
