@@ -1,7 +1,8 @@
 !+
 ! Subroutine deallocate_lat_pointers (lat)
 !
-! Subroutine to deallocate the pointers in a lat.
+! Routine to deallocate the pointers in a lat.
+! This routine must be called before a lat_struct instance goes out-of-scope. 
 !
 ! Input:
 !   lat -- lat_struct: Lat with pointers.
