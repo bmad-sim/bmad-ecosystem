@@ -247,7 +247,8 @@ do in = 1, n_node
            'SINC', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'MODULO', &
            'ABS', 'SQRT', 'LOG', 'EXP', 'FACTORIAL', 'RAN', 'RAN_GAUSS', 'INT', &
            'SIGN', 'NINT', 'FLOOR', 'CEILING', 'CHARGE_OF', 'MASS_OF', 'SPECIES', 'ANTIPARTICLE', &
-           'ANOMALOUS_MOMENT_OF', 'COTH', 'SINH', 'COSH', 'TANH', 'ACOTH', 'ASINH')
+           'ANOMALOUS_MOMENT_OF', 'COTH', 'SINH', 'COSH', 'TANH', 'ACOTH', 'ASINH', 'SUM', &
+           'AVERAGE', 'RMS')
     node%type = function$
   case ('&');                    node%type = ampersand$
   case ('->');                   node%type = arrow$
@@ -413,7 +414,7 @@ has_op = .false.
 do it2 = 1, n_node
   node2 => tree%node(it2)
 
-  ! Species names "He++" are not to be put are to be consoladated
+  ! Species names like "He++" are not to be put in reverse polish.
   callit = .true.
   if (node2%type == func_parens$) then
     select case (tree%node(it2-1)%name)

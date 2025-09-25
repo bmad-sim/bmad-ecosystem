@@ -979,6 +979,7 @@ call init_attribute_name1 (beginning_ele$, cmat_21_stored$,                 'CMA
 call init_attribute_name1 (beginning_ele$, cmat_22_stored$,                 'CMAT_22_STORED')
 call init_attribute_name1 (beginning_ele$, mode_flip_stored$,               'MODE_FLIP_STORED')
 
+call init_attribute_name1 (fixer$, is_on$,                              'IS_ON')
 call init_attribute_name1 (fixer$, spin_x_stored$,                      'SPIN_X_STORED')
 call init_attribute_name1 (fixer$, spin_y_stored$,                      'SPIN_Y_STORED')
 call init_attribute_name1 (fixer$, spin_z_stored$,                      'SPIN_Z_STORED')
