@@ -2454,13 +2454,13 @@ integer, parameter :: l_func_parens$ = 42, sinh$ = 49, cosh$ = 50, tanh$ = 51, c
 integer, parameter :: acosh$ = 54, atanh$ = 55, acoth$ = 56, min$ = 57, max$ = 58, modulo$ = 59
 integer, parameter :: root$ = 60, parens$ = 61, square_brackets$ = 62, curly_brackets$ = 63, func_parens$ = 64
 integer, parameter :: arrow$ = 65, equal$ = 66, colon$ = 67, double_colon$ = 68, compound$ = 69, function$ = 70
-integer, parameter :: vertical_bar$ = 71, blank$ = 72
+integer, parameter :: vertical_bar$ = 71, blank$ = 72, ampersand$ = 73
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "min", "max", "rms" and "average" are not implemented in Bmad but is used by Tao.
 ! Note: "species" is a function and "species_const" is a specified species like "electron".
 
-character(20), parameter :: expression_op_name(72) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(73) = [character(20) :: '+', '-', '*', '/', &
                                 '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                 'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                 'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
@@ -2469,7 +2469,7 @@ character(20), parameter :: expression_op_name(72) = [character(20) :: '+', '-',
                                 '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign', &
                                 'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth', 'min', &
                                 'max', 'modulo', 'root', '()', '[]', '{}', '()', '->', '=', ':', '::', 'compound', &
-                                '?!+Function', '|', ' ']
+                                '?!+Function', '|', ' ', '&']
 
 integer, parameter :: expression_eval_level(69) = [1, 1, 3, 3, 0, 0, 4, 2, 2, -1, &
               9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &
