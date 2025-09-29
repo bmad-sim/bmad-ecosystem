@@ -54,7 +54,7 @@ real(rp) knl(0:n_pole_maxx), tilt(0:n_pole_maxx), eps6
 real(rp) kick_magnitude, bend_factor, quad_factor, radius0, step_info(7), dz_dl_max_err
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status, z_material
+integer i, j, ix, ig, n, n_div, ixm, ix_pole_max, particle, geometry, i_max, status, z_material, n_cell
 
 character(20) ::  r_name = 'attribute_bookkeeper'
 
@@ -665,13 +665,16 @@ case (lcavity$)
     val(rf_wavelength$) = 0
   endif
 
-  ! multipass_slaves will inherit from lord
+  ! Note: multipass_slaves will inherit from lord
   if (ele%slave_status /= multipass_slave$) then
+    ! Make sure active length is slightly less than the element length to avoid round-off during tracking.
     if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
-      val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
+      n_cell = max(1, min(nint(ele%value(n_cell$)), floor(2.0_rp * val(l$) / val(rf_wavelength$))))
+      val(l_active$) = min(0.5_rp * val(rf_wavelength$) * n_cell, val(l$)-10*bmad_com%significant_length)
     else
-      val(l_active$) = val(l$)
+      val(l_active$) = val(l$) - 10*bmad_com%significant_length
     endif
+    val(l_active$) = max(0.0_rp, val(l_active$))
   endif
 
   val(voltage_tot$)  = val(voltage$)  + val(voltage_err$)

@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 344
+integer, parameter :: bmad_inc_version$ = 345
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1307,6 +1307,7 @@ type rf_stair_step_struct
   real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
   real(rp) :: time = 0        ! Reference particle time at the kick point with respect to beginning of element.
+  real(rp) :: s0 = 0          ! S-position at beginning of drift region relative to the beginning of the element.
   real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
   integer :: ix_step = 0      ! Step index in ele%rf%steps(:) array
 end type
@@ -1314,12 +1315,10 @@ end type
 ! Element RF parameter struct.
 ! rf_ele_struct%steps(0:N+1) is and array of steps from zero to N+1 where N = ele%value(n_rf_steps$).
 ! A single step is a drift followed by an energy kick.
-! The first and last kicks are at the element ends with the
-! the end kicks being half of the interior kicks.
-! Exceptions:
-!   The zeroth step is just the initial kick (no drift). A particle at step zero is just outside the entrance end.
-!   The last (N+1)th step is a "phantom" (no drift and no kick) that just holds the final energy value.
-!     A particle at the (N+1)th step is just outside the exit end.
+! Note:
+!   The last (N+1)th step is a "phantom" with no kick.
+! The end kicks are at the ends of the active region with region length = n_cell * wavelength/2
+! The end kicks are half of the interior kicks.
 ! Note: ele%rf is not allocated for slice and super slaves.
 
 type rf_ele_struct

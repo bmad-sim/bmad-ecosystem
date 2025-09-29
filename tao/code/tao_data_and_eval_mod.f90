@@ -136,7 +136,7 @@ else
   endif
   use_dflt_ele = .false.
 
-  ! Get ele_ref & ele -> s_offset
+  ! Parse "ele_ref&ele->s_offset" or "ele_ref->s_offset1&ele->s_offset2" constructs
 
   ix = index(name, '->')
   if (ix /= 0) then
