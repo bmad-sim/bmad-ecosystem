@@ -115,12 +115,12 @@ using Beamlines
 @ele end1 = Marker()
 
 
-l1 = Beamline( ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
+l1 = Beamline([ ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
    crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1,
    gkicker1, hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1, quadrupole1,
    quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3,
    sad_mult1, sad_mult2, sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1,
    solenoid2, sol_quad1, sol_quad2, thick_multipole1, taylor1, vkicker1, lcavity1, lcavity2, lcavity3,
-   end1]; R_ref =   8.59581E+05            , species_ref = Species("positron"))
+   end1]; R_ref =   8.59581E+05, species_ref = Species("positron"))
 
 lat = expand("l1", [l1])
