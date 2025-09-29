@@ -1003,7 +1003,7 @@ end type
 
 type tao_model_branch_struct
   type (tao_model_element_struct), allocatable :: ele(:) ! Per element information
-  type (tao_beam_branch_struct) beam
+  type (tao_beam_branch_struct) :: beam 
 end type
 
 ! Beam information for a universe 

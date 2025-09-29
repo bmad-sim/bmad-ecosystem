@@ -63,7 +63,7 @@ bmad-doc/tutorial_ring_design/doc/tutorial_ring_design.pdf
 **/doit
 
 regression_tests/*/output.now
-regression_tests/write_foreign_test/write_foreign_test.*.now
+regression_tests/write_foreign_test/*.now
 regression_tests/*/lat.bmad
 regression_tests/*/r
 regression_tests/*/rr
