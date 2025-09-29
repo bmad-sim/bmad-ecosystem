@@ -3935,29 +3935,33 @@ case ('particle')
   model_branch => u%model_branch(ix_branch)
   branch => u%model%lat%branch(ix_branch)
 
+  if (.not. allocated(model_branch%beam%beam_at_start%bunch)) then
+    call out_io (s_error$, r_name, 'NO BEAM TRACKING HAS BEEN DONE.')
+    return
+  endif
+
   ! show lost
 
   if (show_lost) then
-    bunch => u%model_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
+    do ie = branch%n_ele_track, 0, -1    ! Find last saved beam.
+      if (allocated(model_branch%ele(ie)%beam%bunch)) exit
+    enddo
+    bunch => model_branch%ele(ie)%beam%bunch(nb)
     nl=nl+1; write(lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
-    nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
+    nl=nl+1; lines(nl) = '    Ix               Ix_Ele  Ele_Name '
     do i = 1, size(bunch%particle)
       if (bunch%particle(i)%state == alive$) cycle
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
       ie = bunch%particle(i)%ix_ele
-      nl=nl+1; write(lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
+      nl=nl+1; write(lines(nl), '(i6, a14, i7, 2x, a)') i, &
+                    trim(coord_state_name(bunch%particle(i)%state)), ie, branch%ele(ie)%name
     enddo
     result_id = 'particle:lost'
     return
   endif
 
   ! check
-
-  if (.not. allocated(model_branch%beam%beam_at_start%bunch)) then
-    call out_io (s_error$, r_name, 'NO BEAM TRACKING HAS BEEN DONE.')
-    return
-  endif
 
   if (nb < 1 .or. nb > size(model_branch%beam%beam_at_start%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = [ nb ])

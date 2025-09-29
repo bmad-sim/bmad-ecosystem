@@ -638,6 +638,7 @@ do
             'TOO MANY PARTICLES HAVE BEEN LOST AT ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name), &
             'PERCENTAGE OF DEAD PARTICLES OVER GLOBAL%BEAM_DEAD_CUTOFF OF: ' // real_str(s%global%beam_dead_cutoff, 6, 4), &
             'WILL STOP TRACKING AT ELEMENT: ' // ele_full_name(ele))
+    tao_model_ele(ie)%beam = beam   ! Make sure we save lost info.
     exit
   endif
 

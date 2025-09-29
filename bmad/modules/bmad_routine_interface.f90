@@ -3810,11 +3810,11 @@ subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, i
   logical, optional :: include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_julia (julia_name, lat, err_flag)
+subroutine write_lattice_in_scibmad (scibmad_name, lat, err_flag)
   import
   implicit none
   type (lat_struct), target :: lat
-  character(*) :: julia_name
+  character(*) :: scibmad_name
   logical, optional :: err_flag
 end subroutine
 
