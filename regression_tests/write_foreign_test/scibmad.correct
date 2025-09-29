@@ -3,7 +3,7 @@
 
 using Beamlines
 
-@ele ab_multipole1 = Multipole(Ks2L =   0.00000E+00, Kn2L =   0.00000E+00, tilt =   1.00000E-01)
+@ele ab_multipole1 = Multipole(Ks2L =   2.00000E+02, Kn2L =   2.00000E+02, tilt =   1.00000E-01)
 @ele ac_kicker0123456789 = ACKicker(L =   3.00000E-01, Kn0 =  -3.33333E-02)
 @ele ac_kicker2 = ACKicker(L =   4.00000E-01, Ks0 =   2.50000E-02)
 @ele beambeam1 = BeamBeam(x_offset =   3.00000E-03, y_offset =   3.00000E-03, y_pitch =   5.00000E-02,
@@ -30,8 +30,8 @@ using Beamlines
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   1.00000E-01)
 @ele match1 = Match()
 @ele monitor1 = Drift(L =   4.50000E+00)
-@ele multipole1 = Multipole(Ks1L =   0.00000E+00, Kn1L =   0.00000E+00, Ks3L =   0.00000E+00,
-   Kn3L =   0.00000E+00)
+@ele multipole1 = Multipole(Ks1L =  -1.00000E+00, Kn1L =   6.12323E-17, Ks3L =   3.08046E+00,
+   Kn3L =  -3.28036E+00)
 @ele octupole1 = Octupole(L =   4.50000E+00, Kn3 =   1.09739E+01, x_offset =   1.00000E-02,
    y_pitch =   1.00000E-03, tilt =   3.92699E-01)
 @ele patch1 = Patch(L =   4.00499E-03, x_offset =   1.00000E-03, y_offset =   2.00000E-03,
@@ -62,7 +62,7 @@ using Beamlines
    rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phase =   1.00000E-01)
 @ele sad_mult1 = SadMult(L =   1.00000E-01, Ks1 =   2.00000E+00, Kn2 =   8.00000E+04,
    Ks10 =   3.62880E+37, ksol =   5.00000E-01)
-@ele sad_mult2 = SadMult(Ks1L =   0.00000E+00, Kn2L =   0.00000E+00, Ks10L =   0.00000E+00,
+@ele sad_mult2 = SadMult(Ks1L =   2.00000E-02, Kn2L =   8.00000E+01, Ks10L =   3.62880E+26,
    ksol =   5.00000E-01)
 @ele sbend1 = SBend(L =   6.00000E-01, ref_tilt =   1.00000E-01, Ks0 =  -1.65834E-04,
    Kn0 =   1.66389E-05, Kn1 =   5.00000E-01, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
