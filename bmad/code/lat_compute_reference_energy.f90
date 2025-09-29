@@ -484,7 +484,7 @@ end subroutine lat_compute_ref_energy_and_time
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag, include_downstream_end)
+! Subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 !
 ! Routine to compute the reference energy and reference time at the end of an element 
 ! given the reference enegy and reference time at the start of the element.
@@ -495,15 +495,13 @@ end subroutine lat_compute_ref_energy_and_time
 !     %time_ref_orb_in  -- Starting orbit for ref time calc.
 !   param          -- lat_Param_struct: Lattice parameters.
 !   err_flag       -- logical: Set true if there is an error. False otherwise.
-!   include_downstream_end -- logical, optional: Used for lcavity slave elements to decide if the
-!                               energy step at the cavity downstream end is to be included.
 !
 ! Output:
 !   ele         -- ele_struct: Lattice element with reference energy and time.
 !     %time_ref_orb_out  -- Ending orbit for ref time calc.
 !-
 
-subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag, include_downstream_end)
+subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
 
 use bmad_interface, dummy => ele_compute_ref_energy_and_time
 use radiation_mod, only: track1_radiation
@@ -524,7 +522,6 @@ real(rp) value_saved(num_ele_attrib$), ele_ref_time, t
 integer i, n, key, i0, i1
 integer, parameter :: const_ref_energy$ = -999
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
-logical, optional :: include_downstream_end
 
 character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
@@ -603,7 +600,7 @@ case (lcavity$, const_ref_energy$)
 
   n = nint(ele%value(n_rf_steps$))
   if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$ .and. n > 0) then
-    call lcavity_rf_step_setup(ele, include_downstream_end)
+    call lcavity_rf_step_setup(ele)
     do_track = .false.
   endif
 

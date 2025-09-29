@@ -1,5 +1,5 @@
 !+
-! Function ele_rf_step_index(E_ref, s_rel, ele, include_downstream_end) result (ix_step)
+! Function ele_rf_step_index(E_ref, s_rel, ele) result (ix_step)
 !
 ! Routine to return the step index in the ele%rf%steps(:) array at a particular s-position or referece energy.
 !
@@ -7,26 +7,23 @@
 ! s_rel corresponds to a slice boundary.
 !
 ! Input:
-!   E_ref                   -- real(rp): Reference energy of step. If negative, ignore and use s_rel.
-!   s_rel                   -- real(rp): S-position relative to the beginning of the element
-!   ele                     -- real(rp): RF cavity.
-!   include_downstream_end  -- logical, optional: Used to remove ambiguity when creating super and slice slaves and E_ref
-!                               is not available. Default is True.
+!   E_ref         -- real(rp): Reference energy of step. If negative, ignore and use s_rel.
+!   s_rel         -- real(rp): S-position relative to the beginning of the element
+!   ele           -- real(rp): RF cavity.
 !
 ! Output:
 !   ix_step       -- integer: Corresponding index in the ele%rf%steps(:) array.
 !-
 
-function ele_rf_step_index(E_ref, s_rel, ele, include_downstream_end) result (ix_step)
+function ele_rf_step_index(E_ref, s_rel, ele) result (ix_step)
 
 use bmad_routine_interface, dummy => ele_rf_step_index
 
 implicit none
 
 type (ele_struct) :: ele
-real(rp) E_ref, dE, dE_rel, s_rel
+real(rp) E_ref, dE, dE_rel, s_rel, r_rel
 integer ix_step, n_step
-logical, optional :: include_downstream_end
 character(*), parameter :: r_name = 'ele_rf_step_index'
 
 !
@@ -42,12 +39,13 @@ dE = ele%value(E_tot$) - ele%value(E_tot_start$)
 ! dE == 0 case. Must use s_rel in this case.
 
 if (dE == 0 .or. E_ref < 0) then
-  if (s_rel == 0) then
+  r_rel = (s_rel - 0.5_rp * (ele%value(l$) - ele%value(l_active$))) / ele%rf%ds_step
+  if (r_rel <= 0) then
     ix_step = 0
-  elseif (s_rel == ele%value(l$) .or. (logic_option(.true.) .and. s_rel > ele%value(l$) - bmad_com%significant_length)) then
+  elseif (r_rel > n_step) then
     ix_step = n_step + 1
   else
-    ix_step = int(n_step * s_rel / ele%value(l$)) + 1
+    ix_step = int(r_rel) + 1
   endif
   return
 endif
