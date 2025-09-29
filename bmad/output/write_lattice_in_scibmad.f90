@@ -402,7 +402,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(a)')
   name = downcase(branch%name)
   if (name == '') name = 'lat_line'
-  line = trim(name) // ' = Beamline('     ! // quote(name) // ', [' // trim(branch%ele(0)%name) // ','
+  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(branch%ele(0)%name) // ','
 
   in_multi_region = .false.
   do ie = 1, branch%n_ele_track
@@ -442,7 +442,8 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   !!! line = line(:len_trim(line)-1) // '], geometry = ' // trim(downcase(geometry_name(branch%param%geometry))) // ')'
-  line = line(:len_trim(line)-1) // ']; R_ref = ' // re_str(branch%ele(0)%value(p0c$)/charge_of(branch%param%particle)) // &
+  line = line(:len_trim(line)-1) // ']; R_ref = ' // &
+                    trim(re_str(branch%ele(0)%value(p0c$)/charge_of(branch%param%particle))) // &
                     ', species_ref = Species(' // quote(openpmd_species_name(branch%param%particle)) // '))'
   call write_lat_line (line, iu, .true., scibmad = .true.)
 enddo
