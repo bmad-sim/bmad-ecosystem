@@ -875,9 +875,9 @@ do ib = 0, ubound(lat%branch, 1)
         line = trim(line) // ', ' // trim(attrib%name) // ' = ' // re_str(val)
       case (is_switch$)
         name = switch_attrib_value_name (attrib%name, val, ele, is_default)
-          if (.not. is_default) then
-            line = trim(line) // ', ' // trim(attrib%name) // ' = ' // name
-          endif
+        if (.not. is_default) then
+          line = trim(line) // ', ' // trim(attrib%name) // ' = ' // name
+        endif
       end select
 
     enddo attribute_loop ! attribute loop
