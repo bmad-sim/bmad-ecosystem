@@ -1,6 +1,6 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, 
-!              type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
+!              type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, type_internal, lines, n_lines)
 !
 ! Subroutine to print or put in a string array information on a lattice element.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -39,6 +39,7 @@
 !                           = all$     => Everything.
 !   type_wall         -- logical, optional: Default is False. If True, print wall info. 
 !   type_rad_kick     -- logical, optional: Default is False. If True, print synch rad kick info.
+!   type_internal     -- logical, optional: Default is False. If True, print some internal parameters.
 !
 ! Output       
 !   lines(:)     -- character(200), allocatable, optional: Character array to hold the output. 
@@ -48,7 +49,7 @@
 !-
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, &
-             type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
+             type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, type_internal, lines, n_lines)
 
 use bmad_interface, except_dummy => type_ele
 use expression_mod
@@ -89,7 +90,7 @@ type (surface_segmented_struct), pointer :: seg
 type (surface_displacement_struct), pointer :: disp
 type (surface_h_misalign_struct), pointer :: hmis
 type (pixel_detec_struct), pointer :: pixel
-
+type (rf_stair_step_struct), pointer :: step
 
 integer, optional, intent(in) :: type_control, type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
@@ -115,8 +116,7 @@ character(8) angle, index_str
 
 character(*), parameter :: r_name = 'type_ele'
 
-logical, optional, intent(in) :: type_taylor, type_wake
-logical, optional, intent(in) :: type_zero_attrib
+logical, optional, intent(in) :: type_taylor, type_wake, type_zero_attrib, type_internal
 logical, optional, intent(in) :: type_floor_coords, type_wall, type_rad_kick
 logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, is_zero1, is_zero2
 
@@ -923,7 +923,23 @@ if (associated(ph)) then
   endif
 endif
 
+! lcavity
 
+if (logic_option(.false., type_internal) .and. ele%key == lcavity$ .and. associated(ele%rf)) then
+  if (li(nl) /= '') then
+    nl=nl+1; li(nl) = ' '
+  endif
+
+  nl=nl+1; li(nl) = 'RF Stair Steps:'
+  do i = 0, ubound(ele%rf%steps, 1)
+    step => ele%rf%steps(i)
+    nl=nl+1; li(nl) = 'Step ' // int_str(i)
+    nl=nl+1; write(li(nl), '(a, 3es14.6)')       '    E_tot0, E_tot1, dE_amp:', step%E_tot0, step%E_tot1, step%dE_amp
+    nl=nl+1; write(li(nl), '(a, 2es14.6)')       '    p0c, p1c:              ', step%p0c, step%p1c
+    nl=nl+1; write(li(nl), '(a, es14.6, f10.6)') '    Time, scale:           ', step%time, step%scale
+    nl=nl+1; write(li(nl), '(a, 2f14.9)')        '    s0, s:                 ', step%s0, step%s
+  enddo
+endif
 
 ! Encode branch info
 

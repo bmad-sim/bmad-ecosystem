@@ -193,16 +193,14 @@ do i = 0, nn
   step1 => steps(i+1)
   step1%E_tot0 = step%E_tot1
   step1%p0c = p1c
-  if (i /= nn) then
-    beta = step1%p0c / step1%E_tot0    ! Ref beta in drift after this step
-    time_ref = time_ref + (step1%s - step%s) / (c_light * beta)
-  endif
+  beta = step1%p0c / step1%E_tot0    ! Ref beta in drift after this step
+  time_ref = time_ref + (step1%s - step%s) / (c_light * beta)
 enddo
 
 step => steps(nn+1)
 step%E_tot1 = step%E_tot0
 step%p1c = step%p0c
-step%time = steps(nn)%time
+step%time = time_ref
 
 ele%value(E_tot$) = step%E_tot1
 ele%value(p0c$)   = step%p1c
