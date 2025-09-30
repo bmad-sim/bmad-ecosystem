@@ -16,13 +16,19 @@ use fixer_mod
 implicit none
 
 type (ele_struct), pointer :: fixer
+type (ele_struct) :: dflt_fixer
 type (tao_universe_struct), pointer :: u
+type (ele_attribute_struct) attrib
 
 character(*) switch, word1, word2
+character(40) action, name, str_val
 character(60) ele_str
-character(40) action
+character(200) file_name, line1, line2
 character(*), parameter :: r_name = 'tao_fixer'
-logical is_ok, err
+
+real(rp) val
+integer j, iu
+logical is_ok, err, is_default
 
 !
 
@@ -53,7 +59,42 @@ case ('save')
   is_ok = transfer_fixer_params(fixer, .true., word2)
 
 case ('write')
-  
+  file_name = word2
+  if (file_name == '') file_name = trim(fixer.name) // '.bmad'
+  call init_ele(dflt_fixer, fixer$)
+
+  iu = lunget()
+  open (iu, file = file_name)
+  write (line1, '(2a)') trim(fixer%name), ': fixer'
+
+  do j = 1, num_ele_attrib$
+    attrib = attribute_info(fixer, j)
+    if (attrib%state /= is_free$) cycle
+    val = fixer%value(j)
+    if (val == dflt_fixer%value(j)) cycle
+    if (attribute_type(attrib%name) == is_switch$) then
+      name = switch_attrib_value_name (attrib%name, val, fixer, is_default)
+      if (is_default) cycle
+    endif
+
+    write (iu, '(2a)') trim(line1), ','
+
+    select case (attribute_type(attrib%name))
+    case (is_logical$)
+      write (line1, '(3a, l1)') '      ', trim(attrib%name), ' = ', (val /= 0)
+    case (is_integer$)
+      write (line1, '(3a, i0)') '      ', trim(attrib%name), ' = ', int(val)
+    case (is_real$)
+      write(str_val, '(es25.17e3)') val
+      write (line1, '(4a)') '      ', trim(attrib%name), ' = ', str_val
+    case (is_switch$)
+      write (line1, '(4a)') '      ', trim(attrib%name), ' = ', name
+    end select
+  enddo
+
+  write (iu, '(2a)') trim(line1)
+  close(iu)
+  call out_io(s_info$, r_name, 'Created lattice file: ' // file_name)
 
 case default
   call out_io(s_error$, r_name, 'Switch not recognized: ' // action)

@@ -2484,7 +2484,7 @@ do ii = 1, size(curve%x_line)
   end select
 
   call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                          tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
+               tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
@@ -2526,7 +2526,7 @@ if (curve%ele_ref_name /= '') then
     endif
 
     call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                  tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
+           tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2539,9 +2539,9 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 contains
 
 subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                                   tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag)
+                                tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag)
 
-type (coord_struct) orbit, orb_end
+type (coord_struct) orbit, orb_end, orb(0:)
 type (tao_lattice_branch_struct) :: tao_branch
 type (ele_struct), target :: ele_to_s, ele_ref, ele_dum, high_ele, low_ele, ele_here
 type (lat_struct) lat

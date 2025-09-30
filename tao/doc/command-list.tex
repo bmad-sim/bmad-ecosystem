@@ -470,10 +470,10 @@ The \vn{Fixer} command can be used to set the active fixer and can be used to tr
 parameters from the from the actual to the stored.  Format:
 \begin{example}
   fixer activate <fixer>
-  fixer save <fixer> <parameters> 
-  fixer write <fixer>
+  fixer save <fixer> \{<parameters>\}
+  fixer write <fixer> \{<file-name>\}
 \end{example}
-here \vn{<fixer>} is the name of a fixer
+here \vn{<fixer>} is the name of a fixer element
 
 The basic stored parameters are:
 \begin{example}
@@ -500,7 +500,7 @@ The basic stored parameters are:
   cmat_21_stored, cmat_22_stored
 \end{example}
 
-In addition, the following sets groups of stored values
+In addition, the following groups of stored values are recognized:
 \begin{example}
   all (or blank string)   ! All parameters
   twiss                   ! All Twiss (non-orbit) parameters
@@ -522,16 +522,17 @@ In addition, the following sets groups of stored values
 The \vn{activate} subcommand activates (turns on) a given fixer element.
 
 The \vn{save} subcommand takes actual parameter values and saves them in the corresponding
-stored parameters.
+stored parameters. Either an individual or a parameter group may be used for \vn{<parameters>}.
 
 The \vn{write} subcommand write a file of fixer stored values. This file is in Bmad lattice
-format.
+format. The default file name is \vn{<fixer>.bmad} where \vn{<fixer>} is the name of the fixer
+element.
 
 For example:
 \begin{example}
   fixer save f1 orbit    ! Save orbit parameters in the fixer named f1.
   fixer activate f1      ! Set fixer f1 to be active.
-  fixer write f1         ! Write out fixer stored values in Bmad lattice format.
+  fixer write f1         ! Write fixer stored values in Bmad lattice file f1.bmad.
 \end{example}
 
 %% flatten --------------------------------------------------------------

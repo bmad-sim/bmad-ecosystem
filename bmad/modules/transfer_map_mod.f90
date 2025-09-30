@@ -395,6 +395,7 @@ else
   v6 = 0
   call init_coord(orb, v6, branch%ele(ix_ele), inside$)
 endif
+orb%time_dir = 1  ! Needed in the case that the orbit passedin was the result of reverse time dir tracking.
 
 ! One turn or not calc?
 
