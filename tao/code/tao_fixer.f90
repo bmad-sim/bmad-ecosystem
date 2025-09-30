@@ -60,7 +60,7 @@ case ('save')
 
 case ('write')
   file_name = word2
-  if (file_name == '') file_name = trim(fixer.name) // '.bmad'
+  if (file_name == '') file_name = trim(fixer%name) // '.bmad'
   call init_ele(dflt_fixer, fixer$)
 
   iu = lunget()
