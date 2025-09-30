@@ -195,6 +195,7 @@ logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc, clean
 logical print_ptc, force_use_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms, do_inverse
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
+logical print_internal
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
@@ -1589,6 +1590,7 @@ case ('element')
   print_super_slaves = .true.
   lat_type = model$
   print_ptc = .false.
+  print_internal = .false.
   attrib0 = ''
   name = ''
 
@@ -1596,7 +1598,7 @@ case ('element')
     call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
                 '-all', '-data', '-design', '-no_slaves', '-wall', '-base', &
                 '-field', '-floor_coords', '-xfer_mat', '-ptc', '-everything', &
-                '-attributes', '-no_super_slaves', '-radiation_kick'], .true., switch, err)
+                '-attributes', '-no_super_slaves', '-radiation_kick', '-internal'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('');                  exit
@@ -1614,6 +1616,7 @@ case ('element')
     case ('-wall');             print_wall = .true.
     case ('-radiation_kick');   print_rad = .true.
     case ('-ptc');              print_ptc = .true.
+    case ('-internal');         print_internal = .true.
     case ('-everything', '-all')
       print_attributes = .true.
       xfer_mat_print = 6
@@ -1722,7 +1725,7 @@ case ('element')
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
   call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, print_control, .true., &
-            print_floor, print_field, print_wall, print_rad, lines = alloc_lines, n_lines = n)
+            print_floor, print_field, print_wall, print_rad, print_internal, lines = alloc_lines, n_lines = n)
   if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)

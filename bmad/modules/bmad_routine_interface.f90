@@ -3575,14 +3575,14 @@ subroutine type_coord (coord)
 end subroutine
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, &
-      type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
+      type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, type_internal, lines, n_lines)
   import
   implicit none
   type (ele_struct), target :: ele
   integer, optional, intent(in) :: type_mat6
   integer, optional, intent(out) :: n_lines
   integer, optional, intent(in) :: twiss_out, type_field, type_control
-  logical, optional, intent(in) :: type_taylor, type_floor_coords
+  logical, optional, intent(in) :: type_taylor, type_floor_coords, type_internal
   logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall, type_rad_kick
   character(*), optional, allocatable :: lines(:)
 end subroutine
