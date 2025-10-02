@@ -252,11 +252,11 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
 
     select case (component)
     case ('model')   
-      call tao_evaluate_a_datum (datum, u, u%model, values(n_tot+j), valid)
+      call tao_evaluate_a_datum (datum, u, u%model, values(n_tot+j), valid, print_err = print_err)
     case ('base')  
-      call tao_evaluate_a_datum (datum, u, u%base, values(n_tot+j), valid)
+      call tao_evaluate_a_datum (datum, u, u%base, values(n_tot+j), valid, print_err = print_err)
     case ('design')  
-      call tao_evaluate_a_datum (datum, u, u%design, values(n_tot+j), valid)
+      call tao_evaluate_a_datum (datum, u, u%design, values(n_tot+j), valid, print_err = print_err)
     case default
       if (print_err) call out_io (s_error$, r_name, 'BAD DATUM COMPONENT FOR: ' // data_name)
       return
@@ -1057,7 +1057,7 @@ end function tao_do_wire_scan
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !+         
-! Function tao_pointer_to_datum_ele (lat, ix_ele, datum, valid, why_invalid) result (ele)
+! Function tao_pointer_to_datum_ele (lat, ele_name, ix_ele, datum, valid, why_invalid, print_err) result (ele)
 ! 
 ! Routine to see if an element index corresponds to an element with a definite 
 ! location such as an overlay or multipass element.
@@ -1066,19 +1066,20 @@ end function tao_do_wire_scan
 ! of the lord will be returned. Otherwise ix_loc will be set to ix_ele.
 !
 ! Input:
-!   lat    -- Lat_struct: Lattice
-!   ix_ele -- Integer: Index of element.
-!   datum  -- Tao_data_struct: Used for error messages and gives branch index.
+!   lat           -- lat_struct: Lattice
+!   ix_ele        -- integer: Index of element.
+!   datum         -- tao_data_struct: Used for error messages and gives branch index.
+!   print_err     -- logical, optional: Default is True. If False, do not print an error message.
 !
 ! Output:
-!   ele          -- Ele_struct, pointer :: Pointer to the element. Set to NULL if not valid 
-!                     or no associated element.
-!   valid        -- Logical: Set False if element does not have a definite location.
-!                     Set True otherwise
-!   why_invalid  -- Character(*), optional: Tells why datum value is invalid.
+!   ele           -- ele_struct, pointer :: Pointer to the element. Set to NULL if not valid 
+!                      or no associated element.
+!   valid         -- logical: Set False if element does not have a definite location.
+!                      Set True otherwise
+!   why_invalid   -- character(*), optional: Tells why datum value is invalid.
 !-
 
-function tao_pointer_to_datum_ele (lat, ele_name, ix_ele, datum, valid, why_invalid) result (ele)
+function tao_pointer_to_datum_ele (lat, ele_name, ix_ele, datum, valid, why_invalid, print_err) result (ele)
 
 type (lat_struct) lat
 type (tao_data_struct) datum
@@ -1087,6 +1088,7 @@ type (ele_struct), pointer :: ele
 integer ix_ele, ixc, n_track, n_max
 
 logical valid
+logical, optional :: print_err
 
 character(*) ele_name
 character(*), optional :: why_invalid
@@ -1112,7 +1114,7 @@ n_max   = lat%branch(datum%ix_branch)%n_ele_max
 
 if (ix_ele < 0 .or. ix_ele > n_max) then
   call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE! \i5\ ', ix_ele)
-  call tao_set_invalid (datum, 'ELEMENT INDEX OUT OF RANGE FOR: ' // tao_datum_name(datum), why_invalid, .true.)
+  call tao_set_invalid (datum, 'ELEMENT INDEX OUT OF RANGE FOR: ' // tao_datum_name(datum), why_invalid, .true., print_err = print_err)
   valid = .false.
   return
 endif
@@ -1120,13 +1122,15 @@ endif
 ele => pointer_to_ele (lat, ix_ele, datum%ix_branch)
 
 if (ele%lord_status == multipass_lord$ .or. ele%lord_status == girder_lord$) then
-  call out_io (s_error$, r_name, &
-            'ELEMENT: ' // trim(ele%name) // &
-            '    WHICH IS A: ' // control_name(ele%lord_status), &
-            'CANNOT BE USED IN DEFINING A DATUM SINCE IT DOES NOT HAVE ', &
-            '   A DEFINITE LOCATION IN THE LATTICE.', &
-            'FOR DATUM: ' // tao_datum_name(datum) )
-  call tao_set_invalid (datum, 'NO DEFINITE LOCATION IN LATTICE FOR: ' // tao_datum_name(datum), why_invalid, .true.)
+  if (logic_option(.true., print_err)) then
+    call out_io (s_error$, r_name, &
+              'ELEMENT: ' // trim(ele%name) // &
+              '    WHICH IS A: ' // control_name(ele%lord_status), &
+              'CANNOT BE USED IN DEFINING A DATUM SINCE IT DOES NOT HAVE ', &
+              '   A DEFINITE LOCATION IN THE LATTICE.', &
+              'FOR DATUM: ' // tao_datum_name(datum) )
+  endif
+  call tao_set_invalid (datum, 'NO DEFINITE LOCATION IN LATTICE FOR: ' // tao_datum_name(datum), why_invalid, .true., print_err = print_err)
   return
 endif
 
