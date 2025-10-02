@@ -130,6 +130,7 @@ component_no_translate_list = set([
   'ele_struct%converter',
   'ele_struct%multipole_cache',
   'ele_struct%foil',
+  'ele_struct%rf',
   'lat_struct%nametable',
   'branch_struct%lat',
   'normal_form_struct',

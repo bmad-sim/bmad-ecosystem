@@ -59,6 +59,7 @@ bmad-doc/tutorial_ring_design/doc/tutorial_ring_design.pdf
 **/doc/*.rnd
 **/doc/*.toc
 **/2www.pl
+**/.nfs*
 
 **/doit
 

@@ -579,13 +579,11 @@ public:
   Real f;
   Real amp;
   Real phi;
-  Int rf_clock_harmonic;
 
   CPP_ac_kicker_freq() :
     f(0.0),
     amp(0.0),
-    phi(0.0),
-    rf_clock_harmonic(0)
+    phi(0.0)
     {}
 
   ~CPP_ac_kicker_freq() {
@@ -1629,12 +1627,16 @@ public:
   Real etap;
   Real deta_ds;
   Real sigma;
+  Real deta_dpz;
+  Real detap_dpz;
 
   CPP_xy_disp() :
     eta(0.0),
     etap(0.0),
     deta_ds(0.0),
-    sigma(0.0)
+    sigma(0.0),
+    deta_dpz(0.0),
+    detap_dpz(0.0)
     {}
 
   ~CPP_xy_disp() {
@@ -1666,6 +1668,11 @@ public:
   Real sigma_p;
   Real emit;
   Real norm_emit;
+  Real chrom;
+  Real dbeta_dpz;
+  Real dalpha_dpz;
+  Real deta_dpz;
+  Real detap_dpz;
 
   CPP_twiss() :
     beta(0.0),
@@ -1678,7 +1685,12 @@ public:
     sigma(0.0),
     sigma_p(0.0),
     emit(0.0),
-    norm_emit(0.0)
+    norm_emit(0.0),
+    chrom(0.0),
+    dbeta_dpz(0.0),
+    dalpha_dpz(0.0),
+    deta_dpz(0.0),
+    detap_dpz(0.0)
     {}
 
   ~CPP_twiss() {
@@ -3139,6 +3151,7 @@ class Opaque_track_point_class {};  // Opaque class for pointers to correspondin
 
 class CPP_track_point {
 public:
+  Real s_lab;
   Real s_body;
   CPP_coord orb;
   CPP_em_field field;
@@ -3147,6 +3160,7 @@ public:
   Real_MATRIX mat6;
 
   CPP_track_point() :
+    s_lab(0.0),
     s_body(0.0),
     orb(),
     field(),
@@ -3299,7 +3313,9 @@ public:
   Bool absolute_time_tracking;
   Bool absolute_time_ref_shift;
   Bool convert_to_kinetic_momentum;
+  Bool normalize_twiss;
   Bool aperture_limit_on;
+  Bool spin_n0_direction_user_set;
   Bool debug;
 
   CPP_bmad_common() :
@@ -3341,7 +3357,9 @@ public:
     absolute_time_tracking(false),
     absolute_time_ref_shift(true),
     convert_to_kinetic_momentum(false),
+    normalize_twiss(false),
     aperture_limit_on(true),
+    spin_n0_direction_user_set(false),
     debug(false)
     {}
 
@@ -3753,6 +3771,7 @@ public:
   Int ix_from_branch;
   Int ix_from_ele;
   Int ix_to_ele;
+  Int ix_fixer;
   Int n_ele_track;
   Int n_ele_max;
   CPP_mode_info a;
@@ -3760,6 +3779,7 @@ public:
   CPP_mode_info z;
   CPP_ele_ARRAY ele;
   CPP_lat_param param;
+  CPP_coord particle_start;
   CPP_wall3d_ARRAY wall3d;
 
   CPP_branch() :
@@ -3768,6 +3788,7 @@ public:
     ix_from_branch(-1),
     ix_from_ele(-1),
     ix_to_ele(-1),
+    ix_fixer(0),
     n_ele_track(0),
     n_ele_max(0),
     a(),
@@ -3775,6 +3796,7 @@ public:
     z(),
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     param(),
+    particle_start(),
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0))
     {}
 
@@ -3812,7 +3834,7 @@ public:
   CPP_ele_ARRAY ele;
   CPP_branch_ARRAY branch;
   CPP_control_ARRAY control;
-  CPP_coord particle_start;
+  CPP_coord* particle_start;
   CPP_beam_init beam_init;
   CPP_pre_tracker pre_tracker;
   Real_ARRAY custom;
@@ -3844,7 +3866,7 @@ public:
     ele(CPP_ele_ARRAY(CPP_ele(), 0)),
     branch(CPP_branch_ARRAY(CPP_branch(), 0)),
     control(CPP_control_ARRAY(CPP_control(), 0)),
-    particle_start(),
+    particle_start(NULL),
     beam_init(),
     pre_tracker(),
     custom(0.0, 0),
@@ -3865,6 +3887,7 @@ public:
     delete b;
     delete z;
     delete param;
+    delete particle_start;
     delete n_ele_track;
     delete n_ele_max;
   }

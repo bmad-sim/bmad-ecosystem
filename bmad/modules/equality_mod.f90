@@ -126,8 +126,6 @@ is_eq = is_eq .and. (f1%f == f2%f)
 is_eq = is_eq .and. (f1%amp == f2%amp)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%phi == f2%phi)
-!! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%rf_clock_harmonic == f2%rf_clock_harmonic)
 
 end function eq_ac_kicker_freq
 
@@ -1085,6 +1083,10 @@ is_eq = is_eq .and. (f1%etap == f2%etap)
 is_eq = is_eq .and. (f1%deta_ds == f2%deta_ds)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%sigma == f2%sigma)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%deta_dpz == f2%deta_dpz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%detap_dpz == f2%detap_dpz)
 
 end function eq_xy_disp
 
@@ -1123,6 +1125,16 @@ is_eq = is_eq .and. (f1%sigma_p == f2%sigma_p)
 is_eq = is_eq .and. (f1%emit == f2%emit)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%norm_emit == f2%norm_emit)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%chrom == f2%chrom)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dbeta_dpz == f2%dbeta_dpz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%dalpha_dpz == f2%dalpha_dpz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%deta_dpz == f2%deta_dpz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%detap_dpz == f2%detap_dpz)
 
 end function eq_twiss
 
@@ -2422,6 +2434,8 @@ logical is_eq
 
 is_eq = .true.
 !! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%s_lab == f2%s_lab)
+!! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%s_body == f2%s_body)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%orb == f2%orb)
@@ -2606,7 +2620,11 @@ is_eq = is_eq .and. (f1%absolute_time_ref_shift .eqv. f2%absolute_time_ref_shift
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%convert_to_kinetic_momentum .eqv. f2%convert_to_kinetic_momentum)
 !! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%normalize_twiss .eqv. f2%normalize_twiss)
+!! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%aperture_limit_on .eqv. f2%aperture_limit_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%spin_n0_direction_user_set .eqv. f2%spin_n0_direction_user_set)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%debug .eqv. f2%debug)
 
@@ -3032,6 +3050,8 @@ is_eq = is_eq .and. (f1%ix_from_ele == f2%ix_from_ele)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ix_to_ele == f2%ix_to_ele)
 !! f_side.equality_test[integer, 0, NOT]
+is_eq = is_eq .and. (f1%ix_fixer == f2%ix_fixer)
+!! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_ele_track == f2%n_ele_track)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%n_ele_max == f2%n_ele_max)
@@ -3049,6 +3069,8 @@ if (.not. is_eq) return
 if (associated(f1%ele)) is_eq = all(f1%ele == f2%ele)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%param == f2%param)
+!! f_side.equality_test[type, 0, NOT]
+is_eq = is_eq .and. (f1%particle_start == f2%particle_start)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%wall3d) .eqv. associated(f2%wall3d))
 if (.not. is_eq) return
@@ -3135,8 +3157,11 @@ if (.not. is_eq) return
 if (allocated(f1%control)) is_eq = all(shape(f1%control) == shape(f2%control))
 if (.not. is_eq) return
 if (allocated(f1%control)) is_eq = all(f1%control == f2%control)
-!! f_side.equality_test[type, 0, NOT]
-is_eq = is_eq .and. (f1%particle_start == f2%particle_start)
+!! f_side.equality_test[type, 0, PTR]
+
+is_eq = is_eq .and. (associated(f1%particle_start) .eqv. associated(f2%particle_start))
+if (.not. is_eq) return
+if (associated(f1%particle_start)) is_eq = (f1%particle_start == f2%particle_start)
 !! f_side.equality_test[type, 0, NOT]
 is_eq = is_eq .and. (f1%beam_init == f2%beam_init)
 !! f_side.equality_test[type, 0, NOT]
