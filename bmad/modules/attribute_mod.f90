@@ -887,7 +887,6 @@ call init_attribute_name1 (beambeam$, crab_tilt$,                   'CRAB_TILT')
 call init_attribute_name1 (beambeam$, crossing_time$,               'CROSSING_TIME')
 call init_attribute_name1 (beambeam$, s_twiss_ref$,                 'S_TWISS_REF')
 call init_attribute_name1 (beambeam$, repetition_frequency$,        'REPETITION_FREQUENCY')
-call init_attribute_name1 (beambeam$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
 call init_attribute_name1 (beambeam$, species_strong$,              'SPECIES_STRONG')
 call init_attribute_name1 (beambeam$, e_tot_strong$,                'E_TOT_STRONG')
 call init_attribute_name1 (beambeam$, pc_strong$,                   'PC_STRONG')
@@ -1176,7 +1175,6 @@ call init_attribute_name1 (e_gun$, gen_grad_map$,                   'GEN_GRAD_MA
 call init_attribute_name1 (e_gun$, grid_field$,                     'GRID_FIELD')
 call init_attribute_name1 (e_gun$, rf_frequency$,                   'RF_FREQUENCY')
 call init_attribute_name1 (e_gun$, rf_wavelength$,                  'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (e_gun$, rf_clock_harmonic$,              'rf_clock_harminic', private$)
 call init_attribute_name1 (e_gun$, phi0$,                           'PHI0')
 call init_attribute_name1 (e_gun$, phi0_err$,                       'PHI0_ERR')
 ! e_gun attribute phi0_multipass should always be 0 and is used to make lcavity and e_gun equations similar
@@ -1223,7 +1221,7 @@ call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD'
 call init_attribute_name1 (em_field$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (em_field$, rf_frequency$,                'RF_FREQUENCY')
 call init_attribute_name1 (em_field$, rf_wavelength$,               'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (em_field$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
+!!call init_attribute_name1 (em_field$, phi0_multipass_ref$,          'PHI0_MULTIPASS_REF')
 call init_attribute_name1 (em_field$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (em_field$, phi0_autoscale$,              'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (em_field$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
@@ -1296,7 +1294,7 @@ call init_attribute_name1 (lcavity$, phi0$,                         'PHI0')
 call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
 call init_attribute_name1 (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
 call init_attribute_name1 (lcavity$, rf_wavelength$,                'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (lcavity$, rf_clock_harmonic$,            'rf_clock_harminic', private$)
+!!call init_attribute_name1 (lcavity$, phi0_multipass_ref$,           'PHI0_MULTIPASS_REF')
 call init_attribute_name1 (lcavity$, e_loss$,                       'E_LOSS')
 call init_attribute_name1 (lcavity$, voltage$,                      'VOLTAGE', quasi_free$)
 call init_attribute_name1 (lcavity$, field_master$,                 'FIELD_MASTER')
@@ -1528,7 +1526,6 @@ call init_attribute_name1 (crab_cavity$, grid_field$,               'GRID_FIELD'
 call init_attribute_name1 (crab_cavity$, gradient$,                 'GRADIENT', dependent$)
 call init_attribute_name1 (crab_cavity$, rf_frequency$,             'RF_FREQUENCY')
 call init_attribute_name1 (crab_cavity$, rf_wavelength$,            'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (crab_cavity$, rf_clock_harmonic$,        'rf_clock_harminic', private$)
 call init_attribute_name1 (crab_cavity$, field_autoscale$,          'FIELD_AUTOSCALE', private$)      ! Not yet used
 call init_attribute_name1 (crab_cavity$, phi0_autoscale$,           'PHI0_AUTOSCALE', private$)       ! Not yet used
 call init_attribute_name1 (crab_cavity$, autoscale_amplitude$,      'AUTOSCALE_AMPLITUDE', private$)  ! Not yet used
@@ -1545,7 +1542,6 @@ call init_attribute_name1 (rfcavity$, cavity_type$,                 'CAVITY_TYPE
 call init_attribute_name1 (rfcavity$, voltage$,                     'VOLTAGE')
 call init_attribute_name1 (rfcavity$, rf_frequency$,                'RF_FREQUENCY', quasi_free$)
 call init_attribute_name1 (rfcavity$, rf_wavelength$,               'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (rfcavity$, rf_clock_harmonic$,           'rf_clock_harminic', private$)
 call init_attribute_name1 (rfcavity$, phi0_multipass$,              'PHI0_MULTIPASS')
 call init_attribute_name1 (rfcavity$, phi0$,                        'PHI0')
 call init_attribute_name1 (rfcavity$, harmon$,                      'HARMON', quasi_free$)
@@ -1586,7 +1582,6 @@ call init_attribute_name1 (rf_bend$, field_master$,                 'FIELD_MASTE
 call init_attribute_name1 (rf_bend$, grid_field$,                   'GRID_FIELD')
 call init_attribute_name1 (rf_bend$, rf_frequency$,                 'RF_FREQUENCY', quasi_free$)
 call init_attribute_name1 (rf_bend$, rf_wavelength$,                'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (rf_bend$, rf_clock_harmonic$,            'rf_clock_harminic', private$)
 call init_attribute_name1 (rf_bend$, phi0_multipass$,               'PHI0_MULTIPASS')
 call init_attribute_name1 (rf_bend$, phi0$,                         'PHI0')
 call init_attribute_name1 (rf_bend$, harmon$,                       'HARMON', quasi_free$)
@@ -2159,7 +2154,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE', 'ANGLE_OUT_MAX', 'CRAB_TILT')
   attrib_units = 'rad'
 
-case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL')
+case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL', 'PHI0_MULTIPASS_REF')
   attrib_units = 'rad/2pi'
 
 case ('CRITICAL_ANGLE_FACTOR')

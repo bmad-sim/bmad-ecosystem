@@ -372,8 +372,6 @@ rhs = 1 + offset; F%f = rhs
 rhs = 2 + offset; F%amp = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 3 + offset; F%phi = rhs
-!! f_side.test_pat[integer, 0, NOT]
-rhs = 4 + offset; F%rf_clock_harmonic = rhs
 
 end subroutine set_ac_kicker_freq_test_pattern
 
@@ -3610,6 +3608,10 @@ rhs = 2 + offset; F%etap = rhs
 rhs = 3 + offset; F%deta_ds = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 4 + offset; F%sigma = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 5 + offset; F%deta_dpz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 6 + offset; F%detap_dpz = rhs
 
 end subroutine set_xy_disp_test_pattern
 
@@ -3716,6 +3718,16 @@ rhs = 9 + offset; F%sigma_p = rhs
 rhs = 10 + offset; F%emit = rhs
 !! f_side.test_pat[real, 0, NOT]
 rhs = 11 + offset; F%norm_emit = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 12 + offset; F%chrom = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 13 + offset; F%dbeta_dpz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 14 + offset; F%dalpha_dpz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 15 + offset; F%deta_dpz = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 16 + offset; F%detap_dpz = rhs
 
 end subroutine set_twiss_test_pattern
 
@@ -8012,7 +8024,9 @@ integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 offset = 100 * ix_patt
 
 !! f_side.test_pat[real, 0, NOT]
-rhs = 1 + offset; F%s_body = rhs
+rhs = 1 + offset; F%s_lab = rhs
+!! f_side.test_pat[real, 0, NOT]
+rhs = 2 + offset; F%s_body = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_coord_test_pattern (F%orb, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -8021,13 +8035,13 @@ call set_em_field_test_pattern (F%field, ix_patt)
 call set_strong_beam_test_pattern (F%strong_beam, ix_patt)
 !! f_side.test_pat[real, 1, NOT]
 do jd1 = 1, size(F%vec0,1); lb1 = lbound(F%vec0,1) - 1
-  rhs = 100 + jd1 + 5 + offset
+  rhs = 100 + jd1 + 6 + offset
   F%vec0(jd1+lb1) = rhs
 enddo
 !! f_side.test_pat[real, 2, NOT]
 do jd1 = 1, size(F%mat6,1); lb1 = lbound(F%mat6,1) - 1
 do jd2 = 1, size(F%mat6,2); lb2 = lbound(F%mat6,2) - 1
-  rhs = 100 + jd1 + 10*jd2 + 6 + offset
+  rhs = 100 + jd1 + 10*jd2 + 7 + offset
   F%mat6(jd1+lb1,jd2+lb2) = rhs
 enddo; enddo
 
@@ -8422,9 +8436,13 @@ rhs = 37 + offset; F%absolute_time_ref_shift = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
 rhs = 38 + offset; F%convert_to_kinetic_momentum = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 39 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+rhs = 39 + offset; F%normalize_twiss = (modulo(rhs, 2) == 0)
 !! f_side.test_pat[logical, 0, NOT]
-rhs = 40 + offset; F%debug = (modulo(rhs, 2) == 0)
+rhs = 40 + offset; F%aperture_limit_on = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 41 + offset; F%spin_n0_direction_user_set = (modulo(rhs, 2) == 0)
+!! f_side.test_pat[logical, 0, NOT]
+rhs = 42 + offset; F%debug = (modulo(rhs, 2) == 0)
 
 end subroutine set_bmad_common_test_pattern
 
@@ -9455,9 +9473,11 @@ rhs = 4 + offset; F%ix_from_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
 rhs = 5 + offset; F%ix_to_ele = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 6 + offset; F%n_ele_track = rhs
+rhs = 6 + offset; F%ix_fixer = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 7 + offset; F%n_ele_max = rhs
+rhs = 7 + offset; F%n_ele_track = rhs
+!! f_side.test_pat[integer, 0, NOT]
+rhs = 8 + offset; F%n_ele_max = rhs
 !! f_side.test_pat[type, 0, NOT]
 call set_mode_info_test_pattern (F%a, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -9476,6 +9496,8 @@ else
 endif
 !! f_side.test_pat[type, 0, NOT]
 call set_lat_param_test_pattern (F%param, ix_patt)
+!! f_side.test_pat[type, 0, NOT]
+call set_coord_test_pattern (F%particle_start, ix_patt)
 !! f_side.test_pat[type, 1, PTR]
 
 if (ix_patt < 3) then
@@ -9676,8 +9698,14 @@ else
     call set_control_test_pattern (F%control(jd1+lb1), ix_patt+jd1)
   enddo
 endif
-!! f_side.test_pat[type, 0, NOT]
-call set_coord_test_pattern (F%particle_start, ix_patt)
+!! f_side.test_pat[type, 0, PTR]
+if (ix_patt < 3) then
+  if (associated(F%particle_start)) deallocate (F%particle_start)
+else
+  if (.not. associated(F%particle_start)) allocate (F%particle_start)
+  rhs = 26 + offset
+  call set_coord_test_pattern (F%particle_start, ix_patt)
+endif
 !! f_side.test_pat[type, 0, NOT]
 call set_beam_init_test_pattern (F%beam_init, ix_patt)
 !! f_side.test_pat[type, 0, NOT]
@@ -9689,18 +9717,18 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%custom)) allocate (F%custom(-1:1))
   do jd1 = 1, size(F%custom,1); lb1 = lbound(F%custom,1) - 1
-    rhs = 100 + jd1 + 29 + offset
+    rhs = 100 + jd1 + 30 + offset
     F%custom(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 31 + offset; F%version = rhs
+rhs = 32 + offset; F%version = rhs
 !! f_side.test_pat[integer, 0, PTR]
 if (ix_patt < 3) then
   if (associated(F%n_ele_track)) deallocate (F%n_ele_track)
 else
   if (.not. associated(F%n_ele_track)) allocate (F%n_ele_track)
-  rhs = 32 + offset
+  rhs = 33 + offset
   F%n_ele_track = rhs
 endif
 !! f_side.test_pat[integer, 0, PTR]
@@ -9708,15 +9736,15 @@ if (ix_patt < 3) then
   if (associated(F%n_ele_max)) deallocate (F%n_ele_max)
 else
   if (.not. associated(F%n_ele_max)) allocate (F%n_ele_max)
-  rhs = 34 + offset
+  rhs = 35 + offset
   F%n_ele_max = rhs
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 36 + offset; F%n_control_max = rhs
+rhs = 37 + offset; F%n_control_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 37 + offset; F%n_ic_max = rhs
+rhs = 38 + offset; F%n_ic_max = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 38 + offset; F%input_taylor_order = rhs
+rhs = 39 + offset; F%input_taylor_order = rhs
 !! f_side.test_pat[integer, 1, ALLOC]
 
 if (ix_patt < 3) then
@@ -9724,16 +9752,16 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%ic)) allocate (F%ic(-1:1))
   do jd1 = 1, size(F%ic,1); lb1 = lbound(F%ic,1) - 1
-    rhs = 100 + jd1 + 39 + offset
+    rhs = 100 + jd1 + 40 + offset
     F%ic(jd1+lb1) = rhs
   enddo
 endif
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 41 + offset; F%photon_type = rhs
+rhs = 42 + offset; F%photon_type = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 42 + offset; F%creation_hash = rhs
+rhs = 43 + offset; F%creation_hash = rhs
 !! f_side.test_pat[integer, 0, NOT]
-rhs = 43 + offset; F%ramper_slave_bookkeeping = rhs
+rhs = 44 + offset; F%ramper_slave_bookkeeping = rhs
 
 end subroutine set_lat_test_pattern
 
