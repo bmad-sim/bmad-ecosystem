@@ -122,7 +122,7 @@ err_flag = .false.
 tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
 call bmad_tree_to_tao_tree(tree, tao_tree, expression, err_flag); if (err_flag) return
 call deallocate_tree(tree)
-call tree_param_evaluate(tao_tree, expression, err_flag); if (err_flag) return
+call tree_param_evaluate(tao_tree, expression, err_flag, printit); if (err_flag) return
 
 if (s%global%verbose_on) call tao_type_expression_tree(tao_tree)
 
@@ -276,7 +276,7 @@ end subroutine bmad_tree_to_tao_tree
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag)
+recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag, printit)
 
 implicit none
 
@@ -284,7 +284,7 @@ type (tao_eval_node_struct), target :: tao_tree
 type (tao_eval_node_struct), pointer :: tnode, snode
 
 integer in, ix, n_node
-logical err_flag, in_compound, in_comp
+logical err_flag, in_compound, in_comp, printit
 
 character(*) expression
 character(60) saved_prefix
@@ -364,7 +364,7 @@ do in = 1, n_node
     if (err_flag) return
 
   case (square_brackets$, func_parens$, parens$, comma$, compound$)
-    call tree_param_evaluate(tnode, expression, err_flag)
+    call tree_param_evaluate(tnode, expression, err_flag, printit)
     if (err_flag) return
     if (tnode%type == compound$) then
       ix = index(tnode%node(1)%name, '|')
