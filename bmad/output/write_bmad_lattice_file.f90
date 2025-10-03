@@ -1356,6 +1356,11 @@ do ie = 1, lat%n_ele_max
       if (.not. have_expand_lattice_line) call write_expand_lat_header
       write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
     endif
+
+    if (ele%value(phi0_multipass_ref$) /= 0) then
+      if (.not. have_expand_lattice_line) call write_expand_lat_header
+      write (iu, '(3a)') trim(ele%name), '[phi0_multipass_ref] = ', re_str(ele%value(phi0_multipass_ref$))
+    endif
   endif
 
   if (ele%slave_status == multipass_slave$) then

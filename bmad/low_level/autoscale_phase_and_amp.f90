@@ -104,27 +104,11 @@ tm = ele%tracking_method
 if (tm == mad$) return
 if (tm == linear$) return
 
-! bmad_standard just needs to set e_tot$, p0c$, and phi0_autoscale$
+! bmad_standard tracking does not need autoscale.
 ! Zero length rfcavity elements use bmad_standard tracking
 
 if (tm == bmad_standard$ .or. (ele%key == rfcavity$ .and. ele%value(l$) == 0 .and. (tm == runge_kutta$ .or. &
           tm == fixed_step_runge_kutta$ .or. tm == time_runge_kutta$ .or. tm == fixed_step_time_runge_kutta$))) then
-  if (ele%key == lcavity$) then 
-    ! Set e_tot$ and p0c$ 
-    phi = twopi * ele%value(phi0$)
-    if (.not. bmad_com%absolute_time_tracking) phi = phi + twopi * ele%value(phi0_multipass$)
-
-    e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
-    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
-    if (err_flag) then
-      call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
-      ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
-      param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
-      return
-    endif
-    ele%value(e_tot$) = e_tot
-  endif 
-  
   ele%value(phi0_autoscale$) = 0
   return
 endif

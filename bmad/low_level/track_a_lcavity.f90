@@ -420,7 +420,7 @@ real(rp) phase, particle_time
 integer ix_pass, n_links
 
 ! Lord will be something like the super_lord to a super_slave. 
-! The lord can be a multipass_slave.
+! The lord can be a multipass_slave but will not be a multipass_lord.
 
 mlord => lord
 if (lord%slave_status == multipass_slave$) mlord => pointer_to_lord(lord, 1)

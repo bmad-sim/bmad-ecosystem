@@ -376,8 +376,9 @@ slave_val = slave%value  ! save
 
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
-  slave%value(phi0_multipass$) = slave_val(phi0_multipass$)
-  slave%value(l_active$)       = lord%value(l_active$)
+  slave%value(phi0_multipass_ref$) = slave_val(phi0_multipass_ref$)
+  slave%value(phi0_multipass$)     = slave_val(phi0_multipass$)
+  slave%value(l_active$)           = lord%value(l_active$)
 endif
 
 ! A slave's field_master = T irregardless of the lord's setting.
