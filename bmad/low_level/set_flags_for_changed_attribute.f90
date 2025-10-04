@@ -658,8 +658,7 @@ case (lcavity$, e_gun$)
   endif
 
   if (ele%key == lcavity$) then 
-    if (associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$)) .or. &
-        associated(a_ptr, ele%value(phi0_multipass_ref$))) then
+    if (associated(a_ptr, ele%value(phi0_multipass$)) .or. associated(a_ptr, ele%value(e_loss$))) then
        call set_ele_status_stale (ele, ref_energy_group$)
     endif
   endif

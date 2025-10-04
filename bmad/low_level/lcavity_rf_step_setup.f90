@@ -44,8 +44,11 @@ ele%value(field_autoscale$) = 1
 if (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)
   call this_rf_multipass_slave_setup(ele, lord)
+
 elseif (ele%lord_status == multipass_lord$) then
   call this_rf_multipass_lord_setup(ele)
+
+
 else
   call this_rf_free_ele_setup(ele)
 endif
@@ -128,14 +131,17 @@ integer i, j, nn, nloop
 call this_rf_free_ele_setup(ele)
 
 dE_ref = ele%value(E_tot$) - ele%value(E_tot_start$)
-if (abs(dE_ref) < 0.1*ele%value(voltage$)) return
+if (abs(dE_ref) < 0.01*ele%value(voltage$)) return
 
 ! Converge on a solution
 
 nn = nint(ele%value(n_rf_steps$))
 steps => ele%rf%steps
 
-! Now converge on a solution.
+
+
+
+
 
 do nloop = 1, 10
   do i = 0, (nn+1)/2
@@ -149,7 +155,7 @@ do nloop = 1, 10
   ele%value(field_autoscale$) = ele%value(field_autoscale$) * dE_ref / dE_track 
 enddo
 
-print *, 'dE_err: ', dE_track - dE_ref
+print *, 'dE_rel_err: ', (dE_track - dE_ref) / dE_ref
 
 end subroutine this_rf_multipass_lord_setup
 
@@ -176,8 +182,7 @@ do i = 0, nn+1
   step => ele%rf%steps(i)
   beta = pc / E_tot
   t = t + (step%s - step%s0) / (c_light * beta)
-  phase = ele%value(phi0$) + ele%value(phi0_multipass_ref$) + ele%value(rf_frequency$) * (t - step%time)
-  if (.not. bmad_com%absolute_time_tracking) phase = phase + ele%value(phi0_multipass$)
+  phase = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(rf_frequency$) * (t - step%time)
   dE = step%scale * ele%value(voltage$) * ele%value(field_autoscale$) * cos(twopi*phase)
   E_tot = E_tot + dE
   call convert_total_energy_to(E_tot, ele%ref_species, pc = pc)
@@ -226,11 +231,8 @@ do i = 0, nn+1
     step%p0c = steps(i-1)%p1c
   endif
 
-  phase = ele%value(phi0$) + ele%value(phi0_multipass_ref$)
-  if (.not. bmad_com%absolute_time_tracking) phase = phase + ele%value(phi0_multipass$)
-
-  phase = modulo2(twopi * phase, pi)
-  dE = step%scale * lord%value(voltage$) * cos(phase)
+  phase = ele%value(phi0$) + ele%value(phi0_multipass$)
+  dE = step%scale * lord%value(voltage$) * cos(twopi*phase)
 
   step%E_tot1 = step%E_tot0 + dE
   call convert_total_energy_to(step%E_tot1, ele%ref_species, pc = step%p1c)

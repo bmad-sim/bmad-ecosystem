@@ -592,8 +592,7 @@ case (lcavity$, const_ref_energy$)
       ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
       ele%value(p0c$) = lord%rf%steps(i1)%p0c
     else
-      phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass_ref$))
-      if (.not. bmad_com%absolute_time_tracking) phi = phi + twopi * ele%value(phi0_multipass$)
+      phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$))
       e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
       call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
       if (err_flag) then

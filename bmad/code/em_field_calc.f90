@@ -1,6 +1,6 @@
 !+
 ! Subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag,
-!               calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
+!               calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err, original_ele)
 !
 ! Routine to calculate the E and B fields at a particular place in an element.
 !
@@ -10,15 +10,15 @@
 ! offset_particle does not add in kicks at the beginning and end which would result in double counting the kicks.
 !
 ! Input:
-!   ele             -- Ele_struct: Lattice element.
-!   param           -- lat_param_struct: Lattice parameters.
-!   s_pos           -- Real(rp): Longitudinal position.
-!                        If local_ref_frame = T: In Body coords relative to the entrance edge of the element.
-!                        If local_ref_frame = F: In Lab coords relative to the upstream edge of the element.
-!   orbit           -- Coord_struct: Transverse coordinates.
-!     %vec(1), %vec(3) -- Transverse coords.
-!     %t               -- Used with absolute time tracking.
-!     %vec(5)          -- Used with relative time tracking (except with time Runge-Kutta).
+!   ele              -- Ele_struct: Lattice element.
+!   param            -- lat_param_struct: Lattice parameters.
+!   s_pos            -- Real(rp): Longitudinal position.
+!                         If local_ref_frame = T: In Body coords relative to the entrance edge of the element.
+!                         If local_ref_frame = F: In Lab coords relative to the upstream edge of the element.
+!   orbit            -- Coord_struct: Transverse coordinates.
+!     %vec(1), %vec(3)    -- Transverse coords.
+!     %t                  -- Used with absolute time tracking.
+!     %vec(5)             -- Used with relative time tracking (except with time Runge-Kutta).
 !   local_ref_frame  -- Logical, If True then take the input coordinates and output fields 
 !                         as being with respect to the frame of referene of the element (ignore misalignments). 
 !   calc_dfield      -- Logical, optional: If present and True then calculate the field derivatives.
@@ -35,6 +35,8 @@
 !                         called recursively. Used to prevent double counting when there is field overlap.
 !   print_err        -- logical, optional: Print an error message? Default is True.
 !                         For example, if the particle is out of bounds when the field is defined on a grid.
+!   original_ele     -- ele_struct, optional: Used with recursive calls that pass the lord as the ele argument. 
+!                         In this case original_ele is the original ele argument.
 !
 ! Output:
 !   field       -- em_field_struct: E and B fields and derivatives.
@@ -42,7 +44,7 @@
 !-
 
 recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
-             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
+             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err, original_ele)
 
 use super_recipes_mod
 use em_field_mod, dummy => em_field_calc
@@ -54,6 +56,7 @@ type (ele_struct), target :: ele
 type (ele_pointer_struct), allocatable, optional :: used_eles(:)
 type (ele_pointer_struct), allocatable :: used_list(:)
 type (ele_struct), pointer :: lord, ele2
+type (ele_struct), optional :: original_ele
 type (lat_param_struct) param
 type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
 type (em_field_struct) :: field, field1, field2, lord_field, l1_field, mode_field
@@ -171,10 +174,10 @@ if (ele%field_calc == refer_to_lords$) then
         if (associated(used_eles(j)%ele, lord)) cycle lord_loop
       enddo
       call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
-                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
+                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err, ele)
     else
       call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
-                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list, print_err)
+                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list, print_err, ele)
     endif
 
     if (err) then
@@ -417,7 +420,14 @@ case (bmad_standard$)
     if (ele%value(rf_frequency$) == 0) return
 
     phase = twopi * (ele%value(phi0$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
-    if (.not. bmad_com%absolute_time_tracking) phase = phase + twopi * ele%value(phi0_multipass$)
+    if (.not. bmad_com%absolute_time_tracking) then
+      if (present(original_ele)) then
+        phase = phase + twopi * original_ele%value(phi0_multipass$)
+      else
+        phase = phase + twopi * ele%value(phi0_multipass$)
+      endif
+    endif
+
     if (ele%key == rfcavity$) phase = pi/2 - phase
     orbit%phase(1) = phase  ! RF phase is needed by apply_element_edge_kick when calling rf_coupler_kick.
 

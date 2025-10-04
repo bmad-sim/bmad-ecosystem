@@ -649,7 +649,7 @@ case (lcavity$)
   if (ele%lord_status /= multipass_lord$) then
     if (val(phi0$) /= ele%old_value(phi0$) .or. val(phi0_multipass$) /= ele%old_value(phi0_multipass$) .or. &
         val(gradient$) /= ele%old_value(gradient$) .or. val(e_loss$) /= ele%old_value(e_loss$) .or. &
-        val(l$) /= ele%old_value(l$) .or. val(phi0_multipass_ref$) /= ele%old_value(phi0_multipass_ref$)) then
+                                                        val(l$) /= ele%old_value(l$)) then
       call set_ele_status_stale (ele, ref_energy_group$)
     endif
   endif

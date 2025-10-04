@@ -1221,7 +1221,6 @@ call init_attribute_name1 (em_field$, grid_field$,                  'GRID_FIELD'
 call init_attribute_name1 (em_field$, ptc_canonical_coords$,        'PTC_CANONICAL_COORDS')
 call init_attribute_name1 (em_field$, rf_frequency$,                'RF_FREQUENCY')
 call init_attribute_name1 (em_field$, rf_wavelength$,               'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (em_field$, phi0_multipass_ref$,          'PHI0_MULTIPASS_REF')
 call init_attribute_name1 (em_field$, field_autoscale$,             'FIELD_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (em_field$, phi0_autoscale$,              'PHI0_AUTOSCALE', quasi_free$)
 call init_attribute_name1 (em_field$, autoscale_amplitude$,         'AUTOSCALE_AMPLITUDE')
@@ -1294,7 +1293,6 @@ call init_attribute_name1 (lcavity$, phi0$,                         'PHI0')
 call init_attribute_name1 (lcavity$, gradient$,                     'GRADIENT')
 call init_attribute_name1 (lcavity$, rf_frequency$,                 'RF_FREQUENCY')
 call init_attribute_name1 (lcavity$, rf_wavelength$,                'RF_WAVELENGTH', dependent$)
-call init_attribute_name1 (lcavity$, phi0_multipass_ref$,           'PHI0_MULTIPASS_REF')
 call init_attribute_name1 (lcavity$, e_loss$,                       'E_LOSS')
 call init_attribute_name1 (lcavity$, voltage$,                      'VOLTAGE', quasi_free$)
 call init_attribute_name1 (lcavity$, field_master$,                 'FIELD_MASTER')
@@ -2154,7 +2152,7 @@ case ('ANGLE', 'BEND_TILT', 'BRAGG_ANGLE', 'BRAGG_ANGLE_IN', 'BRAGG_ANGLE_OUT', 
       'MOSAIC_ANGLE_RMS_IN_PLANE', 'MOSAIC_ANGLE_RMS_OUT_PLANE', 'ANGLE_OUT_MAX', 'CRAB_TILT')
   attrib_units = 'rad'
 
-case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL', 'PHI0_MULTIPASS_REF')
+case ('COUPLER_PHASE', 'PHI0', 'PHI0_AUTOSCALE', 'PHI0_ERR', 'PHI0_MULTIPASS', 'AUTOSCALE_PHASE_TOL')
   attrib_units = 'rad/2pi'
 
 case ('CRITICAL_ANGLE_FACTOR')

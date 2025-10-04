@@ -1264,10 +1264,11 @@ subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele,
 end subroutine
 
 recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
-             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
+             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err, original_ele)
   import
   implicit none
   type (ele_struct), target :: ele
+  type (ele_struct), optional :: original_ele
   type (lat_param_struct) param
   type (coord_struct) :: orbit
   type (em_field_struct) :: field

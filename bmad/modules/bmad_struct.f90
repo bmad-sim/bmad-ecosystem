@@ -1815,7 +1815,7 @@ integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, e
                       py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27, pc_strong$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
-                      phi0_multipass_ref$ = 28, b_field_tot$ = 28
+                      b_field_tot$ = 28
 integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, &
                       cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, &
                       x_dispersion_calib$ = 29, z_aperture_center$ = 29, f_factor$ = 29

@@ -53,8 +53,8 @@ a \vn{{\B}n} suffix. These types of elements are known as \vn{multipass_slave} e
 addition, to the \vn{multipass_slave} elements, there is a \vn{multipass_lord} element (that doesn't
 get tracked through) called \vn{RF1} in the lord part of the lattice (\sref{s:lord.slave}).  Changes
 to attributes of the lord \vn{RF1} element will be passed to the slave elements by \bmad's
-bookkeeping routines. Assuming that the phase of \vn{RF1\B1} gives acceleration, to make \vn{RF1\B2}
-decelerate the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is the one attribute
+bookkeeping routines. Assuming that the phase of \vn{RF1\B1} gives acceleration, to make the \vn{RF1\B2}
+ele to decelerate, the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is the one attribute
 that \bmad's bookkeeping routines will not touch when transferring attribute values from \vn{RF1} to
 its slaves. Notice that the \vn{phi0_multipass} attribute had to be set after \vn{expand_lattice}
 (\sref{s:expand}) is used to expand the lattice. This is true since \bmad does immediate evaluation and
