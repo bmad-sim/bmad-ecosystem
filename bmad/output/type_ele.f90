@@ -934,10 +934,10 @@ if (logic_option(.false., type_internal) .and. ele%key == lcavity$ .and. associa
   do i = 0, ubound(ele%rf%steps, 1)
     step => ele%rf%steps(i)
     nl=nl+1; li(nl) = 'Step ' // int_str(i)
-    nl=nl+1; write(li(nl), '(a, 3es14.6)')       '    E_tot0, E_tot1, dE_amp:', step%E_tot0, step%E_tot1, step%dE_amp
-    nl=nl+1; write(li(nl), '(a, 2es14.6)')       '    p0c, p1c:              ', step%p0c, step%p1c
-    nl=nl+1; write(li(nl), '(a, es14.6, f10.6)') '    Time, scale:           ', step%time, step%scale
-    nl=nl+1; write(li(nl), '(a, 2f14.9)')        '    s0, s:                 ', step%s0, step%s
+    nl=nl+1; write(li(nl), '(a, 3es14.6)')       '    E_tot0, E_tot1:', step%E_tot0, step%E_tot1
+    nl=nl+1; write(li(nl), '(a, 2es14.6)')       '    p0c, p1c:      ', step%p0c, step%p1c
+    nl=nl+1; write(li(nl), '(a, es14.6, f10.6)') '    Time, scale:   ', step%time, step%scale
+    nl=nl+1; write(li(nl), '(a, 2f14.9)')        '    s0, s:         ', step%s0, step%s
   enddo
 endif
 

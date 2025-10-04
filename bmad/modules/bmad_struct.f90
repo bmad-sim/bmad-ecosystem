@@ -1303,7 +1303,6 @@ type rf_stair_step_struct
   real(rp) :: E_tot1 = 0      ! Reference energy after the kick point.
   real(rp) :: p0c = 0         ! Reference momentum in the drift region (before the kick point).
   real(rp) :: p1c = 0         ! Reference momentum after the kick point.
-  real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
   real(rp) :: time = 0        ! Reference particle time at the kick point with respect to beginning of element.
   real(rp) :: s0 = 0          ! S-position at beginning of drift region relative to the beginning of the element.

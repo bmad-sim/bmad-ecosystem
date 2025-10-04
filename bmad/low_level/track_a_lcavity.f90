@@ -304,7 +304,8 @@ else
 endif
 
 phase = this_rf_phase(orbit, ele, lord, step)
-dE_amp = s_dir * step%dE_amp 
+
+dE_amp = s_dir * (lord%value(voltage$) + lord%value(voltage_err$)) * step%scale * lord%value(field_autoscale$) ! Amplitude of RF field
 dE = dE_amp * cos(phase)
 
 rel_p = 1 + orbit%vec(6)
@@ -386,7 +387,8 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) retur
 !
 
 rel_p = 1.0_rp + orbit%vec(6)
-coef = scale * orbit%time_dir * lord%value(l$) * (lord%value(gradient_tot$)*lord%value(l$)/lord%value(l_active$))**2 / (8.0_rp * orbit%p0c**2 * rel_p)
+coef = (lord%value(field_autoscale$)*lord%value(gradient_tot$)*lord%value(l$)/lord%value(l_active$))**2 * &
+                                      scale * orbit%time_dir * lord%value(l$) / (8.0_rp * orbit%p0c**2 * rel_p)
 
 if (make_mat) then
   call mat_make_unit(kmat)
