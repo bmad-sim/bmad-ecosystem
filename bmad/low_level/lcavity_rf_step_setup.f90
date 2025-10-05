@@ -13,12 +13,14 @@
 recursive subroutine lcavity_rf_step_setup(ele)
 
 use bmad_routine_interface, dummy => lcavity_rf_step_setup
+use super_recipes_mod, only: super_zbrent, super_bracket_root
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
-integer nn
+real(rp) field_scale, E_tot_final
+integer nn, status
 logical err_flag
 
 character(*), parameter :: r_name = 'lcavity_rf_step_setup'
@@ -46,15 +48,100 @@ if (ele%slave_status == multipass_slave$) then
   call this_rf_multipass_slave_setup(ele, lord)
 
 elseif (ele%lord_status == multipass_lord$) then
-  call this_rf_multipass_lord_setup(ele)
+  ! The idea is that we want the kick reference times to have mirror symmetry to handle ERLs 
+  ! where particles are both accelerated and decellarated.
 
+  ! Initial guess. If the reference energy gain is small compared to the voltage, accept
+  ! the initial guess as a reasonable approximation.
 
-else
+  call this_rf_free_ele_setup(ele)
+  if (abs(ele%value(E_tot$) - ele%value(E_tot_start$)) < 0.01*ele%value(voltage$)) return
+
+  ! Converge to a solution
+
+  field_scale = super_zbrent(this_dE_track, 0.5_rp, 1.5_rp, 1e-12_rp, 1e-12_rp, status)
+  print *, 'dE_rel_err: ', this_dE_track(ele%value(field_autoscale$), status)
+
+else ! Not multipass
   call this_rf_free_ele_setup(ele)
 endif
 
 !----------------------------------------------------------------------------------------------------
 contains
+
+function this_dE_track(field_scale, status) result (dE_rel_err)
+
+real(rp), intent(in) :: field_scale
+real(rp) dE_rel_err, x_range(2), delta_ref_time
+
+integer status
+
+!
+
+ele%value(field_autoscale$) = field_scale
+x_range = super_bracket_root(this_dt_track, 0.99_rp*ele%value(delta_ref_time$), 1.01_rp*ele%value(delta_ref_time$), status)
+
+delta_ref_time = super_zbrent(this_dt_track, x_range(1), x_range(2), 1e-12_rp, 0.0_rp, status)
+
+ele%value(delta_ref_time$) = delta_ref_time
+ele%ref_time = ele%value(ref_time_start$) + delta_ref_time
+
+dE_rel_err = (E_tot_final - ele%value(E_tot$)) / ele%value(E_tot$)
+
+end function this_dE_track
+
+!----------------------------------------------------------------------------------------------------
+! contains
+
+function this_dt_track(delta_ref_time, status) result (dt_err)
+
+type (rf_stair_step_struct), pointer :: step, step2
+
+real(rp), intent(in) :: delta_ref_time
+real(rp) dE_track, E_tot, pc, beta, t, dt, phase, dE, dE_rel_err, dt_max, dt_ave, dt_err
+integer i, j, nn, status, n_loop
+
+! Symetrize reference times
+
+nn = nint(ele%value(n_rf_steps$))
+
+dt_max = 0
+dt_ave = 0
+do i = 0, (nn+1)/2
+  j = nn - i
+  step => ele%rf%steps(i)
+  step2 => ele%rf%steps(j)
+  dt = 0.5_rp * (delta_ref_time - step%time - step2%time)
+  step%time  = step%time  + dt
+  step2%time = step2%time + dt
+  dt_max = max(dt_max, abs(dt))
+  dt_ave = dt_ave + dt
+enddo
+dt_ave = dt_ave * 2 / (nn+1)
+
+! Track through lcavity to compute the difference between "actual" energy gain and wanted (reference) energy gain.
+
+E_tot = ele%value(E_tot_start$)
+pc = ele%value(p0c_start$)
+t = 0
+
+do i = 0, nn+1
+  step => ele%rf%steps(i)
+  beta = pc / E_tot
+  t = t + (step%s - step%s0) / (c_light * beta)
+  phase = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(rf_frequency$) * (t - step%time)
+  dE = step%scale * ele%value(voltage$) * ele%value(field_autoscale$) * cos(twopi*phase)
+  E_tot = E_tot + dE
+  call convert_total_energy_to(E_tot, ele%ref_species, pc = pc)
+enddo
+
+E_tot_final = E_tot
+dt_err = t - delta_ref_time
+
+end function this_dt_track
+
+!----------------------------------------------------------------------------------------------------
+! contains
 
 subroutine this_rf_free_ele_setup(ele)
 
@@ -108,89 +195,6 @@ ele%ref_time = ele%value(ref_time_start$) + t
 ele%value(delta_ref_time$) = t
  
 end subroutine this_rf_free_ele_setup
-
-!----------------------------------------------------------------------------------------------------
-! contains
-
-subroutine this_rf_multipass_lord_setup(ele)
-
-type (ele_struct), target :: ele, ele2
-type (rf_stair_step_struct), pointer :: steps(:)
-
-real(rp) dt, dE_ref, dE_track
-integer i, j, nn, nloop
-
-! The idea is that we want the kick reference times to have mirror symmetry to handle ERLs 
-! where particles are both accelerated and decellarated.
-! This one issue is that now we have to find the solution implicitly.
-
-! Initial guess.
-! If the reference energy gain is small compared to the voltage, accept the initial guess as
-! a reasonable approximation.
-
-call this_rf_free_ele_setup(ele)
-
-dE_ref = ele%value(E_tot$) - ele%value(E_tot_start$)
-if (abs(dE_ref) < 0.01*ele%value(voltage$)) return
-
-! Converge on a solution
-
-nn = nint(ele%value(n_rf_steps$))
-steps => ele%rf%steps
-
-
-
-
-
-
-do nloop = 1, 10
-  do i = 0, (nn+1)/2
-    j = nn - i
-    dt = 0.5_rp * (ele%value(delta_ref_time$) - steps(i)%time - steps(j)%time)
-    steps(i)%time = steps(i)%time + dt
-    steps(j)%time = steps(j)%time + dt
-  enddo
-
-  dE_track = this_dE_track(ele)
-  ele%value(field_autoscale$) = ele%value(field_autoscale$) * dE_ref / dE_track 
-enddo
-
-print *, 'dE_rel_err: ', (dE_track - dE_ref) / dE_ref
-
-end subroutine this_rf_multipass_lord_setup
-
-!----------------------------------------------------------------------------------------------------
-! contains
-
-function this_dE_track(ele) result (dE_track)
-
-type (ele_struct), target :: ele
-type (rf_stair_step_struct), pointer :: step
-
-real(rp) dE_track, E_tot, pc, beta, t, phase, dE
-integer i, nn
-
-! Track through lcavity to compute the difference between "actual" energy gain and wanted (reference) energy gain.
-
-nn = nint(ele%value(n_rf_steps$))
-
-E_tot = ele%value(E_tot_start$)
-pc = ele%value(p0c_start$)
-t = 0
-
-do i = 0, nn+1
-  step => ele%rf%steps(i)
-  beta = pc / E_tot
-  t = t + (step%s - step%s0) / (c_light * beta)
-  phase = ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(rf_frequency$) * (t - step%time)
-  dE = step%scale * ele%value(voltage$) * ele%value(field_autoscale$) * cos(twopi*phase)
-  E_tot = E_tot + dE
-  call convert_total_energy_to(E_tot, ele%ref_species, pc = pc)
-enddo
-
-dE_track = E_tot - ele%value(E_tot_start$)
-
-end function this_dE_track
 
 !----------------------------------------------------------------------------------------------------
 ! contains

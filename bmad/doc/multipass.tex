@@ -53,17 +53,21 @@ a \vn{{\B}n} suffix. These types of elements are known as \vn{multipass_slave} e
 addition, to the \vn{multipass_slave} elements, there is a \vn{multipass_lord} element (that doesn't
 get tracked through) called \vn{RF1} in the lord part of the lattice (\sref{s:lord.slave}).  Changes
 to attributes of the lord \vn{RF1} element will be passed to the slave elements by \bmad's
-bookkeeping routines. Assuming that the phase of \vn{RF1\B1} gives acceleration, to make the \vn{RF1\B2}
-ele to decelerate, the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is the one attribute
-that \bmad's bookkeeping routines will not touch when transferring attribute values from \vn{RF1} to
-its slaves. Notice that the \vn{phi0_multipass} attribute had to be set after \vn{expand_lattice}
-(\sref{s:expand}) is used to expand the lattice. This is true since \bmad does immediate evaluation and
-\vn{RF1\B2} does not exist before the lattice is expanded. \vn{Phi0_multipass} is useful with
-relative time tracking \sref{s:rf.time}. However, \vn{phi0_multipass} is ``unphysical'' and is just
-a convenient way to shift the phase pass-to-pass through a given cavity. To ``correctly'' simulate
-the recirculating beam, absolute time tracking should be used and the length of the lattice from a
-cavity back to itself needs to be properly adjusted to get the desired phase advance. See the discussion
-in section~\sref{s:rf.time}.
+bookkeeping routines. Assuming that the phase of \vn{RF1\B1} gives acceleration, to make the
+\vn{RF1\B2} ele to decelerate, the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This
+is an attribute that \bmad's bookkeeping routines will not touch when transferring attribute values
+from \vn{RF1} to its slaves. Notice that the \vn{phi0_multipass} attribute had to be set after the
+\vn{expand_lattice} command (\sref{s:expand}) is used to expand the lattice. This is true since
+\bmad does immediate evaluation and \vn{RF1\B2} does not exist before the lattice is
+expanded. 
+
+
+
+\vn{Phi0_multipass} is useful with relative time tracking \sref{s:rf.time}. However,
+\vn{phi0_multipass} is ``unphysical'' and is just a convenient way to shift the phase pass-to-pass
+through a given cavity. To ``correctly'' simulate the recirculating beam, absolute time tracking
+should be used and the length of the lattice from a cavity back to itself needs to be properly
+adjusted to get the desired phase advance. See the discussion in section~\sref{s:rf.time}.
 
 ``Intrinsic'' attributes are attributes that must, to make sense physically, be the same for all
 slaves of a given multipass lord. The element length is one such example.  The following
