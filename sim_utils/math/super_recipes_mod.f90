@@ -962,6 +962,7 @@ end function super_zbrent
 !   x_range(2)  -- real(rp): Range which brackets root.
 !-
 
+recursive &
 function super_bracket_root (func, x1, x2, status) result (x_range)
 
 interface
@@ -1010,7 +1011,7 @@ do it = 1, itmax
   endif
 
   xx = x0 + dx
-  yy = func(x0, status); if (status /= 0) return
+  yy = func(xx, status); if (status /= 0) return
 
   if (y0*yy <= 0) then
     if (xx < x0) then

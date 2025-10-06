@@ -215,7 +215,7 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == -1) retu
 
 ! Init
 
-gradient_tot = body_dir * orbit%time_dir * lord%value(gradient_tot$) * lord%value(l$) / lord%value(l_active$)
+gradient_tot = body_dir * orbit%time_dir * lord%value(gradient_tot$) * lord%value(field_autoscale$) * lord%value(l$) / lord%value(l_active$)
 ff = edge * orbit%time_dir * charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
 f = ff / orbit%p0c
 pc = orbit%p0c * (1 + orbit%vec(6))
