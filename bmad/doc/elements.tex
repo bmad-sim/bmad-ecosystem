@@ -3297,8 +3297,8 @@ In the above equation $r_q$ is the relative charge between the reference particl
 cavity. For example, if the reference particle and the tracked particle are the same, $r_q$ is
 unity independent of the type of particle tracked.
 
-\vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
-pass. See \sref{c:multipass}.
+\vn{phi0_multipass} is only to be used with multipass elements to shift the phase of the cavity from pass to
+pass. See \sref{c:multipass} for details.
 
 The \vn{phi0_autoscale} and \vn{field_autoscale} parameters are
 calculated by \bmad's auto-scale module to adjust the RF amplitude and phase so that during tracking,
@@ -4764,7 +4764,7 @@ Attributes specific to an \vn{rf_bend} are:
   harmon          = <Real>    ! Harmonic number
   harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
   phi0            = <Real>    ! Cavity phase (rad/2pi).
-  phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
+  phi0_multipass  = <Real>    ! Phase variation with multipass elements (rad/2pi) (\sref{c:multipass}).
 \end{example}
 
 Tracking through an \vn{rf_bend} is limited to Runge Kutta like tracking methods (\sref{s:tkm}). The
@@ -4817,7 +4817,7 @@ Attributes specific to an \vn{rfcavity} are:
   voltage         = <Real>    ! Cavity voltage
   phi0            = <Real>    ! Cavity phase (rad/2pi).
   phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
-  phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on (rad/2pi).
+  phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on (rad/2pi). (\sref{c:multipass}).
   gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 0. May be 0 or 1.
 \end{example}
@@ -4848,7 +4848,7 @@ The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attrib
 \end{example}
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a \vn{multipass} lord. See
-\sref{c:multipass}. \vn{e_charge} is the magnitude of the charge on an electron
+\sref{c:multipass} for more details. \vn{e_charge} is the magnitude of the charge on an electron
 (Table~\ref{t:constants}). Notice that the energy kick is independent of the sign of the charge of
 the particle
 

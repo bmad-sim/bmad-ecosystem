@@ -517,7 +517,7 @@ type (coord_struct) orb_start, orb_end, orb1, orb2
 type (bmad_common_struct) bmad_com_saved
 
 real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, phase, velocity, abs_tol(3)
-real(rp) value_saved(num_ele_attrib$), ele_ref_time, t
+real(rp) value_saved(num_ele_attrib$), ele_ref_time, t, phi
 
 integer i, n, key, i0, i1
 integer, parameter :: const_ref_energy$ = -999
@@ -579,34 +579,55 @@ case (converter$)
   endif
 
 case (lcavity$, const_ref_energy$)
+  do_track = .true.  ! Tracking is done for reference time calc.
+  n = nint(ele%value(n_rf_steps$))
 
-  ! A zero e_tot (Can happen on first pass through this routine) can mess up tracking so put in a temp value. 
-  ! This does not affect the phase & amp adjustment.
-  if (ele%value(e_tot$) == 0) then
+  if (ele%key == lcavity$) then
+    if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. &
+                                                 ele%tracking_method == bmad_standard$ .and. n > 0) then
+      lord => pointer_to_super_lord(ele)
+      i0 = ele_rf_step_index(-1.0_rp, ele%s_start - lord%s_start, lord)
+      i1 = ele_rf_step_index(-1.0_rp, ele%s - lord%s_start, lord)
+
+      ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
+      ele%value(p0c$) = lord%rf%steps(i1)%p0c
+    else
+      phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$))
+      e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
+      call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
+      if (err_flag) then
+        call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
+        ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
+        param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
+        return
+      endif
+      ele%value(e_tot$) = e_tot
+    endif
+
+    call lcavity_rf_step_setup(ele)
+
+  else
     ele%value(E_tot$) = ele%value(e_tot_start$)      
     ele%value(p0c$) = ele%value(p0c_start$)
     ele%ref_time = ref_time_start
     call attribute_bookkeeper(ele, .true.)
   endif
 
-  ! Autoscale will set %value(E_tot$) and %value(p0c$).
+  if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$ .and. n > 0) then
+    do_track = .false.
+  endif
+
+  !
+
   if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) .or. &
         (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$)) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
     if (err) goto 9000
   endif
 
-  do_track = .true.
-
-  n = nint(ele%value(n_rf_steps$))
-  if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$ .and. n > 0) then
-    call lcavity_rf_step_setup(ele)
-    do_track = .false.
-  endif
-
   ! If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
 
-  if (ele%slave_status == super_slave$) then
+  if (ele%slave_status == super_slave$ .and. do_track) then
     do i = 1, ele%n_lord
       lord => pointer_to_lord(ele, i)
       if (lord%key /= lcavity$) cycle  ! May be a pipe$
@@ -624,17 +645,11 @@ case (lcavity$, const_ref_energy$)
   ! small changes in the tracking. So if there has been a shift in the end energy, track again.
 
   if (do_track) then
-    do i = 1, 5
-      call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
-      call calc_time_ref_orb_out(ele, orb_end)
-      ele%value(p0c$) = orb_end%p0c * (1 + orb_end%vec(6))
-      call convert_pc_to (ele%value(p0c$), param%particle, E_tot = ele%value(E_tot$), err_flag = err)
-      if (err) goto 9000
-      if (abs(orb_end%vec(6)) < small_rel_change$) exit
-    enddo
+    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
+    call calc_time_ref_orb_out(ele, orb_end)
+    ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
 
-  ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   ele%time_ref_orb_out%p0c = ele%value(p0c$)  ! To prevent small roundoff errors
 
 case (custom$, hybrid$)

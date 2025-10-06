@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 346
+integer, parameter :: bmad_inc_version$ = 347
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1303,7 +1303,6 @@ type rf_stair_step_struct
   real(rp) :: E_tot1 = 0      ! Reference energy after the kick point.
   real(rp) :: p0c = 0         ! Reference momentum in the drift region (before the kick point).
   real(rp) :: p1c = 0         ! Reference momentum after the kick point.
-  real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
   real(rp) :: time = 0        ! Reference particle time at the kick point with respect to beginning of element.
   real(rp) :: s0 = 0          ! S-position at beginning of drift region relative to the beginning of the element.
@@ -1816,7 +1815,7 @@ integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, e
                       py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27, pc_strong$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
-                      phi0_multipass_ref$ = 28, b_field_tot$ = 28
+                      b_field_tot$ = 28
 integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, &
                       cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, &
                       x_dispersion_calib$ = 29, z_aperture_center$ = 29, f_factor$ = 29

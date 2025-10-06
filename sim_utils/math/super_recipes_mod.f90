@@ -813,6 +813,7 @@ end function super_dbrent
 !                       Other => Set by func. 
 !-
 
+recursive &
 function super_zbrent (func, x1, x2, rel_tol, abs_tol, status, func_val) result (x_zero)
 
 implicit none
@@ -935,7 +936,111 @@ end function super_zbrent
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska, print_err)
+! Function super_bracket_root (func, x1, x2, status) result (x_range)
+!
+! Routine to bracket the root of the function func.
+! Once bracketed, a root finder routine like super_zbrent can be used.
+! This routine works for functions that a fairly linear.
+! [x1, x2] is the initial guess and may not be actually bracket a root.
+!
+! Input:
+!   func        -- function whose root is to be bracketed. The interface is:
+!                    function func(x, status) result (value)
+!                      real(rp), intent(in) :: x
+!                      integer :: status    ! If non-zero return value, super_zbrent will terminate.
+!                      real(rp) :: value
+!                    end function func
+!   x1          -- real(rp): Initial left bracket point to use.
+!   x2          -- real(rp): Initial right bracket point to use.
+!
+! Output:
+!   status      -- integer: Calculation status:
+!                      -2    => Max iterations exceeded.
+!                      -1    => Root not bracketed.
+!                       0    => Normal.
+!                       Other => Set by func. 
+!   x_range(2)  -- real(rp): Range which brackets root.
+!-
+
+recursive &
+function super_bracket_root (func, x1, x2, status) result (x_range)
+
+interface
+  function func(x, status) result (value)
+    import
+    implicit none
+    real(rp), intent(in) :: x
+    integer status
+    real(rp) :: value
+  end function func
+end interface
+
+real(rp) x1, x2, x_range(2)
+real(rp) y1, y2, x0, xx, dx, dy, y0, yy
+
+integer it, status
+integer, parameter :: itmax = 100
+
+!
+
+status = 0
+y1 = func(x1, status); if (status /= 0) return
+y2 = func(x2, status); if (status /= 0) return
+
+x_range = [x1, x2]
+if (y1*y2 <= 0) return
+
+if (abs(y1) < abs(y2)) then
+  x0 = x1
+  y0 = y1
+  dx = x2 - x1
+  dy = y2 - y1
+
+else
+  x0 = x2
+  y0 = y2
+  dx = x1 - x2
+  dy = y1 - y2
+endif
+
+do it = 1, itmax
+  if (abs(y0) > 10.0_rp * abs(dy)) then
+    dx = 10.0_rp * dx
+  else
+    dx = -2.0_rp * y0 * dx / dy
+  endif
+
+  xx = x0 + dx
+  yy = func(xx, status); if (status /= 0) return
+
+  if (y0*yy <= 0) then
+    if (xx < x0) then
+      x_range = [xx, x0]
+    else
+      x_range = [x0, xx]
+    endif
+    return
+  endif
+
+  if (yy > y0) then
+    status = -1
+    return
+  endif
+
+  dy = yy - y0
+  x0 = xx
+  y0 = yy
+enddo
+
+status = -2
+
+end function super_bracket_root
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine super_mrqmin (y, weight, a, chisq, funcs, storage, alamda, status, maska, print_err)
 !
 ! Routine to do non-linear optimizations. 
 ! This routine is essentially mrqmin from Numerical Recipes with some added features and
@@ -1696,11 +1801,5 @@ do j = ma, 1, -1
 end do
 
 end subroutine covar_expand
-
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-!----------------------------------------------------------------------------
-
-
 
 end module

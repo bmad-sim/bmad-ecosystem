@@ -215,7 +215,7 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == -1) retu
 
 ! Init
 
-gradient_tot = body_dir * orbit%time_dir * lord%value(gradient_tot$) * lord%value(l$) / lord%value(l_active$)
+gradient_tot = body_dir * orbit%time_dir * lord%value(gradient_tot$) * lord%value(field_autoscale$) * lord%value(l$) / lord%value(l_active$)
 ff = edge * orbit%time_dir * charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
 f = ff / orbit%p0c
 pc = orbit%p0c * (1 + orbit%vec(6))
@@ -304,7 +304,8 @@ else
 endif
 
 phase = this_rf_phase(orbit, ele, lord, step)
-dE_amp = s_dir * step%dE_amp 
+
+dE_amp = s_dir * (lord%value(voltage$) + lord%value(voltage_err$)) * step%scale * lord%value(field_autoscale$) ! Amplitude of RF field
 dE = dE_amp * cos(phase)
 
 rel_p = 1 + orbit%vec(6)
@@ -386,7 +387,8 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) retur
 !
 
 rel_p = 1.0_rp + orbit%vec(6)
-coef = scale * orbit%time_dir * lord%value(l$) * (lord%value(gradient_tot$)*lord%value(l$)/lord%value(l_active$))**2 / (8.0_rp * orbit%p0c**2 * rel_p)
+coef = (lord%value(field_autoscale$)*lord%value(gradient_tot$)*lord%value(l$)/lord%value(l_active$))**2 * &
+                                      scale * orbit%time_dir * lord%value(l$) / (8.0_rp * orbit%p0c**2 * rel_p)
 
 if (make_mat) then
   call mat_make_unit(kmat)
@@ -420,7 +422,7 @@ real(rp) phase, particle_time
 integer ix_pass, n_links
 
 ! Lord will be something like the super_lord to a super_slave. 
-! The lord can be a multipass_slave.
+! The lord can be a multipass_slave but will not be a multipass_lord.
 
 mlord => lord
 if (lord%slave_status == multipass_slave$) mlord => pointer_to_lord(lord, 1)
