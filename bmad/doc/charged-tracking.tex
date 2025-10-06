@@ -65,22 +65,23 @@ set to False, $t_\text{eff}$ is simply
 \end{equation}
 
 To understand the difference between relative and absolute time tracking, consider a particle
-traveling on the reference orbit along side the reference particle in a circular ring with one RF
-cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking}, $t_\text{eff}$
-will always be zero (assuming \vn{bmad_com[absolute_time_ref_shift]} is set to True) at the entrance
-to the cavity.  On the other hand, with \vn{absolute time tracking}, the particle, on the first
-turn, will have $t_\text{eff}$ equal to zero. However, on subsequent turns (or subsequent passes if
-using multipass), the time will increase by the revolution time $t_\text{C}$ on each turn. If the RF
-frequency $f_\text{rf}$ is some multiple of the revolution harmonic, the RF phase with absolute vs
-relative time tracking will be some multiple of $2 \, \pi$ and thus RF kick given the particle will
-be the same in both cases. However, if the RF frequency is not some multiple of the revolution
-harmonic, there will be a difference in the RF kicks (except for the kick on the first turn).
+traveling on the reference orbit (zero orbit) along side the reference particle in a circular ring
+with one RF cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking},
+$t_\text{eff}$ will always be zero (assuming \vn{bmad_com[absolute_time_ref_shift]} is set to True).
+On the other hand, with \vn{absolute time tracking}, while the particle, on the first turn, will have
+$t_\text{eff}$ equal to zero, on subsequent turns (or subsequent passes if using
+multipass), the time will increase on each turn by the zero orbit revolution time. If
+the RF frequency $f_\text{rf}$ is some multiple of the revolution harmonic, the RF phase with
+absolute vs relative time tracking will be some multiple of $2 \, \pi$ and thus RF kick given the
+particle will be the same in both cases. However, if the RF frequency is not some multiple of the
+revolution harmonic, there will be a difference in the RF kicks (except for the kick on the first
+turn).
 
 There are advantages and disadvantages to using either relative or absolute time tracking. Absolute
 time tracking is more correct since RF cavities may have frequencies that are not commensurate with
-the revolution time. The problem with absolute time tracking is that the transfer map through the
-cavity is now a function of time and therefore is a function of $z$ {\em and} the turn number. This
-complicates lattice analysis. For example, standard element transfer maps use phase space
+the reference revolution time. The problem with absolute time tracking is that the transfer map
+through the cavity is now a function of time and therefore is a function of $z$ {\em and} the turn
+number. This complicates lattice analysis. For example, standard element transfer maps use phase space
 coordinates so with absolute time tracking, one has a different map for each turn.
 
 With relative time tracking the transfer map problem is swept under the rug. The penalty for using
