@@ -446,6 +446,8 @@ length = ele%value(l$)
 if (length == 0 .or. ele%key == taylor$) return
 if (orb_out%vec(2) == orb_in%vec(2) .and. orb_out%vec(4) == orb_in%vec(4) .and. &
        ele%key /= sbend$ .and. ele%key /= rf_bend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) return
+if (ele%value(p0c_start$) < 2.0_rp * mass_of(ele%ref_species) .or. &
+                ele%value(p0c$) < 2.0_rp * mass_of(ele%ref_species)) return
 
 !
 
