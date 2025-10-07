@@ -162,6 +162,21 @@ if (associated(ele%descrip)) then
   nl=nl+1; write (li(nl), '(2a)') 'Descrip:  ', quote(ele%descrip)
 endif
 
+if (ele%slave_status == super_slave$ .and. ele%n_lord == 1) then
+  lord => pointer_to_lord(ele, 1)
+  if (lord%type /= blank_name$) then
+    nl=nl+1; write (li(nl), '(2a)') "This Element's Super_lord Type:  ", quote(lord%type)
+  endif
+
+  if (lord%alias /= blank_name$) then
+    nl=nl+1; write (li(nl), '(2a)') "This Element's Super_lord Alias:  ", quote(lord%alias)
+  endif
+
+  if (associated(lord%descrip)) then
+    nl=nl+1; write (li(nl), '(2a)') "This Element's Super_lord Descrip:  ", quote(lord%descrip)
+  endif
+endif
+
 ! Encode element key and attributes
 
 if (ele%key <= 0) then
