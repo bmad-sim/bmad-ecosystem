@@ -32,24 +32,24 @@ using Beamlines
 @ele monitor1 = Drift(L =   4.50000E+00)
 @ele multipole1 = Multipole(Ks1L =  -1.00000E+00, Kn1L =   6.12323E-17, Ks3L =   3.08046E+00,
    Kn3L =  -3.28036E+00)
-@ele octupole1 = Octupole(L =   4.50000E+00, Kn3 =   1.09739E+01, x_offset =   1.00000E-02,
+@ele octupole1 = Octupole(L =   4.50000E+00, Kn3 =   1.00000E+03, x_offset =   1.00000E-02,
    y_pitch =   1.00000E-03, tilt =   3.92699E-01)
 @ele patch1 = Patch(L =   4.00499E-03, x_offset =   1.00000E-03, y_offset =   2.00000E-03,
    z_offset =   4.00000E-03, x_pitch =   1.00000E-03, y_pitch =   2.00000E-03, tilt =   2.00000E+00)
 @ele quadrupole1 = Quadrupole(L =   6.00000E-01, Ks0 =   9.88215E-03, Kn0 =   1.17851E-04,
-   Ks1 =   1.66667E-01, Kn1 =   1.66667E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
+   Ks1 =   1.00000E-01, Kn1 =   1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   7.85398E-01)
 @ele quadrupole2 = Quadrupole(L =   6.00000E-01, Ks0 =  -1.01179E-02, Kn0 =   1.17851E-04,
-   Ks1 =  -1.66667E-01, Kn1 =  -1.66667E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
+   Ks1 =  -1.00000E-01, Kn1 =  -1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   7.85398E-01)
 @ele quadrupole3 = Quadrupole(L =   6.00000E-01, Ks0 =  -1.17851E-04, Kn0 =   1.17851E-04,
-   Ks1 =   1.66667E-21, Kn1 =   1.66667E-20, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
+   Ks1 =   1.00000E-21, Kn1 =   1.00000E-20, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   7.85398E-01)
 @ele quadrupole4 = Quadrupole(L =   6.00000E-01, Ks0 =   9.88215E-03, Kn0 =   1.17851E-04,
-   Ks1 =   1.66667E-01, Kn1 =   1.66667E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
+   Ks1 =   1.00000E-01, Kn1 =   1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   7.85398E-01)
 @ele quadrupole5 = Quadrupole(L =   6.00000E-01, Ks0 =  -1.01179E-02, Kn0 =   1.17851E-04,
-   Ks1 =  -1.66667E-01, Kn1 =  -1.66667E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
+   Ks1 =  -1.00000E-01, Kn1 =  -1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   7.85398E-01)
 @ele rcollimator1 = Drift(L =   4.50000E+00x_limit = [ -2.00000E-01,
      2.00000E-01]y_limit = [ -1.00000E-01,   1.00000E-01], x_offset =   2.00000E-02,
@@ -60,45 +60,45 @@ using Beamlines
    tilt =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phase =   1.00000E-01)
 @ele rfcavity3 = RFCavity(x_offset =   5.00000E-02, y_pitch =   1.00000E-03, tilt =   1.00000E-01,
    rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phase =   1.00000E-01)
-@ele sad_mult1 = SadMult(L =   1.00000E-01, Ks1 =   2.00000E+00, Kn2 =   8.00000E+04,
-   Ks10 =   3.62880E+37, ksol =   5.00000E-01)
+@ele sad_mult1 = SadMult(L =   1.00000E-01, Ks1 =   2.00000E-01, Kn2 =   8.00000E+02,
+   Ks10 =   3.62880E+27, ksol =   5.00000E-01)
 @ele sad_mult2 = SadMult(Ks1L =   2.00000E-02, Kn2L =   8.00000E+01, Ks10L =   3.62880E+26,
    ksol =   5.00000E-01)
 @ele sbend1 = SBend(L =   6.00000E-01, ref_tilt =   1.00000E-01, Ks0 =  -1.65834E-04,
-   Kn0 =   1.66389E-05, Kn1 =   5.00000E-01, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   Kn0 =   1.66389E-05, Kn1 =   3.00000E-01, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
 @ele rbend2 = SBend(bend_type = rbend, L_chord =   6.00000E-01, ref_tilt =   1.00000E-01,
-   Ks0 =  -1.65834E-04, Kn0 =   1.66389E-05, Kn2 =   8.33333E+00, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   Ks0 =  -1.65834E-04, Kn0 =   1.66389E-05, Kn2 =   3.00000E+00, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
 @ele sbend3 = SBend(L =   6.00000E-01, ref_tilt =   1.00000E-01, Ks0 =  -1.65834E-04,
-   Kn0 =   1.66389E-05, Kn1 =   5.00000E-01, Kn2 =   8.33333E+00, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   Kn0 =   1.66389E-05, Kn1 =   3.00000E-01, Kn2 =   3.00000E+00, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
 @ele rbend4 = SBend(bend_type = rbend, L_chord =   6.00000E-01, e1_rect =   1.00000E-01,
    e2_rect =   2.00000E-01, g =   1.00000E-02, ref_tilt =   1.00000E-01, Ks0 =  -1.64834E-04,
-   Kn0 =  -9.88336E-03, Ks1 =   8.33332E-06, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   Kn0 =  -9.88336E-03, Ks1 =   5.00000E-06, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
 @ele sbend5 = SBend(L =   6.00000E-01, e1 =   1.00000E-01, e2 =   2.00000E-01, g =   1.00000E-02,
    ref_tilt =   1.00000E-01, fint1 =   7.00000E-01, fint2 =   7.00000E-01, hgap1 =   2.00000E+00,
-   hgap2 =   2.00000E+00, Ks0 =  -6.58340E-05, Kn0 =   1.66389E-05, Ks1 =   8.33333E-04,
+   hgap2 =   2.00000E+00, Ks0 =  -6.58340E-05, Kn0 =   1.66389E-05, Ks1 =   5.00000E-04,
    En0 =  -2.00000E+03, Es1 =   6.66667E+03, x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
 @ele rbend6 = SBend(bend_type = rbend, L_chord =   6.00000E-01, e1_rect =   1.00000E-01,
    e2_rect =   2.00000E-01, g =   1.00000E-02, ref_tilt =   1.00000E-01, Ks0 =  -1.65833E-04,
-   Kn0 =  -9.98326E-03, Ks1 =   8.33332E-09, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   Kn0 =  -9.98326E-03, Ks1 =   5.00000E-09, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
 @ele sbend7 = SBend(L =   6.00000E-01, e1 =   1.00000E-01, e2 =   2.00000E-01, g =   1.00000E-02,
-   ref_tilt =   1.00000E-01, Ks0 =  -6.58340E-05, Kn0 =   1.66389E-05, Ks1 =   8.33333E-04,
+   ref_tilt =   1.00000E-01, Ks0 =  -6.58340E-05, Kn0 =   1.66389E-05, Ks1 =   5.00000E-04,
    En0 =  -2.00000E+03, Es1 =   6.66667E+03, x_offset =   5.00000E-02, y_pitch =   1.00000E-03)
-@ele sextupole1 = Sextupole(L =   6.00000E-01, Kn2 =   2.77778E+00, x_offset =   5.00000E-02,
+@ele sextupole1 = Sextupole(L =   6.00000E-01, Kn2 =   1.00000E+00, x_offset =   5.00000E-02,
    y_pitch =   1.00000E-03, tilt =   5.23599E-01)
 @ele solenoid1 = Solenoid(L =   2.60000E+00, x_offset =   5.00000E-02, y_pitch =   1.00000E-03,
    tilt =   1.00000E-01, ksol =   1.00000E+00)
 @ele solenoid2 = Solenoid(L =   2.60000E+00, x_offset =   5.00000E-02, y_pitch =   1.00000E-03,
    tilt =   1.00000E-01, ksol =   1.00000E-12)
-@ele sol_quad1 = Solenoid(L =   2.60000E+00, Kn1 =   3.84615E-01, x_offset =   5.00000E-02,
+@ele sol_quad1 = Solenoid(L =   2.60000E+00, Kn1 =   1.00000E+00, x_offset =   5.00000E-02,
    y_pitch =   1.00000E-03, tilt =   1.00000E-01, ksol =   1.00000E+00)
-@ele sol_quad2 = Solenoid(L =   2.60000E+00, Kn1 =   3.84615E-06, x_offset =   5.00000E-02,
+@ele sol_quad2 = Solenoid(L =   2.60000E+00, Kn1 =   1.00000E-05, x_offset =   5.00000E-02,
    y_pitch =   1.00000E-03, tilt =   1.00000E-01, ksol =   1.00000E+00)
-@ele thick_multipole1 = ThickMultipole(L =   4.50000E+00, Ks2 =   2.19479E-02, Kn3 =   2.92638E-01,
+@ele thick_multipole1 = ThickMultipole(L =   4.50000E+00, Ks2 =   4.44444E-01, Kn3 =   2.66667E+01,
    x_offset =   2.00000E-02, tilt =   1.00000E-01)
 @ele taylor1 = Taylor(L =   5.00000E-01)
 @ele vkicker1 = Kicker(L =   4.50000E+00, Ks0 =   1.11111E-03, x_offset =   5.00000E-02,
