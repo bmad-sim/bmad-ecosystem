@@ -3030,7 +3030,13 @@ case ('ele:grid_field')
 ! Example:
 !   pipe ele:head 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
-! 
+!
+! Output: Various element parameters. See the code for the list of what is returned.
+!
+! Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the element are never set.
+! If the element used in this command is a super_slave with exactly one super_lord, what will be returned
+! for these three parameters is the values stored in the super_lord. This is done for convenience sake.
+!
 ! Parameters
 ! ----------
 ! ele_id 
@@ -3054,21 +3060,30 @@ case ('ele:head')
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
-
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
 
   nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     trim(key_name(ele%key))
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name)
-  nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
-  nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
-  if (associated(ele%descrip)) then
-    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ele%descrip
+
+  if (ele%slave_status == super_slave$ .and. ele%n_lord == 1) then
+    lord => pointer_to_lord(ele, 1)
+    can_vary = (lord%slave_status /= multipass_slave$ .and. lord%ix_ele /= 0)
+    nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       lord%type
+    nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      lord%alias
+    if (associated(lord%descrip)) then
+      nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',    lord%descrip
+    endif
   else
-    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ''
+    can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
+    nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
+    nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
+    if (associated(ele%descrip)) then
+      nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',    ele%descrip
+    endif
   endif
+
   nl=incr(nl); write (li(nl), '(2(a,l1))') 'is_on;LOGIC;', attribute_free(ele, 'is_on', .false.), ';', ele%is_on
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                     ele%s

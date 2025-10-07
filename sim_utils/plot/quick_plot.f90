@@ -2995,7 +2995,7 @@ do i = 1, n_rows
     call qp_draw_text_no_set (text(i), xc + line_len + text_off, yc2-0.5*height, 'INCH/PAGE/LB')
   endif
 
-  yc2 = yc2 - 1.0 * height * legend%row_spacing
+  yc2 = yc2 - 1.3 * height * legend%row_spacing
 enddo
 
 call qp_restore_state
