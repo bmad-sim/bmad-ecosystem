@@ -1126,8 +1126,9 @@ case ('REFLECTIVITY_TABLE')
   do
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
     if (word == 'ANGLES') then
-      if (.not. expect_this ('=(', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-      if (.not. parser_fast_real_read(vec, ele, ' ,)', delim, 'REFLECTIVITY_TABLE ANGLES LIST', .false., na)) return
+      if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+      if (.not. parse_real_list(lat, 'REFLECTIVITY_TABLE ANGLES LIST', vec, .false., &
+                                        delim, delim_found, '(', ' ', ')', num_found = na)) return
       allocate(rt%angle(na))
       rt%angle = vec(1:na)
       if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return

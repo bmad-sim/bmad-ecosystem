@@ -7558,25 +7558,23 @@ end function parse_real_matrix
 !   parse_real_matrix.
 !
 ! Input:
-!  lat            -- lat_struct: lattice
-!  err_str        -- character(*): Error string to print if there is an error. 
-!  real_array     -- real(rp), allocatable: the array to be read in 
-!
-! Optional: 
-!   num_expected = 10       -- integer, optional: number of expected arguments
-!                                Used to initialize real_array
-!   open_brace   = '('      -- character(1), optional: opening delimeter.
-!   separator    = ','      -- character(1), optional: separating character
-!   close_brace  = ')'      -- character(1), optional: closing delimeter
-!   default_value = 0.0_rp  -- real(rp), optional: inital assignment of real_array elements.
-!   single_value = False    -- logical, optional: If true then an array with a single value and no braces is accepted.
+!  lat                     -- lat_struct: lattice
+!  err_str                 -- character(*): Error string to print if there is an error. 
+!  real_array              -- real(rp), allocatable: the array to be read in 
+!  num_expected = 10       -- integer, optional: number of expected arguments
+!                               Used to initialize real_array
+!  open_brace   = '('      -- character(1), optional: opening delimeter.
+!  separator    = ','      -- character(1), optional: separating character
+!  close_brace  = ')'      -- character(1), optional: closing delimeter
+!  default_value = 0.0_rp  -- real(rp), optional: inital assignment of real_array elements.
+!  single_value = False    -- logical, optional: If true then an array with a single value and no braces is accepted.
 !
 ! Output:
-!   is_ok                   -- logical: Set True if everything is ok
-!   real_array(1:num_found) -- real(rp) : Array of values
-!   num_found               -- integer : number of elements
-!   delim                   -- character(1): Delimiter found where the parsing of the input line stops.
-!   delim_found             -- logical: Stopping delimiter found? False if end of input command.
+!  is_ok                   -- logical: Set True if everything is ok
+!  real_array(1:num_found) -- real(rp) : Array of values
+!  num_found               -- integer : number of elements
+!  delim                   -- character(1): Delimiter found where the parsing of the input line stops.
+!  delim_found             -- logical: Stopping delimiter found? False if end of input command.
 !-
 
 function parse_real_list2 (lat, err_str, real_array, num_found, delim, delim_found, num_expected, &
