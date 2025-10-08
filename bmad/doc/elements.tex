@@ -1315,9 +1315,11 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 
 The \vn{crystal_type} attribute defines the crystal material and diffraction lattice plane. The
 syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ} is the material name and \vn{ijk} are the Miller indices
-for the diffraction plane. For example,
+for the diffraction plane. Alternatively, for double digit indices, commas can be used to separate
+the indices. For example,
 \begin{example}
-  b_cryst1: crystal, crystal_type = "Si(111)", b_param = -1, ...
+  a_cryst: crystal, crystal_type = "Si(111)", b_param = -1, ...
+  b_cryst: crystal, crystal_type = "Si(2,4,10)", b_param = -1, ...
 \end{example}
 The atomic formula is case sensitive so, for example, \vn{"SI(111)"} is not acceptable. The list of
 known crystal materials is given in \sref{s:cryst.list}. Given the \vn{crystal_type}, the spacing

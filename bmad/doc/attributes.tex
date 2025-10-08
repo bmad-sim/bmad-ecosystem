@@ -1199,7 +1199,7 @@ The general syntax is:
     ! A reflection table
     \{
       polarization = <name>
-      angles = (<ang1>, <ang2>, ..., <angN>),
+      angles = (<ang1> <ang2> ... <angN>),
       p_reflect = \{
         <energy1> <P_11> <P_12> <P_13> ... <P_1N>,
         <energy2> <P_21> <P_22> <P_23> ... <P_2N>, 
@@ -1210,7 +1210,8 @@ The general syntax is:
 The \vn{p_reflect} table must come last. Angles are in radians and energy is in eV. Angle and energy
 points do not need to be evenly spaced. Probabilities \vn{P_ij} are between 0 and 1 and must be real
 numbers (as opposed to expressions). For particles outside the range of angles, the probability is
-taken to be zero. The \vn{p_reflect} portion of the reflectivity table must come last.
+taken to be zero. The \vn{p_reflect} portion of the reflectivity table must come last. Notice that angles
+and probability values are separated by blank characters.
 
 Possible \vn{polarization} names are:
 \begin{example}
@@ -1228,7 +1229,7 @@ Example:
 \begin{example}
   cryst1: crystal, reflectivity_table = \{
       polarization=both, 
-      angles = (0, 0.5*pi),
+      angles = (0   0.5*pi),
       p_reflect = \{ 
           12000 1 1, 
           14000 1 1

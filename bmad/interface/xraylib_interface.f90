@@ -325,7 +325,7 @@ real(c_double) energy, debye_temp_factor, fp, fpp, rel_angle
 
 complex(rp) f0, fh
 
-integer i, ix, ix1, ix2, ios, hkl(3)
+integer i, ix, ix1, ix2, ios, hkl(3), ios1, ios2, ios3
 
 logical err_flag
 
@@ -357,14 +357,43 @@ hkl_str = ele%component_name(ix1+1:ix2-1)
 
 ! Calculate HKL
 
-if (.not. is_integer(hkl_str) .or. len_trim(hkl_str) /= 3) then
-  call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
-  if (global_com%exit_on_error) call err_exit
-endif
+ix = index(hkl_str, ',')
+if (ix == 0) then
+  if (.not. is_integer(hkl_str) .or. len_trim(hkl_str) /= 3) then
+    call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
+  read (hkl_str(1:1), *, iostat = ios1) hkl(1)
+  read (hkl_str(2:2), *, iostat = ios2) hkl(2)
+  read (hkl_str(3:3), *, iostat = ios3) hkl(3)
+  if (ios1 /= 0 .or. ios2 /= 0 .or. ios3 /= 0) then
+    call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    return
+  endif
 
-read (hkl_str(1:1), *, iostat = ios) hkl(1)
-read (hkl_str(2:2), *, iostat = ios) hkl(2)
-read (hkl_str(3:3), *, iostat = ios) hkl(3)
+else
+  do i = 1, 3
+    if (ix == 0) then
+      call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+
+    read(hkl_str(1:ix-1), *, iostat = ios) hkl(i)
+    if (ios /= 0) then
+      call out_io (s_fatal$, r_name, 'MALFORMED CRYSTAL_TYPE: ' // ele%component_name, 'FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
+
+    if (i == 3) exit
+    hkl_str = hkl_str(ix+1:)
+    ix = index(hkl_str, ',')
+    if (i == 2) ix = len(hkl_str)
+  enddo
+endif
 
 ! Calculate values for the given energy
 
