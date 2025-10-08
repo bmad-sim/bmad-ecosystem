@@ -1191,27 +1191,26 @@ the entrance and exit reference orbit.}
 \label{s:reflect}
 
 Reflectivity tables are used to define reflectivity probabilities as functions of incidence angle and
-photon energy for \vn{crystal} and \vn{mirror} elements.
+photon energy for \vn{crystal} elements.
 
 The general syntax is:
 \begin{example}
-  m: mirror, reflectivity_table = \{
+  m: crystal, reflectivity_table =
     ! A reflection table
     \{
       polarization = <name>
-      angles = (<ang1 <ang2 ... <angN>),
+      angles = (<ang1>, <ang2>, ..., <angN>),
       p_reflect = \{
         <energy1> <P_11> <P_12> <P_13> ... <P_1N>,
         <energy2> <P_21> <P_22> <P_23> ... <P_2N>, 
         ...
       \}
     \}
-  \}
 \end{example}
-The \vn{angles} array must be before the \vn{p_reflect} table. Angles are in radians and energy is
-in eV. Angle and energy points do not need to be evenly spaced. Probabilities \vn{P_ij} are between
-0 and 1. For particles outside the range of angles, the probability is taken to be zero. The
-\vn{p_reflect} portion of the reflectivity table must come last.
+The \vn{p_reflect} table must come last. Angles are in radians and energy is in eV. Angle and energy
+points do not need to be evenly spaced. Probabilities \vn{P_ij} are between 0 and 1 and must be real
+numbers (as opposed to expressions). For particles outside the range of angles, the probability is
+taken to be zero. The \vn{p_reflect} portion of the reflectivity table must come last.
 
 Possible \vn{polarization} names are:
 \begin{example}
@@ -1224,6 +1223,18 @@ one for \vn{sigma} and the other for \vn{pi}.
 
 For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy where
 the Bragg angle is calculated without any refraction corrections.
+
+Example:
+\begin{example}
+  cryst1: crystal, reflectivity_table = \{
+      polarization=both, 
+      angles = (0, 0.5*pi),
+      p_reflect = \{ 
+          12000 1 1, 
+          14000 1 1
+        \}
+    \}, b_param = ...
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
