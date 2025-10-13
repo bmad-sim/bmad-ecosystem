@@ -2002,8 +2002,7 @@ The \vn{is_on} attribute
 \begin{example}
   is_on = <Logical>
 \end{example}
-is used to turn an element off. Turning
-an element off essentially converts it into a drift.
+is used to turn an element off. Turning an element off essentially converts it into a drift.
 Example
 \begin{example}
   q1: quad, l = 0.6, k1 = 0.95
@@ -2019,14 +2018,12 @@ reference orbit (\sref{s:ref}) or reference energy (\sref{s:ref.energy}). For ex
 
 The following elements cannot be ``turned off:''
 \begin{example}
-  beginning_ele       null_ele
-  capillary           overlay
+  capillary           null_ele       
   crystal             hybrid
   drift               mirror
   fiducial            multilayer_mirror
   floor_shift         photon_init
   patch               sample
-  group
 \end{example}
 
 A related parameter is \vn{multipoles_on} (\sref{s:multip}).

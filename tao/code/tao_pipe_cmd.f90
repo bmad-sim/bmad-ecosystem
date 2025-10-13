@@ -692,16 +692,21 @@ case ('bunch_comb')
     end select
 
     select case (tail)
-    case ('beta');      call real_array_out(twiss_arr%beta, use_real_array_buffer, 0, n)
-    case ('alpha');     call real_array_out(twiss_arr%alpha, use_real_array_buffer, 0, n)
-    case ('gamma');     call real_array_out(twiss_arr%gamma, use_real_array_buffer, 0, n)
-    case ('phi');       call real_array_out(twiss_arr%phi, use_real_array_buffer, 0, n)
-    case ('eta');       call real_array_out(twiss_arr%eta, use_real_array_buffer, 0, n)
-    case ('etap');      call real_array_out(twiss_arr%etap, use_real_array_buffer, 0, n)
-    case ('sigma');     call real_array_out(twiss_arr%sigma, use_real_array_buffer, 0, n)
-    case ('sigma_p');   call real_array_out(twiss_arr%sigma_p, use_real_array_buffer, 0, n)
-    case ('emit');      call real_array_out(twiss_arr%emit, use_real_array_buffer, 0, n)
-    case ('norm_emit'); call real_array_out(twiss_arr%norm_emit, use_real_array_buffer, 0, n)
+    case ('beta');       call real_array_out(twiss_arr%beta, use_real_array_buffer, 0, n)
+    case ('alpha');      call real_array_out(twiss_arr%alpha, use_real_array_buffer, 0, n)
+    case ('gamma');      call real_array_out(twiss_arr%gamma, use_real_array_buffer, 0, n)
+    case ('phi');        call real_array_out(twiss_arr%phi, use_real_array_buffer, 0, n)
+    case ('eta');        call real_array_out(twiss_arr%eta, use_real_array_buffer, 0, n)
+    case ('etap');       call real_array_out(twiss_arr%etap, use_real_array_buffer, 0, n)
+    case ('deta_ds');    call real_array_out(twiss_arr%deta_ds, use_real_array_buffer, 0, n)
+    case ('dbeta_dpz');  call real_array_out(twiss_arr%dbeta_dpz, use_real_array_buffer, 0, n)
+    case ('dalpha_dpz'); call real_array_out(twiss_arr%dalpha_dpz, use_real_array_buffer, 0, n)
+    case ('deta_dpz');   call real_array_out(twiss_arr%deta_dpz, use_real_array_buffer, 0, n)
+    case ('detap_dpz');  call real_array_out(twiss_arr%detap_dpz, use_real_array_buffer, 0, n)
+    case ('sigma');      call real_array_out(twiss_arr%sigma, use_real_array_buffer, 0, n)
+    case ('sigma_p');    call real_array_out(twiss_arr%sigma_p, use_real_array_buffer, 0, n)
+    case ('emit');       call real_array_out(twiss_arr%emit, use_real_array_buffer, 0, n)
+    case ('norm_emit');  call real_array_out(twiss_arr%norm_emit, use_real_array_buffer, 0, n)
     case default
       call invalid ('Bad {who}: ' // which)
       return
@@ -8735,12 +8740,18 @@ endif
 
 fmt = '(4a, es22.14)'
 
-nl=incr(nl); write (li(nl), fmt) prefix, 'beta_', suffix, v_str,                twiss%beta
-nl=incr(nl); write (li(nl), fmt) prefix,  'alpha_', suffix, v_str,              twiss%alpha
-nl=incr(nl); write (li(nl), fmt) prefix,  'gamma_', suffix, ';REAL;F;',         twiss%gamma
-nl=incr(nl); write (li(nl), fmt) prefix,  'phi_', suffix, v_str,                twiss%phi
-nl=incr(nl); write (li(nl), fmt) prefix,  'eta_', suffix, v_str,                twiss%eta
-nl=incr(nl); write (li(nl), fmt) prefix,  'etap_', suffix, v_str,               twiss%etap
+nl=incr(nl); write (li(nl), fmt) prefix, 'beta_', suffix, v_str,               twiss%beta
+nl=incr(nl); write (li(nl), fmt) prefix, 'alpha_', suffix, v_str,              twiss%alpha
+nl=incr(nl); write (li(nl), fmt) prefix, 'gamma_', suffix, ';REAL;F;',         twiss%gamma
+nl=incr(nl); write (li(nl), fmt) prefix, 'phi_', suffix, v_str,                twiss%phi
+nl=incr(nl); write (li(nl), fmt) prefix, 'eta_', suffix, v_str,                twiss%eta
+nl=incr(nl); write (li(nl), fmt) prefix, 'deta_ds_', suffix, v_str,            twiss%deta_ds
+nl=incr(nl); write (li(nl), fmt) prefix, 'etap_', suffix, v_str,               twiss%etap
+
+nl=incr(nl); write (li(nl), fmt) prefix, 'dbeta_dpz_', suffix, v_str,          twiss%dbeta_dpz
+nl=incr(nl); write (li(nl), fmt) prefix, 'dalpha_dpz_', suffix, v_str,         twiss%dalpha_dpz
+nl=incr(nl); write (li(nl), fmt) prefix, 'deta_dpz_', suffix, v_str,           twiss%deta_dpz
+nl=incr(nl); write (li(nl), fmt) prefix, 'detap_dpz_', suffix, v_str,          twiss%detap_dpz
 
 if (logic_option(.false., emit_out)) then
   nl=incr(nl); write (li(nl), fmt) prefix, 'sigma_', suffix, ';REAL;F;',       twiss%sigma
@@ -8770,8 +8781,11 @@ endif
 
 fmt = '(3a, es22.14)'
 
-nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           xy_disp%eta
-nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
+nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                         xy_disp%eta
+nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                        xy_disp%etap
+nl=incr(nl); write (li(nl), fmt) 'deta_ds', suffix, v_str,                      xy_disp%deta_ds
+nl=incr(nl); write (li(nl), fmt) 'deta_dpz_', suffix, v_str,                    xy_disp%deta_dpz
+nl=incr(nl); write (li(nl), fmt) 'detap_dpz_', suffix, v_str,                   xy_disp%detap_dpz
 
 end subroutine xy_disp_out
 
