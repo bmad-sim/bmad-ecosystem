@@ -55,7 +55,7 @@ def test_segfault_multiple_tracking_mode_n_rf_steps():
 
 def test_low_energy_cavity_energy_change():
     """
-    Regression test for issue #:
+    Regression test for issue #1762:
     Confirm energy is changed going through bunching phase cavity at low energy.
     """
     lat_path = Path(__file__).parent / "lat3.bmad"
