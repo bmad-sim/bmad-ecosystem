@@ -1,0 +1,24 @@
+no_digested
+parameter[geometry] = Open            
+
+parameter[p0c]                      =  6.28365E+05
+parameter[particle]                 = Electron
+
+beginning[beta_a]    =  1.39449126865854395E001
+beginning[alpha_a]   =  9.51137732365840982E-002
+beginning[beta_b]    =  3.65359641740668428E001
+beginning[alpha_b]   =  1.99621756285904550E-002
+
+!parameter[absolute_time_tracking] = T
+!-------------------------------------------------------
+
+L0AF: Lcavity,  L =  0.4, GRADIENT =  1e6,
+   RF_FREQUENCY =  0.900000000000000E+009,
+   phi0=-0.25, mat6_calc_method=tracking,
+   tracking_method=Time_Runge_Kutta
+
+LAT: line = ( L0AF)
+
+use, LAT
+
+

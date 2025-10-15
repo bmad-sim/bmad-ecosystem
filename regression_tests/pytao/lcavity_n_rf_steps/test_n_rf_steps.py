@@ -51,3 +51,17 @@ def test_segfault_multiple_tracking_mode_n_rf_steps():
             10e6,
             err_msg="Could not read starting energy of lattice."
         )
+
+
+def test_low_energy_cavity_energy_change():
+    """
+    Regression test for issue #:
+    Confirm energy is changed going through bunching phase cavity at low energy.
+    """
+    lat_path = Path(__file__).parent / "lat3.bmad"
+    assert lat_path.is_file(), f"Lattice file not found: {lat_path}"
+
+    # Confirm energy looks OK
+    with SubprocessTao(lattice_file=str(lat_path), noplot=True) as tao:
+        delta_e = tao.ele_gen_attribs("L0AF")["E_TOT"] - tao.ele_gen_attribs("L0AF")["E_TOT_START"]
+        assert np.abs(delta_e) > 1e4, f"Energy change through cavity is smaller than expected (DELTA_E={delta_e}eV, should be >1e4eV)"
