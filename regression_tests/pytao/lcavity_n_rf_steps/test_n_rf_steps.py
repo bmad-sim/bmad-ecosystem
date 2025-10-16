@@ -58,7 +58,7 @@ def test_low_energy_cavity_energy_change():
     Regression test for issue #1762:
     Confirm energy is changed going through bunching phase cavity at low energy.
     """
-    lat_path = Path(__file__).parent / "lat3.bmad"
+    lat_path = Path(__file__).parent / "lat4.bmad"
     assert lat_path.is_file(), f"Lattice file not found: {lat_path}"
 
     # Confirm energy looks OK
