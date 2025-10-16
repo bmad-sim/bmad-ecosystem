@@ -233,6 +233,7 @@ character(*), parameter :: r_name = 'bend_exact_multipole_field'
 
 !
 
+
 g = ele%value(g$)
 rho = ele%value(rho$)
 
@@ -249,6 +250,7 @@ xg = x * g
 
 field = em_field_struct()
 do_dfield_calc = logic_option(.false., calc_dfield)
+if (ele%value(l$) == 0) return
 
 !
 

@@ -376,8 +376,8 @@ slave_val = slave%value  ! save
 
 slave%value = lord%value
 if (lord%key == lcavity$ .or. lord%key == rfcavity$) then
-  slave%value(phi0_multipass$) = slave_val(phi0_multipass$)
-  slave%value(l_active$)       = lord%value(l_active$)
+  slave%value(phi0_multipass$)     = slave_val(phi0_multipass$)
+  slave%value(l_active$)           = lord%value(l_active$)
 endif
 
 ! A slave's field_master = T irregardless of the lord's setting.
@@ -1598,7 +1598,9 @@ do i = 1, slave%n_lord
     vs => slave%value
 
     if (v(x_offset_tot$) == 0 .and. v(y_offset_tot$) == 0 .and. v(z_offset_tot$) == 0 .and. &
-        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0) cycle
+        v(x_pitch_tot$) == 0 .and. v(y_pitch_tot$) == 0 .and. v(tilt_tot$) == 0 .and. &
+        vs(x_offset$) == 0 .and. vs(y_offset$) == 0 .and. vs(z_offset$) == 0 .and. &
+        vs(x_pitch$) == 0 .and. vs(y_pitch$) == 0 .and. vs(tilt$) == 0) cycle
     ! Transformation to get the total misalignment:
     !   T_slave_mis_tot = G_slave^-1 . G_gird . T_gird_mis_tot . G_gird^-1 . G_slave . T_slave_mis
     ! where G = transformation wrt Global coordinate system.

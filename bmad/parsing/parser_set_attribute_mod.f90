@@ -1126,8 +1126,9 @@ case ('REFLECTIVITY_TABLE')
   do
     call get_next_word (word, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
     if (word == 'ANGLES') then
-      if (.not. expect_this ('=(', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
-      if (.not. parser_fast_real_read(vec, ele, ' ,)', delim, 'REFLECTIVITY_TABLE ANGLES LIST', .false., na)) return
+      if (.not. expect_this ('=', .true., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
+      if (.not. parse_real_list(lat, 'REFLECTIVITY_TABLE ANGLES LIST', vec, .false., &
+                                        delim, delim_found, '(', ' ', ')', num_found = na)) return
       allocate(rt%angle(na))
       rt%angle = vec(1:na)
       if (.not. expect_this (',', .false., .false., 'AFTER ' // quote(attrib_word), ele, delim, delim_found)) return
@@ -1927,8 +1928,10 @@ case ('IS_ON')
     if (bp_com%parser_name == 'bmad_parser2') then
       call set_active_fixer(ele)
     elseif (ele%is_on) then
-      bp_com%ix_fixer = bp_com%ix_fixer + 1
-      ele%value(ix_fixer$) = bp_com%ix_fixer  ! Used to indicate last fixer set on.
+      bp_com%n_fixer_set = bp_com%n_fixer_set + 1
+      ele%value(ix_fixer$) = bp_com%n_fixer_set  ! Used to indicate last fixer set on.
+    else
+      ele%value(ix_fixer$) = 0
     endif
   endif
 

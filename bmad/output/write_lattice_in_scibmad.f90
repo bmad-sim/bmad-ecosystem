@@ -1,20 +1,20 @@
 !+
-! Subroutine write_lattice_in_julia(julia_file, lat, err_flag)
+! Subroutine write_lattice_in_scibmad(scibmad_file, lat, err_flag)
 !
-! Routine to create a Bmad-Julia lattice file.
+! Routine to create a SciBmad lattice file.
 !
 ! Input:
 !   lat           -- lat_struct: Lattice
 !
 ! Output:
-!   julia_file    -- character(*), optional: Bmad-Julia lattice file name.
+!   scibmad_file  -- character(*), optional: SciBmad lattice file name.
 !   err_flag      -- logical, optional: Error flag
 !-
 
-subroutine write_lattice_in_julia(julia_file, lat, err_flag)
+subroutine write_lattice_in_scibmad(scibmad_file, lat, err_flag)
 
-use write_lattice_file_mod, dummy => write_lattice_in_julia
-use bmad_routine_interface,  dummy2 => write_lattice_in_julia
+use write_lattice_file_mod, dummy => write_lattice_in_scibmad
+use bmad_routine_interface,  dummy2 => write_lattice_in_scibmad
 
 implicit none
 
@@ -40,34 +40,87 @@ integer, allocatable :: an_indexx(:), index_list(:)
 logical has_been_added, in_multi_region, have_expand_lattice_line, err
 logical, optional :: err_flag
 
-character(*) julia_file
+character(*) scibmad_file
 character(1) prefix
 character(40) name, look_for
 character(40), allocatable :: names(:)
 character(240) fname
 character(1000) line
-character(*), parameter :: r_name = 'write_lattice_in_julia'
+character(*), parameter :: r_name = 'write_lattice_in_scibmad'
 
-character(20), parameter :: julia_name(n_key$) = [character(20):: &
-    'Drift             ', 'Bend              ', 'Quadrupole        ', 'Group             ', 'Sextupole         ', &
-    'Overlay           ', 'Custom            ', 'Taylor            ', 'RFCavity          ', 'ELSeparator       ', &
-    'BeamBeam          ', 'Wiggler           ', 'Solenoid          ', 'Marker            ', 'Kicker            ', &
-    'Hybrid            ', 'Octupole          ', 'Bend              ', 'Multipole         ', '!Bmad_Com         ', &
-    '!Mad_Beam         ', 'Multipole         ', 'Solenoid          ', 'Patch             ', 'LCavity           ', &
-    '!Parameter        ', 'NullEle           ', 'BeginningEle      ', '!Line             ', 'Match             ', &
-    'Instrument        ', 'Instrument        ', 'Kicker            ', 'Kicker            ', 'Collimator        ', &
-    'Collimator        ', 'Girder            ', 'Converter         ', '!Particle_Start   ', 'Fork              ', &
-    'Fork              ', 'Mirror            ', 'Crystal           ', 'Pipe              ', 'Capillary         ', &
-    'MultilayerMirror  ', 'EGun              ', 'EMField           ', 'FloorShift        ', 'Fiducial          ', &
-    'Undulator         ', 'DiffractionPlatee ', 'PhotonInit        ', 'Sample            ', 'Detector          ', &
-    'SadMult           ', 'Mask              ', 'ACKicker          ', 'Lens              ', '!Space_Charge_Com ', &
-    'CrabCavity        ', 'Ramper            ', '!PTC_Com          ', 'RFBend            ', 'Kicker            ', &
-    'Foil              ', 'ThickMultipole    ', 'Instrument        ', 'Instrument        ', 'Fixer             ']
+character(20) :: scibmad_ele_type(n_key$)
 
+!
+
+scibmad_ele_type(drift$)                = 'Drift'
+scibmad_ele_type(sbend$)                = 'SBend'
+scibmad_ele_type(quadrupole$)           = 'Quadrupole'
+scibmad_ele_type(group$)                = 'Group'
+scibmad_ele_type(sextupole$)            = 'Sextupole'
+scibmad_ele_type(overlay$)              = 'Overlay'
+scibmad_ele_type(custom$)               = 'Custom'
+scibmad_ele_type(taylor$)               = 'Taylor'
+scibmad_ele_type(rfcavity$)             = 'RFCavity'
+scibmad_ele_type(elseparator$)          = 'ELSeparator'
+scibmad_ele_type(beambeam$)             = 'BeamBeam'
+scibmad_ele_type(wiggler$)              = 'Wiggler'
+scibmad_ele_type(sol_quad$)             = 'Solenoid'
+scibmad_ele_type(marker$)               = 'Marker'
+scibmad_ele_type(kicker$)               = 'Kicker'
+scibmad_ele_type(hybrid$)               = 'Hybrid'
+scibmad_ele_type(octupole$)             = 'Octupole'
+scibmad_ele_type(rbend$)                = 'SBend'
+scibmad_ele_type(multipole$)            = 'Multipole'
+scibmad_ele_type(ab_multipole$)         = 'Multipole'
+scibmad_ele_type(solenoid$)             = 'Solenoid'
+scibmad_ele_type(patch$)                = 'Patch'
+scibmad_ele_type(lcavity$)              = 'LCavity'
+scibmad_ele_type(null_ele$)             = 'NullEle'
+scibmad_ele_type(beginning_ele$)        = 'BeginningEle'
+scibmad_ele_type(def_line$)             = '!Line'
+scibmad_ele_type(match$)                = 'Match'
+scibmad_ele_type(monitor$)              = 'Drift'
+scibmad_ele_type(instrument$)           = 'Drift'
+scibmad_ele_type(hkicker$)              = 'Kicker'
+scibmad_ele_type(vkicker$)              = 'Kicker'
+scibmad_ele_type(rcollimator$)          = 'Drift'
+scibmad_ele_type(ecollimator$)          = 'Drift'
+scibmad_ele_type(girder$)               = 'Girder'
+scibmad_ele_type(converter$)            = 'Converter'
+scibmad_ele_type(photon_fork$)          = 'Fork'
+scibmad_ele_type(fork$)                 = 'Fork'
+scibmad_ele_type(mirror$)               = 'Mirror'
+scibmad_ele_type(crystal$)              = 'Crystal'
+scibmad_ele_type(pipe$)                 = 'Pipe'
+scibmad_ele_type(capillary$)            = 'Capillary'
+scibmad_ele_type(multilayer_mirror$)    = 'MultilayerMirror'
+scibmad_ele_type(e_gun$)                = 'EGun'
+scibmad_ele_type(em_field$)             = 'EMField'
+scibmad_ele_type(floor_shift$)          = 'FloorShift'
+scibmad_ele_type(fiducial$)             = 'Fiducial'
+scibmad_ele_type(undulator$)            = 'Undulator'
+scibmad_ele_type(diffraction_plate$)    = 'DiffractionPlate'
+scibmad_ele_type(photon_init$)          = 'PhotonInit'
+scibmad_ele_type(sample$)               = 'Sample'
+scibmad_ele_type(detector$)             = 'Detector'
+scibmad_ele_type(sad_mult$)             = 'SadMult'
+scibmad_ele_type(mask$)                 = 'Mask'
+scibmad_ele_type(ac_kicker$)            = 'ACKicker'
+scibmad_ele_type(lens$)                 = 'Lens'
+scibmad_ele_type(crab_cavity$)          = 'CrabCavity'
+scibmad_ele_type(ramper$)               = 'Ramper'
+scibmad_ele_type(def_ptc_com$)          = '!PTC_Com'
+scibmad_ele_type(rf_bend$)              = 'RFBend'
+scibmad_ele_type(gkicker$)              = 'Kicker'
+scibmad_ele_type(foil$)                 = 'Foil'
+scibmad_ele_type(thick_multipole$)      = 'ThickMultipole'
+scibmad_ele_type(pickup$)               = 'Drift'
+scibmad_ele_type(feedback$)             = 'Drift'
+scibmad_ele_type(fixer$)                = 'Fixer'
 
 ! Open file
 
-call fullfilename(julia_file, fname)
+call fullfilename(scibmad_file, fname)
 iu = lunget()
 open (iu, file = fname, status = 'unknown')
 
@@ -76,6 +129,8 @@ open (iu, file = fname, status = 'unknown')
 write (iu, '(a)')  '# File generated by: write_lattice_in_foreign_format'
 write (iu, '(4a)') '# Bmad lattice file: ', trim(lat%input_file_name)
 write (iu, '(a)')
+write (iu, '(a)')  'using Beamlines'
+write (iu, '(a)')
 
 n_names = 0
 n = lat%n_ele_max
@@ -83,7 +138,7 @@ allocate (names(n), an_indexx(n), named_eles(n))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  ele_loop: do ie = 0, branch%n_ele_max
+  ele_loop: do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
     length = ele%value(l$)
 
@@ -114,9 +169,9 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ie == 0) ele%name = 'begin' // int_str(ib+1)
     if (ie == branch%n_ele_track .and. ele%name == 'END') ele%name = 'end' // int_str(ib+1)
-    line = '@ele ' // trim(downcase(ele%name)) // ' = ' // trim(julia_name(ele%key)) // '('
+    line = '@ele ' // trim(downcase(ele%name)) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
 
-    if (ie == 0) then
+    if (ie == 0) then  ! Currently not used since ie starts at 1.
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
       line = trim(line) // ', species_ref = species(' // quote(openpmd_species_name(ele%ref_species)) // ')'
       if (ele%a%beta /= 0) line = trim(line) // ', beta_a = ' // re_str(ele%a%beta)
@@ -179,12 +234,13 @@ do ib = 0, ubound(lat%branch, 1)
       prefix = 'K'
     endif
 
+    if (length /= 0) f = f / length
+
     do j = 0, ix
       if (length == 0) then
         if (a_pole(j) /= 0) line = trim(line) // ', ' // prefix // 's' // int_str(j) // 'L = ' // re_str(f * factorial(j) * a_pole(j))
         if (b_pole(j) /= 0) line = trim(line) // ', ' // prefix // 'n' // int_str(j) // 'L = ' // re_str(f * factorial(j) * b_pole(j))
       else
-        f = f / length
         if (a_pole(j) /= 0) line = trim(line) // ', ' // prefix // 's' // int_str(j) // ' = ' // re_str(f * factorial(j) * a_pole(j))
         if (b_pole(j) /= 0) line = trim(line) // ', ' // prefix // 'n' // int_str(j) // ' = ' // re_str(f * factorial(j) * b_pole(j))
       endif
@@ -242,19 +298,19 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(phi0_err$) /= 0)  line = trim(line) // ', phase_err = ' // re_str(ele%value(phi0_err$))
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
-      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', frequency = ' // re_str(ele%value(rf_frequency$))
+      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phase = ' // re_str(ele%value(phi0$))
     endif
 
-    if (has_attribute(ele, 'N_CELL')) then
-      if (ele%value(n_cell$) /= 0)  line = trim(line) // ', n_cell = ' // re_str(ele%value(n_cell$))
-      if (nint(ele%value(cavity_type$)) == standing_wave$) then
-        line = trim(line) // ', cavity_type = standing_wave'
-      else
-        line = trim(line) // ', cavity_type = traveling_wave'
-      endif
-    endif
+!!    if (has_attribute(ele, 'N_CELL')) then
+!!      if (ele%value(n_cell$) /= 0)  line = trim(line) // ', n_cell = ' // re_str(ele%value(n_cell$))
+!!      if (nint(ele%value(cavity_type$)) == standing_wave$) then
+!!        line = trim(line) // ', cavity_type = standing_wave'
+!!      else
+!!        line = trim(line) // ', cavity_type = traveling_wave'
+!!      endif
+!!    endif
 
     !
 
@@ -282,7 +338,7 @@ do ib = 0, ubound(lat%branch, 1)
       line = line(1:ix) // trim(line(ix+3:)) // ')'
     endif
 
-    call write_lat_line(line, iu, .true., julia = .true.)
+    call write_lat_line(line, iu, .true., scibmad = .true.)
 
   enddo ele_loop
 enddo
@@ -312,18 +368,18 @@ do ib = 0, ubound(lat%branch, 1)
       in_multi_region = .true.
       ix_r = mult_ele(ie)%ix_region
       write (iu, '(a)')
-      write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ' = beamline('
+      write (line, '(a, i2.2, a)') 'multi_line_', ix_r, ' = Beamline('
     endif
 
     if (mult_ele(ie)%ix_region /= ix_r) then
       call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #2! PLEASE REPORT THIS!')
     endif
 
-    call write_julia_element (line, iu, ele, lat)
+    call write_scibmad_element (line, iu, ele, lat)
 
     if (mult_ele(ie)%region_stop_pt) then
       line = line(:len_trim(line)-1) // ')'
-      call write_lat_line (line, iu, .true., julia = .true.)
+      call write_lat_line (line, iu, .true., scibmad = .true.)
       in_multi_region = .false.
     endif
   enddo
@@ -347,7 +403,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(a)')
   name = downcase(branch%name)
   if (name == '') name = 'lat_line'
-  line = trim(name) // ' = beamline(' // quote(name) // ', [' // trim(branch%ele(0)%name) // ','
+  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(branch%ele(0)%name) // ','
 
   in_multi_region = .false.
   do ie = 1, branch%n_ele_track
@@ -356,7 +412,7 @@ do ib = 0, ubound(lat%branch, 1)
     e_info => m_info%branch(ib)%ele(ie)
 
     if (.not. e_info%multipass) then
-      call write_julia_element (line, iu, ele, lat)
+      call write_scibmad_element (line, iu, ele, lat)
       cycle
     endif
 
@@ -386,8 +442,11 @@ do ib = 0, ubound(lat%branch, 1)
 
   enddo
 
-  line = line(:len_trim(line)-1) // '], geometry = ' // trim(downcase(geometry_name(branch%param%geometry))) // ')'
-  call write_lat_line (line, iu, .true., julia = .true.)
+  !!! line = line(:len_trim(line)-1) // '], geometry = ' // trim(downcase(geometry_name(branch%param%geometry))) // ')'
+  line = line(:len_trim(line)-1) // ']; R_ref = ' // &
+                    trim(re_str(branch%ele(0)%value(p0c$)/charge_of(branch%param%particle))) // &
+                    ', species_ref = Species(' // quote(openpmd_species_name(branch%param%particle)) // '))'
+  call write_lat_line (line, iu, .true., scibmad = .true.)
 enddo
 
 ! Define lat
@@ -501,7 +560,7 @@ end function aper_str
 !----------------------------------------------------------------------------------------------
 ! contains
 
-subroutine write_julia_element (line, iu, ele, lat)
+subroutine write_scibmad_element (line, iu, ele, lat)
 
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
@@ -533,9 +592,9 @@ else
   endif
 endif
 
-if (len_trim(line) > 100) call write_lat_line(line, iu, .false., julia = .true.)
+if (len_trim(line) > 100) call write_lat_line(line, iu, .false., scibmad = .true.)
 
-end subroutine write_julia_element
+end subroutine write_scibmad_element
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -649,4 +708,4 @@ write (iu, '(5a)') trim(ele_unique_name(ele, order)), '[', trim(attrib_name), ']
 
 end subroutine write_this_differing_attrib
 
-end subroutine write_lattice_in_julia
+end subroutine write_lattice_in_scibmad

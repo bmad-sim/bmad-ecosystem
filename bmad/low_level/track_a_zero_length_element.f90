@@ -49,32 +49,37 @@ endif
 
 if (present(track)) call save_a_step (track, ele, param, .false., orbit, 0.0_rp)
 
-if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false.)
+if (ele%key /= fixer$) then
 
-call init_fringe_info (fringe_info, ele)
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = first_track_edge$
-  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false.)
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, set$, orbit, set_hvkicks = .false.)
+
+  call init_fringe_info (fringe_info, ele)
+  if (fringe_info%has_fringe) then
+    fringe_info%particle_at = first_track_edge$
+    call apply_element_edge_kick(orbit, fringe_info, ele, param, .false.)
+  endif
+
+  !
+
+  call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
+  if (ix_pole_max > -1) then
+    amp = ac_kicker_amp(ele, orbit)
+    call ab_multipole_kicks (an, bn, ix_pole_max, ele, orbit, magnetic$, amp)
+  endif
+
+  !
+
+  if (fringe_info%has_fringe) then
+    fringe_info%particle_at = second_track_edge$
+    call apply_element_edge_kick(orbit, fringe_info, ele, param, .false.)
+  endif
+
+  if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false.)
+
+  if (present(track)) call save_a_step (track, ele, param, .false., orbit, 0.0_rp)
 endif
 
 !
-
-call multipole_ele_to_ab(ele, .false., ix_pole_max, an, bn, magnetic$, include_kicks$)
-if (ix_pole_max > -1) then
-  amp = ac_kicker_amp(ele, orbit)
-  call ab_multipole_kicks (an, bn, ix_pole_max, ele, orbit, magnetic$, amp)
-endif
-
-!
-
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = second_track_edge$
-  call apply_element_edge_kick(orbit, fringe_info, ele, param, .false.)
-endif
-
-if (ele%bookkeeping_state%has_misalign) call offset_particle (ele, unset$, orbit, set_hvkicks = .false.)
-
-if (present(track)) call save_a_step (track, ele, param, .false., orbit, 0.0_rp)
 
 select case (orbit%direction*orbit%time_dir)
 case (1);   orbit%location = downstream_end$

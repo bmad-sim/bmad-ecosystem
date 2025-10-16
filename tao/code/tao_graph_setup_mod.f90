@@ -1991,6 +1991,7 @@ if (curve%draw_line) then
     if (substr(curve%data_type,1,7) == 'smooth.') smooth_curve = .false.
     if (substr(curve%data_type,1,7) == 'spin_dn') smooth_curve = .false.
     if (substr(curve%data_type,1,15) == 'element_attrib.') smooth_curve = .false.
+    if (substr(curve%data_type,1,11) == 'expression:') smooth_curve = .false.
     if (substr(curve%data_type,1,6) == 'chrom.' .and. substr(curve%data_type,1,7) /= 'chrom.w') smooth_curve = .false.
 
     if (index(curve%component, 'meas') /= 0 .or. index(curve%component, 'ref') /= 0 .or. &
@@ -2419,15 +2420,17 @@ do ii = 1, size(curve%x_line)
   case ('lat')
     if (cache_status == using_cache$) then
       ele_to_s  = tao_branch%plot_cache(ii)%ele_to_s
-      orbit     = tao_branch%plot_cache(ii)%orbit
       mat6      = tao_branch%plot_cache(ii)%ele_to_s%mat6
       vec0      = tao_branch%plot_cache(ii)%ele_to_s%vec0
       err_flag  = tao_branch%plot_cache(ii)%err
+      orbit     = tao_branch%plot_cache(ii)%orbit
+      orbit%time_dir = 1   ! In case there was backwards time tracking due to a active fixer element.
 
     else
       ! Note: first_time may be set True when a Taylor or Hybrid element is encountered.
       if (first_time) then
         call twiss_and_track_at_s (lat, s_now, ele_to_s, orb, orbit, ix_branch, err_flag, compute_floor_coords = .true.)
+        orbit%time_dir = 1  ! In case there was backwards time tracking due to a active fixer element.
         call mat6_from_s_to_s (lat, mat6, vec0, branch%ele(0)%s, s_now, orb(0), ix_branch = ix_branch)
         ele_to_s%vec0 = vec0
         ele_to_s%mat6 = mat6
@@ -2481,7 +2484,7 @@ do ii = 1, size(curve%x_line)
   end select
 
   call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                          tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
+               tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
@@ -2523,7 +2526,7 @@ if (curve%ele_ref_name /= '') then
     endif
 
     call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                  tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
+           tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
     curve%y_line = curve%y_line - comp_sign * value
   end select
@@ -2536,9 +2539,9 @@ bmad_com%radiation_fluctuations_on = radiation_fluctuations_on
 contains
 
 subroutine this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-                                   tao_branch, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag)
+                                tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag)
 
-type (coord_struct) orbit, orb_end
+type (coord_struct) orbit, orb_end, orb(0:)
 type (tao_lattice_branch_struct) :: tao_branch
 type (ele_struct), target :: ele_to_s, ele_ref, ele_dum, high_ele, low_ele, ele_here
 type (lat_struct) lat

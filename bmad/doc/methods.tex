@@ -79,10 +79,8 @@ be small so that \vn{bmad_standard} can be used in the vast majority of cases (\
 
 \index{custom!tracking_method}
 \item[\vn{Custom}]
-This method will call a routine \vn{track1_custom} which must be supplied by the programmer
-implementing the custom tracking. The default \vn{track1_custom} supplied with the \bmad release
-will print an error message and stop the program if it is called which probably indicates a program
-linking problem. See \vn{s:custom.ele} for more details.
+This method can be used to call custom tracking code supplied by the User. See \vn{s:custom.ele}
+for more details.
 
 \index{fixed_step_runge_kutta!tracking_method}
 \item[\vn{fixed_step_runge_kutta}]
@@ -200,7 +198,7 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
   \vn{ab_multipole and multipole}    & D & X & X &   &     &     &  X  &  X  &    \\  
   \vn{ac_kicker}                     & D & X & X &   &  X  &     &     &     & X  \\  
   \vn{beambeam}                      & D & X & X &   &     &     &     &     &    \\  
-  \vn{bends: rbend and sbend}        & D & X & X & X &     &     &  X  &  X  &    \\ 
+  \vn{bends: rbend and sbend}        & D & X & X & X &  X  &     &  X  &  X  & X  \\ 
   \vn{converter}                     & D & X &   &   &     &     &     &     &    \\  
   \vn{crab_cavity}                   & D & X & X &   &     &     &     &     &    \\  
   \vn{custom}                        &   & D & X &   &  X  &     &     &     & X  \\  
@@ -210,6 +208,7 @@ explained in \sref{s:rf.time}. This method is non-symplectic (\sref{s:non.symp})
   \vn{elseparator}                   & D & X & X & X &  X  &     &  X  &  X  & X  \\  
   \vn{em_field}                      &   & X &   &   &  D  &     &  X  &  X  & X  \\  
   \vn{fiducial}                      & D & X &   &   &     &     &  X  &     &    \\  
+  \vn{fixer}                         & D & X &   &   &     &     &     &     &    \\  
   \vn{floor_shift}                   & D & X &   &   &     &     &  X  &     &    \\  
   \vn{fork}                          & D & X & X &   &     &     &     &     &    \\
   \vn{gkicker}                       & D & X & X &   &     &     &  X  &  X  &    \\
@@ -316,10 +315,8 @@ emphasis here is on speed.
 
 \index{custom!mat6_calc_method}
 \item[\vn{Custom}]
-This method will call a routine \vn{make_mat6_custom} which must be supplied by the programmer
-implementing the custom transfer matrix calculation. The default \vn{make_mat6_custom} supplied with
-the \bmad release will print an error message and stop the program if it is called which probably
-indicates a program linking problem.  See \vn{s:custom.ele} for more details.
+This method can be used to call custom matrix calculation code supplied by the User. See
+\vn{s:custom.ele} for more details.
 
 \index{MAD!mat6_calc_method}
 \item[\vn{MAD}]

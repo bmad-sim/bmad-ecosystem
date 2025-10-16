@@ -6,13 +6,16 @@
 ! This will handle open geometry lattices. In this case, dbeta/dpz and dalpha/dpz are are
 ! taken to be what is set in the beginning element.
 !
+! Note: If chrom_calc is to be repeatedly called, supplying low_E_lat, high_E_lat, low_E_orb, and/or high_E_orb will save time
+! since memory will not have to be repeatedly allocated.
+!
 ! Input:
 !   lat           -- lat_struct: Lat
 !   delta_e       -- real(rp): +/- Delta energy used for the calculation. Notice that the energy difference
 !                      between high and low is 2 * delta_e. If 0 then default of 1.0d-4 is used.
 !   pz            -- real(rp), optional: reference momentum about which to calculate. Default is 0. 
 !   ix_branch     -- integer, optional: Index of the lattice branch to use. Default is 0.
-!   orb0          -- coord_struct, optional: On-energy orbit at start. Default is the zero orbit.
+!   orb0          -- coord_struct, optional: On-energy orbit at start (fixer point). Default is the branch%particle_start.
 !                     Only needed if lattice branch has an open geometry.
 !
 ! Output:
@@ -35,7 +38,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (lat_struct), optional, target :: low_E_lat, high_E_lat
-type (lat_struct), target :: this_lat
+type (lat_struct), target :: temp_lat
 type (lat_struct), pointer :: lat2
 type (coord_struct), allocatable, optional, target :: low_E_orb(:), high_E_orb(:)
 type (coord_struct), optional :: orb0
@@ -50,10 +53,10 @@ real(rp), optional :: pz
 real time0, time1
 
 integer, optional :: ix_branch
-integer nt, nm, stat, ix_br, ie, i0
+integer nt, nm, stat, ix_br, ie, i0, ix_fix
 
 logical, optional, intent(out) :: err_flag
-logical err, used_this_lat
+logical err
 
 character(*), parameter :: r_name = 'chrom_calc'
 
@@ -61,11 +64,11 @@ character(*), parameter :: r_name = 'chrom_calc'
 
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
-ele => branch%ele(0)
+ix_fix = branch%ix_fixer
+ele => branch%ele(ix_fix)
 
 if (present(err_flag)) err_flag = .true.
 if (delta_e <= 0) delta_e = 1.0d-4
-
 
 
 ! reference momentum
@@ -78,14 +81,12 @@ dE2 = 0.5_rp * dE
 nt = branch%n_ele_track
 nm = branch%n_ele_max
 
-! lower energy tune
+! Low energy calc.
 
 if (present(low_E_lat)) then
   lat2 => low_E_lat
-  used_this_lat = .false.
 else
-  lat2 => this_lat
-  used_this_lat = .true.
+  lat2 => temp_lat
 endif
 
 lat2 = lat
@@ -103,7 +104,7 @@ endif
 
 if (branch%param%geometry == closed$) then
   i0 = 0
-  orb_ptr(0)%vec(6) = pz0-dE_low
+  orb_ptr(ix_fix)%vec(6) = pz0-dE_low
   if (present(low_E_orb)) then; call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err)
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   endif
@@ -121,16 +122,16 @@ if (branch%param%geometry == closed$) then
 else
   i0 = 1
   if (present(orb0)) then
-    orb_ptr(0) = orb0
+    orb_ptr(ix_fix) = orb0
   else
-    call init_coord(orb_ptr(0), branch2%ele(0), downstream_end$)
+    call init_coord(orb_ptr(ix_fix), branch%particle_start, branch2%ele(ix_fix), downstream_end$)
   endif
-  orb_ptr(0)%vec = orb_ptr(0)%vec + &
-        (pz0-orb_ptr(0)%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+  orb_ptr(ix_fix)%vec = orb_ptr(ix_fix)%vec + &
+        (pz0-orb_ptr(ix_fix)%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(low_E_orb)) then; call track_all(lat2, low_E_orb, ix_br)
   else;                         call track_all(lat2, this_orb, ix_br)
   endif
-  ele2 => lat2%branch(ix_br)%ele(0)
+  ele2 => lat2%branch(ix_br)%ele(ix_fix)
   ele2%a%beta  = ele%a%beta  - dE2 * ele%a%dbeta_dpz
   ele2%b%beta  = ele%b%beta  - dE2 * ele%b%dbeta_dpz
   ele2%a%alpha = ele%a%alpha - dE2 * ele%a%dalpha_dpz
@@ -171,20 +172,17 @@ branch%ele(i0:nm)%x%detap_dpz = branch2%ele(i0:nm)%x%etap
 branch%ele(i0:nm)%y%detap_dpz = branch2%ele(i0:nm)%y%etap
 branch%ele(i0:nm)%z%detap_dpz = branch2%ele(i0:nm)%z%etap
 
-! higher energy tune
+! Higher energy lattice
 
 if (present(high_E_lat)) then
   lat2 => high_E_lat
-  used_this_lat = .false.
 else
-  lat2 => this_lat
+  lat2 => temp_lat
 endif
 
-if (.not. used_this_lat) then
-  lat2 = lat
-  branch2 => lat2%branch(ix_br)
-  call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
-endif
+lat2 = lat
+branch2 => lat2%branch(ix_br)
+call set_on_off (rfcavity$, lat2, off$, ix_branch = ix_br)
 
 if (present(high_E_orb)) then
   call reallocate_coord (high_E_orb, branch%n_ele_max)
@@ -195,7 +193,7 @@ else
 endif
 
 if (branch%param%geometry == closed$) then
-  orb_ptr(0)%vec(6) = pz0+delta_e
+  orb_ptr(ix_fix)%vec(6) = pz0+delta_e
   if (present(low_E_orb)) then; call closed_orbit_calc (lat2, high_E_orb, 4, 1, ix_br, err)
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
   endif
@@ -212,16 +210,16 @@ if (branch%param%geometry == closed$) then
 
 else
   if (present(orb0)) then
-    orb_ptr(0) = orb0
+    orb_ptr(ix_fix) = orb0
   else
-    call init_coord(orb_ptr(0), branch2%ele(0), downstream_end$)
+    call init_coord(orb_ptr(ix_fix), branch%particle_start, branch2%ele(ix_fix), downstream_end$)
   endif
-  orb_ptr(0)%vec = orb_ptr(0)%vec + &
-            (pz0-orb_ptr(0)%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+  orb_ptr(ix_fix)%vec = orb_ptr(ix_fix)%vec + &
+            (pz0-orb_ptr(ix_fix)%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(high_E_orb)) then; call track_all(lat2, high_E_orb, ix_br)
   else;                          call track_all(lat2, this_orb, ix_br)
   endif
-  ele2 => lat2%branch(ix_br)%ele(0)
+  ele2 => lat2%branch(ix_br)%ele(ix_fix)
   ele2%a%beta  = ele%a%beta  + dE2 * ele%a%dbeta_dpz
   ele2%b%beta  = ele%b%beta  + dE2 * ele%b%dbeta_dpz
   ele2%a%alpha = ele%a%alpha + dE2 * ele%a%dalpha_dpz
@@ -268,5 +266,6 @@ branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y
 branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%detap_dpz) / dE
 
 if (present(err_flag)) err_flag = .false.
+if (.not. present(low_E_lat) .or. .not. present(high_E_lat)) call deallocate_lat_pointers(temp_lat)
 
 end subroutine

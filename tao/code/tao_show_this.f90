@@ -195,6 +195,7 @@ logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc, clean
 logical print_ptc, force_use_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms, do_inverse
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
+logical print_internal
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
@@ -444,7 +445,7 @@ case ('beam')
     nl=nl+1; write(lines(nl), amt)  'saved_at          = ', quote(u%beam%saved_at)
     nl=nl+1; write(lines(nl), amt)  'dump_at           = ', quote(u%beam%dump_at)
     nl=nl+1; write(lines(nl), amt)  'dump_file         = ', quote(u%beam%dump_file)
-    nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: -1 => Use (latice branch length)/plot_page%n_curve_pts'
+    nl=nl+1; write(lines(nl), rmt3) 'comb_ds_save      = ', tao_branch%comb_ds_save, '  ! Note: < 0 => No comb calculated.'
     if (allocated(tao_branch%bunch_params_comb)) then
       nl=nl+1; write(lines(nl), amt)  'comb index range  = [0, ', int_str(tao_branch%bunch_params_comb(1)%n_pt), ']'
     endif
@@ -729,11 +730,11 @@ case ('branch')
     nl=nl+1; write(lines(nl), '(a, i0)') 'For the lattice of universe: ', ix_u
   endif
 
-  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live'  
-  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork'
+  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live                Active'
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork   Fixer'
 
 
-  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a)'
+  fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a, t116, a)'
   do i = 0, ubound(lat%branch, 1)
     branch => lat%branch(i)
     ele_name = ''
@@ -741,7 +742,7 @@ case ('branch')
 
     nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
               trim(species_name(branch%param%particle)), trim(species_name(branch%param%default_tracking_species)), &
-              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name
+              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name, branch%ele(branch%ix_fixer)%name
   enddo
 
   nl=nl+1; lines(nl) = ''
@@ -1589,6 +1590,7 @@ case ('element')
   print_super_slaves = .true.
   lat_type = model$
   print_ptc = .false.
+  print_internal = .false.
   attrib0 = ''
   name = ''
 
@@ -1596,7 +1598,7 @@ case ('element')
     call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
                 '-all', '-data', '-design', '-no_slaves', '-wall', '-base', &
                 '-field', '-floor_coords', '-xfer_mat', '-ptc', '-everything', &
-                '-attributes', '-no_super_slaves', '-radiation_kick'], .true., switch, err)
+                '-attributes', '-no_super_slaves', '-radiation_kick', '-internal'], .true., switch, err)
     if (err) return
     select case (switch)
     case ('');                  exit
@@ -1614,6 +1616,7 @@ case ('element')
     case ('-wall');             print_wall = .true.
     case ('-radiation_kick');   print_rad = .true.
     case ('-ptc');              print_ptc = .true.
+    case ('-internal');         print_internal = .true.
     case ('-everything', '-all')
       print_attributes = .true.
       xfer_mat_print = 6
@@ -1722,7 +1725,7 @@ case ('element')
   twiss_out = s%global%phase_units
   if (lat%branch(ele%ix_branch)%param%particle == photon$) twiss_out = 0
   call type_ele (ele, print_attributes, xfer_mat_print, print_taylor, twiss_out, print_control, .true., &
-            print_floor, print_field, print_wall, print_rad, lines = alloc_lines, n_lines = n)
+            print_floor, print_field, print_wall, print_rad, print_internal, lines = alloc_lines, n_lines = n)
   if (size(s%u) > 1) alloc_lines(1) = trim(alloc_lines(1)) // ',   Universe: ' // int_str(ix_u)
 
   if (size(lines) < nl+n+100) call re_allocate (lines, nl+n+100, .false.)
@@ -2124,7 +2127,6 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %delta_e_chrom                 = ', s%global%delta_e_chrom
     nl=nl+1; write(lines(nl), lmt) '  %disable_smooth_line_calc      = ', s%global%disable_smooth_line_calc
     nl=nl+1; write(lines(nl), lmt) '  %draw_curve_off_scale_warn     = ', s%global%draw_curve_off_scale_warn
-    nl=nl+1; write(lines(nl), lmt) '  %init_lat_sigma_from_beam      = ', s%global%init_lat_sigma_from_beam
     nl=nl+1; write(lines(nl), lmt) '  %label_lattice_elements        = ', s%global%label_lattice_elements
     nl=nl+1; write(lines(nl), lmt) '  %label_keys                    = ', s%global%label_keys
     nl=nl+1; write(lines(nl), lmt) '  %lattice_calc_on               = ', s%global%lattice_calc_on
@@ -2144,6 +2146,7 @@ case ('global')
     nl=nl+1; write(lines(nl), amt) '  %prompt_color                  = ', quote(s%global%prompt_color)
     nl=nl+1; write(lines(nl), amt) '  %random_engine                 = ', quote(s%global%random_engine)
     nl=nl+1; write(lines(nl), amt) '  %random_gauss_converter        = ', quote(s%global%random_gauss_converter)
+    nl=nl+1; write(lines(nl), amt) '  %lat_sigma_calc_uses_emit_from = ', s%global%lat_sigma_calc_uses_emit_from
     nl=nl+1; write(lines(nl), amt) '  %quiet                         = ', quote(s%global%quiet)
 
     nl=nl+1; write(lines(nl), amt) '  %random_engine (input)         = ', quote(s%global%random_engine)
@@ -3935,29 +3938,33 @@ case ('particle')
   model_branch => u%model_branch(ix_branch)
   branch => u%model%lat%branch(ix_branch)
 
+  if (.not. allocated(model_branch%beam%beam_at_start%bunch)) then
+    call out_io (s_error$, r_name, 'NO BEAM TRACKING HAS BEEN DONE.')
+    return
+  endif
+
   ! show lost
 
   if (show_lost) then
-    bunch => u%model_branch(ix_branch)%ele(lat%n_ele_track)%beam%bunch(nb)
+    do ie = branch%n_ele_track, 0, -1    ! Find last saved beam.
+      if (allocated(model_branch%ele(ie)%beam%bunch)) exit
+    enddo
+    bunch => model_branch%ele(ie)%beam%bunch(nb)
     nl=nl+1; write(lines(nl), *) 'Bunch:', nb
     nl=nl+1; lines(nl) = 'Particles lost at:'
-    nl=nl+1; lines(nl) = '    Ix Ix_Ele  Ele_Name '
+    nl=nl+1; lines(nl) = '    Ix               Ix_Ele  Ele_Name '
     do i = 1, size(bunch%particle)
       if (bunch%particle(i)%state == alive$) cycle
       if (nl == size(lines)) call re_allocate (lines, nl+100, .false.)
       ie = bunch%particle(i)%ix_ele
-      nl=nl+1; write(lines(nl), '(i6, i7, 2x, a)') i, ie, lat%ele(ie)%name
+      nl=nl+1; write(lines(nl), '(i6, a14, i7, 2x, a)') i, &
+                    trim(coord_state_name(bunch%particle(i)%state)), ie, branch%ele(ie)%name
     enddo
     result_id = 'particle:lost'
     return
   endif
 
   ! check
-
-  if (.not. allocated(model_branch%beam%beam_at_start%bunch)) then
-    call out_io (s_error$, r_name, 'NO BEAM TRACKING HAS BEEN DONE.')
-    return
-  endif
 
   if (nb < 1 .or. nb > size(model_branch%beam%beam_at_start%bunch)) then
     call out_io (s_error$, r_name, 'BUNCH INDEX OUT OF RANGE: \i0\ ', i_array = [ nb ])
@@ -5862,10 +5869,11 @@ case ('universe')
     nl=nl+1; write(lines(nl), rmt) 'Reference energy:            ', branch%ele(0)%value(e_tot$)
     nl=nl+1; write(lines(nl), rmt) 'Reference momentum:          ', branch%ele(0)%value(p0c$)
   else
-    nl=nl+1; write(lines(nl), rmt) 'Starting reference energy:   ', branch%ele(0)%value(e_tot$)
-    nl=nl+1; write(lines(nl), rmt) 'Starting reference momentum: ', branch%ele(0)%value(p0c$)
-    nl=nl+1; write(lines(nl), rmt) 'Ending reference energy:     ', branch%ele(nt)%value(e_tot$)
-    nl=nl+1; write(lines(nl), rmt) 'Ending reference momentum:   ', branch%ele(nt)%value(p0c$)
+    nl=nl+1; write(lines(nl), rmt) 'Starting reference energy:     ', branch%ele(0)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Starting reference momentum:   ', branch%ele(0)%value(p0c$)
+    nl=nl+1; write(lines(nl), rmt) 'Ending reference energy:       ', branch%ele(nt)%value(e_tot$)
+    nl=nl+1; write(lines(nl), rmt) 'Ending reference momentum:     ', branch%ele(nt)%value(p0c$)
+    nl=nl+1; write(lines(nl), amt) 'Twiss and orbit fixer element: ', ele_full_name(branch%ele(branch%ix_fixer))
   endif
 
   nl=nl+1; write(lines(nl), lmt) 'Absolute_Time_Tracking:      ', bmad_com%absolute_time_tracking

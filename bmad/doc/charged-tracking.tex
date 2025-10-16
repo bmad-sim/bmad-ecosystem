@@ -65,22 +65,23 @@ set to False, $t_\text{eff}$ is simply
 \end{equation}
 
 To understand the difference between relative and absolute time tracking, consider a particle
-traveling on the reference orbit along side the reference particle in a circular ring with one RF
-cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking}, $t_\text{eff}$
-will always be zero (assuming \vn{bmad_com[absolute_time_ref_shift]} is set to True) at the entrance
-to the cavity.  On the other hand, with \vn{absolute time tracking}, the particle, on the first
-turn, will have $t_\text{eff}$ equal to zero. However, on subsequent turns (or subsequent passes if
-using multipass), the time will increase by the revolution time $t_\text{C}$ on each turn. If the RF
-frequency $f_\text{rf}$ is some multiple of the revolution harmonic, the RF phase with absolute vs
-relative time tracking will be some multiple of $2 \, \pi$ and thus RF kick given the particle will
-be the same in both cases. However, if the RF frequency is not some multiple of the revolution
-harmonic, there will be a difference in the RF kicks (except for the kick on the first turn).
+traveling on the reference orbit (zero orbit) along side the reference particle in a circular ring
+with one RF cavity. This particle always has $z = 0$ and thus, with \vn{relative time tracking},
+$t_\text{eff}$ will always be zero (assuming \vn{bmad_com[absolute_time_ref_shift]} is set to True).
+On the other hand, with \vn{absolute time tracking}, while the particle, on the first turn, will have
+$t_\text{eff}$ equal to zero, on subsequent turns (or subsequent passes if using
+multipass), the time will increase on each turn by the zero orbit revolution time. If
+the RF frequency $f_\text{rf}$ is some multiple of the revolution harmonic, the RF phase with
+absolute vs relative time tracking will be some multiple of $2 \, \pi$ and thus RF kick given the
+particle will be the same in both cases. However, if the RF frequency is not some multiple of the
+revolution harmonic, there will be a difference in the RF kicks (except for the kick on the first
+turn).
 
 There are advantages and disadvantages to using either relative or absolute time tracking. Absolute
 time tracking is more correct since RF cavities may have frequencies that are not commensurate with
-the revolution time. The problem with absolute time tracking is that the transfer map through the
-cavity is now a function of time and therefore is a function of $z$ {\em and} the turn number. This
-complicates lattice analysis. For example, standard element transfer maps use phase space
+the reference revolution time. The problem with absolute time tracking is that the transfer map
+through the cavity is now a function of time and therefore is a function of $z$ {\em and} the turn
+number. This complicates lattice analysis. For example, standard element transfer maps use phase space
 coordinates so with absolute time tracking, one has a different map for each turn.
 
 With relative time tracking the transfer map problem is swept under the rug. The penalty for using
@@ -164,8 +165,8 @@ of curvature of the reference particle, and $\wt m$, $\Bf a$ and $\wt\psi$ are t
 vector, and scalar potentials:
 \begin{equation}
   \wt m = \frac{m \, c^2}{c \, P_0} \qquad
-  \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0 \, c} \qquad 
-  \wt\psi(x,y,z) = \frac{q \, \psi}{P_0}
+  \left( a_x, a_y, \frac{a_s}{1+g \, x} \right) = \frac{q \, \Bf A}{P_0} \qquad 
+  \wt\psi(x,y,z) = \frac{q \, \psi}{P_0 \, c}
   \label{mmccp}
 \end{equation}
 In terms of the normalized velocities $\beta_x$, $\beta_y$, the canonical momentum are
@@ -1222,11 +1223,6 @@ dependent, it is easiest to use this Hamiltonian in energy-time phase space coor
                  = \mp \frac{\pi \, f_\txt{rf} \, q}{P_0 \, c^2} G_t \, \sin(\phi_t + \phi_\REF) \, (x^2 + y^2)
       \nonumber
 \end{align}
-The time shift can be thought of as due to the fact that the actual particle trajectory (and not the
-averaged trajectory) has a transverse sinusodial component synced to the phase of the backwards
-traveling wave.  The sinusodial component is needed to produce the pondermotive force but this
-oscillation also delays the particle in time compared to the case where there is no oscillation
-component.
 
 For spin tracking through the edge field, the BMT equation is used with the integrated edge field
 (voltage) $\overline{\bfE}_f$ parallel to the radius vector:
@@ -1270,6 +1266,12 @@ forward propagating particle is rapidly varying. The formulas above are for the 
 all phases and therefore the phase dependence has been eliminated. Also note that the kick is
 quadratic in its dependence upon $G_t$. This is similar to the transverse focusing in FODO cells
 where the averaged kick is focusing and depends quadratically on the quadrupole field strength.
+
+The time shift (change in $z$) can be thought of as due to the fact that the actual particle
+trajectory (and not the averaged trajectory) has a transverse sinusodial component synced to the
+phase of the backwards traveling wave. The sinusodial component is needed to produce the
+pondermotive force but this oscillation also delays the particle in time compared to the case where
+there is no oscillation component.
 
 For spin tracking, to zeroth order, the averaged field is zero for the backwards wave so no spin
 kick is applied for the backwards wave.

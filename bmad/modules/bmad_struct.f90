@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 343
+integer, parameter :: bmad_inc_version$ = 348
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -132,7 +132,8 @@ character(12), parameter :: distribution_name(0:4) = [character(12):: 'GARBAGE!'
 
 ! Control element logicals.
 ! Note: super_slave$ and multipass_slave$ are also used as possible settings of the 
-! why_not_free argument in attribute_free(...).
+!   why_not_free argument in attribute_free(...).
+! Note: Currently only feedback elements are marked as a control_lord.
 
 integer, parameter :: ix_slice_slave$ = -2 ! Index to set slice_slave%ix_ele to.
 
@@ -689,7 +690,6 @@ type ac_kicker_freq_struct
   real(rp) :: f = 0
   real(rp) :: amp = 0
   real(rp) :: phi = 0
-  integer :: rf_clock_harmonic = 0  ! When RF clock is used.
 end type
 
 type ac_kicker_struct
@@ -1303,9 +1303,9 @@ type rf_stair_step_struct
   real(rp) :: E_tot1 = 0      ! Reference energy after the kick point.
   real(rp) :: p0c = 0         ! Reference momentum in the drift region (before the kick point).
   real(rp) :: p1c = 0         ! Reference momentum after the kick point.
-  real(rp) :: dE_amp = 0      ! Amplitude of RF kick sinusoid including error voltage.
   real(rp) :: scale = 0       ! Scale for multipole kick at the kick point. Sum over all steps will be 1.
   real(rp) :: time = 0        ! Reference particle time at the kick point with respect to beginning of element.
+  real(rp) :: s0 = 0          ! S-position at beginning of drift region relative to the beginning of the element.
   real(rp) :: s = 0           ! S-position at the kick point relative to the beginning of the element.
   integer :: ix_step = 0      ! Step index in ele%rf%steps(:) array
 end type
@@ -1313,12 +1313,10 @@ end type
 ! Element RF parameter struct.
 ! rf_ele_struct%steps(0:N+1) is and array of steps from zero to N+1 where N = ele%value(n_rf_steps$).
 ! A single step is a drift followed by an energy kick.
-! The first and last kicks are at the element ends with the
-! the end kicks being half of the interior kicks.
-! Exceptions:
-!   The zeroth step is just the initial kick (no drift). A particle at step zero is just outside the entrance end.
-!   The last (N+1)th step is a "phantom" (no drift and no kick) that just holds the final energy value.
-!     A particle at the (N+1)th step is just outside the exit end.
+! Note:
+!   The last (N+1)th step is a "phantom" with no kick.
+! The end kicks are at the ends of the active region with region length = n_cell * wavelength/2
+! The end kicks are half of the interior kicks.
 ! Note: ele%rf is not allocated for slice and super slaves.
 
 type rf_ele_struct
@@ -1608,8 +1606,8 @@ type branch_struct
   type (lat_struct), pointer :: lat => null()
   type (mode_info_struct) :: a , b , z  ! Note: Tunes are the fractional part.
   type (ele_struct), pointer :: ele(:) => null()
-  type (lat_param_struct) :: param
-  type (coord_struct) :: particle_start 
+  type (lat_param_struct) :: param = lat_param_struct()
+  type (coord_struct) :: particle_start = coord_struct() 
   type (wall3d_struct), pointer :: wall3d(:) => null()
   type (ptc_branch1_struct) ptc              ! Pointer to layout. Note: ptc info not transferred with "branch1 = branch2" set.
 end type
@@ -1634,35 +1632,35 @@ end type
 ! Rule: When lat2 = lat2, lat2%surface and lat1%surface will point to the same location.
 
 type lat_struct
-  character(200) :: use_name = ''                     ! Name of lat given by USE statement
-  character(40) :: lattice = ''                       ! Lattice
-  character(40) :: machine = ''                       ! Name of the machine the lattice is for ("LHC", etc).
-  character(400) :: input_file_name = ''              ! Name of the lattice input file
-  character(80) :: title = ''                         ! General title
-  character(100), allocatable :: print_str(:)         ! Saved print statements.
-  type (expression_atom_struct), allocatable :: constant(:)  ! Constants defined in the lattice
+  character(200) :: use_name = ''                           ! Name of lat given by USE statement
+  character(40) :: lattice = ''                             ! Lattice
+  character(40) :: machine = ''                             ! Name of the machine the lattice is for ("LHC", etc).
+  character(400) :: input_file_name = ''                    ! Name of the lattice input file
+  character(80) :: title = ''                               ! General title
+  character(100), allocatable :: print_str(:)               ! Saved print statements.
+  type (expression_atom_struct), allocatable :: constant(:) ! Constants defined in the lattice
   type (mode_info_struct), pointer :: a => null(), b => null(), z => null() ! Tunes (fractional part), etc. 
-  type (lat_param_struct), pointer :: param => null() ! Parameters
-  type (bookkeeping_state_struct) lord_state          ! lord bookkeeping status.
-  type (ele_struct) ele_init                          ! For use by any program
-  type (ele_struct), pointer ::  ele(:) => null()     ! Array of elements [=> branch(0)].
-  type (branch_struct), allocatable :: branch(:)      ! Branch(0:) array
-  type (control_struct), allocatable :: control(:)    ! Control list
-  type (coord_struct) particle_start                  ! Starting particle_coords.
-  type (beam_init_struct) beam_init                   ! Beam initialization.
-  type (pre_tracker_struct) pre_tracker               ! For OPAL/IMPACT-T
-  type (nametable_struct) nametable                   ! For quick searching by element name.
-  real(rp), allocatable :: custom(:)                  ! Custom attributes.
-  integer :: version = -1                             ! Version number
-  integer, pointer :: n_ele_track => null()           ! Number of lat elements to track through.
-  integer, pointer :: n_ele_max => null()             ! Index of last valid element in %ele(:) array
-  integer :: n_control_max = 0                        ! Last index used in control_array
-  integer :: n_ic_max = 0                             ! Last index used in ic_array
-  integer :: input_taylor_order = 0                   ! As set in the input file
-  integer, allocatable :: ic(:)                       ! Index to %control(:) from slaves.
-  integer :: photon_type = incoherent$                ! Or coherent$. For X-ray simulations.
-  integer :: creation_hash = 0                        ! Set by bmad_parser. creation_hash will vary if 
-                                                      !   any of the lattice files are modified.
+  type (lat_param_struct), pointer :: param => null()       ! Parameters
+  type (bookkeeping_state_struct) lord_state                ! lord bookkeeping status.
+  type (ele_struct) ele_init                                ! For use by any program
+  type (ele_struct), pointer ::  ele(:) => null()           ! Array of elements [=> branch(0)].
+  type (branch_struct), allocatable :: branch(:)            ! Branch(0:) array
+  type (control_struct), allocatable :: control(:)          ! Control list
+  type (coord_struct), pointer :: particle_start => null()  ! Starting particle_coords.
+  type (beam_init_struct) beam_init                         ! Beam initialization.
+  type (pre_tracker_struct) pre_tracker                     ! For OPAL/IMPACT-T
+  type (nametable_struct) nametable                         ! For quick searching by element name.
+  real(rp), allocatable :: custom(:)                        ! Custom attributes.
+  integer :: version = -1                                   ! Version number
+  integer, pointer :: n_ele_track => null()                 ! Number of lat elements to track through.
+  integer, pointer :: n_ele_max => null()                   ! Index of last valid element in %ele(:) array
+  integer :: n_control_max = 0                              ! Last index used in control_array
+  integer :: n_ic_max = 0                                   ! Last index used in ic_array
+  integer :: input_taylor_order = 0                         ! As set in the input file
+  integer, allocatable :: ic(:)                             ! Index to %control(:) from slaves.
+  integer :: photon_type = incoherent$                      ! Or coherent$. For X-ray simulations.
+  integer :: creation_hash = 0                              ! Set by bmad_parser. creation_hash will vary if 
+                                                            !   any of the lattice files are modified.
   integer :: ramper_slave_bookkeeping = stale$
 end type
 
@@ -1756,6 +1754,7 @@ integer, parameter :: e_photon$ = 9
 integer, parameter :: e1$ = 19, e2$ = 20
 integer, parameter :: fint$ = 21, fintx$ = 22, hgap$ = 23, hgapx$ = 24, h1$ = 25, h2$ = 26
 
+integer, parameter :: spin_x_stored$ = 55, spin_y_stored$ = 56, spin_z_stored$ = 57
 integer, parameter :: x_stored$ = 15, px_stored$ = 16, y_stored$ = 17, py_stored$ = 18, z_stored$ = 19, pz_stored$ = 20
 integer, parameter :: beta_a_stored$ = 21, alpha_a_stored$ = 22, beta_b_stored$ = 23, alpha_b_stored$ = 24
 integer, parameter :: phi_a_stored$ = 25, phi_b_stored$ = 26, mode_flip_stored$ = 27
@@ -1816,7 +1815,7 @@ integer, parameter :: etap_x_out$ = 27, phi0_autoscale$ = 27, dx_origin$ = 27, e
                       py_aperture_center$ = 27, x_dispersion_err$ = 27, l_rectangle$ = 27, pc_strong$ = 27
 integer, parameter :: etap_y_out$ = 28, dy_origin$ = 28, y_quad$ = 28, e_field_x$ = 28, &
                       y_dispersion_err$ = 28, z_aperture_width2$ = 28, user_sets_length$ = 28, &
-                      rf_clock_harmonic$ = 28, b_field_tot$ = 28
+                      b_field_tot$ = 28
 integer, parameter :: upstream_coord_dir$ = 29, dz_origin$ = 29, mosaic_diffraction_num$ = 29, &
                       cmat_11$ = 29, field_autoscale$ = 29, l_sagitta$ = 29, e_field_y$ = 29, &
                       x_dispersion_calib$ = 29, z_aperture_center$ = 29, f_factor$ = 29
@@ -2452,13 +2451,13 @@ integer, parameter :: l_func_parens$ = 42, sinh$ = 49, cosh$ = 50, tanh$ = 51, c
 integer, parameter :: acosh$ = 54, atanh$ = 55, acoth$ = 56, min$ = 57, max$ = 58, modulo$ = 59
 integer, parameter :: root$ = 60, parens$ = 61, square_brackets$ = 62, curly_brackets$ = 63, func_parens$ = 64
 integer, parameter :: arrow$ = 65, equal$ = 66, colon$ = 67, double_colon$ = 68, compound$ = 69, function$ = 70
-integer, parameter :: vertical_bar$ = 71, blank$ = 72
+integer, parameter :: vertical_bar$ = 71, blank$ = 72, ampersand$ = 73
 
 ! Names beginning with "?!+" are place holders that will never match to anything in an expression string.
 ! Note: "min", "max", "rms" and "average" are not implemented in Bmad but is used by Tao.
 ! Note: "species" is a function and "species_const" is a specified species like "electron".
 
-character(20), parameter :: expression_op_name(72) = [character(20) :: '+', '-', '*', '/', &
+character(20), parameter :: expression_op_name(73) = [character(20) :: '+', '-', '*', '/', &
                                 '(', ')', '^', '-', '+', '', 'sin', 'cos', 'tan', &
                                 'asin', 'acos', 'atan', 'abs', 'sqrt', 'log', 'exp', 'ran', &
                                 'ran_gauss', 'atan2', 'factorial', 'int', 'nint', 'floor', 'ceiling', &
@@ -2467,7 +2466,7 @@ character(20), parameter :: expression_op_name(72) = [character(20) :: '+', '-',
                                 '(', '?!+Arg Count', 'antiparticle', 'cot', 'sec', 'csc', 'sign', &
                                 'sinh', 'cosh', 'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth', 'min', &
                                 'max', 'modulo', 'root', '()', '[]', '{}', '()', '->', '=', ':', '::', 'compound', &
-                                '?!+Function', '|', ' ']
+                                '?!+Function', '|', ' ', '&']
 
 integer, parameter :: expression_eval_level(69) = [1, 1, 3, 3, 0, 0, 4, 2, 2, -1, &
               9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, &

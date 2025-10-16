@@ -245,7 +245,7 @@ end subroutine
 
 recursive &
 subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
-                                                            why_invalid, called_from_lat_calc)
+                                                      why_invalid, called_from_lat_calc, print_err)
   import
   implicit none
   type (tao_data_struct) datum
@@ -253,7 +253,7 @@ subroutine tao_evaluate_a_datum (datum, u, tao_lat, datum_value, valid_value, &
   type (tao_lattice_struct), target :: tao_lat
   real(rp) datum_value
   logical valid_value
-  logical, optional :: called_from_lat_calc
+  logical, optional :: called_from_lat_calc, print_err
   character(*), optional :: why_invalid
 end subroutine
 
@@ -413,7 +413,12 @@ subroutine tao_find_plots (err, name, where, plot, graph, curve, print_flag, bla
   logical, optional :: print_flag, blank_means_all, only_visible
   logical err
 end subroutine
- 
+
+subroutine tao_fixer (switch, word1, word2)
+  implicit none
+  character(*) switch, word1, word2
+end subroutine
+
 subroutine tao_floor_to_screen (graph, r_floor, x_screen, y_screen)
   import
   implicit none
@@ -829,11 +834,11 @@ subroutine tao_set_flags_for_changed_attribute (u, ele_name, ele_ptr, val_ptr, w
   character(*), optional :: who
 end subroutine
 
-subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
+subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level, print_err)
   import
   implicit none
   type (tao_data_struct) datum
-  logical, optional :: exterminate
+  logical, optional :: exterminate, print_err
   integer, optional :: err_level
   character(*) message
   character(*), optional :: why_invalid

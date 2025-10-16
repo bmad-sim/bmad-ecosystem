@@ -33,7 +33,6 @@ To illustrate how \vn{multipass} works, consider the example of an Energy Recove
 the beam will recirculate back through the LINAC section to recover the energy in the beam before it
 is dumped. In \bmad, this situation can simulated by designating the LINAC section as \vn{multipass}.
 The lattice file might look like:
-\index{expand_lattice}
 \begin{example}
   RF1: lcavity
   linac: line[multipass] = (RF1, ...)
@@ -49,21 +48,18 @@ the line \vn{erl} and \vn{erl} is the root line for lattice expansion. The latti
   RF1\B1, ..., RF1\B2, ...
 \end{example}
 Since the two elements are derived from a \vn{multipass} line, they are given unique names by adding
-a \vn{{\B}n} suffix. These types of elements are known as \vn{multipass_slave} elements. In
-addition, to the \vn{multipass_slave} elements, there is a \vn{multipass_lord} element (that doesn't
-get tracked through) called \vn{RF1} in the lord part of the lattice (\sref{s:lord.slave}).  Changes
-to attributes of the lord \vn{RF1} element will be passed to the slave elements by \bmad's
-bookkeeping routines. Assuming that the phase of \vn{RF1\B1} gives acceleration, to make \vn{RF1\B2}
-decelerate the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This is the one attribute
-that \bmad's bookkeeping routines will not touch when transferring attribute values from \vn{RF1} to
-its slaves. Notice that the \vn{phi0_multipass} attribute had to be set after \vn{expand_lattice}
-(\sref{s:expand}) is used to expand the lattice. This is true since \bmad does immediate evaluation and
-\vn{RF1\B2} does not exist before the lattice is expanded. \vn{Phi0_multipass} is useful with
-relative time tracking \sref{s:rf.time}. However, \vn{phi0_multipass} is ``unphysical'' and is just
-a convenient way to shift the phase pass-to-pass through a given cavity. To ``correctly'' simulate
-the recirculating beam, absolute time tracking should be used and the length of the lattice from a
-cavity back to itself needs to be properly adjusted to get the desired phase advance. See the discussion
-in section~\sref{s:rf.time}.
+a \vn{{\B}N} suffix where \vn{N} is an integer indicating the ``pass index''. These types of
+elements are known as \vn{multipass_slave} elements. In addition, to the \vn{multipass_slave}
+elements, there is a \vn{multipass_lord} element (that doesn't get tracked through) called \vn{RF1}
+in the lord part of the lattice (\sref{s:lord.slave}).  Changes to attributes of the lord \vn{RF1}
+element will be passed to the slave elements by \bmad's bookkeeping routines. As explained in detail
+in \sref{s:phi0.mp}, assuming that the phase of \vn{RF1\B1} gives acceleration, to make the
+\vn{RF1\B2} ele to decelerate, the \vn{phi0_multipass} attribute of \vn{RF1\B2} is set to 0.5. This
+is an attribute that \bmad's bookkeeping routines will not touch when transferring attribute values
+from the lord \vn{RF1} to its slaves. That is, \vn{phi0_multipass} can be set differently for
+different slaves. Notice that the \vn{phi0_multipass} attribute had to be set after the
+\vn{expand_lattice} command (\sref{s:expand}) is used to expand the lattice. This is true since
+\bmad does immediate evaluation and \vn{RF1\B2} does not exist before the lattice is expanded.
 
 ``Intrinsic'' attributes are attributes that must, to make sense physically, be the same for all
 slaves of a given multipass lord. The element length is one such example.  The following
@@ -75,7 +71,7 @@ attributes in the lord or the other slaves of the lord:
   ds_step               spin_tracking_method 
   field_calc            space_charge_method  
   integrator_order      tracking_method      
-  mat6_calc_method    
+  mat6_calc_method      phi0_multipass
 \end{example}
 
 Multiple elements of the same name in a multipass line are considered 
@@ -188,8 +184,10 @@ It is important to note that the global coordinates (\sref{s:global}) of the sla
 multipass lord are not constrained by \bmad to be the same. It is up to the lattice designer to make
 sure that the physical positions of the slaves makes sense (that is, are the same).
 
+An example of an ERL lattice with multipass can be found in Section~\sref{s:ex.erl}.
+
 %-----------------------------------------------------------------------------
-\section{The Reference Energy in a Multipass Line}
+\section{Reference Energy of Multipass Lords and Slaves}
 \label{s:ref.e.multi}
 
 \index{lcavity}
@@ -198,7 +196,7 @@ Consider the lattice where the tracking elements are
 \begin{example}
   A\B1, C, A\B2
 \end{example}
-where \vn{A\B1} and \vn{A\B2} are multipass slaves of element \vn{A} and \vn{C} is a \vn{lcavity}
+where \vn{A\B1} and \vn{A\B2} are multipass slaves of element \vn{A} and \vn{C} is an \vn{lcavity}
 element with some finite voltage. In this case, the reference energy calculation (\sref{s:energy})
 where the reference energy of an element is inherited from the previous element, assigns differing
 reference energies to \vn{A\B1} and \vn{A\B2}. In such a situation, what should be the assigned
@@ -232,4 +230,39 @@ calculated from the standard reference energy calculation of the first pass slav
 Note: Historically, there was an element parameter \vn{n_ref_pass} that could be set to control the
 reference energy. This parameter may be seen in old lattice files but will be ignored.
 
-An example of an ERL lattice with multipass can be found in Section~\sref{s:ex.erl}.
+%-----------------------------------------------------------------------------
+\section{Phi0_multipass}
+\label{s:phi0.mp}
+
+As discussed above, \vn{phi0_multipass} is an \vn{lcavity} parameters that can be set individually
+for the different slaves of a given multipass lord. \vn{phi0_multipass} is to calculate the change
+in reference energy through an \vn{lcavity}. Additionally, \vn{phi0_multipass} is used in relative
+time tracking (\sref{s:rf.time}), but not absolute time tracking, to calculate the RF phase when tracking
+a particle. An example will make this clear:
+\begin{example}
+  LC: lcavity, phi0 = 0, L = 1.3, rf_frequency = 500e6, voltage = 10e6
+  linac: line[multipass] = (LC)
+  d: drift, l = ...
+  erl: line = (linac, d, linac)
+  use, erl
+  expand_lattice
+  LC\B2[phi0_multipass] = 0.5
+\end{example}
+The expanded line for tracking will be
+\begin{example}
+  LC\B1, d, LC\B2
+\end{example}
+The first pass slave \vn{LC\B1} is ``accelerating'' (since \vn{phi0} is zero) and the reference
+energy at the exit end of the element will be 10~MeV greater than the reference energy at the
+entrance end.  Since \vn{LC\B2} has \vn{phi0_multipass} set to 0.5, \vn{LC\B2} will be
+``decelerating'' and the reference energy will drop by 10~MeV from entrance to exit end.
+
+When tracking a particle with relative time tracking, \vn{phi0_multipass} is used to calculate the
+phase of the RF field so a particle with phase space $z = 0$ will see an accelerating field in
+\vn{LC\B1} and a decelerating field in \vn{LC\B2} independent of the travel distance between the two
+slave cavities. This, of course, is ``unphysical'' and to ``correctly'' simulate the recirculating
+beam, absolute time tracking should be used. When absolute time tracking is used,
+\vn{phi0_multipass} is ignored in tracking and, to get deceleration, the transit time from the
+entrance end of \vn{LC\B1} to the entrance end of \vn{LC\B2} should be adjusted to be $N \cdot
+t_\text{rf} / 2$ where $N$ is an odd integer and $t_\text{rf}$ is the RF period. Notice that this
+transit time includes the transit time through \vn{LC\B1}.

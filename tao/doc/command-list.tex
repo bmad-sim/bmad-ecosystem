@@ -50,18 +50,19 @@ possible
 \centering {\tt
 \begin{tabular}{ll|ll} \toprule
   {\it Command} & {\it Section}     & {\it Command} & {\it Section}     \\ \midrule
-  alias         & \sref{s:alias}    & re_execute    & \sref{s:re.exe}   \\
-  call          & \sref{s:call}     & read          & \sref{s:read}     \\
-  change        & \sref{s:change}   & reinitialize  & \sref{s:reinit}   \\ 
-  clear         & \sref{s:clear}    & restore       & \sref{s:restore}  \\ 
-  clip          & \sref{s:clip}     & run_optimizer & \sref{s:run}      \\ 
-  continue      & \sref{s:continue} & scale         & \sref{s:scale}    \\ 
-  create        & \sref{s:create}   & set           & \sref{s:set}      \\  
-  cut_ring      & \sref{s:cut.ring} & show          & \sref{s:show}     \\ 
-  derivative    & \sref{s:deriv}    & single_mode   & \sref{s:sing}     \\ 
-  do, enddo     & \sref{s:do}       & spawn         & \sref{s:spawn}    \\ 
-  end_file      & \sref{s:end.file} & taper         & \sref{s:taper}    \\
-  exit          & \sref{s:exit}     & timer         & \sref{s:timer}    \\
+  alias         & \sref{s:alias}    &   quit          & \sref{s:quit}   \\
+  call          & \sref{s:call}     & re_execute    & \sref{s:re.exe}   \\
+  change        & \sref{s:change}   & read          & \sref{s:read}     \\
+  clear         & \sref{s:clear}    & reinitialize  & \sref{s:reinit}   \\ 
+  clip          & \sref{s:clip}     & restore       & \sref{s:restore}  \\ 
+  continue      & \sref{s:continue} & run_optimizer & \sref{s:run}      \\ 
+  create        & \sref{s:create}   & scale         & \sref{s:scale}    \\ 
+  cut_ring      & \sref{s:cut.ring} & set           & \sref{s:set}      \\  
+  derivative    & \sref{s:deriv}    & show          & \sref{s:show}     \\ 
+  do, enddo     & \sref{s:do}       & single_mode   & \sref{s:sing}     \\ 
+  end_file      & \sref{s:end.file} & spawn         & \sref{s:spawn}    \\ 
+  exit          & \sref{s:exit}     & taper         & \sref{s:taper}    \\
+  fixer         & \sref{s:fixer}    & timer         & \sref{s:timer}    \\
   flatten       & \sref{s:flatten}  & use           & \sref{s:use}      \\ 
   help          & \sref{s:help}     & veto          & \sref{s:veto}     \\ 
   ls            & \sref{s:ls}       & view          & \sref{s:view}     \\
@@ -70,7 +71,6 @@ possible
   place         & \sref{s:place}    & x_axis        & \sref{s:x.axis}   \\ 
   ptc           & \sref{s:ptc}      & x_scale       & \sref{s:x.scale}  \\ 
   python        & \sref{s:python}   & xy_scale      & \sref{s:xy.scale} \\ 
-  quit          & \sref{s:quit}     &               &                   \\
 \bottomrule 
 \end{tabular}}
 \caption{Table of \tao commands.}
@@ -460,6 +460,81 @@ The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matr
   derivative
 \end{example}
 
+%% fixer --------------------------------------------------------------
+\section{fixer}\index{commands!fixer}
+\label{s:fixer}
+
+NOTE: The fixer element is in construction and is not yet usable.
+
+The \vn{Fixer} command can be used to set the active fixer and can be used to transfer fixer
+parameters from the from the actual to the stored.  Format:
+\begin{example}
+  fixer activate <fixer>
+  fixer save <fixer> \{<parameters>\}
+  fixer write <fixer> \{<file-name>\}
+\end{example}
+here \vn{<fixer>} is the name of a fixer element
+
+The basic stored parameters are:
+\begin{example}
+  spin_x_stored, spin_y_stored, spin_z_stored     ! Spin group
+
+  x_stored, px_stored
+  y_stored, py_stored                             ! phase space group
+  z_stored, pz_stored
+
+  beta_a_stored, alpha_a_stored, phi_a_stored     ! a-mode Twiss group
+  dbeta_dpz_a_stored, dalpha_dpz_a_stored
+
+  beta_b_stored, alpha_b_stored, phi_b_stored     ! b-mode Twiss group
+  dbeta_dpz_b_stored, dalpha_dpz_b_stored
+
+  eta_x_stored, etap_x_stored                     ! Horizontal dispersion group
+  deta_dpz_x_stored, detap_dpz_x_stored
+
+  eta_y_stored, etap_y_stored                     ! Vertical dispersion group
+  deta_dpz_y_stored, detap_dpz_y_stored
+
+  mode_flip_stored                                ! Logical: Normal modes flipped? 
+  cmat_11_stored, cmat_12_stored                  ! Coupling group (includes mode flip)
+  cmat_21_stored, cmat_22_stored
+\end{example}
+
+In addition, the following groups of stored values are recognized:
+\begin{example}
+  all (or blank string)   ! All parameters
+  twiss                   ! All Twiss (non-orbit) parameters
+  a_twiss                 ! a-mode Twiss group
+  b_twiss                 ! b-mode Twiss group
+  dispersion              ! Both horizontal and vertical dispersion groups
+  x_dispersion            ! Horizontal dispersion group
+  y_dispersion            ! Vertical dispersion group
+  cmat                    ! Coupling group
+  chromatic               ! dbeta, dalpha, deta, and detap parameters
+  spin                    ! Spin group
+  phase_space             ! Phase space group
+  orbit                   ! Phase space and spin groups
+  x_plane                 ! x and px
+  y_plane                 ! y and py
+  z_plane                 ! z and pz
+\end{example}
+
+The \vn{activate} subcommand activates (turns on) a given fixer element.
+
+The \vn{save} subcommand takes actual parameter values and saves them in the corresponding
+stored parameters. Either an individual or a parameter group may be used for \vn{<parameters>}.
+
+The \vn{write} subcommand write a file of fixer stored values. This file is in Bmad lattice
+format. The default file name is \vn{<fixer>.bmad} where \vn{<fixer>} is the name of the fixer
+element.
+
+For example:
+\begin{example}
+  fixer save f1 orbit    ! Save orbit parameters in the fixer named f1.
+  fixer activate f1      ! Set fixer f1 to be active.
+  fixer write f1         ! Write fixer stored values in Bmad lattice file f1.bmad.
+\end{example}
+
 %% flatten --------------------------------------------------------------
 \section{flatten}\index{commands!flatten}
 \label{s:flatten}
@@ -594,12 +669,12 @@ Possible \vn{<subcommand>} choices are:
   ele:mat6, ele:methods, ele:multipoles, ele:orbit, ele:param, ele:photon, 
   ele:spin_taylor, ele:taylor, ele:twiss, ele:wake, ele:wall3d, em_field, enum,
   evaluate, floor_plan, floor_orbit, global, help, inum, lat_branch_list,
-  lat_calc_done, lat_ele_list, lat_list, lat_param_units, matrix, merit, orbit_at_s,
+  lat_calc_done, lat_ele_list, lat_list, lat_param_units, lord_control, matrix, merit, orbit_at_s,
   place_buffer, plot_curve, plot_graph, plot_histogram, plot_lat_layout, plot_line,
   plot_plot_manage, plot_graph_manage, plot_curve_manage, plot_list, plot_symbol,
   plot_transfer, plot1, ptc_com, ring_general, shape_list, shape_manage,
   shape_pattern_list, shape_pattern_manage, shape_pattern_point_manage, shape_set,
-  show, species_to_int, species_to_str, spin_invariant, spin_polarization, 
+  show, slave_control, species_to_int, species_to_str, spin_invariant, spin_polarization, 
   spin_resonance, super_universe, twiss_at_s, universe, var_v1_create, var_v1_destroy, 
   var_create, var_general, var_v1_array, var_v_array, var, wave
 \end{example}

@@ -1,9 +1,11 @@
 !+
 ! Subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end)
 !
-! Subroutine to propagate the twiss, coupling, and dispersion parameters from 
-! the start to the end of a lattice branch.
+! Subroutine to propagate the twiss, coupling, and dispersion parameters. 
+! Nomally, the propagation is from the start to the end of a lattice branch but that will change
+! if ie_start or ie_end is set or if there is a fixer element in the branch.
 !
+! Twiss parameters for elements outside of the range [ie_start, ie_end] are set to zero.
 ! If there is a problem, Twiss parameters not calculated in range [ie_start, ie_end] are set to zero.
 !
 ! Input:
@@ -31,7 +33,7 @@ type (ele_struct), pointer :: lord, slave, ele, ele0
 
 real(rp) v_inv_mat(4,4), eta_vec(4)
 
-integer n, n_track, i_start, i_end
+integer n, n_track, i_start, i_end, i_fixer
 integer, optional :: ix_branch, ie_start, ie_end
 
 logical, optional :: err_flag
@@ -46,11 +48,20 @@ if (branch%param%particle == photon$) return
 
 ! Make sure gamma for ele(0) is correct.
 
-i_start = integer_option(0, ie_start)
 n_track = branch%n_ele_track
+i_start = integer_option(0, ie_start)
 i_end = integer_option(n_track, ie_end)
+i_fixer = branch%ix_fixer
+ele => branch%ele(i_fixer)
 
-ele => branch%ele(i_start)
+if (i_fixer < i_start .or. i_fixer > i_end) then
+  call out_io(s_error$, r_name, &
+          'The fixer element: ' // ele_full_name(ele) // ' is not allowed to be outside of the range where the twiss parameters', &
+          'are computed: [' // int_str(i_start) // ', ' // int_str(i_end) // ']')
+  err_flag = .true.
+  return
+endif
+
 if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
 if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 
@@ -58,24 +69,32 @@ if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 
 if (present(err_flag)) err_flag = .true.
 
-do n = i_start+1, i_end
-  ele => branch%ele(n)
-  call twiss_propagate1 (branch%ele(n-1), ele, err)
+do n = i_fixer+1, i_end
+  call twiss_propagate1 (branch%ele(n-1), branch%ele(n), err)
   if (err) return
 enddo
 
+do n = i_fixer, i_start+1, -1
+  call twiss_propagate1 (branch%ele(n-1), branch%ele(n), err, forward = .false.)
+  if (err) return
+enddo
+
+! Elements not tracked through are initialized.
+
 do n = 0, i_start-1
-  branch%ele(n)%a = twiss_struct()
-  branch%ele(n)%b = twiss_struct()
-  branch%ele(n)%x = xy_disp_struct()
-  branch%ele(n)%y = xy_disp_struct()
+  ele => branch%ele(n)
+  ele%a = twiss_struct()
+  ele%b = twiss_struct()
+  ele%x = xy_disp_struct()
+  ele%y = xy_disp_struct()
 enddo
 
 do n = i_end+1, n_track
-  branch%ele(n)%a = twiss_struct()
-  branch%ele(n)%b = twiss_struct()
-  branch%ele(n)%x = xy_disp_struct()
-  branch%ele(n)%y = xy_disp_struct()
+  ele => branch%ele(n)
+  ele%a = twiss_struct()
+  ele%b = twiss_struct()
+  ele%x = xy_disp_struct()
+  ele%y = xy_disp_struct()
 enddo
 
 ! Make sure final mode is same as initial mode

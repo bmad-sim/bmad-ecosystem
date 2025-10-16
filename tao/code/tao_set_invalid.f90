@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
+! Subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level, print_err)
 !
 ! Routine to either print an error message to the terminal (if why_invalid
 ! is not present) or set the why_invalid string to the error message.
@@ -16,19 +16,20 @@
 !   exterminate -- logical, optional: Default is False. If True, set datum%exists
 !                   to False so that Tao will ignore this datum from now on.
 !   err_level   -- integer, optional: s_error$ (default), s_warn$, etc.
+!   print_err   -- logical, optional: Default is True. If False, do not print an error message.
 !
 ! Output:
 !   why_invalid -- character(*), optional: Set to message if present.
 !-
 
-subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level)
+subroutine tao_set_invalid (datum, message, why_invalid, exterminate, err_level, print_err)
 
 use tao_interface, dummy => tao_set_invalid
 
 type (tao_data_struct) datum
 type (tao_universe_struct), pointer :: u
 
-logical, optional :: exterminate
+logical, optional :: exterminate, print_err
 logical identified_err_found, found
 
 integer, optional :: err_level
@@ -50,7 +51,10 @@ endif
 
 if (present(why_invalid)) then
   why_invalid = message
+
 elseif (.not. datum%err_message_printed) then
+  if (.not. logic_option(.true., print_err)) return
+
   datum%err_message_printed = .true.
   identified_err_found = .false.
   do i = 1, size(err_str)

@@ -122,7 +122,7 @@ err_flag = .false.
 tao_tree = tao_eval_node_struct(tree%type, tree%name, 1.0_rp, null(), null(), null(), null())
 call bmad_tree_to_tao_tree(tree, tao_tree, expression, err_flag); if (err_flag) return
 call deallocate_tree(tree)
-call tree_param_evaluate(tao_tree, expression, err_flag); if (err_flag) return
+call tree_param_evaluate(tao_tree, expression, err_flag, printit); if (err_flag) return
 
 if (s%global%verbose_on) call tao_type_expression_tree(tao_tree)
 
@@ -231,22 +231,21 @@ n_node = size(tree%node)
 
 ! A variable or datume like "3@orbit.x|model" is split by the parser into an array of nodes.
 ! Needed is to combine the nodes
+! Note: "abc[...]" is a var or datum. "abc + [...]" is not.
 
-split_variable = .false.
-do in = 1, n_node
-  node => tree%node(in)
-  select case (node%type)
-  case (colon$, double_colon$, vertical_bar$)
-    split_variable = .true.
-    exit
-  case (square_brackets$)   ! "abc[...]" is a var or datum. "abc + [...]" is not.
-    if (in == 1) cycle
-    if (is_alphabetic(tree%node(in-1)%name(1:1))) then
-      split_variable = .true.
-      exit
-    endif
-  end select
-enddo
+select case (tree%type)
+case(square_brackets$, func_parens$, parens$, curly_brackets$)
+  split_variable = .false.
+case default
+  split_variable = (n_node > 1)
+  do in = 1, n_node
+    node => tree%node(in)
+    select case (node%type)
+    case (plus$, minus$, unary_plus$, unary_minus$, times$, divide$, power$, func_parens$)
+      split_variable = .false.
+    end select
+  enddo
+end select
 
 if (split_variable) then
   allocate(tao_tree%node(1))
@@ -277,7 +276,7 @@ end subroutine bmad_tree_to_tao_tree
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag)
+recursive subroutine tree_param_evaluate(tao_tree, expression, err_flag, printit)
 
 implicit none
 
@@ -285,7 +284,7 @@ type (tao_eval_node_struct), target :: tao_tree
 type (tao_eval_node_struct), pointer :: tnode, snode
 
 integer in, ix, n_node
-logical err_flag, in_compound, in_comp
+logical err_flag, in_compound, in_comp, printit
 
 character(*) expression
 character(60) saved_prefix
@@ -295,6 +294,7 @@ character(*), parameter :: r_name = 'tree_param_evaluate'
 
 if (.not. associated(tao_tree%node)) return
 n_node = size(tao_tree%node)
+saved_prefix = ''
 
 ! Evaluate
 
@@ -351,10 +351,11 @@ do in = 1, n_node
 
   case (variable$, numeric$, constant$)
     ! saved_prefix is used so that something like 'orbit.x|meas-ref' can be evaluated as 'orbit.x|meas - orbit.x|ref.'
-    saved_prefix = ''
-    if (in > 1) then
-      ix = index(tao_tree%node(in-1)%name, '|')
-      if (ix > 0) saved_prefix = tao_tree%node(in-1)%name(1:ix-1)
+
+    if (saved_prefix /= '' .and. (tnode%name == 'design' .or. tnode%name == 'model' .or. tnode%name == 'base')) then
+      tnode%name = trim(saved_prefix) // tnode%name
+    else
+      saved_prefix = ''
     endif
 
     call tao_param_value_routine (tnode%name, use_good_user, saved_prefix, tnode, err_flag, printit, &
@@ -363,8 +364,12 @@ do in = 1, n_node
     if (err_flag) return
 
   case (square_brackets$, func_parens$, parens$, comma$, compound$)
-    call tree_param_evaluate(tnode, expression, err_flag)
+    call tree_param_evaluate(tnode, expression, err_flag, printit)
     if (err_flag) return
+    if (tnode%type == compound$) then
+      ix = index(tnode%node(1)%name, '|')
+      saved_prefix = tnode%node(1)%name(1:ix)
+    endif
   end select
 enddo
 

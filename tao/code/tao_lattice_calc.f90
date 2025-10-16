@@ -108,6 +108,8 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       tao_branch%spin_map_valid = .false.
       tao_branch%spin%valid = .false.
       if (allocated(tao_branch%spin_ele)) tao_branch%spin_ele(:)%valid = .false.
+      tao_branch%chrom_calc_ok = .false.
+      tao_branch%sigma_track_ok = .false.
 
       u%model%tao_branch(:)%plot_cache_valid = .false.
       u%design%tao_branch(:)%plot_cache_valid = .false.
@@ -132,7 +134,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
       track_this_beam = (s%global%track_type == 'beam' .and. branch%param%particle /= photon$ .and. u%beam%track_beam_in_universe) 
 
-      if (track_this_beam .or. s%global%init_lat_sigma_from_beam) call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
+      if (track_this_beam .or. s%global%lat_sigma_calc_uses_emit_from == 'beam') call tao_inject_beam (u, tao_lat, ib, beam, this_calc_ok)
 
       if (track_this_beam) then
         if (.not. this_calc_ok) calc_ok = .false.
@@ -149,12 +151,11 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
       !
 
-      tao_lat%chrom_calc_ok = .false.
       if (s%com%force_chrom_calc .or. u%calc%chrom_for_data .or. u%calc%chrom_for_plotting) then
         call chrom_calc (tao_lat%lat, s%global%delta_e_chrom, branch%a%chrom, branch%b%chrom, err, &
                 tao_branch%orbit(0)%vec(6), tao_lat%low_E_lat, tao_lat%high_E_lat, &
                 tao_branch%low_E_orb, tao_branch%high_E_orb, ib, orb0 = tao_branch%orbit(0))
-        tao_lat%chrom_calc_ok = (.not. err)
+        tao_branch%chrom_calc_ok = (.not. err)
       endif
 
       ! do multi-turn tracking if needed.

@@ -62,6 +62,7 @@ use tao_dmerit_mod, only: tao_dmodel_dvar_calc
 use tao_input_struct, only: tao_ele_shape_input, tao_ele_shape_input_to_struct
 use opti_de_mod, only: opti_de_param
 use rad_6d_mod, only: emit_6d
+use expression_mod, only: expression_stack_to_string
 
 implicit none
 
@@ -153,6 +154,8 @@ type (tao_model_element_struct), pointer :: tao_ele
 type (tao_lattice_branch_struct), pointer :: tao_branch
 type (all_pointer_struct) a_ptr
 type (control_var1_struct), pointer :: cvar
+type (control_struct), pointer :: ctl
+type (control_ramp1_struct), pointer :: rmp
 
 real(rp) z, s_pos, value, values(40), y1, y2, v_old(3), r_vec(3), dr_vec(3), w_old(3,3), v_vec(3), dv_vec(3)
 real(rp) length, angle, cos_t, sin_t, cos_a, sin_a, ang, s_here, z1, z2, rdummy, time1, gamma
@@ -185,7 +188,7 @@ character(n_char_show), pointer :: li_ptr(:)
 character(n_char_show) li2
 character(300), allocatable :: name_arr(:)
 character(200) file_name, all_who, tail_str
-character(40) imt, jmt, rmt, lmt, amt, amt2, iamt, vamt, rmt2, ramt, cmt, label_name
+character(40) imt, iamt, jmt, rmt, lmt, amt, amt2, vamt, rmt2, ramt, cmt, label_name
 character(40) who, max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(40), allocatable :: str_arr(:)
 character(40), allocatable :: name_list(:)
@@ -245,16 +248,17 @@ call match_word (cmd, [character(40) :: &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_grad_map', &
           'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
-          'ele:twiss', 'ele:wake', 'ele:wall3d', 'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
+          'ele:twiss', 'ele:wake', 'ele:wall3d', &
+          'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
-          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_header', 'lat_list', 'lat_param_units', &
+          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_header', 'lat_list', 'lat_param_units', 'lord_control', &
           'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
           'plot_curve', 'plot_curve_manage', 'plot_graph', 'plot_graph_manage', 'plot_histogram', &
           'plot_lat_layout', 'plot_line', 'plot_list', &
           'plot_symbol', 'plot_template_manage', 'plot_transfer', 'plot1', &
           'ptc_com', 'ring_general', &
-          'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', &
-          'shape_pattern_point_manage', 'shape_set', 'show', 'space_charge_com', 'species_to_int', 'species_to_str', &
+          'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
+          'show', 'slave_control', 'space_charge_com', 'species_to_int', 'species_to_str', &
           'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
           'taylor_map', 'twiss_at_s', 'universe', &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
@@ -273,6 +277,7 @@ endif
 amt  = '(100a)'
 amt2 = '(a, l1, 10a)'
 imt  = '(a, 100(i0, a))'
+iamt  = '(a, 100(a, i0))'
 jmt  = '(i0, a, i0)'
 rmt  = '(a, 100(es22.14, a))'
 ramt = '(a, 100(a, es22.14))'
@@ -412,6 +417,25 @@ case ('beam_init')
   nl=incr(nl); write (li(nl), lmt) 'use_particle_start;LOGIC;T;',              beam_init%use_particle_start
   nl=incr(nl); write (li(nl), lmt) 'use_t_coords;LOGIC;T;',                    beam_init%use_t_coords
   nl=incr(nl); write (li(nl), lmt) 'use_z_as_t;LOGIC;T;',                      beam_init%use_z_as_t
+
+  do k = 1, 3
+    nl=incr(nl); write (li(nl), imt)  'ellipse(', k, ')%n_ellipse;INT;T;',           beam_init%ellipse(k)%n_ellipse
+    nl=incr(nl); write (li(nl), imt)  'ellipse(', k, ')%part_per_ellipse;INT;T;',    beam_init%ellipse(k)%part_per_ellipse
+    nl=incr(nl); write (li(nl), vamt) 'ellipse(', k, ')%sigma_cutoff;REAL;T;',       re_str(beam_init%ellipse(k)%sigma_cutoff, 10)
+  enddo
+  
+  nl=incr(nl); write (li(nl), iamt) 'kv%part_per_phi;INT_ARR;T',               (';', beam_init%kv%part_per_phi(k), k = 1, 2)
+  nl=incr(nl); write (li(nl), imt)  'kv%n_I2;INT;T;',                          beam_init%kv%n_i2
+  nl=incr(nl); write (li(nl), amt)  'kv%A;REAL;T;',                            re_str(beam_init%kv%A, 10)
+
+  do k = 1, 3
+    nl=incr(nl); write (li(nl), imt)  'grid(', k, ')%n_x;INT;T;',              beam_init%grid(k)%n_x
+    nl=incr(nl); write (li(nl), imt)  'grid(', k, ')%n_px;INT;T;',             beam_init%grid(k)%n_px
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%x_min;REAL;T;',           re_str(beam_init%grid(k)%x_min, 10)
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%x_max;REAL;T;',           re_str(beam_init%grid(k)%x_max, 10)
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%px_min;REAL;T;',          re_str(beam_init%grid(k)%px_min, 10)
+    nl=incr(nl); write (li(nl), vamt) 'grid(', k, ')%px_max;REAL;T;',          re_str(beam_init%grid(k)%px_max, 10)
+  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -668,16 +692,21 @@ case ('bunch_comb')
     end select
 
     select case (tail)
-    case ('beta');      call real_array_out(twiss_arr%beta, use_real_array_buffer, 0, n)
-    case ('alpha');     call real_array_out(twiss_arr%alpha, use_real_array_buffer, 0, n)
-    case ('gamma');     call real_array_out(twiss_arr%gamma, use_real_array_buffer, 0, n)
-    case ('phi');       call real_array_out(twiss_arr%phi, use_real_array_buffer, 0, n)
-    case ('eta');       call real_array_out(twiss_arr%eta, use_real_array_buffer, 0, n)
-    case ('etap');      call real_array_out(twiss_arr%etap, use_real_array_buffer, 0, n)
-    case ('sigma');     call real_array_out(twiss_arr%sigma, use_real_array_buffer, 0, n)
-    case ('sigma_p');   call real_array_out(twiss_arr%sigma_p, use_real_array_buffer, 0, n)
-    case ('emit');      call real_array_out(twiss_arr%emit, use_real_array_buffer, 0, n)
-    case ('norm_emit'); call real_array_out(twiss_arr%norm_emit, use_real_array_buffer, 0, n)
+    case ('beta');       call real_array_out(twiss_arr%beta, use_real_array_buffer, 0, n)
+    case ('alpha');      call real_array_out(twiss_arr%alpha, use_real_array_buffer, 0, n)
+    case ('gamma');      call real_array_out(twiss_arr%gamma, use_real_array_buffer, 0, n)
+    case ('phi');        call real_array_out(twiss_arr%phi, use_real_array_buffer, 0, n)
+    case ('eta');        call real_array_out(twiss_arr%eta, use_real_array_buffer, 0, n)
+    case ('etap');       call real_array_out(twiss_arr%etap, use_real_array_buffer, 0, n)
+    case ('deta_ds');    call real_array_out(twiss_arr%deta_ds, use_real_array_buffer, 0, n)
+    case ('dbeta_dpz');  call real_array_out(twiss_arr%dbeta_dpz, use_real_array_buffer, 0, n)
+    case ('dalpha_dpz'); call real_array_out(twiss_arr%dalpha_dpz, use_real_array_buffer, 0, n)
+    case ('deta_dpz');   call real_array_out(twiss_arr%deta_dpz, use_real_array_buffer, 0, n)
+    case ('detap_dpz');  call real_array_out(twiss_arr%detap_dpz, use_real_array_buffer, 0, n)
+    case ('sigma');      call real_array_out(twiss_arr%sigma, use_real_array_buffer, 0, n)
+    case ('sigma_p');    call real_array_out(twiss_arr%sigma_p, use_real_array_buffer, 0, n)
+    case ('emit');       call real_array_out(twiss_arr%emit, use_real_array_buffer, 0, n)
+    case ('norm_emit');  call real_array_out(twiss_arr%norm_emit, use_real_array_buffer, 0, n)
     case default
       call invalid ('Bad {who}: ' // which)
       return
@@ -3006,7 +3035,13 @@ case ('ele:grid_field')
 ! Example:
 !   pipe ele:head 3@1>>7|model
 ! This gives element number 7 in branch 1 of universe 3.
-! 
+!
+! Output: Various element parameters. See the code for the list of what is returned.
+!
+! Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the element are never set.
+! If the element used in this command is a super_slave with exactly one super_lord, what will be returned
+! for these three parameters is the values stored in the super_lord. This is done for convenience sake.
+!
 ! Parameters
 ! ----------
 ! ele_id 
@@ -3030,21 +3065,30 @@ case ('ele:head')
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
-
   nl=incr(nl); write (li(nl), imt) 'universe;INT;F;',                 u%ix_uni
   nl=incr(nl); write (li(nl), jmt) u%ix_uni, '^ix_branch;INUM;F;',    ele%ix_branch
   nl=incr(nl); write (li(nl), imt) 'ix_ele;INT;I;',                   ele%ix_ele
 
   nl=incr(nl); write (li(nl), amt) 'key;ENUM;F;',                     trim(key_name(ele%key))
   nl=incr(nl); write (li(nl), amt) 'name;STR;F;',                     trim(ele%name)
-  nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
-  nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
-  if (associated(ele%descrip)) then
-    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ele%descrip
+
+  if (ele%slave_status == super_slave$ .and. ele%n_lord == 1) then
+    lord => pointer_to_lord(ele, 1)
+    can_vary = (lord%slave_status /= multipass_slave$ .and. lord%ix_ele /= 0)
+    nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       lord%type
+    nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      lord%alias
+    if (associated(lord%descrip)) then
+      nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',    lord%descrip
+    endif
   else
-    nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',  ''
+    can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
+    nl=incr(nl); write (li(nl), amt2) 'type;STR;', can_vary, ';',       ele%type
+    nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
+    if (associated(ele%descrip)) then
+      nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',    ele%descrip
+    endif
   endif
+
   nl=incr(nl); write (li(nl), '(2(a,l1))') 'is_on;LOGIC;', attribute_free(ele, 'is_on', .false.), ';', ele%is_on
 
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                     ele%s
@@ -3085,16 +3129,14 @@ case ('ele:head')
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe ele:lord_slave {ele_id}|{which}
+!   pipe ele:lord_slave {ele_id}
 !
 ! Where: 
 !   {ele_id} is an element name or index.
-!   {which} is one of: "model", "base" or "design"
 !
 ! Example:
-!   pipe ele:lord_slave 3@1>>7|model
+!   pipe ele:lord_slave 3@1>>7
 ! This gives lord and slave info on element number 7 in branch 1 of universe 3.
-! Note: The lord/slave info is independent of the setting of {which}.
 ! 
 ! The output is a number of lines.
 ! Each line gives information on an element (element index, etc.).
@@ -3106,7 +3148,6 @@ case ('ele:head')
 ! Parameters
 ! ----------
 ! ele_id
-! which : default=model
 !
 ! Returns
 ! -------
@@ -3118,7 +3159,6 @@ case ('ele:head')
 !  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
 !  args:
 !   ele_id: 1@0>>1
-!   which: model
  
 
 case ('ele:lord_slave')
@@ -5186,6 +5226,87 @@ case ('lat_param_units')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% lord_control
+!
+! Output lord information for a given slave element.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe lord_control {ele_id}
+!
+! Where:
+!   {ele_id} is the slave element.
+!
+! Example:
+!   pipe lord_control 2@1>>q01w
+!
+! The output is a number of lines with each line giving the information:
+!     Lord-index;Lord-name;Lord-type;Attribute-controlled;Control-expression;Value
+!
+! Note: The last three fields will only be non-blank for ramper, overlay and group lords with
+! the value field being blank for rampers.
+!
+! Note: For control expressed as a set of knot points (as opposed to an expression),
+! the control-expression will be "knots".
+!
+! Note: The Value field is the contribution to the slave attribute value due to the lord. 
+!
+! Parameters
+! ----------
+! ele_id
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
+!  args:
+!    ele_id: sex_20w
+
+case ('lord_control')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  ! Non-ramper lords
+
+  do ix = 1, ele%n_lord
+    lord => pointer_to_lord (ele, ix, ctl)
+    nl=incr(nl); write (li(nl), '(i0, 5a)') lord%ix_ele, ';', trim(lord%name), ';', trim(key_name(lord%key))
+
+    select case (lord%lord_status)
+    case (super_lord$, multipass_lord$, control_lord$, girder_lord$)
+      li(nl) = trim(li(nl)) // ';;;'
+    case default
+      if (allocated(ctl%stack)) then
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(ctl%stack) // ';' // rstr(ctl%value) 
+      else   ! Knots
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // rstr(ctl%value) // 'knots' // ';' // rstr(ctl%value) 
+      endif
+    end select
+  enddo
+
+  ! Ramper lords
+
+  do ix = 1, ele%n_lord_ramper
+    lord => pointer_to_lord(ele, ix, lord_type = ramper_lord$, ix_control = ic)
+    rmp => lord%control%ramp(ic)
+    nl=incr(nl); write (li(nl), '(i0, 5a)') lord%ix_ele, ';', trim(lord%name), ';', trim(key_name(lord%key))
+
+    if (allocated(rmp%stack)) then
+      li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(rmp%stack) // ';'
+    else  ! Spline
+      li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // 'knots' // ';'
+    endif
+  enddo
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% matrix
 !
 ! Output matrix value from the exit end of one element to the exit end of the other.
@@ -5221,7 +5342,6 @@ case ('lat_param_units')
 !  args:
 !    ele1_id: 1@0>>q01w|design
 !    ele2_id: q02w
-
 
 case ('matrix')
 
@@ -6859,6 +6979,88 @@ case ('show')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
+!%% slave_control
+!
+! Output slave information for a given lord element.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe slave_control {ele_id}
+!
+! Where:
+!   {ele_id} is the lord element.
+!
+! Example:
+!   pipe slave_control 2@1>>q01w
+!
+! The output is a number of lines with each line giving the information:
+!     Slave-branch;Slave-index;Slave-name;Slave-type;Attribute-controlled;Control-expression;Value
+!
+! Note: The last three fields will only be non-blank for ramper, overlay and group lords with
+! the value field being blank for ramper lords.
+!
+! Note: For control expressed as a set of knot points (as opposed to an expression),
+! the control-expression will be "knots".
+!
+! Note: The Value field is the contribution to the slave attribute value due to the lord.
+!
+! Parameters
+! ----------
+! ele_id
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
+!  args:
+!    ele_id: ASYM_IR
+
+case ('slave_control')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  ! Non-ramper lords
+
+  do ix = 1, ele%n_slave
+    slave => pointer_to_slave (ele, ix, ctl)
+    nl=incr(nl); write (li(nl), '(i0, a, i0, 5a)') slave%ix_branch, ';', slave%ix_ele, ';', trim(slave%name), ';', trim(key_name(slave%key))
+
+    select case (ele%lord_status)
+    case (super_lord$, multipass_lord$, control_lord$, girder_lord$)
+      li(nl) = trim(li(nl)) // ';;;'
+    case default
+      if (allocated(ctl%stack)) then
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(ctl%stack) // ';' // rstr(ctl%value) 
+      else   ! Knots
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // rstr(ctl%value) // 'knots' // ';' // rstr(ctl%value) 
+      endif
+    end select
+  enddo
+
+  ! Ramper lord
+
+  if (ele%lord_status == ramper_lord$) then
+    do ix = 1, size(ele%control%ramp)
+      rmp => ele%control%ramp(ix)
+      nl=incr(nl); write (li(nl), '(i0, 5a)') slave%ix_branch, ';', slave%ix_ele, ';', trim(slave%name), ';', trim(key_name(slave%key))
+
+      if (allocated(rmp%stack)) then
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // expression_stack_to_string(rmp%stack) // ';'
+      else  ! Spline
+        li(nl) = trim(li(nl)) // ';' // trim(ctl%attribute) // ';' // 'knots' // ';'
+      endif
+    enddo
+  endif
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
 !%% space_charge_com
 !
 ! Output space_charge_com structure parameters.
@@ -6882,25 +7084,25 @@ case ('show')
 
 case ('space_charge_com')
 
-  nl=incr(nl); write(li(nl), rmt) 'ds_track_step;REAL;T;',                    space_charge_com%ds_track_step
-  nl=incr(nl); write(li(nl), rmt) 'dt_track_step;REAL;T;',                    space_charge_com%dt_track_step
-  nl=incr(nl); write(li(nl), rmt) 'cathode_strength_cutoff;REAL;T;',          space_charge_com%cathode_strength_cutoff
-  nl=incr(nl); write(li(nl), rmt) 'rel_tol_tracking;REAL;T;',                 space_charge_com%rel_tol_tracking
-  nl=incr(nl); write(li(nl), rmt) 'abs_tol_tracking;REAL;T;',                 space_charge_com%abs_tol_tracking
-  nl=incr(nl); write(li(nl), rmt) 'beam_chamber_height;REAL;T;',              space_charge_com%beam_chamber_height
-  nl=incr(nl); write(li(nl), rmt) 'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
-  nl=incr(nl); write(li(nl), rmt) 'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'ds_track_step;REAL;T;',                    space_charge_com%ds_track_step
+  nl=incr(nl); write(li(nl), rmt)  'dt_track_step;REAL;T;',                    space_charge_com%dt_track_step
+  nl=incr(nl); write(li(nl), rmt)  'cathode_strength_cutoff;REAL;T;',          space_charge_com%cathode_strength_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'rel_tol_tracking;REAL;T;',                 space_charge_com%rel_tol_tracking
+  nl=incr(nl); write(li(nl), rmt)  'abs_tol_tracking;REAL;T;',                 space_charge_com%abs_tol_tracking
+  nl=incr(nl); write(li(nl), rmt)  'beam_chamber_height;REAL;T;',              space_charge_com%beam_chamber_height
+  nl=incr(nl); write(li(nl), rmt)  'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
 
-  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'space_charge_mesh_size;INT_ARR;T', (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
-  nl=incr(nl); write(li(nl), '(a, 3(a, i0))') 'csr3d_mesh_size;INT_ARR;T',        (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
-  nl=incr(nl); write(li(nl), imt) 'n_bin;INT;T;',                             space_charge_com%n_bin
-  nl=incr(nl); write(li(nl), imt) 'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
-  nl=incr(nl); write(li(nl), imt) 'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
-  nl=incr(nl); write(li(nl), imt) 'sc_min_in_bin;INT;T;',                     space_charge_com%sc_min_in_bin
+  nl=incr(nl); write(li(nl), iamt) 'space_charge_mesh_size;INT_ARR;T',         (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), iamt) 'csr3d_mesh_size;INT_ARR;T',                (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)
+  nl=incr(nl); write(li(nl), imt)  'n_bin;INT;T;',                             space_charge_com%n_bin
+  nl=incr(nl); write(li(nl), imt)  'particle_bin_span;INT;T;',                 space_charge_com%particle_bin_span
+  nl=incr(nl); write(li(nl), imt)  'n_shield_images;INT;T;',                   space_charge_com%n_shield_images
+  nl=incr(nl); write(li(nl), imt)  'sc_min_in_bin;INT;T;',                     space_charge_com%sc_min_in_bin
 
-  nl=incr(nl); write(li(nl), lmt) 'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
+  nl=incr(nl); write(li(nl), lmt)  'lsc_kick_transverse_dependence;LOGIC;T;',  space_charge_com%lsc_kick_transverse_dependence
 
-  nl=incr(nl); write(li(nl), amt) 'diagnostic_output_file;STR;T;',            trim(space_charge_com%diagnostic_output_file)
+  nl=incr(nl); write(li(nl), amt)  'diagnostic_output_file;STR;T;',            trim(space_charge_com%diagnostic_output_file)
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -8538,12 +8740,18 @@ endif
 
 fmt = '(4a, es22.14)'
 
-nl=incr(nl); write (li(nl), fmt) prefix, 'beta_', suffix, v_str,                twiss%beta
-nl=incr(nl); write (li(nl), fmt) prefix,  'alpha_', suffix, v_str,              twiss%alpha
-nl=incr(nl); write (li(nl), fmt) prefix,  'gamma_', suffix, ';REAL;F;',         twiss%gamma
-nl=incr(nl); write (li(nl), fmt) prefix,  'phi_', suffix, v_str,                twiss%phi
-nl=incr(nl); write (li(nl), fmt) prefix,  'eta_', suffix, v_str,                twiss%eta
-nl=incr(nl); write (li(nl), fmt) prefix,  'etap_', suffix, v_str,               twiss%etap
+nl=incr(nl); write (li(nl), fmt) prefix, 'beta_', suffix, v_str,               twiss%beta
+nl=incr(nl); write (li(nl), fmt) prefix, 'alpha_', suffix, v_str,              twiss%alpha
+nl=incr(nl); write (li(nl), fmt) prefix, 'gamma_', suffix, ';REAL;F;',         twiss%gamma
+nl=incr(nl); write (li(nl), fmt) prefix, 'phi_', suffix, v_str,                twiss%phi
+nl=incr(nl); write (li(nl), fmt) prefix, 'eta_', suffix, v_str,                twiss%eta
+nl=incr(nl); write (li(nl), fmt) prefix, 'deta_ds_', suffix, v_str,            twiss%deta_ds
+nl=incr(nl); write (li(nl), fmt) prefix, 'etap_', suffix, v_str,               twiss%etap
+
+nl=incr(nl); write (li(nl), fmt) prefix, 'dbeta_dpz_', suffix, v_str,          twiss%dbeta_dpz
+nl=incr(nl); write (li(nl), fmt) prefix, 'dalpha_dpz_', suffix, v_str,         twiss%dalpha_dpz
+nl=incr(nl); write (li(nl), fmt) prefix, 'deta_dpz_', suffix, v_str,           twiss%deta_dpz
+nl=incr(nl); write (li(nl), fmt) prefix, 'detap_dpz_', suffix, v_str,          twiss%detap_dpz
 
 if (logic_option(.false., emit_out)) then
   nl=incr(nl); write (li(nl), fmt) prefix, 'sigma_', suffix, ';REAL;F;',       twiss%sigma
@@ -8573,8 +8781,11 @@ endif
 
 fmt = '(3a, es22.14)'
 
-nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                           xy_disp%eta
-nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                          xy_disp%etap
+nl=incr(nl); write (li(nl), fmt) 'eta_', suffix, v_str,                         xy_disp%eta
+nl=incr(nl); write (li(nl), fmt) 'etap_', suffix, v_str,                        xy_disp%etap
+nl=incr(nl); write (li(nl), fmt) 'deta_ds', suffix, v_str,                      xy_disp%deta_ds
+nl=incr(nl); write (li(nl), fmt) 'deta_dpz_', suffix, v_str,                    xy_disp%deta_dpz
+nl=incr(nl); write (li(nl), fmt) 'detap_dpz_', suffix, v_str,                   xy_disp%detap_dpz
 
 end subroutine xy_disp_out
 

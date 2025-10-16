@@ -130,12 +130,31 @@ ENDIF ()
 
 IF (${ACC_ENABLE_MPI})
   SET (CMAKE_Fortran_COMPILER mpifort)
-  EXEC_PROGRAM (mpifort ARGS --showme:compile OUTPUT_VARIABLE MPI_COMPILE_FLAGS)
-  EXEC_PROGRAM (mpifort ARGS --showme:link OUTPUT_VARIABLE MPI_LINK_FLAGS)
-  EXEC_PROGRAM (mpifort ARGS --showme:incdirs OUTPUT_VARIABLE MPI_INC_DIR)
-  EXEC_PROGRAM (mpifort ARGS --showme:libdirs OUTPUT_VARIABLE MPI_LIB_DIR)
-  EXEC_PROGRAM (mpifort ARGS --showme:libs OUTPUT_VARIABLE MPI_LIBS)
-  EXEC_PROGRAM (mpifort ARGS --showme:version OUTPUT_VARIABLE MPI_FORT_VERSION)
+
+  execute_process(COMMAND mpifort --showme:compile
+    OUTPUT_VARIABLE MPI_COMPILE_FLAGS
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  execute_process(COMMAND mpifort --showme:link
+    OUTPUT_VARIABLE MPI_LINK_FLAGS
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  execute_process(COMMAND mpifort --showme:incdirs
+    OUTPUT_VARIABLE MPI_INC_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  execute_process(COMMAND mpifort --showme:libdirs
+    OUTPUT_VARIABLE MPI_LIB_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  execute_process(COMMAND mpifort --showme:libs
+    OUTPUT_VARIABLE MPI_LIBS
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  execute_process(COMMAND mpifort --showme:version
+    OUTPUT_VARIABLE MPI_FORT_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+
   # The preprocessor option flag "-DACC_MPI" was requested and tested in RT#31494 but not implemented until RT#58944
   # The -fallow-argument-mismatch flag allows, for mpi routines, actual argument type mismatch which is not an error.
   IF (${CMAKE_Fortran_COMPILER} STREQUAL "gfortran")
@@ -146,9 +165,8 @@ IF (${ACC_ENABLE_MPI})
 ENDIF ()
 
 #----------------------------------------------------------------
-# If any pre-build script is specified, run it before building
-# any code.  The pre-build script may generate code or header
-# files.
+# If any pre-build script is specified, run it before building any code.  
+# The pre-build script may generate code or header files.
 #----------------------------------------------------------------
 IF (PREBUILD_ACTION)
   message("Executing pre-build action...")
@@ -1049,12 +1067,14 @@ foreach(exespec ${EXE_SPECS})
       ENDIF ()
     ENDIF ()
 
-    IF ("${ACC_ENABLE_OPENMP}" AND FORTRAN_COMPILER MATCHES "gfortran")
-      SET (SHARED_FLAG "${SHARED_FLAG} -fopenmp")
-      SET (SHARED_DEPS "${SHARED_DEPS} gomp")
-    ELSEIF () 
-      SET (SHARED_FLAG "${SHARED_FLAG} -liomp5")
-    ENDIF ()
+    if("${ACC_ENABLE_OPENMP}")
+      if(FORTRAN_COMPILER MATCHES "gfortran")
+        set(SHARED_FLAG "${SHARED_FLAG} -fopenmp")
+        set(SHARED_DEPS "${SHARED_DEPS} gomp")
+      else()
+        set(SHARED_FLAG "${SHARED_FLAG} -liomp5")
+      endif()
+    endif()
   ELSEIF (${MSYS})
       # Link all libraries statically:
       SET (STATIC_FLAG "-static")

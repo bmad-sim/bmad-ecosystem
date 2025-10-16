@@ -619,7 +619,7 @@ case ('track_type')
     return
   endif
   s%u%calc%lattice = .true.
-case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache', 'init_lat_sigma_from_beam')
+case ('srdt_gen_n_slices', 'srdt_sxt_n_slices', 'srdt_use_cache', 'lat_sigma_calc_uses_emit_from')
   s%u%calc%lattice = .true.
 case ('symbol_import')
   if (global%symbol_import) then
@@ -2032,6 +2032,21 @@ case ('clip')
   call tao_set_logical_value (this_graph%clip, component, value, error)
 case ('curve_legend_origin')
   call tao_set_qp_point_struct (comp, sub_comp, this_graph%curve_legend_origin, value, error, u%ix_uni)
+case ('curve_legend')
+  select case (sub_comp)
+  case ('row_spacing')
+    call tao_set_real_value(this_graph%curve_legend%row_spacing, component, value, error, dflt_uni = u%ix_uni)
+  case ('line_length')
+    call tao_set_real_value(this_graph%curve_legend%line_length, component, value, error, dflt_uni = u%ix_uni)
+  case ('text_offset')
+    call tao_set_real_value(this_graph%curve_legend%text_offset, component, value, error, dflt_uni = u%ix_uni)
+  case ('draw_line')
+    call tao_set_logical_value(this_graph%curve_legend%draw_line, component, value, error)
+  case ('draw_symbol')
+    call tao_set_logical_value(this_graph%curve_legend%draw_symbol, component, value, error)
+  case ('draw_text')
+    call tao_set_logical_value(this_graph%curve_legend%draw_text, component, value, error)
+  end select
 case ('draw_axes')
   call tao_set_logical_value (this_graph%draw_axes, component, value, error)
 case ('draw_title')
@@ -3581,6 +3596,12 @@ character(*), parameter :: r_name = 'tao_set_symbolic_number_cmd'
 !
 
 s_str = adjustl(sym_str)
+
+select case (s_str)
+case ('model', 'design', 'base')
+  call out_io (s_error$, r_name, 'Names "model", "design", and "base" are reserved and cannot be set.')
+  return
+end select
 
 do i = 1, size(physical_const_list)
   if (s_str == physical_const_list(i)%name) then

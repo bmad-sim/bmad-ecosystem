@@ -76,6 +76,10 @@ if (a_start_orb%direction == -1) then  ! Can only happen if start_orb is present
   return
 endif
 
+! To keep the code simple, only use forward tracking.
+
+a_start_orb%time_dir = 1
+
 ! init
 
 if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)

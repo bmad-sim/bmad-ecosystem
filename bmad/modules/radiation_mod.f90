@@ -87,7 +87,7 @@ if (.not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuati
 if (ele%value(l$) == 0) return
 if (ele%tracking_method == taylor$ .and. ele%mat6_calc_method == taylor$) return
 select case (ele%key)
-case (drift$, pipe$, taylor$, multipole$, ab_multipole$, mask$, marker$, fixer$, fiducial$);  return
+case (drift$, pipe$, taylor$, multipole$, ab_multipole$, mask$, marker$, patch$, fixer$, fiducial$);  return
 end select
 
 ! Use stochastic and damp mats
@@ -225,6 +225,8 @@ bmad_com%spin_tracking_on = .false.
 
 call create_element_slice (runt, ele, 0.5_rp*ele%value(l$), 0.0_rp, ele%branch%param, .true., .false., err, pointer_to_next_ele(ele, -1))
 if (err) goto 8000
+! Make the approximation that the radiation is not significantly affected by not using the exact multipole calc.
+if (runt%key == sbend$) ele%value(exact_multipoles$) = off$
 call make_mat6 (runt, branch%param, ref_orb_in, orb1)
 call tracking_rad_map_setup (runt, 1e-4_rp, upstream_end$, ele%rad_map%rm0, err);  if (err) goto 8000
 

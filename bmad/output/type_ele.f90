@@ -1,6 +1,6 @@
 !+
 ! Subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, 
-!              type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
+!              type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, type_internal, lines, n_lines)
 !
 ! Subroutine to print or put in a string array information on a lattice element.
 ! If the lines(:) argument is not present, the element information is printed to the terminal.
@@ -39,6 +39,7 @@
 !                           = all$     => Everything.
 !   type_wall         -- logical, optional: Default is False. If True, print wall info. 
 !   type_rad_kick     -- logical, optional: Default is False. If True, print synch rad kick info.
+!   type_internal     -- logical, optional: Default is False. If True, print some internal parameters.
 !
 ! Output       
 !   lines(:)     -- character(200), allocatable, optional: Character array to hold the output. 
@@ -48,7 +49,7 @@
 !-
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, &
-             type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
+             type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, type_internal, lines, n_lines)
 
 use bmad_interface, except_dummy => type_ele
 use expression_mod
@@ -89,7 +90,7 @@ type (surface_segmented_struct), pointer :: seg
 type (surface_displacement_struct), pointer :: disp
 type (surface_h_misalign_struct), pointer :: hmis
 type (pixel_detec_struct), pointer :: pixel
-
+type (rf_stair_step_struct), pointer :: step
 
 integer, optional, intent(in) :: type_control, type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
@@ -115,8 +116,7 @@ character(8) angle, index_str
 
 character(*), parameter :: r_name = 'type_ele'
 
-logical, optional, intent(in) :: type_taylor, type_wake
-logical, optional, intent(in) :: type_zero_attrib
+logical, optional, intent(in) :: type_taylor, type_wake, type_zero_attrib, type_internal
 logical, optional, intent(in) :: type_floor_coords, type_wall, type_rad_kick
 logical type_zero, err_flag, print_it, is_default, has_it, has_been_added, is_zero1, is_zero2
 
@@ -160,6 +160,21 @@ endif
 
 if (associated(ele%descrip)) then
   nl=nl+1; write (li(nl), '(2a)') 'Descrip:  ', quote(ele%descrip)
+endif
+
+if (ele%slave_status == super_slave$ .and. ele%n_lord == 1) then
+  lord => pointer_to_lord(ele, 1)
+  if (lord%type /= blank_name$) then
+    nl=nl+1; write (li(nl), '(2a)') "This Element's Super_lord Type:  ", quote(lord%type)
+  endif
+
+  if (lord%alias /= blank_name$) then
+    nl=nl+1; write (li(nl), '(2a)') "This Element's Super_lord Alias:  ", quote(lord%alias)
+  endif
+
+  if (associated(lord%descrip)) then
+    nl=nl+1; write (li(nl), '(2a)') "This Element's Super_lord Descrip:  ", quote(lord%descrip)
+  endif
 endif
 
 ! Encode element key and attributes
@@ -923,7 +938,23 @@ if (associated(ph)) then
   endif
 endif
 
+! lcavity
 
+if (logic_option(.false., type_internal) .and. ele%key == lcavity$ .and. associated(ele%rf)) then
+  if (li(nl) /= '') then
+    nl=nl+1; li(nl) = ' '
+  endif
+
+  nl=nl+1; li(nl) = 'RF Stair Steps:'
+  do i = 0, ubound(ele%rf%steps, 1)
+    step => ele%rf%steps(i)
+    nl=nl+1; li(nl) = 'Step ' // int_str(i)
+    nl=nl+1; write(li(nl), '(a, 3es14.6)')       '    E_tot0, E_tot1:', step%E_tot0, step%E_tot1
+    nl=nl+1; write(li(nl), '(a, 2es14.6)')       '    p0c, p1c:      ', step%p0c, step%p1c
+    nl=nl+1; write(li(nl), '(a, es14.6, f10.6)') '    Time, scale:   ', step%time, step%scale
+    nl=nl+1; write(li(nl), '(a, 2f14.9)')        '    s0, s:         ', step%s0, step%s
+  enddo
+endif
 
 ! Encode branch info
 
@@ -1631,9 +1662,10 @@ character(42), parameter :: att_name(118) = [character(42):: 'X_PITCH', 'Y_PITCH
                 'PX_KICK', 'PY_KICK', 'PZ_KICK', 'E_TOT_OFFSET', 'FLEXIBLE', 'CRUNCH', 'NOISE', &
                 'F_FACTOR', 'EXACT_MULTIPOLES', 'CROSSING_TIME', 'SPIN_TRACKING_MODEL', 'VOLTAGE_ERR', &
                 'SPIN_DN_DPZ_X', 'INHERIT_FROM_FORK', 'N_PERIOD', 'G_MAX', 'PC_STRONG', &
-                'BETA_A_SET', 'ALPHA_A_SET', 'ETA_X_SET', 'ETAP_X_SET', 'PHI_A_SET', 'CMAT_11_SET', 'CMAT_21_SET', &
-                'DBETA_DPZ_A_SET', 'DALPHA_DPZ_A_SET', 'DETA_DPZ_X_SET', 'DETAP_DPZ_X_SET', &
-                'X_SET', 'Y_SET', 'Z_SET', 'PHI_A_SET']
+                'BETA_A_STORED', 'ALPHA_A_STORED', 'ETA_X_STORED', 'ETAP_X_STORED', 'PHI_A_STORED', &
+                'CMAT_11_STORED', 'CMAT_21_STORED', &
+                'DBETA_DPZ_A_STORED', 'DALPHA_DPZ_A_STORED', 'DETA_DPZ_X_STORED', 'DETAP_DPZ_X_STORED', &
+                'X_STORED', 'Y_STORED', 'Z_STORED', 'PHI_A_STORED']
 
 character(42), parameter :: att2_name(118) = [character(42):: 'X_PITCH_TOT', 'Y_PITCH_TOT', 'X_OFFSET_TOT', &
                 'Y_OFFSET_TOT', 'Z_OFFSET_TOT', 'REF_TILT_TOT', 'TILT_TOT', 'ROLL_TOT', 'X2_LIMIT', 'Y2_LIMIT', &
@@ -1651,9 +1683,10 @@ character(42), parameter :: att2_name(118) = [character(42):: 'X_PITCH_TOT', 'Y_
                 'X_KICK', 'Y_KICK', 'Z_KICK', 'E_TOT_START', 'REF_COORDS', 'CRUNCH_CALIB', 'N_SAMPLE', &
                 'SCATTER_METHOD', 'FIDUCIAL_PT', 'S_BETA_MIN', 'RECALC', 'GRADIENT_ERR', &
                 'SPIN_DN_DPZ_Y', 'MODE_FLIP', 'L_PERIOD', 'B_MAX', 'E_TOT_STRONG', &
-                'BETA_B_SET', 'ALPHA_B_SET', 'ETA_Y_SET', 'ETAP_Y_SET', 'PHI_N_SET', 'CMAT_12_SET', 'CMAT_22_SET', &
-                'DBETA_DPZ_B_SET', 'DALPHA_DPZ_B_SET', 'DETA_DPZ_Y_SET', 'DETAP_DPZ_Y_SET', &
-                'PX_SET', 'PY_SET', 'PZ_SET', 'PHI_B_SET']
+                'BETA_B_STORED', 'ALPHA_B_STORED', 'ETA_Y_STORED', 'ETAP_Y_STORED', 'PHI_N_STORED', &
+                'CMAT_12_STORED', 'CMAT_22_STORED', &
+                'DBETA_DPZ_B_STORED', 'DALPHA_DPZ_B_STORED', 'DETA_DPZ_Y_STORED', 'DETAP_DPZ_Y_STORED', &
+                'PX_STORED', 'PY_STORED', 'PZ_STORED', 'PHI_B_STORED']
 
 ! Exceptional cases
 

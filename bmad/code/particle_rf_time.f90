@@ -19,7 +19,6 @@
 !   s_rel             -- real(rp), optional: Longitudinal position relative to the upstream edge of the element.
 !                         Needed for relative time tracking when the particle is inside the element. Default is 0.
 !   time_coords       -- logical, optional: Default False. If True then orbit is using time based phase space coordinates.
-!   rf_clock_harmonic -- integer, optional: Used with the rf clock in cases where an element has multiple frequencies.
 !   rf_freq           -- real(rp), optional: If present, the returned time shifted by an integer multiple
 !                          of 1/rf_freq to be in the range [-1/2*rf_freq, 1/2*rf_freq]. This is useful to
 !                          avoid round-off errors.

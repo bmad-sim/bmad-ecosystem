@@ -46,9 +46,9 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(48) = [character(16):: &
+character(16) :: cmd_names(49) = [character(16):: &
                       'alias', 'call', 'change', 'clear', 'clip', 'continue', 'create', 'cut_ring', 'derivative', &
-                      'end_file', 'exit', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
+                      'end_file', 'exit', 'fixer', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
                       'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'regression', 'reinitialize', 'reset', &
                       'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
                       'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale', &
@@ -431,6 +431,14 @@ case ('exit', 'quit')
   err_is_fatal = .true. ! So Tao will stop.
   return
  
+!--------------------------------
+! FIXER
+
+case ('fixer')
+
+  call tao_cmd_split (cmd_line, 3, cmd_word, .true., err_flag); if (err_flag) return
+  call tao_fixer(cmd_word(1), cmd_word(2), cmd_word(3))
+
 !--------------------------------
 ! HELP
 

@@ -1081,14 +1081,13 @@ function e_accel_field (ele, voltage_or_gradient, bmad_standard_tracking) result
   logical, optional :: bmad_standard_tracking
 end function
 
-recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag, include_downstream_end)
+recursive subroutine ele_compute_ref_energy_and_time (ele0, ele, param, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele0, ele
   type (lat_param_struct) param
   real(rp) e_tot_start, p0c_start, ref_time_start
   logical err_flag
-  logical, optional :: include_downstream_end
 end subroutine
 
 function ele_full_name (ele, template) result (str)
@@ -1191,13 +1190,12 @@ subroutine ele_reference_energy_correction (ele, orbit, particle_at, mat6, make_
   logical, optional :: make_matrix
 end subroutine
 
-function ele_rf_step_index(E_ref, s_rel, ele, include_downstream_end) result (ix_step)
+function ele_rf_step_index(E_ref, s_rel, ele) result (ix_step)
   import
   implicit none
   type (ele_struct) :: ele
   real(rp) E_ref, s_rel
   integer ix_step
-  logical, optional :: include_downstream_end
 end function
 
 subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, steps, for_layout, ref_in)
@@ -1266,10 +1264,11 @@ subroutine element_slice_iterator (ele, param, i_slice, n_slice_tot, sliced_ele,
 end subroutine
 
 recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
-             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err)
+             calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err, original_ele)
   import
   implicit none
   type (ele_struct), target :: ele
+  type (ele_struct), optional :: original_ele
   type (lat_param_struct) param
   type (coord_struct) :: orbit
   type (em_field_struct) :: field
@@ -1627,11 +1626,10 @@ subroutine lattice_bookkeeper (lat, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine lcavity_rf_step_setup(ele, include_downstream_end)
+subroutine lcavity_rf_step_setup(ele)
   import
   implicit none
   type (ele_struct) ele
-  logical, optional :: include_downstream_end
 end subroutine
 
 subroutine linear_to_spin_taylor(q_map, spin_taylor)
@@ -3153,14 +3151,14 @@ subroutine track_a_zero_length_element (orbit, ele, param, err_flag, track)
   type (track_struct), optional :: track
 end subroutine
 
-subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0)
+subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0, init_lost)
   import
   implicit none
   type (lat_struct), target :: lat
   type (coord_struct), allocatable, target :: orbit(:)
   type (coord_struct), optional, allocatable, target :: orbit0(:)
   integer, optional :: ix_branch, track_state
-  logical, optional :: err_flag
+  logical, optional :: err_flag, init_lost
 end subroutine
 
 subroutine track_bunch_time (bunch, branch, t_end, s_end, dt_step, extra_field)
@@ -3549,11 +3547,11 @@ subroutine twiss_from_tracking (lat, ref_orb0, symp_err, err_flag, d_orb)
   logical err_flag
 end subroutine
 
-subroutine twiss_propagate1 (ele1, ele2, err)
+subroutine twiss_propagate1 (ele1, ele2, err_flag, forward)
   import
   implicit none
   type (ele_struct), target :: ele1, ele2
-  logical, optional :: err
+  logical, optional :: err_flag, forward
 end subroutine
 
 subroutine twiss_propagate_all (lat, ix_branch, err_flag, ie_start, ie_end)
@@ -3578,14 +3576,14 @@ subroutine type_coord (coord)
 end subroutine
 
 subroutine type_ele (ele, type_zero_attrib, type_mat6, type_taylor, twiss_out, type_control, &
-      type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, lines, n_lines)
+      type_wake, type_floor_coords, type_field, type_wall, type_rad_kick, type_internal, lines, n_lines)
   import
   implicit none
   type (ele_struct), target :: ele
   integer, optional, intent(in) :: type_mat6
   integer, optional, intent(out) :: n_lines
   integer, optional, intent(in) :: twiss_out, type_field, type_control
-  logical, optional, intent(in) :: type_taylor, type_floor_coords
+  logical, optional, intent(in) :: type_taylor, type_floor_coords, type_internal
   logical, optional, intent(in) :: type_zero_attrib, type_wake, type_wall, type_rad_kick
   character(*), optional, allocatable :: lines(:)
 end subroutine
@@ -3813,11 +3811,11 @@ subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, i
   logical, optional :: include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_julia (julia_name, lat, err_flag)
+subroutine write_lattice_in_scibmad (scibmad_name, lat, err_flag)
   import
   implicit none
   type (lat_struct), target :: lat
-  character(*) :: julia_name
+  character(*) :: scibmad_name
   logical, optional :: err_flag
 end subroutine
 

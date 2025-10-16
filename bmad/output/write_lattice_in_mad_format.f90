@@ -235,6 +235,7 @@ do
     write (col_ele%name, '(a, i0)')  'COLLIMATOR_N', a_count
     col_ele%value = val
     col_ele%value(l$) = 0
+    col_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
     val(x1_limit$) = 0; val(x2_limit$) = 0; val(y1_limit$) = 0; val(y2_limit$) = 0; 
     aperture_at = ele%aperture_at  ! Save since ele pointer will be invalid after the insert
     if (aperture_at == both_ends$ .or. aperture_at == downstream_end$ .or. aperture_at == continuous$) then
@@ -254,6 +255,7 @@ do
   if (ele%key == sbend$ .and. val(roll$) /= 0) then
     j_count = j_count + 1
     write (kicker_ele%name,   '(a, i0)') 'ROLL_Z', j_count
+    kicker_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
     kicker_ele%value(hkick$) =  val(angle$) * (1 - cos(val(roll$))) / 2
     kicker_ele%value(vkick$) = -val(angle$) * sin(val(roll$)) / 2
     val(roll$) = 0   ! So on next iteration will not create extra kickers.
@@ -268,6 +270,7 @@ do
   if (ele%key /= multipole$ .and. ele%key /= ab_multipole$ .and. ele%key /= null_ele$ .and. ele%key /= sad_mult$) then
     call multipole_ele_to_ab (ele, .true., ix_pole_max, ab_ele%a_pole, ab_ele%b_pole)
     if (ix_pole_max > -1) then
+      ab_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       ab_ele%a_pole = ab_ele%a_pole / 2
       ab_ele%b_pole = ab_ele%b_pole / 2
       if (associated(ele%a_pole)) then
@@ -293,6 +296,7 @@ do
       if (val(hkick$) /= 0 .or. val(vkick$) /= 0) then
         j_count = j_count + 1
         write (kicker_ele%name, '(a1, a, i0)') key_name(ele%key), '_KICKER_', j_count
+        kicker_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
         kicker_ele%value(hkick$) = val(hkick$) / 2
         kicker_ele%value(vkick$) = val(vkick$) / 2
         val(hkick$) = 0; val(vkick$) = 0
@@ -304,10 +308,12 @@ do
         endif
         !!! write (taylor_ele%name, '(a, i0)') 'Z_SHIFTER', j_count 
         taylor_ele%name = ele%name
+        taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
         call taylor_make_unit(taylor_ele%taylor)
         orb_start = orbit_out(ix_ele-1)
         orb_start%vec(2) = orb_start%vec(2) - kicker_ele%value(hkick$)
         orb_start%vec(4) = orb_start%vec(4) - kicker_ele%value(vkick$)
+        call init_coord(orb_start, orb_start, ele, upstream_end$)
         call track1 (orb_start, ele, branch_out%param, orb_end) 
         ele%key = -1  ! Mark to ignore
         f = (ele%map_ref_orb_out%vec(5) - ele%map_ref_orb_in%vec(5)) - (orb_end%vec(5) - orb_start%vec(5))
@@ -338,6 +344,7 @@ do
       quad_ele%value(l$) = 1d-30
       call ele_to_taylor (quad_ele, orbit_out(ie-1), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_IN', f_count
+      taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ie = ie + 1
     endif
@@ -347,6 +354,7 @@ do
       quad_ele%value(l$) = 1d-30
       call ele_to_taylor (quad_ele, orbit_out(ie), orbital_taylor = taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'Q_FRINGE_OUT', f_count
+      taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
     endif
 
@@ -378,12 +386,14 @@ do
       orb_start = orb_center
       orb_start%direction = -1
       orb_start%species = antiparticle(orb_center%species)
+      call init_coord(orb_start, orb_start, bend_ele, upstream_end$)
       call track1 (orb_start, bend_ele, branch_out%param, orb_start)  ! bactrack to entrance end
       call ele_to_taylor (bend_ele, orb_start, orbital_taylor = taylor_b)
 
       call taylor_inverse (taylor_b, taylor_b)
       call concat_taylor (taylor_a, taylor_b, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_IN', f_count
+      taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       call insert_element (lat_out, taylor_ele, ie, branch_out%ix_branch, orbit_out)
       ele => branch_out%ele(ix_ele+1)
       call kill_taylor (taylor_a)
@@ -407,6 +417,7 @@ do
 
       call concat_taylor (taylor_b, taylor_a, taylor_ele%taylor)
       write (taylor_ele%name, '(a, i0)') 'B_FRINGE_OUT', f_count
+      taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       call insert_element (lat_out, taylor_ele, ie+1, branch_out%ix_branch, orbit_out)
       call kill_taylor (taylor_a)
       call kill_taylor (taylor_b)
@@ -435,6 +446,7 @@ do
     call kill_taylor (taylor_b)
 
     taylor_ele%name = 'TAYLOR_' // ele%name
+    taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
     call insert_element (lat_out, taylor_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
     ix_ele = ix_ele + 1
     cycle
@@ -456,7 +468,9 @@ do
       j_count = j_count + 1
       write (drift_ele%name, '(a, i0)') 'DRIFT_Z', j_count
       taylor_ele%name = ele%name
+      taylor_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       drift_ele%value(l$) = val(l$) / 2
+      drift_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
       ele%key = -1 ! Mark to ignore
       call insert_element (lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
       call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
@@ -559,6 +573,7 @@ do
   if (ele%key == patch$ .and. ele%value(z_offset$) /= 0) then
     drift_ele%name = 'DRIFT_' // ele%name
     drift_ele%value(l$) = val(z_offset$)
+    drift_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
     call insert_element (lat_out, drift_ele, ix_ele, branch_out%ix_branch, orbit_out)
     ix_ele = ix_ele + 1
     ele => branch_out%ele(ix_ele)
@@ -775,6 +790,8 @@ do
     if (ele%key == patch$ .and. out_type == 'MAD-X') then
       ele%key = null_ele$
       orig_name = ele%name
+      drift_ele%ref_species = ele%ref_species  ! Needed if tracking is done through element.
+
       if (val(x_offset$) /= 0 .or. val(y_offset$) /= 0 .or. val(z_offset$) /= 0) then
         drift_ele%name = trim(orig_name) // '__t'
         call insert_element(lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)

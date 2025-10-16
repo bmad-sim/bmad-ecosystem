@@ -118,7 +118,6 @@ bool operator== (const CPP_ac_kicker_freq& x, const CPP_ac_kicker_freq& y) {
   is_eq = is_eq && (x.f == y.f);
   is_eq = is_eq && (x.amp == y.amp);
   is_eq = is_eq && (x.phi == y.phi);
-  is_eq = is_eq && (x.rf_clock_harmonic == y.rf_clock_harmonic);
   return is_eq;
 };
 
@@ -617,6 +616,8 @@ bool operator== (const CPP_xy_disp& x, const CPP_xy_disp& y) {
   is_eq = is_eq && (x.etap == y.etap);
   is_eq = is_eq && (x.deta_ds == y.deta_ds);
   is_eq = is_eq && (x.sigma == y.sigma);
+  is_eq = is_eq && (x.deta_dpz == y.deta_dpz);
+  is_eq = is_eq && (x.detap_dpz == y.detap_dpz);
   return is_eq;
 };
 
@@ -638,6 +639,11 @@ bool operator== (const CPP_twiss& x, const CPP_twiss& y) {
   is_eq = is_eq && (x.sigma_p == y.sigma_p);
   is_eq = is_eq && (x.emit == y.emit);
   is_eq = is_eq && (x.norm_emit == y.norm_emit);
+  is_eq = is_eq && (x.chrom == y.chrom);
+  is_eq = is_eq && (x.dbeta_dpz == y.dbeta_dpz);
+  is_eq = is_eq && (x.dalpha_dpz == y.dalpha_dpz);
+  is_eq = is_eq && (x.deta_dpz == y.deta_dpz);
+  is_eq = is_eq && (x.detap_dpz == y.detap_dpz);
   return is_eq;
 };
 
@@ -1332,6 +1338,7 @@ template bool is_all_equal (const CPP_strong_beam_MATRIX&, const CPP_strong_beam
 
 bool operator== (const CPP_track_point& x, const CPP_track_point& y) {
   bool is_eq = true;
+  is_eq = is_eq && (x.s_lab == y.s_lab);
   is_eq = is_eq && (x.s_body == y.s_body);
   is_eq = is_eq && (x.orb == y.orb);
   is_eq = is_eq && (x.field == y.field);
@@ -1428,7 +1435,9 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.absolute_time_tracking == y.absolute_time_tracking);
   is_eq = is_eq && (x.absolute_time_ref_shift == y.absolute_time_ref_shift);
   is_eq = is_eq && (x.convert_to_kinetic_momentum == y.convert_to_kinetic_momentum);
+  is_eq = is_eq && (x.normalize_twiss == y.normalize_twiss);
   is_eq = is_eq && (x.aperture_limit_on == y.aperture_limit_on);
+  is_eq = is_eq && (x.spin_n0_direction_user_set == y.spin_n0_direction_user_set);
   is_eq = is_eq && (x.debug == y.debug);
   return is_eq;
 };
@@ -1631,6 +1640,7 @@ bool operator== (const CPP_branch& x, const CPP_branch& y) {
   is_eq = is_eq && (x.ix_from_branch == y.ix_from_branch);
   is_eq = is_eq && (x.ix_from_ele == y.ix_from_ele);
   is_eq = is_eq && (x.ix_to_ele == y.ix_to_ele);
+  is_eq = is_eq && (x.ix_fixer == y.ix_fixer);
   is_eq = is_eq && (x.n_ele_track == y.n_ele_track);
   is_eq = is_eq && (x.n_ele_max == y.n_ele_max);
   is_eq = is_eq && (x.a == y.a);
@@ -1638,6 +1648,7 @@ bool operator== (const CPP_branch& x, const CPP_branch& y) {
   is_eq = is_eq && (x.z == y.z);
   is_eq = is_eq && is_all_equal(x.ele, y.ele);
   is_eq = is_eq && (x.param == y.param);
+  is_eq = is_eq && (x.particle_start == y.particle_start);
   is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
   return is_eq;
 };
@@ -1673,7 +1684,9 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && is_all_equal(x.ele, y.ele);
   is_eq = is_eq && is_all_equal(x.branch, y.branch);
   is_eq = is_eq && is_all_equal(x.control, y.control);
-  is_eq = is_eq && (x.particle_start == y.particle_start);
+  is_eq = is_eq && ((x.particle_start == NULL) == (y.particle_start == NULL));
+  if (!is_eq) return false;
+  if (x.particle_start != NULL) is_eq = (*x.particle_start == *y.particle_start);
   is_eq = is_eq && (x.beam_init == y.beam_init);
   is_eq = is_eq && (x.pre_tracker == y.pre_tracker);
   is_eq = is_eq && is_all_equal(x.custom, y.custom);

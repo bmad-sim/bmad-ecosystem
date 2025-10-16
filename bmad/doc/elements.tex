@@ -453,6 +453,9 @@ reflection patch is not needed in this circumstance.
 
 See \sref{s:list.beginning} for a full list of element attributes.
 
+Note: To set Twiss and/or orbit parameters at a point not at the beginning of a branch,
+use a \vn{fixer} (\sref{s:fixer}) element.
+
 \newpage
 
 %-----------------------------------------------------------------
@@ -1312,9 +1315,11 @@ Dependent variables (\sref{s:depend}) specific to a \vn{crystal} element are:
 
 The \vn{crystal_type} attribute defines the crystal material and diffraction lattice plane. The
 syntax is \vn{"ZZZ(ijk)"} where \vn{ZZZ} is the material name and \vn{ijk} are the Miller indices
-for the diffraction plane. For example,
+for the diffraction plane. Alternatively, for double digit indices, commas can be used to separate
+the indices. For example,
 \begin{example}
-  b_cryst1: crystal, crystal_type = "Si(111)", b_param = -1, ...
+  a_cryst: crystal, crystal_type = "Si(111)", b_param = -1, ...
+  b_cryst: crystal, crystal_type = "Si(2,4,10)", b_param = -1, ...
 \end{example}
 The atomic formula is case sensitive so, for example, \vn{"SI(111)"} is not acceptable. The list of
 known crystal materials is given in \sref{s:cryst.list}. Given the \vn{crystal_type}, the spacing
@@ -2111,15 +2116,86 @@ machine.
 \section{Fixer}
 \label{s:fixer}
 
-A \vn{fixer} element is used to set the particle orbit and/or the Twiss parameters at
-any point in an open geometry lattice branch. The orbit and/or Twiss parameter can then
-be propagated both forward and backwards.
-
 <b>This element is in construction and is not yet usable.</b>
 
-A \vn{fixer} element has zero length. For tracking particles, a \vn{fixer} element is like a \vn{marker}. That is, there is no change in phase space coordinates when a particle is tracked
-through a \vn{fixer} element.
+A \vn{fixer} element is used to set the particle orbit and/or the Twiss parameters at any point in
+an open geometry lattice branch. The orbit and/or Twiss parameters can then be propagated from the
+fixer element both forward and backwards to the ends of the branch.
 
+Note: For the purposes of this discussion, the term ``Twiss'' parameters include coupling and
+dispersion parameters and ``orbit'' includes both phase space and spin coordinates.
+
+General \vn{floor_shift} element attributes are:
+\begin{center}
+\tt
+\begin{tabular}{llll} \toprule
+  {\sl Attribute Class}      & Section           & {\sl Attribute Class}      & Section         \\ \midrule
+  Custom Attributes          & \ref{s:cust.att}  & Superposition              & \ref{c:super}   \\
+  Description strings        & \ref{s:alias}     & Tracking \& transfer map   & \ref{c:methods} \\
+  Reference energy           & \ref{s:energy}    &                            &                 \\
+  \bottomrule
+\end{tabular}
+\end{center}
+\toffset
+See \sref{s:list.floor.shift} for a full list of element attributes along with a their units.
+
+Attributes specific to a \vn{fixer} elements are:
+\begin{example}
+  spin_x_stored, spin_y_stored, spin_z_stored     ! Particle spin
+
+  x_stored, px_stored
+  y_stored, py_stored                             ! Particle phase space coordinates
+  z_stored, pz_stored
+
+  beta_a_stored, alpha_a_stored, phi_a_stored     ! a-mode Twiss
+  dbeta_dpz_a_stored, dalpha_dpz_a_stored
+
+  beta_b_stored, alpha_b_stored, phi_b_stored     ! b-mode Twiss
+  dbeta_dpz_b_stored, dalpha_dpz_b_stored
+
+  eta_x_stored, etap_x_stored                     ! Horizontal dispersion
+  deta_dpz_x_stored, detap_dpz_x_stored
+
+  eta_y_stored, etap_y_stored                     ! Vertical dispersion
+  deta_dpz_y_stored, detap_dpz_y_stored
+
+  mode_flip_stored                                ! Logical: Normal modes flipped? 
+  cmat_11_stored, cmat_12_stored                  ! Coupling
+  cmat_21_stored, cmat_22_stored
+\end{example}
+
+A \vn{fixer} element has zero length. For tracking particles, a \vn{fixer} element acts like a
+\vn{marker} element. That is, there is no change in phase space coordinates when a particle is
+tracked through a \vn{fixer} element.
+
+If the geometry of a branch is \vn{closed} (\sref{s:param}), \vn{fixer} elements have no effect.
+Thus, in the following discussion, it is assumed that the branch geometry is set to \vn{open}.
+Additionally, for this discussion, the term ``\vn{fixer}'' element will include \vn{beginning_ele}
+elements (\sref{s:begin.ele}) since, for the purposes of setting orbit and/or Twiss parameters
+\vn{beginning_ele} elements essentially act as a fixer element at the beginning of a branch.
+
+A fixer element is ``active'' if its \vn{is_on} parameter (\sref{s:is.on}) is True. One and only one
+fixer element in a branch can be active at a given time. The \bmad bookkeeping routines will ensure
+that this rule is enforced and turning on a given fixer will result in all others being turned off.
+Turning off the active fixer will result in the \vn{beginning_ele} element being turned on. The
+default for a fixer element defined in a lattice file is to be non-active except for the
+\vn{beginning_ele} which defaults to being active. When a lattice is read in, for a given branch,
+the last fixer that is set active will be the active fixer and if non are set the \vn{beginning_ele}
+will be active.
+
+Essentially, a fixer elements has two classes of Twiss and orbit parameters. There are the
+``stored'' parameters listed above. These parameters may be set by the User. The other class are the
+``actual'' parameters which cannot be set by the User. For a \vn{fixer} element that is active, the
+actual parameters are set equal to the corresponding stored parameters and these actual parameters
+are then used by \bmad to propagate the Twiss and orbit backwards and forwards through the rest of
+the branch. For fixer elements that are not active, the actual Twiss and orbit is calculated in the
+standard fashion by propagating the Twiss and orbit from the active fixer. The stored Twiss and
+orbit parameter values in a non-active fixer do not affect the Twiss and orbit calculation.
+
+Example:
+\begin{example}
+  f2: fixer, beta_a_stored = 11.37, beta_b_stored = 34.72, is_on = T
+\end{example}
 \newpage
 
 %-----------------------------------------------------------------
@@ -3223,8 +3299,8 @@ In the above equation $r_q$ is the relative charge between the reference particl
 cavity. For example, if the reference particle and the tracked particle are the same, $r_q$ is
 unity independent of the type of particle tracked.
 
-\vn{phi0_multipass} is only to be used with multipass to shift the phase of the cavity from pass to
-pass. See \sref{c:multipass}.
+\vn{phi0_multipass} is only to be used with multipass elements to shift the phase of the cavity from pass to
+pass. See \sref{c:multipass} for details.
 
 The \vn{phi0_autoscale} and \vn{field_autoscale} parameters are
 calculated by \bmad's auto-scale module to adjust the RF amplitude and phase so that during tracking,
@@ -4690,7 +4766,7 @@ Attributes specific to an \vn{rf_bend} are:
   harmon          = <Real>    ! Harmonic number
   harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
   phi0            = <Real>    ! Cavity phase (rad/2pi).
-  phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
+  phi0_multipass  = <Real>    ! Phase variation with multipass elements (rad/2pi) (\sref{c:multipass}).
 \end{example}
 
 Tracking through an \vn{rf_bend} is limited to Runge Kutta like tracking methods (\sref{s:tkm}). The
@@ -4743,7 +4819,7 @@ Attributes specific to an \vn{rfcavity} are:
   voltage         = <Real>    ! Cavity voltage
   phi0            = <Real>    ! Cavity phase (rad/2pi).
   phi0_multipass  = <Real>    ! Phase variation with multipass (rad/2pi).
-  phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on (rad/2pi).
+  phi0_autoscale  = <Real>    ! Set by Bmad if autoscaling is turned on (rad/2pi). (\sref{c:multipass}).
   gradient        = <Real>    ! Accelerating gradient (V/m). Dependent attribute (\sref{s:depend}).
   longitudinal_mode = <Int>   ! Longitudinal mode. Default is 0. May be 0 or 1.
 \end{example}
@@ -4774,7 +4850,7 @@ The correspondence between the \bmad \vn{phi0} attribute and the \vn{lag} attrib
 \end{example}
 
 \vn{phi0_multipass} is only to be used to shift the phase with respect to a \vn{multipass} lord. See
-\sref{c:multipass}. \vn{e_charge} is the magnitude of the charge on an electron
+\sref{c:multipass} for more details. \vn{e_charge} is the magnitude of the charge on an electron
 (Table~\ref{t:constants}). Notice that the energy kick is independent of the sign of the charge of
 the particle
 

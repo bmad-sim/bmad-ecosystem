@@ -37,9 +37,8 @@ type (lat_param_struct) :: param
 type (rf_stair_step_struct), pointer :: step
 
 real(rp), optional :: mat6(6,6)
-real(rp) length, s_now, s_end, kmat(6,6), phase, ds
-real(rp) mc2
-real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+real(rp) s_now, s_end, kmat(6,6), phase, ds, mc2
+real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx), l_active
 
 integer ix_mag_max, ix_elec_max, ix_step_start, ix_step_end, n_steps, s_dir
 integer ix_step, body_dir
@@ -57,17 +56,18 @@ if (ele%value(rf_frequency$) == 0  .and. (ele%value(voltage$) /= 0 .or. ele%valu
   return
 endif
 
+if (ele%value(l$) == 0) return
+
 ! The lord will have the step information.
 ! See the documentation for the rf_ele_struct for some details.
 
-length = orbit%time_dir * ele%value(l$)
-if (length == 0) return
+l_active = orbit%time_dir * ele%value(l_active$)
 track_spin = (bmad_com%spin_tracking_on .and. ele%spin_tracking_method == tracking$)
 
 make_mat = logic_option(.false., make_matrix)
 lord => pointer_to_super_lord(ele)
 mc2 = mass_of(orbit%species)
-n_steps = ubound(lord%rf%steps, 1)
+n_steps = ubound(lord%rf%steps, 1) - 1
 
 s_dir = orbit%time_dir * orbit%direction        ! Longitudinal propagation direction 
 body_dir = orbit%direction * ele%orientation    ! Forward time direction of travel with respect to body coordinates
@@ -91,47 +91,66 @@ call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$
 
 call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
 
-! Beginning Edge
+! Forward tracking
 
-if (fringe_here(ele, orbit, first_track_edge$)) then
-  phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(ix_step_start))
-  call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
-  call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+if (s_dir == 1) then
+  do ix_step = ix_step_start, ix_step_end
+    step => lord%rf%steps(ix_step)
+    ! Drift to edge of step
+    if (ix_step == ix_step_end) then
+      ds = s_end - s_now
+      s_now = s_end
+    else
+      ds = step%s - s_now
+      s_now = step%s
+    endif
+    call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
+    ! Entrence fringe?
+    if (ix_step == 0 .and. s_now == step%s .and. fringe_here(lord, orbit, first_track_edge$)) then
+      phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(0))
+      call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
+      call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+    endif
+    ! Stair step kick
+    if (ix_step /= ix_step_end) call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
+    ! Exit fringe?
+    if (ix_step == n_steps .and. s_now == step%s .and. fringe_here(lord, orbit, second_track_edge$)) then
+      phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(n_steps))
+      call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
+      call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
+    endif
+  enddo
 endif
 
-! Body
+! Reverse tracking
 
-do ix_step = ix_step_start, ix_step_end, s_dir
-  step => lord%rf%steps(ix_step)
-
-  if (ix_step == ix_step_end) then
-    ! Drift to end. The first and last steps have no drift section.
-    if (ix_step == 0 .or. ix_step == n_steps) cycle
-    ds = s_end - s_now
-    call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
-
-  else
-    ! Drift to edge of step and kick
-    if (s_dir == 1) then
-      ds = step%s - s_now
-      call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
-      s_now = step%s
-      call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
+if (s_dir == -1) then
+  do ix_step = ix_step_start, ix_step_end, -1
+    step => lord%rf%steps(ix_step)
+    ! Drift to edge of step
+    if (ix_step == ix_step_end) then
+      ds = s_end - s_now
+      s_now = s_end
     else
-      ds = lord%rf%steps(ix_step-1)%s - s_now
-      call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
-      s_now = lord%rf%steps(ix_step-1)%s
-      call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), body_dir, mat6, make_mat)
+      ds = step%s0 - s_now
+      s_now = step%s0
     endif
-  endif
-enddo
-
-! End Edge
-
-if (fringe_here(ele, orbit, second_track_edge$)) then
-  phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(ix_step_end))
-  call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
-  call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
+    call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
+    ! Entrence fringe?
+    if (ix_step == n_steps+1 .and. s_now == step%s0 .and. fringe_here(ele, orbit, first_track_edge$)) then
+      phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(n_steps))
+      call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
+      call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+    endif
+    ! Stair step kick
+    if (ix_step /= ix_step_end) call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), body_dir, mat6, make_mat)
+    ! Exit fringe?
+    if (ix_step == 1 .and. s_now == step%s0 .and. fringe_here(ele, orbit, second_track_edge$)) then
+      phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(0))
+      call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
+      call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
+    endif
+  enddo
 endif
 
 !
@@ -196,7 +215,7 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == -1) retu
 
 ! Init
 
-gradient_tot = body_dir * orbit%time_dir * ele%value(gradient_tot$)
+gradient_tot = body_dir * orbit%time_dir * lord%value(gradient_tot$) * lord%value(field_autoscale$) * lord%value(l$) / lord%value(l_active$)
 ff = edge * orbit%time_dir * charge_of(orbit%species) / (2.0_rp * charge_of(lord%ref_species))
 f = ff / orbit%p0c
 pc = orbit%p0c * (1 + orbit%vec(6))
@@ -268,7 +287,7 @@ logical make_mat
 scale = 0.5_rp * step%scale
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_mat)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, length*scale, mat6, make_mat)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, lord%value(l$)*scale, mat6, make_mat)
 
 !-------------------------------------------------
 ! Standing wave transverse half kick
@@ -285,7 +304,8 @@ else
 endif
 
 phase = this_rf_phase(orbit, ele, lord, step)
-dE_amp = s_dir * step%dE_amp 
+
+dE_amp = s_dir * (lord%value(voltage$) + lord%value(voltage_err$)) * step%scale * lord%value(field_autoscale$) ! Amplitude of RF field
 dE = dE_amp * cos(phase)
 
 rel_p = 1 + orbit%vec(6)
@@ -342,7 +362,7 @@ call pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
 ! Multipole half kicks
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_mat)
-if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, length*scale, mat6, make_mat)
+if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, lord%value(l$)*scale, mat6, make_mat)
 
 end subroutine this_energy_kick
 
@@ -367,7 +387,8 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) retur
 !
 
 rel_p = 1.0_rp + orbit%vec(6)
-coef = scale * orbit%time_dir * lord%value(l$) * lord%value(gradient_tot$)**2 / (8.0_rp * orbit%p0c**2 * rel_p)
+coef = (lord%value(field_autoscale$)*lord%value(gradient_tot$)*lord%value(l$)/lord%value(l_active$))**2 * &
+                                      scale * orbit%time_dir * lord%value(l$) / (8.0_rp * orbit%p0c**2 * rel_p)
 
 if (make_mat) then
   call mat_make_unit(kmat)
@@ -401,7 +422,7 @@ real(rp) phase, particle_time
 integer ix_pass, n_links
 
 ! Lord will be something like the super_lord to a super_slave. 
-! The lord can be a multipass_slave.
+! The lord can be a multipass_slave but will not be a multipass_lord.
 
 mlord => lord
 if (lord%slave_status == multipass_slave$) mlord => pointer_to_lord(lord, 1)

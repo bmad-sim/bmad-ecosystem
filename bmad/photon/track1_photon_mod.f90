@@ -942,9 +942,9 @@ if (is_true(ele%value(use_reflectivity_table$))) then
     bragg_ang = asin((-beta * h_norm(1) + h_norm(3) * sqrt(h_norm(1)**2 + h_norm(3)**2 - beta**2)) / (h_norm(1)**2 + h_norm(3)**2))
   endif
 
-  p_sigma = probablility_from_table(ele%photon%reflectivity_table_sigma, orbit, theta, bragg_ang)
+  p_sigma = probability_from_table(ele%photon%reflectivity_table_sigma, orbit, theta, bragg_ang)
   if (ele%photon%reflectivity_table_type == polarized$) then
-    p_pi    = probablility_from_table(ele%photon%reflectivity_table_pi, orbit, theta, bragg_ang)
+    p_pi    = probability_from_table(ele%photon%reflectivity_table_pi, orbit, theta, bragg_ang)
   else
     p_pi    = p_sigma
   endif
@@ -1000,7 +1000,7 @@ endif
 !----------------------------------------------------------------------------------------
 contains
 
-function probablility_from_table(rt, orbit, theta, bragg_ang) result (p0)
+function probability_from_table(rt, orbit, theta, bragg_ang) result (p0)
 
 type (photon_reflect_table_struct) :: rt
 type (coord_struct) orbit
@@ -1024,7 +1024,7 @@ else
   p0 = coef(1) * orbit%p0c + coef(2) * (theta-bragg_ang) + coef(3)
 endif
 
-end function probablility_from_table
+end function probability_from_table
 
 end subroutine track1_crystal
 

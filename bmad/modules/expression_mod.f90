@@ -36,8 +36,8 @@ contains
 ! 
 ! An expression string will be split on:
 !   Two character operators: "->", "::" 
-!   operators: +-*/^=:
-!   brackets: [](){}
+!   operators: + -  * / ^ = : &
+!   brackets: [] () {}
 !   comma: ,
 !
 ! Root node name is "root" and is of type root$
@@ -142,7 +142,7 @@ n_node = 0
 !
 
 parsing_loop: do
-  call get_next_chunk (parse_line, word, ix_word, ' []+-*/()^,{}=:|', delim, delim_found)
+  call get_next_chunk (parse_line, word, ix_word, ' &[]+-*/()^,{}=:|', delim, delim_found)
   if (ix_word == 0 .and. .not. delim_found) then
     if (tree%type /= root$ .and. tree%type /= equal$) then
       call set_this_err('Mismatched brackets. Cannot find closing bracket for opening: ' // quote(tree%name(1:1)) // &
@@ -164,7 +164,7 @@ parsing_loop: do
     if (do_combine) then
       cc = upcase(word(ix_word:ix_word))
       if (cc /= 'E' .and. cc /= 'D') do_combine = .false.
-      if (.not. is_integer(parse_line, delims = '+-*/()^,[]{}=:| ', ix_word = ixe)) do_combine = .false.
+      if (.not. is_integer(parse_line, delims = '&+-*/()^,[]{}=:| ', ix_word = ixe)) do_combine = .false.
 
       do i = 1, ix_word-1
         if (index('.0123456789', word(i:i)) == 0) do_combine = .false.
@@ -247,8 +247,10 @@ do in = 1, n_node
            'SINC', 'COS', 'TAN', 'ASIN', 'ACOS', 'ATAN', 'ATAN2', 'MODULO', &
            'ABS', 'SQRT', 'LOG', 'EXP', 'FACTORIAL', 'RAN', 'RAN_GAUSS', 'INT', &
            'SIGN', 'NINT', 'FLOOR', 'CEILING', 'CHARGE_OF', 'MASS_OF', 'SPECIES', 'ANTIPARTICLE', &
-           'ANOMALOUS_MOMENT_OF', 'COTH', 'SINH', 'COSH', 'TANH', 'ACOTH', 'ASINH')
+           'ANOMALOUS_MOMENT_OF', 'COTH', 'SINH', 'COSH', 'TANH', 'ACOTH', 'ASINH', 'SUM', &
+           'AVERAGE', 'RMS')
     node%type = function$
+  case ('&');                    node%type = ampersand$
   case ('->');                   node%type = arrow$
   case ('*');                    node%type = times$
   case ('/');                    node%type = divide$
@@ -267,16 +269,24 @@ do in = 1, n_node
     node%type = plus$
     if (in == 1) then
       node%type = unary_plus$
-    elseif (index('+-*/^', trim(tree%node(in-1)%name)) > 0) then
-      node%type = unary_plus$
+    else
+      select case(tree%node(in-1)%type)
+      case(constant$, variable$, func_parens$, parens$, square_brackets$, curly_brackets$)
+      case default
+        node%type = unary_plus$
+      end select
     endif
 
   case ('-')
     node%type = minus$
     if (in == 1) then
       node%type = unary_minus$
-    elseif (index('+-*/^', trim(tree%node(in-1)%name)) > 0) then
-      node%type = unary_minus$
+    else
+      select case(tree%node(in-1)%type)
+      case(constant$, variable$, func_parens$, parens$, square_brackets$, curly_brackets$)
+      case default
+        node%type = unary_plus$
+      end select
     endif
 
   case default
@@ -391,7 +401,7 @@ recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 type (expression_tree_struct), target :: tree, t2, op(20)
 type (expression_tree_struct), pointer :: node2, snode
 
-integer i, it2, it, n_node, i_op, n_nonop
+integer i, it2, it, n_node, i_op, n_nonop, level
 logical err_flag, has_op, callit
 character(*) err_str
 
@@ -404,7 +414,7 @@ has_op = .false.
 do it2 = 1, n_node
   node2 => tree%node(it2)
 
-  ! Species names "He++" are not to be put are to be consoladated
+  ! Species names like "He++" are not to be put in reverse polish.
   callit = .true.
   if (node2%type == func_parens$) then
     select case (tree%node(it2-1)%name)
@@ -486,6 +496,35 @@ do i = i_op, 1, -1
   it = it + 1
   tree%node(it) = op(i)
 enddo
+
+! Error check
+
+level = 0
+
+do i = 1, it
+  select case (tree%node(i)%type)
+  case (plus$, minus$, times$, divide$, power$)
+    level = level - 1
+    if (level < 1) then
+      call set_this_err('Bad expression1:' // quote(string), err_str, err_flag)
+      return
+    endif
+  
+  case (unary_plus$, unary_minus$)
+    ! No op
+
+  case (func_parens$)
+    ! No op
+
+  case default
+    level = level + 1
+  end select
+enddo
+
+if (level /= 1) then
+  call set_this_err('Bad expression2:' // quote(string), err_str, err_flag)
+  return
+endif
 
 !
 
