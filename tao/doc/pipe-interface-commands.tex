@@ -94,6 +94,7 @@ Where:
       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
                                       eta, etap, sigma, sigma_p, emit, norm_emit
+      t.sigma
     sigma.IJ where I, J in range [1,6]
     rel_min.I, rel_max.I where I in range [1,6]
     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
@@ -794,6 +795,12 @@ Where:
 Example:
   pipe ele:head 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
+
+Output: Various element parameters. See the code for the list of what is returned.
+
+Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the element are never set.
+If the element used in this command is a super_slave with exactly one super_lord, what will be returned
+for these three parameters is the values stored in the super_lord. This is done for convenience sake.
 \end{verbatim}
 
 %% pipe ele:lord_slave ------------------------------------

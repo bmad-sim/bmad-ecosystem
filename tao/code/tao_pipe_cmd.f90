@@ -576,6 +576,7 @@ case ('branch1')
 !       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
 !       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
 !                                       eta, etap, sigma, sigma_p, emit, norm_emit
+!       t.sigma
 !     sigma.IJ where I, J in range [1,6]
 !     rel_min.I, rel_max.I where I in range [1,6]
 !     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
@@ -663,10 +664,19 @@ case ('bunch_comb')
   ix = index(which, '.')
   if (ix == 0) then
     head = which
+    tail = ''
+
   else
     head = which(1:ix)
     tail = which(ix+1:)
+    select case (head)
+    case ('s', 'p0c', 'beta', 'charge_live', 'n_particle_live', 'n_particle_lost_in_ele', 'ix_ele')
+      call invalid ('Bad {who}: ' // which)
+      return
+    end select
   endif
+
+  !
 
   select case (head)
   case ('x', 'px', 'y', 'py', 'z', 'pz')
@@ -725,14 +735,23 @@ case ('bunch_comb')
     i = parse_int(tail(1:1), err, 1, 6);   if (err) return
     call real_array_out (comb1%pt%rel_max(i), use_real_array_buffer, 0, n)
 
+  case ('t')
+    select case (tail)
+    case ('');         call real_array_out(real(comb1%pt%centroid%t, rp), use_real_array_buffer, 0, n)
+    case ('sigma');    call real_array_out(real(comb1%pt%sigma_t, rp), use_real_array_buffer, 0, n)
+    case default
+      call invalid ('Bad {who}: ' // which)
+      return
+    end select
+
   case ('s');                       call real_array_out(comb1%pt%centroid%s, use_real_array_buffer, 0, n)
-  case ('t');                       call real_array_out(real(comb1%pt%centroid%t, rp), use_real_array_buffer, 0, n)
   case ('p0c');                     call real_array_out(comb1%pt%centroid%p0c, use_real_array_buffer, 0, n)
   case ('beta');                    call real_array_out(comb1%pt%centroid%beta, use_real_array_buffer, 0, n)
   case ('charge_live');             call real_array_out(comb1%pt%charge_live, use_real_array_buffer, 0, n)
   case ('n_particle_live');         call real_array_out(1.0_rp*comb1%pt%n_particle_live, use_real_array_buffer, 0, n)
   case ('n_particle_lost_in_ele');  call real_array_out(1.0_rp*comb1%pt%n_particle_lost_in_ele, use_real_array_buffer, 0, n)
   case ('ix_ele');                  call real_array_out(1.0_rp*comb1%pt%ix_ele, use_real_array_buffer, 0, n)
+
   case default
     call invalid ('Bad {who}: ' // which)
     return
