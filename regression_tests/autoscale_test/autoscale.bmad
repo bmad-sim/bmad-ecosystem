@@ -8,17 +8,17 @@ parameter[particle] = electron
 parameter[absolute_time_tracking]=true
 
 PARAMETER[geometry] = open
-PARAMETER[E_TOT] = 1.5E7
+PARAMETER[E_TOT] = 1.5E6
 
 !
 
 cavity2_3D: lcavity, tracking_method = runge_kutta,  mat6_calc_method = tracking,  
 field_calc = fieldmap, rf_frequency = 1.3e9, autoscale_amplitude = T, autoscale_phase = T,
-L = 0.568, grid_field = call::grid.bmad
+L = 0.568, grid_field = call::grid.bmad, phi0 = 0.1
 
 !
 
-cavity2_3D[voltage] = 16e6
+cavity2_3D[voltage] = 1.6e5
 CRMOD.Rfc01: line = (cavity2_3D)
 
 
