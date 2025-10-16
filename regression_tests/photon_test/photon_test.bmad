@@ -15,7 +15,7 @@ cst2: crystal, b_param = -0.6, crystal_type = "Ge(111)",
     pt( 1,  0) = (0.0016, 0.0026, 0.0036, 0.0046),
   }
 
-cst3: crystal, b_param =  0.6, crystal_type = "Ge(111)", 
+cst3: crystal, b_param =  0.6, crystal_type = "Ge(111)", thickness = 1e-6,
   h_misalign = {
     ix_bounds = (-1, 1),
     iy_bounds = (-2, 0),

@@ -68,7 +68,7 @@ integer, parameter :: n_sample = 16
 real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
 real(rp) value_saved(num_ele_attrib$), phi0_autoscale_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
-real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s
+real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s, phi1, phi2, pz1, pz2
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 integer n_pts, n_pts_tot, n_loop, n_loop_max, status, sign_of_dE, tm
@@ -447,8 +447,7 @@ main_loop: do n_loop = 1, n_loop_max
 
 enddo main_loop
 
-! For an rfcavity now find the zero crossing with negative slope which is
-! about 90deg away from max acceleration.
+! For an rfcavity find the zero crossing with negative slope which is about 90deg away from max acceleration.
 
 if (ele%key == rfcavity$) then
   value_saved(phi0_max$) = ele%value(phi0_autoscale$)  ! Save for use with OPAL
@@ -463,9 +462,43 @@ if (ele%key == rfcavity$) then
       if (pz < 0) exit
       phi_max = phi
     enddo
-    ele%value(phi0_autoscale$) = modulo2(super_zbrent(neg_pz_calc, phi_max-dphi, phi_max, &
+
+    ele%value(phi0_autoscale$) = modulo2(super_zbrent(pz_calc_zbrent, phi_max-dphi, phi_max, &
                                                                 1e-15_rp, 1d-9, status), 0.5_rp)
   endif
+endif
+
+! For an lcavity find the phase at which the energy change matches the reference energy change
+! and set phi0_autoscale appropriately. Since this can be inaccurate when phi0 is near 0 or 0.5,
+! Do not do this near these points.
+
+if (ele%key == lcavity$ .and. do_scale_phase .and. abs(modulo2(2*value_saved(phi0$), 0.5_rp)) > 0.01) then
+  ele%value(phi0$) = value_saved(phi0$)
+  dphi = 0.005
+  phi1 = -dphi; phi2 = dphi
+  pz1 = pz_calc(phi1, err_flag); if (err_flag) return
+  pz2 = pz_calc(phi2, err_flag); if (err_flag) return
+
+  do
+    if (pz1*pz2 < 0) exit
+    if (abs(pz1) < abs(pz2)) then
+      phi2 = phi1
+      phi1 = phi1 - dphi
+      pz1 = pz_calc(phi1, err_flag); if (err_flag) return
+    else
+      phi1 = phi2
+      phi2 = phi2 + dphi
+      pz2 = pz_calc(phi2, err_flag); if (err_flag) return
+    endif
+
+    if (phi2 - phi1 > twopi) then
+      call out_io (s_error$, r_name, 'CANNOT FIND ACCEPTABLE PHI0_AUTOSCALE FOR: ' // ele_full_name(ele))
+      err_flag = .true.
+      return
+    endif
+  enddo
+
+  ele%value(phi0_autoscale$) = modulo2(super_zbrent(pz_calc_zbrent, phi1, phi2, 1e-15_rp, 1d-9, status), 0.5_rp)
 endif
 
 ! Cleanup
@@ -549,19 +582,19 @@ end function dE_particle
 !----------------------------------------------------------------
 ! contains
 
-function neg_pz_calc (phi, status) result (neg_pz)
+function pz_calc_zbrent (phi, status) result (pz)
 
 implicit none
 
 real(rp), intent(in) :: phi
-real(rp) neg_pz
+real(rp) pz
 integer status
 logical err_flag
 
 ! brent finds minima so need to flip the final energy
 
-neg_pz = -pz_calc(phi, err_flag)
+pz = pz_calc(phi, err_flag)
 
-end function neg_pz_calc
+end function pz_calc_zbrent
 
 end subroutine autoscale_phase_and_amp

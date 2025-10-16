@@ -179,9 +179,20 @@ superimposed element may be a \vn{group} or \vn{overlay} element as long as the 
 \vn{overlay} controls the attributes of exactly one element. In this case, the controlled element is
 used as the reference element.
 
+When the attributes of a super_slave are computed from the attributes of its super_lords, some types
+of attributes may be ``missing''. For example, it is, in general, not possible to set appropriate
+aperture attributes (\sref{s:limit}) of a super_slave if the lords of the slave have differing
+aperture settings. When doing calculations, \bmad will use the corresponding attributes stored in
+the lord elements to correctly calculate things.
+
+The \vn{no_superposition} statement (\sref{s:no.sup}) can be used to turn off superpositioning
+
+%-----------------------------------------------------------------------------
+\section{Superposition Wrapping}
+
 \index{geometry}\index{open}
-By default, a superimposed element that extends beyond either end of the lattice will be wrapped
-around so part of the element will be at the beginning of the lattice and part of the element will
+By default, a superimposed element that extends beyond either end of the lattice will be ``wrapped
+around'' so part of the element will be at the beginning of the lattice and part of the element will
 be at the end. For consistency's sake, this is done even if the \vn{geometry} is set to \vn{open}
 (for example, it is sometimes convenient to treat a circular lattice as linear). Example:
 \begin{example}
@@ -215,6 +226,9 @@ In this instance there are four elements in the tracking section:
   4)    END        Marker          0
 \end{example}
 And the lord section of the lattice will not have any elements.
+
+%-----------------------------------------------------------------------------
+\section{Superposition of Zero Length Elements}
 
 To superimpose a zero length element ``\vn{S}'' next to a zero length element ``\vn{Z}'', and to
 make sure that \vn{S} will be on the correct side of \vn{Z}, set the \vn{ref_origin} appropriately.
@@ -260,6 +274,9 @@ A \vn{null_ele} (\sref{s:null.ele}) element is used here so that there is no int
 between split quadrupole halves as there would be if a \vn{marker} element was used.
 
 
+%-----------------------------------------------------------------------------
+\section{Superposition and Drifts}
+
 \index{drift!superposition}\index{pipe!superposition}
 When a superposition is made that overlaps a drift, the drift, not being a "real" element,
 vanishes. That is, it does not get put in the lord section of the lattice.  Note that if aperture
@@ -277,11 +294,8 @@ elements in the lattice named \vn{a_drft}, the following is not allowed:
   my_oct: octupole, ..., superimpose, ref = a_drft##2  ! This is an error
 \end{example}
 
-When the attributes of a super_slave are computed from the attributes of its super_lords, some types
-of attributes may be ``missing''. For example, it is, in general, not possible to set appropriate
-aperture attributes (\sref{s:limit}) of a super_slave if the lords of the slave have differing
-aperture settings. When doing calculations, \bmad will use the corresponding attributes stored in
-the lord elements to correctly calculate things.
+%-----------------------------------------------------------------------------
+\section{Superposition and Element Reversal}
 
 When superposition is done in a line where there is \vn{element reversal} (\sref{s:ele.reverse}),
 the calculation of the placement of a superimposed element is also ``reversed'' to make the relative
@@ -307,8 +321,6 @@ position of \vn{q1} with respect to \vn{d1}. The tracking part of the lattice wi
 \end{example}
 
 Superposition with \vn{line reflection} (\sref{s:lines.wo.arg}) works the same way as line reversal.
-
-The \vn{no_superposition} statement (\sref{s:no.sup}) can be used to turn off superpositioning
 
 %-----------------------------------------------------------------------------
 \section{Superposition and Sub-Lines}
@@ -347,6 +359,33 @@ then when the \vn{full} line is used, the superposition of \vn{m1} is referenced
 \vn{full} (which is the same as the beginning of \vn{sub1}) but when the \vn{sub2} line is used, the
 superposition of \vn{m1} is referenced to the beginning of \vn{sub2} which is not the same as the
 beginning of \vn{full}.
+
+%-----------------------------------------------------------------------------
+\section{Superposition Order}
+
+Superpositions are done in the same order as the order in which the elements to be superimposed are
+defined.  The superposition order typically does not affect the finished lattice but an effect can be
+be seen when superpositions use reference elements that are themselves superimposed. An example will
+make this clear:
+\begin{example}
+  A: quad, ...
+  B: octupole, ...
+  C: sbend, ...
+  B[superimpose] = T
+  B[ref] = C
+  A[superimpose] = T
+  A[ref] = B
+  my_line: line = (C)
+  use, my_line
+\end{example}
+Here element \vn{A} is defined first (the order of definitions is not affected by element
+modifications afterwards) and then \vn{B}. 
+
+Since, when element \vn{A} is to be superimposed, there are no instances of \vn{B} in the expanded
+lattice, and element \vn{A} uses \vn{B} as a reference, the finished lattice will not contain any
+instances of \vn{A}. On the other hand, when element \vn{B} is to be superimposed, there is an
+instance of element \vn{C} to be used as a reference, and so the finished lattice will contain an
+instance of element \vn{B}.
 
 %-----------------------------------------------------------------------------
 \section{Jumbo Super_Slaves}
