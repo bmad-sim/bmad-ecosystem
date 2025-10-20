@@ -976,6 +976,10 @@ call init_attribute_name1 (beginning_ele$, cmat_11_stored$,                 'CMA
 call init_attribute_name1 (beginning_ele$, cmat_12_stored$,                 'CMAT_12_STORED')
 call init_attribute_name1 (beginning_ele$, cmat_21_stored$,                 'CMAT_21_STORED')
 call init_attribute_name1 (beginning_ele$, cmat_22_stored$,                 'CMAT_22_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_11_stored$,            'DCMAT_DPZ_11_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_12_stored$,            'DCMAT_DPZ_12_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_21_stored$,            'DCMAT_DPZ_21_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_22_stored$,            'DCMAT_DPZ_22_STORED')
 call init_attribute_name1 (beginning_ele$, mode_flip_stored$,               'MODE_FLIP_STORED')
 
 call init_attribute_name1 (fixer$, is_on$,                              'IS_ON')
@@ -1010,6 +1014,10 @@ call init_attribute_name1 (fixer$, cmat_11_stored$,                     'CMAT_11
 call init_attribute_name1 (fixer$, cmat_12_stored$,                     'CMAT_12_STORED')
 call init_attribute_name1 (fixer$, cmat_21_stored$,                     'CMAT_21_STORED')
 call init_attribute_name1 (fixer$, cmat_22_stored$,                     'CMAT_22_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_11_stored$,                'DCMAT_DPZ_11_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_12_stored$,                'DCMAT_DPZ_12_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_21_stored$,                'DCMAT_DPZ_21_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_22_stored$,                'DCMAT_DPZ_22_STORED')
 call init_attribute_name1 (fixer$, mode_flip_stored$,                   'MODE_FLIP_STORED')
 call init_attribute_name1 (fixer$, ix_fixer$,                           'ix_fixer', private$)
 

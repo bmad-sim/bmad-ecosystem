@@ -45,7 +45,8 @@ type (coord_struct), optional :: orb0
 type (coord_struct), allocatable, target :: this_orb(:)
 type (coord_struct), pointer :: orb_ptr(:)
 type (branch_struct), pointer :: branch, branch2
-type (ele_struct), pointer :: ele, ele2
+type (ele_struct), pointer :: ele2
+type (ele_struct) fix_ele
 
 real(rp) :: high_tune_x, high_tune_y, low_tune_x, low_tune_y, dE_low, dE, dE2
 real(rp) :: pz0, delta_e, chrom_a, chrom_b
@@ -65,7 +66,7 @@ character(*), parameter :: r_name = 'chrom_calc'
 ix_br = integer_option(0, ix_branch)
 branch => lat%branch(ix_br)
 ix_fix = branch%ix_fixer
-ele => branch%ele(ix_fix)
+call transfer_ele(branch%ele(ix_fix), fix_ele)
 
 if (present(err_flag)) err_flag = .true.
 if (delta_e <= 0) delta_e = 1.0d-4
@@ -127,27 +128,31 @@ else
     call init_coord(orb_ptr(ix_fix), branch%particle_start, branch2%ele(ix_fix), downstream_end$)
   endif
   orb_ptr(ix_fix)%vec = orb_ptr(ix_fix)%vec + &
-        (pz0-orb_ptr(ix_fix)%vec(6)-dE_low) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+        (pz0-orb_ptr(ix_fix)%vec(6)-dE_low) * [fix_ele%x%eta, fix_ele%x%etap, fix_ele%y%eta, fix_ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(low_E_orb)) then; call track_all(lat2, low_E_orb, ix_br)
   else;                         call track_all(lat2, this_orb, ix_br)
   endif
   ele2 => lat2%branch(ix_br)%ele(ix_fix)
-  ele2%a%beta  = ele%a%beta  - dE2 * ele%a%dbeta_dpz
-  ele2%b%beta  = ele%b%beta  - dE2 * ele%b%dbeta_dpz
-  ele2%a%alpha = ele%a%alpha - dE2 * ele%a%dalpha_dpz
-  ele2%b%alpha = ele%b%alpha - dE2 * ele%b%dalpha_dpz
+  ele2%a%beta  = fix_ele%a%beta  - dE2 * fix_ele%a%dbeta_dpz
+  ele2%b%beta  = fix_ele%b%beta  - dE2 * fix_ele%b%dbeta_dpz
+  ele2%a%alpha = fix_ele%a%alpha - dE2 * fix_ele%a%dalpha_dpz
+  ele2%b%alpha = fix_ele%b%alpha - dE2 * fix_ele%b%dalpha_dpz
 
-  ele2%a%eta   = ele%a%eta   - dE2 * ele%a%deta_dpz
-  ele2%b%eta   = ele%b%eta   - dE2 * ele%b%deta_dpz
-  ele2%x%eta   = ele%x%eta   - dE2 * ele%x%deta_dpz
-  ele2%y%eta   = ele%y%eta   - dE2 * ele%y%deta_dpz
-  ele2%z%eta   = ele%z%eta   - dE2 * ele%z%deta_dpz
+  ele2%a%eta   = fix_ele%a%eta   - dE2 * fix_ele%a%deta_dpz
+  ele2%b%eta   = fix_ele%b%eta   - dE2 * fix_ele%b%deta_dpz
+  ele2%x%eta   = fix_ele%x%eta   - dE2 * fix_ele%x%deta_dpz
+  ele2%y%eta   = fix_ele%y%eta   - dE2 * fix_ele%y%deta_dpz
+  ele2%z%eta   = fix_ele%z%eta   - dE2 * fix_ele%z%deta_dpz
 
-  ele2%a%etap  = ele%a%etap  - dE2 * ele%a%detap_dpz
-  ele2%b%etap  = ele%b%etap  - dE2 * ele%b%detap_dpz
-  ele2%x%etap  = ele%x%etap  - dE2 * ele%x%detap_dpz
-  ele2%y%etap  = ele%y%etap  - dE2 * ele%y%detap_dpz
-  ele2%z%etap  = ele%z%etap  - dE2 * ele%z%detap_dpz
+  ele2%a%etap  = fix_ele%a%etap  - dE2 * fix_ele%a%detap_dpz
+  ele2%b%etap  = fix_ele%b%etap  - dE2 * fix_ele%b%detap_dpz
+  ele2%x%etap  = fix_ele%x%etap  - dE2 * fix_ele%x%detap_dpz
+  ele2%y%etap  = fix_ele%y%etap  - dE2 * fix_ele%y%detap_dpz
+  ele2%z%etap  = fix_ele%z%etap  - dE2 * fix_ele%z%detap_dpz
+
+  ele2%c_mat   = fix_ele%c_mat   - dE2 * fix_ele%dc_mat_dpz
+  ele2%gamma_c = sqrt(1 - fix_ele%c_mat(1,1)*fix_ele%c_mat(2,2) + fix_ele%c_mat(1,2)*fix_ele%c_mat(2,1))
+
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -171,6 +176,11 @@ branch%ele(i0:nm)%b%detap_dpz = branch2%ele(i0:nm)%b%etap
 branch%ele(i0:nm)%x%detap_dpz = branch2%ele(i0:nm)%x%etap
 branch%ele(i0:nm)%y%detap_dpz = branch2%ele(i0:nm)%y%etap
 branch%ele(i0:nm)%z%detap_dpz = branch2%ele(i0:nm)%z%etap
+
+branch%ele(i0:nm)%dc_mat_dpz(1,1)  = branch2%ele(i0:nm)%c_mat(1,1)
+branch%ele(i0:nm)%dc_mat_dpz(1,2)  = branch2%ele(i0:nm)%c_mat(1,2)
+branch%ele(i0:nm)%dc_mat_dpz(2,1)  = branch2%ele(i0:nm)%c_mat(2,1)
+branch%ele(i0:nm)%dc_mat_dpz(2,2)  = branch2%ele(i0:nm)%c_mat(2,2)
 
 ! Higher energy lattice
 
@@ -215,27 +225,31 @@ else
     call init_coord(orb_ptr(ix_fix), branch%particle_start, branch2%ele(ix_fix), downstream_end$)
   endif
   orb_ptr(ix_fix)%vec = orb_ptr(ix_fix)%vec + &
-            (pz0-orb_ptr(ix_fix)%vec(6)+delta_e) * [ele%x%eta, ele%x%etap, ele%y%eta, ele%y%etap, 0.0_rp, 1.0_rp]
+            (pz0-orb_ptr(ix_fix)%vec(6)+delta_e) * [fix_ele%x%eta, fix_ele%x%etap, fix_ele%y%eta, fix_ele%y%etap, 0.0_rp, 1.0_rp]
   if (present(high_E_orb)) then; call track_all(lat2, high_E_orb, ix_br)
   else;                          call track_all(lat2, this_orb, ix_br)
   endif
   ele2 => lat2%branch(ix_br)%ele(ix_fix)
-  ele2%a%beta  = ele%a%beta  + dE2 * ele%a%dbeta_dpz
-  ele2%b%beta  = ele%b%beta  + dE2 * ele%b%dbeta_dpz
-  ele2%a%alpha = ele%a%alpha + dE2 * ele%a%dalpha_dpz
-  ele2%b%alpha = ele%b%alpha + dE2 * ele%b%dalpha_dpz
+  ele2%a%beta  = fix_ele%a%beta  + dE2 * fix_ele%a%dbeta_dpz
+  ele2%b%beta  = fix_ele%b%beta  + dE2 * fix_ele%b%dbeta_dpz
+  ele2%a%alpha = fix_ele%a%alpha + dE2 * fix_ele%a%dalpha_dpz
+  ele2%b%alpha = fix_ele%b%alpha + dE2 * fix_ele%b%dalpha_dpz
 
-  ele2%a%eta   = ele%a%eta   + dE2 * ele%a%deta_dpz
-  ele2%b%eta   = ele%b%eta   + dE2 * ele%b%deta_dpz
-  ele2%x%eta   = ele%x%eta   + dE2 * ele%x%deta_dpz
-  ele2%y%eta   = ele%y%eta   + dE2 * ele%y%deta_dpz
-  ele2%z%eta   = ele%z%eta   + dE2 * ele%z%deta_dpz
+  ele2%a%eta   = fix_ele%a%eta   + dE2 * fix_ele%a%deta_dpz
+  ele2%b%eta   = fix_ele%b%eta   + dE2 * fix_ele%b%deta_dpz
+  ele2%x%eta   = fix_ele%x%eta   + dE2 * fix_ele%x%deta_dpz
+  ele2%y%eta   = fix_ele%y%eta   + dE2 * fix_ele%y%deta_dpz
+  ele2%z%eta   = fix_ele%z%eta   + dE2 * fix_ele%z%deta_dpz
 
-  ele2%a%etap  = ele%a%etap  + dE2 * ele%a%detap_dpz
-  ele2%b%etap  = ele%b%etap  + dE2 * ele%b%detap_dpz
-  ele2%x%etap  = ele%x%etap  + dE2 * ele%x%detap_dpz
-  ele2%y%etap  = ele%y%etap  + dE2 * ele%y%detap_dpz
-  ele2%z%etap  = ele%z%etap  + dE2 * ele%z%detap_dpz
+  ele2%a%etap  = fix_ele%a%etap  + dE2 * fix_ele%a%detap_dpz
+  ele2%b%etap  = fix_ele%b%etap  + dE2 * fix_ele%b%detap_dpz
+  ele2%x%etap  = fix_ele%x%etap  + dE2 * fix_ele%x%detap_dpz
+  ele2%y%etap  = fix_ele%y%etap  + dE2 * fix_ele%y%detap_dpz
+  ele2%z%etap  = fix_ele%z%etap  + dE2 * fix_ele%z%detap_dpz
+
+  ele2%c_mat   = fix_ele%c_mat   + dE2 * fix_ele%dc_mat_dpz
+  ele2%gamma_c = sqrt(1 - fix_ele%c_mat(1,1)*fix_ele%c_mat(2,2) + fix_ele%c_mat(1,2)*fix_ele%c_mat(2,1))
+
   call lat_make_mat6 (lat2, -1, orb_ptr, ix_br)
 endif
 
@@ -264,6 +278,11 @@ branch%ele(i0:nm)%b%detap_dpz = (branch2%ele(i0:nm)%b%etap - branch%ele(i0:nm)%b
 branch%ele(i0:nm)%x%detap_dpz = (branch2%ele(i0:nm)%x%etap - branch%ele(i0:nm)%x%detap_dpz) / dE
 branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y%detap_dpz) / dE
 branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%detap_dpz) / dE
+
+branch%ele(i0:nm)%dc_mat_dpz(1,1)  = (branch2%ele(i0:nm)%c_mat(1,1) - branch%ele(i0:nm)%dc_mat_dpz(1,1)) / dE
+branch%ele(i0:nm)%dc_mat_dpz(1,2)  = (branch2%ele(i0:nm)%c_mat(1,2) - branch%ele(i0:nm)%dc_mat_dpz(1,2)) / dE
+branch%ele(i0:nm)%dc_mat_dpz(2,1)  = (branch2%ele(i0:nm)%c_mat(2,1) - branch%ele(i0:nm)%dc_mat_dpz(2,1)) / dE
+branch%ele(i0:nm)%dc_mat_dpz(2,2)  = (branch2%ele(i0:nm)%c_mat(2,2) - branch%ele(i0:nm)%dc_mat_dpz(2,2)) / dE
 
 if (present(err_flag)) err_flag = .false.
 if (.not. present(low_E_lat) .or. .not. present(high_E_lat)) call deallocate_lat_pointers(temp_lat)

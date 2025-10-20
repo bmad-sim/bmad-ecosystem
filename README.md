@@ -30,7 +30,7 @@ conda install -c conda-forge bmad="*=mpi_openmpi*"
 
 This will add all of the appropriate executables to the environment's PATH.
 
-### Compile from source
+## Compile from Source
 
 If you want to compile Bmad directly,
 download a [Release](https://github.com/bmad-sim/bmad-ecosystem/releases)
@@ -38,7 +38,7 @@ download a [Release](https://github.com/bmad-sim/bmad-ecosystem/releases)
 ignore the _source code_ files))
 and follow the setup instructions at <https://wiki.classe.cornell.edu/ACC/ACL/OffsiteDoc>.
 
-## Developer Setup (for people involved in Bmad development)
+### Developer Setup (for people involved in Bmad development)
 
 Developers should clone this repository, as well as the external packages repository:
 

@@ -31,6 +31,7 @@ branch_out%ix_branch      = branch_in%ix_branch
 branch_out%ix_from_branch = branch_in%ix_from_branch
 branch_out%ix_from_ele    = branch_in%ix_from_ele
 branch_out%ix_to_ele      = branch_in%ix_to_ele
+branch_out%ix_fixer       = branch_in%ix_fixer
 branch_out%n_ele_track    = branch_in%n_ele_track
 branch_out%n_ele_max      = branch_in%n_ele_max
 branch_out%param          = branch_in%param

@@ -289,7 +289,7 @@ if (turn_off_kickers_in_lattice) then
   call lattice_bookkeeper (lat)
 endif
 
-call twiss_and_track (lat, orb, status, branch%ix_branch, use_particle_start = .true.)
+call twiss_and_track (lat, orb, status, branch%ix_branch, orb_start = lat%particle_start)
 if (status /= ok$) stop
   
 ! Find out much radiation is produced
