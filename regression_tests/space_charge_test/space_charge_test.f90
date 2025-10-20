@@ -46,7 +46,7 @@ write (1, '(a, es20.10)') '"cathode_sc:t"      ABS  1e-10', p%t
 
 call bmad_parser('grid.bmad', lat)
 
-call twiss_and_track(lat, centroid, use_particle_start = .true.)
+call twiss_and_track(lat, centroid, orb_start = lat%particle_start)
 
 space_charge_com%n_bin = 6
 space_charge_com%ds_track_step = 0.1

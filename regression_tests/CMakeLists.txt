@@ -25,6 +25,7 @@ set (EXE_SPECS
   cmake_files/cmake.cathode_sc_test
   cmake_files/cmake.em_field_test
   cmake_files/cmake.field_test
+  cmake_files/cmake.fixer_test
   cmake_files/cmake.fringe_test
   cmake_files/cmake.geometry_test
   cmake_files/cmake.girder_test

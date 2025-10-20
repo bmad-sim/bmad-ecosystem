@@ -12,6 +12,7 @@ closed_orbit_test
 coord_test
 csr_and_space_charge_test
 envelope_ibs_test
+fixer_test
 fringe_test
 geometry_test
 girder_test

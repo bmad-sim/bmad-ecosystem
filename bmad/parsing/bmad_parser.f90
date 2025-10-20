@@ -866,7 +866,6 @@ allocate (fork_ele_list(20))
 
 n_branch_max = 1000
 branch_loop: do i_loop = 1, n_branch_max
-
   ! Expand branches from fork elements before expanding branches from the use command. 
 
   if (n_forks == 0) then
@@ -906,8 +905,7 @@ branch_loop: do i_loop = 1, n_branch_max
 
   ele0 => branch%ele(0)
   ele0%value(e_tot$) = -1
-  ele0%value(p0c$)   = -1 
-  call settable_dep_var_bookkeeping(ele0)
+  ele0%value(p0c$)   = -1
 
   ! Add energy, species, etc info for all branches except branch(0) which is handled "old style".
 
@@ -1008,6 +1006,7 @@ branch_loop: do i_loop = 1, n_branch_max
   ! Go through the IN_LAT elements and put in the superpositions.
   ! If the superposition is a branch element, need to add the branch line.
 
+  call settable_dep_var_bookkeeping(branch%ele(0))
   call s_calc (lat)              ! calc longitudinal distances
   call control_bookkeeper (lat)
 
@@ -1164,7 +1163,7 @@ endif
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
-  is_ok = transfer_fixer_params(branch%ele(0), .true.)
+  is_ok = transfer_fixer_params(branch%ele(0), branch%particle_start, .true.)
   ix_ele_fix = 0
   ix_set = 0
   do i = 0, branch%n_ele_max

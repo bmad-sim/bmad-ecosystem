@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 348
+integer, parameter :: bmad_inc_version$ = 349
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -183,12 +183,12 @@ integer, parameter :: control_var$ = 1, old_control_var$ = 2, all_control_var$ =
 !
 
 integer, parameter :: ok$ = 1, in_stop_band$ = 2, non_symplectic$ = 3, unstable$ = 4
-integer, parameter :: unstable_a$ = 5, unstable_b$ = 6
-integer, parameter :: xfer_mat_calc_failure$ = 7, twiss_propagate_failure$ = 8, no_closed_orbit$ = 9
+integer, parameter :: unstable_a$ = 5, unstable_b$ = 6,  xfer_mat_calc_failure$ = 7
+integer, parameter :: twiss_propagate_failure$ = 8, no_closed_orbit$ = 9, no_complete_orbit$ = 10
 
-character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND', 'NON_SYMPLECTIC', &
+character(24) :: matrix_status_name(10) = [character(24) :: 'OK', 'IN_STOP_BAND', 'NON_SYMPLECTIC', &
                        'UNSTABLE', 'UNSTABLE A-MODE', 'UNSTABLE B-MODE', 'XFER_MAT_CALC_FAILURE', &
-                       'TWISS_PROPAGATE_FAILURE', 'NO_CLOSED_ORBIT']
+                       'TWISS_PROPAGATE_FAILURE', 'NO_CLOSED_ORBIT', 'NO_COMPLETE_ORBIT']
 
 type twiss_struct
   real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
@@ -1456,6 +1456,7 @@ type ele_struct
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
+  real(rp) :: dc_mat_dpz(2,2) = 0                              ! d(c_mat)/dpz variation. 
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
@@ -1762,6 +1763,7 @@ integer, parameter :: eta_x_stored$ = 34, etap_x_stored$ = 35, eta_y_stored$ = 3
 integer, parameter :: cmat_11_stored$ = 38, cmat_12_stored$ = 39, cmat_21_stored$ = 40, cmat_22_stored$ = 41
 integer, parameter :: dbeta_dpz_a_stored$ = 42, dbeta_dpz_b_stored$ = 43, dalpha_dpz_a_stored$ = 44, dalpha_dpz_b_stored$ = 45
 integer, parameter :: deta_dpz_x_stored$ = 46, deta_dpz_y_stored$ = 47, detap_dpz_x_stored$ = 48, detap_dpz_y_stored$ = 49
+integer, parameter :: dcmat_dpz_11_stored$ = 65, dcmat_dpz_12_stored$ = 66, dcmat_dpz_21_stored$ = 67, dcmat_dpz_22_stored$ = 68
 
 integer, parameter :: radius$ = 3, focal_strength$ = 5
 

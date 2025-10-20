@@ -532,6 +532,11 @@ case ('DBETA_DPZ_A');     a_ptr%r => ele%a%dbeta_dpz
 case ('DBETA_DPZ_B');     a_ptr%r => ele%b%dbeta_dpz
 case ('DALPHA_DPZ_A');    a_ptr%r => ele%a%dalpha_dpz
 case ('DALPHA_DPZ_B');    a_ptr%r => ele%b%dalpha_dpz
+  
+case ('DCMAT_DPZ_11');    a_ptr%r => ele%dc_mat_dpz(1,1)
+case ('DCMAT_DPZ_12');    a_ptr%r => ele%dc_mat_dpz(1,2)
+case ('DCMAT_DPZ_21');    a_ptr%r => ele%dc_mat_dpz(2,1)
+case ('DCMAT_DPZ_22');    a_ptr%r => ele%dc_mat_dpz(2,2)
 
 case ('CHROM_A');         a_ptr%r => ele%a%chrom
 case ('CHROM_B');         a_ptr%r => ele%b%chrom

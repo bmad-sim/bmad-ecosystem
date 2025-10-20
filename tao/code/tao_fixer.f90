@@ -19,6 +19,7 @@ type (ele_struct), pointer :: fixer
 type (ele_struct) :: dflt_fixer
 type (tao_universe_struct), pointer :: u
 type (ele_attribute_struct) attrib
+type (branch_struct), pointer :: branch
 
 character(*) switch, word1, word2
 character(40) action, name, str_val
@@ -41,6 +42,7 @@ if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
   call out_io(s_error$, r_name, 'Element if not a fixer nor a beginning element: ' // ele_str)
   return
 endif
+branch => fixer%branch
 
 call tao_next_switch (switch, [character(20):: 'activate', 'on', 'save', 'write'], &
                                         .false., action, err);  if (err) return
@@ -56,7 +58,7 @@ case ('activate', 'on')
   u%calc%lattice = .true.
 
 case ('save')
-  is_ok = transfer_fixer_params(fixer, .true., word2)
+  is_ok = transfer_fixer_params(fixer, branch%particle_start, .true., word2)
 
 case ('write')
   file_name = word2

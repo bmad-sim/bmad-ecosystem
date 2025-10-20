@@ -1,10 +1,8 @@
 !+                       
 ! Subroutine track_all (lat, orbit, ix_branch, track_state, err_flag, orbit0, init_lost)
 !
-! Subroutine to track through the lat.
-!
-! Note: If x_limit (or y_limit) for an element is zero then track_all will take
-!       x_limit (or y_limit) as infinite.
+! Routine to track through a lattice branch. Will start at the beginning unless there
+! is an active fixer in which case tracking will be forwards and backwards from the fixer.
 !
 ! Input:
 !   lat         -- lat_struct: Lat to track through.
