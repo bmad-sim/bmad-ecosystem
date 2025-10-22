@@ -38,7 +38,7 @@ subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavit
 use ptc_interface_mod, dummy => set_ptc
 use mad_like, only: make_states, pmaMUON, pmaE, PHASE0, &
               assignment(=), nocavity0, operator(+), in_bmad_units, &
-              berz, init, set_madx, lp, superkill, TIME0, init_all, SPIN0
+              berz, init, set_madx, lp, superkill, TIME0, init_all, SPIN0, C_WATCH_USER
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
               use_info_m, check_longitudinal, bmad_automatic, OLD_SURVEY
 use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
@@ -160,6 +160,7 @@ endif
 ! Superkill tells PTC to do a through cleanup when killing a fibre.
 
 SUPERKILL = .false.
+C_WATCH_USER = .false.       ! Suppress some print statements 
 
 !
 
