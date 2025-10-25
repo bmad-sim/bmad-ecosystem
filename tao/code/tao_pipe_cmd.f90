@@ -1982,7 +1982,8 @@ case ('data_parameter')
 !------------------------------------------------------------------------------------------------
 !%% data_set_design_value
 !
-! Set the design (and base & model) values for all datums.
+! Set the design (and base) values of all datums to the values as calculated for the design lattice.
+! This is useful for newly created datums that do not yet have the design and base values set.
 !
 ! Notes
 ! -----
@@ -2036,6 +2037,7 @@ case ('data_set_design_value')
     u%model%lat = u%scratch_lat
   enddo
 
+  call tao_var_repoint()
   s%u%calc%lattice = .true.
   call tao_lattice_calc (calc_ok)
 
