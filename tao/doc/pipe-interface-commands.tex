@@ -481,7 +481,8 @@ Example:
 \label{p:data.set.design.value}
 
 
-Set the design (and base \& model) values for all datums.
+Set the design (and base) values of all datums to the values as calculated for the design lattice.
+This is useful for newly created datums that do not yet have the design and base values set.
 
 \begin{example}
    pipe data_set_design_value
@@ -502,7 +503,7 @@ Note: Use the "data_d2_create" and "datum_create" first to create datums.
 Create a datum.
 
 \begin{example}
-   pipe datum_create \{datum_name\}^^\{data_type\}^^\{ele_ref_name\}^^\{ele_start_name\}^^
+   pipe datum_create \{datum_name\}^^\{data_type\}^^\{ele_start_name\}^^\{ele_ref_name\}^^
                        \{ele_name\}^^\{merit_type\}^^\{meas\}^^\{good_meas\}^^\{ref\}^^
                        \{good_ref\}^^\{weight\}^^\{good_user\}^^\{data_source\}^^
                        \{eval_point\}^^\{s_offset\}^^\{ix_bunch\}^^\{invalid_value\}^^
