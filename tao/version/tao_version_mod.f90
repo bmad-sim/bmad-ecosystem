@@ -6,5 +6,5 @@
 !-
 
 module tao_version_mod
-character(*), parameter :: tao_version_date = "2025/10/25 14:56:42"
+character(*), parameter :: tao_version_date = "2025/10/25 15:37:49"
 end module
