@@ -3,6 +3,8 @@
 !
 ! Routine to reallocate the lat%control(:) and lat%ic(:) arrays.
 ! The old data in the arrays will be saved.
+!
+! Note: The lat%control(:) and lat%ic(:) arrays are maintained to be the same size.
 ! 
 ! Input:
 !   lat  -- Lat_struct: Lattice.

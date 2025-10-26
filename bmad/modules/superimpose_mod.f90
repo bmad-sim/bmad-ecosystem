@@ -476,11 +476,11 @@ do
 
   if (setup_lord) then
     call new_control (lat, ixn)
+    if (lat%n_control_max+5 > size(lat%control) .or. lat%n_ic_max+5 > size(lat%ic)) call reallocate_control(lat, size(lat%ic)+100)
     slave => branch%ele(ix_slave)   ! need this if branch%ele was reallocated
     lat%ele(ixn) = slave_saved
     lat%ele(ixn)%lord_status = super_lord$
     ixc = lat%n_control_max + 1
-    if (ixc > size(lat%control)) call reallocate_control(lat, ixc+100)
     lat%ele(ixn)%ix1_slave = ixc
     lat%ele(ixn)%n_slave = 1
     lat%control(ixc)%lord%ix_ele = ixn
