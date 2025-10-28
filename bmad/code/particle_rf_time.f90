@@ -107,9 +107,9 @@ if (ele%key == ac_kicker$) time = time - ele%value(t_offset$)
 
 !
 
-if (logic_option(.false., reference_active_edge) .and. (ele%key == rfcavity$ .or. ele%key == lcavity$)) then
+if (logic_option(.false., reference_active_edge) .and. (ref_ele%key == rfcavity$ .or. ref_ele%key == lcavity$)) then
   s_hard_offset = (ref_ele%value(l$) - ref_ele%value(l_active$)) / 2  
-  beta0 = ele%value(p0c_start$) / ele%value(E_tot_start$)
+  beta0 = ref_ele%value(p0c_start$) / ref_ele%value(E_tot_start$)
   time = time - s_hard_offset / (c_light * beta0)
 endif
 

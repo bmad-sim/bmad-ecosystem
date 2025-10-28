@@ -2206,13 +2206,13 @@ function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) res
   logical, optional :: skip_beginning, follow_fork
 end function
 
-function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic, lord_type) result (lord_ptr)
   import
   implicit none
   type (ele_struct), target :: slave
   type (control_struct), pointer, optional :: control
   type (ele_struct), pointer :: lord_ptr
-  integer, optional :: ix_slave_back, ix_control, ix_ic
+  integer, optional :: ix_slave_back, ix_control, ix_ic, lord_type
 end function
 
 function pointer_to_wake_ele (ele, delta_s) result (wake_ele)

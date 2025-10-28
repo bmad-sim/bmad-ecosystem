@@ -46,6 +46,7 @@ set (EXE_SPECS
   cmake_files/cmake.ptc_test
   cmake_files/cmake.radiation_test
   cmake_files/cmake.reverse_test
+  cmake_files/cmake.rf_test
   cmake_files/cmake.sad_test
   cmake_files/cmake.sim_utils_test
   cmake_files/cmake.slice_test

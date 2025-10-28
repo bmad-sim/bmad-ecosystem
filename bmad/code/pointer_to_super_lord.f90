@@ -1,7 +1,9 @@
 !+
-! Function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
+! Function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic, lord_type) result (lord_ptr)
 !
 ! Function to point to the super_lord of a super_slave or the lord of a slice_slave.
+! Pipe super_lords are automatically ignored.
+! This routine is only meant to be used for the case where there is one non-pipe super_lord or lord_type is present.
 ! If slave is not a super_slave or slice_slave, lord_ptr will point to slave
 !
 ! If slave is a slice_slave with a control chain:
@@ -16,7 +18,8 @@
 !   num_lords
 !
 ! Input:
-!   slave            -- ele_struct: Slave element.
+!   slave           -- ele_struct: Slave element.
+!   lord_type       -- integer, optional: If present, only return a super_lord of this type.  
 !
 ! Output:
 !   lord_ptr        -- ele_struct, pointer: Pointer to the lord.
@@ -29,7 +32,7 @@
 !   ix_ic           -- integer, optional: Index of the lat%ic(:) element associated with the control argument.
 !-
 
-function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic, lord_type) result (lord_ptr)
 
 use bmad_routine_interface, except_dummy => pointer_to_super_lord
 
@@ -41,7 +44,7 @@ type (control_struct), pointer :: ctl
 type (ele_struct), pointer :: lord_ptr, ele_ptr
 type (lat_struct), pointer :: lat
 
-integer, optional :: ix_slave_back, ix_control, ix_ic
+integer, optional :: ix_slave_back, ix_control, ix_ic, lord_type
 integer icon, ix
 
 character(*), parameter :: r_name = 'pointer_to_super_lord'
@@ -77,6 +80,9 @@ endif
 
 do ix = 1, ele_ptr%n_lord
   lord_ptr => pointer_to_lord(ele_ptr, ix)
+  if (present(lord_type)) then
+    if (lord_ptr%key /= lord_type) cycle
+  endif
   if (lord_ptr%key /= pipe$) exit
   if (ix == ele_ptr%n_lord) exit
 enddo
