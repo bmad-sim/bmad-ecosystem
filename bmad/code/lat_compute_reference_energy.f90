@@ -520,7 +520,7 @@ real(rp) E_tot_start, p0c_start, ref_time_start, e_tot, phase, velocity, abs_tol
 real(rp) value_saved(num_ele_attrib$), ele_ref_time, t, phi
 
 integer i, n, key, i0, i1
-integer, parameter :: const_ref_energy$ = -999
+integer, parameter :: nonconst_ref_energy$ = -999
 logical err_flag, err, changed, saved_is_on, energy_stale, do_track
 
 character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
@@ -550,7 +550,7 @@ ele%time_ref_orb_out%location = downstream_end$
 ele%time_ref_orb_out%s = ele%s
 
 key = ele%key
-if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = const_ref_energy$
+if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = nonconst_ref_energy$
 
 if (key == converter$) then
   ele%ref_species = ele%converter%species_out
@@ -578,71 +578,61 @@ case (converter$)
     call convert_pc_to (ele%value(p0c$), ele%converter%species_out, E_tot = ele%value(E_tot$))
   endif
 
-case (lcavity$, const_ref_energy$)
+case (lcavity$, nonconst_ref_energy$)
+  ! Note: An em_field element with nonconst ref energy must have an lcavity as a 
+  ! super_lord and wll never have bmad_standard as a tracking_method.
+
   do_track = .true.  ! Tracking is done for reference time calc.
   n = nint(ele%value(n_rf_steps$))
+  lord => pointer_to_super_lord(ele, lord_type = lcavity$)
 
-  if (ele%key == lcavity$) then
-    if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. &
-                                                 ele%tracking_method == bmad_standard$ .and. n > 0) then
-      lord => pointer_to_super_lord(ele)
-      i0 = ele_rf_step_index(-1.0_rp, ele%s_start - lord%s_start, lord)
-      i1 = ele_rf_step_index(-1.0_rp, ele%s - lord%s_start, lord)
+  if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. &
+                                               ele%tracking_method == bmad_standard$ .and. n > 0) then
+    i0 = ele_rf_step_index(-1.0_rp, ele%s_start - lord%s_start, lord)
+    i1 = ele_rf_step_index(-1.0_rp, ele%s - lord%s_start, lord)
 
-      ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
-      ele%value(p0c$) = lord%rf%steps(i1)%p0c
-    else
-      phi = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$))
-      e_tot = ele%value(e_tot_start$) + ele%value(gradient$) * ele%value(l$) * cos(phi)
-      call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
-      if (err_flag) then
-        call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
-        ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
-        param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
-        return
-      endif
-      ele%value(e_tot$) = e_tot
-    endif
-
-    call lcavity_rf_step_setup(ele)
-
+    ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
+    ele%value(p0c$) = lord%rf%steps(i1)%p0c
   else
-    ele%value(E_tot$) = ele%value(e_tot_start$)      
-    ele%value(p0c$) = ele%value(p0c_start$)
-    ele%ref_time = ref_time_start
-    call attribute_bookkeeper(ele, .true.)
+    phi = twopi * (lord%value(phi0$) + lord%value(phi0_multipass$))
+    e_tot = ele%value(e_tot_start$) + lord%value(gradient$) * ele%value(l$) * cos(phi)
+    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
+    if (err_flag) then
+      call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
+      ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
+      param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
+      return
+    endif
+    ele%value(e_tot$) = e_tot
   endif
 
-  if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$ .and. n > 0) then
+  call lcavity_rf_step_setup(ele)
+
+  if (ele%tracking_method == bmad_standard$ .and. n > 0) then
     do_track = .false.
   endif
 
   !
 
   if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) .or. &
-        (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$)) then
+                                                                                          ele%tracking_method == bmad_standard$) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
     if (err) goto 9000
   endif
 
-  ! If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
+  ! Note: If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
 
   if (ele%slave_status == super_slave$ .and. do_track) then
-    do i = 1, ele%n_lord
-      lord => pointer_to_lord(ele, i)
-      if (lord%key /= lcavity$) cycle  ! May be a pipe$
-      if (lord%n_slave /= 1) cycle
+    lord => pointer_to_super_lord(ele, lord_type = lcavity$)
+    if (lord%n_slave == 1) then
       do_track = .false.
       ele%value(p0c$) = lord%value(p0c$)
       ele%value(E_tot$) = lord%value(E_tot$)
       ele%value(delta_ref_time$) = lord%value(delta_ref_time$)
       ele%ref_time = lord%ref_time
       ele%time_ref_orb_out = lord%time_ref_orb_out
-    enddo
+    endif
   endif
-
-  ! Track. With runge_kutta (esp fixed step with only a few steps), a shift in the end energy can cause 
-  ! small changes in the tracking. So if there has been a shift in the end energy, track again.
 
   if (do_track) then
     call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000

@@ -1,0 +1,46 @@
+BEGINNING[BETA_A] =  3.15714316042941867E001
+BEGINNING[ALPHA_A] =  0.47972268761152437E+000
+BEGINNING[BETA_B] =  3.24128572334226595E001
+BEGINNING[ALPHA_B] =  0.56864085860037816E+000
+
+parameter[geometry] = open
+parameter[particle] = electron
+
+particle_start[x] = 0.01
+particle_start[px] = 0.02
+particle_start[y] = 0.03
+particle_start[py] = 0.04
+particle_start[z] = 0.05
+particle_start[pz] = 0.06
+
+particle_start[spin_x] = 1
+particle_start[spin_y] = 2
+particle_start[spin_z] = 3
+
+bmad_com[spin_tracking_on] = T
+
+beginning[e_tot] = 7e5
+
+PIP01: PIPE, L=0.6
+PIP02: PIPE, L=1
+
+CAV00: lcavity, L = 0.2,
+    rf_frequency = 800e6,
+    tracking_method = time_runge_kutta,
+    wrap_superimpose = False,
+    phi0 = -0.24
+CAV00[voltage]=4e4
+
+MAR.BEG: marker
+
+SOL01: solenoid, L = 0.5,
+    tracking_method = time_runge_kutta,
+    superimpose, ref=MAR.BEG, ele_origin=center, offset = 0.38,
+    bs_field = 0.02
+SOL02: solenoid, L = 0.5,
+    tracking_method = time_runge_kutta,
+    superimpose, ref=MAR.BEG, ele_origin=center, offset = 1.03,
+    bs_field = 0.02
+
+LAT: LINE=(MAR.BEG, PIP01, CAV00, PIP02)
+use, LAT
