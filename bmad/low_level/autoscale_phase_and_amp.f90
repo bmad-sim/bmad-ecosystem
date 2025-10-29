@@ -65,10 +65,10 @@ type (coord_struct) orbit0
 type (em_field_struct) field1, field2
 integer, parameter :: n_sample = 16
 
-real(rp) pz, phi, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut
+real(rp) pz, phi, phi0, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, pauto
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
 real(rp) value_saved(num_ele_attrib$), phi0_autoscale_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
-real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s, phi1, phi2, pz1, pz2
+real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s, pz_target, dE_wanted
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 integer n_pts, n_pts_tot, n_loop, n_loop_max, status, sign_of_dE, tm
@@ -86,6 +86,7 @@ character(*), parameter :: r_name = 'autoscale_phase_and_amp'
 err_flag = .false.
 if (.not. ele%is_on) return
 
+pz_target = 0     ! Used with super_zbrent
 do_scale_phase = logic_option(is_true(ele%value(autoscale_phase$)), scale_phase)
 do_scale_amp   = logic_option(is_true(ele%value(autoscale_amplitude$)), scale_amp)
 
@@ -134,6 +135,14 @@ case default
 end select
 
 sign_of_dE = sign_of(dE_peak_wanted)
+
+! At low energies scaling to max deceleration gives different results from scaling to max acceleration.
+
+dE_wanted = dE_peak_wanted * cos(twopi*ele%value(phi0$))
+if (dE_wanted < -0.8_rp * abs(dE_peak_wanted)) then
+  dE_peak_wanted = -abs(dE_peak_wanted)
+  sign_of_dE = -1
+endif
 
 ! Auto scale amplitude when dE_peak_wanted is zero or very small is not possible.
 ! Therefore if dE_peak_wanted is less than dE_cut then do nothing.
@@ -470,35 +479,20 @@ endif
 
 ! For an lcavity find the phase at which the energy change matches the reference energy change
 ! and set phi0_autoscale appropriately. Since this can be inaccurate when phi0 is near 0 or 0.5,
-! Do not do this near these points.
+! Interpolate
 
-if (ele%key == lcavity$ .and. do_scale_phase .and. abs(modulo2(2*value_saved(phi0$), 0.5_rp)) > 0.01) then
-  ele%value(phi0$) = value_saved(phi0$)
-  dphi = 0.005
-  phi1 = -dphi; phi2 = dphi
-  pz1 = pz_calc(phi1, err_flag); if (err_flag) return
-  pz2 = pz_calc(phi2, err_flag); if (err_flag) return
-
-  do
-    if (pz1*pz2 < 0) exit
-    if (abs(pz1) < abs(pz2)) then
-      phi2 = phi1
-      phi1 = phi1 - dphi
-      pz1 = pz_calc(phi1, err_flag); if (err_flag) return
-    else
-      phi1 = phi2
-      phi2 = phi2 + dphi
-      pz2 = pz_calc(phi2, err_flag); if (err_flag) return
-    endif
-
-    if (phi2 - phi1 > twopi) then
-      call out_io (s_error$, r_name, 'CANNOT FIND ACCEPTABLE PHI0_AUTOSCALE FOR: ' // ele_full_name(ele))
-      err_flag = .true.
-      return
-    endif
-  enddo
-
-  ele%value(phi0_autoscale$) = modulo2(super_zbrent(pz_calc_zbrent, phi1, phi2, 1e-15_rp, 1d-9, status), 0.5_rp)
+if (ele%key == lcavity$ .and. do_scale_phase) then
+  phi0 = value_saved(phi0$)
+  pauto = ele%value(phi0_autoscale$)
+  if (abs(modulo2(phi0, 0.5_rp)) < 0.01) then
+    phi_max = modulo2(phi0, 0.5_rp)
+    ele%value(phi0_autoscale$) = ((0.01_rp + phi_max) * this_phi0_auto(0.01_rp, pauto, ele) + (0.01_rp - phi_max) * this_phi0_auto(-0.01_rp, pauto, ele)) / 0.02_rp
+  elseif (abs(modulo2(phi0+0.5_rp, 0.5_rp)) < 0.01) then
+    phi_max = modulo2(phi0+0.5_rp, 0.5_rp)
+    ele%value(phi0_autoscale$) = ((0.01_rp + phi_max) * this_phi0_auto(0.51_rp, pauto, ele) + (0.01_rp - phi_max) * this_phi0_auto(0.49_rp, pauto, ele)) / 0.02_rp
+  else
+    ele%value(phi0_autoscale$) = this_phi0_auto(phi0, pauto, ele)
+  endif
 endif
 
 ! Cleanup
@@ -530,12 +524,63 @@ end subroutine cleanup_this
 !----------------------------------------------------------------
 ! contains
 
-function pz_calc (phi, err_flag) result (pz)
+function this_phi0_auto(phi0, phi_auto_start, ele) result (phi0_auto)
+
+type (ele_struct) ele
+real(rp) phi0, phi0_auto
+real(rp) phi1, phi2, pz1, pz2, phi_auto_start, dE_target, pzt
+integer i, dir
+
+!
+
+ele%value(phi0$) = phi0
+dE_target = ele%value(voltage$) * cos(twopi*phi0)
+pz_target = (dpc_given_dE(ele%value(p0c_start$), mass_of(ele%ref_species), dE_target) + ele%value(p0c_start$)) / ele%value(p0c$) - 1.0_rp 
+pzt = pz_target  ! For debugging.
+
+dphi = 0.005_rp
+phi1 = phi_auto_start - dphi
+phi2 = phi_auto_start + dphi
+pz1 = pz_calc(phi1, err_flag); if (err_flag) return
+pz2 = pz_calc(phi2, err_flag); if (err_flag) return
+dir = 0
+
+do i = 1, 200
+  if (pz1*pz2 < 0) exit
+  if (abs(pz1) < abs(pz2)) then
+    phi1 = phi1 - dphi
+    pz1 = pz_calc(phi1, err_flag); if (err_flag) return
+    dir = -1
+  else
+    phi2 = phi2 + dphi
+    pz2 = pz_calc(phi2, err_flag); if (err_flag) return
+    dir = +1
+  endif
+
+  if (i == 100) then
+    call out_io (s_error$, r_name, 'CANNOT FIND ACCEPTABLE PHI0_AUTOSCALE FOR: ' // ele_full_name(ele))
+    err_flag = .true.
+    return
+  endif
+enddo
+
+select case (dir)
+case (-1);   phi0_auto = modulo2(super_zbrent(pz_calc_zbrent, phi1, phi1+dphi, 1e-15_rp, 1d-9, status), 0.5_rp)
+case ( 0);   phi0_auto = modulo2(super_zbrent(pz_calc_zbrent, phi1, phi2, 1e-15_rp, 1d-9, status), 0.5_rp)
+case (+1);   phi0_auto = modulo2(super_zbrent(pz_calc_zbrent, phi2-dphi, phi2, 1e-15_rp, 1d-9, status), 0.5_rp)
+end select
+
+end function this_phi0_auto
+
+!----------------------------------------------------------------
+! contains
+
+function pz_calc (phi_auto, err_flag) result (pz)
 
 implicit none
 
 type (coord_struct) start_orb, end_orb
-real(rp), intent(in) :: phi
+real(rp), intent(in) :: phi_auto
 real(rp) pz
 logical err_flag
 
@@ -543,7 +588,7 @@ logical err_flag
 
 
 time_runge_kutta_com%print_too_many_step_err = .false.
-ele%value(phi0_autoscale$) = phi
+ele%value(phi0_autoscale$) = phi_auto
 call attribute_bookkeeper(ele, .true.)
 if (ele%tracking_method == linear$) call make_mat6(ele, param)
 
@@ -551,7 +596,7 @@ call init_coord (start_orb, ele = ele, element_end = upstream_end$)
 call track1 (start_orb, ele, param, end_orb, err_flag = err_flag, ignore_radiation = .true.)
 time_runge_kutta_com%print_too_many_step_err = .true.
 
-pz = end_orb%vec(6)
+pz = end_orb%vec(6) - pz_target
 is_lost = .not. particle_is_moving_forward(end_orb)
 if (is_lost) pz = -2
 
@@ -582,18 +627,18 @@ end function dE_particle
 !----------------------------------------------------------------
 ! contains
 
-function pz_calc_zbrent (phi, status) result (pz)
+function pz_calc_zbrent (phi_auto, status) result (pz)
 
 implicit none
 
-real(rp), intent(in) :: phi
+real(rp), intent(in) :: phi_auto
 real(rp) pz
 integer status
 logical err_flag
 
 ! brent finds minima so need to flip the final energy
 
-pz = pz_calc(phi, err_flag)
+pz = pz_calc(phi_auto, err_flag)
 
 end function pz_calc_zbrent
 
