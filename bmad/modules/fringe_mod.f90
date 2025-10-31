@@ -849,13 +849,14 @@ subroutine sad_soft_bend_edge_kick (ele, param, particle_at, orb, mat6, make_mat
 
 implicit none
 
-type(coord_struct) :: orb
-type(ele_struct) :: ele
+type (coord_struct) :: orb
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele2
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
 real(rp) :: kmat(6,6), tilt
-real(rp) :: f1, el_p, g, ct, c1, c2, c3, y, px, rel_p, sin_e
+real(rp) :: fb, el_p, g, ct, c1, c2, c3, y, px, rel_p, sin_e
 real(rp) k0, sk0, c1_k, c2_k, c3_k, c1_sk, c2_sk, c3_sk 
 
 integer :: particle_at, c_dir, element_end, fringe_type
@@ -882,28 +883,29 @@ select case (ele%key)
 case (sbend$)
   if (element_end == entrance_end$) then
     sin_e = sin(ele%value(e1$))
-    f1 = 12 * ele%value(fint$) * ele%value(hgap$) 
+    fb = 12 * ele%value(fint$) * ele%value(hgap$) 
   else
     sin_e = sin(ele%value(e2$))
-    f1 = 12 * ele%value(fintx$) * ele%value(hgapx$)
+    fb = 12 * ele%value(fintx$) * ele%value(hgapx$)
   endif
 
-  if (f1 == 0) return
+  if (fb == 0) return
 
   g = ele%value(g$) + ele%value(dg$)
   tilt = 0
 
 case (sad_mult$)
   if (element_end == entrance_end$) then
-    f1 = ele%value(fb1$)
+    fb = ele%value(fb1$)
   else
-    f1 = ele%value(fb2$)
+    fb = ele%value(fb2$)
   endif
 
-  if (f1 == 0) return
+  if (fb == 0) return
 
-  call multipole1_ab_to_kt(ele%a_pole(0), ele%b_pole(0), 0, g, tilt)
-  g = g / ele%value(l$)
+  ele2 => pointer_to_super_lord(ele)
+  call multipole1_ab_to_kt(ele2%a_pole(0), ele2%b_pole(0), 0, g, tilt)
+  g = g / ele2%value(l$)
 end select
 
 !
@@ -923,9 +925,9 @@ px = orb%vec(2) ! + sin_e ???
 y  = orb%vec(3)
 rel_p = 1 + orb%vec(6)
 
-c1 = f1**2 * g / (24 * rel_p)  ! * px
-c2 = f1 * g**2 / (6 * rel_p)  ! * y^2
-c3 = 2 * g**2 / (3 * f1 * rel_p)   ! * y^4
+c1 = fb**2 * g / (24 * rel_p)  ! * px
+c2 = fb * g**2 / (6 * rel_p)  ! * y^2
+c3 = 2 * g**2 / (3 * fb * rel_p)   ! * y^4
 
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit (kmat)
