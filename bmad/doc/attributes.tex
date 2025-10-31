@@ -3467,13 +3467,15 @@ finite width of the quadrupolar fringe field. The width of the quadrupolar fring
 characterized by the \vn{f1} and \vn{f2} attributes. The \vn{sad_nonlinear_only} fringe kick comes
 from the nonlinear part of the quadrupolar field plus the fringes of the other multipoles.
 
-The soft fringe quadrupole parameters \vn{fq1} and \vn{fq2} (\sref{s:q.soft}) are related
-to the corresponding SAD parameters \vn{f1} and \vn{f2} via
+For \vn{sad_mult} elements, the soft fringe quadrupole (\sref{s:q.soft}) parameters \vn{fq1} and
+\vn{fq2} (\sref{s:q.soft}) are related to the corresponding SAD parameters \vn{f1} and \vn{f2} via
 \begin{example}
   f1 = -sign(fq1) * sqrt(24 * |fq1|)
   f2 = fq2
 \end{example}
-In the SAD documentation, the soft edge is called the ``linear'' fringe.
+Note: With SAD \vn{bend} elements, the \vn{f1} parameter is associated with the dipole fringe
+(\sref{s:fringe.bend.soft}) and not the quadrupolar fringe!
+Also note that in the SAD documentation, the soft edge is called the ``linear'' fringe.
 
 \index{permfringe}\index{bendfringe}
 For programmers who deal with PTC directly: The translation between \vn{ptc_fringe_geometry} on the

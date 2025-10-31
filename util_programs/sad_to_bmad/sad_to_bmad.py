@@ -172,6 +172,8 @@ ele_param_translate = {
     'dphi': ['phi0_err', ' / twopi'],
     'volt': 'voltage',
     'harm': 'harmon',
+    'mult:fb1': 'fb1',
+    'mult:fb2': 'fb2',
     'mult:dx': 'x_offset_mult',
     'mult:dy': 'y_offset_mult',
     'sol:chi1': ['x_pitch', ' * -1'],
