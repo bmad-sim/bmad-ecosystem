@@ -2,6 +2,8 @@
 ! Subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
 !
 ! Routine to return info on an ele shape for a particular element.
+! y1 is shape size (positive number) on "left" side (to the left when facing forward).
+! y2 is shape size (positive number) on "right" side (to the right when facing forward).
 !
 ! Input:
 !   ix_uni        -- integer: Universe index.
@@ -10,10 +12,11 @@
 !   ix_shape_min  -- integer, optional: Index of minimum ele_shape(:) index to start search from. Default is 1.
 !
 ! Output:
-!   e_shape       -- tao_ele_shape_struct, pointer :: e_shape
+!   e_shape       -- tao_ele_shape_struct, pointer: element shape. Will be nullified if no associated shape.
 !   label_name    -- character(*): Label name.
 !   y1, y2        -- real(rp): shape transverse sizes.
-!   ix_shape_min  -- integer, optional: Ele_shape(:) index to start next search if multiple shapes are associated with ele.
+!   ix_shape_min  -- integer, optional: Ele_shape(:) index to start next search if multiple shapes 
+!                       are associated with ele.
 !-
 
 subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
