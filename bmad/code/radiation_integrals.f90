@@ -444,9 +444,12 @@ do ir = 1, branch%n_ele_track
 
   if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) cycle
   if (ele%key == patch$) cycle
-  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
-          ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. ele%key /= sbend$ .and. &
-          ele%key /= rf_bend$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$) cycle
+  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+    select case (ele%key)
+    case (quadrupole$, sol_quad$, sbend$, rf_bend$, hkicker$, vkicker$, sad_mult$)
+    case default; cycle
+    end select
+  endif
 
   ! All other elements
 
