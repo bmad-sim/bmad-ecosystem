@@ -536,7 +536,12 @@ parsing_loop: do
           ele%key == def_bmad_com$ .or. ele%key == def_space_charge_com$) cycle
       if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
-      if (heterogeneous_ele_list .and. attribute_index(ele, word_2) < 1) cycle
+      ix = attribute_index(ele, word_2, print_error = .not. heterogeneous_ele_list)
+      if (heterogeneous_ele_list .and. ix < 1) cycle
+      if (ix < 1) then
+        call parser_error('BAD ELEMENT PARAMETER REDEFINITION.')
+        exit
+      endif
       bp_com%parse_line = parse_line_save
       ele_found = .true.
       call parser_set_attribute (redef$, ele, delim, delim_found, err, plat%ele(ele%ixx), heterogeneous_ele_list = heterogeneous_ele_list)

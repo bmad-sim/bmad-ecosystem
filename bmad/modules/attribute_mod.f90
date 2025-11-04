@@ -111,8 +111,8 @@ private check_this_attribute_free
 ! be abbreviated.
 !
 ! This routine is an overloaded name for:
-!   attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
-!   attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
+!   attribute_index1 (ele, name, full_name, can_abbreviate, print_error) result (attrib_index)
+!   attribute_index2 (key, name, full_name, can_abbreviate, print_error) result (attrib_index)
 !
 ! Note:
 !   If ele%key or key = 0 -> Entire name table will be searched.
@@ -123,12 +123,12 @@ private check_this_attribute_free
 !   attribute_name
 !
 ! Input:
-!   ele     -- ele_struct: attribute_index will restrict the name search to 
-!                valid attributes of the given element. 
-!   key     -- integer: Equivalent to ele%key.
-!   name    -- character(40): Attribute name. Must be uppercase.
-!   can_abbreviate
-!           -- logical, optional: Can abbreviate names? Default is True.
+!   ele             -- ele_struct: attribute_index will restrict the name search to 
+!                       valid attributes of the given element. 
+!   key             -- integer: Equivalent to ele%key.
+!   name            -- character(40): Attribute name. Must be uppercase.
+!   can_abbreviate  -- logical, optional: Can abbreviate names? Default is True.
+!   print_error     -- logical, optional: Default True. If false, do not print error message.
 !
 ! Output:
 !   full_name    -- character(40), optional: Non-abbreviated name.
@@ -196,18 +196,18 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
+! Function attribute_index1 (ele, name, full_name, can_abbreviate, print_error) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
-function attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
+function attribute_index1 (ele, name, full_name, can_abbreviate, print_error) result (attrib_index)
 
 type (ele_struct) ele
 integer attrib_index, i, n
 character(*) name
 character(*), optional :: full_name
-logical, optional :: can_abbreviate
+logical, optional :: can_abbreviate, print_error
 
 ! Note: ele%control or ele%control%var may not be allocated during parsing.
 
@@ -234,7 +234,7 @@ endif
 
 !
 
-attrib_index = attribute_index2 (ele%key, name, full_name, can_abbreviate)
+attrib_index = attribute_index2 (ele%key, name, full_name, can_abbreviate, print_error)
 
 end function attribute_index1
 
@@ -242,12 +242,12 @@ end function attribute_index1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
+! Function attribute_index2 (key, name, full_name, can_abbreviate, print_error) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
-function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
+function attribute_index2 (key, name, full_name, can_abbreviate, print_error) result (attrib_index)
 
 integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev, i0, ixs
 integer attrib_index
@@ -257,7 +257,7 @@ character(*), optional :: full_name
 character(40) name40
 character(*), parameter :: r_name = 'attribute_index2'
 
-logical, optional :: can_abbreviate
+logical, optional :: can_abbreviate, print_error
 
 if (attribute_array_init_needed) call init_attribute_name_array
 
@@ -361,8 +361,11 @@ elseif (key > 0 .and. key <= n_key$) then
 ! error
 
 else
-  call out_io (s_fatal$, r_name, 'BAD KEY \i0\ ', i_array = [key])
-  if (global_com%exit_on_error) call err_exit
+  if (logic_option(.true., print_error)) then
+    call out_io (s_fatal$, r_name, 'BAD KEY \i0\ ', i_array = [key])
+    if (global_com%exit_on_error) call err_exit
+  endif
+  attrib_index = 0  ! Error
 endif
 
 ! If there is one unique abbreviation then use it.
