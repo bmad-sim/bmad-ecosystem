@@ -151,7 +151,7 @@ do i = 1, nn
 
   !
 
-  if (allocated(node1%info)) then
+  if (allocated(node1%info) .and. node1%type /= func_parens$) then
     ns = size(node1%info)
     if (.not. allocated(info_loc)) then
       call tao_re_allocate_expression_info(info_loc, ns)
@@ -343,7 +343,6 @@ do i = 1, nn
       enddo
 
       case ('ran');
-      i2 = i2 + 1
       call re_allocate(stk2(i2)%value, n_size)
       call ran_uniform(stk2(i2)%value)
 
@@ -353,16 +352,17 @@ do i = 1, nn
       endif
 
     case ('ran_gauss')
-      if (nint(tao_tree%node(i-1)%value(1)) == 0) then
-        i2 = i2 + 1
+      select case (size(tao_tree%node(i-1)%node))
+      case (0)
         call re_allocate(stk2(i2)%value, n_size)
         call ran_gauss(stk2(i2)%value)
-      else
-        call re_allocate(value, n_size)
-        call ran_gauss(value, sigma_cut = stk2(i2)%value(1))
+      case (1)
         call re_allocate(stk2(i2)%value, n_size)
-        stk2(i2)%value = value
-      endif
+        call ran_gauss(stk2(i2)%value, sigma_cut = stk2(i2)%value(1))
+      case default
+        call out_io (s_error$, r_name, 'ran_gauss has more than one argument!')
+        return
+      end select
 
       if (size(info_loc) == 1) then
         call tao_re_allocate_expression_info(info_loc, n_size)
