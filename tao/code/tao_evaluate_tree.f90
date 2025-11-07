@@ -33,7 +33,7 @@ type (tao_eval_node_struct) stk2(20)
 type (tao_expression_info_struct), allocatable, optional :: info_in(:)
 type (tao_expression_info_struct), allocatable :: info_loc(:), info2(:)
 
-real(rp) val
+real(rp) val, sig_cut
 real(rp), allocatable :: value(:), val2(:)
 
 integer n_size_in, n_size, id_species
@@ -65,6 +65,7 @@ n_size = max(1, n_size_in)
 do i = 1, nn
   node1 => tao_tree%node(i)
 
+  ! average, etc. are the functions that always return one value independent of the number of arguments.
   select case (node1%name)
   case ('average', 'sum', 'rms', 'min', 'max'); n_size = 1
   end select
@@ -140,7 +141,7 @@ do i = 1, nn
     enddo
 
   case (compound$, parens$, comma$)
-    call tao_evaluate_tree (node1, 0, use_good_user, val2, err, print_err, expression, info2)
+    call tao_evaluate_tree (node1, n_size_in, use_good_user, val2, err, print_err, expression, info2)
     if (err) return
     nj = size(val2)    
     call re_allocate(node1%value, nj)
@@ -289,6 +290,10 @@ do i = 1, nn
     case ('acos');      stk2(i2)%value = acos(stk2(i2)%value)
     case ('atan');      stk2(i2)%value = atan(stk2(i2)%value)
     case ('atan2')
+      if (size(stk2(i2)%value) /= 2) then
+        call out_io (s_error$, r_name, 'atan2 function has wrong number of arguments (not two).')
+        return
+      endif
       val = atan2(stk2(i2)%value(1), stk2(i2)%value(2))
       call re_allocate(stk2(i2)%value, 1)
       stk2(i2)%value = val
@@ -337,37 +342,36 @@ do i = 1, nn
       info_loc(1)%good = .true.
       call tao_re_allocate_expression_info(info_loc, 1)
 
-    case ('factorial');
+    case ('factorial')
       do n = 1, size(stk2(i2)%value)
         stk2(i2)%value(n) = factorial(nint(stk2(i2)%value(n)))
       enddo
 
-      case ('ran');
-      i2 = i2 + 1
-      call re_allocate(stk2(i2)%value, n_size)
-      call ran_uniform(stk2(i2)%value)
-
-      if (size(info_loc) == 1) then
-        call tao_re_allocate_expression_info(info_loc, n_size)
-        info_loc%good = info_loc(1)%good
+    case ('ran')
+      if (size(stk2(i2)%value) > 0) then
+        call out_io (s_error$, r_name, 'ran function has wrong number of arguments (not zero).')
+        return
       endif
+
+      call re_allocate(stk2(i2)%value, max(1, n_size_in))
+      call ran_uniform(stk2(i2)%value)
+      call tao_re_allocate_expression_info(info_loc, max(1, n_size_in))
 
     case ('ran_gauss')
-      if (nint(tao_tree%node(i-1)%value(1)) == 0) then
-        i2 = i2 + 1
-        call re_allocate(stk2(i2)%value, n_size)
-        call ran_gauss(stk2(i2)%value)
-      else
-        call re_allocate(value, n_size)
-        call ran_gauss(value, sigma_cut = stk2(i2)%value(1))
-        call re_allocate(stk2(i2)%value, n_size)
-        stk2(i2)%value = value
+      if (size(stk2(i2)%value) > 1) then
+        call out_io (s_error$, r_name, 'ran_gauss function has wrong number of arguments (> 1).')
+        return
       endif
 
-      if (size(info_loc) == 1) then
-        call tao_re_allocate_expression_info(info_loc, n_size)
-        info_loc%good = info_loc(1)%good
+      if (nint(tao_tree%node(i-1)%value(1)) == 0) then
+        sig_cut = -1
+      else
+        sig_cut = stk2(i2)%value(1)
       endif
+
+      call re_allocate(stk2(i2)%value, max(1, n_size_in))
+      call ran_gauss(stk2(i2)%value, sigma_cut = sig_cut)  ! Array of random numbers
+      call tao_re_allocate_expression_info(info_loc, max(1, n_size_in))
 
     case ('mass_of', 'charge_of', 'anomalous_moment_of', 'species')
       id_species = nint(stk2(i2)%value(1))

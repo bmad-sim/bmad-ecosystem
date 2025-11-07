@@ -10,6 +10,7 @@
 "data::twiss.end[1]|model-design+1e-10" REL 1E-9  1.0000000000E-10
 "[1,2] - [3, lat::r.11[beginning&end->-0.5*l]]" REL 1E-9 -2.0000000000E+00  1.0000000000E+00
 "sum(abs(ele::sbend::b*[angle]))" REL 1E-9  6.9813170080E-01
+"ran_gauss() + ran_gauss(0.1) + ran()" REL 1E-9 -7.4961217015E-02
 "spin-tune" ABS 4E-9 -1.5719006590E+05
 "Polarization Limit ST" REL 4E-9                    0.0000000000E+00
 "Polarization Limit DK" REL 4E-9                     0.0000000000E+00

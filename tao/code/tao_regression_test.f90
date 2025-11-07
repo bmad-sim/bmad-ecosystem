@@ -20,7 +20,7 @@ integer iu, ii
 logical err
 
 character(200) excite_zero(3), veto
-character(60) :: expr(12) = [character(60):: &
+character(60) :: expr(13) = [character(60):: &
                   '[anomalous_moment_of(proton), mass_of(electron)]', &
                   '(46.5/anomalous_moment_of(proton))^2-pi', &
                   '[3,4] * [1]@ele::q1[k1]', &
@@ -32,7 +32,8 @@ character(60) :: expr(12) = [character(60):: &
                   'atan2(1,2)', &
                   'data::twiss.end[1]|model-design+1e-10', &
                   '[1,2] - [3, lat::r.11[beginning&end->-0.5*l]]', &
-                  'sum(abs(ele::sbend::b*[angle]))'  ]
+                  'sum(abs(ele::sbend::b*[angle]))', &
+                  'ran_gauss() + ran_gauss(0.1) + ran()'  ]
 
 !
 
@@ -44,6 +45,7 @@ open (iu, file = 'output.now')
 s%global%expression_tree_on = .true.
 call tao_set_symbolic_number_cmd ('aaa', 'species(Li+5)')
 call tao_set_symbolic_number_cmd ('bbb', '34*2')
+call ran_seed_put(1234)
 
 do ii = 1, size(expr)
   call tao_evaluate_expression(expr(ii), 0, .false., val, err)
