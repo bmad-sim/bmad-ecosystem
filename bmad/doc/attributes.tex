@@ -2913,15 +2913,22 @@ For an \vn{rfcavity} element, the \vn{field_autoscale} parameter is set such tha
 adjusted for maximum acceleration, the voltage gain of a particle on the zero orbit is equal to the
 value of the element's \vn{voltage} parameter. 
 
-The \vn{phi0_autoscale} is set so that with \vn{phi0} equal to zero, a particle on the zero orbit
-will not see any energy gain through the cavity. There are two values for \vn{phi0_autoscale} where,
-with \vn{phi0} equal zero, the energy gain of the zero orbit particle is zero. If the \vn{bmad_com}
-global parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) is set to \vn{False} (the
-default), \vn{phi0_autoscale} will be set such that, with \vn{phi0} equal zero, the zero orbit for a
-particle above transition will be at the stable zero-crossing. For a particle below transition,
-setting \vn{rf_phase_below_transition_ref} to \vn{True}, will result in \vn{phi0_autoscale} being
-set such that, for particles below transition, and with \vn{phi0} equal zero, a particle on the zero
-orbit will be at the stable zero-crossing.
+For \vn{rfcavity} elements, \vn{phi0_autoscale} is set so that with \vn{phi0} equal to zero, a
+particle on the zero orbit will not see any energy gain through the cavity. There are two values for
+\vn{phi0_autoscale} where, with \vn{phi0} equal zero, the energy gain of the zero orbit particle is
+zero. If the \vn{bmad_com} global parameter \vn{rf_phase_below_transition_ref}
+(\sref{s:bmad.common}) is set to \vn{False} (the default), \vn{phi0_autoscale} will be set such
+that, with \vn{phi0} equal zero, the zero orbit for a particle above transition will be at the
+stable zero-crossing. For a particle below transition, setting \vn{rf_phase_below_transition_ref} to
+\vn{True}, will result in \vn{phi0_autoscale} being set such that, for particles below transition,
+and with \vn{phi0} equal zero, a particle on the zero orbit will be at the stable zero-crossing.
+
+For \vn{lcavity} elements, \vn{phi0_autoscale} is set such that a particle entering the cavity with
+zero phase space coordinates has an energy change that is equal to change in reference energy
+\begin{example}
+  dE = voltage * cos(2 * pi * phi0)
+\end{example}
+With this, the ending $p_z$ phase space coordinate is zero.
 
 It is important to keep in mind that with a ring, the closed orbit will be the equilibrium
 orbit. For example, for a ring with a single cavity, changes in \vn{phi0} will just result in
