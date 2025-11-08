@@ -72,8 +72,6 @@ enddo
 
 if (.not. s%global%lattice_calc_on) return
 
-s%com%ix_ref_taylor = -999   ! Reset taylor map
-
 if (associated(tao_hook_lattice_calc_ptr)) call tao_hook_lattice_calc_ptr (calc_ok)
 
 if (s%global%track_type /= 'single' .and. s%global%track_type /= 'beam') then
@@ -110,6 +108,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       if (allocated(tao_branch%spin_ele)) tao_branch%spin_ele(:)%valid = .false.
       tao_branch%chrom_calc_ok = .false.
       tao_branch%sigma_track_ok = .false.
+      tao_branch%ix_ele_taylor = -1      ! Force tao_branch%taylor_save recalc.
 
       u%model%tao_branch(:)%plot_cache_valid = .false.
       u%design%tao_branch(:)%plot_cache_valid = .false.
