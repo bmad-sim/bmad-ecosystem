@@ -396,8 +396,8 @@ if (graph%type == 'floor_plan') then
         ! For a linac, the shape can extend past the plot. So take into account the shape size.
         call tao_ele_shape_info (iu, ele, s%plot_page%floor_plan%ele_shape, shape, label_name, y1, y2)
         if (associated(shape)) then
-          y1 = y1 * s%plot_page%floor_plan_shape_scale
-          y2 = y2 * s%plot_page%floor_plan_shape_scale
+          y1 = 1.1 * y1 * s%plot_page%floor_plan_shape_scale
+          y2 = 1.1 * y2 * s%plot_page%floor_plan_shape_scale
           this_min = min(this_min, end%r(2) - y1, end%r(2) - y2)
           this_max = max(this_min, end%r(2) + y1, end%r(2) + y2)
         endif
