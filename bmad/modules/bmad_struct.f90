@@ -360,9 +360,14 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 
 ! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$ for ele with %orientation = 1.
 
-! first_track_edge$ is the edge a particle enters the element at. 
+! first_track_edge$ is the edge a particle enters the element when tracking. 
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
+! first_time_edge$ is the track edge with the particle moving forward in time.
+! second_time_edge$ is the track edge with the particle moving forward in time.
+! If a particle is moving forward in time then first_track_edge$ = first_time_edge$, second_track_edge$ = second_time_edge$.
+! And vice versa for a particle moving backwards in time.
+
 
 integer, parameter :: none_pt$ = 4
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4, nowhere$ = 4
@@ -372,6 +377,7 @@ integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
 integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13 ! Must be different from upstream_end$, downstream_end$
+integer, parameter :: first_time_edge$ = 14, second_time_edge$ = 15
 
 character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
       'Entrance_end', 'Exit_End', 'Center', 'None']

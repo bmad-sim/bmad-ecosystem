@@ -28,6 +28,9 @@ beginning[detap_dpz_x] = -2e-2
 beginning[deta_dpz_y] = 3e-2
 beginning[detap_dpz_y] = -4e-2
 
+particle_start[y] = 2e-3
+particle_start[py] = 1e-4
+
 particle_start[spin_x] = 0.3
 particle_start[spin_y] = 0.4
 particle_start[spin_z] = 0.5

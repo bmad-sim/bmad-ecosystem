@@ -1168,7 +1168,7 @@ endif
 
 do n = 0, ubound(lat%branch, 1)
   branch => lat%branch(n)
-  is_ok = transfer_fixer_params(branch%ele(0), branch%particle_start, .true.)
+  is_ok = transfer_fixer_params(branch%ele(0), .true., branch%particle_start)
   ix_ele_fix = 0
   ix_set = 0
   do i = 0, branch%n_ele_max

@@ -10,7 +10,7 @@ contains
 !----------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------
 !+
-! Subroutine set_active_fixer(fixer, is_on)
+! Subroutine set_active_fixer(fixer, is_on, orbit)
 !
 ! Set the acvitive fixer element.
 ! All other fixer/beginning_ele elements in the branch will be deactivated.
@@ -23,15 +23,16 @@ contains
 !   fixer         -- ele_struct: Fixer element to make active.
 !   is_on         -- logical, optional: If True (default), make this fixer the active element. 
 !                     If False, make the beginning element active.
+!   orbit         -- coord_struct, optional: Actual orbit. If not present, zero orbit is used.
 !
 ! Output:
 !   fixer         -- ele_struct: Element is now active.
 !-
 
-subroutine set_active_fixer(fixer, is_on)
+subroutine set_active_fixer(fixer, is_on, orbit)
 
 type (ele_struct), target :: fixer
-type (coord_struct) dummy_orbit
+type (coord_struct), optional :: orbit
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
@@ -66,7 +67,7 @@ else
   branch%ix_fixer = 0
 endif
 
-is_ok = transfer_fixer_params(branch%ele(branch%ix_fixer), dummy_orbit, .false.)
+is_ok = transfer_fixer_params(branch%ele(branch%ix_fixer), .false., orbit)
 
 end subroutine set_active_fixer
 
@@ -75,14 +76,14 @@ end subroutine set_active_fixer
 !----------------------------------------------------------------------------------------------------
 
 !+
-! Function transfer_fixer_params(fixer, orbit, to_stored, who) result (is_ok)
+! Function transfer_fixer_params(fixer, to_stored, orbit, who) result (is_ok)
 !
 ! Set parameters of fixer.
 !
 ! Input:
 !   fixer       -- ele_struct: Fixer element to set.
-!   orbit       -- coord_struct: Used for 'phase_space' transfers.
 !   to_stored   -- logical: If False, set real Twiss from stored. If True, set stored Twiss from real.
+!   orbit       -- coord_struct, optional: Used for 'phase_space' transfers.
 !   who         -- logical, optional: Who to set. Possibilities are:
 !                   Groups:
 !                     'all', ' ' (default and same as 'all') Note: This excludes all 'start' sets.,
@@ -96,10 +97,10 @@ end subroutine set_active_fixer
 !   is_ok       -- logical
 !-
 
-function transfer_fixer_params(fixer, orbit, to_stored, who) result (is_ok)
+function transfer_fixer_params(fixer, to_stored, orbit, who) result (is_ok)
 
 type (ele_struct), target :: fixer
-type (coord_struct) :: orbit
+type (coord_struct), optional :: orbit
 type (branch_struct), pointer :: branch
 
 logical to_stored, is_ok
@@ -116,16 +117,16 @@ endif
 
 is_ok = .true.
 branch => fixer%branch
-call fix_this(branch, fixer, orbit, to_stored, is_ok, whom)
+call fix_this(branch, fixer, to_stored, is_ok, whom, orbit)
 
 !----------------------------------------------------------------------------------------------------
 contains
 
-recursive subroutine fix_this(branch, fixer, orbit, to_stored, is_ok, whom)
+recursive subroutine fix_this(branch, fixer, to_stored, is_ok, whom, orbit)
 
 type (branch_struct) branch
 type (ele_struct) fixer
-type (coord_struct) :: orbit
+type (coord_struct), optional :: orbit
 
 integer ix
 logical to_stored, is_ok
@@ -159,120 +160,120 @@ elseif (ix < 0) then
 else
   select case (switch)
   case ('all')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'twiss')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'phase_space')
+    call fix_this(branch, fixer, to_stored, is_ok, 'twiss', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'phase_space', orbit)
 
   case ('twiss')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'a_twiss')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'b_twiss')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dispersion')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'cmat')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'chromatic')
+    call fix_this(branch, fixer, to_stored, is_ok, 'a_twiss', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'b_twiss', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dispersion', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'cmat', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'chromatic', orbit)
 
   case ('a_twiss')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'beta_a')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'alpha_a')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'phi_a')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dbeta_dpz_a')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dalpha_dpz_a')
+    call fix_this(branch, fixer, to_stored, is_ok, 'beta_a', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'alpha_a', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'phi_a', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dbeta_dpz_a', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dalpha_dpz_a', orbit)
 
   case ('b_twiss')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'beta_b')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'alpha_b')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'phi_b')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dbeta_dpz_b')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dalpha_dpz_b')
+    call fix_this(branch, fixer, to_stored, is_ok, 'beta_b', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'alpha_b', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'phi_b', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dbeta_dpz_b', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dalpha_dpz_b', orbit)
 
   case ('dispersion')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'x_dispersion')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'y_dispersion')
+    call fix_this(branch, fixer, to_stored, is_ok, 'x_dispersion', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'y_dispersion', orbit)
 
   case ('x_dispersion')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'eta_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'etap_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'deta_dpz_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'detap_dpz_x')
+    call fix_this(branch, fixer, to_stored, is_ok, 'eta_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'etap_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'deta_dpz_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'detap_dpz_x', orbit)
 
   case ('y_dispersion')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'eta_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'etap_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'deta_dpz_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'detap_dpz_y')
+    call fix_this(branch, fixer, to_stored, is_ok, 'eta_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'etap_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'deta_dpz_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'detap_dpz_y', orbit)
 
   case ('cmat')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'cmat_11')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'cmat_12')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'cmat_21')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'cmat_22')
+    call fix_this(branch, fixer, to_stored, is_ok, 'cmat_11', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'cmat_12', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'cmat_21', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'cmat_22', orbit)
 
   case ('chromatic')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dbeta_dpz_a')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dalpha_dpz_a')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dbeta_dpz_b')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dalpha_dpz_b')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'deta_dpz_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'detap_dpz_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'deta_dpz_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'detap_dpz_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dcmat_dpz_11')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dcmat_dpz_12')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dcmat_dpz_21')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'dcmat_dpz_22')
+    call fix_this(branch, fixer, to_stored, is_ok, 'dbeta_dpz_a', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dalpha_dpz_a', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dbeta_dpz_b', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dalpha_dpz_b', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'deta_dpz_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'detap_dpz_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'deta_dpz_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'detap_dpz_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dcmat_dpz_11', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dcmat_dpz_12', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dcmat_dpz_21', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'dcmat_dpz_22', orbit)
 
   case ('phase_space')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'spin')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'orbit')
+    call fix_this(branch, fixer, to_stored, is_ok, 'spin', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'orbit', orbit)
 
   case ('orbit')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'x_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'y_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'z_plane')
+    call fix_this(branch, fixer, to_stored, is_ok, 'x_plane', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'y_plane', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'z_plane', orbit)
 
   case ('x_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'px')
+    call fix_this(branch, fixer, to_stored, is_ok, 'x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'px', orbit)
 
   case ('y_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'py')
+    call fix_this(branch, fixer, to_stored, is_ok, 'y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'py', orbit)
 
   case ('z_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'z')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'pz')
+    call fix_this(branch, fixer, to_stored, is_ok, 'z', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'pz', orbit)
 
   case ('spin')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'spin_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'spin_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'spin_z')
+    call fix_this(branch, fixer, to_stored, is_ok, 'spin_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'spin_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'spin_z', orbit)
 
   case ('start_orbit')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_x_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_y_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_z_plane')
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_x_plane', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_y_plane', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_z_plane', orbit)
 
   case ('start_spin')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_spin_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_spin_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_spin_z')
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_spin_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_spin_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_spin_z', orbit)
 
   case ('start_phase_space')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_spin')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_orbit')
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_spin', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_orbit', orbit)
 
   case ('start_x_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_x')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_px')
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_x', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_px', orbit)
 
   case ('start_y_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_y')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_py')
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_y', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_py', orbit)
 
   case ('start_z_plane')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_z')
-    call fix_this(branch, fixer, orbit, to_stored, is_ok, 'start_pz')
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_z', orbit)
+    call fix_this(branch, fixer, to_stored, is_ok, 'start_pz', orbit)
 
   case default
-    call fix_this1(branch, fixer, orbit, to_stored, is_ok, whom)
+    call fix_this1(branch, fixer, to_stored, is_ok, whom, orbit)
     return
 
   end select
@@ -283,11 +284,12 @@ end subroutine fix_this
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-subroutine fix_this1(branch, fixer, orbit, to_stored, is_ok, whom)
+subroutine fix_this1(branch, fixer, to_stored, is_ok, whom, orbit)
 
 type (branch_struct) branch
 type (ele_struct) fixer
-type (coord_struct) :: orbit
+type (coord_struct), optional :: orbit
+type (coord_struct) this_orb
 
 real(rp) gc2
 logical to_stored, is_ok
@@ -295,22 +297,28 @@ character(*) whom
 
 !
 
+if (present(orbit)) then
+  this_orb = orbit
+else
+  this_orb = coord_struct()
+endif
+
 if (to_stored) then
   select case (whom)
-  case ('spin_x');          fixer%value(spin_x_stored$)       = orbit%spin(1)
-  case ('spin_y');          fixer%value(spin_y_stored$)       = orbit%spin(2)
-  case ('spin_z');          fixer%value(spin_z_stored$)       = orbit%spin(3)
+  case ('spin_x');          fixer%value(spin_x_stored$)       = this_orb%spin(1)
+  case ('spin_y');          fixer%value(spin_y_stored$)       = this_orb%spin(2)
+  case ('spin_z');          fixer%value(spin_z_stored$)       = this_orb%spin(3)
 
   case ('start_spin_x');    fixer%value(spin_x_stored$)       = branch%particle_start%spin(1)
   case ('start_spin_y');    fixer%value(spin_y_stored$)       = branch%particle_start%spin(2)
   case ('start_spin_z');    fixer%value(spin_z_stored$)       = branch%particle_start%spin(3)
 
-  case ('x');               fixer%value(x_stored$)            = orbit%vec(1)
-  case ('px');              fixer%value(px_stored$)           = orbit%vec(2)
-  case ('y');               fixer%value(y_stored$)            = orbit%vec(3)
-  case ('py');              fixer%value(py_stored$)           = orbit%vec(4)
-  case ('z');               fixer%value(z_stored$)            = orbit%vec(5)
-  case ('pz');              fixer%value(pz_stored$)           = orbit%vec(6)
+  case ('x');               fixer%value(x_stored$)            = this_orb%vec(1)
+  case ('px');              fixer%value(px_stored$)           = this_orb%vec(2)
+  case ('y');               fixer%value(y_stored$)            = this_orb%vec(3)
+  case ('py');              fixer%value(py_stored$)           = this_orb%vec(4)
+  case ('z');               fixer%value(z_stored$)            = this_orb%vec(5)
+  case ('pz');              fixer%value(pz_stored$)           = this_orb%vec(6)
 
   case ('start_x');         fixer%value(x_stored$)            = branch%particle_start%vec(1)
   case ('start_px');        fixer%value(px_stored$)           = branch%particle_start%vec(2)
@@ -359,20 +367,20 @@ if (to_stored) then
 
 else
   select case (whom)
-  case ('spin_x');          orbit%spin(1)                     = fixer%value(spin_x_stored$)
-  case ('spin_y');          orbit%spin(2)                     = fixer%value(spin_y_stored$)
-  case ('spin_z');          orbit%spin(3)                     = fixer%value(spin_z_stored$)
+  case ('spin_x');          this_orb%spin(1)                     = fixer%value(spin_x_stored$)
+  case ('spin_y');          this_orb%spin(2)                     = fixer%value(spin_y_stored$)
+  case ('spin_z');          this_orb%spin(3)                     = fixer%value(spin_z_stored$)
 
   case ('start_spin_x');    branch%particle_start%spin(1)     = fixer%value(spin_x_stored$)
   case ('start_spin_y');    branch%particle_start%spin(2)     = fixer%value(spin_y_stored$)
   case ('start_spin_z');    branch%particle_start%spin(3)     = fixer%value(spin_z_stored$)
 
-  case ('x');               orbit%vec(1)                      = fixer%value(x_stored$)
-  case ('px');              orbit%vec(2)                      = fixer%value(px_stored$)
-  case ('y');               orbit%vec(3)                      = fixer%value(y_stored$)
-  case ('py');              orbit%vec(4)                      = fixer%value(py_stored$)
-  case ('z');               orbit%vec(5)                      = fixer%value(z_stored$)
-  case ('pz');              orbit%vec(6)                      = fixer%value(pz_stored$)
+  case ('x');               this_orb%vec(1)                      = fixer%value(x_stored$)
+  case ('px');              this_orb%vec(2)                      = fixer%value(px_stored$)
+  case ('y');               this_orb%vec(3)                      = fixer%value(y_stored$)
+  case ('py');              this_orb%vec(4)                      = fixer%value(py_stored$)
+  case ('z');               this_orb%vec(5)                      = fixer%value(z_stored$)
+  case ('pz');              this_orb%vec(6)                      = fixer%value(pz_stored$)
 
   case ('start_x');         branch%particle_start%vec(1)      = fixer%value(x_stored$)
   case ('start_px');        branch%particle_start%vec(2)      = fixer%value(px_stored$)
