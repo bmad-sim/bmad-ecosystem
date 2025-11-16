@@ -12,7 +12,7 @@ type (coord_struct), allocatable :: orbit(:), orbit2(:)
 real(rp) :: chrom_a, chrom_b, delta_e = 0
 integer n_loc
 logical ok
-
+character(2) :: run_str(3) = ['R1', 'R2', 'R3']
 
 !
 
@@ -47,7 +47,7 @@ integer indx, nn
 
 nn = lat%n_ele_track
 fixer = lat2%ele(fixer%ix_ele)
-ok = transfer_fixer_params(fixer, orbit2(fixer%ix_ele), .true.)
+ok = transfer_fixer_params(fixer, .true., orbit2(fixer%ix_ele))
 call set_active_fixer(fixer)
 
 if (fixer%ix_ele /= 0) call init_this_ele(lat%ele(0))
@@ -102,7 +102,7 @@ character(20) str
 
 !
 
-str = int_str(indx) // '-' // int_str(ix_ele) // '-' // mode // '-Twiss-'
+str = run_str(indx) // '-E' // int_str(ix_ele) // '-' // mode // '-Twiss-'
 
 write (1, '(2a, es16.8)') quote(trim(str) // 'beta'), ' ABS 1e-5', t1%beta - t2%beta
 write (1, '(2a, es16.8)') quote(trim(str) // 'alpha'), ' ABS 1e-5', t1%alpha - t2%alpha
@@ -130,7 +130,7 @@ character(20) str
 
 !
 
-str = int_str(indx) // '-' // int_str(ix_ele) // '-' // mode // '-Disp-'
+str = run_str(indx) // '-' // int_str(ix_ele) // '-' // mode // '-Disp-'
 
 write (1, '(2a, es16.8)') quote(trim(str) // 'eta'), ' ABS 1e-5', t1%eta - t2%eta
 write (1, '(2a, es16.8)') quote(trim(str) // 'etap'), ' ABS 1e-5', t1%etap - t2%etap
@@ -151,7 +151,7 @@ character(20) str
 
 !
 
-str = int_str(indx) // '-' // int_str(ix_ele) // '-Orbit-'
+str = run_str(indx) // '-' // int_str(ix_ele) // '-Orbit-'
 
 write (1, '(2a, es16.8)') quote(trim(str) // 'X'),  ' ABS 1E-10', orb1%vec(1) - orb2%vec(1)
 write (1, '(2a, es16.8)') quote(trim(str) // 'PX'), ' ABS 1E-10', orb1%vec(2) - orb2%vec(2)

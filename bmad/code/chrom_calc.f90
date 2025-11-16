@@ -54,7 +54,7 @@ real(rp), optional :: pz
 real time0, time1
 
 integer, optional :: ix_branch
-integer nt, nm, stat, ix_br, ie, i0, ix_fix
+integer nt, nm, stat, ix_br, ie, ix_fix
 
 logical, optional, intent(out) :: err_flag
 logical err
@@ -104,7 +104,6 @@ else
 endif
 
 if (branch%param%geometry == closed$) then
-  i0 = 0
   orb_ptr(ix_fix)%vec(6) = pz0-dE_low
   if (present(low_E_orb)) then; call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err)
   else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
@@ -121,7 +120,6 @@ if (branch%param%geometry == closed$) then
   endif
 
 else
-  i0 = 1
   if (present(orb0)) then
     orb_ptr(ix_fix) = orb0
   else
@@ -160,27 +158,27 @@ call twiss_propagate_all (lat2, ix_br)
 low_tune_x = branch2%ele(nt)%a%phi / twopi
 low_tune_y = branch2%ele(nt)%b%phi / twopi
 
-branch%ele(i0:nm)%a%dbeta_dpz  = branch2%ele(i0:nm)%a%beta
-branch%ele(i0:nm)%b%dbeta_dpz  = branch2%ele(i0:nm)%b%beta
-branch%ele(i0:nm)%a%dalpha_dpz = branch2%ele(i0:nm)%a%alpha
-branch%ele(i0:nm)%b%dalpha_dpz = branch2%ele(i0:nm)%b%alpha
+branch%ele(0:nm)%a%dbeta_dpz  = branch2%ele(0:nm)%a%beta
+branch%ele(0:nm)%b%dbeta_dpz  = branch2%ele(0:nm)%b%beta
+branch%ele(0:nm)%a%dalpha_dpz = branch2%ele(0:nm)%a%alpha
+branch%ele(0:nm)%b%dalpha_dpz = branch2%ele(0:nm)%b%alpha
 
-branch%ele(i0:nm)%a%deta_dpz  = branch2%ele(i0:nm)%a%eta
-branch%ele(i0:nm)%b%deta_dpz  = branch2%ele(i0:nm)%b%eta
-branch%ele(i0:nm)%x%deta_dpz  = branch2%ele(i0:nm)%x%eta
-branch%ele(i0:nm)%y%deta_dpz  = branch2%ele(i0:nm)%y%eta
-branch%ele(i0:nm)%z%deta_dpz  = branch2%ele(i0:nm)%z%eta
+branch%ele(0:nm)%a%deta_dpz  = branch2%ele(0:nm)%a%eta
+branch%ele(0:nm)%b%deta_dpz  = branch2%ele(0:nm)%b%eta
+branch%ele(0:nm)%x%deta_dpz  = branch2%ele(0:nm)%x%eta
+branch%ele(0:nm)%y%deta_dpz  = branch2%ele(0:nm)%y%eta
+branch%ele(0:nm)%z%deta_dpz  = branch2%ele(0:nm)%z%eta
 
-branch%ele(i0:nm)%a%detap_dpz = branch2%ele(i0:nm)%a%etap
-branch%ele(i0:nm)%b%detap_dpz = branch2%ele(i0:nm)%b%etap
-branch%ele(i0:nm)%x%detap_dpz = branch2%ele(i0:nm)%x%etap
-branch%ele(i0:nm)%y%detap_dpz = branch2%ele(i0:nm)%y%etap
-branch%ele(i0:nm)%z%detap_dpz = branch2%ele(i0:nm)%z%etap
+branch%ele(0:nm)%a%detap_dpz = branch2%ele(0:nm)%a%etap
+branch%ele(0:nm)%b%detap_dpz = branch2%ele(0:nm)%b%etap
+branch%ele(0:nm)%x%detap_dpz = branch2%ele(0:nm)%x%etap
+branch%ele(0:nm)%y%detap_dpz = branch2%ele(0:nm)%y%etap
+branch%ele(0:nm)%z%detap_dpz = branch2%ele(0:nm)%z%etap
 
-branch%ele(i0:nm)%dc_mat_dpz(1,1)  = branch2%ele(i0:nm)%c_mat(1,1)
-branch%ele(i0:nm)%dc_mat_dpz(1,2)  = branch2%ele(i0:nm)%c_mat(1,2)
-branch%ele(i0:nm)%dc_mat_dpz(2,1)  = branch2%ele(i0:nm)%c_mat(2,1)
-branch%ele(i0:nm)%dc_mat_dpz(2,2)  = branch2%ele(i0:nm)%c_mat(2,2)
+branch%ele(0:nm)%dc_mat_dpz(1,1)  = branch2%ele(0:nm)%c_mat(1,1)
+branch%ele(0:nm)%dc_mat_dpz(1,2)  = branch2%ele(0:nm)%c_mat(1,2)
+branch%ele(0:nm)%dc_mat_dpz(2,1)  = branch2%ele(0:nm)%c_mat(2,1)
+branch%ele(0:nm)%dc_mat_dpz(2,2)  = branch2%ele(0:nm)%c_mat(2,2)
 
 ! Higher energy lattice
 
@@ -262,27 +260,27 @@ high_tune_y = branch2%ele(nt)%b%phi / twopi
 chrom_a = (high_tune_x - low_tune_x) / dE
 chrom_b = (high_tune_y - low_tune_y) / dE
 
-branch%ele(i0:nm)%a%dbeta_dpz  = (branch2%ele(i0:nm)%a%beta  - branch%ele(i0:nm)%a%dbeta_dpz) / dE
-branch%ele(i0:nm)%b%dbeta_dpz  = (branch2%ele(i0:nm)%b%beta  - branch%ele(i0:nm)%b%dbeta_dpz) / dE
-branch%ele(i0:nm)%a%dalpha_dpz = (branch2%ele(i0:nm)%a%alpha - branch%ele(i0:nm)%a%dalpha_dpz) / dE
-branch%ele(i0:nm)%b%dalpha_dpz = (branch2%ele(i0:nm)%b%alpha - branch%ele(i0:nm)%b%dalpha_dpz) / dE
+branch%ele(0:nm)%a%dbeta_dpz  = (branch2%ele(0:nm)%a%beta  - branch%ele(0:nm)%a%dbeta_dpz) / dE
+branch%ele(0:nm)%b%dbeta_dpz  = (branch2%ele(0:nm)%b%beta  - branch%ele(0:nm)%b%dbeta_dpz) / dE
+branch%ele(0:nm)%a%dalpha_dpz = (branch2%ele(0:nm)%a%alpha - branch%ele(0:nm)%a%dalpha_dpz) / dE
+branch%ele(0:nm)%b%dalpha_dpz = (branch2%ele(0:nm)%b%alpha - branch%ele(0:nm)%b%dalpha_dpz) / dE
 
-branch%ele(i0:nm)%a%deta_dpz  = (branch2%ele(i0:nm)%a%eta  - branch%ele(i0:nm)%a%deta_dpz) / dE
-branch%ele(i0:nm)%b%deta_dpz  = (branch2%ele(i0:nm)%b%eta  - branch%ele(i0:nm)%b%deta_dpz) / dE
-branch%ele(i0:nm)%x%deta_dpz  = (branch2%ele(i0:nm)%x%eta  - branch%ele(i0:nm)%x%deta_dpz) / dE
-branch%ele(i0:nm)%y%deta_dpz  = (branch2%ele(i0:nm)%y%eta  - branch%ele(i0:nm)%y%deta_dpz) / dE
-branch%ele(i0:nm)%z%deta_dpz  = (branch2%ele(i0:nm)%z%eta  - branch%ele(i0:nm)%z%deta_dpz) / dE
+branch%ele(0:nm)%a%deta_dpz  = (branch2%ele(0:nm)%a%eta  - branch%ele(0:nm)%a%deta_dpz) / dE
+branch%ele(0:nm)%b%deta_dpz  = (branch2%ele(0:nm)%b%eta  - branch%ele(0:nm)%b%deta_dpz) / dE
+branch%ele(0:nm)%x%deta_dpz  = (branch2%ele(0:nm)%x%eta  - branch%ele(0:nm)%x%deta_dpz) / dE
+branch%ele(0:nm)%y%deta_dpz  = (branch2%ele(0:nm)%y%eta  - branch%ele(0:nm)%y%deta_dpz) / dE
+branch%ele(0:nm)%z%deta_dpz  = (branch2%ele(0:nm)%z%eta  - branch%ele(0:nm)%z%deta_dpz) / dE
 
-branch%ele(i0:nm)%a%detap_dpz = (branch2%ele(i0:nm)%a%etap - branch%ele(i0:nm)%a%detap_dpz) / dE
-branch%ele(i0:nm)%b%detap_dpz = (branch2%ele(i0:nm)%b%etap - branch%ele(i0:nm)%b%detap_dpz) / dE
-branch%ele(i0:nm)%x%detap_dpz = (branch2%ele(i0:nm)%x%etap - branch%ele(i0:nm)%x%detap_dpz) / dE
-branch%ele(i0:nm)%y%detap_dpz = (branch2%ele(i0:nm)%y%etap - branch%ele(i0:nm)%y%detap_dpz) / dE
-branch%ele(i0:nm)%z%detap_dpz = (branch2%ele(i0:nm)%z%etap - branch%ele(i0:nm)%z%detap_dpz) / dE
+branch%ele(0:nm)%a%detap_dpz = (branch2%ele(0:nm)%a%etap - branch%ele(0:nm)%a%detap_dpz) / dE
+branch%ele(0:nm)%b%detap_dpz = (branch2%ele(0:nm)%b%etap - branch%ele(0:nm)%b%detap_dpz) / dE
+branch%ele(0:nm)%x%detap_dpz = (branch2%ele(0:nm)%x%etap - branch%ele(0:nm)%x%detap_dpz) / dE
+branch%ele(0:nm)%y%detap_dpz = (branch2%ele(0:nm)%y%etap - branch%ele(0:nm)%y%detap_dpz) / dE
+branch%ele(0:nm)%z%detap_dpz = (branch2%ele(0:nm)%z%etap - branch%ele(0:nm)%z%detap_dpz) / dE
 
-branch%ele(i0:nm)%dc_mat_dpz(1,1)  = (branch2%ele(i0:nm)%c_mat(1,1) - branch%ele(i0:nm)%dc_mat_dpz(1,1)) / dE
-branch%ele(i0:nm)%dc_mat_dpz(1,2)  = (branch2%ele(i0:nm)%c_mat(1,2) - branch%ele(i0:nm)%dc_mat_dpz(1,2)) / dE
-branch%ele(i0:nm)%dc_mat_dpz(2,1)  = (branch2%ele(i0:nm)%c_mat(2,1) - branch%ele(i0:nm)%dc_mat_dpz(2,1)) / dE
-branch%ele(i0:nm)%dc_mat_dpz(2,2)  = (branch2%ele(i0:nm)%c_mat(2,2) - branch%ele(i0:nm)%dc_mat_dpz(2,2)) / dE
+branch%ele(0:nm)%dc_mat_dpz(1,1)  = (branch2%ele(0:nm)%c_mat(1,1) - branch%ele(0:nm)%dc_mat_dpz(1,1)) / dE
+branch%ele(0:nm)%dc_mat_dpz(1,2)  = (branch2%ele(0:nm)%c_mat(1,2) - branch%ele(0:nm)%dc_mat_dpz(1,2)) / dE
+branch%ele(0:nm)%dc_mat_dpz(2,1)  = (branch2%ele(0:nm)%c_mat(2,1) - branch%ele(0:nm)%dc_mat_dpz(2,1)) / dE
+branch%ele(0:nm)%dc_mat_dpz(2,2)  = (branch2%ele(0:nm)%c_mat(2,2) - branch%ele(0:nm)%dc_mat_dpz(2,2)) / dE
 
 if (present(err_flag)) err_flag = .false.
 if (.not. present(low_E_lat) .or. .not. present(high_E_lat)) call deallocate_lat_pointers(temp_lat)
