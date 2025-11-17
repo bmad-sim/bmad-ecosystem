@@ -363,10 +363,6 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 ! first_track_edge$ is the edge a particle enters the element when tracking. 
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
-! first_time_edge$ is the track edge with the particle moving forward in time.
-! second_time_edge$ is the track edge with the particle moving forward in time.
-! If a particle is moving forward in time then first_track_edge$ = first_time_edge$, second_track_edge$ = second_time_edge$.
-! And vice versa for a particle moving backwards in time.
 
 
 integer, parameter :: none_pt$ = 4
@@ -377,7 +373,6 @@ integer, parameter :: upstream_end$ = 1, downstream_end$ = 2
 integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13 ! Must be different from upstream_end$, downstream_end$
-integer, parameter :: first_time_edge$ = 14, second_time_edge$ = 15
 
 character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
       'Entrance_end', 'Exit_End', 'Center', 'None']
@@ -1795,7 +1790,7 @@ integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
 integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
 integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15, rf_frequency$ = 15
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16, rf_wavelength$ = 16
-integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
+integer, parameter :: sig_vx$ = 17
 ! longitudinal_mode$ is near to rf_wavelength$ for type_ele to print rf_bucket_length near rf_wavelength$
 integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, ks$ = 18
 integer, parameter :: sig_e$ = 19, sig_pz$ = 19, autoscale_amplitude$ = 19
