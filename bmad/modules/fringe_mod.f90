@@ -246,7 +246,7 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), k1_tane
+real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), w(6), k1_tane
 real(rp) gt2, gs2, c_dir, k1, kmat(6,6), e_factor, fg_factor
 real(rp) dx, dpx, dy, dpy, dz, td
 integer particle_at, element_end, fringe_type
@@ -297,10 +297,32 @@ if (entering_element(orb, particle_at)) then
             + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
             + (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 - v(2)*v(3)**2 * gs2)
 
+  ! With backwards time tracking, to be correct, the equations for dx, etc. would need to be inverted. 
+  ! This would be extremely messy (would need to solve simultaneous quadratic equations).
+  ! So instead, the assumption is made that the changes are small enough so that a first order perturbation 
+  ! correction is accurate enough.
+  ! Note: matrices are always constructed using forward time tracking.
+  w = v
+  if (td == -1) then
+    w(1) = v(1) + td * dx
+    w(2) = v(2) + td * (dpx + gt * v(1))
+    w(3) = v(3) + td * dy
+    w(4) = v(4) + td * (dpy - gt * v(3))
+    w(5) = v(5) + td * dz
+
+    dx  = (-gt2 * w(1)**2 + gs2 * w(3)**2) * e_factor / 2
+    dpx = (gt * g_tot * (1 + 2 * tan_e**2) * w(3)**2 / 2 + gt2 * (w(1) * w(2) - w(3) * w(4)) + k1_tane * (w(1)**2 - w(3)**2)) * e_factor
+    dy  = gt2 * w(1) * w(3) * e_factor
+    dpy = (fg_factor * w(3) - gt2 * w(1) * w(4) - (g_tot + gt2) * w(2) * w(3) - 2 * k1_tane * w(1) * w(3)) * e_factor
+    dz = e_factor**2 * 0.5_rp * (w(3)**2 * fg_factor &
+              + w(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * w(1)*w(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
+              + (w(1)**2*w(2) - 2.0_rp * w(1)*w(3)*w(4)) * gt2 - w(2)*w(3)**2 * gs2)
+  endif
+
   orb%vec(1) = v(1) + td * dx
-  orb%vec(2) = v(2) + td * (dpx + gt * v(1))
+  orb%vec(2) = v(2) + td * (dpx + gt * w(1))
   orb%vec(3) = v(3) + td * dy
-  orb%vec(4) = v(4) + td * (dpy - gt * v(3))
+  orb%vec(4) = v(4) + td * (dpy - gt * w(3))
   orb%vec(5) = v(5) + td * dz
 
   if (logic_option(.false., make_matrix)) then
@@ -330,10 +352,32 @@ else
             + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
             - (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 + v(2)*v(3)**2 * gs2)
 
+  ! With backwards time tracking, to be correct, the equations for dx, etc. would need to be inverted. 
+  ! This would be extremely messy (would need to solve simultaneous quadratic equations).
+  ! So instead, the assumption is made that the changes are small enough so that a first order perturbation 
+  ! correction is accurate enough.
+  ! Note: matrices are always constructed using forward time tracking.
+  w = v
+  if (td == -1) then
+    w(1) = v(1) + td * dx
+    w(2) = v(2) + td * (dpx + gt * w(1))
+    w(3) = v(3) + td * dy
+    w(4) = v(4) + td * (dpy - gt * w(3))
+    w(5) = v(5) + td * dz
+
+    dx  = (gt2 * w(1)**2 - gs2 * w(3)**2) * e_factor / 2
+    dpx = (gt2 * (w(3) * w(4) - w(1) * w(2)) + k1_tane * (w(1)**2 - w(3)**2) - gt * gt2 * (w(1)**2 + w(3)**2) / 2) * e_factor
+    dy  = -gt2 * w(1) * w(3) * e_factor
+    dpy = (fg_factor * w(3) + gt2 * w(1) * w(4) + (g_tot + gt2) * w(2) * w(3) + (gt * gs2 - 2 * k1_tane) * w(1) * w(3)) * e_factor
+    dz = e_factor**2 * 0.5_rp * (w(3)**2 * fg_factor &
+              + w(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * w(1)*w(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
+              - (w(1)**2*w(2) - 2.0_rp * w(1)*w(3)*w(4)) * gt2 + w(2)*w(3)**2 * gs2)
+  endif
+
   orb%vec(1) = v(1) + td * dx
-  orb%vec(2) = v(2) + td * (dpx + gt * v(1))
+  orb%vec(2) = v(2) + td * (dpx + gt * w(1))
   orb%vec(3) = v(3) + td * dy
-  orb%vec(4) = v(4) + td * (dpy - gt * v(3))
+  orb%vec(4) = v(4) + td * (dpy - gt * w(3))
   orb%vec(5) = v(5) + td * dz
 
   if (logic_option(.false., make_matrix)) then

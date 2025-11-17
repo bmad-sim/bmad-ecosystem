@@ -1,4 +1,4 @@
-no_digested
+!!no_digested
 
 parameter[geometry] = Open
 
@@ -28,8 +28,9 @@ beginning[detap_dpz_x] = -2e-2
 beginning[deta_dpz_y] = 3e-2
 beginning[detap_dpz_y] = -4e-2
 
-particle_start[y] = 2e-3
-particle_start[py] = 1e-4
+f = 1
+particle_start[y] = 2e-3*f
+particle_start[py] = 1e-4*f
 
 particle_start[spin_x] = 0.3
 particle_start[spin_y] = 0.4
@@ -40,7 +41,7 @@ particle_start[spin_z] = 0.5
 
 S1: Sextupole, L =  1.0E-2
 D: Drift, L =  2.9E-1
-Q1: Quadrupole, L =  5.0E-1, TILT =  5.0E-2, K1 =  5.9E-1, hkick = 1e-3, vkick = 2e-3
+Q1: Quadrupole, L =  5.0E-1, TILT =  5.0E-2, K1 =  5.9E-1, hkick = 1e-3*f, vkick = 2e-3*f
 B: SBend, L =  3.0, G =  1.3E-1, E1 =  7.0E-2, E2 =  7.0E-2
 Q2: Quadrupole, L =  5.0E-1, K1 = -5.0E-1
 S2: Sextupole, L =  1.0E-2

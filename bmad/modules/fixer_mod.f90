@@ -23,10 +23,10 @@ contains
 !   fixer         -- ele_struct: Fixer element to make active.
 !   is_on         -- logical, optional: If True (default), make this fixer the active element. 
 !                     If False, make the beginning element active.
-!   orbit         -- coord_struct, optional: Actual orbit. If not present, zero orbit is used.
 !
 ! Output:
 !   fixer         -- ele_struct: Element is now active.
+!   orbit         -- coord_struct, optional: Load with stored fixer phase space and spin values.
 !-
 
 subroutine set_active_fixer(fixer, is_on, orbit)
