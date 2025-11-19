@@ -72,7 +72,7 @@ integer :: edge
 
 real(rp) int_gx, int_gy, this_ran, mc2, int_g2, int_g3, ran6(6)
 real(rp) gamma_0, dE_p, fact_d, fact_f, p_spin, spin_norm(3), norm, rel_p, c_radius
-real(rp) damp_mat(6,6), stoc_mat(6,6), ref_orb(6)
+real(rp) damp_mat(6,6), stoc_mat(6,6), ref_orb(6), rr
 real(rp), parameter :: rad_fluct_const = 55.0_rp * h_bar_planck * c_light / (24.0_rp * sqrt_3)
 real(rp), parameter :: spin_const = 5.0_rp * sqrt_3 * h_bar_planck * c_light / 16.0_rp
 real(rp), parameter :: damp_const = 2.0_rp / 3.0_rp
@@ -109,8 +109,9 @@ else
 endif
 
 if (bmad_com%radiation_damping_on) then
-  orbit%vec = orbit%vec + bmad_com%synch_rad_scale * matmul(rad_map%damp_dmat, orbit%vec - rad_map%ref_orb)
-  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + bmad_com%synch_rad_scale * rad_map%xfer_damp_vec
+  rr = orbit%time_dir * bmad_com%synch_rad_scale 
+  orbit%vec = orbit%vec + rr * matmul(rad_map%damp_dmat, orbit%vec - rad_map%ref_orb)
+  if (.not. bmad_com%radiation_zero_average) orbit%vec = orbit%vec + rr * rad_map%xfer_damp_vec
 endif
 
 if (bmad_com%radiation_fluctuations_on) then

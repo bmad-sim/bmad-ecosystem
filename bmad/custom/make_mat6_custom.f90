@@ -14,7 +14,8 @@
 !
 ! Output:
 !   ele       -- Ele_struct: Element with transfer matrix.
-!     %mat6     -- 6x6 transfer matrix.
+!     %mat6(6,6)     -- 6x6 transfer matrix (first order part of the transport map).
+!     %vec6(6)       -- zeroth order part of the transport map.
 !   end_orb   -- Coord_struct: Coordinates at the end of element.
 !   err_flag  -- Logical: Set true if there is an error. False otherwise.
 !+

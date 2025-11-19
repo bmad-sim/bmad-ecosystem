@@ -48,6 +48,11 @@ if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
   return
 endif
 
+if (fixer%value(beta_a_stored$) <= 0 .or. fixer%value(beta_b_stored$) <= 0) then
+  call out_io(s_error$, r_name, 'Fixer element does not have beta_a or beta_b set!. Active fixer not set.')
+  return
+endif
+
 branch => fixer%branch
 on = logic_option(.true., is_on)
 

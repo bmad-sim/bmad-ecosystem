@@ -37,12 +37,19 @@ logical is_ok, err, is_default
 ele_str = word1
 u => tao_pointer_to_universe(ele_str)
 if (.not. associated(u)) return
+
 fixer => pointer_to_ele (u%model%lat, word1)
-if (.not. associated(fixer)) return
+
+if (.not. associated(fixer)) then
+  call out_io(s_error$, r_name, 'Fixer element not found: ' // ele_str)
+  return
+endif
+
 if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
   call out_io(s_error$, r_name, 'Element if not a fixer nor a beginning element: ' // ele_str)
   return
 endif
+
 branch => fixer%branch
 tao_branch => u%model%tao_branch(branch%ix_branch)
 

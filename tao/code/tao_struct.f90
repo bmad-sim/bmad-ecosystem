@@ -454,7 +454,7 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta_merit^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
-  real(rp) :: s_ref_offset = 0             ! Offset of the reference point. In development.
+  real(rp) :: ref_s_offset = 0             ! Offset of the reference point. In development.
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above

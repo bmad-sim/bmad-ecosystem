@@ -86,10 +86,10 @@ character(*), optional :: dflt_index
 
 character(20) :: r_name = 'tao_find_data'
 character(80) dat_name, component_name
-character(16), parameter :: real_components(19) = [character(16) :: &
+character(16), parameter :: real_components(20) = [character(16) :: &
              'model', 'base', 'design', 'meas', 'ref', 'old', &
              'model_value', 'base_value', 'design_value', 'meas_value', 'ref_value', 'old_value', &
-             'weight', 'invalid', 'invalid_value', 's_offset', 'delta_merit', 'merit', 'error_rms']
+             'weight', 'invalid', 'invalid_value', 's_offset', 'ref_s_offset', 'delta_merit', 'merit', 'error_rms']
 character(16), parameter :: logic_components(9) = [ &
              'exists    ', 'good_meas ', 'good_ref  ', 'good_user ', 'good_opt  ', &
              'good_plot ', 'good_base ', 'useit_opt ', 'useit_plot']
@@ -579,6 +579,8 @@ if (present(re_array) .and.  any(component_name == real_components)) then
         re_array(j)%r => d1%d(i)%delta_merit
       case ('s_offset')
         re_array(j)%r => d1%d(i)%s_offset
+      case ('ref_s_offset')
+        re_array(j)%r => d1%d(i)%ref_s_offset
       case default
         call out_io (s_fatal$, r_name, "INTERNAL ERROR: REAL DATA")
         call err_exit
