@@ -52,7 +52,7 @@
 !                          the energy adjusted so that vec(5) is the same 
 !                          at the beginning and at the end.
 !                     = 6 True closed orbit.
-!                     Default: Use 4 or 6 depending upon if RF is on or off.
+!                     Default: 4 if RF is off, 6 if RF is on.
 !   direction      -- Integer, optional: Direction of tracking. 
 !                       +1 --> forwad (default), -1 --> backward.
 !                       The closed orbit will be dependent on direction only

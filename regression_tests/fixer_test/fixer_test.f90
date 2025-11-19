@@ -154,14 +154,17 @@ character(20) str
 
 str = run_str(indx) // '-E' // int_str(ix_ele) // '-Orbit-'
 
-write (1, '(2a, es16.8)') quote(trim(str) // 'X'),  ' ABS 1E-10', orb1%vec(1) - orb2%vec(1)
-write (1, '(2a, es16.8)') quote(trim(str) // 'PX'), ' ABS 1E-10', orb1%vec(2) - orb2%vec(2)
-write (1, '(2a, es16.8)') quote(trim(str) // 'Y'), ' ABS 1E-10', orb1%vec(3) - orb2%vec(3)
-write (1, '(2a, es16.8)') quote(trim(str) // 'PY'), ' ABS 1E-10', orb1%vec(4) - orb2%vec(4)
-write (1, '(2a, es16.8)') quote(trim(str) // 'Z'), ' ABS 1E-10', orb1%vec(5) - orb2%vec(5)
-write (1, '(2a, es16.8)') quote(trim(str) // 'PZ'), ' ABS 1E-10', orb1%vec(6) - orb2%vec(6)
-write (1, '(2a, es16.8)') quote(trim(str) // 'T'), ' ABS 1E-10', orb1%t - orb2%t
+write (1, '(2a, es16.8)') quote(trim(str) // 'X'),   ' ABS 1E-10', orb1%vec(1) - orb2%vec(1)
+write (1, '(2a, es16.8)') quote(trim(str) // 'PX'),  ' ABS 1E-10', orb1%vec(2) - orb2%vec(2)
+write (1, '(2a, es16.8)') quote(trim(str) // 'Y'),   ' ABS 1E-10', orb1%vec(3) - orb2%vec(3)
+write (1, '(2a, es16.8)') quote(trim(str) // 'PY'),  ' ABS 1E-10', orb1%vec(4) - orb2%vec(4)
+write (1, '(2a, es16.8)') quote(trim(str) // 'Z'),   ' ABS 1E-10', orb1%vec(5) - orb2%vec(5)
+write (1, '(2a, es16.8)') quote(trim(str) // 'PZ'),  ' ABS 1E-10', orb1%vec(6) - orb2%vec(6)
+write (1, '(2a, es16.8)') quote(trim(str) // 'T'),   ' ABS 1E-10', orb1%t - orb2%t
 write (1, '(2a, es16.8)') quote(trim(str) // 'P0C'), ' ABS 1E-10', orb1%p0c - orb2%p0c
+write (1, '(2a, es16.8)') quote(trim(str) // 'Spin-X'), ' ABS 1E-10', orb1%spin(1) - orb2%spin(1)
+write (1, '(2a, es16.8)') quote(trim(str) // 'Spin-Y'), ' ABS 1E-10', orb1%spin(2) - orb2%spin(2)
+write (1, '(2a, es16.8)') quote(trim(str) // 'Spin-Z'), ' ABS 1E-10', orb1%spin(3) - orb2%spin(3)
 
 end subroutine orbit_delta_write
 

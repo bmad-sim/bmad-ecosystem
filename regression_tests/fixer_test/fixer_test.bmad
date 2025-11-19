@@ -2,8 +2,10 @@
 
 parameter[geometry] = Open
 
-parameter[p0c]                      =  1.0E6*1e6
+parameter[p0c]                      =  1.0E10
 parameter[particle]                 = Positron
+bmad_com[spin_tracking_on] = T
+bmad_com[radiation_damping_on] = T
 bmad_com[spin_tracking_on] = T
 
 beginning[beta_a]       =  1.1E1
@@ -42,7 +44,7 @@ particle_start[spin_z] = 0.5
 S1: Sextupole, L =  1.0E-2
 D: Drift, L =  2.9E-1
 Q1: Quadrupole, L =  5.0E-1, TILT =  5.0E-2, K1 =  5.9E-1, hkick = 1e-3*f, vkick = 2e-3*f
-B: SBend, L =  3.0, G =  1.3E-1, E1 =  7.0E-2, E2 =  7.0E-2
+B: SBend, L = 3.0, G =  1.3E-1, E2 = 7.0E-1
 Q2: Quadrupole, L =  5.0E-1, K1 = -5.0E-1
 S2: Sextupole, L =  1.0E-2
 Lc: LCavity, L =  1.1, VOLTAGE =  1.0E6*1e-10, phi0 = 0.1,
@@ -58,6 +60,6 @@ F2: Fixer
 ! Lattice lines
 
 
-RING: line = ( S1, D, Q1, D, Lc, B, D, Q2, D, F1, S2, Lc, F2, B)
+RING: line = (S1, D, Q1, D, Lc, B, D, Q2, D, F1, S2, Lc, F2, B)
 
 use, RING
