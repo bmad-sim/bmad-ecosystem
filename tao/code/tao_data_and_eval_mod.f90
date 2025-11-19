@@ -154,7 +154,7 @@ else
 
   ix = index(ele_name, '->')
   if (ix /= 0) then
-    offset_str = name(ix+2:)
+    offset_str = ele_name(ix+2:)
     ele_name = ele_name(:ix-1)
   endif
 
