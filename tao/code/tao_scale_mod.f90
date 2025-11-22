@@ -386,8 +386,10 @@ if (graph%type == 'floor_plan') then
     if (ix /= -2 .and. ix /= iu) cycle
     lat => s%u(iu)%model%lat
     do ib = 0, ubound(lat%branch, 1)
-      do i = 0, lat%branch(ib)%n_ele_track
+      do i = 0, lat%branch(ib)%n_ele_max
         ele => lat%branch(ib)%ele(i)
+        if (ele%lord_status /= not_a_lord$ .and. ele%lord_status /= super_lord$) cycle ! Ignore overlays, etc.
+        if (ele%slave_status == super_slave$) cycle
         call tao_floor_to_screen_coords (graph, ele%floor, end)
         if (end%r(1) > graph%x%max .or. end%r(1) < graph%x%min) cycle
         this_min = min(this_min, end%r(2))
