@@ -268,6 +268,27 @@ if (data_source == 'beam' .and. .not. s%com%have_tracked_beam) then
   return
 endif
 
+!------------
+! Rad int calc needed
+
+if (data_source == 'lat') then
+  select case (head_data_type)
+  case ('rad_int.', 'apparent_emit.x', 'norm_apparent_emit.x', 'damp.', 'emit.', 'norm_emit.')
+    if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
+      if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
+        s%com%force_rad_int_calc = .true.
+        u%calc%lattice = .true.
+        call tao_lattice_calc(ok)
+      endif
+
+      if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
+        call tao_set_invalid (datum, 'Radiation integral calc failed.', why_invalid, print_err = print_err)
+        return
+      endif
+    endif
+  end select
+endif
+
 !-------------------------------------------------------------
 ! Case where evaluation point not at the end of the element.
 
@@ -2341,19 +2362,6 @@ case ('rad_int.')
   endif
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
-
-  if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
-    if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
-      s%com%force_rad_int_calc = .true.
-      u%calc%lattice = .true.
-      call tao_lattice_calc(ok)
-    endif
-
-    if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
-      call tao_set_invalid (datum, 'Radiation integral calc failed.', why_invalid, print_err = print_err)
-      return
-    endif
-  endif
 
   branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
   branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)

@@ -78,10 +78,9 @@ end subroutine taylor_clean
 ! The call would be:
 !   type (taylor_struct) bmad_taylor(6)      ! Taylor Map
 !   ...
-!   coef = taylor_coef (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ]) or  
-!   coef = taylor_coef (bmad_taylor(3), taylor_expn([6,6]))
+!   coef = taylor_coef (bmad_taylor(3), [0, 0, 0, 0, 0, 2 ])
 !
-! Input (taylor_coef1):
+! Input:
 !   bmad_taylor -- Taylor_struct: Taylor series.
 !   exp(6)      -- Integer: Array of exponent indices.
 !
