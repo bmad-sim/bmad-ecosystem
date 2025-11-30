@@ -609,7 +609,6 @@ mode%b%synch_int(6) = i6b
 
 if (branch%param%geometry == closed$) then
   if (i2 /= 0) then
-
     mode%a%emittance         = const_q * gamma2_factor * i5a / (i2 - i4a)
     mode%a%emittance_no_vert = mode%a%emittance
     mode%b%emittance         = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
@@ -625,7 +624,6 @@ if (branch%param%geometry == closed$) then
     else
       mode%sigE_E = 1d30  ! Something large
     endif
-
   endif
 
   mode%a%alpha_damp = energy_loss * mode%a%j_damp / (2 * energy)
