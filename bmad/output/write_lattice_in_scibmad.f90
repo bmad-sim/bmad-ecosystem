@@ -74,7 +74,7 @@ scibmad_ele_type(multipole$)            = 'Multipole'
 scibmad_ele_type(ab_multipole$)         = 'Multipole'
 scibmad_ele_type(solenoid$)             = 'Solenoid'
 scibmad_ele_type(patch$)                = 'Patch'
-scibmad_ele_type(lcavity$)              = 'LCavity'
+scibmad_ele_type(lcavity$)              = 'RFCavity'
 scibmad_ele_type(null_ele$)             = 'NullEle'
 scibmad_ele_type(beginning_ele$)        = 'BeginningEle'
 scibmad_ele_type(def_line$)             = '!Line'
@@ -153,7 +153,7 @@ do ib = 0, ubound(lat%branch, 1)
       lord => pointer_to_lord(ele, 1)
       slave => pointer_to_slave(lord, 1)
       slave2 => pointer_to_slave(lord, lord%n_slave)
-      write (iu, '(2(a, i0), 2a)') '@ele slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
+      write (iu, '(2(a, i0), 2a)') '@eles slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
       cycle
     endif
 
@@ -169,7 +169,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ie == 0) ele%name = 'begin' // int_str(ib+1)
     if (ie == branch%n_ele_track .and. ele%name == 'END') ele%name = 'end' // int_str(ib+1)
-    line = '@ele ' // trim(downcase(ele%name)) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
+    line = '@eles ' // trim(downcase(ele%name)) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
 
     if (ie == 0) then  ! Currently not used since ie starts at 1.
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
@@ -192,7 +192,6 @@ do ib = 0, ubound(lat%branch, 1)
 
     endif
 
-    if (ele%field_master) write (line, '(3a)') trim(line), ', field_master = ', jbool(ele%field_master)
     if (.not. ele%is_on) write (line, '(3a)') trim(line), ', is_on = ', jbool(ele%is_on)
 
     !
@@ -211,12 +210,11 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (ele%value(g$) /= 0)  line = trim(line) // ', g = ' // re_str(ele%value(g$))
-      if (ele%value(ref_tilt$) /= 0)  line = trim(line) // ', ref_tilt = ' // re_str(ele%value(ref_tilt$))
+      if (ele%value(ref_tilt$) /= 0)  line = trim(line) // ', tilt_ref = ' // re_str(ele%value(ref_tilt$))
       if (ele%value(roll$) /= 0)  line = trim(line) // ', roll = ' // re_str(ele%value(roll$))
-      if (ele%value(fint$) /= 0)  line = trim(line) // ', fint1 = ' // re_str(ele%value(fint$))
-      if (ele%value(fintx$) /= 0) line = trim(line) // ', fint2 = ' // re_str(ele%value(fintx$))
-      if (ele%value(hgap$) /= 0)  line = trim(line) // ', hgap1 = ' // re_str(ele%value(hgap$))
-      if (ele%value(hgapx$) /= 0) line = trim(line) // ', hgap2 = ' // re_str(ele%value(hgapx$))
+      !!! if (ele%value(fint$)*ele%value(hgap$) /= 0)    line = trim(line) // ', edge_int1 = ' // re_str(ele%value(fint$)*ele%value(hgap$))
+      !!! if (ele%value(fintx$)*ele%value(hgapx$) /= 0)  line = trim(line) // ', edge_int2 = ' // re_str(ele%value(fintx$)*ele%value(hgapx$))
+      print *, 'BEND EDGE_INT NOT YET INCLUDED!'
 
     elseif (has_attribute(ele, 'L')) then
       if (length /= 0) line = trim(line) // ', L = ' // re_str(length)
@@ -258,10 +256,10 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (has_attribute(ele, 'X1_LIMIT')) then
-      if (ele%value(x1_limit$) /= 0 .or. ele%value(x2_limit$) /= 0) line = trim(line) // 'x_limit = [' // &
-                trim(aper_str(-ele%value(x1_limit$))) // ', ' // trim(aper_str(ele%value(x2_limit$))) // ']'
-      if (ele%value(y1_limit$) /= 0 .or. ele%value(y2_limit$) /= 0) line = trim(line) // 'y_limit = [' // &
-                trim(aper_str(-ele%value(y1_limit$))) // ', ' // trim(aper_str(ele%value(y2_limit$))) // ']'
+      if (ele%value(x1_limit$) /= 0) line = trim(line) // ', x1_limit = ' // trim(aper_str(-ele%value(x1_limit$)))
+      if (ele%value(x2_limit$) /= 0) line = trim(line) // ', x2_limit = ' // trim(aper_str(ele%value(x2_limit$)))
+      if (ele%value(y1_limit$) /= 0) line = trim(line) // ', y1_limit = ' // trim(aper_str(-ele%value(y1_limit$)))
+      if (ele%value(y2_limit$) /= 0) line = trim(line) // ', y2_limit = ' // trim(aper_str(ele%value(y2_limit$)))
     endif
 
     !
@@ -270,8 +268,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(x_offset$) /= 0)  line = trim(line) // ', x_offset = ' // re_str(ele%value(x_offset$))
       if (ele%value(y_offset$) /= 0)  line = trim(line) // ', y_offset = ' // re_str(ele%value(y_offset$))
       if (ele%value(z_offset$) /= 0)  line = trim(line) // ', z_offset = ' // re_str(ele%value(z_offset$))
-      if (ele%value(x_pitch$) /= 0)  line = trim(line) // ', x_pitch = ' // re_str(ele%value(x_pitch$))
-      if (ele%value(y_pitch$) /= 0)  line = trim(line) // ', y_pitch = ' // re_str(ele%value(y_pitch$))
+      if (ele%value(x_pitch$) /= 0)  line = trim(line) // ', y_rot = ' // re_str(-ele%value(x_pitch$))
+      if (ele%value(y_pitch$) /= 0)  line = trim(line) // ', x_rot = ' // re_str(ele%value(y_pitch$))
     endif
 
     if (has_attribute(ele, 'TILT')) then
@@ -291,16 +289,14 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (ele%key == lcavity$) then
-      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', frequency = ' // re_str(ele%value(rf_frequency$))
-      if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage_ref = ' // re_str(ele%value(voltage$))
-      if (ele%value(voltage_err$) /= 0)  line = trim(line) // ', voltage_err = ' // re_str(ele%value(voltage_err$))
-      if (ele%value(phi0$) /= 0)  line = trim(line) // ', phase_ref = ' // re_str(ele%value(phi0$))
-      if (ele%value(phi0_err$) /= 0)  line = trim(line) // ', phase_err = ' // re_str(ele%value(phi0_err$))
+      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
+      if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$) + ele%value(voltage_err$))
+      if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$) + ele%value(phi0_err$))
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
       if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$))
-      if (ele%value(phi0$) /= 0)  line = trim(line) // ', phase = ' // re_str(ele%value(phi0$))
+      if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$))
     endif
 
 !!    if (has_attribute(ele, 'N_CELL')) then
@@ -314,9 +310,9 @@ do ib = 0, ubound(lat%branch, 1)
 
     !
 
-    if (ele%type /= ' ') line = trim(line) // ', type = ' // quote(ele%type)
+    if (ele%type /= ' ') line = trim(line) // ', label = ' // quote(ele%type)
     if (ele%alias /= ' ') line = trim(line) // ', alias = ' // quote(ele%alias)
-    if (associated(ele%descrip)) line = trim(line) // ', descrip = ' // quote(ele%descrip)
+    if (associated(ele%descrip)) line = trim(line) // ', description = ' // quote(ele%descrip)
 
     !
 
@@ -443,27 +439,32 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   !!! line = line(:len_trim(line)-1) // '], geometry = ' // trim(downcase(geometry_name(branch%param%geometry))) // ')'
-  line = line(:len_trim(line)-1) // ']; R_ref = ' // &
-                    trim(re_str(branch%ele(0)%value(p0c$)/charge_of(branch%param%particle))) // &
+  !!! line = line(:len_trim(line)-1) // ']; R_ref = ' // &
+  !!!                  trim(re_str(branch%ele(0)%value(p0c$)/charge_of(branch%param%particle))) // &
+  !!!                  ', species_ref = Species(' // quote(openpmd_species_name(branch%param%particle)) // '))'
+  line = line(:len_trim(line)-1) // ']; pc_ref = ' // trim(re_str(branch%ele(0)%value(p0c$))) // &
                     ', species_ref = Species(' // quote(openpmd_species_name(branch%param%particle)) // '))'
+
   call write_lat_line (line, iu, .true., scibmad = .true.)
 enddo
 
 ! Define lat
 
-line = 'lat = expand(' // quote(downcase(lat%use_name)) // ', ['
-do ib = 0, ubound(lat%branch, 1)
-  branch => lat%branch(ib)
-  if (branch%ix_from_branch > -1) cycle
-  name = downcase(branch%name)
-  if (name == '') name = 'lat_line'
-  line = trim(line) // ', ' // name
-enddo
+if (.false.) then
+  line = 'lat = expand(' // quote(downcase(lat%use_name)) // ', ['
+  do ib = 0, ubound(lat%branch, 1)
+    branch => lat%branch(ib)
+    if (branch%ix_from_branch > -1) cycle
+    name = downcase(branch%name)
+    if (name == '') name = 'lat_line'
+    line = trim(line) // ', ' // name
+  enddo
 
-ix = index(line, '[, ')
-line = line(:ix) // trim(line(ix+3:)) // '])'
-write (iu, '(a)')
-write (iu, '(a)') trim(line)
+  ix = index(line, '[, ')
+  line = line(:ix) // trim(line(ix+3:)) // '])'
+  write (iu, '(a)')
+  write (iu, '(a)') trim(line)
+endif
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
