@@ -3100,6 +3100,8 @@ case ('ele:head')
     nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      lord%alias
     if (associated(lord%descrip)) then
       nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',    lord%descrip
+    else
+      nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';'
     endif
   else
     can_vary = (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= super_slave$ .and. ele%ix_ele /= 0)
@@ -3107,6 +3109,8 @@ case ('ele:head')
     nl=incr(nl); write (li(nl), amt2) 'alias;STR;', can_vary, ';',      ele%alias
     if (associated(ele%descrip)) then
       nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';',    ele%descrip
+    else
+      nl=incr(nl); write (li(nl), amt2) 'descrip;STR;', can_vary, ';'
     endif
   endif
 
