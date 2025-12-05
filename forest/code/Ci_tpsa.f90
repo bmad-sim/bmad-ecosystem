@@ -50,7 +50,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   private liebraquaternion,liebraso3,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
   private NO,ND,ND2,NP,NDPT,NV,ndptb,rf,c_real_spinmatrix,c_taylor_spinmatrix
-  private c_concat_c_uni_ray,c_concat_c_uni_rays,c_EQUALVECqua
+  private c_concat_c_uni_ray,c_concat_c_uni_rays,c_EQUALVECqua 
   integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf
   private nd_used
   integer nd_used
@@ -157,6 +157,8 @@ private EQUAL_arrayreal_arraytaylor,EQUAL_arraycomplex_arraytaylor
 private  EQUAL_arraytaylor_arrayreal,EQUAL_arraytaylor_arraycomplex
 private quaternion_to_spinmatrix,makeso3_equal
 logical :: correct_quaternion_field=.true.
+ logical,private :: unstable(NDIM2t/2) !,hyperbolic
+
 !  These routines computes lattice functions a la Ripken-Forest-Wolski
 !type c_lattice_function
 ! real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0 ! E : moments, K : Invariants
@@ -477,6 +479,7 @@ logical :: correct_quaternion_field=.true.
      MODULE PROCEDURE c_get_coeff 
   END INTERFACE
 
+ 
   INTERFACE OPERATOR (.index.)
 !  extract linear dependence on ith variables. Useful to get matrices.
     MODULE PROCEDURE GETintmat  ! complex(dp)=t.index.i for example  t.index.2= t.sub[0,1,0,...]
@@ -1681,6 +1684,8 @@ end subroutine c_get_indices
       s1%damping=0
       s1%spin_tune=0
      s1%quaternion_angle=0
+      s1%unstable=.false.
+     ! s1%hyperbolic=.false.
   END SUBROUTINE alloc_c_normal_form
 
   SUBROUTINE  kill_c_normal_form(S1)
@@ -3601,8 +3606,10 @@ endif
       n=sqrt(2.e0_dp)
      endif
           do i=1,ndt
-             from_phasor%v(2*i-1)=n*((0.5_dp.cmono.(2*i-1))+(0.5_dp.cmono.(2*i)))
+         if(.not.unstable(i)) then  !.and.(.not.hyperbolic)) then
+              from_phasor%v(2*i-1)=n*((0.5_dp.cmono.(2*i-1))+(0.5_dp.cmono.(2*i)))
              from_phasor%v(2*i)=n*((0.5_dp.cmono.(2*i-1))-(0.5_dp.cmono.(2*i)))/i_
+        endif
           enddo
 
           do i=nd,nd-rf+1,-1
@@ -11953,7 +11960,7 @@ subroutine c_linear_a(xy,a1)
     integer idef(ndim2t/2)
     real(dp), allocatable :: fm(:,:),fmi(:,:),fmii(:,:)
     type(c_damap) s1
-
+    type(c_normal_form) n
 
     if(.not.c_stable_da) return
 
@@ -12901,6 +12908,109 @@ subroutine c_full_canonise(at,a_cs,as,a0,a1,a2,rotation,phase,nu_spin,irot)
     call kill(phi)
     call kill(pha,tune_spin)
 end subroutine c_full_canonise
+
+
+subroutine c_full_canonise_linear(at,a_cs,a0,a1,phase) 
+!#general: manipulation
+!# This routine is of great pedagogical importance.
+!# It factors a canonical transformation as
+!# at=a_cs o rotation(phase,nu_spin) as explained in Chap.7 of my Springer book.
+!# a_cs = a_s o a_0 o a_1 o a_2
+    implicit none
+    type(c_damap) , intent(inout) :: at,a_cs 
+    type(c_damap) , optional, intent(inout) :: a1,a0
+    type(c_taylor) ,optional, intent(inout) :: phase(:)
+
+    type(c_damap) ar,att,phi,a0t,a1t,ri
+    type(c_taylor) pha
+    integer i,kspin,ir
+    real(dp) norm
+
+    call alloc(ar)
+    call alloc(att)
+    call alloc(a0t)
+    call alloc(a1t)
+
+    call alloc(phi)
+    call alloc(pha)   
+        call alloc(ri)
+  !  at= (a,s) =  (a,I) o  (I,s)
+  !  call c_full_norm_spin(at%s,kspin,norm)  
+
+    call c_full_norm_spin_map(at,kspin,norm)
+ 
+ ! storing the spin because the code is careless (sets it to zero)   
+ 
+
+       att=at
+
+ 
+!  at= (a,s) =  (att,I) o  (I,ats)
+
+      att%s=0
+      att%q=0.0_dp
+
+      ar=1
+ 
+    call extract_a0(att,a0t)
+ 
+    phi=1
+
+ 
+ 
+    call extract_a1(att,a1t,phi)
+    
+ 
+!    if(present(phase))     ar=ar*phi
+!call print(phi%v(6),6)
+!pause 2
+
+ar=1
+ 
+ 
+
+ 
+ 
+
+     
+    if(present(phase))     then 
+         ri=from_phasor(-1)
+         phi=c_simil(ri,phi,1)
+    endif
+ 
+    a_cs=a0t*a1t 
+ 
+    
+
+    if(present(phase)) then
+     do i=1,nd2t/2
+       pha=(phi%v(2*i).k.(2*i))
+       pha=(-i_*log(pha)/twopi).cut.no
+       phase(i)=pha+phase(i)
+     enddo
+      if(ndpt/=0) then
+        if(mod(ndpt,2)==0) then
+         i=ndpt/2
+        else
+         i=ndptb/2
+        endif
+       phase(i)=phase(i)+phi%v(ndptb)-(1.0_dp.cmono.ndptb)
+      endif
+    endif
+ 
+
+    if(present(a0)) a0=a0t
+ 
+    if(present(a1)) a1=a1t
+
+    call kill(ri)
+    call kill(ar)
+    call kill(att)
+    call kill(a0t)
+    call kill(a1t)
+    call kill(phi)
+    call kill(pha)
+end subroutine c_full_canonise_linear
 
 subroutine c_identify_resonance(j,n,c) 
     implicit none
@@ -16077,7 +16187,6 @@ ft=f
     real(dp),dimension(ndim2t)::reval,aieval,ort
     real(dp),dimension(ndim2t,ndim2t)::revec,aievec,fm,aa,vv
     real(dp) eig2
-
     if(.not.C_STABLE_DA) return
 
     Eigenvalues_off_unit_circle=1
@@ -16126,6 +16235,9 @@ ft=f
     do i=1,nd2harm    !nd2t !-ndc2t
        eig2 = reval(i)**2+aieval(i)**2
        if(abs(eig2 -1.0_dp).gt.eps_eigenvalues_off_unit_circle) then
+         if(mod(i,2)==0.and.abs(aieval(i))<eps_eigenvalues_off_unit_circle) then
+           unstable(i/2)=.true.
+         endif
            if(lielib_print(4)==1) then
              write(6,*) ' EIG6: Eigenvalues off the unit circle!'
              write(6,*) sqrt(eig2)
@@ -21660,14 +21772,19 @@ end subroutine cholesky_dt
   END SUBROUTINE c_ALLOC_Us
 
 
-  function  c_get_coeff(S1,J)  !new sagan
+  function  c_get_coeff(S1,Jj)  !new sagan
     implicit none
     type (C_UNIVERSAL_TAYLOR),INTENT(IN)::S1
-    integer,INTENT(IN)::J(:)
+    integer,INTENT(IN)::Jj(:)
+    integer, allocatable ::J(:)
 
     complex (dp)c_get_coeff
     INTEGER i,n,done
      
+     allocate(J(S1%NV))
+     J=0
+     j(1:size(JJ))=jj
+
      c_get_coeff=0
     do i=1,s1%n
         done=0
@@ -21679,8 +21796,12 @@ end subroutine cholesky_dt
       exit
         endif
     enddo
+    deallocate(j)
 
   END function c_get_coeff
+
+   
+
 
   SUBROUTINE  c_fill_uni_r(S2,S1)  !new sagan
     implicit none
@@ -22884,6 +23005,9 @@ subroutine c_normal(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize)
     call kill(n%g)
     call alloc(n%ker)
     call alloc(n%g)
+n%unstable=.false.
+unstable=.false.
+!hyperbolic=n%hyperbolic
     n%g%dir=-1
     n%ker%dir=1
 
@@ -23031,6 +23155,7 @@ endif
        endif  
     enddo
  
+
     n%ker=0  ! In case reusing normal form
 
     do i=2,not
@@ -23142,11 +23267,18 @@ endif
         n%ker%f(1)%v(k)=n%ker%f(1)%v(k)-(log(eg(k)).cmono.je)
 
         if(mod(k,2)==1) then
+ 
+   if(.not.unstable((k+1)/2) ) then
             n%tune((k+1)/2)=aimag(log(eg(k)))/twopi
             n%damping((k+1)/2)=real(log(eg(k)))
             if(n%tune((k+1)/2)<0.and.n%positive) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
             if(n%tune((k+1)/2)<-0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
             if(n%tune((k+1)/2)> 0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)-1.0_dp
+           else
+            n%tune((k+1)/2)=log(eg(k))
+            n%damping((k+1)/2)= log(eg(k)*eg(k+1))/2.0_dp
+   endif 
+
 
         endif
        endif 
@@ -23491,11 +23623,21 @@ if(c_%ndpt/=0) ncoast=1
 
 do i=1,(c_%nd-ncoast)
 
+  ! IF(.not.hyperbolic.or..not.unstable(i) ) then
+   IF( .not.unstable(i) ) then
+
 lam=n%tune(i)
 if(n%tune(i)>0.5e0_dp) lam=lam-1.0_dp
  n%H_l%v(2*i-1)=-(i_*twopi*lam)*dz_c(2*i-1)-n%damping(i)*dz_c(2*i-1)
  n%H_l%v(2*i)=(i_*twopi*lam)*dz_c(2*i)-n%damping(i)*dz_c(2*i)
+ELSE
+ n%H_l%v(2*i-1)= (-n%damping(i)-n%tune(i))*dz_c(2*i-1)
+ n%H_l%v(2*i)=(-n%damping(i)+n%tune(i))*dz_c(2*i-1)
+
+ENDIF  ! HYPERBOLIC
+
 enddo
+
 if(ncoast/=0) then
  n%H_l%v(c_%ndptb)=n%tune(c_%nd)*dz_c(c_%ndpt)
 endif
@@ -23523,7 +23665,15 @@ if(present(phase)) then
 ! ncoast=0
  !if(c_%ndpt/=0) ncoast=1
  do i=1,c_%nd  !-ncoast
+ !  IF(.not.hyperbolic.or..not.unstable(i) ) then
+   IF( .not.unstable(i) ) then
+ 
   phase(i)=aimag(n%h%v(2*i).k.(2*i))/twopi
+
+    ELSE
+     phase(i)=(n%h%v(2*i).k.(2*i)) 
+
+    ENDIF
  enddo
 
  if(c_%ndptb/=0) then

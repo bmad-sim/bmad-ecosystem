@@ -509,6 +509,7 @@ TYPE c_normal_form
  type(c_factored_lie) ker !@1  kernel i.e. normal form in phasors
  type(c_damap) n   !@1 transformation n (m=a n a^-1)
  type(c_damap) As  !@1  For Spin   (m = As a n a^-1 As^-1)
+ logical :: unstable(NDIM2t/2) !,hyperbolic
 END TYPE c_normal_form
 !2BMAD  
 
