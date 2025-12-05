@@ -4230,31 +4230,31 @@ endif
     type(universal_taylor) :: ut
     integer, optional               :: iunit
     integer                :: i,ii
-    integer inuit0
-    inuit0=6
-    if(present(iunit)) inuit0=iunit
+    integer iunit0
+    iunit0=6
+    if(present(iunit)) iunit0=iunit
     if (.not. associated(ut%n)) then
-       write(iunit,'(A)') '    UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
-       write(6,'(A)') '    UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+       write(iunit0,'(A)') '    UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
+       if(iunit0/=6) write(6,'(A)') '    UNIVERSAL_TAYLOR IS EMPTY (NOT ASSOCIATED)'
        return
     endif
 
-    write(iunit,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
+    write(iunit0,'(/1X,A,I5,A,I5,A/1X,A/)') 'UNIV_TAYLOR   NO =',ut%n,', NV =',ut%nv,', INA = unita',&
          '*********************************************'
     if(ut%n /= 0) then
-       write(iunit,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
+       write(iunit0,'(A)') '    I  COEFFICIENT          ORDER   EXPONENTS'
     else
-       write(iunit,'(A)') '   ALL COMPONENTS 0.0_dp '
+       write(iunit0,'(A)') '   ALL COMPONENTS 0.0_dp '
     endif
 
     do i = 1,ut%n
-       write(iunit,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') i,ut%c(i),sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
+       write(iunit0,'(I6,2X,G21.14,I5,4X,18(2I2,1X))') i,ut%c(i),sum(ut%j(i,:)),(ut%j(i,ii),ii=1,ut%nv)
        if( .not. print77) then
-          write(iunit,*)  ut%c(i)
+          write(iunit0,*)  ut%c(i)
        endif
     enddo
 
-    write(iunit,'(A)') '                                      '
+    write(iunit0,'(A)') '                                      '
 
   end subroutine printunitaylor
 

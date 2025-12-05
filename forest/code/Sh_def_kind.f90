@@ -5947,7 +5947,7 @@ integer :: kkk=0
     real(dp) DD1,DD2
     real(dp) DF(4),DK(4),DDF(4)
     real(dp) NDF(0:15),NDK(15),NDDF(0:15)
-    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21)
+    real(dp) NDFs(0:21),NDKs(21),NDDFs(0:21),beta0
     INTEGER I,J,f1
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
@@ -5977,14 +5977,19 @@ integer :: kkk=0
 
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        if(e1_cas/=0.and.el%p%nmul>1) then
-          X(1)=X(1)+DH*X(2)/ROOT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+DH*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
        endif
        CALL KICK (EL,D,X,k)
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        if(e1_cas/=0.and.el%p%nmul>1) then
-          X(1)=X(1)+DH*X(2)/ROOT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+DH*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
        endif
-
     CASE(4)
        D1=EL%L*FD1/EL%P%NST
        D2=EL%L*FD2/EL%P%NST
@@ -6060,11 +6065,22 @@ integer :: kkk=0
           NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
           NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
        ENDDO
- 
+        if(e1_cas/=0.and.el%p%nmul>1) then
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+NDDFs(0)*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+NDDFs(0)*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif 
           CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        DO J=1,21
           CALL KICK (EL,NDKs(J),X,k)
+        if(e1_cas/=0.and.el%p%nmul>1) then
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+NDDFs(j)*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+NDDFs(j)*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
           CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
@@ -6090,7 +6106,7 @@ integer :: kkk=0
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp)  NDDF(0:15)
     type(real_8) NDF(0:15),NDK(15) 
-    real(dp)  NDDFs(0:21)
+    real(dp)  NDDFs(0:21),beta0
     type(real_8) NDFs(0:21),NDKs(21) 
 
     INTEGER I,J,pos,f1
@@ -6122,12 +6138,18 @@ integer :: kkk=0
 
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        if(e1_cas/=0.and.el%p%nmul>1) then
-          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+DH*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
        endif
        CALL KICK (EL,D,X,k)
        CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        if(e1_cas/=0.and.el%p%nmul>1) then
-          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)*e1_cas*el%bn(2)
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+DH*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+DH*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
        endif
 
        CALL KILL(DH,D)
@@ -6219,11 +6241,22 @@ integer :: kkk=0
           NDDFs(I)=EL%P%LD*wyoshids(I)/EL%P%NST
           NDKs(I)=EL%L*wyoshiks(I)/EL%P%NST
        ENDDO
- 
+        if(e1_cas/=0.and.el%p%nmul>1) then
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+NDDFs(0)*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+NDDFs(0)*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
           CALL DRIFT(NDFs(0),NDDFs(0),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
        DO J=1,21
           CALL KICK (EL,NDKs(J),X,k)
+        if(e1_cas/=0.and.el%p%nmul>1) then
+          beta0=1
+          if(K%time) beta0=EL%P%beta0
+          X(1)=X(1)+NDDFs(j)*X(2)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+          X(3)=X(3)+NDDFs(j)*X(4)/sqrt(1.0_dp+2.0_dp*X(5)/beta0+x(5)**2)*e1_cas*el%bn(2)
+       endif
           CALL DRIFT(NDFs(J),NDDFs(J),EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
        ENDDO
  
@@ -6963,7 +6996,7 @@ integer :: kkk=0
     real(dp) DH,X5,X6
     INTEGER I,J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    real(dp) dir
+    real(dp) dir 
 
     DIR=EL%P%DIR*EL%P%CHARGE
 
@@ -6983,7 +7016,7 @@ integer :: kkk=0
     ELSE
        X5=X(5)
     ENDIF
-
+ 
     HX(1,1)=0.0_dp;HX(1,2)=DH/(1.0_dp+X5);HX(1,3)=0.0_dp;
     HX(2,1)=DIR*DH*(-EL%BN(2)-EL%P%B0*EL%BN(1));HX(2,2)=0.0_dp;HX(2,3)=DH*EL%P%B0;
     HX(3,1)=0.0_dp;HX(3,2)=0.0_dp;HX(3,3)=0.0_dp;
@@ -7053,7 +7086,7 @@ integer :: kkk=0
     INTEGER I,J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     real(dp) dir
-
+   
     call PRTP("GETMAT:0", X)
 
     DIR=EL%P%DIR*EL%P%CHARGE
@@ -7085,6 +7118,7 @@ integer :: kkk=0
     ELSE
        X5=X(5)
     ENDIF
+ 
     HX(1,1)=0.0_dp;HX(1,2)=DH/(1.0_dp+X5);HX(1,3)=0.0_dp;
     HX(2,1)=DIR*DH*(-EL%BN(2)-EL%P%B0*EL%BN(1));HX(2,2)=0.0_dp;HX(2,3)=DH*EL%P%B0;
     HX(3,1)=0.0_dp;HX(3,2)=0.0_dp;HX(3,3)=0.0_dp;
@@ -7156,6 +7190,7 @@ integer :: kkk=0
     CALL KILL(DH);CALL KILL(X5);CALL KILL(X6);
 
     call PRTP("GETMAT:1", X)
+ 
 
   END SUBROUTINE GETMATD
 
