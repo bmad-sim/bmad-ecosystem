@@ -10,18 +10,18 @@ contains
 !----------------------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------------------
 !+
-! Subroutine set_active_fixer(fixer, is_on, orbit)
+! Subroutine set_active_fixer(fixer, turn_on, orbit)
 !
 ! Set the acvitive fixer element.
 ! All other fixer/beginning_ele elements in the branch will be deactivated.
 !
-! If is_on is True (default), the fixer argument becomes the active fixer.
-! If is_on is False, and fixer%is_on is also False, there is nothing to be done.
-! If is_on is False, and fixer%is_on is True, turn this fixer off and turn on the beginning element.
+! If turn_on is True (default), the fixer argument becomes the active fixer.
+! If turn_on is False, and fixer%is_on is also False, there is nothing to be done.
+! If turn_on is False, and fixer%is_on is True, turn this fixer off and turn on the beginning element.
 !
 ! Input:
 !   fixer         -- ele_struct: Fixer element to make active.
-!   is_on         -- logical, optional: If True (default), make this fixer the active element. 
+!   turn_on       -- logical, optional: If True (default), make this fixer the active element. 
 !                     If False, make the beginning element active.
 !
 ! Output:
@@ -29,34 +29,41 @@ contains
 !   orbit         -- coord_struct, optional: Load with stored fixer phase space and spin values.
 !-
 
-subroutine set_active_fixer(fixer, is_on, orbit)
+subroutine set_active_fixer(fixer, turn_on, orbit)
 
 type (ele_struct), target :: fixer
 type (coord_struct), optional :: orbit
+type (ele_struct), pointer :: active_fixer
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 
 integer ie
-logical, optional :: is_on
+logical, optional :: turn_on
 logical on, is_ok
 character(*), parameter :: r_name = 'set_active_fixer'
 
 !
 
 if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
-  call out_io(s_error$, r_name, 'Element to set is not a fixer element nor a beginning element.')
-  return
-endif
-
-if (fixer%value(beta_a_stored$) <= 0 .or. fixer%value(beta_b_stored$) <= 0) then
-  call out_io(s_error$, r_name, 'Fixer element does not have beta_a or beta_b set!. Active fixer not set.')
+  call out_io(s_error$, r_name, 'Element to set is not a fixer element nor a beginning element: ' // fixer%name)
   return
 endif
 
 branch => fixer%branch
-on = logic_option(.true., is_on)
+on = logic_option(.true., turn_on)
+if (on) then
+  active_fixer => fixer
+else
+  active_fixer => branch%ele(0)
+endif
 
-if (.not. on .and. .not. fixer%is_on) return
+if (active_fixer%value(beta_a_stored$) <= 0 .or. active_fixer%value(beta_b_stored$) <= 0) then
+  ! Only print error message when changing fixer elements.
+  if (active_fixer%ix_ele /= branch%ix_fixer) then
+    call out_io(s_error$, r_name, 'Fixer element (' // trim(active_fixer%name) // ') does not have beta_a or beta_b set!. Active fixer not set.')
+  endif
+  return
+endif
 
 do ie = 0, branch%n_ele_track
   ele => branch%ele(ie)
@@ -65,8 +72,8 @@ do ie = 0, branch%n_ele_track
 enddo
 
 if (on) then
-  fixer%is_on = .true.
-  branch%ix_fixer = fixer%ix_ele
+  active_fixer%is_on = .true.
+  branch%ix_fixer = active_fixer%ix_ele
 else
   branch%ele(0)%is_on = .true.
   branch%ix_fixer = 0
