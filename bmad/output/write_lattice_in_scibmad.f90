@@ -136,6 +136,8 @@ n_names = 0
 n = lat%n_ele_max
 allocate (names(n), an_indexx(n), named_eles(n))
 
+write (iu, '(a)') '@eles begin'
+
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   ele_loop: do ie = 1, branch%n_ele_max
@@ -153,7 +155,7 @@ do ib = 0, ubound(lat%branch, 1)
       lord => pointer_to_lord(ele, 1)
       slave => pointer_to_slave(lord, 1)
       slave2 => pointer_to_slave(lord, lord%n_slave)
-      write (iu, '(2(a, i0), 2a)') '@eles slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
+      write (iu, '(2(a, i0), 2a)') '  slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
       cycle
     endif
 
@@ -169,7 +171,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ie == 0) ele%name = 'begin' // int_str(ib+1)
     if (ie == branch%n_ele_track .and. ele%name == 'END') ele%name = 'end' // int_str(ib+1)
-    line = '@eles ' // trim(downcase(ele%name)) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
+    line = '  ' // trim(downcase(ele%name)) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
 
     if (ie == 0) then  ! Currently not used since ie starts at 1.
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
@@ -339,6 +341,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo ele_loop
 enddo
 
+write (iu, '(a)') 'end    # @eles'
 write (iu, '(a)')
 
 !------------------------------------------------------------------------------------------------------
