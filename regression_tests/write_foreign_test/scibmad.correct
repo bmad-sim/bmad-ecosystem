@@ -4,7 +4,7 @@
 using Beamlines
 
 @eles begin
-  ab_multipole1 = Multipole(Ks2L =   2.00000E+02, Kn2L =   2.00000E+02, tilt =   1.00000E-01)
+  ab_multipole1 = Multipole(Ks2L =   2.00000E+02, Kn2L =   2.00000E+02, z_rot =   1.00000E-01)
   ac_kicker0123456789 = ACKicker(L =   3.00000E-01, Kn0 =  -3.33333E-02)
   ac_kicker2 = ACKicker(L =   4.00000E-01, Ks0 =   2.50000E-02)
   beambeam1 = BeamBeam(x_offset =   3.00000E-03, y_offset =   3.00000E-03, x_rot =   5.00000E-02,
@@ -13,53 +13,53 @@ using Beamlines
    phi0 =  -2.00000E-01)
   ecollimator1 = Drift(L =   4.50000E+00, Ks0 =   2.20372E-04, Kn0 =  -2.25549E-03,
    x1_limit =  -2.00000E-01, x2_limit =   2.00000E-01, y1_limit =  -1.00000E-01, y2_limit =   1.00000E-01,
-   x_offset =   2.00000E-02, x_rot =   1.00000E-03, tilt =   1.00000E-01)
+   x_offset =   2.00000E-02, x_rot =   1.00000E-03, z_rot =   1.00000E-01)
   elseparator1 = ELSeparator(L =   4.50000E+00, En0 =  -9.55090E+02, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01)
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01)
   elseparator2 = ELSeparator(L =   4.50000E+00, Es0 =   9.55090E+02, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01)
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01)
   em_field1 = EMField(L =   1.40000E+00)
   em_field2 = EMField(L =   1.40000E+00)
   fiducial1 = Fiducial()
   floor_shift1 = FloorShift(x_offset =   1.00000E-01, y_offset =   2.00000E-01, z_offset =   3.00000E-01,
-   y_rot =  -1.00000E-02, x_rot =   2.00000E-02, tilt =   4.00000E-01)
+   x_rot =   2.00000E-02, y_rot =  -1.00000E-02, z_rot =   4.00000E-01)
   gkicker1 = Kicker()
   hkicker1 = Kicker(L =   4.50000E+00, Kn0 =  -1.11111E-03, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01)
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01)
   instrument1 = Drift(L =   4.50000E+00)
   kicker1 = Kicker(L =   4.50000E+00, Ks0 =   6.66667E-04, Kn0 =   1.33333E-06, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01)
-  match1 = Match()
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01)
+  match1 = LineElement()
   monitor1 = Drift(L =   4.50000E+00)
   multipole1 = Multipole(Ks1L =  -1.00000E+00, Kn1L =   6.12323E-17, Ks3L =   3.08046E+00,
    Kn3L =  -3.28036E+00)
   octupole1 = Octupole(L =   4.50000E+00, Kn3 =   1.00000E+03, x_offset =   1.00000E-02,
-   x_rot =   1.00000E-03, tilt =   3.92699E-01)
-  patch1 = Patch(L =   4.00499E-03, x_offset =   1.00000E-03, y_offset =   2.00000E-03,
-   z_offset =   4.00000E-03, y_rot =  -1.00000E-03, x_rot =   2.00000E-03, tilt =   2.00000E+00)
+   x_rot =   1.00000E-03, z_rot =   3.92699E-01)
+  patch1 = Patch(L =   4.00499E-03, dt =   1.00000E-11, dx =   1.00000E-03, dy =   2.00000E-03,
+   dz =   4.00000E-03, dx_rot =   2.00000E-03, dy_rot =  -1.00000E-03, dz_rot =   2.00000E+00)
   quadrupole1 = Quadrupole(L =   6.00000E-01, Ks0 =   9.88215E-03, Kn0 =   1.17851E-04,
    Ks1 =   1.00000E-01, Kn1 =   1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
-   x_offset =   5.00000E-02, x_rot =   1.00000E-03, tilt =   7.85398E-01)
+   x_offset =   5.00000E-02, x_rot =   1.00000E-03, z_rot =   7.85398E-01)
   quadrupole2 = Quadrupole(L =   6.00000E-01, Ks0 =  -1.01179E-02, Kn0 =   1.17851E-04,
    Ks1 =  -1.00000E-01, Kn1 =  -1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
-   x_offset =   5.00000E-02, x_rot =   1.00000E-03, tilt =   7.85398E-01)
+   x_offset =   5.00000E-02, x_rot =   1.00000E-03, z_rot =   7.85398E-01)
   quadrupole3 = Quadrupole(L =   6.00000E-01, Ks0 =  -1.17851E-04, Kn0 =   1.17851E-04,
    Ks1 =   1.00000E-21, Kn1 =   1.00000E-20, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
-   x_offset =   5.00000E-02, x_rot =   1.00000E-03, tilt =   7.85398E-01)
+   x_offset =   5.00000E-02, x_rot =   1.00000E-03, z_rot =   7.85398E-01)
   quadrupole4 = Quadrupole(L =   6.00000E-01, Ks0 =   9.88215E-03, Kn0 =   1.17851E-04,
    Ks1 =   1.00000E-01, Kn1 =   1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
-   x_offset =   5.00000E-02, x_rot =   1.00000E-03, tilt =   7.85398E-01)
+   x_offset =   5.00000E-02, x_rot =   1.00000E-03, z_rot =   7.85398E-01)
   quadrupole5 = Quadrupole(L =   6.00000E-01, Ks0 =  -1.01179E-02, Kn0 =   1.17851E-04,
    Ks1 =  -1.00000E-01, Kn1 =  -1.00000E+00, En0 =  -2.00000E+03, Es1 =   2.00000E+04,
-   x_offset =   5.00000E-02, x_rot =   1.00000E-03, tilt =   7.85398E-01)
+   x_offset =   5.00000E-02, x_rot =   1.00000E-03, z_rot =   7.85398E-01)
   rcollimator1 = Drift(L =   4.50000E+00, x1_limit =  -2.00000E-01, x2_limit =   2.00000E-01,
    y1_limit =  -1.00000E-01, y2_limit =   1.00000E-01, x_offset =   2.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01)
+   z_rot =   1.00000E-01)
   rfcavity1 = RFCavity(L =   4.50000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phi0 =   1.00000E-01)
+   z_rot =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phi0 =   1.00000E-01)
   rfcavity2 = RFCavity(L =   4.50000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phi0 =   1.00000E-01)
-  rfcavity3 = RFCavity(x_offset =   5.00000E-02, x_rot =   1.00000E-03, tilt =   1.00000E-01,
+   z_rot =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phi0 =   1.00000E-01)
+  rfcavity3 = RFCavity(x_offset =   5.00000E-02, x_rot =   1.00000E-03, z_rot =   1.00000E-01,
    rf_frequency =   5.00000E+08, voltage =   1.00000E+05, phi0 =   1.00000E-01)
   sad_mult1 = SadMult(L =   1.00000E-01, Ks1 =   2.00000E-01, Kn2 =   8.00000E+02, Ks10 =   3.62880E+27,
    ksol =   5.00000E-01)
@@ -75,48 +75,45 @@ using Beamlines
    Kn1 =   3.00000E-01, Kn2 =   3.00000E+00, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, x_rot =   1.00000E-03)
   rbend4 = SBend(bend_type = rbend, L_chord =   6.00000E-01, e1_rect =   1.00000E-01,
-   e2_rect =   2.00000E-01, g =   1.00000E-02, tilt_ref =   1.00000E-01, Ks0 =  -1.64834E-04,
-   Kn0 =  -9.88336E-03, Ks1 =   5.00000E-06, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   e2_rect =   2.00000E-01, g_ref =   1.00000E-02, tilt_ref =   1.00000E-01, Ks0 =  -1.64834E-04,
+   Kn0 =   6.78328E-03, Ks1 =   5.00000E-06, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, x_rot =   1.00000E-03)
-  sbend5 = SBend(L =   6.00000E-01, e1 =   1.00000E-01, e2 =   2.00000E-01, g =   1.00000E-02,
-   tilt_ref =   1.00000E-01, Ks0 =  -6.58340E-05, Kn0 =   1.66389E-05, Ks1 =   5.00000E-04,
+  sbend5 = SBend(L =   6.00000E-01, e1 =   1.00000E-01, e2 =   2.00000E-01, g_ref =   1.00000E-02,
+   tilt_ref =   1.00000E-01, Ks0 =  -6.58340E-05, Kn0 =   1.66833E-02, Ks1 =   5.00000E-04,
    En0 =  -2.00000E+03, Es1 =   6.66667E+03, x_offset =   5.00000E-02, x_rot =   1.00000E-03)
   rbend6 = SBend(bend_type = rbend, L_chord =   6.00000E-01, e1_rect =   1.00000E-01,
-   e2_rect =   2.00000E-01, g =   1.00000E-02, tilt_ref =   1.00000E-01, Ks0 =  -1.65833E-04,
-   Kn0 =  -9.98326E-03, Ks1 =   5.00000E-09, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
+   e2_rect =   2.00000E-01, g_ref =   1.00000E-02, tilt_ref =   1.00000E-01, Ks0 =  -1.65833E-04,
+   Kn0 =   6.68338E-03, Ks1 =   5.00000E-09, En0 =  -2.00000E+03, Es1 =   6.66667E+03,
    x_offset =   5.00000E-02, x_rot =   1.00000E-03)
-  sbend7 = SBend(L =   6.00000E-01, e1 =   1.00000E-01, e2 =   2.00000E-01, g =   1.00000E-02,
-   tilt_ref =   1.00000E-01, Ks0 =  -6.58340E-05, Kn0 =   1.66389E-05, Ks1 =   5.00000E-04,
+  sbend7 = SBend(L =   6.00000E-01, e1 =   1.00000E-01, e2 =   2.00000E-01, g_ref =   1.00000E-02,
+   tilt_ref =   1.00000E-01, Ks0 =  -6.58340E-05, Kn0 =   1.66833E-02, Ks1 =   5.00000E-04,
    En0 =  -2.00000E+03, Es1 =   6.66667E+03, x_offset =   5.00000E-02, x_rot =   1.00000E-03)
   sextupole1 = Sextupole(L =   6.00000E-01, Kn2 =   1.00000E+00, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   5.23599E-01)
+   x_rot =   1.00000E-03, z_rot =   5.23599E-01)
   solenoid1 = Solenoid(L =   2.60000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, ksol =   1.00000E+00)
+   z_rot =   1.00000E-01, ksol =   1.00000E+00)
   solenoid2 = Solenoid(L =   2.60000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, ksol =   1.00000E-12)
+   z_rot =   1.00000E-01, ksol =   1.00000E-12)
   sol_quad1 = Solenoid(L =   2.60000E+00, Kn1 =   1.00000E+00, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01, ksol =   1.00000E+00)
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01, ksol =   1.00000E+00)
   sol_quad2 = Solenoid(L =   2.60000E+00, Kn1 =   1.00000E-05, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01, ksol =   1.00000E+00)
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01, ksol =   1.00000E+00)
   thick_multipole1 = ThickMultipole(L =   4.50000E+00, Ks2 =   4.44444E-01, Kn3 =   2.66667E+01,
-   x_offset =   2.00000E-02, tilt =   1.00000E-01)
-  taylor1 = Taylor(L =   5.00000E-01)
+   x_offset =   2.00000E-02, z_rot =   1.00000E-01)
+  taylor1 = LineElement(L =   5.00000E-01)
   vkicker1 = Kicker(L =   4.50000E+00, Ks0 =   1.11111E-03, x_offset =   5.00000E-02,
-   x_rot =   1.00000E-03, tilt =   1.00000E-01)
+   x_rot =   1.00000E-03, z_rot =   1.00000E-01)
   lcavity1 = RFCavity(L =   4.50000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   5.00000E+03, phi0 =  -1.90000E-01)
+   z_rot =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   5.00000E+03, phi0 =  -1.90000E-01)
   lcavity2 = RFCavity(L =   4.50000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   5.00000E+00, phi0 =  -1.90000E-01)
+   z_rot =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   5.00000E+00, phi0 =  -1.90000E-01)
   lcavity3 = RFCavity(L =   4.50000E+00, x_offset =   5.00000E-02, x_rot =   1.00000E-03,
-   tilt =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   5.04500E+03, phi0 =  -1.90000E-01)
-  end1 = Marker()
+   z_rot =   1.00000E-01, rf_frequency =   5.00000E+08, voltage =   5.04500E+03, phi0 =  -1.90000E-01)
+  end = Marker()
 end    # @eles
 
 
-l1 = Beamline([ ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
-   crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1,
-   gkicker1, hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1, quadrupole1,
-   quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3,
-   sad_mult1, sad_mult2, sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1,
-   solenoid2, sol_quad1, sol_quad2, thick_multipole1, taylor1, vkicker1, lcavity1, lcavity2, lcavity3,
-   end1]; pc_ref =   8.59581E+05, species_ref = Species("positron"))
+l1 = Beamline([ end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end,
+   end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end, end,
+   end, end, end, end, end, end, end, end, end, end, end, end, end]; pc_ref =   8.59581E+05,
+   species_ref = Species("positron"))

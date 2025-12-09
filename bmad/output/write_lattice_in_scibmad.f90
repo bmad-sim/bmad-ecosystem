@@ -42,7 +42,7 @@ logical, optional :: err_flag
 
 character(*) scibmad_file
 character(1) prefix
-character(40) name, look_for
+character(40) name, look_for, ele_name
 character(40), allocatable :: names(:)
 character(240) fname
 character(1000) line
@@ -59,7 +59,7 @@ scibmad_ele_type(group$)                = 'Group'
 scibmad_ele_type(sextupole$)            = 'Sextupole'
 scibmad_ele_type(overlay$)              = 'Overlay'
 scibmad_ele_type(custom$)               = 'Custom'
-scibmad_ele_type(taylor$)               = 'Taylor'
+scibmad_ele_type(taylor$)               = 'LineElement'
 scibmad_ele_type(rfcavity$)             = 'RFCavity'
 scibmad_ele_type(elseparator$)          = 'ELSeparator'
 scibmad_ele_type(beambeam$)             = 'BeamBeam'
@@ -78,7 +78,7 @@ scibmad_ele_type(lcavity$)              = 'RFCavity'
 scibmad_ele_type(null_ele$)             = 'NullEle'
 scibmad_ele_type(beginning_ele$)        = 'BeginningEle'
 scibmad_ele_type(def_line$)             = '!Line'
-scibmad_ele_type(match$)                = 'Match'
+scibmad_ele_type(match$)                = 'LineElement'
 scibmad_ele_type(monitor$)              = 'Drift'
 scibmad_ele_type(instrument$)           = 'Drift'
 scibmad_ele_type(hkicker$)              = 'Kicker'
@@ -91,7 +91,7 @@ scibmad_ele_type(photon_fork$)          = 'Fork'
 scibmad_ele_type(fork$)                 = 'Fork'
 scibmad_ele_type(mirror$)               = 'Mirror'
 scibmad_ele_type(crystal$)              = 'Crystal'
-scibmad_ele_type(pipe$)                 = 'Pipe'
+scibmad_ele_type(pipe$)                 = 'Drift'
 scibmad_ele_type(capillary$)            = 'Capillary'
 scibmad_ele_type(multilayer_mirror$)    = 'MultilayerMirror'
 scibmad_ele_type(e_gun$)                = 'EGun'
@@ -143,6 +143,7 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
     length = ele%value(l$)
+    ele_name = scibmad_name(ele%name)
 
     if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$ .or. ele%key == girder$) cycle   ! Not currently handled
     if (ele%key == null_ele$) cycle
@@ -169,9 +170,9 @@ do ib = 0, ubound(lat%branch, 1)
     ! Write element def
     ! The beginning element for all branches has the same name so use a unique name here.
 
-    if (ie == 0) ele%name = 'begin' // int_str(ib+1)
-    if (ie == branch%n_ele_track .and. ele%name == 'END') ele%name = 'end' // int_str(ib+1)
-    line = '  ' // trim(downcase(ele%name)) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
+    if (ie == 0) ele_name = 'begin' // int_str(ib+1)
+    if (ie == branch%n_ele_track .and. ele_name == 'END') ele_name = 'end' // int_str(ib+1)
+    line = '  ' // trim(ele_name) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
 
     if (ie == 0) then  ! Currently not used since ie starts at 1.
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
@@ -211,7 +212,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (ele%value(e2$) /= 0) line = trim(line) // ', e2 = ' // re_str(ele%value(e2$))
       endif
 
-      if (ele%value(g$) /= 0)  line = trim(line) // ', g = ' // re_str(ele%value(g$))
+      if (ele%value(g$) /= 0)  line = trim(line) // ', g_ref = ' // re_str(ele%value(g$))
       if (ele%value(ref_tilt$) /= 0)  line = trim(line) // ', tilt_ref = ' // re_str(ele%value(ref_tilt$))
       if (ele%value(roll$) /= 0)  line = trim(line) // ', roll = ' // re_str(ele%value(roll$))
       !!! if (ele%value(fint$)*ele%value(hgap$) /= 0)    line = trim(line) // ', edge_int1 = ' // re_str(ele%value(fint$)*ele%value(hgap$))
@@ -225,6 +226,10 @@ do ib = 0, ubound(lat%branch, 1)
     ! Magnetic multipoles
 
     call multipole_ele_to_ab(ele, .false., ix, a_pole, b_pole, magnetic$, include_kicks$)
+    if (ele%key == sbend$) then 
+      b_pole(0) = b_pole(0) + ele%value(g$)
+      ix = max(0, ix)
+    endif
 
     if (ele%field_master) then
       f = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
@@ -266,16 +271,29 @@ do ib = 0, ubound(lat%branch, 1)
 
     !
 
-    if (has_attribute(ele, 'X_PITCH')) then
-      if (ele%value(x_offset$) /= 0)  line = trim(line) // ', x_offset = ' // re_str(ele%value(x_offset$))
-      if (ele%value(y_offset$) /= 0)  line = trim(line) // ', y_offset = ' // re_str(ele%value(y_offset$))
-      if (ele%value(z_offset$) /= 0)  line = trim(line) // ', z_offset = ' // re_str(ele%value(z_offset$))
-      if (ele%value(x_pitch$) /= 0)  line = trim(line) // ', y_rot = ' // re_str(-ele%value(x_pitch$))
-      if (ele%value(y_pitch$) /= 0)  line = trim(line) // ', x_rot = ' // re_str(ele%value(y_pitch$))
-    endif
+    if (ele%key == patch$) then
+      if (ele%value(t_offset$) /= 0)      line = trim(line) // ', dt = ' // re_str(ele%value(t_offset$))
+      if (ele%value(x_offset$) /= 0)      line = trim(line) // ', dx = ' // re_str(ele%value(x_offset$))
+      if (ele%value(y_offset$) /= 0)      line = trim(line) // ', dy = ' // re_str(ele%value(y_offset$))
+      if (ele%value(z_offset$) /= 0)      line = trim(line) // ', dz = ' // re_str(ele%value(z_offset$))
+      if (ele%value(y_pitch$) /= 0)       line = trim(line) // ', dx_rot = ' // re_str(ele%value(y_pitch$))
+      if (ele%value(x_pitch$) /= 0)       line = trim(line) // ', dy_rot = ' // re_str(-ele%value(x_pitch$))
+      if (ele%value(tilt$) /= 0)          line = trim(line) // ', dz_rot = ' // re_str(ele%value(tilt$))
+      if (ele%value(E_tot_offset$) /= 0)  line = trim(line) // ', dE_ref = ' // re_str(ele%value(E_tot_offset$))
+      if (ele%value(E_tot_set$) /= 0)     line = trim(line) // ', E_ref = ' // re_str(ele%value(E_tot_set$))
 
-    if (has_attribute(ele, 'TILT')) then
-      if (ele%value(tilt$) /= 0)  line = trim(line) // ', tilt = ' // re_str(ele%value(tilt$))
+    else
+      if (has_attribute(ele, 'X_PITCH')) then
+        if (ele%value(x_offset$) /= 0)  line = trim(line) // ', x_offset = ' // re_str(ele%value(x_offset$))
+        if (ele%value(y_offset$) /= 0)  line = trim(line) // ', y_offset = ' // re_str(ele%value(y_offset$))
+        if (ele%value(z_offset$) /= 0)  line = trim(line) // ', z_offset = ' // re_str(ele%value(z_offset$))
+        if (ele%value(y_pitch$) /= 0)  line = trim(line) // ', x_rot = ' // re_str(ele%value(y_pitch$))
+        if (ele%value(x_pitch$) /= 0)  line = trim(line) // ', y_rot = ' // re_str(-ele%value(x_pitch$))
+      endif
+
+      if (has_attribute(ele, 'TILT')) then
+        if (ele%value(tilt$) /= 0)  line = trim(line) // ', z_rot = ' // re_str(ele%value(tilt$))
+      endif
     endif
 
     !
@@ -320,10 +338,10 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == fork$ .or. ele%key == photon_fork$) then
       n = nint(ele%value(ix_to_branch$))
-      line = trim(line) // ', to_line = ' // trim(lat%branch(n)%name)
+      line = trim(line) // ', to_line = ' // trim(scibmad_name(lat%branch(n)%name))
       if (ele%value(ix_to_element$) > 0) then
         i = nint(ele%value(ix_to_element$))
-        line = trim(line) // ', to_element = ' // trim(lat%branch(n)%ele(i)%name)
+        line = trim(line) // ', to_element = ' // trim(scibmad_name(lat%branch(n)%ele(i)%name))
       endif
     endif
 
@@ -400,9 +418,9 @@ do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
   write (iu, '(a)')
-  name = downcase(branch%name)
+  name = scibmad_name(branch%name)
   if (name == '') name = 'lat_line'
-  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(branch%ele(0)%name) // ','
+  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(scibmad_name(branch%ele(0)%name)) // ','
 
   in_multi_region = .false.
   do ie = 1, branch%n_ele_track
@@ -458,7 +476,7 @@ if (.false.) then
   do ib = 0, ubound(lat%branch, 1)
     branch => lat%branch(ib)
     if (branch%ix_from_branch > -1) cycle
-    name = downcase(branch%name)
+    name = scibmad_name(branch%name)
     if (name == '') name = 'lat_line'
     line = trim(line) // ', ' // name
   enddo
@@ -480,7 +498,7 @@ do ie = 1, lat%n_ele_max
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(phi0_multipass$) == 0) cycle
     if (.not. have_expand_lattice_line) call write_expand_lat_header (iu, have_expand_lattice_line)
-    write (iu, '(3a)') trim(ele%name), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
+    write (iu, '(3a)') trim(scibmad_name(ele%name)), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
   endif
 
 enddo
@@ -590,9 +608,9 @@ elseif (ele%slave_status == multipass_slave$) then
 
 else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(downcase(ele%name)), ','
+    write (line, '(4a)') trim(line), ' ', trim(ele_name), ','
   else
-    write (line, '(4a)') trim(line), ' reverse(', trim(downcase(ele%name)), '),'
+    write (line, '(4a)') trim(line), ' reverse(', trim(ele_name), '),'
   endif
 endif
 
@@ -711,5 +729,20 @@ if (.not. have_expand_lattice_line) call write_expand_lat_header (iu, have_expan
 write (iu, '(5a)') trim(ele_unique_name(ele, order)), '[', trim(attrib_name), '] = ', re_str(value)
 
 end subroutine write_this_differing_attrib
+
+!--------------------------------------------------------------------------------
+! contains
+
+function scibmad_name(name_in) result (name_out)
+
+character(*) name_in
+character(40) name_out
+integer ix
+
+name_out = downcase(name_in)
+ix = index(name_out, '#')
+if (ix /= 0) name_out = name_out(1:ix-1) // '!' // name_out(ix+1:)
+
+end function scibmad_name
 
 end subroutine write_lattice_in_scibmad

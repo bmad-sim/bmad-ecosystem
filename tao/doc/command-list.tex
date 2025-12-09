@@ -3943,6 +3943,7 @@ Format:
   write ps ...                    ! \sref{s:write.ps}  
   write ptc ...                   ! \sref{s:write.ptc}
   write sad ...                   ! \sref{s:write.sad}
+  write scibmad ...               ! \sref{s:write.scibmad}
   write spin_mat8                 ! \sref{s:write.spin.mat8}
   write variable ...              ! \sref{s:write.variable}
   write xsif ...                  ! \sref{s:write.xsif}
@@ -4409,6 +4410,19 @@ Syntax:
 \end{example}
 
 The default file name is \vn{lat_\#.sad} where \vn{\#} is replaced by the universe number. 
+
+%% write scibmad --------------------------------------------------------------
+
+\subsection{write scibmad}
+\label{s:write.scibmad}
+
+Syntax:
+\begin{example}
+  write scibmad \{<file_name>\}  ! Write a SciBmad lattice file of the model
+\end{example}
+SciBmad files have a Julia format.
+
+The default file name is \vn{lat_\#.jl} where \vn{\#} is replaced by the universe number. 
 
 %% write spin_mat8 --------------------------------------------------------------
 
