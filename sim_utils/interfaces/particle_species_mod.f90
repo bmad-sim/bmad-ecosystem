@@ -82,7 +82,7 @@ character(20), parameter:: subatomic_species_name(lb_subatomic:ub_subatomic) = [
 
 character(20), parameter:: openPMD_subatomic_species_name(lb_subatomic:ub_subatomic) = [character(20):: 'Garbage!', 'Garbage!', &
                       'anti-neutron', 'anti-deuteron', 'pion-', 'muon', 'anti-proton', 'electron', &
-                      'photon', 'positron', 'proton', 'anti-muon', 'pion+', 'deuteron', 'neutron', 'Garbage!', 'Garbage!', 'pion0']
+                      'photon', 'positron', 'proton', 'anti-muon', 'pion+', 'deuteron', 'neutron', 'Garbage!', '#3He++', 'pion0']
 
 integer, parameter :: charge_of_subatomic(lb_subatomic:ub_subatomic) = [-2, 0, 0, -1, -1, -1, -1, -1, 0, 1, 1, 1, 1, 1, 0, 0, 2, 0]
 

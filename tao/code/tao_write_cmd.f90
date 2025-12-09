@@ -86,7 +86,7 @@ call match_word (action, [character(20):: &
               'derivative_matrix', 'digested', 'elegant', 'field', &
               'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
               'namelist', 'opal', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
-              'sad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
+              'sad', 'scibmad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
               ix, .true., matched_name = action)
 
 if (ix == 0) then
@@ -638,7 +638,7 @@ case ('hard', 'hard-l')
 !---------------------------------------------------
 ! Foreign lattice format
 
-case ('mad', 'mad8', 'madx', 'opal_latice', 'sad', 'xsif', 'elegant')
+case ('mad', 'mad8', 'madx', 'opal_latice', 'sad', 'xsif', 'elegant', 'scibmad')
 
   select case (action)
   case ('mad');     file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
@@ -648,6 +648,7 @@ case ('mad', 'mad8', 'madx', 'opal_latice', 'sad', 'xsif', 'elegant')
   case ('xsif');    file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
   case ('sad');     file_name0 = 'lat_#.sad';  lat_type = 'SAD'
   case ('elegant'); file_name0 = 'lat_#.lte';  lat_type = 'ELEGANT'
+  case ('scibmad'); file_name0 = 'lat_#.jl';  lat_type = 'SCIBMAD'
   end select
 
   if (word(1) /= '') file_name0 = word(1) 
