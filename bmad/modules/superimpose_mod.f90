@@ -120,6 +120,11 @@ super_saved%ic1_lord = 0
 
 branch => lat%branch(ix_branch)
 
+if (l_super >= branch%param%total_length) then
+  call out_io (s_abort$, r_name, 'Superposition of element of length greater or equal to the branch length not allowed: ' // super_ele_in%name)
+  return
+endif
+
 ! s1 is the entrance edge of the superimpose.
 ! s2 is the exit edge of the superimpose.
 

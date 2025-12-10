@@ -28,8 +28,8 @@ b3[geometry] = open
 
 ss: sextupole, l = 0.2, superimpose, ref = q2, offset = 0.3, ref_origin = end, ele_origin = beginning
 
-q1: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = -0.5
-q3: quadrupole, l = 1, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
+q1: quadrupole, l = 0.9, superimpose, ref = d3, wrap_superimpose = T, offset = -0.5
+q3: quadrupole, l = 0.9, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
 
 use, ll, b1, b2, b3, lt
 
