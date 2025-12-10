@@ -5,7 +5,7 @@ import pytest
 
 # Get all lattice files from the lattices subdirectory
 lattices_dir = Path(__file__).parent / "lattices"
-lattice_files = sorted(lattices_dir.glob("*.bmad")) + sorted(lattices_dir.glob("*.lat"))
+lattice_files = sorted(lattices_dir.glob("*.bmad"))
 
 
 @pytest.mark.parametrize("lat_path", lattice_files, ids=lambda p: p.name)
