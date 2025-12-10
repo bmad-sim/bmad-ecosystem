@@ -1,0 +1,26 @@
+! Regression test for #1829 
+! Original error:
+! [FATAL | 2025-DEC-08 17:23:25] check_if_s_in_bounds:
+!     S-POSITION   0.000000000000E+00 PAST EDGE OF LATTICE.
+!     PAST LATTICE EDGE AT:   1.000000000000E+01
+! ERROR IN bmad_parser: PROBLEM SUPERIMPOSING: MAR.MID
+!      ROOT FILE: lat.bmad
+
+no_digested
+parameter[geometry] = Open            
+
+parameter[e_tot] =  42e6
+parameter[particle] = Electron
+
+beginning[beta_a] =  10
+beginning[alpha_a] =  -0.1
+beginning[beta_b] =  10
+beginning[alpha_b] =  0.1
+beginning[s] = 10
+
+PIP: PIPE, L=10
+MAR.BEG: MARKER
+MAR.MID: MARKER, superimpose, wrap_superimpose=False, ref=MAR.BEG, ele_origin=center, offset=5
+
+LAT: LINE=(MAR.BEG, PIP)
+USE, LAT
