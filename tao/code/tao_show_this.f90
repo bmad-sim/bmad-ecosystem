@@ -1107,6 +1107,7 @@ case ('curve')
       value_min = 1e30
       valid = .false.
       do i = 1, n
+        if (.not. allocated(curve(i)%c%x_symb)) cycle
         if (ix_c(i) > size(curve(i)%c%x_symb)) cycle
         value(i) = curve(i)%c%x_symb(ix_c(i))
         valid(i) = .true.
