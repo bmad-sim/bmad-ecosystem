@@ -1195,47 +1195,52 @@ photon energy for \vn{crystal} elements.
 
 The general syntax is:
 \begin{example}
-  m: crystal, reflectivity_table =
-    ! A reflection table
-    \{
-      polarization = <name>
+  m: crystal, use_reflectivity_table = <T/F>, 
+    reflectivity_table = \{
+      polarization = <polarization-type>
       angles = (<ang1> <ang2> ... <angN>),
       p_reflect = \{
         <energy1> <P_11> <P_12> <P_13> ... <P_1N>,
         <energy2> <P_21> <P_22> <P_23> ... <P_2N>, 
         ...
       \}
-    \}
+    \}, ...
 \end{example}
-The \vn{p_reflect} table must come last. Angles are in radians and energy is in eV. Angle and energy
-points do not need to be evenly spaced. Probabilities \vn{P_ij} are between 0 and 1 and must be real
-numbers (as opposed to expressions). For particles outside the range of angles, the probability is
-taken to be zero. The \vn{p_reflect} portion of the reflectivity table must come last. Notice that angles
-and probability values are separated by blank characters.
+The \vn{use_reflectivity_table} element parameter can be used to turn on or off use of the
+reflectivity table.  The \vn{p_reflect} table inside the \vn{reflectivity_table} construct must come
+last. Angles are in radians and energy is in eV. Angle and energy points do not need to be evenly
+spaced. Probabilities \vn{P_ij} are between 0 and 1 and must be real numbers (as opposed to
+expressions). For photons that fall outside the range of angles or energies, the probability is
+taken to be zero. The \vn{p_reflect} portion of the reflectivity table must come last. Notice that
+angles and probability values are separated by blank characters.
 
-Possible \vn{polarization} names are:
+Possible \vn{polarization} types are:
 \begin{example}
   pi        ! Table is for pi mode
   sigma     ! Table is for sigma mode
   both      ! Table is for both polarizations. Default.
 \end{example}
 An element needs a single table with \vn{polarization} marked as \vn{both} or two tables,
-one for \vn{sigma} and the other for \vn{pi}.
+one for \vn{sigma} and the other for \vn{pi} reflections.
 
 For \vn{crystal} elements, angles are always with respect to the Bragg angle for the energy where
 the Bragg angle is calculated without any refraction corrections.
 
 Example:
 \begin{example}
-  cryst1: crystal, reflectivity_table = \{
-      polarization=both, 
-      angles = (0   0.5*pi),
-      p_reflect = \{ 
-          12000 1 1, 
-          14000 1 1
-        \}
-    \}, b_param = ...
+  cryst1: crystal, use_reflectivity_table = T,
+      reflectivity_table = \{
+        polarization = both, 
+        angles = (0   0.5*pi),
+        p_reflect = \{ 
+            12000 1 1, 
+            14000 1 1
+          \}
+      \}, ...
 \end{example}
+This gives 100\% reflection for photons whose energy is in the range 12 KeV to 14 KeV and whose
+incidence angle is in the range between 0 and 0.5$\pi$. Photons outside of either of these ranges
+have zero probability of reflection.
 
 %-----------------------------------------------------------------
 \section{Surface Properties for X-Ray elements}
@@ -2908,15 +2913,22 @@ For an \vn{rfcavity} element, the \vn{field_autoscale} parameter is set such tha
 adjusted for maximum acceleration, the voltage gain of a particle on the zero orbit is equal to the
 value of the element's \vn{voltage} parameter. 
 
-The \vn{phi0_autoscale} is set so that with \vn{phi0} equal to zero, a particle on the zero orbit
-will not see any energy gain through the cavity. There are two values for \vn{phi0_autoscale} where,
-with \vn{phi0} equal zero, the energy gain of the zero orbit particle is zero. If the \vn{bmad_com}
-global parameter \vn{rf_phase_below_transition_ref} (\sref{s:bmad.common}) is set to \vn{False} (the
-default), \vn{phi0_autoscale} will be set such that, with \vn{phi0} equal zero, the zero orbit for a
-particle above transition will be at the stable zero-crossing. For a particle below transition,
-setting \vn{rf_phase_below_transition_ref} to \vn{True}, will result in \vn{phi0_autoscale} being
-set such that, for particles below transition, and with \vn{phi0} equal zero, a particle on the zero
-orbit will be at the stable zero-crossing.
+For \vn{rfcavity} elements, \vn{phi0_autoscale} is set so that with \vn{phi0} equal to zero, a
+particle on the zero orbit will not see any energy gain through the cavity. There are two values for
+\vn{phi0_autoscale} where, with \vn{phi0} equal zero, the energy gain of the zero orbit particle is
+zero. If the \vn{bmad_com} global parameter \vn{rf_phase_below_transition_ref}
+(\sref{s:bmad.common}) is set to \vn{False} (the default), \vn{phi0_autoscale} will be set such
+that, with \vn{phi0} equal zero, the zero orbit for a particle above transition will be at the
+stable zero-crossing. For a particle below transition, setting \vn{rf_phase_below_transition_ref} to
+\vn{True}, will result in \vn{phi0_autoscale} being set such that, for particles below transition,
+and with \vn{phi0} equal zero, a particle on the zero orbit will be at the stable zero-crossing.
+
+For \vn{lcavity} elements, \vn{phi0_autoscale} is set such that a particle entering the cavity with
+zero phase space coordinates has an energy change that is equal to change in reference energy
+\begin{example}
+  dE = voltage * cos(2 * pi * phi0)
+\end{example}
+With this, the ending $p_z$ phase space coordinate is zero.
 
 It is important to keep in mind that with a ring, the closed orbit will be the equilibrium
 orbit. For example, for a ring with a single cavity, changes in \vn{phi0} will just result in
@@ -3462,13 +3474,15 @@ finite width of the quadrupolar fringe field. The width of the quadrupolar fring
 characterized by the \vn{f1} and \vn{f2} attributes. The \vn{sad_nonlinear_only} fringe kick comes
 from the nonlinear part of the quadrupolar field plus the fringes of the other multipoles.
 
-The soft fringe quadrupole parameters \vn{fq1} and \vn{fq2} (\sref{s:q.soft}) are related
-to the corresponding SAD parameters \vn{f1} and \vn{f2} via
+For \vn{sad_mult} elements, the soft fringe quadrupole (\sref{s:q.soft}) parameters \vn{fq1} and
+\vn{fq2} (\sref{s:q.soft}) are related to the corresponding SAD parameters \vn{f1} and \vn{f2} via
 \begin{example}
   f1 = -sign(fq1) * sqrt(24 * |fq1|)
   f2 = fq2
 \end{example}
-In the SAD documentation, the soft edge is called the ``linear'' fringe.
+Note: With SAD \vn{bend} elements, the \vn{f1} parameter is associated with the dipole fringe
+(\sref{s:fringe.bend.soft}) and not the quadrupolar fringe!
+Also note that in the SAD documentation, the soft edge is called the ``linear'' fringe.
 
 \index{permfringe}\index{bendfringe}
 For programmers who deal with PTC directly: The translation between \vn{ptc_fringe_geometry} on the

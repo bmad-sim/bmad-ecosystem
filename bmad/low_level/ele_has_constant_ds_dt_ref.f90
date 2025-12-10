@@ -3,7 +3,8 @@
 !
 ! Function to determine if an element has a constant longitudinal reference velocity.
 ! When in doubt, the assumption is that the longitudinal velocity is not constant.
-! EG: Cavity with zero field is marked as non-constant ds_dt(ref).
+! EG: Cavity with zero field is marked as non-constant ref ds/dt.
+! Also a wiggler has non-constant ref ds/dt.
 !
 ! Input:
 !   ele -- ele_struct: Element.

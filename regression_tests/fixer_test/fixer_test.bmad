@@ -1,0 +1,65 @@
+!!no_digested
+
+parameter[geometry] = Open
+
+parameter[p0c]                      =  1.0E10
+parameter[particle]                 = Positron
+bmad_com[spin_tracking_on] = T
+bmad_com[radiation_damping_on] = T
+bmad_com[spin_tracking_on] = T
+
+beginning[beta_a]       =  1.1E1
+beginning[alpha_a]      = -1.7
+beginning[eta_x]        =  3.5
+beginning[etap_x]       =  5.2E-1
+beginning[beta_b]       =  4.5
+beginning[alpha_b]      =  6.4E-1
+beginning[eta_y]        = -3.7E-1
+beginning[etap_y]       =  9.4E-2
+beginning[cmat_11]      = -3.3E-1
+beginning[cmat_12]      = -1.3E-1
+beginning[cmat_21]      = -4.5E-2
+beginning[cmat_22]      = -1.2E-1
+
+beginning[dbeta_dpz_a]  = -1.0E1
+beginning[dbeta_dpz_b]  =  1.3
+beginning[dalpha_dpz_a] =  1.6
+beginning[dalpha_dpz_b] =  1.1E-1
+beginning[deta_dpz_x] = 1e-2
+beginning[detap_dpz_x] = -2e-2
+beginning[deta_dpz_y] = 3e-2
+beginning[detap_dpz_y] = -4e-2
+
+f = 1
+particle_start[y] = 2e-3*f
+particle_start[py] = 1e-4*f
+
+particle_start[spin_x] = 0.3
+particle_start[spin_y] = 0.4
+particle_start[spin_z] = 0.5
+
+
+!-------------------------------------------------------
+
+S1: Sextupole, L =  1.0E-2
+D: Drift, L =  2.9E-1
+Q1: Quadrupole, L =  5.0E-1, TILT =  5.0E-2, K1 =  5.9E-1, hkick = 1e-3*f, vkick = 2e-3*f
+B: SBend, L = 3.0, G =  1.3E-1, E2 = 7.0E-1
+Q2: Quadrupole, L =  5.0E-1, K1 = -5.0E-1
+S2: Sextupole, L =  1.0E-2
+Lc: LCavity, L =  1.1, VOLTAGE =  1.0E6*1e-10, phi0 = 0.1,
+                           RF_FREQUENCY =  2.5E8, DS_STEP =  1.1E-1
+F1: Fixer
+F2: Fixer
+
+!-------------------------------------------------------
+! Overlays, groups, rampers, and superimpose
+
+
+!-------------------------------------------------------
+! Lattice lines
+
+
+RING: line = (S1, D, Q1, D, Lc, B, D, Q2, D, F1, S2, Lc, F2, B)
+
+use, RING

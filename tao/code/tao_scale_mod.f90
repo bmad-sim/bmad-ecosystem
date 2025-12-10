@@ -312,6 +312,7 @@ subroutine tao_scale_graph (graph, y_min, y_max, axis, include_wall, y_range, y2
 
 type (tao_graph_struct), target :: graph
 type (lat_struct), pointer :: lat
+type (ele_struct), pointer :: ele
 type (tao_ele_shape_struct), pointer :: shape
 type (tao_curve_struct), pointer :: curve
 type (floor_position_struct) floor, end
@@ -319,7 +320,7 @@ type (qp_axis_struct) axis_save
 type (tao_building_wall_point_struct) pt
 
 real(rp), optional :: y_range(2), y2_range(2)
-real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2, del
+real(rp) y_min, y_max, this_min, this_max, this_min2, this_max2, del, y1, y2
 
 integer i, j, k, ix, ib, p1, p2, iu
 logical, optional :: include_wall
@@ -327,6 +328,7 @@ logical found_data, found_data2
 
 character(*), optional :: axis
 character(4) this_axis
+character(40) label_name
 character(*), parameter :: r_name = 'tao_scale_graph'
 
 ! If specific min/max values are given then life is easy.
@@ -384,12 +386,23 @@ if (graph%type == 'floor_plan') then
     if (ix /= -2 .and. ix /= iu) cycle
     lat => s%u(iu)%model%lat
     do ib = 0, ubound(lat%branch, 1)
-      do i = 0, lat%branch(ib)%n_ele_track
-        call tao_floor_to_screen_coords (graph, lat%branch(ib)%ele(i)%floor, end)
+      do i = 0, lat%branch(ib)%n_ele_max
+        ele => lat%branch(ib)%ele(i)
+        if (ele%lord_status /= not_a_lord$ .and. ele%lord_status /= super_lord$) cycle ! Ignore overlays, etc.
+        if (ele%slave_status == super_slave$) cycle
+        call tao_floor_to_screen_coords (graph, ele%floor, end)
         if (end%r(1) > graph%x%max .or. end%r(1) < graph%x%min) cycle
         this_min = min(this_min, end%r(2))
         this_max = max(this_max, end%r(2))
         found_data = .true.
+        ! For a linac, the shape can extend past the plot. So take into account the shape size.
+        call tao_ele_shape_info (iu, ele, s%plot_page%floor_plan%ele_shape, shape, label_name, y1, y2)
+        if (associated(shape)) then
+          y1 = 1.1 * y1 * s%plot_page%floor_plan_shape_scale
+          y2 = 1.1 * y2 * s%plot_page%floor_plan_shape_scale
+          this_min = min(this_min, end%r(2) - y1, end%r(2) - y2)
+          this_max = max(this_min, end%r(2) + y1, end%r(2) + y2)
+        endif
       enddo
     enddo
   enddo

@@ -58,7 +58,6 @@ end interface
 
 !---------
 ! Command history single record
-! The 
 
 type tao_cmd_history_struct          ! Record the command history
   character(:), allocatable :: cmd   ! The command
@@ -455,7 +454,7 @@ type tao_data_struct
   real(rp) :: merit = 0                    ! Merit function term value: weight * delta_merit^2
   real(rp) :: s = real_garbage$            ! longitudinal position of ele.
   real(rp) :: s_offset = 0                 ! Offset of the evaluation point.
-  real(rp) :: s_ref_offset = 0             ! Offset of the reference point. In development.
+  real(rp) :: ref_s_offset = 0             ! Offset of the reference point. In development.
   logical :: err_message_printed = .false. ! Used to prevent zillions of error messages being generated
   logical :: exists = .false.              ! See above
   logical :: good_model = .false.          ! See above
@@ -755,7 +754,6 @@ type tao_common_struct
   type (do_loop_struct), allocatable :: do_loop(:)
   real(rp), allocatable :: covar(:,:), alpha(:,:)
   real(rp) :: dummy_target = 0           ! Dummy varaible
-  integer :: ix_ref_taylor = -1, ix_ele_taylor = -1  ! Taylor map end points
   integer :: n_alias = 0
   integer :: cmd_file_level = 0                 ! For nested command files. 0 -> no command file.
   integer :: ix_key_bank = 0                    ! For single mode.
@@ -939,11 +937,13 @@ type tao_lattice_branch_struct
   type (ptc_normal_form_struct) ptc_normal_form           ! Collection of normal form structures defined in PTC
   type (bmad_normal_form_struct) bmad_normal_form         ! Collection of normal form structures defined in Bmad
   type (coord_struct), allocatable :: high_E_orb(:), low_E_orb(:)
+  type (taylor_struct) :: taylor_save(6)                  ! Save to reduce computation time.
   real(rp) :: cache_x_min = 0, cache_x_max = 0
   real(rp) :: comb_ds_save = -1                           ! Master parameter for %bunch_params_comb(:)%ds_save
-  integer track_state
+  integer :: ix_ref_taylor = -1, ix_ele_taylor = -1
+  integer :: track_state = -1
   integer :: cache_n_pts = 0
-  integer ix_rad_int_cache                                ! Radiation integrals cache index.
+  integer :: ix_rad_int_cache = -1                        ! Radiation integrals cache index.
   logical :: has_open_match_element = .false.
   logical :: plot_cache_valid = .false.                   ! Valid plotting data cache?
   logical :: spin_map_valid = .false.

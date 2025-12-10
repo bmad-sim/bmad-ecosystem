@@ -11,7 +11,7 @@ module S_fitting
   real(dp) :: fuzzy_split=1.0_dp
   real(dp) :: max_ds=0.0_dp
   integer :: resplit_cutting = 0    ! 0 just magnets , 1 magnets as before / drifts separately
-  integer :: metf8=4
+  integer :: metf6=4,metf8=8
   logical :: sagan_even=my_true
   ! 2  space charge algorithm
   logical(lp) :: radiation_bend_split=my_false
@@ -2868,7 +2868,7 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=4
                 MK2=MK2+NTE*3
-             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf8*limit(2)).or.metb==6) THEN
+             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf6*limit(2)).or.metb==6) THEN
                 M3=M3+1
                 NTE=NTE/7
                 IF(NTE.EQ.0) NTE=1
@@ -2987,7 +2987,7 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=4
                 MK2=MK2+NTE*3
-             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf8*limit(2)).or.metb==6) THEN
+             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf6*limit(2)).or.metb==6) THEN
                 M3=M3+1
                 NTE=NTE/7
                 IF(NTE.EQ.0) NTE=1
@@ -3120,7 +3120,7 @@ endif
                 C%MAG%P%NST=NTE
                 C%MAG%P%METHOD=4
                 MK2=MK2+NTE*3
-             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf8*limit(2)).or.metb==6) THEN
+             ELSEIF((NTE.GE.limit(2).AND.NTE.LT.metf6*limit(2)).or.metb==6) THEN
                 M3=M3+1
                 NTE=NTE/7
                 IF(NTE.EQ.0) NTE=1

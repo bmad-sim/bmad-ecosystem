@@ -9,7 +9,7 @@ use element_at_s_mod
 ! Subroutine twiss_and_track
 !
 ! This routine is an overloaded name for:
-!   Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start, print_err, calc_chrom)
+!   Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, print_err, calc_chrom, orb_start)
 !   Subroutine twiss_and_track_all (lat, orb_array, status, print_err, calc_chrom)
 !
 ! Routine to calculate the twiss parameters, transport matrices and orbit.
@@ -27,11 +27,13 @@ use element_at_s_mod
 ! For an open lattice, the orbit will be computed using orb(0) as 
 ! starting conditions.
 ! 
-! If there is a problem in a closed geometry branch, status argument settings are: in_stop_band$, 
-! unstable$, non_symplectic$, in_stop_band$, unstable$, non_symplectic$, xfer_mat_clac_failure$, 
-! twiss_propagate_failure$, or no_closed_orbit$. Note: in_stop_band$, unstable$, and non_symplectic$ 
-! refer to the 1-turn matrix which is computed with closed lattices. A negative sign is used to 
-! differentiate an error occuring in the first call to twiss_at_start from the second call to twiss_at_start.
+! If there is a problem the status argument settings are: in_stop_band$, 
+! unstable$, non_symplectic$, in_stop_band$, non_symplectic$, xfer_mat_clac_failure$, 
+! twiss_propagate_failure$, no_complete_orbit$, or no_closed_orbit$. Note: in_stop_band$, unstable$, 
+! and non_symplectic$ refer to the 1-turn matrix which is computed with closed lattices. 
+! For an open geometry branch, status = no_complete_orbit$ is for 
+! where the particle is lost in tracking. A negative sign is used to differentiate an 
+! error occuring in the first call to twiss_at_start from the second call to twiss_at_start.
 !
 ! If there is a problem in an open geometry branch, status argument setting is -N where N is the element 
 ! where the particle was lost in tracking (negative numbers are used here to avoid confusion with ok$
@@ -46,10 +48,9 @@ use element_at_s_mod
 !   orb_array(0:)       -- Coord_array_struct, allocatable: Array of orbit arrays.
 !     orb_array(0)%orbit(0) -- Used as the starting point for an open lattice.
 !   ix_branch           -- Integer, optional: Branch to track.
-!   use_particle_start  -- logical, optional: If True, use lat%particle_start instead of orb(0)
-!                            as the initial coords for open geometry lattices. Default is False.
 !   print_err           -- logical, optional: Default is True. If False, suppress error messages.
 !   calc_chrom          -- logical, optional: Default is False. If True, calculate the chromatic functions.
+!   orb_start           -- coord_struct, optional: If present, use this as the starting orbit.
 !
 ! Output:
 !   lat                -- lat_struct: Lat with computed twiss parameters.
@@ -74,7 +75,7 @@ contains
 !-------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------
 !+
-! Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start, print_err, calc_chrom)
+! Subroutine twiss_and_track_branch (lat, orb, status, ix_branch, print_err, calc_chrom, orb_start)
 !
 ! Subroutine to calculate the twiss parameters, transport matrices and orbit.
 !
@@ -82,25 +83,25 @@ contains
 ! See twiss_and_track for more details.
 !-
 
-subroutine twiss_and_track_branch (lat, orb, status, ix_branch, use_particle_start, print_err, calc_chrom)
+subroutine twiss_and_track_branch (lat, orb, status, ix_branch, print_err, calc_chrom, orb_start)
 
 implicit none
 
 type (lat_struct) lat
 type (coord_struct), allocatable :: orb(:)
-
+type (coord_struct), optional :: orb_start
 
 integer, optional :: status, ix_branch
-integer ib, status2
+integer ib, status2, ixf
 
-logical, optional :: use_particle_start, print_err, calc_chrom
+logical, optional :: print_err, calc_chrom
 
 !
 
 ib = integer_option(0, ix_branch)
+ixf = lat%branch(ib)%ix_fixer
 call reallocate_coord (orb, lat%branch(ib)%n_ele_max)
-if (logic_option(.false., use_particle_start)) &
-                    call init_coord (orb(0), lat%particle_start, lat%branch(ib)%ele(0), downstream_end$)
+if (present(orb_start)) call init_coord (orb(ixf), orb_start, lat%branch(ib)%ele(ixf), downstream_end$)
 call twiss_and_track1 (lat, orb, ib, status2, print_err, calc_chrom)
 if (present(status)) status = status2
 
@@ -170,7 +171,7 @@ type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orb(:)
 
 real(rp) delta_e
-integer i, ix_branch, status, stat
+integer i, ix_branch, status, stat, track_state
 
 logical, optional :: print_err, calc_chrom
 logical err_flag, err
@@ -222,8 +223,32 @@ if (branch%param%geometry == closed$) then
     return
   endif
 
-! geometry = open
+! Open geometry
 else
+
+  if (branch%ix_fixer /= 0) then
+    call track_all(lat, orb, branch%ix_branch, track_state, err_flag)
+    if (err_flag .or. track_state /= moving_forward$) then
+      status = no_complete_orbit$
+      return
+    endif
+
+    call lat_make_mat6(lat, -1, orb, branch%ix_branch, err_flag)
+    if (err_flag) then
+      status = xfer_mat_calc_failure$
+      return
+    endif
+
+    call twiss_propagate_all(lat, branch%ix_branch, err_flag)
+    if (err_flag) then
+      status = twiss_propagate_failure$
+    endif
+
+    return
+  endif
+
+  !
+
   do i = 1, branch%n_ele_track
     ele => branch%ele(i)
     call make_mat6(ele, branch%param, orb(i-1), orb(i), err_flag)

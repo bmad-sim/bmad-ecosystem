@@ -111,8 +111,8 @@ private check_this_attribute_free
 ! be abbreviated.
 !
 ! This routine is an overloaded name for:
-!   attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
-!   attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
+!   attribute_index1 (ele, name, full_name, can_abbreviate, print_error) result (attrib_index)
+!   attribute_index2 (key, name, full_name, can_abbreviate, print_error) result (attrib_index)
 !
 ! Note:
 !   If ele%key or key = 0 -> Entire name table will be searched.
@@ -123,12 +123,12 @@ private check_this_attribute_free
 !   attribute_name
 !
 ! Input:
-!   ele     -- ele_struct: attribute_index will restrict the name search to 
-!                valid attributes of the given element. 
-!   key     -- integer: Equivalent to ele%key.
-!   name    -- character(40): Attribute name. Must be uppercase.
-!   can_abbreviate
-!           -- logical, optional: Can abbreviate names? Default is True.
+!   ele             -- ele_struct: attribute_index will restrict the name search to 
+!                       valid attributes of the given element. 
+!   key             -- integer: Equivalent to ele%key.
+!   name            -- character(40): Attribute name. Must be uppercase.
+!   can_abbreviate  -- logical, optional: Can abbreviate names? Default is True.
+!   print_error     -- logical, optional: Default True. If false, do not print error message.
 !
 ! Output:
 !   full_name    -- character(40), optional: Non-abbreviated name.
@@ -196,18 +196,18 @@ contains
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
+! Function attribute_index1 (ele, name, full_name, can_abbreviate, print_error) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
-function attribute_index1 (ele, name, full_name, can_abbreviate) result (attrib_index)
+function attribute_index1 (ele, name, full_name, can_abbreviate, print_error) result (attrib_index)
 
 type (ele_struct) ele
 integer attrib_index, i, n
 character(*) name
 character(*), optional :: full_name
-logical, optional :: can_abbreviate
+logical, optional :: can_abbreviate, print_error
 
 ! Note: ele%control or ele%control%var may not be allocated during parsing.
 
@@ -234,7 +234,7 @@ endif
 
 !
 
-attrib_index = attribute_index2 (ele%key, name, full_name, can_abbreviate)
+attrib_index = attribute_index2 (ele%key, name, full_name, can_abbreviate, print_error)
 
 end function attribute_index1
 
@@ -242,12 +242,12 @@ end function attribute_index1
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+             
-! Function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
+! Function attribute_index2 (key, name, full_name, can_abbreviate, print_error) result (attrib_index)
 !
 ! Overloaded by attribute_index. See attribute_index for more details.
 !-
 
-function attribute_index2 (key, name, full_name, can_abbreviate) result (attrib_index)
+function attribute_index2 (key, name, full_name, can_abbreviate, print_error) result (attrib_index)
 
 integer i, j, k, key, num, ilen, n_abbrev, ix_abbrev, i0, ixs
 integer attrib_index
@@ -257,7 +257,7 @@ character(*), optional :: full_name
 character(40) name40
 character(*), parameter :: r_name = 'attribute_index2'
 
-logical, optional :: can_abbreviate
+logical, optional :: can_abbreviate, print_error
 
 if (attribute_array_init_needed) call init_attribute_name_array
 
@@ -361,8 +361,11 @@ elseif (key > 0 .and. key <= n_key$) then
 ! error
 
 else
-  call out_io (s_fatal$, r_name, 'BAD KEY \i0\ ', i_array = [key])
-  if (global_com%exit_on_error) call err_exit
+  if (logic_option(.true., print_error)) then
+    call out_io (s_fatal$, r_name, 'BAD KEY \i0\ ', i_array = [key])
+    if (global_com%exit_on_error) call err_exit
+  endif
+  attrib_index = 0  ! Error
 endif
 
 ! If there is one unique abbreviation then use it.
@@ -718,7 +721,6 @@ do i = 1, n_key$
   call init_attribute_name1 (i, csr_ds_step$,          'CSR_DS_STEP')
   call init_attribute_name1 (i, space_charge_method$,  'SPACE_CHARGE_METHOD')
   call init_attribute_name1 (i, multipass_ref_energy$, 'MULTIPASS_REF_ENERGY', private$)
-  call init_attribute_name1 (i, static_linear_map$,    'STATIC_LINEAR_MAP')
 
   if (i == sad_mult$)          cycle
 
@@ -976,6 +978,10 @@ call init_attribute_name1 (beginning_ele$, cmat_11_stored$,                 'CMA
 call init_attribute_name1 (beginning_ele$, cmat_12_stored$,                 'CMAT_12_STORED')
 call init_attribute_name1 (beginning_ele$, cmat_21_stored$,                 'CMAT_21_STORED')
 call init_attribute_name1 (beginning_ele$, cmat_22_stored$,                 'CMAT_22_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_11_stored$,            'DCMAT_DPZ_11_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_12_stored$,            'DCMAT_DPZ_12_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_21_stored$,            'DCMAT_DPZ_21_STORED')
+call init_attribute_name1 (beginning_ele$, dcmat_dpz_22_stored$,            'DCMAT_DPZ_22_STORED')
 call init_attribute_name1 (beginning_ele$, mode_flip_stored$,               'MODE_FLIP_STORED')
 
 call init_attribute_name1 (fixer$, is_on$,                              'IS_ON')
@@ -1010,6 +1016,10 @@ call init_attribute_name1 (fixer$, cmat_11_stored$,                     'CMAT_11
 call init_attribute_name1 (fixer$, cmat_12_stored$,                     'CMAT_12_STORED')
 call init_attribute_name1 (fixer$, cmat_21_stored$,                     'CMAT_21_STORED')
 call init_attribute_name1 (fixer$, cmat_22_stored$,                     'CMAT_22_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_11_stored$,                'DCMAT_DPZ_11_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_12_stored$,                'DCMAT_DPZ_12_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_21_stored$,                'DCMAT_DPZ_21_STORED')
+call init_attribute_name1 (fixer$, dcmat_dpz_22_stored$,                'DCMAT_DPZ_22_STORED')
 call init_attribute_name1 (fixer$, mode_flip_stored$,                   'MODE_FLIP_STORED')
 call init_attribute_name1 (fixer$, ix_fixer$,                           'ix_fixer', private$)
 
@@ -2013,7 +2023,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', 'MODE_FLIP_STORED', &
       'EXACT_MODEL', 'EXACT_MISALIGN', 'OLD_INTEGRATOR', 'RECALC', 'DETA_DS_MASTER', &
-      'MODE_FLIP0', 'MODE_FLIP1', 'STATIC_LINEAR_MAP', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
+      'MODE_FLIP0', 'MODE_FLIP1', 'USER_SETS_LENGTH', 'USE_REFLECTIVITY_TABLE')
   attrib_type = is_logical$
 
 case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CELL', 'N_RF_STEPS', &

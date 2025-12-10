@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 348
+integer, parameter :: bmad_inc_version$ = 350
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -183,12 +183,12 @@ integer, parameter :: control_var$ = 1, old_control_var$ = 2, all_control_var$ =
 !
 
 integer, parameter :: ok$ = 1, in_stop_band$ = 2, non_symplectic$ = 3, unstable$ = 4
-integer, parameter :: unstable_a$ = 5, unstable_b$ = 6
-integer, parameter :: xfer_mat_calc_failure$ = 7, twiss_propagate_failure$ = 8, no_closed_orbit$ = 9
+integer, parameter :: unstable_a$ = 5, unstable_b$ = 6,  xfer_mat_calc_failure$ = 7
+integer, parameter :: twiss_propagate_failure$ = 8, no_closed_orbit$ = 9, no_complete_orbit$ = 10
 
-character(24) :: matrix_status_name(9) = [character(24) :: 'OK', 'IN_STOP_BAND', 'NON_SYMPLECTIC', &
+character(24) :: matrix_status_name(10) = [character(24) :: 'OK', 'IN_STOP_BAND', 'NON_SYMPLECTIC', &
                        'UNSTABLE', 'UNSTABLE A-MODE', 'UNSTABLE B-MODE', 'XFER_MAT_CALC_FAILURE', &
-                       'TWISS_PROPAGATE_FAILURE', 'NO_CLOSED_ORBIT']
+                       'TWISS_PROPAGATE_FAILURE', 'NO_CLOSED_ORBIT', 'NO_COMPLETE_ORBIT']
 
 type twiss_struct
   real(rp) :: beta = 0, alpha = 0, gamma = 0, phi = 0, eta = 0, etap = 0, deta_ds = 0
@@ -360,9 +360,10 @@ character(12), parameter :: anchor_pt_name(0:3) = ['GARBAGE! ', 'Beginning', 'Ce
 
 ! Note: upstream_end$ = entrance_end$ & downstream_end$ = exit_end$ for ele with %orientation = 1.
 
-! first_track_edge$ is the edge a particle enters the element at. 
+! first_track_edge$ is the edge a particle enters the element when tracking. 
 ! This edge will depend upon whether a particle is moving in +s or -s direction.
 ! Similarly, second_track_edge$ is the edge a particle leaves the element at.
+
 
 integer, parameter :: none_pt$ = 4
 integer, parameter :: entrance_end$ = 1, exit_end$ = 2, both_ends$ = 3, no_end$ = 4, no_aperture$ = 4, nowhere$ = 4
@@ -1456,6 +1457,7 @@ type ele_struct
   real(rp) :: vec0(6) = 0                                      ! 0th order transport vector.
   real(rp) :: mat6(6,6) = 0                                    ! 1st order transport matrix.
   real(rp) :: c_mat(2,2) = 0                                   ! 2x2 C coupling matrix
+  real(rp) :: dc_mat_dpz(2,2) = 0                              ! d(c_mat)/dpz variation. 
   real(rp) :: gamma_c = 1                                      ! gamma associated with C matrix
   real(rp) :: s_start = 0                                      ! longitudinal ref position at entrance_end
   real(rp) :: s = 0                                            ! longitudinal ref position at the exit end.
@@ -1762,6 +1764,7 @@ integer, parameter :: eta_x_stored$ = 34, etap_x_stored$ = 35, eta_y_stored$ = 3
 integer, parameter :: cmat_11_stored$ = 38, cmat_12_stored$ = 39, cmat_21_stored$ = 40, cmat_22_stored$ = 41
 integer, parameter :: dbeta_dpz_a_stored$ = 42, dbeta_dpz_b_stored$ = 43, dalpha_dpz_a_stored$ = 44, dalpha_dpz_b_stored$ = 45
 integer, parameter :: deta_dpz_x_stored$ = 46, deta_dpz_y_stored$ = 47, detap_dpz_x_stored$ = 48, detap_dpz_y_stored$ = 49
+integer, parameter :: dcmat_dpz_11_stored$ = 65, dcmat_dpz_12_stored$ = 66, dcmat_dpz_21_stored$ = 67, dcmat_dpz_22_stored$ = 68
 
 integer, parameter :: radius$ = 3, focal_strength$ = 5
 
@@ -1787,7 +1790,7 @@ integer, parameter :: spin_fringe_on$ = 13, pendellosung_period_sigma$ = 13
 integer, parameter :: sig_x$ = 14, exact_multipoles$ = 14, pendellosung_period_pi$ = 14
 integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15, rf_frequency$ = 15
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16, rf_wavelength$ = 16
-integer, parameter :: sig_vx$ = 17, static_linear_map$ = 17
+integer, parameter :: sig_vx$ = 17
 ! longitudinal_mode$ is near to rf_wavelength$ for type_ele to print rf_bucket_length near rf_wavelength$
 integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, ks$ = 18
 integer, parameter :: sig_e$ = 19, sig_pz$ = 19, autoscale_amplitude$ = 19

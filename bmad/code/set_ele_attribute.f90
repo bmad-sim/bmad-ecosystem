@@ -61,15 +61,19 @@ character(40) a_name
 err_flag = .true.
 if (present(err_id)) err_id = 0
 
-call str_upcase (string, set_string)
-ix = index(string, '=')
+ix = index(set_string, '=')
 if (ix == 0) then
   if (logic_option(.true., err_print_flag)) call out_io (s_error$, r_name, 'NO "=" SIGN FOUND')
   if (present(err_id)) err_id = 1
   return
 endif
 
-a_name = adjustl(string(1:ix-1))
+a_name = upcase(adjustl(set_string(1:ix-1)))
+if (attribute_type(a_name) == is_string$) then
+  string = trim(a_name) // set_string(ix:)
+else
+  call str_upcase (string, set_string)
+endif
 
 select case (a_name)
 case ('SLAVE', 'VAR', 'REF_BEGINNING', 'REF_CENTER', 'REF_END', 'ELE_BEGINNING', &

@@ -360,6 +360,7 @@ if (search_for_lat_eles /= '') then
   u%data(n1:n2)%merit_type       = datum(ix1:ix2)%merit_type
   u%data(n1:n2)%weight           = datum(ix1:ix2)%weight
   u%data(n1:n2)%s_offset         = datum(ix1:ix2)%s_offset
+  u%data(n1:n2)%ref_s_offset     = datum(ix1:ix2)%ref_s_offset
   u%data(n1:n2)%data_source      = datum(ix1:ix2)%data_source
   u%data(n1:n2)%meas_value       = datum(ix1:ix2)%meas
   u%data(n1:n2)%error_rms        = datum(ix1:ix2)%error_rms
@@ -425,6 +426,7 @@ elseif (use_same_lat_eles_as /= '') then
   u%data(n1:n2)%ix_ele_start    = d1_array(1)%d1%d%ix_ele_start
   u%data(n1:n2)%exists          = d1_array(1)%d1%d%exists
   u%data(n1:n2)%s_offset        = d1_array(1)%d1%d%s_offset
+  u%data(n1:n2)%ref_s_offset    = d1_array(1)%d1%d%ref_s_offset
   u%data(n1:n2)%eval_point      = d1_array(1)%d1%d%eval_point
   u%data(n1:n2)%meas_value      = real_garbage$
 
@@ -500,6 +502,7 @@ else
   u%data(n1:n2)%merit_type          = datum(ix1:ix2)%merit_type
   u%data(n1:n2)%spin_map%axis_input = datum(ix1:ix2)%spin_axis
   u%data(n1:n2)%s_offset            = datum(ix1:ix2)%s_offset
+  u%data(n1:n2)%ref_s_offset        = datum(ix1:ix2)%ref_s_offset
 
   ! Find elements associated with the data
 

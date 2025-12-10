@@ -444,9 +444,12 @@ do ir = 1, branch%n_ele_track
 
   if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == em_field$) cycle
   if (ele%key == patch$) cycle
-  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0 .and. &
-          ele%key /= quadrupole$ .and. ele%key /= sol_quad$ .and. ele%key /= sbend$ .and. &
-          ele%key /= rf_bend$ .and. ele%key /= hkicker$ .and. ele%key /= vkicker$) cycle
+  if (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0) then
+    select case (ele%key)
+    case (quadrupole$, sol_quad$, sbend$, rf_bend$, hkicker$, vkicker$, sad_mult$)
+    case default; cycle
+    end select
+  endif
 
   ! All other elements
 
@@ -606,7 +609,6 @@ mode%b%synch_int(6) = i6b
 
 if (branch%param%geometry == closed$) then
   if (i2 /= 0) then
-
     mode%a%emittance         = const_q * gamma2_factor * i5a / (i2 - i4a)
     mode%a%emittance_no_vert = mode%a%emittance
     mode%b%emittance         = const_q * (gamma2_factor * i5b + 13 * i6b / 55) / (i2 - i4b)
@@ -622,7 +624,6 @@ if (branch%param%geometry == closed$) then
     else
       mode%sigE_E = 1d30  ! Something large
     endif
-
   endif
 
   mode%a%alpha_damp = energy_loss * mode%a%j_damp / (2 * energy)

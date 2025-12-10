@@ -19,6 +19,8 @@ type (ele_struct), pointer :: fixer
 type (ele_struct) :: dflt_fixer
 type (tao_universe_struct), pointer :: u
 type (ele_attribute_struct) attrib
+type (branch_struct), pointer :: branch
+type (tao_lattice_branch_struct), pointer :: tao_branch
 
 character(*) switch, word1, word2
 character(40) action, name, str_val
@@ -35,12 +37,21 @@ logical is_ok, err, is_default
 ele_str = word1
 u => tao_pointer_to_universe(ele_str)
 if (.not. associated(u)) return
+
 fixer => pointer_to_ele (u%model%lat, word1)
-if (.not. associated(fixer)) return
+
+if (.not. associated(fixer)) then
+  call out_io(s_error$, r_name, 'Fixer element not found: ' // ele_str)
+  return
+endif
+
 if (fixer%key /= fixer$ .and. fixer%key /= beginning_ele$) then
   call out_io(s_error$, r_name, 'Element if not a fixer nor a beginning element: ' // ele_str)
   return
 endif
+
+branch => fixer%branch
+tao_branch => u%model%tao_branch(branch%ix_branch)
 
 call tao_next_switch (switch, [character(20):: 'activate', 'on', 'save', 'write'], &
                                         .false., action, err);  if (err) return
@@ -56,7 +67,7 @@ case ('activate', 'on')
   u%calc%lattice = .true.
 
 case ('save')
-  is_ok = transfer_fixer_params(fixer, .true., word2)
+  is_ok = transfer_fixer_params(fixer, .true., tao_branch%orbit(fixer%ix_ele), word2)
 
 case ('write')
   file_name = word2

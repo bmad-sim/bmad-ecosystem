@@ -3195,8 +3195,12 @@ do i = 1, size(eles)
     endif
     cycle
   endif
-  call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, .false.)
-  call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele, a_ptr)
+
+  if (attribute_type(upcase(attribute)) /= is_string$) then
+    call pointer_to_attribute(eles(i)%ele, attribute, .true., a_ptr, err, .false.)
+    call tao_set_flags_for_changed_attribute (u, eles(i)%ele%name, eles(i)%ele, a_ptr)
+  endif
+
   if (.not. err) n_set = n_set + 1
 enddo
 

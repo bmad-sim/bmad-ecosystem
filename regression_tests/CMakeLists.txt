@@ -25,6 +25,7 @@ set (EXE_SPECS
   cmake_files/cmake.cathode_sc_test
   cmake_files/cmake.em_field_test
   cmake_files/cmake.field_test
+  cmake_files/cmake.fixer_test
   cmake_files/cmake.fringe_test
   cmake_files/cmake.geometry_test
   cmake_files/cmake.girder_test
@@ -45,6 +46,7 @@ set (EXE_SPECS
   cmake_files/cmake.ptc_test
   cmake_files/cmake.radiation_test
   cmake_files/cmake.reverse_test
+  cmake_files/cmake.rf_test
   cmake_files/cmake.sad_test
   cmake_files/cmake.sim_utils_test
   cmake_files/cmake.slice_test

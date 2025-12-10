@@ -795,11 +795,11 @@ do j = 1, slave%n_lord
   case default
     if (n_major_lords > 0) then
  
-     if (slave%mat6_calc_method /= lord%mat6_calc_method) then
+     if (slave%mat6_calc_method /= lord%mat6_calc_method .and. lord%mat6_calc_method /= auto$) then
         call out_io(s_error$, r_name, &
               'MAT6_CALC_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
-              'Conflicting methods are: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // ',  ' // & 
-              mat6_calc_method_name(slave%mat6_calc_method))
+              'Lord (' // trim(lord%name) // ') method: ' // trim(mat6_calc_method_name(lord%mat6_calc_method)) // &
+              ', Slave method: ' // mat6_calc_method_name(slave%mat6_calc_method))
       endif
 
       if (slave%tracking_method /= lord%tracking_method) then
@@ -814,8 +814,8 @@ do j = 1, slave%n_lord
         else
           call out_io(s_error$, r_name, &
              'TRACKING_METHOD DOES NOT AGREE FOR DIFFERENT SUPERPOSITION LORDS FOR SLAVE: ' // slave%name, &
-             'Conflicting methods are: ' // trim(tracking_method_name(lord%tracking_method)) // ',  ' // & 
-             tracking_method_name(slave%tracking_method))
+             'Lord (' // trim(lord%name) // ') method: ' // trim(tracking_method_name(lord%tracking_method)) // &
+             ',  Slave method: ' // tracking_method_name(slave%tracking_method))
         endif
       endif
 

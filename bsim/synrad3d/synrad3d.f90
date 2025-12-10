@@ -289,7 +289,7 @@ if (turn_off_kickers_in_lattice) then
   call lattice_bookkeeper (lat)
 endif
 
-call twiss_and_track (lat, orb, status, branch%ix_branch, use_particle_start = .true.)
+call twiss_and_track (lat, orb, status, branch%ix_branch, orb_start = lat%particle_start)
 if (status /= ok$) stop
   
 ! Find out much radiation is produced
@@ -383,6 +383,7 @@ if (lat_ele_file /= '') then
     write (iu_lat_file, *) 'I0 Radiation Integral of entire lattice:              ', modes%synch_int(0)
     write (iu_lat_file, *) 'I0 Radiation Integral over emission region:           ', i0_tot
     write (iu_lat_file, *) 'I0 over emission region over init energy filter range:', i0_tot_eff
+    write (iu_lat_file, *) 'List of elements with at least one photon generated.'
     write (iu_lat_file, *) ''
     write (iu_lat_file, *) &
         'Index  Name                Type                  S       L          I0    N_phot  ds_step'
@@ -567,7 +568,7 @@ else
     if (n_phot == 0) cycle
 
     ds = ele%value(l$) / n_phot
-    if (ds < ds_step_min) ds = (1+int(ds_step_min/ds)) * ds
+    if (ds < ds_step_min) ds = min(ele%value(l$), (1+int(ds_step_min/ds)) * ds)
 
     ! Write info to lat_ele_file
 

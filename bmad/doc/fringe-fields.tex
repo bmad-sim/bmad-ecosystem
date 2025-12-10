@@ -91,7 +91,7 @@ The transport for the exit fringe is
 \label{s:fringe.bend.soft}
 
 The SAD dipole soft edge fringe model is adapted from the SAD program\cite{b:sad}. This model is
-only used for \vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements. For \vn{sbend} and \vn{rbend}
+only used with \vn{sbend}, \vn{rbend}, and \vn{sad_mult} elements. For \vn{sbend} and \vn{rbend}
 elements, the fringe map is defined in terms of the \vn{fint} and \vn{hgap} for the entrance end and
 \vn{fintx} and \vn{hgapx} at the exit end (\sref{s:bend}). The field integral $F_{H1}$ for the
 entrance end given is given by (see \Eq{fsbbb})
@@ -99,7 +99,14 @@ entrance end given is given by (see \Eq{fsbbb})
   F_{H1} \equiv F_{int} \, H_{gap} = \int_{pole} \! \! ds \, \frac{B_y(s) \, (B_{y0} - B_y(s))}
   {2 \, B_{y0}^2}
 \end{equation}
-With a similar equation for $F_{H2}$ for the exit end.
+With a similar equation for $F_{H2}$ for the exit end. The conversion between \vn{f1}, \vn{fb1}, and
+\vn{fb2} parameters for a SAD \vn{bend} element and a \bmad bend element is
+\begin{example}
+  fq1 (Bmad) = f1 + fb1 (SAD)
+  fq2 (Bmad) = f1 + fb2 (SAD)
+\end{example}
+Note! To be confusing, the SAD \vn{mult} element also has an \vn{f1} parameter but for the \vn{mult}
+element the \vn{f1} parameter is associated with the soft quadrupole fringe (\sref{s:q.soft}).
 
 For a \vn{sad_mult} element the corresponding parameters are \vn{fb1} and \vn{fb2}. the conversion between
 the bend and \vn{sad_mult} parameters is

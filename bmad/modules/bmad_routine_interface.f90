@@ -2206,13 +2206,13 @@ function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) res
   logical, optional :: skip_beginning, follow_fork
 end function
 
-function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic) result (lord_ptr)
+function pointer_to_super_lord (slave, control, ix_slave_back, ix_control, ix_ic, lord_type) result (lord_ptr)
   import
   implicit none
   type (ele_struct), target :: slave
   type (control_struct), pointer, optional :: control
   type (ele_struct), pointer :: lord_ptr
-  integer, optional :: ix_slave_back, ix_control, ix_ic
+  integer, optional :: ix_slave_back, ix_control, ix_ic, lord_type
 end function
 
 function pointer_to_wake_ele (ele, delta_s) result (wake_ele)
@@ -4803,7 +4803,6 @@ call transfer_lat_parameters (lat_in, lat_out)
 
 ! super_ok$ is used to signal this routine to not do any ramper bookkeeping.
 if (lat_in%ramper_slave_bookkeeping /= super_ok$) call ramper_slave_setup(lat_out, .true.)
-
 
 end subroutine lat_equal_lat
 

@@ -41,8 +41,8 @@ module ptc_spin
   REAL(DP) :: bran_init=pi  
   logical :: locate_with_no_cavity = .false.,full_way=.true.
   integer  :: item_min=3,mfdebug
-  integer  :: case_map=case1
-
+  integer  :: case_map=case1,i11min=6776, i22max=8055
+ ! logical :: excludedelta=.false.
 
   INTERFACE assignment (=)
      MODULE PROCEDURE equal_temporal
@@ -98,13 +98,12 @@ module ptc_spin
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_spint12p_x  !(x,k,u,t, fibre1,fibre2,node1,node2)  pointer routine
   END INTERFACE
 
-
   INTERFACE propagate
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_spin12r_x    !#7
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_spin12p_x  ! (r,x,k,u,t, fibre1,fibre2,node1,node2)  integer routine
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_spint12r_x
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_spint12p_x  !(x,k,u,t, fibre1,fibre2,node1,node2)  pointer routine
-     MODULE PROCEDURE TRACK_LAYOUT_FLAG_PROBE_spin12R  !#3  ! probe from FIBRE
+     MODULE PROCEDURE TRACK_LAYOUT_FLAG_PROBE_spin12R
      MODULE PROCEDURE TRACK_LAYOUT_FLAG_PROBE_spin12P  ! (r,xS,k,fibre1,fibre2,node1,node2) ! integer fibre i1 to i2
      MODULE PROCEDURE TRACK_NODE_LAYOUT_FLAG_pr_t12_R  !#6 USING NODE1 TO NODE2 AS OBJECT
      MODULE PROCEDURE TRACK_NODE_LAYOUT_FLAG_pr_t12_P  ! (xs,k,fibre1,fibre2,node1,node2)
@@ -777,6 +776,7 @@ endif
 
   END SUBROUTINE TRACK_NODE_LAYOUT_FLAG_pr_t12_R
 
+
   SUBROUTINE TRACK_NODE_LAYOUT_FLAG_pr_t12_P(xs,k,fibre1,fibre2,node1,node2) ! Tracks double from i1 to i2 in state k
     use s_extend_poly, only : elem_name ! LD: 22.03.2019
     IMPLICIT NONE
@@ -787,6 +787,8 @@ endif
     TYPE (INTEGRATION_NODE), POINTER :: C,n1,n2,last
     logical donew
     real(dp) beta
+!type(real_8) dd
+!logical :: didit
     !    INTEGER,TARGET :: CHARGE
 
     !    if(present(node1))CHARGE=NODE1%PARENT_FIBRE%CHARGE
@@ -836,6 +838,18 @@ endif
 !       CALL TRACK_NODE_PROBE(last,XS,K)
 !    endif
 
+!didit=.false.
+! if(excludedelta) then
+!  if(.not.(c%pos>=i11min.and.n2%pos<=i22max)) then
+ ! write(6,*) "xxxx",c%pos,c%pos
+!didit=.true.
+  !write(6,*)  c%parent_fibre%mag%name(1:8),c%parent_fibre%mag%name(1:8)
+ ! call alloc(dd)
+ ! dd=xs%x(5)
+ ! xs%x(5)=0.d0
+ ! endif
+ !endif
+
     donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
 
     if(donew) then   ! actually calling old stuff pre-node
@@ -863,6 +877,12 @@ endif
     endif
     endif
 
+  !if(didit) then
+  !xs%x(5)=dd
+  ! call kill(dd)
+
+  !endif
+ 
 
     C_%STABLE_DA=.true.
 
@@ -1039,7 +1059,7 @@ endif
     integer i1,i2
     integer i11,i22
     type(fibre), pointer:: p
-
+ 
     if(.not.associated(r%t)) call MAKE_NODE_LAYOUT(r)
     i1=0
     i2=0
@@ -1069,8 +1089,9 @@ endif
     endif
 
     IF(I22==I11.AND.I2>I1) I22=I11+R%T%N
-
+ 
     CALL TRACK_PROBE2(r,xs,K,i11,i22)
+ 
 
 
   END SUBROUTINE TRACK_LAYOUT_FLAG_probe_spin12P
@@ -1712,6 +1733,10 @@ if(C%parent_fibre%mag%name(1:3)=="MAP") then
     if(c%cas==case_map) call track_mapr8ths(c,xs,K)
  return
  endif 
+ if(C%parent_fibre%mag%name=="MAPSTRANGE") then
+    if(c%cas==case_map) call track_stranger(c,xs,K)
+ return
+ endif
  else
     if(2*old_integrator+c%parent_fibre%mag%old_integrator>0) then
      call TRACK_NODE_FLAG_probe_R(C,XS,K)
@@ -1769,6 +1794,10 @@ if(C%parent_fibre%magp%name(1:3)=="MAP") then
     if(c%cas==case_map) call track_mapp8ths(c,xs,K)
  return
  endif 
+ if(C%parent_fibre%magp%name=="MAPSTRANGE") then
+    if(c%cas==case_map) call track_strangep(c,xs,K)
+ return
+ endif
  else
     if(compute_stoch_kick) then
       c%delta_rad_in=0
@@ -2015,6 +2044,54 @@ endif ! map
       call track_mapr2nd(C,XS,yx1,K)
       call track_mapr2nd(C,XS,yx0,K)
     end  subroutine track_mapr4th
+
+
+
+  subroutine track_stranger(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    real(dp) x
+
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+    x=(1.0_dp+ C%PARENT_FIBRE%MAG%an(1)- C%PARENT_FIBRE%MAG%bn(1)*xs%x(1)**nint(C%PARENT_FIBRE%MAG%an(2)))* &
+    (cos(twopi*C%PARENT_FIBRE%MAG%bn(2))*xs%x(1) + &
+    sin(twopi*C%PARENT_FIBRE%MAG%bn(2))*xs%x(2))
+    xs%x(2)=(cos(twopi*C%PARENT_FIBRE%MAG%bn(2))*xs%x(2)  - sin(twopi*C%PARENT_FIBRE%MAG%bn(2))*xs%x(1))
+    xs%x(1)=x
+  end subroutine track_stranger
+
+
+  subroutine track_strangep(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    type(real_8)   x
+
+    C%PARENT_FIBRE%MAGP%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGP%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGP%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGP%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGP%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGP%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGP%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+    call alloc(x)
+    x=(1.0_dp+ C%PARENT_FIBRE%MAGP%an(1)- C%PARENT_FIBRE%MAGP%bn(1)*xs%x(1)**nint(C%PARENT_FIBRE%MAG%an(2)))* &
+    (cos(twopi*C%PARENT_FIBRE%MAGP%bn(2))*xs%x(1) + &
+    sin(twopi*C%PARENT_FIBRE%MAGP%bn(2))*xs%x(2))
+    xs%x(2)=(cos(twopi*C%PARENT_FIBRE%MAGP%bn(2))*xs%x(2)  - sin(twopi*C%PARENT_FIBRE%MAGP%bn(2))*xs%x(1))
+    xs%x(1)=x
+    call kill(x)
+
+  end subroutine track_strangep
 
 
 

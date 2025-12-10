@@ -759,9 +759,11 @@ else
   ! Note: There is a potential problem with RF and e_gun elements when calculating beta0 when there is slicing and where
   ! the particle is non-relativistic. To avoid z-shifts with slicing, use the lord delta_ref_time.
   ! There is a further potential problem in that a pipe with a lcavity superimposed on it will not have a 
-  ! constant reference energy
+  ! constant reference energy.
+  ! Exception: Anything that has constant ref energy. This is to avoid the problem where, for example, a solenoid is 
+  ! half outside of an Lcavity. In this case, the outside super_slave part should use the lord's beta0.
 
-  if ((ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) .and. ele%key /= pipe$) then
+  if ((ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) .and. .not. ele_has_constant_ds_dt_ref(ele)) then
     do ie = 1, ele%n_lord
       ele0 => pointer_to_lord(ele, ie)
       if (ele0%key /= pipe$) exit

@@ -375,8 +375,9 @@ sets the six deltas used for displacing the initial particle coordinates from th
 \index{crystal}\index{capillary}\index{rf_bend}
 \begin{table}[pth]
 \centering {
-\begin{tabular}{lcccccccc} \toprule
+\begin{tabular}{lccccccccc} \toprule
 \rule{0pt}{80pt} &
+\begin{sideways}\vn{Auto}\end{sideways} &
 \begin{sideways}\vn{Bmad_Standard}\end{sideways} &
 \begin{sideways}\vn{Custom}\end{sideways} &
 \begin{sideways}\vn{MAD}\end{sideways} &
@@ -386,40 +387,40 @@ sets the six deltas used for displacing the initial particle coordinates from th
 \begin{sideways}\vn{Taylor}\end{sideways} &
 \begin{sideways}\vn{Tracking}\end{sideways}
 \\ \midrule
-%                                     BS   C   M  Stat SLB   SLP   Tlr  Trk
-  \vn{ab_multipole and multipole}    & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{ac_kicker}                     &   & X &   & X &     &  X  &  X  & D \\  
-  \vn{beambeam}                      & D & X &   & X &     &     &     & X \\  
-  \vn{bends: rbend and sbend}        & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{converter}                     & D & X &   &   &     &     &     &   \\  
-  \vn{crab_cavity}                   &   & X &   & X &     &     &     & D \\  
-  \vn{custom}                        &   & D &   & X &     &     &     & X \\  
-  \vn{drift}                         & D & X & X & X &     &  X  &  X  & X \\  
-  \vn{e_gun}                         &   & X &   & X &     &     &     & D \\  
-  \vn{ecollimator and rcollimator}   & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{elseparator}                   & D & X & X & X &     &  X  &  X  & X \\  
-  \vn{em_field}                      &   & X &   & X &     &  X  &  X  & D \\  
-  \vn{fiducial}                      & D & X &   & X &     &  X  &     & X \\  
-  \vn{floor_shift}                   & D & X &   & X &     &  X  &     & X \\  
-  \vn{hkicker}                       & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{instrument, monitor, and pipe} & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{kicker}                        & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{lcavity and rfcavity}          & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{marker}                        & D & X &   & X &     &  X  &  X  & X \\  
-  \vn{match}                         & D & X &   & X &     &     &     & X \\  
-  \vn{octupole}                      & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{patch}                         & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{quadrupole}                    & D & X & X & X &  X  &  X  &  X  & X \\ 
-  \vn{rf_bend}                       & D & X &   & X &     &     &     & X \\
-  \vn{sad_mult}                      & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{sextupole}                     & D & X & X & X &     &  X  &  X  & X \\ 
-  \vn{solenoid}                      & D & X & X & X &  X  &  X  &  X  & X \\ 
-  \vn{sol_quad}                      & D & X & X & X &  X  &  X  &  X  & X \\ 
-  \vn{taylor}                        &   & X &   & X &     &  X  &  D  &   \\ 
-  \vn{vkicker}                       & D & X &   & X &     &  X  &  X  & X \\ 
-  \vn{wiggler} (map type)            & D & X &   & X &X$^a$&X$^a$&X$^a$& X \\ 
-  \vn{wiggler} (periodic type)       &   & X &   & X &X$^a$&X$^a$&D$^a$& X \\ \bottomrule
-  \multicolumn{9}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
+%                                     A   BS   C   M  Stat SLB   SLP   Tlr  Trk
+  \vn{ab_multipole and multipole}    & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{ac_kicker}                     &   &   & X &   & X &     &  X  &  X  & D \\  
+  \vn{beambeam}                      & D & X & X &   & X &     &     &     & X \\  
+  \vn{bends: rbend and sbend}        & D & X & X & X & X &     &  X  &  X  & X \\ 
+  \vn{converter}                     & D & X & X &   &   &     &     &     &   \\  
+  \vn{crab_cavity}                   &   &   & X &   & X &     &     &     & D \\  
+  \vn{custom}                        &   &   & D &   & X &     &     &     & X \\  
+  \vn{drift}                         & D & X & X & X & X &     &  X  &  X  & X \\  
+  \vn{e_gun}                         &   &   & X &   & X &     &     &     & D \\  
+  \vn{ecollimator and rcollimator}   & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{elseparator}                   & D & X & X & X & X &     &  X  &  X  & X \\  
+  \vn{em_field}                      &   &   & X &   & X &     &  X  &  X  & D \\  
+  \vn{fiducial}                      & D & X & X &   & X &     &  X  &     & X \\  
+  \vn{floor_shift}                   & D & X & X &   & X &     &  X  &     & X \\  
+  \vn{hkicker}                       & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{instrument, monitor, and pipe} & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{kicker}                        & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{lcavity and rfcavity}          & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{marker}                        & D & X & X &   & X &     &  X  &  X  & X \\  
+  \vn{match}                         & D & X & X &   & X &     &     &     & X \\  
+  \vn{octupole}                      & D & X & X &   & X &     &  X  &  X  & X \\ 
+  \vn{patch}                         & D & X & X &   & X &     &  X  &  X  & X \\ 
+  \vn{quadrupole}                    & D & X & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{rf_bend}                       & D & X & X &   & X &     &     &     & X \\
+  \vn{sad_mult}                      & D & X & X &   & X &     &  X  &  X  & X \\ 
+  \vn{sextupole}                     & D & X & X & X & X &     &  X  &  X  & X \\ 
+  \vn{solenoid}                      & D & X & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{sol_quad}                      & D & X & X & X & X &  X  &  X  &  X  & X \\ 
+  \vn{taylor}                        &   &   & X &   & X &     &  X  &  D  &   \\ 
+  \vn{vkicker}                       & D & X & X &   & X &     &  X  &  X  & X \\ 
+  \vn{wiggler} (map type)            & D & X & X &   & X &X$^a$&X$^a$&X$^a$& X \\ 
+  \vn{wiggler} (periodic type)       &   &   & X &   & X &X$^a$&X$^a$&D$^a$& X \\ \bottomrule
+  \multicolumn{10}{l}{$^a$See \sref{s:wiggler.periodic} for more details} \\
 \end{tabular}
 } 
 \caption[Table of available mat6_calc_method switches.]  {Table of

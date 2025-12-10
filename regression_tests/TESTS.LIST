@@ -12,6 +12,7 @@ closed_orbit_test
 coord_test
 csr_and_space_charge_test
 envelope_ibs_test
+fixer_test
 fringe_test
 geometry_test
 girder_test
@@ -32,6 +33,7 @@ ptc_test
 NOTE: SKIPPING REVERSE_TEST!
 ! reverse_test
 radiation_test
+rf_test
 sad_test
 sim_utils_test
 slice_test

@@ -7,7 +7,7 @@
 !
 ! Input:
 !   mat(:,:)      -- real(rp): Input matrix 
-!   vec0(:)       -- real(rp): O^th order part of the map.
+!   vec0(:)       -- real(rp), optional: O^th order part of the map.
 !   print_err     -- logical, optional: If True then the subroutine will type out
 !                         a warning message. Default is False.
 ! Output:

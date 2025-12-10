@@ -1008,7 +1008,8 @@ type (coord_struct) orbit
 real(rp) p0, theta, bragg_ang, prob_vec(4), angle(4), energy(4), coef(3)
 integer ie, ia
 
-!
+! The linear fit can give negative probability values so restrict computed values to be in the 
+! range of the probability values at the corners
 
 ie = bracket_index(orbit%p0c, rt%energy, 1)
 ia = bracket_index(theta-bragg_ang, rt%angle, 1)
@@ -1022,6 +1023,8 @@ else
   prob_vec = [rt%p_reflect(ia, ie), rt%p_reflect(ia+1, ie), rt%p_reflect(ia, ie+1), rt%p_reflect(ia+1, ie+1)]
   call linear_fit_2D(energy, angle, prob_vec, coef)
   p0 = coef(1) * orbit%p0c + coef(2) * (theta-bragg_ang) + coef(3)
+  p0 = max(p0, minval(prob_vec))
+  p0 = min(p0, maxval(prob_vec))
 endif
 
 end function probability_from_table

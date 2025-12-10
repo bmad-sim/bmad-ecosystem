@@ -3835,6 +3835,9 @@ if (pele%wrap_superimpose) then
   if (super_ele%s_start < s0 - len_tiny) then
     super_ele%s_start = super_ele%s_start + branch%param%total_length
   endif
+
+else
+  super_ele%s_start = super_ele%s - super_ele%value(l$)
 endif
 
 ! The "nominal" insert point is at the downstream end of element with index ix_insert.

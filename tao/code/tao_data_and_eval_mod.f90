@@ -48,12 +48,11 @@ type (ele_struct), pointer :: this_ele
 character(*) data_name
 character(*) default_source
 character(*), optional :: dflt_component
-character(100) name, ele_name, component, offset_str
+character(100) name, ele_name, component, offset_str, ref_offset_str
 character(*), parameter :: r_name = 'tao_evaluate_lat_or_beam_data'
 
 real(rp), allocatable :: values(:), off_val(:)
 real(rp), optional :: dflt_s_offset
-real(rp) s_offset
 
 integer, optional :: dflt_uni, dflt_eval_point
 integer j, num, ix, ix1, ios, n_tot, n_loc, iu
@@ -104,7 +103,8 @@ endif
 
 ele_name = ''
 offset_str = ''
-s_offset = real_option(0.0_rp, dflt_s_offset)
+ref_offset_str = ''
+datum%s_offset = real_option(0.0_rp, dflt_s_offset)
 use_dflt_ele = .true.
 has_assoc_ele = .true.
 ix1 = index(name, '[')
@@ -136,28 +136,34 @@ else
   endif
   use_dflt_ele = .false.
 
-  ! Parse "ele_ref&ele->s_offset" or "ele_ref->s_offset1&ele->s_offset2" constructs
-
-  ix = index(name, '->')
-  if (ix /= 0) then
-    offset_str = name(ix+2:)
-    name = name(:ix-1)
-  endif
+  ! Parse "ele_ref&ele->s_offset" or "ele_ref->ref_s_offset1&ele->s_offset" constructs
 
   ix = index(name, '&')
   if (ix /= 0) then
-    if (is_integer(name)) then
-      read (name(:ix-1), *, iostat = ios) datum%ix_ele_ref
-      if (ios /= 0) then
-        if (print_err) call out_io (s_error$, r_name, 'BAD ELE_REF: ' // data_name)
-        return
-      endif
-    else
-      datum%ele_ref_name = name(:ix-1)
-    endif
+    datum%ele_ref_name = name(:ix-1)
     ele_name = name(ix+1:)
   else
     ele_name = name
+  endif
+
+  ix = index(datum%ele_ref_name, '->')
+  if (ix /= 0) then
+    ref_offset_str = datum%ele_ref_name(ix+2:)
+    datum%ele_ref_name = datum%ele_ref_name(:ix-1)
+  endif
+
+  ix = index(ele_name, '->')
+  if (ix /= 0) then
+    offset_str = ele_name(ix+2:)
+    ele_name = ele_name(:ix-1)
+  endif
+
+  if (is_integer(datum%ele_ref_name)) then
+    read (datum%ele_ref_name, *, iostat = ios) datum%ix_ele_ref
+    if (ios /= 0) then
+      if (print_err) call out_io (s_error$, r_name, 'BAD ELE_REF: ' // datum%ele_ref_name)
+      return
+    endif
   endif
 endif
 
@@ -233,6 +239,16 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
       datum%ix_ele    = this_ele%ix_ele
 
       ! Offset_str may be something like "L/2" where L is the element length.
+      if (ref_offset_str /= '') then
+        call tao_evaluate_expression(ref_offset_str, 1, .false., off_val, err_flag, .true., &
+                                             dflt_source = 'ele', dflt_ele = this_ele, dflt_uni = iu)
+        if (err_flag) then
+          if (print_err) call out_io (s_error$, r_name, 'BAD REF_S_OFFSET: ' // data_name)
+          return
+        endif
+        datum%ref_s_offset = off_val(1)
+      endif
+
       if (offset_str /= '') then
         call tao_evaluate_expression(offset_str, 1, .false., off_val, err_flag, .true., &
                                              dflt_source = 'ele', dflt_ele = this_ele, dflt_uni = iu)
@@ -240,11 +256,10 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
           if (print_err) call out_io (s_error$, r_name, 'BAD S_OFFSET: ' // data_name)
           return
         endif
-        s_offset = off_val(1)
+        datum%s_offset = off_val(1)
       endif
 
       datum%eval_point = integer_option(anchor_end$, dflt_eval_point)
-      datum%s_offset = s_offset
     endif
 
     err_flag = .not. tao_data_sanity_check(datum, .true., '', u)
@@ -1526,6 +1541,8 @@ case (anchor_end$)
   datum%s = ele%s + datum%s_offset
   if (associated(ele_ref)) s_eval_ref = ele_ref%s
 end select
+
+s_eval_ref = s_eval_ref + datum%ref_s_offset
 
 !--------------------------------------------
 

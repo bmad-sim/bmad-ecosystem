@@ -94,6 +94,7 @@ Where:
       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
                                       eta, etap, sigma, sigma_p, emit, norm_emit
+      t.sigma
     sigma.IJ where I, J in range [1,6]
     rel_min.I, rel_max.I where I in range [1,6]
     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
@@ -480,7 +481,8 @@ Example:
 \label{p:data.set.design.value}
 
 
-Set the design (and base \& model) values for all datums.
+Set the design (and base) values of all datums to the values as calculated for the design lattice.
+This is useful for newly created datums that do not yet have the design and base values set.
 
 \begin{example}
    pipe data_set_design_value
@@ -501,7 +503,7 @@ Note: Use the "data_d2_create" and "datum_create" first to create datums.
 Create a datum.
 
 \begin{example}
-   pipe datum_create \{datum_name\}^^\{data_type\}^^\{ele_ref_name\}^^\{ele_start_name\}^^
+   pipe datum_create \{datum_name\}^^\{data_type\}^^\{ele_start_name\}^^\{ele_ref_name\}^^
                        \{ele_name\}^^\{merit_type\}^^\{meas\}^^\{good_meas\}^^\{ref\}^^
                        \{good_ref\}^^\{weight\}^^\{good_user\}^^\{data_source\}^^
                        \{eval_point\}^^\{s_offset\}^^\{ix_bunch\}^^\{invalid_value\}^^
@@ -794,6 +796,12 @@ Where:
 Example:
   pipe ele:head 3@1>>7|model
 This gives element number 7 in branch 1 of universe 3.
+
+Output: Various element parameters. See the code for the list of what is returned.
+
+Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the element are never set.
+If the element used in this command is a super_slave with exactly one super_lord, what will be returned
+for these three parameters is the values stored in the super_lord. This is done for convenience sake.
 \end{verbatim}
 
 %% pipe ele:lord_slave ------------------------------------

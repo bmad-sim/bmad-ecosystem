@@ -32,7 +32,6 @@ use ptc_layout_mod, only: normal_form_rd_terms
 use measurement_mod, only: to_orbit_reading, to_eta_reading, ele_is_monitor
 use expression_mod, only: numeric$
 
-
 implicit none
 
 type (tao_universe_struct), target :: u
@@ -53,7 +52,7 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct), pointer :: orb0, orbit(:), orb
 type (coord_struct) :: orb_at_s, orb1
 type (bpm_phase_coupling_struct) bpm_data
-type (taylor_struct), save :: taylor_save(6), taylor(6) ! Saved taylor map
+type (taylor_struct) :: taylor(6)
 type (floor_position_struct) floor
 type (branch_struct), pointer :: branch, high_branch, low_branch
 type (bunch_params_struct), pointer :: bunch_params(:)
@@ -267,6 +266,27 @@ endif
 if (data_source == 'beam' .and. .not. s%com%have_tracked_beam) then
   call tao_set_invalid (datum, 'DATA_SOURCE FOR DATUM SET TO "beam". BUT NO BEAM TRACKING HAS BEEN DONE!', why_invalid, err_level = s_warn$, print_err = print_err)
   return
+endif
+
+!------------
+! Rad int calc needed
+
+if (data_source == 'lat') then
+  select case (head_data_type)
+  case ('rad_int.', 'apparent_emit.x', 'norm_apparent_emit.x', 'damp.', 'emit.', 'norm_emit.')
+    if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
+      if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
+        s%com%force_rad_int_calc = .true.
+        u%calc%lattice = .true.
+        call tao_lattice_calc(ok)
+      endif
+
+      if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
+        call tao_set_invalid (datum, 'Radiation integral calc failed.', why_invalid, print_err = print_err)
+        return
+      endif
+    endif
+  end select
 endif
 
 !-------------------------------------------------------------
@@ -2343,19 +2363,6 @@ case ('rad_int.')
 
   if (data_source == 'beam') goto 9000  ! Set error message and return
 
-  if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
-    if (.not. logic_option(.false., called_from_lat_calc)) then ! Try calling tao_lattice_calc.
-      s%com%force_rad_int_calc = .true.
-      u%calc%lattice = .true.
-      call tao_lattice_calc(ok)
-    endif
-
-    if (.not. tao_branch%rad_int_calc_ok .or. .not. tao_branch%emit_6d_calc_ok) then
-      call tao_set_invalid (datum, 'Radiation integral calc failed.', why_invalid, print_err = print_err)
-      return
-    endif
-  endif
-
   branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
   branch_6d => tao_lat%rad_int_by_ele_6d%branch(ix_branch)
 
@@ -3151,13 +3158,13 @@ case ('t.', 'tt.')
   ! Computation if there is no range
 
   if (ix_start == ix_ele) then
-    if (s%com%ix_ref_taylor /= ix_ref .or. s%com%ix_ele_taylor /= ix_ele) then
-      ix0 = s%com%ix_ele_taylor
-      if (s%com%ix_ref_taylor == ix_ref .and. ix_ele > ix0) then
-        call transfer_map_calc (lat, taylor_save, err, ix0, ix_ele, orbit(ix0), &
+    if (tao_branch%ix_ref_taylor /= ix_ref .or. tao_branch%ix_ele_taylor /= ix_ele) then
+      ix0 = tao_branch%ix_ele_taylor
+      if (tao_branch%ix_ref_taylor == ix_ref .and. ix_ele > ix0) then
+        call transfer_map_calc (lat, tao_branch%taylor_save, err, ix0, ix_ele, orbit(ix0), &
                                                   unit_start = .false., concat_if_possible = s%global%concatenate_maps)
       else
-        call transfer_map_calc (lat, taylor_save, err, ix_ref, ix_ele, orbit(ix_ref), concat_if_possible = s%global%concatenate_maps)
+        call transfer_map_calc (lat, tao_branch%taylor_save, err, ix_ref, ix_ele, orbit(ix_ref), concat_if_possible = s%global%concatenate_maps)
       endif
 
       if (err) then
@@ -3165,10 +3172,10 @@ case ('t.', 'tt.')
         return
       endif
 
-      s%com%ix_ref_taylor = ix_ref
-      s%com%ix_ele_taylor = ix_ele
+      tao_branch%ix_ref_taylor = ix_ref
+      tao_branch%ix_ele_taylor = ix_ele
     endif
-    datum_value = taylor_coef (taylor_save(i), expnt)
+    datum_value = taylor_coef (tao_branch%taylor_save(i), expnt)
     valid_value = .true.
 
   ! Here if there is a range.

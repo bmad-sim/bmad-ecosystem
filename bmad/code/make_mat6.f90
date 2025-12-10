@@ -110,17 +110,6 @@ ele%map_ref_orb_in = a_start_orb
 rad_fluct_save = bmad_com%radiation_fluctuations_on
 bmad_com%radiation_fluctuations_on = .false.
 
-! If mat6(6,6) = 0 then %mat6 has not yet been computed. In this case ignore the setting of static_linear_map.
-! Exceptions: A slice_slave is always recomputed. Also a match element does not have a static_linear_map attrib.
-
-if (is_true(ele%value(static_linear_map$)) .and. ele%mat6(6,6) /= 0 .and. &
-                           ele%slave_status /= slice_slave$ .and. ele%key /= match$) then
-  ! Just track if needed and do not modify ele%mat6
-  if (present(end_orb)) call track1(a_start_orb, ele, param, end_orb)
-  if (present(err_flag)) err_flag = .false.
-  return
-endif
-
 ! Compute matrix
 ! Matrix must be made around the zero orbit for linear tracking.
 
