@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ May 13, 2025}
+\date{David Sagan \\ December 13, 2025}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -802,6 +802,25 @@ The namelist parameters can be divided into three categories: Input files, outpu
 simulation parameters.
 
 %----------------------------------------------------
+\subsection{Bmad_com Global Parameter Structure}
+\label{s:bmad.com}
+
+\vn{Bmad_com} is a global variable which is a structure holding a number of relavent parameters used
+for simulations.  See the \vn{Bmad} manual for details on this structure. \vn{Bmad_com} parameters
+can be set either in the lattice file (with name given by the setting of \vn{ltt%lat_file} or in the
+master input file for this program. \vn{Bmad_com} Parameters set in the master input file will
+override settings in the lattice file.
+
+In the lattice file, \vn{bmad_com} parameters are set using square brackets. For example:
+\begin{code}
+  bmad_com[high_energy_space_charge_on] = T
+\end{code}
+In the master input file a percent sign is used. For example:
+\begin{code}
+  bmad_com%high_energy_space_charge_on = T
+\end{code}
+
+%----------------------------------------------------
 \subsection{Simulation Parameters}
 \label{s:sim.params}
 
@@ -1131,7 +1150,7 @@ Default is -1 which will cause a message printed every turn where there is parti
 
 A space charge kick can be applied in the simulation. The space charge kick is calculated using an
 approximation suitable at ultra-relativistic energies. The kick is turned on by setting the logical
-\vn{parameter[high_energy_space_charge_on]} to \vn{True} (default is \vn{False} in the lattice
+\vn{bmad_com[high_energy_space_charge_on]} to \vn{True} (default is \vn{False} in the lattice
 file. See the Bmad manual documentation for more details. The high energy space charge kick is only
 applied when \vn{ltt%tracking_method} is set to \vn{"BMAD"}.
 

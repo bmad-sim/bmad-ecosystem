@@ -44,7 +44,7 @@ implicit none
 type (lat_struct), target :: lat, in_lat
 type (lat_struct), optional :: parse_lat
 type (ele_struct) this_ele
-type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, param_ele
+type (ele_struct), pointer :: ele, slave, lord, ele2, ele0, param_ele, line_ele
 type (ele_struct), save :: marker_ele
 type (seq_struct), target, allocatable :: sequence(:)
 type (branch_struct), pointer :: branch0, branch
@@ -780,7 +780,7 @@ endif
 ! We now have read in everything. 
 
 bp_com%input_line_meaningful = .false.
-param_ele    => in_lat%ele(ix_param_ele)
+param_ele => in_lat%ele(ix_param_ele)
 
 ! Sort lists and check for duplicates.
 
@@ -906,7 +906,7 @@ branch_loop: do i_loop = 1, n_branch_max
   branch => lat%branch(n_branch)
 
   call find_index (this_branch_name, in_lat%nametable, ix)
-  ele => in_lat%ele(ix) ! line_ele element associated with this branch.
+  line_ele => in_lat%ele(ix) ! line_ele element associated with this branch.
 
   ele0 => branch%ele(0)
   ele0%value(e_tot$) = -1
@@ -934,7 +934,7 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%param%n_part = param_ele%value(n_part$)
 
     lat%param%particle = param_ele%ref_species
-    if (ele%ref_species /= not_set$) lat%param%particle = ele%ref_species
+    if (line_ele%ref_species /= not_set$) lat%param%particle = line_ele%ref_species
     if (lat%param%particle == not_set$) lat%param%particle = positron$
 
     ! The lattice name from a "parameter[lattice] = ..." line is 
@@ -960,14 +960,13 @@ branch_loop: do i_loop = 1, n_branch_max
     endif
 
   else  ! n_branch /= 0
-    branch%param%particle = ele%ref_species
+    branch%param%particle = line_ele%ref_species
   endif  
 
   !----
 
-  if (ele%value(live_branch$) /= real_garbage$) branch%param%live_branch = is_true(ele%value(live_branch$))
-  if (ele%value(high_energy_space_charge_on$) /= real_garbage$ .and. is_true(ele%value(high_energy_space_charge_on$))) bmad_com%high_energy_space_charge_on = .true.
-  if (ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(ele%value(geometry$))
+  if (line_ele%value(live_branch$) /= real_garbage$) branch%param%live_branch = is_true(line_ele%value(live_branch$))
+  if (line_ele%value(geometry$) /= real_garbage$) branch%param%geometry = nint(line_ele%value(geometry$))
 
   ! Transfer info from line element if parameters have been set.
 
@@ -976,26 +975,26 @@ branch_loop: do i_loop = 1, n_branch_max
   if (n_branch == 0 .and.  val /= real_garbage$) branch%param%default_tracking_species = nint(val)
 
   do i = 1, num_ele_attrib$
-    if (ele%value(i) == real_garbage$) cycle
+    if (line_ele%value(i) == real_garbage$) cycle
     select case (i)
-    case (default_tracking_species$);  branch%param%default_tracking_species = nint(ele%value(i))
-    case default;                      ele0%value(i) = ele%value(i)
+    case (default_tracking_species$);  branch%param%default_tracking_species = nint(line_ele%value(i))
+    case default;                      ele0%value(i) = line_ele%value(i)
     end select
   enddo
 
-  call set_this_real_val (ele%s,                 ele0%s)
-  call set_this_real_val (ele%ref_time,          ele0%ref_time)
-  call set_this_real_val (ele%floor%r(1),        ele0%floor%r(1))
-  call set_this_real_val (ele%floor%r(2),        ele0%floor%r(2))
-  call set_this_real_val (ele%floor%r(3),        ele0%floor%r(3))
-  call set_this_real_val (ele%floor%theta,       ele0%floor%theta)
-  call set_this_real_val (ele%floor%phi,         ele0%floor%phi)
-  call set_this_real_val (ele%floor%psi,         ele0%floor%psi)
-  call set_this_twiss_struct (ele%a, ele0%a)
-  call set_this_twiss_struct (ele%b, ele0%b)
-  call set_this_twiss_struct (ele%z, ele0%z)
-  call set_this_xy_disp_struct (ele%x, ele0%x)
-  call set_this_xy_disp_struct (ele%y, ele0%y)
+  call set_this_real_val (line_ele%s,                 ele0%s)
+  call set_this_real_val (line_ele%ref_time,          ele0%ref_time)
+  call set_this_real_val (line_ele%floor%r(1),        ele0%floor%r(1))
+  call set_this_real_val (line_ele%floor%r(2),        ele0%floor%r(2))
+  call set_this_real_val (line_ele%floor%r(3),        ele0%floor%r(3))
+  call set_this_real_val (line_ele%floor%theta,       ele0%floor%theta)
+  call set_this_real_val (line_ele%floor%phi,         ele0%floor%phi)
+  call set_this_real_val (line_ele%floor%psi,         ele0%floor%psi)
+  call set_this_twiss_struct (line_ele%a, ele0%a)
+  call set_this_twiss_struct (line_ele%b, ele0%b)
+  call set_this_twiss_struct (line_ele%z, ele0%z)
+  call set_this_xy_disp_struct (line_ele%x, ele0%x)
+  call set_this_xy_disp_struct (line_ele%y, ele0%y)
 
   call floor_angles_to_w_mat(ele0%floor%theta, ele0%floor%phi, ele0%floor%psi, ele0%floor%w)
 
