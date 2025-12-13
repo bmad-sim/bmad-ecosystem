@@ -110,6 +110,7 @@ case (def_line$)
   ele%y = xy_disp_struct(g, g, g, g, g, g)
   ele%floor = floor_position_struct([g,g,g], mat3_unit$, g,g,g)
   ele%value(inherit_from_fork$) = g
+  ele%value(high_energy_space_charge_on$) = false$
 
 case (def_mad_beam$)
   ele%ref_species = not_set$
@@ -117,7 +118,7 @@ case (def_mad_beam$)
 case (def_parameter$)
   ele%value(geometry$) = real_garbage$
   ele%value(live_branch$) = real_garbage$
-  ele%value(high_energy_space_charge_on$) = real_garbage$
+  ele%value(high_energy_space_charge_on$) = false$
   ele%ref_species = positron$
   ele%value(default_tracking_species$) = real_garbage$
   ele%value(ix_branch$) = -1

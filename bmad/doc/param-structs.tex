@@ -226,10 +226,11 @@ of extremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
 %
 \item[\vn{high_energy_space_charge_on}] \Newline
-Toggle to turn on or off the ultra-relativistic space charge effect in particle tracking
-(\sref{s:he.space.charge}). Computationally, this is separate from the lower energy space charge and
-CSR calculation (\sref{s:csr}). Default is \vn{False}. Notice that including the high energy space
-charge can be done on a branch-by-branch basis (\sref{s:beginning}).
+Default is \vn{False}. Toggle to turn on or off the ultra-relativistic space charge effect in
+particle tracking (\sref{s:he.space.charge}). Unlike other space charge calcuflations, the high
+energy space charge can be done with single particle tracking (that is, tracking a beam of particle
+is not necessary). Computationally, this is separate from the lower energy space charge and CSR
+calculation (\sref{s:csr}).
 %
 \item[\vn{lr_wakes_on}] \Newline
 Toggle for turning on or off long-range higher order mode wakefield effects.

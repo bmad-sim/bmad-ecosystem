@@ -12,6 +12,7 @@ ff: fork, to_line = mm, to_element = m3\1
 
 d1: pipe, l = 1
 d2: pipe, l = 1
+q3: quad, l = 0.01
 m: marker
 
 m3: marker
@@ -19,7 +20,7 @@ multi: line[multipass] = (m3)
 mm: line = (multi, multi)
 mm[p0c] = 1e4
 
-l1: line = (d1, m)
+l1: line = (d1, m, q3)
 
 l2: line = (d2, fork2, ff)
 l2[e_tot] = 100

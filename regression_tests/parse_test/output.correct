@@ -189,7 +189,7 @@
 "5 REL"      ABS 0    3.0000
 "TM1"        STR "Symp_Lie_Bmad"
 "TM5"        STR "Runge_Kutta"
-"N3"         ABS 0  5
+"N3"         ABS 0  6
 "Custom"     STR "MY_CUSTOM"
 "Geometry-G" STR "Open"
 "He++"         STR "He++"
