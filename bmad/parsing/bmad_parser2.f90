@@ -771,8 +771,6 @@ param_ele => eles(1)%ele
 if (param_ele%value(geometry$) /= real_garbage$)    lat%param%geometry = nint(param_ele%value(geometry$))
 if (param_ele%value(live_branch$) /= real_garbage$) lat%param%live_branch = is_true(param_ele%value(live_branch$))
 if (param_ele%value(default_tracking_species$) /= real_garbage$) lat%param%default_tracking_species = nint(param_ele%value(default_tracking_species$))
-if (param_ele%value(high_energy_space_charge_on$) /= real_garbage$ .and. is_true(param_ele%value(high_energy_space_charge_on$))) &
-                                                                                                         bmad_com%high_energy_space_charge_on = .true.
 
 if (param_ele%ref_species /= not_set$)     lat%param%particle = param_ele%ref_species
 

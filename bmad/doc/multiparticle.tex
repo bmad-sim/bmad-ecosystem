@@ -527,7 +527,9 @@ relatively high energy but will not accurate in other situations.
 If a \bmad based program has been constructed to use the high energy space charge module (the
 documentation for the program should indicate if this is true), the high energy space charge force
 can be turned on or off by setting the \vn{bmad_com[high_energy_space_charge_on]} parameter
-(\sref{s:bmad.common}, \sref{s:beginning}). 
+(\sref{s:bmad.common}, \sref{s:beginning}). Currently, the \vn{long_term_tracking} program
+implements high energy space charge while \vn{tao} does not (\vn{tao} is not constructed for long
+term tracking where these effects would be noticeable).
 
 The high energy space charge kick is computed assuming a gaussian bunch shape 
 \begin{align}

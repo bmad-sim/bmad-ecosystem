@@ -940,12 +940,12 @@ call init_attribute_name1 (beginning_ele$, deta_ds_master$,              'deta_d
 call init_attribute_name1 (beginning_ele$, ix_fixer$,                    'ix_fixer', private$)
 
 attrib_array(def_line$, :) = attrib_array(beginning_ele$, :)
-call init_attribute_name1 (def_line$, particle$,                    'PARTICLE')
-call init_attribute_name1 (def_line$, live_branch$,                 'LIVE_BRANCH')
-call init_attribute_name1 (def_line$, geometry$,                    'GEOMETRY')
-call init_attribute_name1 (def_line$, default_tracking_species$,    'DEFAULT_TRACKING_SPECIES')
-call init_attribute_name1 (def_line$, ix_branch$,                   'ix_branch', private$)
-call init_attribute_name1 (def_line$, high_energy_space_charge_on$, 'HIGH_ENERGY_SPACE_CHARGE_ON')
+call init_attribute_name1 (def_line$, particle$,                         'PARTICLE')
+call init_attribute_name1 (def_line$, live_branch$,                      'LIVE_BRANCH')
+call init_attribute_name1 (def_line$, geometry$,                         'GEOMETRY')
+call init_attribute_name1 (def_line$, default_tracking_species$,         'DEFAULT_TRACKING_SPECIES')
+call init_attribute_name1 (def_line$, ix_branch$,                        'ix_branch', private$)
+call init_attribute_name1 (def_line$, high_energy_space_charge_on$,      'HIGH_ENERGY_SPACE_CHARGE_ON')
 
 call init_attribute_name1 (beginning_ele$, spin_x_stored$,                  'SPIN_X_STORED')
 call init_attribute_name1 (beginning_ele$, spin_y_stored$,                  'SPIN_Y_STORED')
