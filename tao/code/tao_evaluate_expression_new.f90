@@ -64,7 +64,7 @@ integer n_size
 integer, optional :: dflt_uni, dflt_eval_point
 integer i, n, ix
 
-logical use_good_user, err_flag
+logical use_good_user, err_flag, err
 logical, optional :: print_err
 logical printit
 
@@ -79,7 +79,7 @@ character(*), parameter :: r_name = "tao_evaluate_expression_new"
 
 ! 
 
- err_flag = .true.
+err_flag = .true.
 printit = logic_option(.true., print_err)
 default_source = ''
 if (present(dflt_source)) default_source = dflt_source
@@ -103,10 +103,9 @@ endif
 
 !
 
-call expression_string_to_tree(phrase, tree, err_flag, err_str)
+call expression_string_to_tree(phrase, tree, err, err_str)
 
-
-if (err_flag) then
+if (err) then
   call out_io(s_error$, r_name, 'Error parsing expression: ' // err_str)
   return
 endif
