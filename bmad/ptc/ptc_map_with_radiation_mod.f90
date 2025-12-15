@@ -165,7 +165,11 @@ else
   state2%nocavity = .not. state2%radiation
   call find_orbit_x(orb, state2, 1.0d-8, fibre1 = f1)
   if (.not. check_stable) then
-    call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING WITH RADIATION IN PTC!')
+    if (rad_map%radiation_damping_on) then
+      call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WITH RADIATION WHEN TRCKING IN PTC!')
+    else
+      call out_io (s_error$, r_name, 'CANNOT FIND CLOSED ORBIT WHEN TRCKING IN PTC!')
+    endif
     return
   endif
 endif
