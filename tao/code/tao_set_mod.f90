@@ -588,6 +588,9 @@ if (err) return
 !
 
 select case (who)
+case ('delta_e_chrom')
+  s%com%force_chrom_calc   = .true.
+  s%u%calc%lattice = .true.
 case ('n_threads')
   call tao_set_openmp_n_threads(global%n_threads)
 case ('optimizer')

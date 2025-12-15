@@ -167,7 +167,7 @@ type (ele_struct), target, intent(inout)  :: ele
 type (lat_param_struct), intent(inout) :: param
 type (high_energy_space_charge_struct), pointer :: sc
 
-real(rp) x, y, x_rel, y_rel, kx, ky
+real(rp) x, y, z, x_rel, y_rel, kx, ky
 real(rp) nk(2), dnk(2,2), kick_const
 
 ! Init
@@ -180,6 +180,7 @@ sc => ele%high_energy_space_charge
 
 x = orbit%vec(1) - sc%closed_orb%vec(1)
 y = orbit%vec(3) - sc%closed_orb%vec(3)
+z = orbit%vec(5) - sc%closed_orb%vec(5)
 
 x_rel =  x * sc%cos_phi + y * sc%sin_phi 
 y_rel = -x * sc%sin_phi + y * sc%cos_phi
@@ -191,7 +192,7 @@ call bbi_kick (x_rel, y_rel, [sc%sig_y, sc%sig_x], nk, dnk)
 kx = nk(1) * sc%cos_phi - nk(2) * sc%sin_phi
 ky = nk(1) * sc%sin_phi + nk(2) * sc%cos_phi
 
-kick_const = sc%kick_const * exp(-0.5 * (orbit%vec(5)/sc%sig_z)**2) / (1 + orbit%vec(6))**3
+kick_const = sc%kick_const * exp(-0.5 * (z/sc%sig_z)**2) / (1 + orbit%vec(6))**3
 
 ! The negative sign is due to the bbi kick assuming beams of opposite sign.
 

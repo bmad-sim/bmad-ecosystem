@@ -1313,10 +1313,10 @@ else
   endif
 endif
 
-if (substr(curve%data_type, 1, 7) == 'chrom.w') then
+if (substr(curve%data_type, 1, 7) == 'chrom.w' .and. .not. bmad_com%normalize_twiss) then
   call out_io(s_warn$, r_name, &
           'Evaluating the Montague W-function with bmad_com[normalize_twiss] = False (the default) will lead to strange results.', &
-          'Recommendation: Set to True in the lattice file.', &
+          'Recommendation: Set to True in the lattice file or use "set bmad_com%normalize_twiss = T" on the command line.', &
           'See the Bmad manual on normalizing the transfer matrix for the Twiss calculation for details.')
 endif
 
