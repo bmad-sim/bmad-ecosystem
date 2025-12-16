@@ -701,6 +701,7 @@ if (.not. associated(ele1)) return
 orbit => tao_lat%tao_branch(ele1%ix_branch)%orbit
 
 orb_start = orbit(ele1%ix_ele)
+orb_start%time_dir = 1          ! Can be -1 if ele is before an active fixer element.
 orb_end = orbit(ele2%ix_ele)
 
 is_data_or_var = .false.
