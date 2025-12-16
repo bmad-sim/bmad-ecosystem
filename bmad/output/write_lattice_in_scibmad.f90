@@ -200,24 +200,24 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (ele%key == sbend$) then
-      if (ele%sub_key == rbend$) then
-        ang2 = 0.5_rp * ele%value(angle$) 
-        line = trim(line) // ', bend_type = rbend'
-        line = trim(line) // ', L_chord = ' // re_str(ele%value(l_chord$))
-        if (abs(ele%value(e1$) - ang2) > 1d-14) line = trim(line) // ', e1_rect = ' // re_str(ele%value(e1$) - ang2)
-        if (abs(ele%value(e2$) - ang2) > 1d-14) line = trim(line) // ', e2_rect = ' // re_str(ele%value(e2$) - ang2)
-      else
+!      if (ele%sub_key == rbend$) then
+!        ang2 = 0.5_rp * ele%value(angle$) 
+!        line = trim(line) // ', bend_type = rbend'
+!        line = trim(line) // ', L_chord = ' // re_str(ele%value(l_chord$))
+!        if (abs(ele%value(e1$) - ang2) > 1d-14) line = trim(line) // ', e1_rect = ' // re_str(ele%value(e1$) - ang2)
+!        if (abs(ele%value(e2$) - ang2) > 1d-14) line = trim(line) // ', e2_rect = ' // re_str(ele%value(e2$) - ang2)
+!      else
         line = trim(line) // ', L = ' // re_str(length)
         if (ele%value(e1$) /= 0) line = trim(line) // ', e1 = ' // re_str(ele%value(e1$))
         if (ele%value(e2$) /= 0) line = trim(line) // ', e2 = ' // re_str(ele%value(e2$))
-      endif
+!      endif
 
       if (ele%value(g$) /= 0)  line = trim(line) // ', g_ref = ' // re_str(ele%value(g$))
       if (ele%value(ref_tilt$) /= 0)  line = trim(line) // ', tilt_ref = ' // re_str(ele%value(ref_tilt$))
       if (ele%value(roll$) /= 0)  line = trim(line) // ', roll = ' // re_str(ele%value(roll$))
       !!! if (ele%value(fint$)*ele%value(hgap$) /= 0)    line = trim(line) // ', edge_int1 = ' // re_str(ele%value(fint$)*ele%value(hgap$))
       !!! if (ele%value(fintx$)*ele%value(hgapx$) /= 0)  line = trim(line) // ', edge_int2 = ' // re_str(ele%value(fintx$)*ele%value(hgapx$))
-      print *, 'BEND EDGE_INT NOT YET INCLUDED!'
+      if (ele%value(fint$)*ele%value(hgap$) /= 0 .or. ele%value(fintx$)*ele%value(hgapx$) /= 0) print *, 'BEND EDGE_INT NOT YET INCLUDED!'
 
     elseif (has_attribute(ele, 'L')) then
       if (length /= 0) line = trim(line) // ', L = ' // re_str(length)
@@ -604,13 +604,13 @@ if (ele%slave_status == super_slave$) then
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)
-  write (line, '(4a)') trim(line), ' ', trim(downcase(lord%name)), ','
+  write (line, '(4a)') trim(line), ' ', trim(scibmad_name(lord%name)), ','
 
 else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(ele_name), ','
+    write (line, '(4a)') trim(line), ' ', trim(scibmad_name(ele%name)), ','
   else
-    write (line, '(4a)') trim(line), ' reverse(', trim(ele_name), '),'
+    write (line, '(4a)') trim(line), ' reverse(', trim(scibmad_name(ele_name)), '),'
   endif
 endif
 
