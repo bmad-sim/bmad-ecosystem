@@ -273,7 +273,7 @@ integer i, n, ie0, ibf, ief
 logical, optional :: print_err, force_calc
 logical calc_ok, err
 
-character(80) :: lines(10)
+character(200) :: lines(10)
 character(*), parameter :: r_name = "tao_lat_sigma_track"
 
 !
