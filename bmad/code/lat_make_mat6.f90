@@ -95,11 +95,6 @@ if (present(ref_orb)) then
   endif
 endif
 
-if (bmad_com%auto_bookkeeper) then
-  call lat_compute_ref_energy_and_time (lat, err)
-  if (err) return
-endif
-
 !--------------------------------------------------------------
 ! Make entire lat if i_ele < 0.
 ! First do the inter-element bookkeeping.
@@ -118,8 +113,6 @@ if (i_ele < 0) then
     enddo
   endif
 
-  if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
-
   ! Now make the transfer matrices.
   ! For speed if a element needs a taylor series then check if we can use
   ! one from a previous element.
@@ -131,7 +124,7 @@ if (i_ele < 0) then
 
     ! Check if transfer matrix needs to be recomputed
 
-    if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$) then
+    if (ele%bookkeeping_state%mat6 /= stale$) then
       if (present(ref_orb)) then
         if (all(ref_orb(i-1)%vec == ele%map_ref_orb_in%vec)) cycle
       else
@@ -241,12 +234,10 @@ endif
 ! otherwise make a single element
 
 ele => branch%ele(i_ele)
-if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat, ele)
 
 ! Check if transfer matrix needs to be recomputed
 
-if (.not. bmad_com%auto_bookkeeper .and. ele%bookkeeping_state%mat6 /= stale$ .and. &
-                                         i_ele <= branch%n_ele_track) then
+if (ele%bookkeeping_state%mat6 /= stale$ .and. i_ele <= branch%n_ele_track) then
   if (present(ref_orb)) then
     if (all(ref_orb(i_ele-1)%vec == ele%map_ref_orb_in%vec)) then
       return

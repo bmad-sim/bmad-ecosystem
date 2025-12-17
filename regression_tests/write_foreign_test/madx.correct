@@ -7,19 +7,19 @@ beam_def: Beam, Particle = Positron, Energy =   1.00000E-03            , Npart =
 AB_MULTIPOLE1: multipole, knl = {0, 0, 2.50171E+02}, ksl = {0, 0, -1.31963E+02};
 A_KICKER_1: kicker, l =   0.00000E+00, hkick = 5.00000E-03;
 AC_KICKER011001: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
-     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 3.03750E-08, rm66 = 1.00000E+00;
+     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 3.75007E-06, rm66 = 1.00000E+00;
 A_KICKER_2: kicker, l =   0.00000E+00, hkick = 5.00000E-03;
 AC_KICKER011002: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
-     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 3.03750E-08, rm66 = 1.00000E+00;
+     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 3.75007E-06, rm66 = 1.00000E+00;
 A_KICKER_3: kicker, l =   0.00000E+00, vkick = 5.00000E-03;
 AC_KICKER2: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 = 1.00000E+00,
-     rm55 = 1.00000E+00, kick5 = 1.98690E-05, rm66 = 1.00000E+00;
+     rm55 = 1.00000E+00, kick5 = 5.00009E-06, rm66 = 1.00000E+00;
 BEAMBEAM1: beambeam, sigx = 3.00000E-03, sigy = 3.00000E-04, xma = 3.00000E-03, yma = 3.00000E-03,
      charge = -1.00000E+00;
 CRAB_CAVITY1: drift, l =   2.00000E-01;
 E_KICKER_4: kicker, l =   0.00000E+00, hkick = 5.00000E-03, vkick = 1.00000E-03;
 ECOLLIMATOR1: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
-     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 1.93052E-05, rm66 = 1.00000E+00;
+     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 5.85011E-05, rm66 = 1.00000E+00;
 E_KICKER_5: kicker, l =   0.00000E+00, hkick = 2.50000E-03;
 ELSEPARATOR1: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
      rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 1.40626E-05, rm66 = 1.00000E+00;
@@ -47,23 +47,23 @@ PATCH1__s: srotation, angle =   2.00000E+00;
 QMULTIPOLE_8: multipole, knl = {2.12132E-03, 3.00000E-02}, ksl = {-2.12132E-03, 0};
 Q_KICKER_9: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE1: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 7.47961E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = 7.53786E-05, rm66 = 1.00000E+00;
 QMULTIPOLE_10: multipole, knl = {-2.12132E-03, -3.00000E-02}, ksl = {2.12132E-03, 0};
 Q_KICKER_11: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE2: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 8.70229E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = 8.64027E-05, rm66 = 1.00000E+00;
 QMULTIPOLE_12: multipole, knl = {2.12132E-23, 3.00000E-22}, ksl = {-2.12132E-23, 0};
 Q_KICKER_13: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE3: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = -9.57925E-06, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = -9.59824E-06, rm66 = 1.00000E+00;
 QMULTIPOLE_14: multipole, knl = {2.12132E-03, 3.00000E-02}, ksl = {-2.12132E-03, 0};
 Q_KICKER_15: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE4: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 7.53958E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = 7.59803E-05, rm66 = 1.00000E+00;
 QMULTIPOLE_16: multipole, knl = {-2.12132E-03, -3.00000E-02}, ksl = {2.12132E-03, 0};
 Q_KICKER_17: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE5: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 8.76901E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = 8.70677E-05, rm66 = 1.00000E+00;
 RCOLLIMATOR1: collimator, l =   4.50000E+00, apertype = rectangle, aperture = {  
     2.00000E-01            ,   1.00000E-01            };
 RFCAVITY1: rfcavity, l =   4.50000E+00, volt = 1.00000E-01, lag = 6.00000E-01, harmon = 184;

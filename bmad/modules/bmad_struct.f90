@@ -935,8 +935,7 @@ integer, parameter :: s_position_group$ = 4, ref_energy_group$ = 5, mat6_group$ 
 integer, parameter :: rad_int_group$ = 7, all_groups$ = 8, s_and_floor_position_group$ = 9
 
 ! The bookkeeping_state_struct is used for keeping track of what bookkeeping has
-! been done on an element. NOTE: The information in this structure is ignored if 
-! bmad_com%auto_bookkeeper = True which is the default.
+! been done on an element.
 ! See the Bmad manual for more details.
 
 type bookkeeping_state_struct
@@ -2306,7 +2305,7 @@ type bmad_common_struct
   logical :: rf_phase_below_transition_ref = .false.   ! Autoscale uses below transition stable point for RFCavities?
   logical :: sr_wakes_on = .true.                      ! Short range wakefields?
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
-  logical :: auto_bookkeeper = .true.                  ! Automatic bookkeeping?
+  logical :: auto_bookkeeper = .true.                  ! Deprecated and no longer used.
   logical :: high_energy_space_charge_on = .false.     ! High energy space charge effect switch.
   logical :: csr_and_space_charge_on = .false.         ! Space charge switch.
   logical :: spin_tracking_on = .false.                ! spin tracking?

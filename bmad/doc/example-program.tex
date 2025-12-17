@@ -46,9 +46,6 @@ type (all_pointer_struct) a_ptr
 integer i, ix, n_loc
 logical err
 
-! Programs must implement "intelligent bookkeeping".
-bmad_com%auto_bookkeeper = .false.
-
 ! Read in a lattice, and modify the ks solenoid strength of "cleo_sol".
 
 call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.
@@ -94,36 +91,36 @@ end program
 %-----------------------------------------------------------------------------
 \section{Explanation of the Simple_Bmad_Program}
 
+ \sref{s:lat.book}). 
+
 \index{lat_struct!example use of}
 A line by line explanation of the example program follows. The \vn{use bmad} statement at line 3
 defines the \bmad structures and defines the interfaces (argument lists) for the \bmad
 subroutines. In particular, the \vn{lat} variable (line 5), which is of type \vn{lat_struct}
 (\sref{s:lat.struct}), holds all of the lattice information: The list of elements, their attributes,
-etc.  The manditory setting of \vn{bmad_com%auto_bookkeeper} to \vn{False} in line 13 enables the
-``intelligent'' bookkeeping of lattice attributes as discussed in \sref{s:lat.book}).  The
-call to \Hyperref{r:bmad.parser}{bmad_parser} (line 17) causes the lattice file \vn{lat.bmad} to be
-parsed and the lattice information is stored the \vn{lat} variable. Note: To get a listing of the
-\vn{lat_struct} components or to find out more about \vn{bmad_parser} use the \vn{getf} command as
-discussed in \sref{s:getf}.
+etc.  The call to \Hyperref{r:bmad.parser}{bmad_parser} (line 14) causes the lattice file
+\vn{lat.bmad} to be parsed and the lattice information is stored the \vn{lat} variable. Note: To get
+a listing of the \vn{lat_struct} components or to find out more about \vn{bmad_parser} use the
+\vn{getf} command as discussed in \sref{s:getf}.
 
 The routine \Hyperref{r:lat.ele.locator}{lat_ele_locator} (\sref{s:lat.ele.find}) is used in line
-19 to find the element in the lattice with the name \vn{CLEO_SOL}. Line 20 defines a pointer
+16 to find the element in the lattice with the name \vn{CLEO_SOL}. Line 17 defines a pointer
 variable named \vn{cleo} which is used here as shortcut notation rather than having to write
-\vn{eles(1)%ele} when refering to this element. The call to \vn{pointer_to_attribute} in line 21
+\vn{eles(1)%ele} when refering to this element. The call to \vn{pointer_to_attribute} in line 18
 sets up a pointer structure \vn{a_ptr%r} to point to the \vn{KS} solenoid strength component of
 \vn{cleo}. [\vn{a_ptr} also has components \vn{a_ptr%i} and \vn{a_ptr%l} to point to integrer
 or logical components if needed. See \sref{s:lat.ele.attribute}.]
 
-Line 22 changes the \vn{ks} solenoid strength of \vn{cleo}. Since an element attribute has been
+Line 19 changes the \vn{ks} solenoid strength of \vn{cleo}. Since an element attribute has been
 changed, the call to \Hyperref{r:set.flags.for.changed.attribute}{set_flags_for_changed_attribute}
-in line 23 is needed for \bmad to inform \bmad that this attribute has changed and the call to
+in line 20 is needed for \bmad to inform \bmad that this attribute has changed and the call to
 \Hyperref{r:lattice.bookkeeper}{lattice_bookkeeper} does the necessary lattice bookkeeping
 (\sref{s:lat.book}).
 
-The call to \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 25 recalculates the linear transfer
+The call to \Hyperref{r:lat.make.mat6}{lat_make_mat6} in line 22 recalculates the linear transfer
 matrix for the \vn{CLEO_SOL} element.
 
-In line 30, the program checks if the lattice is circular (\sref{s:param}) and, if so, uses the
+In line 27, the program checks if the lattice is circular (\sref{s:param}) and, if so, uses the
 routine \Hyperref{r:twiss.at.start}{twiss_at_start} to multiply the transfer matrices of the
 individual elements together to form the 1--turn matrix from the start of the lat back to the
 start. From this matrix \vn{twiss_at_start} calculates the Twiss parameters at the start of the
@@ -135,12 +132,12 @@ have been defined in the lattice file.
 
 \index{ele_struct!\%x}\index{ele_struct!\%key}
 \index{ele_struct!\%s}\index{lat_struct!\%ele(:)}
-The program is now ready output some information. Lines 24 through 28 of the program print
+The program is now ready output some information. Lines 21 through 25 of the program print
 information on the first 11 elements in the lattice.  The do-loop is over the array \vn{lat%ele(:)}.
 Each element of the array holds the information about an individual lattice element as explained in
 Chapter~\ref{c:lat.struct}. The \vn{lat%ele(0)} element is basically a marker element to denote the
 beginning of the array (\sref{c:sequence}). Using the pointer \vn{ele} to point to the individual
-elements (line 37) makes for a cleaner syntax and reduces typing. The table that is produced is
+elements (line 34) makes for a cleaner syntax and reduces typing. The table that is produced is
 shown in lines 1 through 12 of \fig{f:output}.  The first column is the element index $i$. The
 second column, \vn{ele%name}, is the name of the element. The third column, key_name(ele%key), is
 the name of the element class. \vn{ele%key} is an integer denoting what type of element (quadrupole,
@@ -149,8 +146,8 @@ printable string. The fourth column, \vn{ele%s}, is the longitudinal position at
 element. Finally, the last column, \vn{ele%x%beta}, is the $a$--mode (nearly horizontal mode) beta
 function.
 
-The \Hyperref{r:type.ele}{type_ele} routine on line 47 of the program is used to type out the
-\vn{CLEO_SOL}'s attributes and other information as shown on lines 14 through 41 of the output (more
+The \Hyperref{r:type.ele}{type_ele} routine on line 44 of the program is used to type out the
+\vn{CLEO_SOL}'s attributes and other information as shown on lines 14 through 38 of the output (more
 on this later).
 
 This brings us to the lattice file used for the input to the program.
@@ -195,7 +192,7 @@ used for tracking extends from \vn{lat%ele(0)} through \vn{lat%ele(n)} where \vn
 lat%n_ele_track}. The \vn{CLEO_SOL} element is put in the section of \vn{lat%ele(n)} with \vn{n >
 lat%n_ele_track} since it is not an element to be tracked through. The \vn{Q00W} quadrupole also
 gets put in this part of the list.  The bookkeeping information that the \vn{cleo_sol\B3} element is
-derived from the \vn{cleo_sol} is put in the \vn{cleo_sol} element as shown in lines 33 through 41
+derived from the \vn{cleo_sol} is put in the \vn{cleo_sol} element as shown in lines 30 through 38
 of the output.  It is now possible in the program to vary, say, the strength of the \vn{ks}
 attribute of the \vn{CLEO_SOL} and have the \vn{ks} attributes of the dependent
 (``\vn{super_slave}'') elements updated with one subroutine call. For example, the following code
