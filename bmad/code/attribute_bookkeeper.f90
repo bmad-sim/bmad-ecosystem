@@ -89,38 +89,22 @@ end select
 
 ! 
 
-if (bmad_com%auto_bookkeeper .and. .not. logic_option(.false., force_bookkeeping)) then
-  call attributes_need_bookkeeping(ele, dval)
-  if (ele%bookkeeping_state%attributes /= stale$) return
+call attributes_need_bookkeeping(ele)
+if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
 
-  if (.false. .and. bp_com%parser_name == '') then   ! If not parsing should not be here
-    call out_io (s_warn$, r_name, &
-      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-      '!!!!! Using intelligent bookkeeping is now mandated for all Bmad based programs.               !!!!!', &
-      '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
-      '!!!!! This program will run now but if this program modifies any lattice parameters, the       !!!!!', &
-      '!!!!! correctness of the results is questionable.                                              !!!!!', &
-      '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &
-      '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-  endif
-else
-  call attributes_need_bookkeeping(ele)
-  if (ele%bookkeeping_state%attributes /= stale$ .and. .not. logic_option(.false., force_bookkeeping)) return
-
-  if (ele%lord_status /= not_a_lord$) then
-    call set_ele_status_stale (ele, control_group$)
-  endif
-
-  if (ele%old_value(l$) /= val(l$)) then
-    call set_ele_status_stale (ele, s_and_floor_position_group$)
-  endif
-
-  if (ele%lord_status /= multipass_lord$) then
-    call set_ele_status_stale (ele, mat6_group$)
-  endif
-
-  dval = abs(val - ele%old_value)
+if (ele%lord_status /= not_a_lord$) then
+  call set_ele_status_stale (ele, control_group$)
 endif
+
+if (ele%old_value(l$) /= val(l$)) then
+  call set_ele_status_stale (ele, s_and_floor_position_group$)
+endif
+
+if (ele%lord_status /= multipass_lord$) then
+  call set_ele_status_stale (ele, mat6_group$)
+endif
+
+dval = abs(val - ele%old_value)
 
 ele%bookkeeping_state%attributes = ok$
 ele%bookkeeping_state%rad_int = stale$
@@ -902,12 +886,6 @@ end select
 ! called by control_bookkeeper1 before calling this routine), will inherit its lords 
 ! num_steps value but then this routine will reset num_steps to be the correct value.
 
-! So stop here if nothing has truely changed.
-
-if (bmad_com%auto_bookkeeper) then
-  if (all(val == ele%old_value)) return
-endif
-
 ! The factor of 1d-15 is to avoid negligible changes which can be caused if the digested 
 ! file was created on a different machine from the machine where the code is run.
 
@@ -1014,6 +992,83 @@ call em_field_calc (ele, branch%param, z, start, .true., field, rf_time = 0.0_rp
 b_field = -norm2(field%b)
 
 end function wiggler_field
+
+!-----------------------------------------------------
+!+
+! Subroutine attributes_need_bookkeeping (ele) result (is_needed)
+!
+! Routine, to decide if attribute bookkeeping needs to be done for an element.
+!
+! Input:
+!   ele         -- ele_struct: Element under consideration.
+!
+! Output:
+!   ele%bookkeeping_state%attributes 
+!                    -- Set ok$ if not needed, stale$ otherwise
+!-
+
+subroutine attributes_need_bookkeeping (ele, dval)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: ele0
+real(rp), optional :: dval(:)
+real(rp) dv(num_ele_attrib$)
+integer i
+
+!
+
+select case (ele%key)
+case (overlay$, group$, hybrid$)
+  ele%bookkeeping_state%attributes = ok$
+  return
+end select
+
+! Check_sum is a hash number that is used to see if a value has been changed.
+! This is used implicitly in attribute_bookkeeper.
+
+ele0 => pointer_to_super_lord(ele)
+ele%value(check_sum$) = 0
+
+if (associated(ele0%a_pole)) then
+  do i = 0, ubound(ele0%a_pole, 1)
+    ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole(i)) + fraction(ele0%b_pole(i))
+    ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole(i)) + exponent(fraction(ele0%b_pole(i)))) / 10
+  enddo
+endif
+
+
+if (associated(ele0%a_pole_elec)) then
+  do i = 0, ubound(ele0%a_pole_elec, 1)
+    ele%value(check_sum$) = ele%value(check_sum$) + fraction(ele0%a_pole_elec(i)) + fraction(ele0%b_pole_elec(i))
+    ele%value(check_sum$) = ele%value(check_sum$) + (exponent(ele0%a_pole_elec(i)) + exponent(fraction(ele0%b_pole_elec(i)))) / 10
+  enddo
+endif
+
+if (associated(ele%cartesian_map)) then
+  do i = 1, size(ele%cartesian_map)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%cartesian_map(i)%field_scale
+  enddo
+endif
+
+if (associated(ele%cylindrical_map)) then
+  do i = 1, size(ele%cylindrical_map)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%cylindrical_map(i)%field_scale
+  enddo
+endif
+
+if (associated(ele%gen_grad_map)) then
+  do i = 1, size(ele%gen_grad_map)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%gen_grad_map(i)%field_scale
+  enddo
+endif
+
+if (associated(ele%grid_field)) then
+  do i = 1, size(ele%grid_field)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%grid_field(i)%field_scale
+  enddo
+endif
+
+end subroutine attributes_need_bookkeeping
 
 end subroutine attribute_bookkeeper
 

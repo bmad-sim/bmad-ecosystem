@@ -10,8 +10,7 @@
 ! Not done are any higher level calculations. Twiss, transfer matrices, 
 ! orbit calculations, anything involving tracking, etc.
 !
-! Note: This this routine does a complete job of bookking
-! and could be unacceptably slow if lat%auto_bookkeeper = True.
+! Note: This this routine does a complete job of bookking.
 !
 ! Note: The documentation for a routine should say if a call to lattice_bookkeeper is needed
 ! afterwards. If it is not mentioned in the documentation for a routine, a call to 
@@ -42,7 +41,7 @@ real(rp) dval(num_ele_attrib$), a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 integer i, j, ix
 
 logical, optional :: err_flag
-logical found, err, auto_saved
+logical found, err
 
 character(20), parameter :: r_name = 'lattice_bookkeeper'
 
@@ -52,29 +51,6 @@ E_MUON = bmad_com%electric_dipole_moment
 
 ! Turn on intelligent bookkeeping while this routine is running
 ! If bookkeeping has not been intelligent then mark everything as stale.
-
-auto_saved = bmad_com%auto_bookkeeper
-if (auto_saved) then
-  bmad_com%auto_bookkeeper = .false.
-  do i = 0, ubound(lat%branch, 1)
-    branch => lat%branch(i)
-    do j = 0, branch%n_ele_max
-      call set_ele_status_stale (branch%ele(j), all_groups$, .false.) 
-      call attributes_need_bookkeeping(branch%ele(j), dval)
-
-      if (any(dval /= 0) .and. bp_com%parser_name == '') then  ! If not parsing then error
-        call out_io (s_warn$, r_name, &
-          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!', &
-          '!!!!! Using intelligent bookkeeping is now mandated for all Bmad based programs.               !!!!!', &
-          '!!!!! See the "Intelligent Bookkeeping" section in the Bmad manual.                            !!!!!', &
-          '!!!!! This program will run now but if this program modifies any lattice parameters, the       !!!!!', &
-          '!!!!! correctness of the results is questionable.                                              !!!!!', &
-          '!!!!! Contact the maintainer of this program with this information.                            !!!!!', &
-          '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
-      endif
-    enddo
-  enddo
-endif
 
 if (present(err_flag)) err_flag = .true.
 
@@ -150,7 +126,6 @@ enddo
 !
 
 if (present(err_flag)) err_flag = .false.
-bmad_com%auto_bookkeeper = auto_saved
 
 !----------------------------------------------------------
 contains

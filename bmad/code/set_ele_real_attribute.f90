@@ -6,8 +6,7 @@
 ! attributes (switch attributes are components like ele%mat6_calc_method which are mapped to a
 ! set of strings ("bmad_standard, etc.).
 !
-! Note: If using intellegent bookkeeping (bmad_com%auto_bookkeeper = F), the routine
-! lattice_bookkeeper must be called after all elements sets are done.
+! Note: The routine lattice_bookkeeper must be called after all elements sets are done.
 !
 ! Also see:
 !   set_ele_attribute

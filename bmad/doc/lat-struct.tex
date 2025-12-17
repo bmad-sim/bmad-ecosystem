@@ -730,18 +730,13 @@ inefficient since there is no good way to keep track of what element attributes 
 which leads to redundant bookkeeping calculations. Eventually, as \bmad developed and became more
 complicated, it was found that the unnecessary bookkeeping load was generally causing a significant
 slowdown in program execution time --- even in programs where no element attributes were changed. To
-avoid this, an ``intelligent'' bookkeeping system was developed which could be switched on by setting
-the parameter:
-\begin{example}
-  bmad_com%auto_bookkeeper = .false.
-\end{example}
-To keep things back compatible with existing programs, the automatic bookkeeping system was set as
-the default. However, given the fact that the automatic bookkeeping system has known deficiencies,
-and given the overhead with maintaining two bookkeeping systems, the automatic bookkeeping system
-has been retired and old programs needed to be upgraded if needed. Rule: A program that does not
-``directly modify'' element attributes does not have to modified. Modification of element attributes
-via \bmad routines (for example, using the \vn{set_on_off} routine) is ``indirect''. A direct modification
-is something like the following appearing in the program:
+avoid this, an ``intelligent'' bookkeeping system was developed.
+
+The automatic bookkeeping system has been retired and old programs need to be upgraded if
+needed. Rule: A program that does not ``directly modify'' element attributes does not have to
+modified. Modification of element attributes via \bmad routines (for example, using the
+\vn{set_on_off} routine) is ``indirect''. A direct modification is something like the following
+appearing in the program:
 \begin{example}
   lat%ele(ie)%value(hkick$) = ...
 \end{example}
@@ -778,6 +773,16 @@ The \vn{attribute} argument may be either real, integer, or logical.
 \index{bookkeeper_status_struct}
 The \vn{set_flags_for_changed_attribute} routine sets flags in the \vn{ele%status} structure
 \sref{s:lat.book}.
+
+Historical note: Up through the end of 2025, 
+to keep things back compatible with existing programs, the automatic bookkeeping system was set as
+the default. The intelligent bookkeeping could be switched on by setting
+the parameter:
+\begin{example}
+  bmad_com%auto_bookkeeper = .false.   ! Default was .true.
+\end{example}
+Currently, intelligent bookkeeping is assumed and the \vn{auto_bookkeeper} parameter is ignored by
+\bmad.
 
 %----------------------------------------------------------------------------
 \section{particle_start Component}

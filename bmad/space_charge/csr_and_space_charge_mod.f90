@@ -150,7 +150,7 @@ integer i, j, n, ie, ns, nb, n_step, n_live, i_step
 integer :: iu_wake
 
 character(*), parameter :: r_name = 'track1_bunch_csr'
-logical err, auto_bookkeeper, err_flag, parallel0, parallel1
+logical err, err_flag, parallel0, parallel1
 
 ! Init
 
@@ -279,9 +279,6 @@ csr%species = bunch%particle(1)%species
 csr%ix_ele_kick = ele%ix_ele
 csr%actual_track_step = csr%ds_track_step * (csr%eleinfo(ele%ix_ele)%L_chord / ele%value(l$))
 
-auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
-bmad_com%auto_bookkeeper = .false.   ! make things go faster
-
 call save_a_bunch_step (ele, bunch, bunch_track, s_start)
 
 !----------------------------------------------------------------------------------------
@@ -385,7 +382,6 @@ do i_step = 0, n_step
 
 enddo
 
-bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 err = .false.
 
 end subroutine track1_bunch_csr
@@ -1593,7 +1589,7 @@ real(rp) Evec(3), factor, pz0
 integer i, j, n, ie, ns, nb, n_step, n_live, i_step
 
 character(*), parameter :: r_name = 'track1_bunch_csr3d'
-logical err, auto_bookkeeper, err_flag, parallel0, parallel1
+logical err, err_flag, parallel0, parallel1
 
 ! EXPERIMENTAL. NOT CURRENTLY OPERATIONAL!
 
@@ -1633,10 +1629,6 @@ endif
 n_step = max (1, nint(ele%value(l$) / csr%ds_track_step))
 csr%ds_track_step = ele%value(l$) / n_step
 csr%species = bunch%particle(1)%species
-
-auto_bookkeeper = bmad_com%auto_bookkeeper ! save state
-bmad_com%auto_bookkeeper = .false.   ! make things go faster
-
 
 if (.not. allocated(csr%position)) allocate(csr%position(size(particle)))
 if (size(csr%position) < size(particle)) then
@@ -1712,7 +1704,6 @@ do i_step = 0, n_step
 
 enddo
 
-bmad_com%auto_bookkeeper = auto_bookkeeper  ! restore state
 err = .false.
 
 end subroutine track1_bunch_csr3d

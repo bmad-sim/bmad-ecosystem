@@ -11,8 +11,7 @@
 !   "tracking_method = taylor"
 !   "hkick = 0.01 * pi
 !
-! Note: If using intellegent bookkeeping (bmad_com%auto_bookkeeper = F), the routine
-! lattice_bookkeeper must be called after all elements sets are done.
+! Note: The routine lattice_bookkeeper must be called after all elements sets are done.
 !
 ! Also see:
 !   set_ele_real_attribute

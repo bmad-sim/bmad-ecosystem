@@ -74,8 +74,6 @@ endif
 
 ! init
 
-if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
-
 ix_br = integer_option (0, ix_branch)
 branch => lat%branch(ix_br)
 if (present(track_state)) track_state = moving_forward$

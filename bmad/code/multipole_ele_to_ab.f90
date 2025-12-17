@@ -66,7 +66,7 @@ if (.not. ele%is_on .or. ele%key == pipe$) return
 
 p_type = integer_option(magnetic$, pole_type)
 include_kck = integer_option(no$, include_kicks)
-can_use_cache = (.not. bmad_com%auto_bookkeeper .and. .not. logic_option(.false., original))
+can_use_cache = logic_option(.false., original)
 if (.not. allocated(ele%multipole_cache)) allocate(ele%multipole_cache)
 
 !
