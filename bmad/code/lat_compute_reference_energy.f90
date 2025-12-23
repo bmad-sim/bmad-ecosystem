@@ -586,11 +586,8 @@ case (lcavity$, nonconst_ref_energy$)
 
   if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. &
                                                ele%tracking_method == bmad_standard$ .and. n > 0) then
-    i0 = ele_rf_step_index(-1.0_rp, ele%s_start - lord%s_start, lord)
-    i1 = ele_rf_step_index(-1.0_rp, ele%s - lord%s_start, lord)
+    ! Note: E_tot and p0c computed by lcavity_rf_step_setup below.
 
-    ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
-    ele%value(p0c$) = lord%rf%steps(i1)%p0c
   else
     phi = twopi * (lord%value(phi0$) + lord%value(phi0_multipass$))
     e_tot = ele%value(e_tot_start$) + lord%value(gradient$) * ele%value(l$) * cos(phi)
