@@ -82,15 +82,13 @@ logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, wild_here
 logical end_of_file, ele_found, match_found, err, finished, exit_on_error
 logical multipass, heterogeneous_ele_list, is_ok
-logical auto_bookkeeper_saved, is_photon_fork, created_new_branch
+logical is_photon_fork, created_new_branch
 
 ! See if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
 call cpu_time(bp_com%time0)
 call init_bmad()
-auto_bookkeeper_saved = bmad_com%auto_bookkeeper
-bmad_com%auto_bookkeeper = .false.  
 
 if (present(err_flag)) err_flag = .true.
 bp_com = bp_common_struct()
@@ -1261,7 +1259,6 @@ enddo
 
 call cpu_time(bp_com%time2)
 
-bmad_com%auto_bookkeeper = auto_bookkeeper_saved  ! potentially saves time with lat_make_mat6
 if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
 
 call g_integrals_calc(lat)
@@ -1335,10 +1332,6 @@ do i = 1, bp_com%num_lat_files
   ierr = stat(name, stat_b)
   lat%creation_hash = djb_hash(int_str(stat_b(2)) // int_str(stat_b(8)), lat%creation_hash)
 enddo
-
-! Restore auto_bookkeeper flag
-
-bmad_com%auto_bookkeeper = auto_bookkeeper_saved
 
 ! deallocate pointers
 

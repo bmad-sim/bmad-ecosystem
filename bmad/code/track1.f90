@@ -190,10 +190,6 @@ if (start2_orb%state == inside$ .and. .not. time_RK_tracking) then
   if (global_com%exit_on_error) call err_exit
 endif
 
-! Init
-
-if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
-
 ! check for particles outside aperture.
 
 call check_aperture_limit (start2_orb, ele, first_track_edge$, param)

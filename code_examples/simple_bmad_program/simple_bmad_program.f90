@@ -9,9 +9,6 @@ type (all_pointer_struct) a_ptr
 integer i, ix, n_loc
 logical err
 
-! Programs should always implement "intelligent bookkeeping".
-bmad_com%auto_bookkeeper = .false.
-
 ! Read in a lattice, and modify the ks solenoid strength of "cleo_sol".
 
 call bmad_parser ("lat.bmad", lat)  ! Read in a lattice.

@@ -70,7 +70,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
 \index{rel_tol_adaptive_tracking}\index{abs_tol_adaptive_tracking}
 \index{taylor_order}\index{default_integ_order}
 \index{sr_wakes_on}\index{lr_wakes_on}\index{high_energy_space_charge_on}
-\index{auto_bookkeeper}\index{csr_and_space_charge_on}
+\index{csr_and_space_charge_on}
 \index{spin_tracking_on}\index{radiation_damping_on}\index{spin_sokolov_ternov_flipping_on}
 \index{radiation_fluctuations_on}\index{radiation_zero_average}\index{mp_threading_is_safe}
 \index{absolute_time_tracking}
@@ -106,7 +106,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     absolute_time_ref_shift = T         ! Absolute time referenced to element ref time?
     absolute_time_tracking = F          ! Set absolute or relative time tracking.
     aperture_limit_on = T               ! Use aperture limits in tracking.
-    auto_bookkeeper = T                 ! Automatic bookkeeping?
+    auto_bookkeeper = T                 ! No longer used.
     conserve_taylor_maps = T            ! Enable bookkeeper to set
                                         ! ele%taylor_map_includes_offsets = F?
     csr_and_space_charge_on = F         ! CSR and space charge (separate from HE SC).
@@ -167,7 +167,7 @@ Setting \vn{aperture_limit_on} to \vn{False} will disable the aperture limits se
 elements (\sref{s:limit}). The default is \vn{True}.
 %
 \item[\vn{auto_bookkeeper}] \Newline
-Toggles automatic or intelligent bookkeeping. See
+No longer used. Previously, toggled automatic or intelligent bookkeeping. Now intelligent bookkeeping is assumed. See
 section~\sref{s:lat.book} for more details.
 %
 \item[\vn{autoscale_amp_abs_tol}] \Newline

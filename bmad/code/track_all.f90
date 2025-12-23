@@ -58,7 +58,6 @@ if (.not. allocated(orbit)) call reallocate_coord (orbit, branch%n_ele_max)
 if (size(orbit) < branch%n_ele_max) call reallocate_coord (orbit, branch%n_ele_max)
 
 if (orbit(ix_fix)%state == not_set$) call init_coord(orbit(ix_fix), orbit(ix_fix)%vec, branch%ele(ix_fix), downstream_end$)
-if (bmad_com%auto_bookkeeper) call control_bookkeeper (lat)
 
 orbit(ix_fix)%ix_ele   = ix_fix
 orbit(ix_fix)%ix_branch = ix_br

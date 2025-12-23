@@ -46,7 +46,7 @@ logical, optional :: ok, print_err
 integer i, j, k, ix, is, status
 integer :: loop_max = 10
 
-logical found_control, err_flag, auto_saved
+logical found_control, err_flag
 
 ! common
 
@@ -58,7 +58,6 @@ character(16), parameter :: r_name = 'set_z_tune'
 
 ! Error detec and init.
 
-auto_saved = bmad_com%auto_bookkeeper
 Qz_rel_tol = 1d-5
 Qz_abs_tol = 1d-7
 
@@ -141,7 +140,6 @@ if (coef_tot == 0) then
                                  '      1) ON,  AND', &
                                  '      2) HAVE A FINETE RF_FREQUENCY!', &
                                  '      THE Z TUNE WILL NOT BE SET.')
-  bmad_com%auto_bookkeeper = auto_saved
   return
 endif
 
@@ -154,7 +152,6 @@ call calc_z_tune (branch)
 if (branch%z%tune == 0) then
   call out_io (s_error$, r_name, 'CALCULATED Z TUNE IS ZERO. CANNOT SET THE TUNE.')
   if (global_com%exit_on_error) call err_exit
-  bmad_com%auto_bookkeeper = auto_saved
   return
 endif
 
@@ -186,7 +183,6 @@ dz_tune0 = dz_tune
 
 do k = 1, loop_max
   if (abs(dz_tune) < Qz_abs_tol) then
-    bmad_com%auto_bookkeeper = auto_saved
     return
   endif
 
@@ -208,7 +204,6 @@ do k = 1, loop_max
       if (global_com%exit_on_error) call err_exit
     endif
     branch%z%stable = .false.
-    bmad_com%auto_bookkeeper = auto_saved
     return
   endif
 enddo
@@ -218,7 +213,6 @@ enddo
 coef = super_zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), Qz_rel_tol, Qz_abs_tol, status)
 dz_tune = dz_tune_func(coef, status)
 branch%z%stable = .true.
-bmad_com%auto_bookkeeper = auto_saved
 
 !-------------------------------------------------------------------------------------
 contains

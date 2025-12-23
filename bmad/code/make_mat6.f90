@@ -82,8 +82,6 @@ a_start_orb%time_dir = 1
 
 ! init
 
-if (bmad_com%auto_bookkeeper) call attribute_bookkeeper (ele)
-
 mat6_calc_method = ele%mat6_calc_method
 if (.not. ele%is_on) mat6_calc_method = bmad_standard$
 if (mat6_calc_method == auto$) then

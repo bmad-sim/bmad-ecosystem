@@ -36,12 +36,8 @@ character(16), parameter :: r_name = 'lat_geometry'
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
-  if (bmad_com%auto_bookkeeper) then
-    is_stale = .true.
-  else
-    if (branch%param%bookkeeping_state%floor_position /= stale$) cycle
-    is_stale = .false.
-  endif
+  if (branch%param%bookkeeping_state%floor_position /= stale$) cycle
+  is_stale = .false.
 
   ! If there are fiducial elements then survey the fiducial regions
 
@@ -111,8 +107,6 @@ enddo
 
 lat%lord_state%floor_position = ok$
 lat%param%bookkeeping_state%floor_position = ok$
-
-if (bmad_com%auto_bookkeeper) lat%ele(lat%n_ele_track+1:lat%n_ele_max)%bookkeeping_state%floor_position = stale$
 
 do i = lat%n_ele_track+1, lat%n_ele_max  
   lord => lat%ele(i)

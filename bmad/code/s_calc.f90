@@ -31,7 +31,7 @@ s_shift = .false.
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
-  if (.not. bmad_com%auto_bookkeeper .and. branch%param%bookkeeping_state%s_position /= stale$) cycle
+  if (branch%param%bookkeeping_state%s_position /= stale$) cycle
   s_shift = .true.
 
   ! Branches that branch from another branch start from s = 0

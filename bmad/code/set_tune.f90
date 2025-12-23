@@ -66,9 +66,6 @@ enddo
 ! Q tune
 
 do i = 1, 10
-
-  if (bmad_com%auto_bookkeeper) call lattice_bookkeeper(branch%lat)
-
   if (rf_on) then
     call closed_orbit_calc (branch%lat, orb, 6, 1, branch%ix_branch, err, print_err)
   else
