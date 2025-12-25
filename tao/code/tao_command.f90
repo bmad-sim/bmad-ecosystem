@@ -709,7 +709,7 @@ case ('set')
 
     if (set_word /= '') exit
 
-    call tao_next_switch (cmd_line, [character(20) :: 'branch', 'data', 'var', 'lattice', &
+    call tao_next_switch (cmd_line, [character(20) :: 'branch', 'data', 'variable', 'lattice', &
       'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
       'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
@@ -725,7 +725,7 @@ case ('set')
   case ('ran_state'); n_word = 2; n_eq = 1
   case ('beam', 'beam_init', 'bmad_com', 'space_charge_com', 'data', 'global', 'lattice', 'default', &
         'opti_de_param', 'wave', 'floor_plan', 'lat_layout', 'geodesic_lm', 'key', 'symbolic_number', &
-        'var', 'beam_start', 'particle_start', 'dynamic_aperture', 'ptc_com'); n_word = 3; n_eq = 2
+        'variable', 'beam_start', 'particle_start', 'dynamic_aperture', 'ptc_com'); n_word = 3; n_eq = 2
   case ('universe'); n_word = 4; n_eq = 3
   case ('plot_page'); n_word = 4; n_eq = 2
   case ('branch', 'curve', 'element', 'graph', 'plot', 'region'); n_word = 4; n_eq = 3
@@ -733,7 +733,7 @@ case ('set')
   case ('tune'); n_word = 7; n_eq = 0
   case ('z_tune'); n_word = 6; n_eq = 0
   case default
-    call out_io (s_error$, r_name, 'SET WHAT? (MUST BE ON OF "branch", "data", "var", ...etc.')
+    call out_io (s_error$, r_name, 'SET WHAT? (MUST BE ON OF "branch", "data", "variable", ...etc.')
     goto 9000
   end select
 
@@ -851,7 +851,7 @@ case ('set')
     call tao_set_tune_cmd (branch_str, mask, listing, cmd_word(1), cmd_word(2), .false.)
   case ('universe')    
     call tao_set_universe_cmd (cmd_word(1), cmd_word(2), cmd_word(4))
-  case ('var')
+  case ('variable')
     call tao_set_var_cmd (cmd_word(1), cmd_word(3))
   case ('wave')
     call tao_set_wave_cmd (cmd_word(1), cmd_word(3), err_flag);  if (err_flag) goto 9000
