@@ -53,12 +53,12 @@ O_angle: overlay = {
   var = {angle_deg}
 O_angle[angle_deg] = 10
 
-q1: quad, L = 0.1, superimpose, ref = p2, offset = -.2
-q2: quad, L = 0.1, superimpose, ref = p2, offset = .2
-q3: quad, L = 0.1, superimpose, ref = p3, offset = -.2
-q4: quad, L = 0.1, superimpose, ref = p3, offset = .2
-q5: quad, L = 0.1, superimpose, ref = p4, offset = -.2
-q6: quad, L = 0.1, superimpose, ref = p4, offset = .2
+q1: quad, L = 0.1, superimpose, ref = p2, offset = -.2, k1 = 0.001
+q2: quad, L = 0.1, superimpose, ref = p2, offset = .2, k1 = 0.002
+q3: quad, L = 0.1, superimpose, ref = p3, offset = -.2, k1 = 0.003
+q4: quad, L = 0.1, superimpose, ref = p3, offset = .2, k1 = 0.004
+q5: quad, L = 0.1, superimpose, ref = p4, offset = -.2, k1 = 0.005
+q6: quad, L = 0.1, superimpose, ref = p4, offset = .2, k1 = 0.006
 
 lat: line = (chicane)
 

@@ -17,10 +17,11 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 real(rp) r
 real(rp), allocatable :: val(:)
 integer iu, ii
-logical err
+logical err, dflt_source(14)
 
 character(200) excite_zero(3), veto
-character(60) :: expr(13) = [character(60):: &
+character(60) :: expr(14) = [character(60):: &
+                  'q*d[2:4]|design', &
                   '[anomalous_moment_of(proton), mass_of(electron)]', &
                   '(46.5/anomalous_moment_of(proton))^2-pi', &
                   '[3,4] * [1]@ele::q1[k1]', &
@@ -33,7 +34,8 @@ character(60) :: expr(13) = [character(60):: &
                   'data::twiss.end[1]|model-design+1e-10', &
                   '[1,2] - [3, lat::r.11[beginning&end->-0.5*l]]', &
                   'sum(abs(ele::sbend::b*[angle]))', &
-                  'ran_gauss() + ran_gauss(0.1) + ran()'  ]
+                  'ran_gauss() + ran_gauss(0.1) + ran()' &
+                        ]
 
 !
 
@@ -46,9 +48,15 @@ s%global%expression_tree_on = .true.
 call tao_set_symbolic_number_cmd ('aaa', 'species(Li+5)')
 call tao_set_symbolic_number_cmd ('bbb', '34*2')
 call ran_seed_put(1234)
+dflt_source = .false.
+dflt_source(1) = .true.
 
 do ii = 1, size(expr)
-  call tao_evaluate_expression(expr(ii), 0, .false., val, err)
+  if (dflt_source(ii)) then
+    call tao_evaluate_expression(expr(ii), 0, .false., val, err, dflt_source = 'var')
+  else
+    call tao_evaluate_expression(expr(ii), 0, .false., val, err)
+  endif
   write (iu, '(2a, 9es18.10)') quote(expr(ii)), ' REL 1E-9', val
 enddo
 

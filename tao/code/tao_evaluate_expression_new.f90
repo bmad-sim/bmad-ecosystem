@@ -143,9 +143,9 @@ contains
 ! This is done so as to not confuse expression tree creation.
 ! Wildcard examples: 
 !    "[*]|", "*.*|", "*.x|", "*@orbit.x|", "*@*|", "orbit.*[3]|", "ele::q*1[beta_a]", "var::*d|model"
-!    "quad_k1[*]|model"
+!    "quad_k1[*]|model", "a*b|design" when something like "var::" is default prefix.
 ! Non-wildcard examples:
-! "emit*data::mf.xm|model", "3*[1,2]", "3*.42", "a*[b,c]"
+! "emit*data::mf.xm|model", "3*[1,2]", "3*.42", "a*[b,c]" (but a*[2,3]|model is wild)
 !
 ! Wild if "*" is bounded by:
 !   "::" < "*" < "|"  or
@@ -189,8 +189,25 @@ main_loop: do
     end select
   enddo
 
+  if (right_char == '[') then   ! See if matching ']|' exists.
+    do ii = ii+1, len_trim(phrase)
+      ch = phrase(ii:ii)
+      select case (ch)
+      case ('|', '+', '-', '/', '^', ' ', '[', '@', '(', ')')
+        exit
+      case (']')
+        if (ii+1 > len(phrase)) exit
+        if (phrase(ii+1:ii+1) == '|') right_char = '|'
+        exit
+      end select
+    enddo
+  endif
+
+  !
+
   wild = .false.
   if (left_char == ':' .and. (right_char == '[' .or. right_char == '|')) wild = .true.
+  if (left_char == '!' .and. right_char == '|') wild = .true.
   if (istar > 1) then
     if (phrase(istar-1:istar-1) == '[' .and. phrase(istar+1:istar+1) == ']') wild = .true.
   endif
