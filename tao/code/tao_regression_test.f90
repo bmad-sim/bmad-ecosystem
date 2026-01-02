@@ -17,10 +17,10 @@ type (tao_lattice_branch_struct), pointer :: tao_branch
 real(rp) r
 real(rp), allocatable :: val(:)
 integer iu, ii
-logical err, dflt_source(14)
+logical err, dflt_source(16)
 
 character(200) excite_zero(3), veto
-character(60) :: expr(14) = [character(60):: &
+character(60) :: expr(16) = [character(60):: &
                   'q*d[2:4]|design', &
                   '[anomalous_moment_of(proton), mass_of(electron)]', &
                   '(46.5/anomalous_moment_of(proton))^2-pi', &
@@ -34,7 +34,9 @@ character(60) :: expr(14) = [character(60):: &
                   'data::twiss.end[1]|model-design+1e-10', &
                   '[1,2] - [3, lat::r.11[beginning&end->-0.5*l]]', &
                   'sum(abs(ele::sbend::b*[angle]))', &
-                  'ran_gauss() + ran_gauss(0.1) + ran()' &
+                  'ran_gauss() + ran_gauss(0.1) + ran()', &
+                  'ele::q1-1[l]', &
+                  'ele::q1+1[l]' &
                         ]
 
 !

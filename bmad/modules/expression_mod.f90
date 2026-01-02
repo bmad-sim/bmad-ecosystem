@@ -850,7 +850,7 @@ if (associated(tree%node)) then
   allocate (tree%node(n))
   tree%node(1:n_save) = temp_tree%node(1:n_save)
   do in = n_save+1, n_old
-    call deallocate_tree(temp_tree%node(in))
+    call deallocate_expression_tree(temp_tree%node(in))
   enddo
   deallocate (temp_tree%node)  
 else
@@ -858,38 +858,6 @@ else
 endif
 
 end subroutine re_associate_node_array
-
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!-------------------------------------------------------------------------
-!+
-! Subroutine deallocate_tree (tree)
-!
-! Routine to deallocate tree%node(:) and everything below it
-!
-! Input:
-!   tree      -- expression_tree_struct: Root of tree to deallocate.
-!
-! Output:
-!   tree      -- expression_tree_struct: Deallocated tree.
-!-
-
-recursive subroutine deallocate_tree(tree)
-
-type (expression_tree_struct) tree
-integer in
-
-!
-
-if (.not. associated(tree%node)) return
-
-do in = 1, size(tree%node)
-  call deallocate_tree(tree%node(in))
-enddo
-
-deallocate(tree%node)
-
-end subroutine 
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
