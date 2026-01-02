@@ -7,19 +7,19 @@ beam_def: Beam, Particle = Positron, Energy =   1.00000E-03            , Npart =
 AB_MULTIPOLE1: multipole, knl = {0, 0, 2.50171E+02}, ksl = {0, 0, -1.31963E+02};
 A_KICKER_1: kicker, l =   0.00000E+00, hkick = 5.00000E-03;
 AC_KICKER011001: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
-     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 3.75007E-06, rm66 = 1.00000E+00;
+     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 1.45059E-04, rm66 = 1.00000E+00;
 A_KICKER_2: kicker, l =   0.00000E+00, hkick = 5.00000E-03;
 AC_KICKER011002: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
-     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 3.75007E-06, rm66 = 1.00000E+00;
+     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 2.54494E-04, rm66 = 1.00000E+00;
 A_KICKER_3: kicker, l =   0.00000E+00, vkick = 5.00000E-03;
 AC_KICKER2: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 = 1.00000E+00,
-     rm55 = 1.00000E+00, kick5 = 5.00009E-06, rm66 = 1.00000E+00;
+     rm55 = 1.00000E+00, kick5 = 2.81156E-04, rm66 = 1.00000E+00;
 BEAMBEAM1: beambeam, sigx = 3.00000E-03, sigy = 3.00000E-04, xma = 3.00000E-03, yma = 3.00000E-03,
      charge = -1.00000E+00;
 CRAB_CAVITY1: drift, l =   2.00000E-01;
 E_KICKER_4: kicker, l =   0.00000E+00, hkick = 5.00000E-03, vkick = 1.00000E-03;
 ECOLLIMATOR1: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
-     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 5.85011E-05, rm66 = 1.00000E+00;
+     rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 1.25971E-03, rm66 = 1.00000E+00;
 E_KICKER_5: kicker, l =   0.00000E+00, hkick = 2.50000E-03;
 ELSEPARATOR1: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00,
      rm44 = 1.00000E+00, rm55 = 1.00000E+00, kick5 = 1.40626E-05, rm66 = 1.00000E+00;
@@ -35,7 +35,11 @@ HKICKER1: hkicker, l =   4.50000E+00, kick = 5.00000E-03, tilt = 1.00000E-01;
 INSTRUMENT1: drift, l =   4.50000E+00;
 KMULTIPOLE_7: multipole, knl = {2.98501E-06}, ksl = {2.99500E-07};
 KICKER1: kicker, l =   4.50000E+00, vkick = 3.00000E-03, tilt = 1.00000E-01;
-MATCH1: matrix;
+MATCH1: matrix, rm11 = 1.56497E+00, rm12 = -7.34847E-02, rm13 = 3.51944E-01, rm14 = -3.82708E-02,
+     rm21 = 7.34847E-02, rm22 = 6.80424E-01, rm23 = 3.31435E-02, rm24 = -2.03195E-01,
+     rm31 = 3.51944E-01, rm32 = -3.31435E-02, rm33 = 1.19974E+00, rm34 = -5.65685E-02,
+     rm41 = 3.82708E-02, rm42 = -2.03195E-01, rm43 = 5.65685E-02, rm44 = 8.89395E-01,
+     kick5 = -2.57696E-01, rm55 = 1.00000E+00, rm56 = -6.72896E-02, rm66 = 1.00000E+00;
 MONITOR1: drift, l =   4.50000E+00;
 MULTIPOLE1: multipole, knl = {0, 0, 0, -3.28036E+00}, ksl = {0, 1.00000E+00, 0, -3.08046E+00};
 OCTUPOLE1: octupole, l =   4.50000E+00, k3 = 1.00000E+03, tilt = 3.92699E-01;
@@ -47,23 +51,23 @@ PATCH1__s: srotation, angle =   2.00000E+00;
 QMULTIPOLE_8: multipole, knl = {2.12132E-03, 3.00000E-02}, ksl = {-2.12132E-03, 0};
 Q_KICKER_9: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE1: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 7.53786E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = -2.70222E-05, rm66 = 1.00000E+00;
 QMULTIPOLE_10: multipole, knl = {-2.12132E-03, -3.00000E-02}, ksl = {2.12132E-03, 0};
 Q_KICKER_11: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE2: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 8.64027E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = -2.79073E-05, rm66 = 1.00000E+00;
 QMULTIPOLE_12: multipole, knl = {2.12132E-23, 3.00000E-22}, ksl = {-2.12132E-23, 0};
 Q_KICKER_13: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE3: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = -9.59824E-06, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = -3.24711E-08, rm66 = 1.00000E+00;
 QMULTIPOLE_14: multipole, knl = {2.12132E-03, 3.00000E-02}, ksl = {-2.12132E-03, 0};
 Q_KICKER_15: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE4: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 7.59803E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = -2.71210E-05, rm66 = 1.00000E+00;
 QMULTIPOLE_16: multipole, knl = {-2.12132E-03, -3.00000E-02}, ksl = {2.12132E-03, 0};
 Q_KICKER_17: kicker, l =   0.00000E+00, vkick = -5.00000E-05;
 QUADRUPOLE5: matrix, rm11 = 1.00000E+00, rm22 = 1.00000E+00, rm33 = 1.00000E+00, rm44 =
-     1.00000E+00, rm55 = 1.00000E+00, kick5 = 8.70677E-05, rm66 = 1.00000E+00;
+     1.00000E+00, rm55 = 1.00000E+00, kick5 = -2.79898E-05, rm66 = 1.00000E+00;
 RCOLLIMATOR1: collimator, l =   4.50000E+00, apertype = rectangle, aperture = {  
     2.00000E-01            ,   1.00000E-01            };
 RFCAVITY1: rfcavity, l =   4.50000E+00, volt = 1.00000E-01, lag = 6.00000E-01, harmon = 184;
@@ -91,9 +95,21 @@ SEXTUPOLE1: sextupole, l =   6.00000E-01, k2 = 1.00000E+00, tilt = 5.23599E-01;
 SOLENOID1: solenoid, l =   2.60000E+00, ks = 1.00000E+00;
 SOLENOID2: solenoid, l =   2.60000E+00, ks = 1.00000E-12;
 DRIFT_Z22: drift, l =   1.30000E+00;
-SOL_QUAD1: matrix;
+SOL_QUAD1: matrix, rm11 = -1.09571E+00, rm12 = 1.09394E+00, rm13 = 2.44804E+00, rm14 =
+     -2.53031E-01, rm16 = -1.04359E-01, rm21 = 1.47845E-01, rm22 = -6.55189E-01, rm23 =
+     -9.05782E-01, rm24 = 2.74925E-01, rm26 = 1.02692E-01, rm31 = -2.20483E-01, rm32 = 4.35908E-01,
+     rm33 = -9.23825E-01, rm34 = 1.92067E-01, rm36 = 3.34733E-02, rm41 = 1.92523E-01,
+     rm42 = -2.39365E+00, rm43 = 3.66650E+00, rm44 = -1.36430E+00, rm46 = 3.97388E-02,
+     rm51 = 1.12298E-01, rm52 = -1.41409E-01, rm53 = 2.57378E-03, rm54 = -5.60069E-02,
+     rm55 = 1.00000E+00, rm56 = 2.92110E-03, rm66 = 1.00000E+00;
 DRIFT_Z23: drift, l =   1.30000E+00;
-SOL_QUAD2: matrix;
+SOL_QUAD2: matrix, rm11 = 2.39083E-01, rm12 = 1.11662E-01, rm13 = 8.61243E-01, rm14 = 4.02215E-01,
+     rm16 = -6.75633E-02, rm21 = -1.28886E-01, rm22 = 2.39091E-01, rm23 = -4.64224E-01,
+     rm24 = 8.61229E-01, rm26 = 2.69138E-02, rm31 = -8.61233E-01, rm32 = -4.02148E-01,
+     rm33 = 2.39098E-01, rm34 = 1.11640E-01, rm36 = 3.26502E-02, rm41 = 4.64232E-01,
+     rm42 = -8.61272E-01, rm43 = -1.28866E-01, rm44 = 2.39097E-01, rm46 = 1.62887E-02,
+     rm51 = 3.14589E-02, rm52 = -4.07293E-02, rm53 = 8.31160E-05, rm54 = -6.30245E-02,
+     rm55 = 1.00000E+00, rm56 = 1.50730E-03, rm66 = 1.00000E+00;
 TMULTIPOLE_24: multipole, knl = {0, 0, 2.95520E-01, 5.52637E+01}, ksl = {0, 0, -9.55336E-01,
      2.33651E+01};
 THICK_MULTIPOLE1: drift, l =   4.50000E+00;

@@ -826,7 +826,12 @@ do i = 1, 6
   write (iu, '(2(a, i0))') '  v_out', i, '= '
   do j = 1, size(taylor(i)%term)
     term = taylor(i)%term(j)
-    write (line, '(4x, es24.16)') term%coef
+    if (bmad_com%debug) then  ! Used for regression tests
+      write (line, '(4x, es13.5)') term%coef
+    else
+      write (line, '(4x, es24.16)') term%coef
+    endif
+
     do k = 1, 6
       if (term%expn(k) == 0) cycle
       if (term%expn(k) == 1) then
@@ -856,7 +861,12 @@ do i = 0, 3
   write (iu, '(2(a, i0))') '  q_out', i, ' = '
   do j = 1, size(ele%spin_taylor(i)%term)
     term = ele%spin_taylor(i)%term(j)
-    write (line, '(4x, es24.16)') term%coef
+    if (bmad_com%debug) then  ! Used for regression tests
+      write (line, '(4x, es13.5)') term%coef
+    else
+      write (line, '(4x, es24.16)') term%coef
+    endif
+
     do k = 1, 6
       if (term%expn(k) == 0) cycle
       if (term%expn(k) == 1) then 
