@@ -1335,7 +1335,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
         ds = s2 - s1
         ds_small = ds_small * max(abs(s1), abs(s2)) 
       else
-        ds = (branch%param%total_length - s1) + s2
+        ds = (slave%branch%param%total_length - s1) + s2
         ds_small = ds_small * max(abs(s1), abs(s2), branch%param%total_length)
       endif 
       l_lord = ele%value(l$) + ele%value(lord_pad2$) + ele%value(lord_pad1$)

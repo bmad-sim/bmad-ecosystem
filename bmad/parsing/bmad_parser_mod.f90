@@ -3663,11 +3663,11 @@ subroutine compute_super_lord_s (ref_ele, super_ele, pele, ix_insert)
 implicit none
 
 type (ele_struct), target :: ref_ele, super_ele
-type (ele_struct), pointer :: slave, ele
+type (ele_struct), pointer :: slave, ele, ele0
 type (parser_ele_struct) pele
 type (branch_struct), pointer :: branch
 
-integer i, ie, ix, nt, ix_insert, ele_pt, ref_pt, offset_dir, ix_ref
+integer i, ie, ix, ix0, nt, ix_insert, ele_pt, ref_pt, offset_dir
 
 real(rp) s_ref_begin, s_ref_end, s0, len_tiny
 logical reflected_or_reversed
@@ -3716,26 +3716,19 @@ case (overlay$, group$, girder$)
     slave => pointer_to_slave(ref_ele, i)
     s_ref_begin = min(s_ref_begin, slave%s_start)
     s_ref_end = max(s_ref_end, slave%s)
-
-    if (i == 1) then
-      ix_ref = slave%ix_ele
-    elseif (offset_dir == 1) then
-      ix_ref = min(ix_ref, slave%ix_ele)
-    else
-      ix_ref = max(ix_ref, slave%ix_ele)
-    endif
   enddo
 case (ramper$)
   call parser_error ('SUPERPOSING: ' // super_ele%name, 'UPON RAMPER' // pele%ref_name)
   return
 case default
-  s_ref_begin = ref_ele%s_start
-  s_ref_end = ref_ele%s
   if (ref_ele%n_slave > 0) then
     slave => pointer_to_slave(ref_ele, 1)
-    ix_ref = slave%ix_ele
+    s_ref_begin = slave%s_start
+    slave => pointer_to_slave(ref_ele, ref_ele%n_slave)
+    s_ref_end = slave%s
   else
-    ix_ref = ref_ele%ix_ele
+    s_ref_begin = ref_ele%s_start
+    s_ref_end = ref_ele%s
   endif
 end select
 
@@ -3767,7 +3760,8 @@ branch => pointer_to_branch(ref_ele)
 nt = branch%n_ele_track
 
 if (offset_dir == 1) then
-  do ie = ix_ref, nt
+  ix0 = element_at_s(branch, s_ref_begin, choose_max = .true.)
+  do ie = ix0, nt
     ele => branch%ele(ie)
     if (ele%s_start > super_ele%s) exit
     if (bend_length_has_been_set(ele)) cycle
@@ -3779,7 +3773,8 @@ if (offset_dir == 1) then
   enddo
 
   if (super_ele%s > branch%ele(nt)%s) then
-    do ie = 1, ix_ref
+    ix0 = element_at_s(branch, s_ref_end, choose_max = .true.)
+    do ie = 1, ix0
       ele => branch%ele(ie)
       if (ele%s_start + branch%param%total_length > super_ele%s) exit
       if (bend_length_has_been_set(ele)) cycle
@@ -3792,7 +3787,8 @@ if (offset_dir == 1) then
   endif
 
 else
-  do ie = ix_ref, 1, -1
+  ix0 = element_at_s(branch, s_ref_end, choose_max = .true.)
+  do ie = ix0, 1, -1
     ele => branch%ele(ie)
     if (ele%s < super_ele%s_start) exit
     if (bend_length_has_been_set(ele)) cycle
@@ -3804,7 +3800,8 @@ else
   enddo
 
   if (super_ele%s < 0) then
-    do ie = nt, ix_ref
+    ix0 = element_at_s(branch, s_ref_begin, choose_max = .true.)
+    do ie = nt, ix0
       ele => branch%ele(ie)
       if (ele%s < super_ele%s_start) exit
       if (bend_length_has_been_set(ele)) cycle
