@@ -291,13 +291,13 @@ ele%value(E_tot$) = lord%rf%steps(i1)%E_tot0
 ele%value(p0c$) = lord%rf%steps(i1)%p0c
 
 t = 0
-s_now = ele%s_start
+s_now = ele%s_start - lord%s_start
 do ix_step = i0, i1
   step => lord%rf%steps(ix_step)
   if (ix_step == i1) then
-    s_end = ele%s 
+    s_end = ele%s - lord%s_start
   else
-    s_end = step%s
+    s_end = step%s 
   endif
   beta = step%p0c / step%E_tot0
   t = t + (s_end - s_now) / (c_light * beta)

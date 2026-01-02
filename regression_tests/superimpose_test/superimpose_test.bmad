@@ -18,24 +18,36 @@ q2: quad, l = 1
 d1: drift, l = 1
 d2: drift, l = 1
 d3: drift, l = 1
+
 b0: line = (d1, q2, d2)
+
 b1: line = (-b0)
 b1[geometry] = open
+b1[beta_a] = 10
+b1[beta_b] = 10
+
 b2: line = (--b0)
 b2[geometry] = open
+b2[beta_a] = 10
+b2[beta_b] = 10
+
 b3: line = (d3)
 b3[geometry] = open
+b3[beta_a] = 10
+b3[beta_b] = 10
 
 ss: sextupole, l = 0.2, superimpose, ref = q2, offset = 0.3, ref_origin = end, ele_origin = beginning
 
-q1: quadrupole, l = 0.9, superimpose, ref = d3, wrap_superimpose = T, offset = -0.5
-q3: quadrupole, l = 0.9, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
+!q3: quadrupole, l = 0.9, superimpose, ref = d3, wrap_superimpose = F, offset = 0.7
+!q1: quadrupole, l = 0.9, superimpose, ref = d3, wrap_superimpose = T, offset = -0.5
 
-use, ll, b1, b2, b3, lt
+use, ll, b1, b2, b3, lt, lc
 
 dd: drift, l = 3
 lt: line = (dd)
 lt[geometry] = open
+lt[beta_a] = 10
+lt[beta_b] = 10
 
 m1: marker, superimpose, offset = 1, ref = lt>>beginning
 m2: marker, superimpose, offset = 1, ref = lt>>beginning
@@ -44,3 +56,24 @@ m3: marker, superimpose, ref = m2, ref_origin = end
 p1: marker, superimpose, offset = 2, ref = lt>>beginning
 p2: marker, superimpose, ref = p1, ref_origin = beginning
 p3: marker, superimpose, ref = p1, ref_origin = end
+
+!
+
+bmad_com[absolute_time_tracking] = T
+
+lc: line = ( CAV1, pipe1, CAV2)
+lc[geometry] = Open            
+lc[p0c]                      =  10e6
+lc[particle]                 = Electron
+lc[beta_a]      = 1
+lc[beta_b]      = 1
+lc[s] = 10
+
+CAV1: Lcavity, L =  1,
+   GRADIENT =  10e6, RF_FREQUENCY =  1e9,
+   N_CELL = 5,
+   N_RF_STEPS = 16
+CAV2: CAV1
+
+pipe1: pipe, L = 0.1
+mc: marker, superimpose, ref = CAV1
