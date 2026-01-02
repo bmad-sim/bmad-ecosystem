@@ -191,7 +191,7 @@ character(25) :: str_out
 !
 
 if (write_lat_debug_flag) then
-  write(str_out, '(es13.5)') rel
+  write(str_out, '(es12.4)') rel
 else
   write(str_out, '(es25.17e3)') rel
 endif
@@ -212,7 +212,7 @@ character(25) :: str_out
 !
 
 if (write_lat_debug_flag) then
-  write(str_out, '(es13.5)') rel
+  write(str_out, '(es12.4)') rel
 else
   write(str_out, '(es25.17e3)') rel
 endif
@@ -281,7 +281,7 @@ integer it, plc, ix
 ! when running debug is used in regression testing.
 
 if (write_lat_debug_flag) then
-  write (fmt(6:7), '(i2.2)') 5-plc  ! 6 digits of accuracy
+  write (fmt(6:7), '(i2.2)') 4-plc   ! 5 digits of accuracy
 else
   write (fmt(6:7), '(i2.2)') 14-plc  ! 15 digits of accuracy
 endif
