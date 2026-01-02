@@ -80,7 +80,7 @@ write (1, '(2a)') '"P-markers" STR ', quote(trim(branch%ele(6)%name) // ' ' // &
 branch => lat%branch(5)
 do i = 1, branch%n_ele_track
   ele => branch%ele(i)
-  write (1, '()') '"Lcav-', i, '" REL 1E-8', ele%s, ele%ref_time, ele%value(p0c$)
+  write (1, '(a, i0, a, 99es16.8)') '"Lcav-', i, '" REL 1E-8', ele%s, ele%ref_time, ele%value(p0c$)
 enddo
 
 end program
