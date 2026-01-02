@@ -3724,6 +3724,7 @@ case default
   if (ref_ele%n_slave > 0) then
     slave => pointer_to_slave(ref_ele, 1)
     s_ref_begin = slave%s_start
+    slave => pointer_to_slave(ref_ele, ref_ele%n_slave)
     s_ref_end = slave%s
   else
     s_ref_begin = ref_ele%s_start
