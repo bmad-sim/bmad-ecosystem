@@ -15,7 +15,6 @@ character(200) lat_file, out_file
 
 bmad_com%auto_bookkeeper = .false.
 global_com%exit_on_error = .false.
-write_lat_debug_flag = .true. ! Limit output precision to prevent output shifts when running with different compilers
 lat_file = 'write_foreign_test.bmad'
 
 debug_mode = .false.
@@ -31,7 +30,7 @@ if (.not. debug_mode) call output_direct(-1, .false., s_info$, s_error$)
 call bmad_parser (lat_file, lat)
 call twiss_and_track (lat, orbit, status, orb_start = lat%particle_start)
 
-bmad_com%debug = .true.   ! Use less precision.
+write_lat_debug_flag = .true. ! Limit output precision to prevent output shifts when running with different compilers
 call write_lattice_in_foreign_format ('MAD-8', 'mad8.now', lat)
 call write_lattice_in_foreign_format ('MAD-X', 'madx.now', lat)
 call write_lattice_in_foreign_format ('SAD', 'sad.now', lat)

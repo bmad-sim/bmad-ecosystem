@@ -814,6 +814,7 @@ do i = 1, 6
 enddo
 
 do i = 0, 3
+  if (.not. associated(ele%spin_taylor(i)%term)) cycle
   if (size(ele%spin_taylor(i)%term) == 0) cycle
   do j = 1, 6
     e_max(j) = max(e_max(j), maxval(ele%spin_taylor(i)%term(:)%expn(j)))
@@ -826,8 +827,8 @@ do i = 1, 6
   write (iu, '(2(a, i0))') '  v_out', i, '= '
   do j = 1, size(taylor(i)%term)
     term = taylor(i)%term(j)
-    if (bmad_com%debug) then  ! Used for regression tests
-      write (line, '(4x, es13.5)') term%coef
+    if (write_lat_debug_flag) then  ! Used for regression tests
+      write (line, '(4x, es12.4)') term%coef
     else
       write (line, '(4x, es24.16)') term%coef
     endif
@@ -853,7 +854,10 @@ enddo
 write (iu, '(a)') 
 
 do i = 0, 3
-  if (size(ele%spin_taylor(i)%term) == 0) then
+  if (.not. associated(ele%spin_taylor(i)%term)) then
+    write (iu, '(2(a, i0))') '  q_out', i, ' = 0.0'
+    cycle
+  elseif (size(ele%spin_taylor(i)%term) == 0) then
     write (iu, '(2(a, i0))') '  q_out', i, ' = 0.0'
     cycle
   endif
@@ -861,7 +865,7 @@ do i = 0, 3
   write (iu, '(2(a, i0))') '  q_out', i, ' = '
   do j = 1, size(ele%spin_taylor(i)%term)
     term = ele%spin_taylor(i)%term(j)
-    if (bmad_com%debug) then  ! Used for regression tests
+    if (write_lat_debug_flag) then  ! Used for regression tests
       write (line, '(4x, es13.5)') term%coef
     else
       write (line, '(4x, es24.16)') term%coef
