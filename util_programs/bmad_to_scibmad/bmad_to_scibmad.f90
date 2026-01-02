@@ -1,13 +1,17 @@
 program bmad_to_scibmad
 
 use bmad_routine_interface
+use twiss_and_track_mod
 
 implicit none
 
 type (lat_struct) lat
+type (coord_struct), allocatable :: orbit(:)
+
 character(200) :: bmad_name = '', scibmad_name = '', arg
-integer i, i_arg
+integer i, i_arg, status
 logical err_flag, force
+character(*), parameter :: r_name = 'bmad_to_scibmad'
 
 !
 
