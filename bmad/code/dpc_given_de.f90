@@ -15,7 +15,8 @@ real(rp) pc_old, mass, dE, dpc, del2
 !
 
 del2 = dE**2 + 2 * sqrt(pc_old**2 + mass**2) * dE
-dpc = del2 / (sqrt(pc_old**2 + del2) + pc_old)
+!!dpc = del2 / (sqrt(pc_old**2 + del2) + pc_old)
+dpc = sqrt(pc_old**2 + del2) - pc_old
 
 end function dpc_given_dE
 
