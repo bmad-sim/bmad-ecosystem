@@ -8,7 +8,7 @@
 !   gamma_transition = 1 / sqrt(mom_comp)
 !
 ! Input:
-!   branch      -- branch_struct, optional: Lattice branch to calculate on.
+!   branch      -- branch_struct: Lattice branch to calculate on.
 !
 ! Output:
 !   mom_comp    -- real(rp): Momentum compaction.

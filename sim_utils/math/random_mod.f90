@@ -426,7 +426,7 @@ end subroutine ran_gauss_converter
 ! Note: Use pointer_to_ran_state() to access the ran state directly.
 !
 ! Input:
-!   seed        -- integer, optional: Seed number. If seed = 0 then a 
+!   seed        -- integer: Seed number. If seed = 0 then a 
 !                   seed will be choosen based upon the system clock.
 !   mpi_offset  -- integer, optional: Offset added to seed. Default is zero.
 !                   Used with MPI processes ensure different threads use different random numbers.
