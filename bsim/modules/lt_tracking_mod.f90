@@ -1882,7 +1882,7 @@ if (n_particle == 0) then
 endif
   
 
-call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes)
+call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes, ltt_com%bmad_closed_orb)
 
 end subroutine ltt_setup_high_energy_space_charge
 

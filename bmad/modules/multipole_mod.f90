@@ -12,7 +12,7 @@ contains
 !+
 ! Subroutine multipole_kicks (knl, tilt, ele, orbit, pole_type, ref_orb_offset)
 !
-! Subroutine to put in the kick due to a multipole.
+! Subroutine to put in the kick due to a multipole element.
 ! Also see the ab_multipole_kicks routine.
 !
 ! Input:
@@ -56,13 +56,15 @@ end subroutine multipole_kicks
 !+
 ! Subroutine ab_multipole_kicks (an, bn, ix_pole_max, ele, orbit, pole_type, scale, mat6, make_matrix)
 !
-! Routine to put in the kick due to ab_multipole components.
-! Also see the multipole_kicks routine.
+! Routine to put in the kick due to ab_multipole components in an element.
 ! The kick will be corrected for the orientation of the element and the particle direction of travel.
+! Any difference between element p0c and orbit%p0c will be taken into account.
+!
+! Also see the multipole_kicks routine.
 !
 ! Input:
 !   an(0:)         -- real(rp): Skew multipole strengths.
-!   bn(0:)         -- real(rp): Normal multipole tilts.
+!   bn(0:)         -- real(rp): Normal multipole strengths.
 !   ix_pole_max    -- integer: Maximum pole index.
 !   ele            -- ele_struct: Lattice element containing the multipoles.
 !   orbit          -- coord_struct: Particle position.

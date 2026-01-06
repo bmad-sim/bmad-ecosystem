@@ -34,7 +34,7 @@ type (coord_struct) :: orbit
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
-type (rf_stair_step_struct), pointer :: step
+type (rf_stair_step_struct), pointer :: step, step0
 
 real(rp), optional :: mat6(6,6)
 real(rp) s_now, s_end, kmat(6,6), phase, ds, mc2
@@ -96,6 +96,7 @@ call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
 if (s_dir == 1) then
   do ix_step = ix_step_start, ix_step_end
     step => lord%rf%steps(ix_step)
+
     ! Drift to edge of step
     if (ix_step == ix_step_end) then
       ds = s_end - s_now
@@ -105,14 +106,21 @@ if (s_dir == 1) then
       s_now = step%s
     endif
     call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
+
     ! Entrence fringe?
     if (ix_step == 0 .and. s_now == step%s .and. fringe_here(lord, orbit, first_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(0))
       call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
       call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
     endif
+
     ! Stair step kick
-    if (ix_step /= ix_step_end) call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
+    if (ix_step /= ix_step_end) then
+      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step%scale, body_dir, mat6, make_mat)
+      call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
+      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step%scale, body_dir, mat6, make_mat)
+    endif
+
     ! Exit fringe?
     if (ix_step == n_steps .and. s_now == step%s .and. fringe_here(lord, orbit, second_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(n_steps))
@@ -127,6 +135,7 @@ endif
 if (s_dir == -1) then
   do ix_step = ix_step_start, ix_step_end, -1
     step => lord%rf%steps(ix_step)
+
     ! Drift to edge of step
     if (ix_step == ix_step_end) then
       ds = s_end - s_now
@@ -136,14 +145,22 @@ if (s_dir == -1) then
       s_now = step%s0
     endif
     call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
+
     ! Entrence fringe?
     if (ix_step == n_steps+1 .and. s_now == step%s0 .and. fringe_here(ele, orbit, first_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(n_steps))
       call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
       call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
     endif
+
     ! Stair step kick
-    if (ix_step /= ix_step_end) call this_energy_kick(orbit, lord, lord%rf%steps(ix_step-1), body_dir, mat6, make_mat)
+    if (ix_step /= ix_step_end) then
+      step0 => lord%rf%steps(ix_step-1)
+      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step0%scale, body_dir, mat6, make_mat)
+      call this_energy_kick(orbit, lord, step0, body_dir, mat6, make_mat)
+      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step0%scale, body_dir, mat6, make_mat)
+    endif
+
     ! Exit fringe?
     if (ix_step == 1 .and. s_now == step%s0 .and. fringe_here(ele, orbit, second_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(0))
@@ -290,11 +307,6 @@ if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lo
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, lord, orbit, electric$, lord%value(l$)*scale, mat6, make_mat)
 
 !-------------------------------------------------
-! Standing wave transverse half kick
-
-call pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
-
-!-------------------------------------------------
 ! Calc some stuff
 
 if (s_dir == 1) then
@@ -354,11 +366,6 @@ if (track_spin) then
 endif
 
 !-------------------------------------------------
-! Standing wave transverse half kick
-
-call pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
-
-!-------------------------------------------------
 ! Multipole half kicks
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  lord, orbit, magnetic$, rp8(orbit%time_dir)*scale,   mat6, make_mat)
@@ -369,7 +376,7 @@ end subroutine this_energy_kick
 !---------------------------------------------------------------------------------------
 ! contains
 
-subroutine pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
+subroutine this_pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
 
 type (coord_struct) orbit
 type (ele_struct) lord
@@ -406,7 +413,7 @@ orbit%vec(2) = orbit%vec(2) - coef * orbit%vec(1)
 orbit%vec(4) = orbit%vec(4) - coef * orbit%vec(3)
 orbit%vec(5) = orbit%vec(5) - 0.5_rp * coef * (orbit%vec(1)**2 + orbit%vec(3)**2) / rel_p
 
-end subroutine pondermotive_transverse_kick
+end subroutine this_pondermotive_transverse_kick
 
 !---------------------------------------------------------------------------------------
 ! contains

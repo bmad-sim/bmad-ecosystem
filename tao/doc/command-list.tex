@@ -792,11 +792,9 @@ Examples
 \section{read}\index{commands!read}
 \label{s:read}
 
-The \vn{read} command is used to modify the (\bmad) \vn{model} lattice or the associated \vn{PTC}
-lattice. Format:
+The \vn{read} command is used to modify the (\bmad) \vn{model} lattice. Format:
 \begin{example}
   read lattice \{-silent\} \{-universes <universe-list>\} <file_name>
-  read ptc <file_name>
 \end{example}
 
 \vskip 10pt 
@@ -823,9 +821,6 @@ variable slave parameter values.
 Note: Due to bookkeeping complications, the number of lattice elements may not be modified. If it is
 desired to initiate \tao using both ``primary'' and secondary lattice files, this can be done as
 illustrated in \sref{s:init.lat}.
-
-The \vn{read ptc} command reads in a PTC lattice. WARNING: This command is untested. Please contact
-David Sagan if you want to use it.
 
 Examples:
 \begin{example}
