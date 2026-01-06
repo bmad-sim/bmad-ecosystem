@@ -94,6 +94,7 @@ case ('lattice')
     enddo
   enddo
 
+! This is experimental!
 case ('ptc')
   call read_universe_pointed (m_u, m_t, file_name)
 

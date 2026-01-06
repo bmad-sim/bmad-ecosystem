@@ -8,7 +8,7 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, closed_orb)
+! Subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, closed_orb, beam_init)
 !
 ! Routine to initialize constants needed by the ultra relativistic space charge 
 ! tracking routine track1_high_energy_space_charge. This setup routine must be called if 

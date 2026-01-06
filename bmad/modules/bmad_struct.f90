@@ -1313,9 +1313,9 @@ end type
 ! Element RF parameter struct.
 ! rf_ele_struct%steps(0:N+1) is and array of steps from zero to N+1 where N = ele%value(n_rf_steps$).
 ! A single step is a drift followed by an energy kick.
-! Note:
-!   The last (N+1)th step is a "phantom" with no kick.
-! The end kicks are at the ends of the active region with region length = n_cell * wavelength/2
+! The last (N+1)th step is a "phantom" with no kick.
+! The active region where there is field has length = ele%value(n_cell$) * wavelength/2
+! The "end kicks" are the kicks at the ends of the active region
 ! The end kicks are half of the interior kicks.
 ! Note: ele%rf is not allocated for slice and super slaves.
 
@@ -2188,7 +2188,7 @@ integer, parameter :: is_struct$ = 6, unknown$ = 7
 
 ! For coords_floor_to_curvilinear status argument
 
-integer, parameter :: patch_problem$ = 2, outside$ = 3, cannot_find$ = 4
+integer, parameter :: patch_problem$ = 2, cannot_find$ = 4, outside$ = 5
 
 ! extra_parsing_info_struct is used by parsing routines.
 ! %undeterministic_ran_function_called: Only set True when a ran function is called with ran_seed = 0
