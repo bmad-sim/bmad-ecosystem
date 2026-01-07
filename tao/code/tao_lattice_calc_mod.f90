@@ -316,10 +316,10 @@ else
       ie0 = 0
       ele => branch%ele(0)
     else
-      beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+      beam_init = beam_init_setup(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
     endif
   elseif (s%global%lat_sigma_calc_uses_emit_from == 'beam_init') then
-    beam_init = set_emit_from_beam_init(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
+    beam_init = beam_init_setup(u%model_branch(0)%beam%beam_init, ele, ele%ref_species)
   else
     call out_io (s_error$, r_name, 'Bad setting of global%lat_sigma_calc_uses_emit_from: ' // &
                                                                   s%global%lat_sigma_calc_uses_emit_from)

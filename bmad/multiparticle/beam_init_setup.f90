@@ -1,24 +1,26 @@
 !+
-! Function set_emit_from_beam_init (beam_init_in, ele, species, modes, err_flag) result (beam_init_set)
+! Function beam_init_setup (beam_init_in, ele, species, modes, err_flag) result (beam_init_set)
 !
-! Routine to put in the beam_init_set structure values that should be used to initialize a beam.
-! For example, if beam_init_in%sig_z is set negative, beam_init_set%sig_z will be set to the value in modes.
-! Also, if emit is set, norm_emit will be computed and vice versa.
+! Routine to setup a beam_init_struct instance:
+!   * Error checks
+!   * Comput norm_emit from emit or vice versa depending upon what is set.
+!   * If modes is present: Merge modes info into beam_init_in if parameters in beam_init_in are set.
+!     For example, if beam_init_in%sig_z is set negative, beam_init_set%sig_z will be set to the value in modes.
 !
 ! Input:
 !   beam_init_in  -- beam_init_struct: Input parameters
 !   ele           -- ele_struct:
 !   species       -- integer: Beam particle species.
-!   modes         -- normal_modes_struct, optional: Normal mode parameters. Used if stuff like beam_init_in%a_emit set negative.
+!   modes         -- normal_modes_struct, optional: Normal mode parameters.
 !
 ! Ouput:
 !   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
 !   beam_init_set -- beam_init_struct: See above.
 !-
 
-function set_emit_from_beam_init (beam_init_in, ele, species, modes, err_flag) result (beam_init_set)
+function beam_init_setup (beam_init_in, ele, species, modes, err_flag) result (beam_init_set)
 
-use bmad_routine_interface, dummy => set_emit_from_beam_init
+use bmad_routine_interface, dummy => beam_init_setup
 
 implicit none
 
@@ -31,7 +33,7 @@ real(rp) ran_g(2), beta_gamma
 integer species
 logical, optional :: err_flag
 
-character(*), parameter :: r_name = 'set_emit_from_beam_init'
+character(*), parameter :: r_name = 'beam_init_setup'
 
 ! Check
 
@@ -139,5 +141,5 @@ endif
 
 if (present(err_flag)) err_flag = .false.
 
-end function set_emit_from_beam_init 
+end function beam_init_setup 
 

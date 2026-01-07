@@ -385,7 +385,7 @@ endif
 species = species_id(beam_init%species)
 if (species == not_set$) species = default_tracking_species(param)
 
-b_init = set_emit_from_beam_init (beam_init, ele, species, modes, err); if (err) return
+b_init = beam_init_setup (beam_init, ele, species, modes, err); if (err) return
 
 ! Save and set the random number generator parameters.
 
