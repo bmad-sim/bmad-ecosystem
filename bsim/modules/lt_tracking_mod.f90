@@ -1861,7 +1861,7 @@ gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%ele(0)%ref_species)
 modes = ltt_com%modes
 
 call ltt_pointer_to_map_ends(lttp, ltt_com%tracking_lat, ele_start, ele_stop)
-ltt_com%beam_init_used = set_emit_from_beam_init(ltt_com%beam_init, ele_start, ele_start%ref_species, ltt_com%modes, err)
+ltt_com%beam_init_used = beam_init_setup(ltt_com%beam_init, ele_start, ele_start%ref_species, ltt_com%modes, err)
 if (err) stop
 
 modes%a%emittance = ltt_com%beam_init_used%a_emit

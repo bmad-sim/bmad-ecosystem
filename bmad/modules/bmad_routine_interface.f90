@@ -556,7 +556,16 @@ function bend_shift (position1, g, delta_s, w_mat, ref_tilt) result(position2)
   real(rp), optional :: w_mat(3,3), ref_tilt
 end function bend_shift
 
-! NOTE: this is in a file not normally compiled: bmad_and_xsif_parser.f90.old
+function beam_init_setup (beam_init_in, ele, species, modes, err_flag) result (beam_init_set)
+  import
+  implicit none
+  type (beam_init_struct), target :: beam_init_set, beam_init_in
+  type (ele_struct) ele
+  type (normal_modes_struct), optional :: modes
+  integer species
+  logical, optional :: err_flag
+end function
+
 subroutine bmad_and_xsif_parser (lat_file, lat, make_mats6, digested_read_ok, use_line, err_flag)
   import
   implicit none
@@ -1175,13 +1184,6 @@ subroutine ele_order_calc (lat, order)
   type (lat_ele_order_struct) order
 end subroutine
 
-! TODO no longer exists?
-! subroutine ele_rad_int_cache_calc (ele)
-!   import
-!   implicit none
-!   type (ele_struct) ele
-! end subroutine
-
 subroutine ele_reference_energy_correction (ele, orbit, particle_at, mat6, make_matrix)
   import
   implicit none
@@ -1729,15 +1731,6 @@ subroutine make_mat6_bmad_photon (ele, param, start_orb, end_orb, err)
   logical, optional :: err
 end subroutine
 
-! TODO: missing?
-! subroutine make_mat6_runge_kutta (ele, param, start_orb, end_orb)
-!   import
-!   implicit none
-!   type (ele_struct), target :: ele
-!   type (coord_struct) :: start_orb, end_orb
-!   type (lat_param_struct) param
-! end subroutine
-
 subroutine make_mat6_symp_lie_ptc (ele, start_orb, end_orb)
   import
   implicit none
@@ -2108,17 +2101,6 @@ function patch_length (patch, ref_coords) result (length)
   real(rp) length
   integer, optional :: ref_coords
 end function
-
-! TODO missing?
-! subroutine phase_space_fit (x, xp, twiss, tune, emit, x_0, xp_0, chi, tol)
-!   import
-!   implicit none
-!   type (twiss_struct) twiss
-!   real(rp), optional :: tol
-!   real(rp) x(:), xp(:)
-!   real(rp) tune, emit
-!   real(rp) x_0, xp_0, chi
-! end subroutine
 
 function physical_ele_end (track_end, orbit, ele_orientation, return_stream_end) result (physical_end)
   import
@@ -2574,16 +2556,6 @@ recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
   logical, optional :: set_slaves
 end subroutine
 
-function set_emit_from_beam_init (beam_init_in, ele, species, modes, err_flag) result (beam_init_set)
-  import
-  implicit none
-  type (beam_init_struct), target :: beam_init_set, beam_init_in
-  type (ele_struct) ele
-  type (normal_modes_struct), optional :: modes
-  integer species
-  logical, optional :: err_flag
-end function
-
 subroutine set_fringe_on_off (fringe_at, ele_end, on_or_off) 
   import
   implicit none
@@ -2619,16 +2591,6 @@ subroutine set_orbit_to_zero (orbit, n1, n2, ix_noset)
   integer n1, n2
   integer, optional :: ix_noset
 end subroutine
-
-! TODO this no longer exists
-! subroutine set_particle_from_rf_time (rf_time, ele, reference_active_edge, orbit)
-!   import
-!   implicit none
-!   type (ele_struct), target :: ele
-!   type (coord_struct) orbit
-!   real(rp) rf_time
-!   logical reference_active_edge
-! end subroutine
 
 subroutine set_ptc (e_tot, particle, taylor_order, integ_order, n_step, no_cavity, force_init) 
   import
@@ -2669,16 +2631,6 @@ subroutine set_z_tune (branch, z_tune, ok, print_err)
   real(rp) :: z_tune
   logical, optional :: ok, print_err
 end subroutine
-
-! TODO this no longer exists
-! subroutine set_on (key, lat, on_switch, orb)
-!   import
-!   implicit none
-!   type (lat_struct) lat
-!   type (coord_struct), optional :: orb(0:)
-!   integer key
-!   logical on_switch
-! end subroutine
 
 subroutine set_ele_defaults (ele, do_allocate)
   import
@@ -3289,15 +3241,6 @@ subroutine track1_spin_integration (start_orb, ele, param, end_orb)
   type (lat_param_struct) :: param
   type (coord_struct) :: end_orb
 end subroutine
-
-! TODO this no longer exists
-! subroutine track1_spin_magnus (start_orb, ele, param, end_orb)
-!   import
-!   implicit none
-!   type (coord_struct) :: start_orb, end_orb
-!   type (ele_struct) ele
-!   type (lat_param_struct) :: param
-! end subroutine
 
 subroutine track1_spin_taylor (start_orb, ele, param, end_orb)
   import
