@@ -33,6 +33,8 @@ type summation_rdt_struct
   complex(rp) h11110 
 end type
 
+! srdt_first is first order terms list, srdt_second is second order terms list.
+
 character(6), parameter :: srdt_first(10) = ['h20001', 'h00201', 'h10002', 'h21000', 'h30000', 'h10110', 'h10020', &
                                              'h10200', 'h11001', 'h00111']
 character(6), parameter :: srdt_second(11) = ['h31000', 'h40000', 'h20110', 'h11200', 'h20020', 'h20200', 'h00310', &
