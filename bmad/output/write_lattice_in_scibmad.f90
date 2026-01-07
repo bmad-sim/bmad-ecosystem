@@ -7,8 +7,8 @@
 !   lat           -- lat_struct: Lattice
 !
 ! Output:
-!   scibmad_file  -- character(*), optional: SciBmad lattice file name.
-!   err_flag      -- logical, optional: Error flag
+!   scibmad_file  -- character(*): SciBmad lattice file name.
+!   err_flag      -- logical: Error flag
 !-
 
 subroutine write_lattice_in_scibmad(scibmad_file, lat, err_flag)

@@ -41,7 +41,7 @@
 !
 ! Output:
 !   field    -- Em_field_struct: Structure hoding the field values.
-!   err_flag -- Logical, optional: Set true if there is an error. False otherwise.
+!   err_flag -- Logical: Set true if there is an error. False otherwise.
 !-
 
 recursive subroutine em_field_custom (ele, param, s_rel, orbit, local_ref_frame, field, calc_dfield, err_flag, &

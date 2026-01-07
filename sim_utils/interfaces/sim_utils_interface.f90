@@ -207,11 +207,12 @@ subroutine faddeeva_function(z, w, dw)
   real(rp) z(2), w(2), dw(2,2)
 end subroutine
 
-subroutine fff_sub(line, error)
-  implicit none
-  character(*) line
-  logical error
-end subroutine
+! no longer exists
+! subroutine fff_sub(line, error)
+!   implicit none
+!   character(*) line
+!   logical error
+! end subroutine
 
 subroutine fft_1d (arr, isign)
   import
@@ -266,12 +267,13 @@ subroutine get_file_number (file_name, cnum_in, num_out, err_flag)
   logical err_flag
 end subroutine
 
-subroutine get_next_number (filein, cnum, digits)
-  implicit none
-  character(*) filein
-  character(*) cnum
-  integer digits
-end subroutine
+! no longer exists
+! subroutine get_next_number (filein, cnum, digits)
+!   implicit none
+!   character(*) filein
+!   character(*) cnum
+!   integer digits
+! end subroutine
 
 subroutine get_file_time_stamp (file, time_stamp)
   implicit none
@@ -328,12 +330,13 @@ function inverse (funct, y, x1, x2, tol) result (x)
   end interface
 end function
  
-function inverse_prob (val) result (prob)
-  import
-  implicit none
-  real(rp) prob 
-  real(rp) val
-end function
+! no longer exists
+! function inverse_prob (val) result (prob)
+!   import
+!   implicit none
+!   real(rp) prob 
+!   real(rp) val
+! end function
 
 function is_alphabetic (string, valid_chars) result (is_alpha)
   implicit none
@@ -912,10 +915,11 @@ function substr(var_str, n1, n2) result (sub_str)
   character(n2-n1+1) sub_str
 end function
 
-subroutine test_tune_tracker_lock (tracker_locked)
-  implicit none
-  logical tracker_locked(2)
-end subroutine
+! no longer exists
+! subroutine test_tune_tracker_lock (tracker_locked)
+!   implicit none
+!   logical tracker_locked(2)
+! end subroutine
 
 function to_str(num, max_signif) result (string)
   import

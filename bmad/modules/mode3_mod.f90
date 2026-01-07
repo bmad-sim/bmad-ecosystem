@@ -442,7 +442,7 @@ end subroutine action_to_xyz
 ! Output:
 !   eval(6)      -- complex(rp):  complex eigenvalues.
 !   evec(6,6)    -- complex(rp):  complex eigenvectors arranged down columns.
-!   err_flag     -- logical, optional: set to true if an error has occured.
+!   err_flag     -- logical: set to true if an error has occured.
 !   tunes(3)     -- real(rp):  Mode tunes, in radians.
 !-
 

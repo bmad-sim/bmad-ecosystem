@@ -452,8 +452,9 @@ function tao_graph_name(graph, use_region) result (graph_name)
   logical, optional :: use_region
 end function
 
-subroutine tao_has_been_created ()
-end subroutine
+! TODO this no longer exists
+! subroutine tao_has_been_created ()
+! end subroutine
  
 subroutine tao_help (what1, what2, lines, n_lines)
   implicit none
@@ -488,10 +489,11 @@ subroutine tao_init_plotting (plot_file)
   character(*) plot_file
 end subroutine
 
-subroutine tao_init_single_mode (single_mode_file)
-  implicit none
-  character(*) single_mode_file
-end subroutine
+! TODO this no longer exists
+! subroutine tao_init_single_mode (single_mode_file)
+!   implicit none
+!   character(*) single_mode_file
+! end subroutine
 
 function tao_is_valid_name (name, why_invalid) result (is_valid)
   implicit none
