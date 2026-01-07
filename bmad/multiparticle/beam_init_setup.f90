@@ -3,7 +3,7 @@
 !
 ! Routine to setup a beam_init_struct instance:
 !   * Error checks
-!   * Comput norm_emit from emit or vice versa depending upon what is set.
+!   * Computes norm_emit from emit or vice versa depending upon what is set.
 !   * If modes is present: Merge modes info into beam_init_in if parameters in beam_init_in are set.
 !     For example, if beam_init_in%sig_z is set negative, beam_init_set%sig_z will be set to the value in modes.
 !

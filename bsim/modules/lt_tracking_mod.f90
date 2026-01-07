@@ -1838,6 +1838,7 @@ type (branch_struct) branch
 type (ltt_com_struct), target :: ltt_com
 type (normal_modes_struct) modes
 type (ele_struct), pointer :: ele_start, ele_stop
+type (beam_init_struct) b_init
 
 real(rp) n_particle, gamma
 logical err
@@ -1857,22 +1858,6 @@ if (.not. lttp%rfcavity_on) then
   return
 endif
 
-gamma = branch%ele(0)%value(e_tot$) / mass_of(branch%ele(0)%ref_species)
-modes = ltt_com%modes
-
-call ltt_pointer_to_map_ends(lttp, ltt_com%tracking_lat, ele_start, ele_stop)
-ltt_com%beam_init_used = beam_init_setup(ltt_com%beam_init, ele_start, ele_start%ref_species, ltt_com%modes, err)
-if (err) stop
-
-modes%a%emittance = ltt_com%beam_init_used%a_emit
-modes%b%emittance = ltt_com%beam_init_used%b_emit
-
-if (modes%a%emittance == 0 .or. modes%b%emittance == 0) then
-  print *, 'WARNING! No a-mode or b-mode emittance set in beam_init structrue. Cannot compute high energy space charge kick.'
-  print '(a)', '      Therefore no space charge kick will be applied.'
-  return
-endif
-
 n_particle = abs(ltt_com%beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
 
 if (n_particle == 0) then
@@ -1880,9 +1865,15 @@ if (n_particle == 0) then
   print '(a)', '      Therefore no space charge kick will be applied.'
   return
 endif
-  
 
-call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes, ltt_com%bmad_closed_orb)
+call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes, ltt_com%beam_init_used, ltt_com%bmad_closed_orb)
+
+b_init = beam_init_setup(ltt_com%beam_init_used, branch%ele(0), branch%ele(0)%ref_species, modes)
+print '(a)', 'High energy space charge parameters:'
+print '(a, es12.4)', '  sig_z:  ', b_init%sig_z
+print '(a, es12.4)', '  sig_pz: ', b_init%sig_pz
+print '(a, es12.4)', '  a_emit: ', b_init%a_emit
+print '(a, es12.4)', '  b_emit: ', b_init%b_emit
 
 end subroutine ltt_setup_high_energy_space_charge
 
