@@ -8,32 +8,36 @@ contains
 !---------------------------------------------------------------------
 !---------------------------------------------------------------------
 !+
-! Subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, closed_orb, beam_init)
+! Subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, beam_init, closed_orb)
 !
 ! Routine to initialize constants needed by the ultra relativistic space charge 
 ! tracking routine track1_high_energy_space_charge. This setup routine must be called if 
 ! the lattice or any of the other input parameters are changed.
 !
+! Parameters used:
+!     a-mode emittance
+!     b-mode emittance
+!     sig_z bunch length
+!     sig_pz relative energy spread
+!
 ! Input:
-!   calc_on    -- Logical: Turns on or off the space charge calculation.
-!   branch     -- branch_struct: Lattice for tracking.
-!   n_part     -- Real(rp): Number of actual particles in a bunch. Used to compute the bunch charge.
-!   mode       -- normal_modes_struct: Structure holding the beam info.
-!     %a%emittance  -- a-mode unnormalized emittance.
-!     %b%emittance  -- b-mode unnormalized emittance.
-!     %sig_z        -- Real(rp): Bunch length.
-!     %sigE_E       -- Real(rp): Sigma_E/E relative energy spread
-!   closed_orb(0:) -- Coord_struct, optional: Closed orbit. If not present
-!                       the closed orbit is taken to be zero. 
+!   calc_on         -- Logical: Turns on or off the space charge calculation.
+!   branch          -- branch_struct: Lattice for tracking.
+!   n_part          -- Real(rp): Number of actual particles in a bunch. Used to compute the bunch charge.
+!   mode            -- normal_modes_struct: Structure holding the beam info. Will be combined with info in beam_init.
+!   beam_init       -- beam_init_struct, optional: Structure holding beam info. Will be combined with info in mode.
+!   closed_orb(0:) -- Coord_struct, optional: Closed orbit. If not present the closed orbit is taken to be zero. 
 !-
 
-subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, closed_orb)
+subroutine setup_high_energy_space_charge_calc (calc_on, branch, n_part, mode, beam_init, closed_orb)
 
 implicit none
 
 type (branch_struct), target :: branch
 type (coord_struct), optional :: closed_orb(0:)
-type (normal_modes_struct) mode
+type (beam_init_struct), optional :: beam_init
+type (beam_init_struct) b_init
+type (normal_modes_struct) mode, mode2
 type (high_energy_space_charge_struct), pointer :: sc
 type (ele_struct), pointer :: ele
 type (twiss_struct), pointer :: a, b
@@ -57,6 +61,16 @@ else
   q2 = charge_of(branch%param%particle)
 endif
 
+if (present(beam_init)) then
+  b_init = beam_init_setup(beam_init, branch%ele(0), branch%ele(0)%ref_species, mode)
+  mode2%sig_z       = b_init%sig_z
+  mode2%sigE_E      = b_init%sig_pz
+  mode2%a%emittance = b_init%a_emit
+  mode2%b%emittance = b_init%b_emit
+else
+  mode2 = mode
+endif
+
 ! Loop over all branch elements
 
 do i = 1, branch%n_ele_track
@@ -65,7 +79,7 @@ do i = 1, branch%n_ele_track
   if (.not. associated(ele%high_energy_space_charge)) allocate(ele%high_energy_space_charge)
   sc => ele%high_energy_space_charge
 
-  sc%sig_z = mode%sig_z
+  sc%sig_z = mode2%sig_z
 
 ! Save the reference closed orbit.
 
@@ -87,20 +101,20 @@ do i = 1, branch%n_ele_track
   y => ele%y
   g = ele%gamma_c
   g2 = ele%gamma_c**2
-  a_emit = mode%a%emittance
-  b_emit = mode%b%emittance
+  a_emit = mode2%a%emittance
+  b_emit = mode2%b%emittance
 
   xx_ave = g2 * a_emit * a%beta + b_emit * (c11**2 * b%beta - &
                    2 * c11 * c12 * b%alpha + c12**2 * b%gamma) + &
-                   (x%eta * mode%sigE_E)**2
+                   (x%eta * mode2%sigE_E)**2
 
   xy_ave = g * (a_emit * (-c22 * a%beta - c12 * a%alpha) + &
                 b_emit * ( c11 * b%beta - c12 * b%alpha)) + &
-                 x%eta * y%eta * mode%sigE_E**2
+                 x%eta * y%eta * mode2%sigE_E**2
 
   yy_ave = g2 * b_emit * b%beta + a_emit * (c22**2 * a%beta + &
                 2 * c22 * c12 * a%alpha + c12**2 * a%gamma) + &
-                (y%eta * mode%sigE_E)**2
+                (y%eta * mode2%sigE_E)**2
 
   phi = atan2(2 * xy_ave, xx_ave - yy_ave) / 2
 
@@ -132,7 +146,7 @@ do i = 1, branch%n_ele_track
 
   g3 = (ele%value(p0c$) / mc2)**3
   sc%kick_const = length * classical_radius_factor * n_part * q2 / &
-                   (sqrt(twopi**3) * g3 * mc2 * (sc%sig_x + sc%sig_y) * mode%sig_z)
+                   (sqrt(twopi**3) * g3 * mc2 * (sc%sig_x + sc%sig_y) * mode2%sig_z)
 
 enddo
 

@@ -1,211 +1,144 @@
 
-File: code/tao_beam_track_endpoint.f90
-tao_beam_track_endpoint
+File: mpi/tao_mpi_mod.f90
+tao_mpi_mod
+tao_mpi_initialize
+tao_mpi_test_send_receive
+tao_broadcast_opt_vars_mpi
+tao_broadcast_chars_mpi
+tao_mpi_finalize
 
-File: code/tao_alias_cmd.f90
-tao_alias_cmd
+File: hook/tao_hook_parse_command_args.f90
+tao_hook_parse_command_args
 
-File: code/tao_beam_emit_calc.f90
-tao_beam_emit_calc
+File: hook/tao_hook_post_process_data.f90
+tao_hook_post_process_data
 
-File: code/tao_c_interface_mod.f90
-tao_c_interface_mod
-tao_c_interface_common_struct
-re_allocate_c_double
-tao_c_init_tao
-tao_c_command
-tao_c_out_io_buffer_num_lines
-tao_c_real_array_size
-tao_c_integer_array_size
-tao_c_out_io_buffer_get_line
-tao_c_get_real_array
-tao_c_get_integer_array
-tao_c_out_io_buffer_reset
-tao_c_get_beam_track_element
+File: hook/tao_hook_branch_calc.f90
+tao_hook_branch_calc
 
-File: code/tao_branch_index.f90
-tao_branch_index
+File: hook/tao_hook_draw_graph.f90
+tao_hook_draw_graph
 
-File: code/tao_change_mod.f90
-tao_change_mod
-tao_change_tune
-tao_change_z_tune
-tao_change_var
-tao_change_ele
-tao_to_change_number
+File: hook/tao_hook_draw_floor_plan.f90
+tao_hook_draw_floor_plan
 
-File: code/tao_call_cmd.f90
-tao_call_cmd
+File: hook/tao_hook_init1.f90
+tao_hook_init1
 
-File: code/tao_cmd_end_calc.f90
-tao_cmd_end_calc
+File: hook/tao_hook_lattice_calc.f90
+tao_hook_lattice_calc
 
-File: code/tao_chrom_calc_needed.f90
-tao_chrom_calc_needed
+File: hook/tao_hook_graph_setup.f90
+tao_hook_graph_setup
 
-File: code/tao_clear_cmd.f90
-tao_clear_cmd
+File: hook/tao_hook_init_data.f90
+tao_hook_init_data
 
-File: code/tao_clip_cmd.f90
-tao_clip_cmd
+File: hook/tao_hook_init_global.f90
+tao_hook_init_global
 
-File: code/tao_close_command_file.f90
-tao_close_command_file
+File: hook/tao_hook_show_cmd.f90
+tao_hook_show_cmd
 
-File: code/tao_command.f90
-tao_command
+File: hook/tao_hook_init_var.f90
+tao_hook_init_var
 
-File: code/tao_help.f90
-tao_help
+File: hook/tao_hook_evaluate_a_datum.f90
+tao_hook_evaluate_a_datum
 
-File: code/tao_command_mod.f90
-tao_command_mod
-tao_cmd_history_record
-tao_re_execute
-tao_cmd_split
-tao_next_word
-tao_next_switch
+File: hook/tao_hook_init_read_lattice_info.f90
+tao_hook_init_read_lattice_info
+
+File: hook/tao_hook_merit_data.f90
+tao_hook_merit_data
+
+File: hook/tao_hook_optimizer.f90
+tao_hook_optimizer
+
+File: hook/tao_hook_data_sanity_check.f90
+tao_hook_data_sanity_check
+
+File: hook/tao_hook_merit_var.f90
+tao_hook_merit_var
+
+File: hook/tao_hook_curve_s_pt.f90
+tao_hook_curve_s_pt
+
+File: hook/tao_hook_command.f90
+tao_hook_command
+
+File: hook/tao_hook_plot_setup.f90
+tao_hook_plot_setup
+
+File: hook/tao_hook_init_beam.f90
+tao_hook_init_beam
+
+File: hook/tao_hook_init2.f90
+tao_hook_init2
+
+File: hook/tao_hook_init_plotting.f90
+tao_hook_init_plotting
+
+File: hook/tao_hook_graph_postsetup.f90
+tao_hook_graph_postsetup
+
+File: hook/tao_hook_init_lattice_post_parse.f90
+tao_hook_init_lattice_post_parse
+
+File: code/tao_lmdif_optimizer.f90
+tao_lmdif_optimizer
+
+File: code/tao_set_var_model_value.f90
+tao_set_var_model_value
+
+File: code/tao_evaluate_tree.f90
+tao_evaluate_tree
 
 File: code/tao_constraint_type_name.f90
 tao_constraint_type_name
 
-File: code/tao_control_tree_list.f90
-tao_control_tree_list
-
-File: code/tao_count_strings.f90
-tao_count_strings
-
-File: code/tao_curve_ix_uni.f90
-tao_curve_ix_uni
-
-File: code/tao_curve_name.f90
-tao_curve_name
-
-File: code/tao_curve_rms_calc.f90
-tao_curve_rms_calc
-
-File: code/tao_d2_d1_name.f90
-tao_d2_d1_name
-
-File: code/tao_data_and_eval_mod.f90
-tao_data_and_eval_mod
-tao_evaluate_lat_or_beam_data
-tao_to_phase_and_coupling_reading
-tao_get_data
-tao_expression_hash_substitute
-tao_load_this_datum
-tao_datum_s_position
-tao_datum_integrate
-tao_tracking_ele_index
-integrate_min
-integrate_max
-tao_scratch_values_calc
-tao_do_wire_scan
-tao_pointer_to_datum_ele
-tao_param_value_routine
-tao_evaluate_datum_at_s
-tao_evaluate_stack_old
-tao_to_int
-tao_ele_geometry_with_misalignments
-tao_eval_floor_orbit
-
-File: code/tao_data_check.f90
-tao_data_check
-
-File: code/tao_data_sanity_check.f90
-tao_data_sanity_check
-
-File: code/tao_data_show_use.f90
-tao_data_show_use
-
-File: code/tao_datum_has_associated_ele.f90
-tao_datum_has_associated_ele
-
-File: code/tao_datum_name.f90
-tao_datum_name
-
-File: code/tao_de_optimizer.f90
-tao_de_optimizer
-
-File: code/tao_init_lattice.f90
-tao_init_lattice
-
-File: code/tao_ele_shape_info.f90
-tao_ele_shape_info
+File: code/tao_setup_key_table.f90
+tao_setup_key_table
 
 File: code/tao_abort_command_file.f90
 tao_abort_command_file
 
-File: code/tao_evaluate_element_parameters.f90
-tao_evaluate_element_parameters
+File: code/tao_init_mod.f90
+tao_init_mod
+tao_init_global
+tao_init_beams
+tao_init_beam_in_universe
+tao_init_dynamic_aperture
 
-File: code/tao_evaluate_tune.f90
-tao_evaluate_tune
-
-File: code/tao_find_data.f90
-tao_find_data
-
-File: code/tao_find_plot_region.f90
-tao_find_plot_region
-
-File: code/tao_find_plots.f90
-tao_find_plots
-
-File: code/tao_find_var.f90
-tao_find_var
-
-File: code/tao_floor_to_screen.f90
-tao_floor_to_screen
-
-File: code/tao_floor_to_screen_coords.f90
-tao_floor_to_screen_coords
-
-File: code/tao_geodesic_lm_optimizer_mod.f90
-tao_geodesic_lm_optimizer_mod
-tao_geodesic_lm_optimizer
-tao_geo_lm_func
-callback
-jacobian
-avv
-user_signal
-
-File: code/tao_get_opt_vars.f90
-tao_get_opt_vars
-
-File: code/tao_get_user_input_mod.f90
-tao_get_user_input_mod
-tao_get_user_input
-tao_alias_translate
-
-File: code/tao_graph_name.f90
-tao_graph_name
-
-File: code/tao_graph_setup_mod.f90
-tao_graph_setup_mod
-tao_graph_setup
-tao_graph_controller_setup
-tao_graph_data_slice_setup
-tao_data_type_substitute
-tao_graph_phase_space_setup
-tao_graph_dynamic_aperture_setup
-tao_curve_beam_ellipse_setup
-tao_graph_histogram_setup
-tao_phase_space_axis_index
-tao_particle_data_value
-tao_graph_data_setup
-tao_curve_data_setup
-tao_calc_data_at_s_pts
-tao_data_useit_plot_calc
-tao_curve_datum_calc
-tao_set_curve_invalid
-tao_curve_check_universe
-tao_graph_s_min_max_calc
-
-File: code/tao_init.f90
-tao_init
+File: code/tao_x_scale_mod.f90
+tao_x_scale_mod
+tao_x_scale_cmd
+tao_x_scale_plot
+tao_x_scale_graph
 
 File: code/tao_init_building_wall.f90
 tao_init_building_wall
+
+File: code/tao_srdt_calc_needed.f90
+tao_srdt_calc_needed
+
+File: code/tao_locate_elements.f90
+tao_locate_elements
+
+File: code/tao_read_cmd.f90
+tao_read_cmd
+
+File: code/tao_orient_building_wall_pt.f90
+tao_oreint_building_wall_pt
+
+File: code/tao_call_cmd.f90
+tao_call_cmd
+
+File: code/tao_clear_cmd.f90
+tao_clear_cmd
+
+File: code/tao_branch_index.f90
+tao_branch_index
 
 File: code/tao_init_data_mod.f90
 tao_init_data_mod
@@ -217,106 +150,35 @@ tao_init_data_in_universe
 tao_point_d1_to_data
 tao_add_to_normal_mode_h_array
 
-File: code/tao_init_find_elements.f90
-tao_init_find_elements
-
-File: code/tao_init_mod.f90
-tao_init_mod
-tao_init_global
-tao_init_beams
-tao_init_beam_in_universe
-tao_init_dynamic_aperture
-
-File: code/tao_init_plotting.f90
-tao_init_plotting
-tao_read_in_patterns
-
-File: code/tao_input_struct.f90
-tao_input_struct
-tao_d2_data_input
-tao_d1_data_input
-tao_datum_input
-tao_v1_var_input
-tao_var_input
-tao_region_input
-tao_place_input
-tao_curve_input
-tao_graph_input
-tao_plot_input
-tao_design_lat_input
-tao_key_input
-tao_plot_page_input
-tao_ele_shape_input
-tao_set_plotting
-tao_ele_shape_struct_to_input
-tao_ele_shape_input_to_struct
-
-File: code/tao_init_variables_mod.f90
-tao_init_variables_mod
-tao_init_variables
-tao_var_stuffit1
-tao_allocate_v1_var
-tao_var_stuffit2
-tao_pointer_to_var_in_lattice
-tao_pointer_to_var_in_lattice2
-tao_allocate_var_array
-tao_point_v1_to_var
-
-File: code/tao_interface.f90
-tao_interface
-tao_pointer_to_universe
-procedure
-procedure
-tao_hook_branch_calc_def
-tao_hook_command_def
-tao_hook_curve_s_pt_def
-tao_hook_data_sanity_check_def
-tao_hook_draw_floor_plan_def
-tao_hook_draw_graph_def
-tao_hook_evaluate_a_datum_def
-tao_hook_graph_postsetup_def
-tao_hook_graph_setup_def
-tao_hook_init_beam_def
-tao_hook_init_data_def
-tao_hook_init_global_def
-tao_hook_init_lattice_post_parse_def
-tao_hook_init_plotting_def
-tao_hook_init_read_lattice_info_def
-tao_hook_init1_def
-tao_hook_init2_def
-tao_hook_init_var_def
-tao_hook_lattice_calc_def
-tao_hook_merit_data_def
-tao_hook_merit_var_def
-tao_hook_optimizer_def
-tao_hook_parse_command_args_def
-tao_hook_plot_setup_def
-tao_hook_post_process_data_def
-tao_hook_show_cmd_def
-tao_pointer_to_universe_int
-tao_pointer_to_universe_str
-tao_uni_atsign_index
-
-File: code/tao_lattice_calc.f90
-tao_lattice_calc
-
 File: code/tao_is_valid_name.f90
 tao_is_valid_name
-
-File: code/tao_json_cmd.f90
-tao_json_cmd
-
-File: code/tao_key_info_to_str.f90
-tao_key_info_to_str
 
 File: code/tao_lat_bookkeeper.f90
 tao_lat_bookkeeper
 
-File: code/tao_lat_emit_calc.f90
-tao_lat_emit_calc
+File: code/tao_plot_cmd.f90
+tao_plot_cmd
 
-File: code/tao_lat_sigma_calc_needed.f90
-tao_lat_sigma_calc_needed
+File: code/tao_var1_name.f90
+tao_var1_name
+
+File: code/tao_timer.f90
+tao_timer
+
+File: code/tao_pick_universe.f90
+tao_pick_universe
+
+File: code/tao_set_data_useit_opt.f90
+tao_set_data_useit_opt
+
+File: code/tao_spin_matrices_calc_needed.f90
+tao_spin_matrices_calc_needed
+
+File: code/tao_find_plot_region.f90
+tao_find_plot_region
+
+File: code/tao_evaluate_expression_old.f90
+tao_evaluate_expression_old
 
 File: code/tao_lattice_calc_mod.f90
 tao_lattice_calc_mod
@@ -327,276 +189,8 @@ tao_too_many_particles_lost
 tao_inject_particle
 tao_inject_beam
 
-File: code/tao_place_cmd.f90
-tao_place_cmd
-
-File: code/tao_limit_calc.f90
-tao_limit_calc
-
-File: code/tao_lm_optimizer_mod.f90
-tao_lm_optimizer_mod
-tao_lm_optimizer
-tao_mrq_func
-
-File: code/tao_lmdif_optimizer.f90
-tao_lmdif_optimizer
-
-File: code/tao_locate_all_elements.f90
-tao_locate_all_elements
-
-File: code/tao_locate_elements.f90
-tao_locate_elements
-
-File: code/tao_mark_lattice_ele.f90
-tao_mark_lattice_ele
-
-File: code/tao_merit.f90
-tao_merit
-
-File: code/tao_one_turn_map_calc_needed.f90
-tao_one_turn_map_calc_needed
-
-File: code/tao_open_file.f90
-tao_open_file
-
-File: code/tao_open_scratch_file.f90
-tao_open_scratch_file
-
-File: code/tao_optimization_status.f90
-tao_optimization_status
-
-File: code/tao_orient_building_wall_pt.f90
-tao_oreint_building_wall_pt
-
-File: code/tao_param_value_at_s.f90
-tao_param_value_at_s
-
-File: code/tao_parse_command_args.f90
-tao_parse_command_args
-
-File: code/tao_parse_element_param_str.f90
-tao_parse_element_param_str
-
-File: code/tao_pause_cmd.f90
-tao_pause_cmd
-
-File: code/tao_pick_universe.f90
-tao_pick_universe
-
-File: code/tao_plot_mod.f90
-tao_plot_mod
-tao_draw_plots
-tao_plot_histogram
-tao_plot_wave
-tao_plot_key_table
-tao_draw_floor_plan
-tao_set_floor_plan_axis_label
-tao_draw_ele_for_floor_plan
-tao_draw_lat_layout
-tao_draw_beam_chamber_wall
-tao_plot_data
-tao_draw_curve_data
-tao_draw_histogram_data
-tao_draw_graph_axes
-
-File: code/tao_plot_cmd.f90
-tao_plot_cmd
-
-File: code/tao_python_cmd.f90
-tao_python_cmd
-
-File: code/tao_plot_setup.f90
-tao_plot_setup
-
-File: code/tao_plot_struct_transfer.f90
-tao_plot_struct_transfer
-
-File: code/tao_plot_window_mod.f90
-tao_plot_window_mod
-tao_create_plot_window
-tao_destroy_plot_window
-
-File: code/tao_pointer_to_branches.f90
-tao_pointer_to_branches
-
-File: code/tao_pointer_to_building_wall_shape.f90
-tao_pointer_to_building_wall_shape
-
-File: code/tao_pointer_to_datum.f90
-tao_pointer_to_datum
-
-File: code/tao_pointer_to_ele_shape.f90
-tao_pointer_to_ele_shape
-
-File: code/tao_pointer_to_tao_lat.f90
-tao_pointer_to_tao_lat
-
-File: code/tao_pointer_to_universes.f90
-tao_pointer_to_universes
-
-File: code/tao_print_command_line_info.f90
-tao_print_command_line_info
-
-File: code/tao_ptc_cmd.f90
-tao_ptc_cmd
-
-File: code/tao_ptc_normal_form.f90
-tao_ptc_normal_form
-
-File: code/tao_dmerit_mod.f90
-tao_dmerit_mod
-tao_dmodel_dvar_calc
-tao_veto_vars_with_zero_dmodel
-tao_dmerit_calc
-
-File: code/tao_quiet_set.f90
-tao_quiet_set
-
-File: code/tao_rad_int_calc_needed.f90
-tao_rad_int_calc_needed
-
-File: code/tao_re_allocate_expression_info.f90
-tao_re_allocate_expression_info
-
-File: code/tao_read_cmd.f90
-tao_read_cmd
-
-File: code/tao_read_phase_space_index.f90
-tao_read_phase_space_index
-
-File: code/tao_remove_blank_characters.f90
-tao_remove_blank_characters
-
-File: code/tao_run_cmd.f90
-tao_run_cmd
-
-File: code/tao_scale_mod.f90
-tao_scale_mod
-tao_scale_cmd
-tao_scale_plot
-tao_scale_graph
-
-File: code/tao_scale_ping_data.f90
-tao_scale_ping_data
-
-File: code/tao_set_data_useit_opt.f90
-tao_set_data_useit_opt
-
-File: code/tao_set_opt_vars.f90
-tao_set_opt_vars
-
-File: code/tao_set_var_model_value.f90
-tao_set_var_model_value
-
-File: code/tao_set_var_useit_opt.f90
-tao_set_var_useit_opt
-
-File: code/tao_setup_key_table.f90
-tao_setup_key_table
-
-File: code/tao_shape_init.f90
-tao_shape_init
-
-File: code/tao_spin_matrix_calc.f90
-tao_spin_matrix_calc
-
-File: code/tao_pipe_cmd.f90
-tao_pipe_cmd
-
-File: code/tao_spin_tracking_turn_on.f90
-tao_spin_tracking_turn_on
-
-File: code/tao_split_component.f90
-tao_split_component
-
-File: code/tao_srdt_calc_needed.f90
-tao_srdt_calc_needed
-
-File: code/tao_subin_uni_number.f90
-tao_subin_uni_number
-
-File: code/tao_svd_optimizer_mod.f90
-tao_svd_optimizer_mod
-tao_svd_optimizer
-tao_svd_func
-
-File: code/tao_symbol_import_from_lat.f90
-tao_symbol_import_from_lat
-
-File: code/tao_taper_cmd.f90
-tao_taper_cmd
-
-File: code/tao_top10_mod.f90
-tao_top10_mod
-tao_top10_struct
-tao_top10_merit_categories_print
-tao_top10_derivative_print
-tao_to_top10
-tao_show_constraints
-tao_var_write
-tao_print_vars
-tao_write_lines
-
-File: code/tao_turn_on_special_calcs_if_needed_for_plotting.f90
-tao_turn_on_special_calcs_if_needed_for_plotting
-
-File: code/tao_universe_index.f90
-tao_universe_index
-
-File: code/tao_use_data.f90
-tao_use_data
-
-File: code/tao_use_var.f90
-tao_use_var
-
-File: code/tao_user_is_terminating_optimization.f90
-tao_user_is_terminating_optimization
-
-File: code/tao_var1_name.f90
-tao_var1_name
-
-File: code/tao_var_attrib_name.f90
-tao_var_attrib_name
-
-File: code/tao_var_check.f90
-tao_var_check
-
-File: code/tao_var_repoint.f90
-tao_var_repoint
-
-File: code/tao_var_show_use.f90
-tao_var_show_use
-
-File: code/tao_var_target_calc.f90
-tao_var_target_calc
-
-File: code/tao_var_useit_plot_calc.f90
-tao_var_useit_plot_calc
-
-File: code/tao_wave_mod.f90
-tao_wave_mod
-tao_wave_cmd
-tao_wave_analysis
-tao_orbit_beta_wave_anal
-tao_phase_wave_anal
-tao_cbar_wave_anal
-tao_wave_fit
-ele_at_curve_point
-
-File: code/tao_x_axis_cmd.f90
-tao_x_axis_cmd
-
-File: code/tao_x_scale_mod.f90
-tao_x_scale_mod
-tao_x_scale_cmd
-tao_x_scale_plot
-tao_x_scale_graph
-
-File: code/tao_spin_polarization_calc.f90
-tao_spin_polarization_calc
-
-File: code/tao_evaluate_tree.f90
-tao_evaluate_tree
+File: code/tao_control_tree_list.f90
+tao_control_tree_list
 
 File: code/tao_set_mod.f90
 tao_set_mod
@@ -639,63 +233,123 @@ tao_set_qp_rect_struct
 tao_set_qp_axis_struct
 tao_set_qp_point_struct
 
-File: code/tao_show_this.f90
-tao_show_this
+File: code/tao_x_axis_cmd.f90
+tao_x_axis_cmd
 
-File: code/tao_single_mode.f90
-tao_single_mode
+File: code/tao_locate_all_elements.f90
+tao_locate_all_elements
 
-File: code/tao_spin_matrices_calc_needed.f90
-tao_spin_matrices_calc_needed
-
-File: code/tao_to_real.f90
-tao_to_real
-
-File: code/tao_regression_test.f90
-tao_regression_test
-
-File: code/tao_top_level.f90
-tao_top_level
+File: code/tao_data_show_use.f90
+tao_data_show_use
 
 File: code/tao_show_cmd.f90
 tao_show_cmd
 
-File: code/tao_evaluate_a_datum.f90
-tao_evaluate_a_datum
+File: code/tao_scale_mod.f90
+tao_scale_mod
+tao_scale_cmd
+tao_scale_plot
+tao_scale_graph
 
-File: code/tao_evaluate_expression.f90
-tao_evaluate_expression
+File: code/tao_json_cmd.f90
+tao_json_cmd
 
-File: code/tao_timer.f90
-tao_timer
+File: code/tao_find_plots.f90
+tao_find_plots
 
-File: code/tao_data_coupling_init.f90
-tao_data_coupling_init
+File: code/tao_wave_mod.f90
+tao_wave_mod
+tao_wave_cmd
+tao_wave_analysis
+tao_orbit_beta_wave_anal
+tao_phase_wave_anal
+tao_cbar_wave_anal
+tao_wave_fit
+ele_at_curve_point
+
+File: code/tao_lattice_calc.f90
+tao_lattice_calc
+
+File: code/tao_pointer_to_universes.f90
+tao_pointer_to_universes
+
+File: code/tao_init_plotting.f90
+tao_init_plotting
+tao_read_in_patterns
+
+File: code/tao_evaluate_tune.f90
+tao_evaluate_tune
+
+File: code/tao_pointer_to_tao_lat.f90
+tao_pointer_to_tao_lat
+
+File: code/tao_beam_emit_calc.f90
+tao_beam_emit_calc
+
+File: code/tao_shape_init.f90
+tao_shape_init
+
+File: code/tao_help.f90
+tao_help
+
+File: code/tao_quiet_set.f90
+tao_quiet_set
+
+File: code/tao_parse_command_args.f90
+tao_parse_command_args
+
+File: code/tao_curve_rms_calc.f90
+tao_curve_rms_calc
+
+File: code/tao_lm_optimizer_mod.f90
+tao_lm_optimizer_mod
+tao_lm_optimizer
+tao_mrq_func
+
+File: code/tao_datum_name.f90
+tao_datum_name
+
+File: code/tao_set_opt_vars.f90
+tao_set_opt_vars
 
 File: code/tao_evaluate_expression_new.f90
 tao_evaluate_expression_new
 
-File: code/tao_expression_tree_mod.f90
-tao_expression_tree_mod
-tao_type_expression_tree
-tao_expression_tree_to_string
-tao_re_associate_node_array
-tao_deallocate_tree
+File: code/tao_regression_test.f90
+tao_regression_test
 
-File: code/tao_curve_ele_ref.f90
-tao_curve_ele_ref
+File: code/tao_evaluate_element_parameters.f90
+tao_evaluate_element_parameters
 
-File: code/tao_set_invalid.f90
-tao_set_invalid
+File: code/tao_spin_tracking_turn_on.f90
+tao_spin_tracking_turn_on
 
-File: code/tao_set_flags_for_changed_attribute.f90
-tao_set_flags_for_changed_attribute
+File: code/tao_use_var.f90
+tao_use_var
 
-File: code/tao_evaluate_expression_old.f90
-tao_evaluate_expression_old
+File: code/tao_count_strings.f90
+tao_count_strings
 
-File: code/tao_fixer.f90
-tao_fixer
+File: code/tao_var_show_use.f90
+tao_var_show_use
+
+File: code/tao_rad_int_calc_needed.f90
+tao_rad_int_calc_needed
+
+File: code/tao_top_level.f90
+tao_top_level
+
+File: code/tao_cmd_end_calc.f90
+tao_cmd_end_calc
+
+File: code/tao_evaluate_a_datum.f90
+tao_evaluate_a_datum
+
+File: code/tao_merit.f90
+tao_merit
+
+File: code/tao_ele_shape_info.f90
+tao_ele_shape_info
 
 File: code/tao_struct.f90
 tao_struct
@@ -803,94 +457,440 @@ tao_deallocate_plot_cache
 tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
+File: code/tao_subin_uni_number.f90
+tao_subin_uni_number
+
+File: code/tao_set_flags_for_changed_attribute.f90
+tao_set_flags_for_changed_attribute
+
+File: code/tao_curve_name.f90
+tao_curve_name
+
+File: code/tao_graph_name.f90
+tao_graph_name
+
+File: code/tao_init.f90
+tao_init
+
+File: code/tao_run_cmd.f90
+tao_run_cmd
+
+File: code/tao_get_user_input_mod.f90
+tao_get_user_input_mod
+tao_get_user_input
+tao_alias_translate
+
+File: code/tao_pointer_to_datum.f90
+tao_pointer_to_datum
+
+File: code/tao_set_invalid.f90
+tao_set_invalid
+
+File: code/tao_limit_calc.f90
+tao_limit_calc
+
+File: code/tao_fixer.f90
+tao_fixer
+
+File: code/tao_top10_mod.f90
+tao_top10_mod
+tao_top10_struct
+tao_top10_merit_categories_print
+tao_top10_derivative_print
+tao_to_top10
+tao_show_constraints
+tao_var_write
+tao_print_vars
+tao_write_lines
+
+File: code/tao_symbol_import_from_lat.f90
+tao_symbol_import_from_lat
+
+File: code/tao_place_cmd.f90
+tao_place_cmd
+
+File: code/tao_close_command_file.f90
+tao_close_command_file
+
+File: code/tao_var_check.f90
+tao_var_check
+
+File: code/tao_set_var_useit_opt.f90
+tao_set_var_useit_opt
+
+File: code/tao_turn_on_special_calcs_if_needed_for_plotting.f90
+tao_turn_on_special_calcs_if_needed_for_plotting
+
+File: code/tao_find_data.f90
+tao_find_data
+
+File: code/tao_floor_to_screen_coords.f90
+tao_floor_to_screen_coords
+
+File: code/tao_ptc_cmd.f90
+tao_ptc_cmd
+
+File: code/tao_command.f90
+tao_command
+
+File: code/tao_print_command_line_info.f90
+tao_print_command_line_info
+
+File: code/tao_ptc_normal_form.f90
+tao_ptc_normal_form
+
+File: code/tao_spin_matrix_calc.f90
+tao_spin_matrix_calc
+
+File: code/tao_scale_ping_data.f90
+tao_scale_ping_data
+
+File: code/tao_init_find_elements.f90
+tao_init_find_elements
+
+File: code/tao_floor_to_screen.f90
+tao_floor_to_screen
+
+File: code/tao_data_check.f90
+tao_data_check
+
+File: code/tao_plot_mod.f90
+tao_plot_mod
+tao_draw_plots
+tao_plot_histogram
+tao_plot_wave
+tao_plot_key_table
+tao_draw_floor_plan
+tao_set_floor_plan_axis_label
+tao_draw_ele_for_floor_plan
+tao_draw_lat_layout
+tao_draw_beam_chamber_wall
+tao_plot_data
+tao_draw_curve_data
+tao_draw_histogram_data
+tao_draw_graph_axes
+
+File: code/tao_pause_cmd.f90
+tao_pause_cmd
+
+File: code/tao_parse_element_param_str.f90
+tao_parse_element_param_str
+
+File: code/tao_clip_cmd.f90
+tao_clip_cmd
+
+File: code/tao_spin_polarization_calc.f90
+tao_spin_polarization_calc
+
+File: code/tao_pipe_cmd.f90
+tao_pipe_cmd
+
+File: code/tao_command_mod.f90
+tao_command_mod
+tao_cmd_history_record
+tao_re_execute
+tao_cmd_split
+tao_next_word
+tao_next_switch
+
+File: code/tao_mark_lattice_ele.f90
+tao_mark_lattice_ele
+
+File: code/tao_param_value_at_s.f90
+tao_param_value_at_s
+
+File: code/tao_re_allocate_expression_info.f90
+tao_re_allocate_expression_info
+
+File: code/tao_to_real.f90
+tao_to_real
+
+File: code/tao_get_opt_vars.f90
+tao_get_opt_vars
+
 File: code/tao_write_cmd.f90
 tao_write_cmd
 
-File: hook/tao_hook_command.f90
-tao_hook_command
+File: code/tao_show_this.f90
+tao_show_this
 
-File: hook/tao_hook_curve_s_pt.f90
-tao_hook_curve_s_pt
+File: code/tao_beam_track_endpoint.f90
+tao_beam_track_endpoint
 
-File: hook/tao_hook_draw_floor_plan.f90
-tao_hook_draw_floor_plan
+File: code/tao_var_target_calc.f90
+tao_var_target_calc
 
-File: hook/tao_hook_draw_graph.f90
-tao_hook_draw_graph
+File: code/tao_taper_cmd.f90
+tao_taper_cmd
 
-File: hook/tao_hook_graph_postsetup.f90
-tao_hook_graph_postsetup
+File: code/tao_lat_emit_calc.f90
+tao_lat_emit_calc
 
-File: hook/tao_hook_graph_setup.f90
-tao_hook_graph_setup
+File: code/tao_evaluate_expression.f90
+tao_evaluate_expression
 
-File: hook/tao_hook_init1.f90
-tao_hook_init1
+File: code/tao_change_mod.f90
+tao_change_mod
+tao_change_tune
+tao_change_z_tune
+tao_change_var
+tao_change_ele
+tao_to_change_number
 
-File: hook/tao_hook_init2.f90
-tao_hook_init2
+File: code/tao_alias_cmd.f90
+tao_alias_cmd
 
-File: hook/tao_hook_init_beam.f90
-tao_hook_init_beam
+File: code/tao_de_optimizer.f90
+tao_de_optimizer
 
-File: hook/tao_hook_init_data.f90
-tao_hook_init_data
+File: code/tao_one_turn_map_calc_needed.f90
+tao_one_turn_map_calc_needed
 
-File: hook/tao_hook_init_global.f90
-tao_hook_init_global
+File: code/tao_pointer_to_ele_shape.f90
+tao_pointer_to_ele_shape
 
-File: hook/tao_hook_init_lattice_post_parse.f90
-tao_hook_init_lattice_post_parse
+File: code/tao_user_is_terminating_optimization.f90
+tao_user_is_terminating_optimization
 
-File: hook/tao_hook_init_plotting.f90
-tao_hook_init_plotting
+File: code/tao_data_and_eval_mod.f90
+tao_data_and_eval_mod
+tao_evaluate_lat_or_beam_data
+tao_to_phase_and_coupling_reading
+tao_get_data
+tao_expression_hash_substitute
+tao_load_this_datum
+tao_datum_s_position
+tao_datum_integrate
+tao_tracking_ele_index
+integrate_min
+integrate_max
+tao_scratch_values_calc
+tao_do_wire_scan
+tao_pointer_to_datum_ele
+tao_param_value_routine
+tao_evaluate_datum_at_s
+tao_evaluate_stack_old
+tao_to_int
+tao_ele_geometry_with_misalignments
+tao_eval_floor_orbit
 
-File: hook/tao_hook_init_read_lattice_info.f90
-tao_hook_init_read_lattice_info
+File: code/tao_curve_ele_ref.f90
+tao_curve_ele_ref
 
-File: hook/tao_hook_init_var.f90
-tao_hook_init_var
+File: code/tao_init_lattice.f90
+tao_init_lattice
 
-File: hook/tao_hook_lattice_calc.f90
-tao_hook_lattice_calc
+File: code/tao_plot_window_mod.f90
+tao_plot_window_mod
+tao_create_plot_window
+tao_destroy_plot_window
 
-File: hook/tao_hook_merit_data.f90
-tao_hook_merit_data
+File: code/tao_d2_d1_name.f90
+tao_d2_d1_name
 
-File: hook/tao_hook_merit_var.f90
-tao_hook_merit_var
+File: code/tao_geodesic_lm_optimizer_mod.f90
+tao_geodesic_lm_optimizer_mod
+tao_geodesic_lm_optimizer
+tao_geo_lm_func
+callback
+jacobian
+avv
+user_signal
 
-File: hook/tao_hook_optimizer.f90
-tao_hook_optimizer
+File: code/tao_lat_sigma_calc_needed.f90
+tao_lat_sigma_calc_needed
 
-File: hook/tao_hook_parse_command_args.f90
-tao_hook_parse_command_args
+File: code/tao_dmerit_mod.f90
+tao_dmerit_mod
+tao_dmodel_dvar_calc
+tao_veto_vars_with_zero_dmodel
+tao_dmerit_calc
 
-File: hook/tao_hook_plot_setup.f90
-tao_hook_plot_setup
+File: code/tao_python_cmd.f90
+tao_python_cmd
 
-File: hook/tao_hook_post_process_data.f90
-tao_hook_post_process_data
+File: code/tao_init_variables_mod.f90
+tao_init_variables_mod
+tao_init_variables
+tao_var_stuffit1
+tao_allocate_v1_var
+tao_var_stuffit2
+tao_pointer_to_var_in_lattice
+tao_pointer_to_var_in_lattice2
+tao_allocate_var_array
+tao_point_v1_to_var
 
-File: hook/tao_hook_show_cmd.f90
-tao_hook_show_cmd
+File: code/tao_c_interface_mod.f90
+tao_c_interface_mod
+tao_c_interface_common_struct
+re_allocate_c_double
+tao_c_init_tao
+tao_c_command
+tao_c_out_io_buffer_num_lines
+tao_c_real_array_size
+tao_c_integer_array_size
+tao_c_out_io_buffer_get_line
+tao_c_get_real_array
+tao_c_get_integer_array
+tao_c_out_io_buffer_reset
+tao_c_get_beam_track_element
 
-File: hook/tao_hook_evaluate_a_datum.f90
-tao_hook_evaluate_a_datum
+File: code/tao_read_phase_space_index.f90
+tao_read_phase_space_index
 
-File: hook/tao_hook_branch_calc.f90
-tao_hook_branch_calc
+File: code/tao_plot_setup.f90
+tao_plot_setup
 
-File: hook/tao_hook_data_sanity_check.f90
-tao_hook_data_sanity_check
+File: code/tao_universe_index.f90
+tao_universe_index
 
-File: mpi/tao_mpi_mod.f90
-tao_mpi_mod
-tao_mpi_initialize
-tao_mpi_test_send_receive
-tao_broadcast_opt_vars_mpi
-tao_broadcast_chars_mpi
-tao_mpi_finalize
+File: code/tao_interface.f90
+tao_interface
+tao_pointer_to_universe
+procedure
+procedure
+tao_hook_branch_calc_def
+tao_hook_command_def
+tao_hook_curve_s_pt_def
+tao_hook_data_sanity_check_def
+tao_hook_draw_floor_plan_def
+tao_hook_draw_graph_def
+tao_hook_evaluate_a_datum_def
+tao_hook_graph_postsetup_def
+tao_hook_graph_setup_def
+tao_hook_init_beam_def
+tao_hook_init_data_def
+tao_hook_init_global_def
+tao_hook_init_lattice_post_parse_def
+tao_hook_init_plotting_def
+tao_hook_init_read_lattice_info_def
+tao_hook_init1_def
+tao_hook_init2_def
+tao_hook_init_var_def
+tao_hook_lattice_calc_def
+tao_hook_merit_data_def
+tao_hook_merit_var_def
+tao_hook_optimizer_def
+tao_hook_parse_command_args_def
+tao_hook_plot_setup_def
+tao_hook_post_process_data_def
+tao_hook_show_cmd_def
+tao_pointer_to_universe_int
+tao_pointer_to_universe_str
+tao_uni_atsign_index
+
+File: code/tao_chrom_calc_needed.f90
+tao_chrom_calc_needed
+
+File: code/tao_graph_setup_mod.f90
+tao_graph_setup_mod
+tao_graph_setup
+tao_graph_controller_setup
+tao_graph_data_slice_setup
+tao_data_type_substitute
+tao_graph_phase_space_setup
+tao_graph_dynamic_aperture_setup
+tao_curve_beam_ellipse_setup
+tao_graph_histogram_setup
+tao_phase_space_axis_index
+tao_particle_data_value
+tao_graph_data_setup
+tao_curve_data_setup
+tao_calc_data_at_s_pts
+tao_data_useit_plot_calc
+tao_curve_datum_calc
+tao_set_curve_invalid
+tao_curve_check_universe
+tao_graph_s_min_max_calc
+
+File: code/tao_var_repoint.f90
+tao_var_repoint
+
+File: code/tao_pointer_to_building_wall_shape.f90
+tao_pointer_to_building_wall_shape
+
+File: code/tao_use_data.f90
+tao_use_data
+
+File: code/tao_var_useit_plot_calc.f90
+tao_var_useit_plot_calc
+
+File: code/tao_input_struct.f90
+tao_input_struct
+tao_d2_data_input
+tao_d1_data_input
+tao_datum_input
+tao_v1_var_input
+tao_var_input
+tao_region_input
+tao_place_input
+tao_curve_input
+tao_graph_input
+tao_plot_input
+tao_design_lat_input
+tao_key_input
+tao_plot_page_input
+tao_ele_shape_input
+tao_set_plotting
+tao_ele_shape_struct_to_input
+tao_ele_shape_input_to_struct
+
+File: code/tao_curve_ix_uni.f90
+tao_curve_ix_uni
+
+File: code/tao_remove_blank_characters.f90
+tao_remove_blank_characters
+
+File: code/tao_pointer_to_branches.f90
+tao_pointer_to_branches
+
+File: code/tao_data_sanity_check.f90
+tao_data_sanity_check
+
+File: code/tao_split_component.f90
+tao_split_component
+
+File: code/tao_optimization_status.f90
+tao_optimization_status
+
+File: code/tao_open_scratch_file.f90
+tao_open_scratch_file
+
+File: code/tao_svd_optimizer_mod.f90
+tao_svd_optimizer_mod
+tao_svd_optimizer
+tao_svd_func
+
+File: code/tao_key_info_to_str.f90
+tao_key_info_to_str
+
+File: code/tao_single_mode.f90
+tao_single_mode
+
+File: code/tao_plot_struct_transfer.f90
+tao_plot_struct_transfer
+
+File: code/tao_data_coupling_init.f90
+tao_data_coupling_init
+
+File: code/tao_var_attrib_name.f90
+tao_var_attrib_name
+
+File: code/tao_find_var.f90
+tao_find_var
+
+File: code/tao_datum_has_associated_ele.f90
+tao_datum_has_associated_ele
+
+File: code/tao_open_file.f90
+tao_open_file
+
+File: code/tao_expression_tree_mod.f90
+tao_expression_tree_mod
+tao_type_expression_tree
+tao_expression_tree_to_string
+tao_re_associate_node_array
+tao_deallocate_tree
 
 File: program/tao_program.f90
 tao_program

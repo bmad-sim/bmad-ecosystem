@@ -1,131 +1,15 @@
 
-File: beam_file_translate_format/beam_file_translate_format.f90
-beam_file_translate_format
-
-File: bmad_to_astra/bmad_to_astra.f90
-bmad_to_astra
-
-File: bmad_to_blender/bmad_to_blender.f90
-bmad_to_blender
-
-File: bmad_to_csrtrack/bmad_to_csrtrack.f90
-bmad_to_csrtrack
-
-File: bmad_to_gpt/bmad_to_gpt.f90
-bmad_to_gpt
-
-File: bmad_to_mad_sad_elegant/bmad_to_mad_sad_elegant.f90
-bmad_to_mad_sad_elegant
-
-File: bmad_to_merlin/bmad_to_merlin.f90
-bmad_to_merlin
-
 File: bmad_to_slicktrack/bmad_to_slicktrack.f90
 bmad_to_slicktrack
 
-File: cartesian_map_fit/cartesian_map_fit.f90
-cartesian_map_fit
-
-File: cartesian_map_fit/cartesian_map_fit_mod.f90
-cartesian_map_fit_mod
-term_struct
-read_field_table
-read_cartesian_map_fit_param_file
-curl_calc
-print_stuff
-funcs_lm
-funcs_de
-
-File: compare_tracking_methods_plot/compare_tracking_methods_plot.f90
-compare_tracking_methods_plot
-which_box
-my_draw_axes
-plot_it
-create_plot
-
-File: compare_tracking_methods_text/compare_tracking_methods_text.f90
-compare_tracking_methods_text
+File: bmad_to_scibmad/bmad_to_scibmad.f90
+bmad_to_scibmad
 
 File: controller_response_plot/controller_response_plot.f90
 controller_response_plot
 
-File: converter_element_modeling/fitter/bmad.cpp
-write_bmad_file
-
-File: converter_element_modeling/fitter/cauchy.cpp
-sqr
-gsl_to_cauchy_point
-asym_cauchy_fit
-asym_cauchy_fit
-
-File: converter_element_modeling/fitter/chisq.cpp
-sqr
-cauchy_eval
-
-File: converter_element_modeling/fitter/gnuplot.cpp
-output_cauchy_impl
-output_cauchy_gp
-sqr
-integrate
-output_meta_cauchy_gp
-write_poly_coefs
-write_1d_files
-output_metafit_gp
-output_master_gp
-
-File: converter_element_modeling/fitter/main.cpp
-main
-
-File: converter_element_modeling/fitter/meta_fit.cpp
-fit_to_string
-make_junk
-rescale
-gsl_to_fit
-get_real_val
-
-File: converter_element_modeling/fitter/parser.cpp
-convert
-parse_config_file
-
-File: converter_element_modeling/fitter/read_data.cpp
-fuzzy_file_open
-read_list_data_impl
-read_list_data
-read_list_data
-read_table_data
-
-File: converter_element_modeling/simulation/main.cpp
-signal_handler
-main
-
-File: converter_element_modeling/simulation/src/EventAction.cpp
-G4UserEventAction
-
-File: converter_element_modeling/simulation/src/GeantMain.cpp
-Initialize_Geant
-run_simulation
-
-File: converter_element_modeling/simulation/src/PhysListEmPolarized.cpp
-G4VPhysicsConstructor
-
-File: converter_element_modeling/simulation/src/RunAction.cpp
-G4UserRunAction
-
-File: converter_element_modeling/simulation/src/cal_binner.cpp
-r_auto_bin
-
-File: converter_element_modeling/simulation/src/parser.cpp
-convert
-parse_config_file
-
-File: converter_element_modeling/simulation/src/point_cache.cpp
-p
-
-File: converter_element_modeling/test_prog/converter_test.f90
-converter_test
-
-File: element_attributes/element_attributes.f90
-element_attributes
+File: sad_to_bmad/sad_to_bmad_postprocess.f90
+sad_to_bmad_postprocess
 
 File: generalized_gradient_fit/generalized_gradient_fit.f90
 generalized_gradient_fit
@@ -147,26 +31,132 @@ write_gg_info
 write_gg_bmad
 read_gg
 
-File: lattice_cleaner/lattice_cleaner.f90
-lattice_cleaner
+File: ptc_profiler/ptc_profiler.f90
+ptc_profiler
 
-File: mad_to_bmad/errors_mad_to_bmad.f90
-test
+File: wake_fit/wake_fit.f90
+wake_fit
 
-File: mais_ripken/mais_ripken.f90
-coupling_convert_et2rip
+File: compare_tracking_methods_plot/compare_tracking_methods_plot.f90
+compare_tracking_methods_plot
+which_box
+my_draw_axes
+plot_it
+create_plot
 
-File: photon_init_plot/photon_init_plot.f90
-photon_init_plot
+File: bmad_to_csrtrack/bmad_to_csrtrack.f90
+bmad_to_csrtrack
+
+File: compare_tracking_methods_text/compare_tracking_methods_text.f90
+compare_tracking_methods_text
+
+File: bmad_to_blender/bmad_to_blender.f90
+bmad_to_blender
 
 File: photon_surface_plot/photon_surface_data.f90
 photon_surface_data
 
+File: beam_file_translate_format/beam_file_translate_format.f90
+beam_file_translate_format
+
+File: element_attributes/element_attributes.f90
+element_attributes
+
+File: wake_plot/wake_plot.f90
+wake_plot
+
+File: mad_to_bmad/errors_mad_to_bmad.f90
+test
+
+File: photon_init_plot/photon_init_plot.f90
+photon_init_plot
+
+File: bmad_to_mad_sad_elegant/bmad_to_mad_sad_elegant.f90
+bmad_to_mad_sad_elegant
+
+File: converter_element_modeling/test_prog/converter_test.f90
+converter_test
+
+File: converter_element_modeling/simulation/main.cpp
+signal_handler
+main
+
+File: converter_element_modeling/simulation/src/RunAction.cpp
+G4UserRunAction
+
+File: converter_element_modeling/simulation/src/GeantMain.cpp
+Initialize_Geant
+run_simulation
+
+File: converter_element_modeling/simulation/src/EventAction.cpp
+G4UserEventAction
+
+File: converter_element_modeling/simulation/src/parser.cpp
+convert
+parse_config_file
+
+File: converter_element_modeling/simulation/src/cal_binner.cpp
+r_auto_bin
+
+File: converter_element_modeling/simulation/src/PhysListEmPolarized.cpp
+G4VPhysicsConstructor
+
+File: converter_element_modeling/simulation/src/point_cache.cpp
+p
+
+File: converter_element_modeling/fitter/read_data.cpp
+fuzzy_file_open
+read_list_data_impl
+read_list_data
+read_list_data
+read_table_data
+
+File: converter_element_modeling/fitter/parser.cpp
+convert
+parse_config_file
+
+File: converter_element_modeling/fitter/meta_fit.cpp
+fit_to_string
+make_junk
+rescale
+gsl_to_fit
+get_real_val
+
+File: converter_element_modeling/fitter/bmad.cpp
+write_bmad_file
+
+File: converter_element_modeling/fitter/cauchy.cpp
+sqr
+gsl_to_cauchy_point
+asym_cauchy_fit
+asym_cauchy_fit
+
+File: converter_element_modeling/fitter/main.cpp
+main
+
+File: converter_element_modeling/fitter/gnuplot.cpp
+output_cauchy_impl
+output_cauchy_gp
+sqr
+integrate
+output_meta_cauchy_gp
+write_poly_coefs
+write_1d_files
+output_metafit_gp
+output_master_gp
+
+File: converter_element_modeling/fitter/chisq.cpp
+sqr
+cauchy_eval
+
+File: bmad_to_merlin/bmad_to_merlin.f90
+bmad_to_merlin
+
 File: ptc_flat_file_to_bmad/ptc_to_bmad.f90
 ptc_to_bmad
 
-File: ptc_profiler/ptc_profiler.f90
-ptc_profiler
+File: bmad_to_gpt/bmad_to_gpt.f90
+bmad_to_gpt
 
 File: rf_field_coef_calc/rf_field_coef_calc.f90
 rf_field_coef_calc
@@ -176,14 +166,24 @@ rf_field_coef_calc_mod
 field_cylinder_values
 e_field_calc
 
-File: sad_to_bmad/sad_to_bmad_postprocess.f90
-sad_to_bmad_postprocess
+File: bmad_to_astra/bmad_to_astra.f90
+bmad_to_astra
 
-File: wake_fit/wake_fit.f90
-wake_fit
+File: lattice_cleaner/lattice_cleaner.f90
+lattice_cleaner
 
-File: bmad_to_julia/bmad_to_julia.f90
-bmad_to_julia
+File: mais_ripken/mais_ripken.f90
+coupling_convert_et2rip
 
-File: wake_plot/wake_plot.f90
-wake_plot
+File: cartesian_map_fit/cartesian_map_fit.f90
+cartesian_map_fit
+
+File: cartesian_map_fit/cartesian_map_fit_mod.f90
+cartesian_map_fit_mod
+term_struct
+read_field_table
+read_cartesian_map_fit_param_file
+curl_calc
+print_stuff
+funcs_lm
+funcs_de
