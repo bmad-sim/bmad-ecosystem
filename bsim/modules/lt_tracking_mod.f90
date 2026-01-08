@@ -1874,6 +1874,7 @@ print '(a, es12.4)', '  sig_z:  ', b_init%sig_z
 print '(a, es12.4)', '  sig_pz: ', b_init%sig_pz
 print '(a, es12.4)', '  a_emit: ', b_init%a_emit
 print '(a, es12.4)', '  b_emit: ', b_init%b_emit
+print '(a, es12.4, a)', '  Charge of bunch (Coul:', ltt_com%beam_init%bunch_charge , '  [Set beam_init%bunch_charge]'
 
 end subroutine ltt_setup_high_energy_space_charge
 

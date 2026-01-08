@@ -262,7 +262,7 @@ do
 
     do i = lbound(s%u, 1), ubound(s%u, 1)
       if (.not. good_uni(i)) cycle
-      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum, &
+      call d1_data_stuffit (k, s%u(i), s%u(i)%n_d2_data_used, datum, d2_data, &
                   default_merit_type, default_weight, default_meas, default_data_type, default_data_source)
     enddo
 
@@ -283,13 +283,14 @@ call tao_init_data_end_stuff ()
 !-----------------------------------------------------------------------
 contains
 
-subroutine d1_data_stuffit (i_d1, u, n_d2, datum, default_merit_type, &
+subroutine d1_data_stuffit (i_d1, u, n_d2, datum, d2_data, default_merit_type, &
                                              default_weight, default_meas, default_data_type, default_data_source)
 
 use srdt_mod
 
 type (tao_universe_struct), target :: u
 type (tao_datum_input) :: datum(n_datum_min:)
+type (tao_d2_data_input) d2_data
 type (tao_d1_data_struct), pointer :: d1_this
 type (tao_d1_data_array_struct), allocatable :: d1_array(:)
 type (ele_pointer_struct), allocatable :: eles(:)
