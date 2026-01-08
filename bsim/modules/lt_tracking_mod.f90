@@ -1866,9 +1866,9 @@ if (n_particle == 0) then
   return
 endif
 
-call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes, ltt_com%beam_init_used, ltt_com%bmad_closed_orb)
+call setup_high_energy_space_charge_calc (.true., branch, n_particle, modes, ltt_com%beam_init, ltt_com%bmad_closed_orb)
 
-b_init = beam_init_setup(ltt_com%beam_init_used, branch%ele(0), branch%ele(0)%ref_species, modes)
+b_init = beam_init_setup(ltt_com%beam_init, branch%ele(0), branch%ele(0)%ref_species, modes)
 print '(a)', 'High energy space charge parameters:'
 print '(a, es12.4)', '  sig_z:  ', b_init%sig_z
 print '(a, es12.4)', '  sig_pz: ', b_init%sig_pz
