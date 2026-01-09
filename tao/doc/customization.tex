@@ -122,9 +122,9 @@ comments throughout the dummy code to aid in the modification of these subroutin
 \index{customizing!tao_hook_branch_calc}
 
 This hook routine is called by tao_lattice_calc when tracking, twiss calculations, etc are done.
-
 This subroutine can be used, for example, to do custom calculations on a lattice branch.
-Also see tao_hook_lattice_calc.
+
+Also see \vn{tao_hook_lattice_calc} and \vn{tao_hook_universe_calc_post_process}.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_command}\index{customizing!tao_hook_commad}
@@ -258,9 +258,11 @@ routine that reads in any elements to be inserted.
 
 The standard lattice calculation can be performed for single particle, particle beam tracking and
 will recalculate the orbit, transfer matrices, twiss parameters and load the data arrays. If
-something else needs to be performed whenever the lattice is recalculated then it is placed here. A
-custom lattice calculation can be performed on any lattice separately, this allows for the
+something else needs to be performed whenever the lattice is recalculated then it can be done here. A
+custom lattice calculation can be performed in any universe separately, this allows for the
 possibility of, for example, tracking a single particle for one lattice and beams in another.
+
+See also \vn{tao_hook_branch_calc} and \vn{tao_hook_universe_calc_post_process}.
 
 %-----------------------------------------------------------------
 \subsection{tao_hook_merit_data}
@@ -309,9 +311,6 @@ information from the \vn{s%u(:)%data} arrays to the
 \vn{s%plot_page%region(:)%plot%graph(:)%curve(:)} arrays. This may be useful if you want to make a
 plot that isn't simply the information in a data or variable array.
 
-
-
-
 %-----------------------------------------------------------------
 \subsection{tao_hook_post_process_data}
 \index{customizing!tao_hook_post_process_data}
@@ -323,6 +322,18 @@ any final modifications to the lattice or data can be performed here.
 %-----------------------------------------------------------------
 \subsection{tao_hook_show_cmd}
 \index{customizing!tao_hook_show_cmd}
+
+%-----------------------------------------------------------------
+\subsection{tao_hook_universe_calc_post_process}
+\index{customizing!tao_hook_universe_calc_post_process}
+
+The standard lattice calculation can be performed for single particle, particle beam tracking and
+will recalculate the orbit, transfer matrices, twiss parameters and load the data arrays. If
+something else needs to be performed whenever the lattice is recalculated then it can be done
+here. A custom lattice calculation can be performed in any universe separately, this allows for the
+possibility of, for example, tracking a single particle for one universe and beams in another.
+
+See also \vn{tao_hook_branch_calc} and \vn{tao_hook_lattice_calc}.
 
 %-----------------------------------------------------------------
 %\chapter{Plotting}

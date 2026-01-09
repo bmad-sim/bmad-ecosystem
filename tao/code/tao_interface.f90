@@ -1213,6 +1213,11 @@ subroutine tao_hook_show_cmd_def (what, result_id, lines, nl)
   integer nl
 end subroutine
 
+subroutine tao_hook_universe_calc_post_process_def (calc_ok)
+  implicit none
+  logical calc_ok
+end subroutine
+
 end interface  ! abstract
 
 ! Function pointers
@@ -1236,6 +1241,7 @@ procedure(tao_hook_init1_def), pointer :: tao_hook_init1_ptr => null()
 procedure(tao_hook_init2_def), pointer :: tao_hook_init2_ptr => null()
 procedure(tao_hook_init_var_def), pointer :: tao_hook_init_var_ptr => null()
 procedure(tao_hook_lattice_calc_def), pointer :: tao_hook_lattice_calc_ptr => null()
+procedure(tao_hook_universe_calc_post_process_def), pointer :: tao_hook_universe_calc_post_process_ptr => null()
 procedure(tao_hook_merit_data_def), pointer :: tao_hook_merit_data_ptr => null()
 procedure(tao_hook_merit_var_def), pointer :: tao_hook_merit_var_ptr => null()
 procedure(tao_hook_optimizer_def), pointer :: tao_hook_optimizer_ptr => null()
