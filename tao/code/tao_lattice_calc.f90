@@ -291,7 +291,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
 
   ! Calculate non-expression data 
 
-  if (associated(tao_hook_universe_calc_post_process_ptr)) call tao_hook_universe_calc_post_process_ptr (calc_ok)
+  if (associated(tao_hook_universe_calc_post_process_ptr)) call tao_hook_universe_calc_post_process_ptr (u, tao_lat, calc_ok)
 
   do id = 1, size(u%data)
     if (substr(u%data(id)%data_type,1,11) == 'expression:') cycle
