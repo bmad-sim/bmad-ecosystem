@@ -1213,8 +1213,11 @@ subroutine tao_hook_show_cmd_def (what, result_id, lines, nl)
   integer nl
 end subroutine
 
-subroutine tao_hook_universe_calc_post_process_def (calc_ok)
+subroutine tao_hook_universe_calc_post_process_def (u, tao_lat, calc_ok)
+  import
   implicit none
+  type (tao_universe_struct), target :: u
+  type (tao_lattice_struct), target :: tao_lat
   logical calc_ok
 end subroutine
 
