@@ -55,10 +55,10 @@ bmad_com%high_energy_space_charge_on = calc_on
 
 if (present(closed_orb)) then
   mc2 = mass_of(closed_orb(0)%species)
-  q2 = charge_of(closed_orb(0)%species)
+  q2 = charge_of(closed_orb(0)%species)**2
 else
   mc2 = mass_of(branch%param%particle)
-  q2 = charge_of(branch%param%particle)
+  q2 = charge_of(branch%param%particle)**2
 endif
 
 if (present(beam_init)) then
@@ -81,7 +81,7 @@ do i = 1, branch%n_ele_track
 
   sc%sig_z = mode2%sig_z
 
-! Save the reference closed orbit.
+  ! Save the reference closed orbit.
 
   if (present(closed_orb)) then
     sc%closed_orb = closed_orb(i)
@@ -89,10 +89,10 @@ do i = 1, branch%n_ele_track
     sc%closed_orb%vec = 0
   endif
 
-! Due to coupling the beam ellipse may be rotated in the x-y plane.
-! phi is this rotation angle.
-! In the rotated frame the beam, by construction is decoupled.
-! sc%sig_x and sc%sig_y are the x and y sigmas in the rotated frame.
+  ! Due to coupling the beam ellipse may be rotated in the x-y plane.
+  ! phi is this rotation angle.
+  ! In the rotated frame the beam, by construction is decoupled.
+  ! sc%sig_x and sc%sig_y are the x and y sigmas in the rotated frame.
 
   c11 = ele%c_mat(1,1); c12 = ele%c_mat(1,2); c22 = ele%c_mat(2,2)
   a => ele%a
@@ -129,20 +129,14 @@ do i = 1, branch%n_ele_track
   sc%sig_x = sqrt(xx_rot_ave)
   sc%sig_y = sqrt(yy_rot_ave)
 
-! The length over which the space charge acts is taken to be half 
-! the length of the element + half the length of the next element.
+  ! The length over which the space charge acts is taken to be half 
+  ! the length of the element + half the length of the next element.
 
   length = (ele%value(l$) + branch%ele(i+1)%value(l$)) / 2
   if (i == 1) length = ele%value(l$) + branch%ele(i+1)%value(l$) / 2
   if (i == branch%n_ele_track) length = ele%value(l$) / 2
 
-! Calculate the kick constant.
-! Taken from:
-!   W. Decking, R. Brinkmann
-!   "Space Charge Problems in the TESLA Damping Ring"
-!   EPAC 2000, Vienna.
-! The extra factor of 4pi comes from the normalization of 
-!   the bbi_kick routine used in track1_space_charge.
+  ! See the bbi_kick routine. 
 
   g3 = (ele%value(p0c$) / mc2)**3
   sc%kick_const = length * classical_radius_factor * n_part * q2 / &
