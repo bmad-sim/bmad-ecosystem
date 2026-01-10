@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 351
+integer, parameter :: bmad_inc_version$ = 352
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1876,9 +1876,11 @@ integer, parameter :: check_sum$ = 75
 
 !!    = 1 + num_ele_attrib$
 
+integer, parameter :: is_on$ = 79
+integer, parameter :: alias$  = 80
 integer, parameter :: distribution$ = 81
 integer, parameter :: tt$ = 81, x_knot$ = 81
-integer, parameter :: alias$  = 82, max_fringe_order$ = 82, eta_x$ = 82
+integer, parameter :: max_fringe_order$ = 82, eta_x$ = 82
 integer, parameter :: electric_dipole_moment$ = 83, lr_self_wake_on$ = 83, x_ref$ = 83, species_out$ = 83
 integer, parameter :: y_knot$ = 83, eta_y$ = 83, density$ = 83
 integer, parameter :: lr_wake_file$ = 84, px_ref$ = 84, etap_x$ = 84, slave$ = 84, &
@@ -1889,26 +1891,26 @@ integer, parameter :: lattice$ = 86, phi_a$ = 86, multipoles_on$ = 86, py_ref$ =
                       area_density_used$ = 86, output_ele$ = 86
 integer, parameter :: aperture_type$ = 87, eta_z$ = 87, machine$ = 87
 integer, parameter :: taylor_map_includes_offsets$ = 88, pixel$ = 88, p88$ = 88, radiation_length$ = 88, deta_dpz_x$ = 88
-integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89, radiation_length_used$ = 89, deta_dpz_y$ = 89
+integer, parameter :: csr_method$ = 89, var$ = 89, z_ref$ = 89, p89$ = 89, radiation_length_used$ = 89
 
 integer, parameter :: pz_ref$ = 90, space_charge_method$ = 90, p90$ = 90, detap_dpz_x$ = 90
-integer, parameter :: mat6_calc_method$ = 91, detap_dpz_y$ = 91
-integer, parameter :: tracking_method$  = 92, s_long$ = 92
+integer, parameter :: mat6_calc_method$ = 91
+integer, parameter :: tracking_method$  = 92
 integer, parameter :: ref_time$ = 93, ptc_integration_type$ = 93
 integer, parameter :: spin_tracking_method$ = 94, eta_a$ = 94
-integer, parameter :: aperture$ = 95, etap_a$ = 95
-integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96
+integer, parameter :: aperture$ = 95, etap_a$ = 95, deta_dpz_y$ = 95
+integer, parameter :: x_limit$ = 96, absolute_time_tracking$ = 96, eta_b$ = 96, detap_dpz_y$ = 96
 integer, parameter :: y_limit$ = 97, etap_b$ = 97
 integer, parameter :: offset_moves_aperture$ = 98
 integer, parameter :: alpha_a$ = 99, reflectivity_table$ = 99, energy_probability_curve$ = 99
 
 integer, parameter :: exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100
-integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101, curvature$ = 101
+integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101, curvature$ = 101, s_long$ = 101
 integer, parameter :: x_position$ = 102, exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
-integer, parameter :: is_on$ = 105, theta_position$ = 105, vertical_kick$ = 105
+integer, parameter :: theta_position$ = 105, vertical_kick$ = 105
 integer, parameter :: field_calc$ = 106, phi_position$ = 106
 integer, parameter :: psi_position$ = 107, wall$ = 107
 integer, parameter :: aperture_at$ = 108, beta_a$ = 108

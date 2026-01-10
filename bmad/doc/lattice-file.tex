@@ -1045,6 +1045,8 @@ Once defined, symbolic constants cannot be redefined. For example:
   my_const = 2  ! No! my_const cannot be redefined.
 \end{example}
 The restriction against redefining constants was implemented to avoid hard to find problems.
+That is, the value of an expression that uses a redefined constant will depend upon if the expression 
+is evaluated before or after the redefinition.
 On very rare occasions, it is convenient to be able to redefine constants so if the redefinition
 has a \vn{redef:} prefix, a constant can be redefined
 \begin{example}

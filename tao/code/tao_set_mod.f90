@@ -3106,8 +3106,10 @@ if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(att
       enddo
     else
       call set_ele_real_attribute (ele, attribute, set_val(i), err, .false.)
-      if (.not. err) n_set = n_set + 1
-      call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), ele%name, ele, a_ptr)
+      if (.not. err) then
+        n_set = n_set + 1
+        call tao_set_flags_for_changed_attribute (s%u(eles(i)%id), ele%name, ele, a_ptr)
+      endif
     endif
   enddo
 
