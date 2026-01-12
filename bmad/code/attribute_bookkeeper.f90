@@ -341,7 +341,7 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
           ! check_bend is a PTC routine
           ix = nint(val(integrator_order$))
           if (ix /= 2 .and. ix /= 4 .and. ix /= 6) val(integrator_order$) = 0  ! Reset if current value is not valid
-         call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
+          call check_bend (val(l$), quad_factor, bend_factor, dz_dl_max_err, step_info, ixm)
           if (val(integrator_order$) == 0) then
             ! Since num_steps is used by Bmad routines, do not use order 6 which can give two few steps for Bmad.
             ixm = min(ixm, 4)
