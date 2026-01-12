@@ -193,7 +193,7 @@ z = orbit%vec(5) - sc%closed_orb%vec(5)
 x_rel =  x * sc%cos_phi + y * sc%sin_phi 
 y_rel = -x * sc%sin_phi + y * sc%cos_phi
 
-call bbi_kick (x_rel, y_rel, [sc%sig_y, sc%sig_x], nk, dnk)
+call bbi_kick (x_rel, y_rel, [sc%sig_x, sc%sig_y], nk, dnk)
 
 ! Transform the kick back to the lab coords and apply.
 
