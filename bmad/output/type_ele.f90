@@ -280,9 +280,11 @@ endif
 ! Multipoles
 
 if (associated(ele%a_pole) .or. associated(ele%a_pole_elec)) then
-  nl=nl+1; write (li(nl), '(5x, a, l1)') 'MULTIPOLES_ON    = ', ele%multipoles_on 
-  nl=nl+1; write (li(nl), '(5x, a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele%scale_multipoles, &
-                                    '! Magnet strength scaling? Reference momentum scaling done if FIELD_MASTER = T.'
+  nl=nl+1; write (li(nl), '(5x, a, l1)') 'MULTIPOLES_ON    = ', ele%multipoles_on
+  if (has_attribute(ele, 'SCALE_MULTIPOLES')) then
+    nl=nl+1; write (li(nl), '(5x, a, l1, 2x, a)') 'SCALE_MULTIPOLES = ', ele%scale_multipoles, &
+                                      '! Magnet strength scaling? Reference momentum scaling done if FIELD_MASTER = T.'
+  endif
 endif
 
 a = 0; b = 0; a2 = 0; b2 = 0; knl = 0; tn = 0
