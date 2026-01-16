@@ -353,7 +353,8 @@ case (bmad_standard$)
   !------------------
   ! Drift, et. al. Note that kicks get added at the end for all elements
 
-  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, fixer$, detector$, thick_multipole$)
+  case (drift$, ecollimator$, rcollimator$, instrument$, monitor$, pipe$, marker$, fixer$, detector$, &
+        multipole$, ab_multipole$, thick_multipole$)
 
   !------------------
   ! E_Gun
@@ -391,6 +392,7 @@ case (bmad_standard$)
     field%b(1) =  ele%value(vkick$) * f_p0c / ele%value(l$)
     field%b(2) = -ele%value(hkick$) * f_p0c / ele%value(l$)
 
+  !------------------
   !------------------
   ! RFcavity and Lcavity  bmad_standard
   !
