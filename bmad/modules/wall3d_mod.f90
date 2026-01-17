@@ -1540,54 +1540,59 @@ subroutine mark_patch_regions (branch)
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall
 type (ele_struct), pointer :: ele
-integer i, i0, iw, ie0, ie1, n_sec
-logical first
+integer i, j, iw, n_sec, n_patch, ix1, ix2
+integer, allocatable :: patch_ixs(:)
+real(rp) s_min, s_max
 
 !
+
+allocate (patch_ixs(branch%n_ele_track))
+n_patch = 0
+do i = 1, branch%n_ele_track
+  if (branch%ele(i)%key == patch$) then
+    n_patch = n_patch + 1
+    patch_ixs(n_patch) = i
+  endif
+enddo
 
 do iw = 1, size(branch%wall3d)
 
   wall => branch%wall3d(iw)
   wall%section%patch_in_region = .false.
+
+  if (n_patch == 0) cycle
+
   n_sec = size(wall%section)
 
-  !  Find if patch in region between sections i-1 and i
+  do j = 1, n_patch
+    ! For each patch element:
+    ! Determine its [s_min, s_max]
+    ele => branch%ele(patch_ixs(j))
+    s_min = min(ele%s_start, ele%s)
+    s_max = max(ele%s_start, ele%s)
 
-  do i = 1, n_sec
-    if (i == 1 .and. wall%section(1)%type == wall_start$) cycle
-    if (i == 1 .and. branch%param%geometry == open$) cycle
+    ! Find the wall points (defined cross-sections) to either side of the patch.
+    ix1 = bracket_index(s_min, wall%section%s, 1)
+    ix2 = bracket_index(s_max, wall%section%s, 1)
 
-    i0 = i - 1
-    if (i0 == 0) i0 = n_sec  ! Wrap case with closed geometry.
-
-    ie0 = element_at_s(branch, wall%section(i0)%s, .false.)
-    ie1 = element_at_s(branch, wall%section(i)%s, .true.)
-    if (ie0 > branch%n_ele_track) ie0 = branch%n_ele_track  ! Can happen if wall overhangs end of branch.
-    if (ie1 > branch%n_ele_track) ie1 = branch%n_ele_track  ! Can happen if wall overhangs end of branch.
-
-    ele => branch%ele(ie0)
-
-    first = .true.
-    do
-      if (.not. first) then
-        ele => pointer_to_next_ele(ele)
-        if (ele%ix_ele == ie1) exit
+    ! For open/closed lattices,
+    ! if the wall section `s` falls in [s_min, s_max], the patch is in the region
+    do i = max(2, ix1), min(n_sec, ix2+2)
+      if (wall%section(i-1)%s < s_max .and. wall%section(i)%s > s_min) then
+        wall%section(i)%patch_in_region = .true.
       endif
-      first = .false.
-
-      if (ele%key /= patch$) cycle
-
-      if (i == 1) then
-        if (ele%ix_ele >= ie1 .and. wall%section(i0)%s >= max(ele%s_start, ele%s)) cycle
-        if (ele%ix_ele <= ie0 .and. wall%section(i)%s <= min(ele%s_start, ele%s)) cycle
-      else
-        if (wall%section(i0)%s >= max(ele%s_start, ele%s)) cycle
-        if (wall%section(i)%s <= min(ele%s_start, ele%s)) cycle
-      endif
-
-      wall%section(i)%patch_in_region = .true.
-      exit
     enddo
+
+    ! For closed geometries - the final wall section is a wrap-around special:
+    !  either the first section s > s_min
+    !   or
+    !  the last section         s < s_max
+    ! In that wraparound scenario, the first section type won't be wall_start.
+    if (branch%param%geometry == closed$ .and. wall%section(1)%type /= wall_start$) then
+      if (wall%section(n_sec)%s < s_max .or. wall%section(1)%s > s_min) then
+        wall%section(1)%patch_in_region = .true.
+      endif
+    endif
   enddo
 
 enddo
