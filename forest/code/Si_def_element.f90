@@ -4,8 +4,7 @@
 
 MODULE S_DEF_ELEMENT
  ! USE S_DEF_KIND
-  !  USE USER_kind1
-  !  USE USER_kind2
+  !  USE USER_kind1SETFAMILY(
  ! USE sagan_WIGGLER
    use S_DEF_KIND
   IMPLICIT NONE
@@ -1042,6 +1041,8 @@ CONTAINS
        EL%K2%VA=>EL%VA
        EL%K2%VS=>EL%VS
        NULLIFY(EL%K2%F);ALLOCATE(EL%K2%F);EL%K2%F=1;
+       NULLIFY(EL%K2%use_anti);ALLOCATE(EL%K2%use_anti);EL%K2%use_anti=0;
+       NULLIFY(EL%K2%e);ALLOCATE(EL%K2%e);EL%K2%e=0.0_dp
     CASE(KIND3)
        if(.not.ASSOCIATED(EL%K3)) THEN
           ALLOCATE(EL%K3)
@@ -1067,6 +1068,9 @@ CONTAINS
        NULLIFY(EL%k3%dy);ALLOCATE(EL%k3%dy);EL%k3%dy=0.d0;
        NULLIFY(EL%k3%pitch_x);ALLOCATE(EL%k3%pitch_x);EL%k3%pitch_x=0.d0;
        NULLIFY(EL%k3%pitch_y);ALLOCATE(EL%k3%pitch_y);EL%k3%pitch_y=0.d0;
+       NULLIFY(EL%k3%use_anti);ALLOCATE(EL%k3%use_anti);EL%k3%use_anti=0;
+       NULLIFY(EL%k3%e);ALLOCATE(EL%k3%e);EL%k3%e=0.0_dp
+
     CASE(kindsuperdrift)
        if(.not.ASSOCIATED(EL%sdr)) THEN
           ALLOCATE(EL%sdr)
@@ -1400,6 +1404,8 @@ CONTAINS
        EL%K16%VA=>EL%VA
        EL%K16%VS=>EL%VS
        NULLIFY(EL%K16%DRIFTKICK);ALLOCATE(EL%K16%DRIFTKICK);EL%K16%DRIFTKICK=.true.;
+       NULLIFY(EL%K16%use_anti);ALLOCATE(EL%K16%use_anti);EL%K16%use_anti=0;
+       NULLIFY(EL%K16%e);ALLOCATE(EL%K16%e);EL%K16%e=0.0_dp
 !       NULLIFY(EL%K16%LIKEMAD);ALLOCATE(EL%K16%LIKEMAD);EL%K16%LIKEMAD=.false.;
        NULLIFY(EL%K16%F);ALLOCATE(EL%K16%F);EL%K16%F=0;
     CASE(KIND17)
@@ -1541,6 +1547,9 @@ CONTAINS
        EL%K2%VA=>EL%VA
        EL%K2%VS=>EL%VS
        NULLIFY(EL%K2%F);ALLOCATE(EL%K2%F);EL%K2%F=1;
+       NULLIFY(EL%k2%use_anti);ALLOCATE(EL%k2%use_anti);EL%k2%use_anti=0;
+       NULLIFY(EL%k2%e);ALLOCATE(EL%k2%e);EL%k2%e=0.0_dp
+
     CASE(KIND3)
        if(.not.ASSOCIATED(EL%K3)) THEN
           ALLOCATE(EL%K3)
@@ -1566,6 +1575,8 @@ CONTAINS
        NULLIFY(EL%k3%dy);ALLOCATE(EL%k3%dy);EL%k3%dy=0.d0;
        NULLIFY(EL%k3%pitch_x);ALLOCATE(EL%k3%pitch_x);EL%k3%pitch_x=0.d0;
        NULLIFY(EL%k3%pitch_y);ALLOCATE(EL%k3%pitch_y);EL%k3%pitch_y=0.d0;
+       NULLIFY(EL%k3%use_anti);ALLOCATE(EL%k3%use_anti);EL%k3%use_anti=0;
+       NULLIFY(EL%k3%e);ALLOCATE(EL%k3%e);call alloc(EL%k3%e);EL%k3%e=0.0_dp
     CASE(kindsuperdrift)
        if(.not.ASSOCIATED(EL%sdr)) THEN
           ALLOCATE(EL%sdr)
@@ -1890,6 +1901,8 @@ CONTAINS
        EL%K16%VA=>EL%VA
        EL%K16%VS=>EL%VS
        NULLIFY(EL%K16%DRIFTKICK);ALLOCATE(EL%K16%DRIFTKICK);EL%K16%DRIFTKICK=.true.;
+       NULLIFY(EL%K16%use_anti);ALLOCATE(EL%K16%use_anti);EL%K16%use_anti=0;
+       NULLIFY(EL%K16%e);ALLOCATE(EL%K16%e);EL%K16%e=0.0_dp
 !       NULLIFY(EL%K16%LIKEMAD);ALLOCATE(EL%K16%LIKEMAD);EL%K16%LIKEMAD=.false.;
        NULLIFY(EL%K16%F);ALLOCATE(EL%K16%F);EL%K16%F=0;
     CASE(KIND17)
@@ -3719,10 +3732,14 @@ nullify(EL%filef,el%fileb);
   !     ELP%K2=0   ! new 2014.8.5
        CALL SETFAMILY(ELP)
        ELP%K2%F=EL%K2%F
+       ELP%K2%use_anti=EL%K2%use_anti
+       ELP%K2%e=EL%K2%e
     ENDIF
     IF(EL%KIND==KIND16.OR.EL%KIND==KIND20) THEN
        CALL SETFAMILY(ELP)
        ELP%K16%DRIFTKICK=EL%K16%DRIFTKICK
+       ELP%K16%use_anti=EL%K16%use_anti
+       ELP%K16%e=EL%K16%e
 !       ELP%K16%LIKEMAD=EL%K16%LIKEMAD
        ELP%K16%F=EL%K16%F
     ENDIF
@@ -3746,6 +3763,8 @@ nullify(EL%filef,el%fileb);
        ELP%k3%DY=EL%k3%DY
        ELP%k3%PITCH_X=EL%k3%PITCH_X
        ELP%k3%PITCH_Y=EL%k3%PITCH_Y
+       ELP%k3%use_anti=EL%K3%use_anti
+       ELP%k3%e=EL%k3%e
     ENDIF
 
 
@@ -4127,11 +4146,15 @@ nullify(EL%filef,el%fileb);
  !      ELP%K2=0   ! new 2014.8.5
        CALL SETFAMILY(ELP)
        ELP%K2%F=EL%K2%F
+       ELP%K2%use_anti=EL%K2%use_anti
+       ELP%K2%e=EL%K2%e
     ENDIF
     IF(EL%KIND==KIND16.OR.EL%KIND==KIND20) THEN
        CALL SETFAMILY(ELP)
        ELP%K16%DRIFTKICK=EL%K16%DRIFTKICK
 !       ELP%K16%LIKEMAD=EL%K16%LIKEMAD
+       ELP%K16%use_anti=EL%K16%use_anti
+       ELP%K16%e=EL%K16%e
        ELP%K16%F=EL%K16%F
     ENDIF
 
@@ -4153,6 +4176,9 @@ nullify(EL%filef,el%fileb);
        ELP%k3%DY=EL%k3%DY
        ELP%k3%PITCH_X=EL%k3%PITCH_X
        ELP%k3%PITCH_Y=EL%k3%PITCH_Y
+       ELP%k3%e=EL%k3%e
+       ELP%k3%use_anti=EL%k3%use_anti
+
     ENDIF
 
 
@@ -4542,10 +4568,14 @@ nullify(EL%filef,el%fileb);
  !      ELP%K2=0   ! new 2014.8.5
        CALL SETFAMILY(ELP)
        ELP%K2%F=EL%K2%F
+       ELP%K2%use_anti=EL%K2%use_anti
+       ELP%K2%e=EL%K2%e
     ENDIF
     IF(EL%KIND==KIND16.OR.EL%KIND==KIND20) THEN
        CALL SETFAMILY(ELP)
        ELP%K16%DRIFTKICK=EL%K16%DRIFTKICK
+       ELP%K16%use_anti=EL%K16%use_anti
+       ELP%K16%e=EL%K16%e
 !       ELP%K16%LIKEMAD=EL%K16%LIKEMAD
        ELP%K16%F=EL%K16%F
     ENDIF
@@ -4568,6 +4598,8 @@ nullify(EL%filef,el%fileb);
        ELP%k3%DY=EL%k3%DY
        ELP%k3%PITCH_X=EL%k3%PITCH_X
        ELP%k3%PITCH_Y=EL%k3%PITCH_Y
+       ELP%K3%use_anti=EL%K3%use_anti
+       ELP%K3%e=EL%K3%e
     ENDIF
 
     IF(EL%KIND==KIND4) THEN         !
