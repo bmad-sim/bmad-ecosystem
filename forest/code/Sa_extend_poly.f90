@@ -15,7 +15,7 @@ module S_extend_poly
   ! LD: 22.03.2019 (see Sc_euclidean.f90, Sh_def_kinf.f90 and Sr_spin.f90)
   character(len=150) :: ELEM_NAME = "UNKNOWN"
   integer            :: MAPDUMP = 0 ! 0: no dump, 1: dump no=0, 2: dump no=1
-
+  logical :: rad_from_ptc =.true.
   INTERFACE OPERATOR (+)
 
      MODULE PROCEDURE daddsco   !# c_damap + real(6)
@@ -497,8 +497,12 @@ endif
     call check_rad(r%e_ij,rad_in)
     ds%e_ij=0.0_dp
     if(rad_in) then
+     if(rad_from_ptc) then
        m=ds
        ds%e_ij=matmul(matmul(m,r%e_ij),transpose(m))
+      else
+      ds%e_ij=r%e_ij
+     endif
     endif
 
 !ds%damps=r%damps
@@ -569,11 +573,15 @@ endif
     call c_check_rad(ds%e_ij,rad_in)
         r%e_ij=0.0_dp
     if(rad_in) then
+      if(rad_from_ptc) then
      call alloc(mm)
         mm=ds
         m=mm**(-1)
          call kill(mm)
        r%e_ij=matmul(matmul(m,ds%e_ij),transpose(m))
+      else
+        r%e_ij=ds%e_ij
+      endif
     endif
  
    call kill(t)

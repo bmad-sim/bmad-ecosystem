@@ -831,7 +831,6 @@ case ('chromaticity')
     case default
       call out_io (s_error$, r_name, 'EXTRA STUFF ON LINE: ' // what2)
       return
-
     end select
   enddo
 
@@ -844,23 +843,23 @@ case ('chromaticity')
   endif
 
   tao_lat => tao_pointer_to_tao_lat (u, model$)
-  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch, rf_on = no$)
+  if (.not. u%calc%one_turn_map) call tao_ptc_normal_form (.true., tao_lat, ix_branch)
 
   bmad_nf => tao_branch%bmad_normal_form
   ptc_nf  => tao_branch%ptc_normal_form
 
-  nl=nl+1; lines(nl) = '  Note: Calculation is done with RF off.'
-  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N'
+  nl=nl+1; lines(nl) = '  N     chrom_ptc.a.N     chrom_ptc.b.N   (Note: 0th order are the tunes)'
 
   do i = 0, ptc_private%taylor_order_ptc-1
     expo = [0, 0, 0, 0, 0, i]
-    z1 =  real(ptc_nf%phase(1) .sub. expo)
-    z2 =  real(ptc_nf%phase(2) .sub. expo)
-    if (i == 0) then
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7, a)') i, z1, z2, '  ! 0th order are the tunes'
+    if (ptc_nf%state%nocavity) then
+      z1 =  real(ptc_nf%phase(1) .sub. expo)
+      z2 =  real(ptc_nf%phase(2) .sub. expo)
     else
-      nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
+      z1 =  real(ptc_nf%u_phase(1) .sub. expo)
+      z2 =  real(ptc_nf%u_phase(2) .sub. expo)
     endif
+    nl=nl+1; write (lines(nl), '(i3, 2es18.7)') i, z1, z2
   enddo
 
   nl=nl+1; lines(nl) = ''
@@ -868,8 +867,13 @@ case ('chromaticity')
 
   do i = 1, ptc_private%taylor_order_ptc
     expo = [0, 0, 0, 0, 0, i]
-    z1 = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
-    z2 =  real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+    if (ptc_nf%state%nocavity) then
+      z1 = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+      z2 =  real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+    else
+      z1 = -real(ptc_nf%u_phase(3) .sub. expo) / branch%param%total_length
+      z2 =  real(ptc_nf%u_path_length .sub. expo) / branch%param%total_length
+    endif
     nl=nl+1; write (lines(nl), '(i3, 2x, 2es18.7)') i, z1, z2
   enddo
 

@@ -1616,6 +1616,7 @@ ND1=ND1+n_acc
   previous_newtpsa=newtpsa
   END  subroutine S_init
 
+
   subroutine kill_map_cp()
     implicit none
      logical present_newtpsa

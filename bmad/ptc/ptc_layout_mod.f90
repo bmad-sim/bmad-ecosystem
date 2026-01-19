@@ -780,48 +780,84 @@ end subroutine ptc_one_turn_map_at_ele
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine ptc_map_to_normal_form (one_turn_map, ptc_nocavity, normal_form, phase_map, spin_tune)
+! Subroutine ptc_map_to_normal_form (one_turn_map, ptc_nocavity, ptc_nf)
 !
 ! Routine to do normal form analysis on a map.
 ! Note: All output quantities must be allocated prior to calling this routine.
 !
 ! Input:
-!   one_turn_map    -- probe_8: One turn map.
-!   ptc_nocavity    -- logical: PTC nocavity parameter setting when map was made.
+!   one_turn_map      -- probe_8: One turn map.
+!   ptc_nocavity      -- logical: PTC nocavity parameter setting when map was made.
 !
 ! Output:
-!   normal_form     -- c_normal_form: Normal form decomposition.
-!   phase_map(3)    -- c_taylor: Phase Taylor maps.
-!   spin_tune       -- c_taylor, optional: Spin tune Taylor map.
+!   ptc_nf            -- ptc_normal_form_struct: Normal form decomposition.
 !-
 
-subroutine ptc_map_to_normal_form (one_turn_map, ptc_nocavity, normal_form, phase_map, spin_tune)
+subroutine ptc_map_to_normal_form (one_turn_map, ptc_nocavity, branch, ptc_nf)
 
 use pointer_lattice
 
 implicit none
 
 type (probe_8) one_turn_map
-type (c_normal_form) normal_form
-type (c_taylor) phase_map(3)
-type (c_taylor), optional :: spin_tune
+type (ptc_normal_form_struct) ptc_nf
 type (c_damap) c_map
+type (c_taylor) beta, phase3
+type (c_damap) c_da
+type (branch_struct) branch
 
-logical ptc_nocavity
+real(rp) mm, beta0
+logical ptc_nocavity, doing_spin
 
 !! type (c_damap) as, a2, a1, a0
 !! integer n(6)
 
 !
 
+call alloc(beta)
+call alloc(phase3)
+call alloc(c_da)
+
+call set_ptc_verbose(.false.)
+
+doing_spin = bmad_com%spin_tracking_on
 call alloc(c_map)
 c_map = one_turn_map
 
-call ptc_set_rf_state_for_c_normal(ptc_nocavity)
-call c_normal (c_map, normal_form, dospin = bmad_com%spin_tracking_on, phase = phase_map, nu_spin = spin_tune)
+!
 
+call ptc_set_rf_state_for_c_normal(ptc_nocavity)
+call c_normal (c_map, ptc_nf%normal_form, dospin = doing_spin, phase = ptc_nf%phase, nu_spin = ptc_nf%spin_tune)
+
+mm = mass_of(branch%param%particle) / branch%ele(0)%value(p0c$)
+beta0 = branch%ele(0)%value(p0c$) / branch%ele(0)%value(E_tot$)
+
+c_da = 1
+beta = c_da%v(6)
+beta = (1 + beta) / sqrt((1+beta)**2 + mm**2)
+ptc_nf%path_length = (branch%param%total_length - ptc_nf%phase(3)) * beta / beta0
+
+c_da%q%x = 0.0d0
+c_da%q%x(2) = 1.0d0
+c_da = ptc_nf%normal_form%atot*c_da*ptc_nf%normal_form%atot**(-1)
+ptc_nf%isf = c_da%q
+
+!
+
+if (.not. ptc_nocavity) then
+  call c_average_6d (c_map, ptc_nf%u_normal_form, ptc_nf%u_dispersion, ptc_nf%u_phase, doing_spin, ptc_nf%u_spin_tune)
+  phase3 = ptc_nf%u_phase(3)
+  ptc_nf%u_path_length = (branch%param%total_length - phase3) * beta / beta0
+endif
+
+!
+
+call kill (beta)
+call kill (phase3)
+call kill (c_da)
 call kill(c_map)
 
+call set_ptc_verbose(.true.)
 
 !! call c_full_factor_map (normal_form%atot, as, a0, a1, a2)  ! as = spin, a0 = closed orbit, a1 = linear, a2 = non-linear
 !! call clean(a0, a0, prec = 1d-10)

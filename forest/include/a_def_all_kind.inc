@@ -51,6 +51,8 @@ TYPE DKD2
    real(dp),   POINTER:: H1 => null(),H2 => null()             !FRINGE FUDGE FOR MAD
    real(dp),   POINTER:: VA => null(),VS => null()         !valishev-like multipole
    integer, pointer :: f => null()
+   real(dp), pointer :: e=> null()
+    integer , pointer :: use_anti=> null()
 END  TYPE DKD2
 
 TYPE DKD2P
@@ -61,6 +63,8 @@ TYPE DKD2P
    TYPE(REAL_8),   POINTER:: H1 => null(),H2 => null()             !FRINGE FUDGE FOR MAD
    TYPE(REAL_8),   POINTER:: VA => null(),VS => null()         !valishev-like multipole
    integer, pointer :: f => null()
+   real(dp), pointer :: e=> null()
+    integer , pointer :: use_anti=> null()
 END  TYPE DKD2P
 
 TYPE KICKT3
@@ -72,6 +76,8 @@ TYPE KICKT3
    real(dp), POINTER ::B_SOL => null()
    real(dp),   POINTER::  ls => null()
    real(dp),   POINTER:: dx => null(),dy => null(),pitch_x => null(),pitch_y => null()   ! SADISTIC
+   real(dp), pointer :: e=> null()
+    integer , pointer :: use_anti=> null()
 END  TYPE KICKT3
 
 TYPE KICKT3P
@@ -83,6 +89,8 @@ TYPE KICKT3P
    TYPE(REAL_8), POINTER ::B_SOL => null()
    real(dp),   POINTER::  ls => null()
    real(dp),   POINTER:: dx => null(),dy => null(),pitch_x => null(),pitch_y => null()   ! SADISTIC
+   type(real_8), pointer :: e=> null()
+    integer , pointer :: use_anti=> null()
 END  TYPE KICKT3P
 
 TYPE ABELL
@@ -375,6 +383,8 @@ TYPE STREX
    real(dp),   POINTER:: H1 => null(), H2 => null()             !FRINGE FUDGE FOR MAD
    real(dp),   POINTER:: VA => null(), VS => null()         !valishev-like multipole
    integer, pointer :: f => null()
+   real(dp), pointer :: e=> null()
+    integer , pointer :: use_anti=> null()
 END  TYPE STREX
 
 TYPE STREXP
@@ -386,6 +396,8 @@ TYPE STREXP
    TYPE(REAL_8),   POINTER:: H1 => null(), H2 => null()             !FRINGE FUDGE FOR MAD
    TYPE(REAL_8),   POINTER:: VA => null(), VS => null()         !valishev-like multipole
    integer, pointer :: f => null()
+   real(dp), pointer :: e
+    integer , pointer :: use_anti=> null()
 END  TYPE STREXP
 ! fitted magnet stuff
 

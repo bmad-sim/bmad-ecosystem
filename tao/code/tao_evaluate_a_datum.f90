@@ -62,7 +62,6 @@ type (taylor_struct), pointer :: taylor_ptr
 type (complex_taylor_struct), pointer :: complex_taylor_ptr
 type (all_pointer_struct) a_ptr
 type (rad_int_branch_struct), pointer :: branch_ri, branch_6d
-type (c_taylor), pointer :: phase_map
 type (twiss_struct), pointer :: z0, z1, z2
 type (tao_eval_node_struct), allocatable :: stack(:)
 
@@ -964,16 +963,6 @@ case ('chrom_ptc.')
     return
   endif
 
-  select case (data_type(1:12))
-  case ('chrom_ptc.a.')
-    phase_map => ptc_nf%phase(1)
-  case ('chrom_ptc.b.')
-    phase_map => ptc_nf%phase(2)
-  case default
-    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true., print_err = print_err)
-    return
-  end select
-
   if (.not. is_integer(data_type(13:), n)) then
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true., print_err = print_err)
     return
@@ -982,7 +971,24 @@ case ('chrom_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = real(phase_map .sub. expo)
+  select case (data_type(1:12))
+  case ('chrom_ptc.a.')
+    if (ptc_nf%state%nocavity) then
+      datum_value = real(ptc_nf%phase(1) .sub. expo)
+    else
+      datum_value = real(ptc_nf%u_phase(1) .sub. expo)
+    endif
+  case ('chrom_ptc.b.')
+    if (ptc_nf%state%nocavity) then
+      datum_value = real(ptc_nf%phase(2) .sub. expo)
+    else
+      datum_value = real(ptc_nf%u_phase(2) .sub. expo)
+    endif
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true., print_err = print_err)
+    return
+  end select
+
   valid_value = .true.
 
 !-----------
@@ -1733,7 +1739,12 @@ case ('momentum_compaction_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+  if (ptc_nf%state%nocavity) then
+    datum_value = real(ptc_nf%path_length .sub. expo) / branch%param%total_length
+  else
+    datum_value = real(ptc_nf%u_path_length .sub. expo) / branch%param%total_length
+  endif
+
   valid_value = .true.
 
 !-----------
@@ -2789,7 +2800,12 @@ case ('slip_factor_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+  if (ptc_nf%state%nocavity) then
+    datum_value = -real(ptc_nf%phase(3) .sub. expo) / branch%param%total_length
+  else
+    datum_value = -real(ptc_nf%u_phase(3) .sub. expo) / branch%param%total_length
+  endif
+
   valid_value = .true.
 
 !-----------
@@ -3003,7 +3019,12 @@ case ('spin_map_ptc.')
     n = n / 10
   enddo
   
-  datum_value = real(ptc_nf%spin_tune .sub. expo)
+  if (ptc_nf%state%nocavity) then
+    datum_value = real(ptc_nf%spin_tune .sub. expo)
+  else
+    datum_value = real(ptc_nf%u_spin_tune .sub. expo)
+  endif
+
   valid_value = .true.
 
 !-----------
@@ -3049,7 +3070,12 @@ case ('spin_tune_ptc.')
   expo = 0
   expo(6) = n 
 
-  datum_value = real(ptc_nf%spin_tune .sub. expo)
+  if (ptc_nf%state%nocavity) then
+    datum_value = real(ptc_nf%spin_tune .sub. expo)
+  else
+    datum_value = real(ptc_nf%u_spin_tune .sub. expo)
+  endif
+
   valid_value = .true.
 
 !-----------

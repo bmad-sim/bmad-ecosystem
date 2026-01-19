@@ -34,7 +34,8 @@ module precision_constants
   ! double precision
   integer,parameter::sp=kind(1.e0)
   integer,parameter::dp=selected_real_kind(2*precision(1.e0))
-
+  !logical :: inside_gino=.false.,convert_to_bmad=.false.
+  logical :: convert_to_bmad=.true.
   ! quadrupole precision
   !  integer,parameter::sp=selected_real_kind(2*precision(1.e0))
   !  integer,parameter::dp=selected_real_kind(4*precision(1.e0))
