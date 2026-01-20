@@ -1539,37 +1539,31 @@ subroutine mark_patch_regions (branch)
 
 type (branch_struct), target :: branch
 type (wall3d_struct), pointer :: wall
-type (ele_struct), pointer :: ele
-integer i, j, iw, n_sec, n_patch, ix1, ix2
-integer, allocatable :: patch_ixs(:)
+type (ele_struct), pointer :: patch
+integer i, j, iw, n_sec, ix1, ix2, ix_patch
 real(rp) s_min, s_max
 
 !
 
-allocate (patch_ixs(branch%n_ele_track))
-n_patch = 0
-do i = 1, branch%n_ele_track
-  if (branch%ele(i)%key == patch$) then
-    n_patch = n_patch + 1
-    patch_ixs(n_patch) = i
-  endif
-enddo
-
 do iw = 1, size(branch%wall3d)
-
   wall => branch%wall3d(iw)
   wall%section%patch_in_region = .false.
 
-  if (n_patch == 0) cycle
-
   n_sec = size(wall%section)
+  ix_patch = 0
 
-  do j = 1, n_patch
-    ! For each patch element:
-    ! Determine its [s_min, s_max]
-    ele => branch%ele(patch_ixs(j))
-    s_min = min(ele%s_start, ele%s)
-    s_max = max(ele%s_start, ele%s)
+  do
+    nullify(patch)
+    do j = ix_patch+1, branch%n_ele_track
+      if (branch%ele(j)%key /= patch$) cycle
+      ix_patch = j
+      patch => branch%ele(j)
+    enddo
+    if (.not. associated(patch)) exit
+
+    ! For each patch element determine its [s_min, s_max]
+    s_min = min(patch%s_start, patch%s)
+    s_max = max(patch%s_start, patch%s)
 
     ! Find the wall points (defined cross-sections) to either side of the patch.
     ix1 = bracket_index(s_min, wall%section%s, 1)
@@ -1584,8 +1578,7 @@ do iw = 1, size(branch%wall3d)
     enddo
 
     ! For closed geometries - the final wall section is a wrap-around special:
-    !  either the first section s > s_min
-    !   or
+    !  either the first section s > s_min or
     !  the last section         s < s_max
     ! In that wraparound scenario, the first section type won't be wall_start.
     if (branch%param%geometry == closed$ .and. wall%section(1)%type /= wall_start$) then
@@ -1594,7 +1587,6 @@ do iw = 1, size(branch%wall3d)
       endif
     endif
   enddo
-
 enddo
 
 end subroutine mark_patch_regions
