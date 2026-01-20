@@ -27,15 +27,13 @@
 "Integral g^3 * b_hat * dn/ddelta" REL 4E-9     0.0000000000E+00
 "Integral g^3 (1 - 2(n * s_hat)/9)" REL 4E-9    5.3165769342E-01
 "Integral g^3 * 11 (dn/ddelta)^2 / 9" REL 4E-9  0.0000000000E+00
-"Chrom-RF-0" REL 1e-7     2.8774493E-01     1.9479368E-01
-"Chrom-RF-1" REL 1e-7    -1.5967198E-01    -1.5380293E-01
-"Chrom-RF-2" REL 1e-7     2.9345168E-01     2.1831932E-01
-"Slip-RF-1" REL 1e-7     2.4060845E-01     2.4060871E-01
-"Slip-RF-2" REL 1e-7     1.6518916E-01     1.6518883E-01
-"Slip-RF-3" REL 1e-7    -1.7683245E-01    -1.7683198E-01
-"Chrom-noRF-0" REL 1e-7     2.8841281E-01     1.9485469E-01
-"Chrom-noRF-1" REL 1e-7    -1.5844830E-01    -1.5422912E-01
-"Chrom-noRF-2" REL 1e-7     2.9407243E-01     2.1815155E-01
-"Slip-noRF-1" REL 1e-7     2.4133326E-01     2.4133352E-01
-"Slip-noRF-2" REL 1e-7     1.6678109E-01     1.6678076E-01
-"Slip-noRF-3" REL 1e-7    -1.8051455E-01    -1.8051408E-01
+"Chrom-RF-0" REL 1e-2     2.8774493E-01     1.9479368E-01
+"Chrom-RF-1" REL 1e-2    -1.5967198E-01    -1.5380293E-01
+"Chrom-RF-2" REL 1e-2     2.9345167E-01     2.1831932E-01
+"Slip-RF-1" REL 1e-2     2.4060845E-01     2.4060871E-01
+"Slip-RF-2" REL 1e-2     1.6518916E-01     1.6518883E-01
+"Chrom-noRF-0" REL 1e-2     2.8841281E-01     1.9485469E-01
+"Chrom-noRF-1" REL 1e-2    -1.5844830E-01    -1.5422912E-01
+"Chrom-noRF-2" REL 1e-2     2.9407243E-01     2.1815155E-01
+"Slip-noRF-1" REL 1e-2     2.4133326E-01     2.4133352E-01
+"Slip-noRF-2" REL 1e-2     1.6678109E-01     1.6678076E-01

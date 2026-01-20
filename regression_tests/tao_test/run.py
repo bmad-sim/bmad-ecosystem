@@ -9,8 +9,13 @@ exe3 = sys.argv[1] + 'tao -noplot -lat small.bmad --rf_on -startup tao_2.startup
 #-----------
 
 print ('Test #1')
-results = subprocess.run(exe1, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+pp = subprocess.Popen(exe1, shell=True)
+pp.wait()
+
 print ('Test #2')
-results = subprocess.run(exe2, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+pp = subprocess.Popen(exe2, shell=True)
+pp.wait()
+
 print ('Test #3')
-results = subprocess.run(exe3, shell=True, stdout=subprocess.PIPE).stdout.decode('utf-8')
+pp = subprocess.Popen(exe3, shell=True)
+pp.wait()
