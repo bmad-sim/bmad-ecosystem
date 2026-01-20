@@ -58,7 +58,8 @@ type (ele_pointer_struct), allocatable :: used_list(:)
 type (ele_struct), pointer :: lord, ele2
 type (ele_struct), optional :: original_ele
 type (lat_param_struct) param
-type (coord_struct) :: orbit, local_orb, lab_orb, lord_orb, this_orb
+type (coord_struct) :: orbit, lab_orb, lord_orb, this_orb
+type (coord_struct), target :: local_orb
 type (em_field_struct) :: field, field1, field2, lord_field, l1_field, mode_field
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
@@ -1421,6 +1422,13 @@ case(fieldmap$)
 
         if (logic_option(.false., calc_potential)) then
           if (r /= 0) then
+            rb_ele => ele
+            rb_orb => local_orb
+            rb_grid => g_field_ptr
+            rb_expt = expt
+            rb_print_err = logic_option(.true., print_err)
+            rb_z = z
+
             abs_tol = abs(1e-10_rp * r * orbit%p0c * (1 + orbit%vec(6)) / (c_light * charge_of(ele%ref_species)))
             inte = super_qromb(rb_field, 0.0_rp, r, 1e-12_rp, abs_tol, 2, err) / r
             field%A(1:2) = field%A(1:2) + inte * [-y, x] / r
@@ -1535,23 +1543,6 @@ if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., f
 !----------------------------------------------------------------------------
 contains
 
-! Function for vector potential calc.
-
-function rb_field(x)
-
-real(rp), intent(in) :: x(:)
-real(rp) :: rb_field(size(x))
-integer i
-
-!
-
-do i = 1, size(x)
-  call grid_field_interpolate(ele, local_orb, g_field_ptr, g_pt, err, x(i), z, &
-              allow_s_out_of_bounds = .true., print_err = print_err)
-  rb_field(i) = x(i) * expt_ptr * g_pt%b(3)
-enddo
-
-end function rb_field
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
