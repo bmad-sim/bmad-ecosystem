@@ -563,7 +563,8 @@ case ('read')
 ! This is a private, undocumented command used to produce output for use in regression testing.
 
 case ('regression')
-  call tao_regression_test()
+  call tao_cmd_split(cmd_line, 1, cmd_word, .true., err_flag);  if (err_flag) goto 9000
+  call tao_regression_test(cmd_word(1))
 
 !--------------------------------
 ! RESET

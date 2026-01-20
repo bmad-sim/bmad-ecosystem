@@ -701,7 +701,7 @@ endif
     TYPE (INTEGRATION_NODE),optional, POINTER :: node1,node2
     TYPE (fibre),optional, POINTER :: fibre1,fibre2
     TYPE (INTEGRATION_NODE), POINTER :: C,n1,n2,last
-    logical donew
+    logical donew,revert_to_ptc
     real(dp) beta
     !    INTEGER,TARGET :: CHARGE
 
@@ -744,11 +744,16 @@ endif
     if(donew) then   ! actually calling old stuff pre-node
      call TRACK(xs%x,K,fibre1,fibre2=fibre2)
     else
-     if(use_bmad_units.and.(.not.inside_bmad)) then 
-       beta=C%PARENT_FIBRE%beta0
-       if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
-       call convert_bmad_to_ptc(xs,beta,k%time)
-     endif
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(c%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=c%PARENT_FIBRE%PATCH%b0b
+
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
  
 
      DO  WHILE(.not.ASSOCIATED(C,n2))
@@ -761,11 +766,13 @@ endif
        CALL TRACK_NODE_PROBE(last,XS,K)
  
      endif
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(c%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=c%PARENT_FIBRE%PATCH%b0b
+
       call convert_ptc_to_bmad(xs,beta,k%time)
-    endif
+     convert_to_bmad=.true.
+   endif
     endif
 
 
@@ -785,7 +792,7 @@ endif
     TYPE (INTEGRATION_NODE),optional, POINTER :: node1,node2
     TYPE (fibre),optional, POINTER :: fibre1,fibre2
     TYPE (INTEGRATION_NODE), POINTER :: C,n1,n2,last
-    logical donew
+    logical donew,revert_to_ptc
     real(dp) beta
 !type(real_8) dd
 !logical :: didit
@@ -855,10 +862,17 @@ endif
     if(donew) then   ! actually calling old stuff pre-node
      call TRACK(xs%x,K,fibre1,fibre2=fibre2)
     else
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+! etienne       if(T%PARENT_FIBRE%PATCH%ENERGY==5.and.t%cas==-2) beta=T%PARENT_FIBRE%PATCH%b0b
+
+      if(c%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=c%PARENT_FIBRE%PATCH%b0b
+
       call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
     endif
      DO  WHILE(.not.ASSOCIATED(C,n2))
         CALL TRACK_NODE_PROBE(C,XS,K)
@@ -870,11 +884,13 @@ endif
        elem_name = C%PARENT_FIBRE%MAGP%name  ! LD: 22.03.2019
        CALL TRACK_NODE_PROBE(last,XS,K)
      endif
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      if(c%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=c%PARENT_FIBRE%PATCH%b0b
+
       call convert_ptc_to_bmad(xs,beta,k%time)
-    endif
+     convert_to_bmad=.true.
+   endif
     endif
 
   !if(didit) then
@@ -901,6 +917,7 @@ endif
     INTEGER J,i22
     TYPE (INTEGRATION_NODE), POINTER :: C
     real(dp) beta
+    logical revert_to_ptc 
     ! CALL RESET_APERTURE_FLAG
     xs%u=my_false
 
@@ -914,11 +931,12 @@ endif
     endif
 
     J=I1
-
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_bmad_to_ptc(xs,beta,k%time)
+    convert_to_bmad=.false.
     endif
 
     DO  WHILE(J<I22.AND.ASSOCIATED(C))
@@ -931,10 +949,11 @@ endif
        J=J+1
     ENDDO
 
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
+    convert_to_bmad=.true.
+
     endif
 
     C_%STABLE_DA=.true.
@@ -954,7 +973,7 @@ endif
     INTEGER J   ,i22
     TYPE (INTEGRATION_NODE), POINTER :: C
     real(dp) beta
-
+    logical revert_to_ptc
     !    CALL RESET_APERTURE_FLAG
 
     xs%u=my_false
@@ -972,10 +991,13 @@ endif
 
     J=I1
 
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
     endif
 
     DO  WHILE(J<I22.AND.ASSOCIATED(C))
@@ -987,10 +1009,10 @@ endif
        J=J+1
     ENDDO
 
-    if(use_bmad_units.and.(.not.inside_bmad)) then 
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
     endif
 
     C_%STABLE_DA=.true.
@@ -1043,6 +1065,7 @@ endif
     !     write(6,*) 'probe ',i11,i22
     IF(I22==I11.AND.I2>I1) I22=I11+R%T%N
     !     write(6,*) 'probe ',i11,i22
+
 
 
      CALL TRACK_PROBE2(r,xs,K,i11,i22)
@@ -1248,7 +1271,7 @@ endif
 
   END SUBROUTINE TRACK_LAYOUT_FLAG_spint12p_x
 
-
+!eeeeeeeeeeeeeee
 
   SUBROUTINE TRACK_fill_ref(r,fix,i1,k)  ! fibre i1 to i2
     IMPLICIT NONE
@@ -1295,10 +1318,10 @@ endif
     type(probe) xs,XS_REF
     type(three_d_info),intent(INOUT) ::  v
     TYPE(INTERNAL_STATE) K
-    REAL(DP) SC,x(6),reference_ray(6)
+    REAL(DP) SC,x(6),reference_ray(6),beta
     TYPE(INTEGRATION_NODE),POINTER:: mag_in,mag_out
     logical(lp), optional :: ref
-    logical(lp) ref0
+    logical(lp) ref0,revert_to_ptc
     if(.not.check_stable) return
 
     ref0=my_false
@@ -1326,8 +1349,21 @@ endif
        reference_ray(1)=t%ref(1)
        reference_ray(3)=t%ref(2)
     endif
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
 
+      beta=t%PARENT_FIBRE%beta0
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
     CALL TRACK_NODE_PROBE(T,xs,K)  !,t%parent_fibre%CHARGE)
+
+   if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=t%PARENT_FIBRE%beta0
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
 
     if(.not.ref0.and.check_stable) CALL TRACK_NODE_PROBE(T,XS_REF,K)  !,t%parent_fibre%CHARGE)
 
@@ -1378,12 +1414,31 @@ endif
     type(probe) xs
     real(dp),intent(INOUT) ::  x(6)
     TYPE(INTERNAL_STATE) K
-
+    real(dp) beta
+    logical revert_to_ptc
     !    if(.not.check_stable) return
     xs%u=my_false
     XS=X
 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=T%PARENT_FIBRE%beta0
+      if(T%PARENT_FIBRE%PATCH%ENERGY==4.and.t%cas==-1) beta=T%PARENT_FIBRE%PATCH%b0b
+
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
     CALL TRACK_NODE_PROBE(T,xs,K)  !t%parent_fibre%CHARGE)
+
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=T%PARENT_FIBRE%beta0
+      if(T%PARENT_FIBRE%PATCH%ENERGY==5.and.T%cas==-2) beta=T%PARENT_FIBRE%PATCH%b0b
+
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
 
     X=XS%X
 
@@ -1397,12 +1452,32 @@ endif
     type(probe_8) xs
     type(real_8),intent(INOUT) ::  x(6)
     TYPE(INTERNAL_STATE) K
-
+    logical revert_to_ptc
+    real(dp) beta
     !    if(.not.check_stable) return
     xs%u=my_false
     XS%x=X
 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=T%PARENT_FIBRE%beta0
+      if(T%PARENT_FIBRE%PATCH%ENERGY==4.and.T%cas==-1) beta=T%PARENT_FIBRE%PATCH%b0b
+
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
+
     CALL TRACK_NODE_PROBE(T,xs,K) !,t%parent_fibre%CHARGE)
+
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=T%PARENT_FIBRE%beta0
+      if(T%PARENT_FIBRE%PATCH%ENERGY==5.and.t%cas==-2) beta=T%PARENT_FIBRE%PATCH%b0b
+
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
 
     X=XS%X
 
@@ -1424,6 +1499,7 @@ endif
     logical useptc,dofix0,dofix,doonemap
     type(tree_element), pointer :: arbre(:)
 !    logical(lp) bmad
+    logical(lp) revert_to_ptc
     IF(.NOT.CHECK_STABLE) then
        CALL RESET_APERTURE_FLAG
     endif
@@ -1438,7 +1514,15 @@ endif
     C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
     C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
 
       useptc=.true.
 
@@ -1540,6 +1624,13 @@ endif
     endif
        xs%last_node=>c
        xs%e=global_e
+
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
   END SUBROUTINE TRACK_NODE_FLAG_probe_quaR
 
   SUBROUTINE TRACK_NODE_FLAG_probe_QUAP(C,XS,K)
@@ -1552,7 +1643,7 @@ endif
     logical(lp) CHECK_KNOB
     integer(2), pointer,dimension(:)::AN,BN
     integer ki
-    logical useptc,dofix0,dofix,doonemap
+    logical useptc,dofix0,dofix,doonemap,revert_to_ptc
     type(tree_element), pointer :: arbre(:)
 !    logical(lp) bmad
     !   if(xs%u) return
@@ -1569,6 +1660,15 @@ endif
     C%PARENT_FIBRE%MAGP%P%ag => C%PARENT_FIBRE%ag
     C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
 
      useptc=.true.
 !    if(.not.(k%nocavity.and.(ki==kind4.or.ki==kind21))) then
@@ -1693,14 +1793,48 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     endif
        xs%last_node=>c
        xs%e=global_e
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
   END SUBROUTINE TRACK_NODE_FLAG_probe_QUAP
 
   SUBROUTINE TRACK_NODE_FLAG_probe_wrap_R(C,XS,K)
     type(INTEGRATION_NODE), pointer :: C
     type(probe), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
+    logical revert_to_ptc
+    real(dp) beta
+
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
 
 if(C%parent_fibre%mag%name(1:3)=="MAP") then
+ if(C%parent_fibre%mag%name=="MAPEXAM") then
+    if(c%cas==case_map) call track_examr(C,XS,K)
+ return
+ endif
+
+ if(C%parent_fibre%mag%name=="MAPYE") then
+    if(c%cas==case_map) call track_yer(C,XS,K)
+ return
+ endif
+ if(C%parent_fibre%mag%name=="MAPINVYE") then
+    if(c%cas==case_map) call track_ye_invr(C,XS,K)
+ return
+ endif
+ if(C%parent_fibre%mag%name=="MAPEXAMCS") then
+    if(c%cas==case_map) call track_examcsr(C,XS,K)
+ return
+ endif
  if(C%parent_fibre%mag%name=="MAP1") then
     if(c%cas==case_map) call track_mapr1(C,XS,1.0_dp,1,K)
  return
@@ -1754,14 +1888,45 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
 
     endif
 endif  ! map
+
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
     end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_R
 
   SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p(C,XS,K)
     type(INTEGRATION_NODE), pointer :: C
     type(probe_8), INTENT(INOUT) :: xs
     TYPE(INTERNAL_STATE) K
+    logical revert_to_ptc
+    real(dp) beta
+
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
 
 if(C%parent_fibre%magp%name(1:3)=="MAP") then
+ if(C%parent_fibre%mag%name=="MAPEXAM") then
+    if(c%cas==case_map) call track_examp(C,XS,K)
+ return
+ endif
+ if(C%parent_fibre%mag%name=="MAPYE") then
+    if(c%cas==case_map) call track_yep(C,XS,K)
+ return
+ endif
+ if(C%parent_fibre%mag%name=="MAPEXAMCS") then
+    if(c%cas==case_map) call track_examcsp(C,XS,K)
+ return
+ endif
  if(C%parent_fibre%magp%name=="MAP1") then
     if(c%cas==case_map) call track_mapp1(C,XS,1.0_dp,1,K)
  return
@@ -1828,6 +1993,12 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
 
     endif
 endif ! map
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
     end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p
 
   
@@ -2093,6 +2264,300 @@ endif ! map
 
   end subroutine track_strangep
 
+
+
+  subroutine track_examcsr(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    real(dp) sbeta,x,alpha
+    integer n
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+sbeta=sqrt(C%PARENT_FIBRE%MAG%bn(2))   !2.d0
+alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
+n=nint(C%PARENT_FIBRE%MAG%bn(3))
+
+if(n==1) then
+    x=sbeta*xs%x(1) 
+    xs%x(2)=-alpha/sbeta*xs%x(1)+xs%x(2)/sbeta
+    xs%x(1)=x
+else
+    x=xs%x(1)/sbeta
+    xs%x(2)=alpha/sbeta*xs%x(1)+sbeta*xs%x(2)
+    xs%x(1)=x
+endif
+ 
+  end subroutine track_examcsr
+
+  subroutine track_examcsp(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    type(real_8) sbeta,x,alpha
+    integer n
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+call alloc(sbeta,x,alpha)
+
+sbeta=sqrt(C%PARENT_FIBRE%MAG%bn(2))   !2.d0
+alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
+n=nint(C%PARENT_FIBRE%MAG%bn(3))
+
+if(n==1) then
+    x=sbeta*xs%x(1) 
+    xs%x(2)=-alpha/sbeta*xs%x(1)+xs%x(2)/sbeta
+    xs%x(1)=x
+else
+    x=xs%x(1)/sbeta
+    xs%x(2)=alpha/sbeta*xs%x(1)+sbeta*xs%x(2)
+    xs%x(1)=x
+endif
+
+ call kill(sbeta,x,alpha)
+
+
+  end subroutine track_examcsp
+
+  subroutine track_ye_invr(c,xs,K)   !electric teapot s
+ 
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+ 
+ if(first_ye==-1) then
+   first_ye=0
+!write(6,*) fk_ye%mag%bn(1:size(fk_ye%mag%bn))
+!write(6,*) fk_ye%mag%k3%use_anti
+!write(6,*) fk_ye%mag%k3%e
+ write(6,*)  " give j_ye 0,1,2 "
+  read(5,*) j_ye
+  call compute_invh(xs%x,j_ye,invbest_ye)
+ else
+  call locate_on_invh(xs%x,xs%u)
+ endif
+ 
+first_ye=first_ye+1
+
+
+  end subroutine track_ye_invr
+
+
+  subroutine track_yer(c,xs,K)   !electric teapot s
+ 
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    real(dp) mu ,x,beta,gamma,alpha,b4
+    real(dp) a(0:7),b,th
+    integer i
+a(0)=-5.6d-03
+ a(1)=14.5d0
+a(2)=-1.7d-03
+ a(3)=2.1d0
+ a(4)=-6.7d-04
+a(5)=-1.6d-02
+a(6)=8.1d-06
+ a(7)=5.7d-5
+ b=-9.6d-03
+
+ 
+
+
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+    mu=C%PARENT_FIBRE%MAG%an(1)  !0.2501d0*twopi 
+beta=C%PARENT_FIBRE%MAG%bn(2)   !2.d0
+alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
+gamma=(1.0_dp+alpha**2)/beta
+b4=C%PARENT_FIBRE%MAG%bn(3)  !1.0_dp
+ 
+    x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
+    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
+    xs%x(1)=x
+   !  xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
+   ! xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
+    if(C%PARENT_FIBRE%MAG%bn(1)>=1) then
+    if(xs%x(1)>0) then
+      xs%x(2)=xs%x(2)-b4*xs%x(1)**2-C%PARENT_FIBRE%MAG%an(3)*xs%x(1)**2
+    else
+      xs%x(2)=xs%x(2)+b4*xs%x(1)**2-C%PARENT_FIBRE%MAG%an(3)*xs%x(1)**2
+    endif
+   elseif(C%PARENT_FIBRE%MAG%bn(1)>0) then
+   !  x=0
+   !  do i=0,7
+   !   x=a(i)*xs%x(1)**i + x
+   !  enddo
+   !  x=x*(1.0_dp+b*xs%x(3)**2)
+   !   xs%x(2)=xs%x(2)-b4*x
+th=(sinh(xs%x(1)*C%PARENT_FIBRE%MAG%bn(8)))/(cosh(xs%x(1)*C%PARENT_FIBRE%MAG%bn(8)))
+   xs%x(2)=xs%x(2)-th*b4*xs%x(1)**2-(1.0_dp-th**2)*C%PARENT_FIBRE%MAG%bn(8) *b4*xs%x(1)**3/3.0_dp &
+-C%PARENT_FIBRE%MAG%an(3)*xs%x(1)**2
+
+   else
+      xs%x(2)=xs%x(2)-b4*xs%x(1)**2 
+   endif
+!call add(m1,2,0,beta)
+!call add(m1,4,0,1.d0)   ! multipole strength
+!call add(m1,-1,0,(1.d0/(power+1.d0)+del/twopi/(power+1.d0))*twopi )   ! tune
+!call add(m1,1,0,0.d0 )   ! damping
+!call add(m1,-3,0,0.d0 )   ! delta stochastic
+!call add(m1,-2,0,alf ) 
+!call add(m1,3,0,power )  ! multipole order
+
+  end subroutine track_yer
+
+  subroutine track_yep(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    real(dp) mu ,beta,gamma,alpha,b4
+    type(real_8) th
+    type(real_8)  x
+ 
+    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGp%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+call alloc(x)
+    mu=C%PARENT_FIBRE%MAGp%an(1)  !0.2501d0*twopi 
+beta=C%PARENT_FIBRE%MAGp%bn(2)   !2.d0
+alpha=C%PARENT_FIBRE%MAGp%an(2)  !1.5d0
+gamma=(1.0_dp+alpha**2)/beta
+b4=C%PARENT_FIBRE%MAGp%bn(3)  !1.0_dp
+ 
+ 
+ 
+    x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
+    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
+    xs%x(1)=x
+   !  xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
+   !  xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
+    if(C%PARENT_FIBRE%MAG%bn(1)>=1) then
+    if(xs%x(1)>0) then
+      xs%x(2)=xs%x(2)-b4*xs%x(1)**2-C%PARENT_FIBRE%MAGp%an(3)*xs%x(1)**2
+    else
+      xs%x(2)=xs%x(2)+b4*xs%x(1)**2-C%PARENT_FIBRE%MAGp%an(3)*xs%x(1)**2
+    endif
+   elseif(C%PARENT_FIBRE%MAG%bn(1)>0) then
+ call alloc(th)
+th=(sinh(xs%x(1)*C%PARENT_FIBRE%MAGp%bn(8)))/(cosh(xs%x(1)*C%PARENT_FIBRE%MAGp%bn(8)))
+   xs%x(2)=xs%x(2)-th*b4*xs%x(1)**2-(1.0_dp-th**2)*C%PARENT_FIBRE%MAG%bn(8) *b4*xs%x(1)**3/3.0_dp &
+-C%PARENT_FIBRE%MAGp%an(3)*xs%x(1)**2
+ call kill(th)
+
+   else
+      xs%x(2)=xs%x(2)-b4*xs%x(1)**2
+   endif
+
+call kill(x)
+  end subroutine track_yep
+
+
+  subroutine track_examr(c,xs,K)   !electric teapot s
+use gauss_dis
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    real(dp) mu ,x,beta,gamma,alpha,b4
+    integer n
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+    mu=C%PARENT_FIBRE%MAG%an(1)  !0.2501d0*twopi 
+beta=C%PARENT_FIBRE%MAG%bn(2)   !2.d0
+alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
+gamma=(1.0_dp+alpha**2)/beta
+b4=C%PARENT_FIBRE%MAG%bn(4)  !1.0_dp
+n=nint(C%PARENT_FIBRE%MAG%bn(3))
+
+    x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
+    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
+    xs%x(1)=x
+     xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
+     xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
+
+    xs%x(2)=xs%x(2)-b4*xs%x(1)**n
+
+!call add(m1,2,0,beta)
+!call add(m1,4,0,1.d0)   ! multipole strength
+!call add(m1,-1,0,(1.d0/(power+1.d0)+del/twopi/(power+1.d0))*twopi )   ! tune
+!call add(m1,1,0,0.d0 )   ! damping
+!call add(m1,-3,0,0.d0 )   ! delta stochastic
+!call add(m1,-2,0,alf ) 
+!call add(m1,3,0,power )  ! multipole order
+ call GRNF(b4,10.d0)
+    xs%x(2)=xs%x(2)+C%PARENT_FIBRE%MAG%an(3)*b4 
+
+
+ 
+  end subroutine track_examr
+
+  subroutine track_examp(c,xs,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    real(dp) mu ,beta,gamma,alpha,b4
+    type(real_8)  x
+    integer n
+    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGp%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+call alloc(x)
+    mu=C%PARENT_FIBRE%MAG%an(1)  !0.2501d0*twopi 
+beta=C%PARENT_FIBRE%MAG%bn(2)   !2.d0
+alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
+gamma=(1.0_dp+alpha**2)/beta
+b4=C%PARENT_FIBRE%MAG%bn(4)  !1.0_dp
+n=nint(C%PARENT_FIBRE%MAG%bn(3))
+
+    x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
+    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
+    xs%x(1)=x
+     xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
+     xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
+
+    xs%x(2)=xs%x(2)-b4*xs%x(1)**n
+    xs%E_ij(2,2)=C%PARENT_FIBRE%MAG%an(3)**2
+call kill(x)
+  end subroutine track_examp
 
 
   subroutine track_mapr1(c,xs,fac,pos,K)   !electric teapot s
@@ -2684,6 +3149,8 @@ call kill(dl,k,rhoi,z)
     logical useptc,dofix0,dofix,doonemap
     type(tree_element), pointer :: arbre(:)
 !    logical(lp) bmad
+    logical revert_to_ptc
+
     IF(.NOT.CHECK_STABLE) then
        CALL RESET_APERTURE_FLAG
     endif
@@ -2697,6 +3164,16 @@ call kill(dl,k,rhoi,z)
     C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
     C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
 
+ 
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
 
 
     if(full_way.or.k%full_way) then
@@ -2722,11 +3199,6 @@ call kill(dl,k,rhoi,z)
  !   endif ! cavity
  
 
- !   if(use_bmad_units.and.inside_bmad) then
- !     beta=C%PARENT_FIBRE%beta0
- !     if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
- !     call convert_bmad_to_ptc(xs,beta,k%time)
- !   endif
 
     IF(K%MODULATION.and.xs%nac/=0) THEN !modulate
        if(c%parent_fibre%mag%slow_ac/=0) CALL MODULATE(C,XS,K) !modulate
@@ -2790,11 +3262,8 @@ call kill(dl,k,rhoi,z)
   !  IF((K%MODULATION.or.ramp).and.c%parent_fibre%mag%slow_ac) THEN  !modulate
   !     CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
   !  ENDIF  !modulate
-!    if(use_bmad_units.and.inside_bmad) then
-!      beta=C%PARENT_FIBRE%beta0
-!      if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
-!      call convert_ptc_to_bmad(xs,beta,k%time)
-!    endif
+
+
  else ! full_way
 
 
@@ -2829,6 +3298,12 @@ endif ! full_way
     endif
        xs%last_node=>c
        xs%e=global_e
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
   END SUBROUTINE TRACK_NODE_FLAG_probe_R
 
   SUBROUTINE TRACK_NODE_FLAG_probe_P(C,XS,K)
@@ -2843,6 +3318,7 @@ endif ! full_way
     integer ki
     logical useptc,dofix0,dofix,doonemap
     type(tree_element), pointer :: arbre(:)
+     logical revert_to_ptc
 !    logical(lp) bmad
     !   if(xs%u) return
 
@@ -2858,6 +3334,16 @@ endif ! full_way
     C%PARENT_FIBRE%MAGP%P%ag => C%PARENT_FIBRE%ag
     C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
 
+
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
 
     if(full_way.or.k%full_way) then
     useptc=.true.
@@ -2880,12 +3366,9 @@ endif ! full_way
 !    endif
  
  
+!!! new china hefei
 
- !   if(use_bmad_units.and.inside_bmad) then
- !     beta=C%PARENT_FIBRE%beta0
- !     if(C%PARENT_FIBRE%PATCH%ENERGY==4) beta=C%PARENT_FIBRE%PATCH%b0b
- !     call convert_bmad_to_ptc(xs,beta,k%time)
- !   endif
+ 
 
     IF(K%MODULATION.and.xs%nac/=0) then
        knob=.true.
@@ -2980,12 +3463,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
 
     call kill(ds)
 
-
- !   if(use_bmad_units.and.inside_bmad) then
- !     beta=C%PARENT_FIBRE%beta0
- !     if(C%PARENT_FIBRE%PATCH%ENERGY==5) beta=C%PARENT_FIBRE%PATCH%b0b
- !     call convert_ptc_to_bmad(xs,beta,k%time)
- !   endif
+ 
 else
 
 
@@ -3012,6 +3490,12 @@ endif
     endif
        xs%last_node=>c
        xs%e=global_e
+    if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_ptc_to_bmad(xs,beta,k%time)
+     convert_to_bmad=.true.
+   endif
   END SUBROUTINE TRACK_NODE_FLAG_probe_P
 
 

@@ -9,7 +9,7 @@ use spline_mod
 use sim_utils
 use cubic_interpolation_mod
 
-use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, probe_8, internal_state, c_quaternion
+use ptc_spin, only: genfield, fibre, layout, c_damap, c_normal_form, c_taylor, c_universal_taylor, probe_8, internal_state, c_quaternion
 
 private next_in_branch
 
@@ -1589,6 +1589,9 @@ type ptc_normal_form_struct
   type (c_taylor) path_length                ! Path length map. Gives momentum compaction.
   type (c_taylor) spin_tune                  ! Amplitude dependent spin tune 
   type (c_quaternion) isf                    ! Invariant spin field in (x, px, ...) space.
+  type (c_normal_form) u_normal_form         ! Complex normal form
+  type (c_universal_taylor) u_dispersion(4), u_phase(3), u_spin_tune   ! Used when there is RF.
+  type (c_taylor) u_path_length              ! Path length map. Used when there is RF.
   type (internal_state) state                ! PTC state
   logical :: valid_map = .false.
 end type
