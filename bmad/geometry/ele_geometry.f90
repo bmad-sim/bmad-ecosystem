@@ -288,7 +288,7 @@ endif   ! Fiducial, girder, floor_shift
 ! General case where layout is not in the horizontal plane
 
 has_multipole_rot_tilt = .false.
-if (key == multipole$) then
+if (key == multipole$ .and. nint(ele%value(k0l_status$)) == bends_reference$) then
   call multipole_ele_to_kt (ele, .true., ix_pole_max, knl, tilt)
   if (knl(0) /= 0 .and. tilt(0) /= 0) has_multipole_rot_tilt = .true.
 endif
@@ -494,7 +494,11 @@ else
     angle = leng * ele%value(g$)
     chord_len = 2 * ele%value(rho$) * sin(angle/2)
   case (multipole$)
-    angle = knl(0)
+    if (nint(ele%value(k0l_status$)) == bends_reference$) then
+      angle = knl(0)
+    else
+      angle = 0
+    endif
     chord_len = 0
   case (mirror$, multilayer_mirror$)
     angle = 2 * ele%value(graze_angle$) * len_factor

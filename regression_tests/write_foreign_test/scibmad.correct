@@ -232,17 +232,17 @@ end
    x_rot =   1.0000E-03)
   rbend4 = SBend(bend_type = rbend, L_chord =   6.0000E-01, e1_rect =   1.0000E-01,
    e2_rect =   2.0000E-01, g_ref =   1.0000E-02, tilt_ref =   1.0000E-01, Ks0 =  -1.6483E-04,
-   Kn0 =   6.7833E-03, Ks1 =   5.0000E-06, En0 =  -2.0000E+03, Es1 =   6.6667E+03, x_offset =   5.0000E-02,
+   Kn0 =   1.1664E-04, Ks1 =   5.0000E-06, En0 =  -2.0000E+03, Es1 =   6.6667E+03, x_offset =   5.0000E-02,
    x_rot =   1.0000E-03)
   sbend5 = SBend(L =   6.0000E-01, e1 =   1.0000E-01, e2 =   2.0000E-01, g_ref =   1.0000E-02,
-   tilt_ref =   1.0000E-01, Ks0 =  -6.5834E-05, Kn0 =   1.6683E-02, Ks1 =   5.0000E-04, En0 =  -2.0000E+03,
+   tilt_ref =   1.0000E-01, Ks0 =  -6.5834E-05, Kn0 =   1.0017E-02, Ks1 =   5.0000E-04, En0 =  -2.0000E+03,
    Es1 =   6.6667E+03, x_offset =   5.0000E-02, x_rot =   1.0000E-03)
   rbend6 = SBend(bend_type = rbend, L_chord =   6.0000E-01, e1_rect =   1.0000E-01,
    e2_rect =   2.0000E-01, g_ref =   1.0000E-02, tilt_ref =   1.0000E-01, Ks0 =  -1.6583E-04,
-   Kn0 =   6.6834E-03, Ks1 =   5.0000E-09, En0 =  -2.0000E+03, Es1 =   6.6667E+03, x_offset =   5.0000E-02,
+   Kn0 =   1.6739E-05, Ks1 =   5.0000E-09, En0 =  -2.0000E+03, Es1 =   6.6667E+03, x_offset =   5.0000E-02,
    x_rot =   1.0000E-03)
   sbend7 = SBend(L =   6.0000E-01, e1 =   1.0000E-01, e2 =   2.0000E-01, g_ref =   1.0000E-02,
-   tilt_ref =   1.0000E-01, Ks0 =  -6.5834E-05, Kn0 =   1.6683E-02, Ks1 =   5.0000E-04, En0 =  -2.0000E+03,
+   tilt_ref =   1.0000E-01, Ks0 =  -6.5834E-05, Kn0 =   1.0017E-02, Ks1 =   5.0000E-04, En0 =  -2.0000E+03,
    Es1 =   6.6667E+03, x_offset =   5.0000E-02, x_rot =   1.0000E-03)
   sextupole1 = Sextupole(L =   6.0000E-01, Kn2 =   1.0000E+00, x_offset =   5.0000E-02,
    x_rot =   1.0000E-03, z_rot =   5.2360E-01)

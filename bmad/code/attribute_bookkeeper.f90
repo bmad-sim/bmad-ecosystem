@@ -585,9 +585,11 @@ case (e_gun$)
 
 case (multipole$)
   if (associated(ele%a_pole)) then
-    if (ele%a_pole(0) /= 0) then
-      call out_io(s_error$, r_name, 'MULTIPOLE: ' // ele_full_name(ele, '@N (&#)'), &
-                                    'CANNOT HAVE A FINITE K0L VALUE. WILL SET TO ZERO. SEE THE BMAD MANUAL FOR DETAILS.')
+    if (ele%a_pole(0) /= 0 .and. nint(ele%value(k0l_status$)) == not_allowed$) then
+      call out_io (s_fatal$, r_name, &
+                'MULTIPOLE: ' // ele_full_name(ele, '@N (&#)'), &
+                ' CANNOT HAVE A FINITE K0L VALUE UNLESS K0L_STATUS IS SET TO BENDS_REFERENCE OR STRAIGHT_REFERENCE.', &
+                ' SEE THE BMAD MANUAL FOR DETAILS.')
       ele%a_pole(0) = 0
     endif
   endif

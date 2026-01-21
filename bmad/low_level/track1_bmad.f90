@@ -154,7 +154,7 @@ case (multipole$, ab_multipole$)
       ! if knl(0) is non-zero then the reference orbit itself is bent
       ! and we need to account for this.
 
-      if (knl(0) /= 0 .and. ele%key == multipole$) then
+      if (knl(0) /= 0 .and. ele%key == multipole$ .and. nint(ele%value(k0l_status$)) == bends_reference$) then
         ele%mat6(2,6) = knl(0) * cos(tilt(0))
         ele%mat6(4,6) = knl(0) * sin(tilt(0))
         ele%mat6(5,1) = -ele%mat6(2,6)

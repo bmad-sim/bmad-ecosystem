@@ -264,6 +264,7 @@ case (multipole$)
     call multipole_init (ele, electric$, .true.)
   endif
   ele%scale_multipoles = .false.
+  ele%value(k0l_status$) = not_allowed$
 
 case (patch$)
   ele%value(flexible$) = false$ 

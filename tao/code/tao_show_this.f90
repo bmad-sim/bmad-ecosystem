@@ -730,8 +730,8 @@ case ('branch')
     nl=nl+1; write(lines(nl), '(a, i0)') 'For the lattice of universe: ', ix_u
   endif
 
-  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live                Active'
-  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork   Fixer'
+  nl=nl+1; lines(nl) = '                          N_ele  N_ele   Reference      Default_                      Live                         Active'
+  nl=nl+1; lines(nl) = '  Branch                  Track    Max   Particle       Tracking_Species    Geometry  Branch  From_Fork            Fixer'
 
 
   fmt = '((i3, 2a), t26, i6, i7, t42, a, t57, a, t77, a, t87, l2, 6x, a, t116, a)'
@@ -5855,6 +5855,7 @@ case ('universe')
   nl=nl+1; write(lines(nl), amt) 'Used line(s) in lat file: ', quote(lat%use_name)
   nl=nl+1; write(lines(nl), amt) 'Lattice file name:        ', quote(lat%input_file_name)
   nl=nl+1; write(lines(nl), amt) 'Reference species:        ', species_name(branch%param%particle)
+  nl=nl+1; write(lines(nl), amt) 'Active Fixer:             ', branch%ele(branch%ix_fixer)%name
 
   if (species == ref_particle$ .or. species == anti_ref_particle$) then
     nl=nl+1; write(lines(nl), amt) 'Default tracking species: ', trim(species_name(species)), ' (', trim(species_name(default_tracking_species(branch%param))), ')'
