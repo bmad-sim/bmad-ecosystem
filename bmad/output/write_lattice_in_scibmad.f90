@@ -255,7 +255,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     call multipole_ele_to_ab(ele, .false., ix, a_pole, b_pole, magnetic$, include_kicks$)
     if (ele%key == sbend$) then 
-      b_pole(0) = b_pole(0) + ele%value(g$)
+      b_pole(0) = b_pole(0) + ele%value(angle$)
       ix = max(0, ix)
     endif
 

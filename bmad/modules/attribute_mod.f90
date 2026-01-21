@@ -1723,6 +1723,7 @@ attrib_array(multipole$, t0$:t21$)%name = ['T0 ', &
 attrib_array(multipole$, k0l$:t21$)%state = is_free$
 call init_attribute_name1 (is_ok, multipole$, l$,                          'L')
 call init_attribute_name1 (is_ok, multipole$, field_master$,               'FIELD_MASTER')
+call init_attribute_name1 (is_ok, multipole$, k0l_status$,                 'K0L_STATUS', private$)
 call init_attribute_name1 (is_ok, multipole$, x_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (is_ok, multipole$, y_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (is_ok, multipole$, x_pitch_tot$,      null_name$, does_not_exist$, .true.)
@@ -2089,7 +2090,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
       'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', &
-      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT')
+      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT', 'K0L_STATUS')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2554,6 +2555,10 @@ case ('INTERPOLATION')
 case ('KEY')
     call get_this_attrib_name (attrib_val_name, ix_attrib_val, key_name, lbound(key_name, 1), name_list)
   if (present(is_default)) is_default = .false.
+
+case ('K0L_STATUS')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, k0l_status_name, lbound(k0l_status_name, 1), name_list)
+  if (present(is_default)) is_default = (ix_attrib_val == not_allowed$)
 
 case ('KICK0')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, kick0_name, lbound(kick0_name, 1), name_list)

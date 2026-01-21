@@ -3810,6 +3810,11 @@ General \vn{multipole} attributes are:
 \toffset
 See \sref{s:list.multipole} for a full list of element attributes along with a their units.
 
+Attributes specific to a \vn{mirror} element are:
+\begin{example}
+  K0L_status      = <Switch> ! not_allowed (default), bends_reference, or straight_reference.
+\end{example}
+
 \index{l}
 The length \vn{l} is a fictitious length that is used for synchrotron
 radiation computations and affects the longitudinal position of the
@@ -3820,33 +3825,22 @@ When an \vn{multipole} is superimposed (\sref{c:super}) on a lattice, it is
 treated as a zero length element and in this case it is an error for the length
 of the \vn{multipole} to be set to a nonzero value.
 
+The \vn{K0L} parameter presents a compatibility problem since MAD treats a finite \vn{K0L} as a zero
+length bend with a corresponding change in reference orbit (\sref{s:ref}) while \vn{PTC} does not do
+this. An additional consideration is that this can be very confusing to users. To minimize problems,
+a finite \vn{K0L} is only allowed if the \vn{K0L_status} switch is set appropriately. Possibilities
+settings are:
+\begin{example}
+  not_allowed           ! Default. K0L not allowed to be set. 
+  bends_reference       ! Compatible with MAD.
+  straight_reference    ! Compatible with PTC.
+\end{example}
+
+
 Example:
 \begin{example}
   m1: multipole, k1l = 0.034e-2, t1, k3sl = 4.5, t3 = 0.31*pi
 \end{example}
-
-NOTE! Originally, for compatibility with MAD, a \bmad \vn{Multipole} with a finite \vn{K0L} would
-act as a zero length bend with a change in reference orbit (\sref{s:ref}) commensurate with the
-value of \vn{K0L}. This was problematical for several reasons. For one, \vn{PTC} does not do this so
-there were differences between Bmad tracking and tracking with maps. An additional consideration is
-that all of this can be very confusing to Users.
-
-%Additionally, there is the
-%issue that radiation effects due to a multipole are ignored. This is done since the amount of
-%radiation emitted from a true zero length element would be infinite so there is no good way to
-%calculate what the radiation would be. This is generally a reasonable approximation for, say, a zero
-%length quadrupole, however ignoring radiation in dipoles can be problematical since dipole radiation
-%is often significant.
-
-As a result of these considerations, it was decided to disallow the setting of K0L for a Multipole
-and, if K0L is set, an error message will be issued.\footnote
-  {
-One possibility that was considered was to simply treat \vn{K0L} as a kick without any change in
-reference orbit.  This was rejected since it could be confusing to compare MAD and \bmad
-computations with lattices that had a finite \vn{K0L}.
-  }
-In \bmad, an equivalent to a multipole with \vn{K0L} is a \vn{patch} element with finite
-\vn{x_pitch} or \vn{y_pitch} along with a \vn{kicker} element with the appropriate kick.
 
 \newpage
 

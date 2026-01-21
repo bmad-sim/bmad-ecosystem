@@ -2025,6 +2025,10 @@ case ('KICK0')
   call get_switch (attrib_word, kick0_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(kick0$) = ix
 
+case ('K0L_STATUS')
+  call get_switch (attrib_word, k0l_status_name, ix, err_flag, ele, delim, delim_found); if (err_flag) return
+  ele%value(k0l_status$) = ix
+
 case ('LATTICE_TYPE')   ! Old style
   call parser_error ('PARAMETER[LATTICE_TYPE] IS OLD SYNTAX.', &
                      'PLEASE REPLACE WITH PARAMETER[GEOMETRY] = OPEN/CLOSED')
