@@ -11,7 +11,36 @@ use taylor_mod
 
 implicit none
 
+type(ele_struct), pointer :: rb_ele => null()
+type(coord_struct), pointer :: rb_orb => null()
+type(grid_field_struct), pointer :: rb_grid => null()
+complex(rp) :: rb_expt
+logical :: rb_print_err
+real(rp) :: rb_z
+!$OMP THREADPRIVATE(rb_ele, rb_orb, rb_grid, rb_expt, rb_print_err, rb_z)
+
 contains
+
+!-----------------------------------------------------------------
+! Function for vector potential calc used by em_field_calc.
+
+function rb_field(x)
+
+real(rp), intent(in) :: x(:)
+real(rp) :: rb_field(size(x))
+type (grid_field_pt1_struct) g_pt
+logical err
+integer i
+
+!
+
+do i = 1, size(x)
+  call grid_field_interpolate(rb_ele, rb_orb, rb_grid, g_pt, err, x(i), rb_z, &
+              allow_s_out_of_bounds = .true., print_err = rb_print_err)
+  rb_field(i) = x(i) * rb_expt * g_pt%b(3)
+enddo
+
+end function rb_field
 
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------
