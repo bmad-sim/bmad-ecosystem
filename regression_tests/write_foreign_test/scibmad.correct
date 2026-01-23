@@ -161,7 +161,7 @@ end
   ac_kicker0123456789 = ACKicker(L =   3.0000E-01, Kn0 =  -3.3333E-02)
   ac_kicker2 = ACKicker(L =   4.0000E-01, Ks0 =   2.5000E-02)
   beambeam1 = BeamBeam(x_offset =   3.0000E-03, y_offset =   3.0000E-03, x_rot =   5.0000E-02,
-   ksol =   1.0000E+00)
+   Ksol =   1.0000E+00)
   crab_cavity1 = CrabCavity(L =   2.0000E-01, rf_frequency =   1.0000E+08, voltage =   1.0000E+03,
    phi0 =  -2.0000E-01)
   ecollimator1 = Drift(L =   4.5000E+00, Ks0 =   2.2037E-04, Kn0 =  -2.2555E-03, x1_limit =  -2.0000E-01,
@@ -218,9 +218,9 @@ end
    zero_phase = PhaseReference.AboveTransition, rf_frequency =   5.0000E+08, voltage =   1.0000E+05,
    phi0 =   1.0000E-01)
   sad_mult1 = SadMult(L =   1.0000E-01, Ks1 =   2.0000E-01, Kn2 =   8.0000E+02, Ks10 =   3.6288E+27,
-   ksol =   5.0000E-01)
+   Ksol =   5.0000E-01)
   sad_mult2 = SadMult(Ks1L =   2.0000E-02, Kn2L =   8.0000E+01, Ks10L =   3.6288E+26,
-   ksol =   5.0000E-01)
+   Ksol =   5.0000E-01)
   sbend1 = SBend(L =   6.0000E-01, tilt_ref =   1.0000E-01, Ks0 =  -1.6583E-04, Kn0 =   1.6639E-05,
    Kn1 =   3.0000E-01, En0 =  -2.0000E+03, Es1 =   6.6667E+03, x_offset =   5.0000E-02,
    x_rot =   1.0000E-03)
@@ -247,13 +247,13 @@ end
   sextupole1 = Sextupole(L =   6.0000E-01, Kn2 =   1.0000E+00, x_offset =   5.0000E-02,
    x_rot =   1.0000E-03, z_rot =   5.2360E-01)
   solenoid1 = Solenoid(L =   2.6000E+00, x_offset =   5.0000E-02, x_rot =   1.0000E-03,
-   z_rot =   1.0000E-01, ksol =   1.0000E+00)
+   z_rot =   1.0000E-01, Ksol =   1.0000E+00)
   solenoid2 = Solenoid(L =   2.6000E+00, x_offset =   5.0000E-02, x_rot =   1.0000E-03,
-   z_rot =   1.0000E-01, ksol =   1.0000E-12)
+   z_rot =   1.0000E-01, Ksol =   1.0000E-12)
   sol_quad1 = Solenoid(L =   2.6000E+00, Kn1 =   1.0000E+00, x_offset =   5.0000E-02,
-   x_rot =   1.0000E-03, z_rot =   1.0000E-01, ksol =   1.0000E+00)
+   x_rot =   1.0000E-03, z_rot =   1.0000E-01, Ksol =   1.0000E+00)
   sol_quad2 = Solenoid(L =   2.6000E+00, Kn1 =   1.0000E-05, x_offset =   5.0000E-02,
-   x_rot =   1.0000E-03, z_rot =   1.0000E-01, ksol =   1.0000E+00)
+   x_rot =   1.0000E-03, z_rot =   1.0000E-01, Ksol =   1.0000E+00)
   thick_multipole1 = ThickMultipole(L =   4.5000E+00, Ks2 =   4.4444E-01, Kn3 =   2.6667E+01,
    x_offset =   2.0000E-02, z_rot =   1.0000E-01)
   taylor1 = LineElement(L =   5.0000E-01, transport_map = map_taylor1)

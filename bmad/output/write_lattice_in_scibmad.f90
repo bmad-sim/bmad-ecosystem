@@ -338,7 +338,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%field_master) then
         if (ele%value(bs_field$) /= 0)  line = trim(line) // ', bsol_field = ' // re_str(ele%value(bs_field$))
       else
-        if (ele%value(ks$) /= 0)  line = trim(line) // ', ksol = ' // re_str(ele%value(ks$))
+        if (ele%value(ks$) /= 0)  line = trim(line) // ', Ksol = ' // re_str(ele%value(ks$))
       endif
     endif
 
