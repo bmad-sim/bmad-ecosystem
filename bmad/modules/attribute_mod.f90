@@ -1723,7 +1723,7 @@ attrib_array(multipole$, t0$:t21$)%name = ['T0 ', &
 attrib_array(multipole$, k0l$:t21$)%state = is_free$
 call init_attribute_name1 (is_ok, multipole$, l$,                          'L')
 call init_attribute_name1 (is_ok, multipole$, field_master$,               'FIELD_MASTER')
-call init_attribute_name1 (is_ok, multipole$, k0l_status$,                 'K0L_STATUS', private$)
+call init_attribute_name1 (is_ok, multipole$, k0l_status$,                 'K0L_STATUS')
 call init_attribute_name1 (is_ok, multipole$, x_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (is_ok, multipole$, y_pitch$,          null_name$, does_not_exist$, .true.)
 call init_attribute_name1 (is_ok, multipole$, x_pitch_tot$,      null_name$, does_not_exist$, .true.)

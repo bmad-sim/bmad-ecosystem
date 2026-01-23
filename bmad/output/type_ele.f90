@@ -219,6 +219,13 @@ do ia = 1, num_ele_attrib$
   if (is_2nd_column_attribute(ele, a_name, ix2_attrib)) cycle
   if (a_name == 'REF_SPECIES' .and. nint(ele%value(ia)) == not_set$) cycle
 
+  if (a_name == 'K0L_STATUS') then
+    if (nint(ele%value(k0l_status$)) == not_allowed$) cycle
+    nl=nl+1; li(nl) = '!!!!!!!!!!!!!!!!!!!!!!!!!!! type_ele needs to be modified !!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    nl=nl+1; li(nl) = '!!!!!!!!!!!!!!!!!!!!!!!!!!! type_ele needs to be modified !!!!!!!!!!!!!!!!!!!!!!!!!!!'
+    nl=nl+1; li(nl) = '!!!!!!!!!!!!!!!!!!!!!!!!!!! type_ele needs to be modified !!!!!!!!!!!!!!!!!!!!!!!!!!!'
+  endif
+
   attrib2 = ele_attribute_struct()
 
   select case (a_name)

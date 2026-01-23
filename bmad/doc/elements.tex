@@ -3826,16 +3826,24 @@ treated as a zero length element and in this case it is an error for the length
 of the \vn{multipole} to be set to a nonzero value.
 
 The \vn{K0L} parameter presents a compatibility problem since MAD treats a finite \vn{K0L} as a zero
-length bend with a corresponding change in reference orbit (\sref{s:ref}) while \vn{PTC} does not do
-this. An additional consideration is that this can be very confusing to users. To minimize problems,
-a finite \vn{K0L} is only allowed if the \vn{K0L_status} switch is set appropriately. Possibilities
-settings are:
+length bend with a corresponding change in reference orbit (\sref{s:ref}). On the other hand,
+\vn{PTC} does not do this. An additional consideration is that this can be very confusing to
+users. To minimize problems, a finite \vn{K0L} is only allowed if the \vn{K0L_status} switch is set
+appropriately. Possible settings of \vn{K0L_status} are:
 \begin{example}
   not_allowed           ! Default. K0L not allowed to be set. 
   bends_reference       ! Compatible with MAD.
   straight_reference    ! Compatible with PTC.
 \end{example}
+The tracking with \vn{K0L_status} set to \vn{bends_reference} follows MAD. Here a paraxial
+apporoximation is used. That is, \vn{K0L} is assumed small compared to one. With this approximation,
+a particle with zero $p_z$ will exit the multipole with the same phase space coordinates as it
+enters with. Notice that since the reference orbit is shifted, the setting of \vn{K0L} will affect
+the placement of elements downstream of the multipole in the global coordinate system (analogous to
+the shift in downstream element positions after \vn{sbend} and \vn{rbend} elements).
 
+With \vn{K0L_status} set to \vn{straight_reference}, a finite \vn{K0L} acts as a simple dipole kick
+analogous to the \vn{a0} and \vn{b0} dipole kicks when using an \vn{ab_multipole}.
 
 Example:
 \begin{example}
