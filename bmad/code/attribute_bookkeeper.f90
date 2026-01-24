@@ -654,7 +654,7 @@ case (lcavity$)
   ! Note: multipass_slaves will inherit from lord
   if (ele%slave_status /= multipass_slave$) then
     ! Make sure active length is slightly less than the element length to avoid round-off during tracking.
-    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
       n_cell = max(1, min(nint(ele%value(n_cell$)), floor(2.0_rp * val(l$) / val(rf_wavelength$))))
       val(l_active$) = min(0.5_rp * val(rf_wavelength$) * n_cell, val(l$)-10*bmad_com%significant_length)
     else
@@ -698,7 +698,7 @@ case (rfcavity$)
 
   ! multipass_slaves will inherit from lord
   if (ele%slave_status /= multipass_slave$) then
-    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
       val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
     else
       val(l_active$) = val(l$)
@@ -737,7 +737,7 @@ case (rf_bend$)
 
   ! multipass_slaves will inherit from lord
   if (ele%slave_status /= multipass_slave$) then
-    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$ .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+    if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
       val(l_active$) = 0.5_rp * val(rf_wavelength$) * nint(val(n_cell$))
     else
       val(l_active$) = val(l$)
