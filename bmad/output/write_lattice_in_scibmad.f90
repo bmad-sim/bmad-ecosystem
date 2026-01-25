@@ -165,7 +165,7 @@ n = lat%n_ele_max
 allocate (names(n), an_indexx(n), named_eles(n))
 
 write (iu, '(a)')
-write (iu, '(a)') '@eles begin'
+write (iu, '(a)') '@elements begin'
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -396,7 +396,7 @@ do ib = 0, ubound(lat%branch, 1)
   enddo ele_loop
 enddo
 
-write (iu, '(a)') 'end    # @eles'
+write (iu, '(a)') 'end    # @elements'
 
 !------------------------------------------------------------------------------------------------------
 ! Write branch lines

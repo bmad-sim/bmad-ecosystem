@@ -156,7 +156,7 @@ function map_taylor1(v, q)
   return (v_out1, v_out2, v_out3, v_out4, v_out5, v_out6), (q_out1, q_out2, q_out3, q_out4)
 end
 
-@eles begin
+@elements begin
   ab_multipole1 = Multipole(Ks2L =   2.0000E+02, Kn2L =   2.0000E+02, z_rot =   1.0000E-01)
   ac_kicker0123456789 = ACKicker(L =   3.0000E-01, Kn0 =  -3.3333E-02)
   ac_kicker2 = ACKicker(L =   4.0000E-01, Ks0 =   2.5000E-02)
@@ -266,7 +266,7 @@ end
   lcavity3 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =   1.0000E-03,
    z_rot =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0450E+03, phi0 =  -1.9000E-01)
   end_b0 = Marker()
-end    # @eles
+end    # @elements
 
 l1 = Beamline([ ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
    crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1,
