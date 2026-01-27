@@ -116,7 +116,7 @@ if (logic_option(.false., track_spin)) then
   endif
   x = ave_orb%vec(1);  y = ave_orb%vec(3)
   tan_e_x = tan(e_ang) * x
-  field%B = (ele%value(b_field$) + ele%value(db_field$)) * [-sin(e_ang)*y, -tan_e_x, cos(e_ang)*y]
+  field%B = (ele%value(b_field$) + ele%value(db_field$)) * [-tan(e_ang)*y, -tan_e_x, y]
   if (ele%value(b1_gradient$) /= 0) field%B = field%B - ele%value(b1_gradient$) * tan_e_x * [x*y, x*x - y*y, 0.0_rp]
   if (ele%value(b2_gradient$) /= 0) field%B = field%B - ele%value(b2_gradient$) * tan_e_x * [3*x*x*y - y**3, x**3 - 3*x*y*y, 0.0_rp]
   if (physical_ele_end(particle_at, orb, ele%orientation) == downstream_end$) field%B(3) = -field%B(3)

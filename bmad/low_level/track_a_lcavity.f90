@@ -116,9 +116,9 @@ if (s_dir == 1) then
 
     ! Stair step kick
     if (ix_step /= ix_step_end) then
-      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step%scale, body_dir, mat6, make_mat)
+      call this_pondermotive_transverse_kick(orbit, lord, step, upstream_end$, body_dir, mat6, make_mat)
       call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
-      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step%scale, body_dir, mat6, make_mat)
+      call this_pondermotive_transverse_kick(orbit, lord, step, downstream_end$, body_dir, mat6, make_mat)
     endif
 
     ! Exit fringe?
@@ -156,9 +156,9 @@ if (s_dir == -1) then
     ! Stair step kick
     if (ix_step /= ix_step_end) then
       step0 => lord%rf%steps(ix_step-1)
-      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step0%scale, body_dir, mat6, make_mat)
+      call this_pondermotive_transverse_kick(orbit, lord, step0, downstream_end$, body_dir, mat6, make_mat)
       call this_energy_kick(orbit, lord, step0, body_dir, mat6, make_mat)
-      call this_pondermotive_transverse_kick(orbit, lord, 0.5_rp * step0%scale, body_dir, mat6, make_mat)
+      call this_pondermotive_transverse_kick(orbit, lord, step0, upstream_end$, body_dir, mat6, make_mat)
     endif
 
     ! Exit fringe?
@@ -299,7 +299,8 @@ real(rp) pc_start, pc_end, om, r_pc, r2_pc, dp_dE, s_omega(3)
 integer body_dir
 logical make_mat
 
-! Multipole half kicks
+! Multipole half kicks.
+! Note that the ab_multipole_kicks routine corrects for lord%value(p0c$) /= orbit%p0c.
 
 scale = 0.5_rp * step%scale
 
@@ -376,15 +377,16 @@ end subroutine this_energy_kick
 !---------------------------------------------------------------------------------------
 ! contains
 
-subroutine this_pondermotive_transverse_kick(orbit, lord, scale, body_dir, mat6, make_mat)
+subroutine this_pondermotive_transverse_kick(orbit, lord, step, this_end, body_dir, mat6, make_mat)
 
 type (coord_struct) orbit
 type (ele_struct) lord
+type (rf_stair_step_struct) :: step
 
-real(rp) scale, coef, kmat(6,6), rel_p
+real(rp) coef, kmat(6,6), rel_p, dz
 real(rp), optional :: mat6(6,6)
 
-integer body_dir
+integer this_end, body_dir, n_step
 logical make_mat
 
 ! The pondermotive force only occurs if there is a EM wave in the opposite direction from the direction of travel.
@@ -393,9 +395,16 @@ if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) retur
 
 !
 
+n_step = nint(lord%value(n_rf_steps$))
+if (body_dir == 1) then
+  if ((step%ix_step == 0 .and. this_end == upstream_end$) .or. (step%ix_step == n_step .and. this_end == downstream_end$)) return
+else
+  if ((step%ix_step == 0 .and. this_end == downstream_end$) .or. (step%ix_step == n_step .and. this_end == upstream_end$)) return
+endif
+
 rel_p = 1.0_rp + orbit%vec(6)
 coef = (lord%value(field_autoscale$)*lord%value(voltage_tot$)/lord%value(l_active$))**2 * &
-                                      scale * orbit%time_dir * lord%value(l_active$) / (8.0_rp * orbit%p0c**2 * rel_p)
+                                      orbit%time_dir * lord%value(l_active$) / (16.0_rp * orbit%p0c**2 * rel_p * n_step)
 
 if (make_mat) then
   call mat_make_unit(kmat)
@@ -411,7 +420,10 @@ endif
 
 orbit%vec(2) = orbit%vec(2) - coef * orbit%vec(1)
 orbit%vec(4) = orbit%vec(4) - coef * orbit%vec(3)
-orbit%vec(5) = orbit%vec(5) - 0.5_rp * coef * (orbit%vec(1)**2 + orbit%vec(3)**2) / rel_p
+
+dz = -0.5_rp * coef * (orbit%vec(1)**2 + orbit%vec(3)**2) / rel_p
+orbit%vec(5) = orbit%vec(5) + dz
+orbit%t = orbit%t - dz / (c_light * orbit%beta)
 
 end subroutine this_pondermotive_transverse_kick
 
