@@ -1752,7 +1752,7 @@ call calc_z_tune (branch)
 
 print *, 'Momentum Compaction:', ltt_com%modes%synch_int(1)/ring_length
 print *, 'dE/E=', ltt_com%modes%sigE_E
-print *, 'sig_z(m)=', ltt_com%modes%sig_z
+print *, 'sig_z (m):   ', ltt_com%modes%sig_z
 print *, 'emit_I  (m): ',  ltt_com%modes%a%emittance
 print *, 'emit_II (m): ',  ltt_com%modes%b%emittance
 print *, 'emit_III(m): ',  ltt_com%modes%z%emittance

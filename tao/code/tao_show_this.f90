@@ -195,7 +195,7 @@ logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print
 logical show_all, name_found, print_taylor, print_rad, print_attributes, err_flag, angle_units, map_calc, clean
 logical print_ptc, force_use_ptc, called_from_pipe_cmd, print_eigen, show_mat, show_q, print_rms, do_inverse
 logical valid_value, print_floor, show_section, is_complex, print_header, print_by_uni, do_field, delim_found
-logical print_internal
+logical print_internal, has_radiation, has_elements
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
@@ -5046,6 +5046,8 @@ case ('taylor_map', 'matrix')
   ele1_name = ''
   ele2_name = ''
   style = ''
+  has_radiation = .false.
+  has_elements = .false.
 
   if (show_what == 'matrix') then
     n_order = 1
@@ -5072,7 +5074,7 @@ case ('taylor_map', 'matrix')
       print_eigen = .true.
 
     case ('-elements')
-      output_type = 'ELEMENTS'
+      has_elements = .true.
       call tao_next_word(what2, ele_name)
       if (n_order == -1) n_order = 1
 
@@ -5098,7 +5100,7 @@ case ('taylor_map', 'matrix')
       force_use_ptc = .true.
 
     case ('-radiation')
-      output_type = 'RADIATION'
+      has_radiation = .true.
 
     case ('-s')
       where = "S_LOC"
@@ -5134,12 +5136,12 @@ case ('taylor_map', 'matrix')
 
   if (n_order == -1) n_order = ptc_private%taylor_order_ptc
 
-  if (where == "ELE_LIST" .and. output_type == "RADIATION") then
+  if (where == "ELE_LIST" .and. has_radiation) then
     nl=1; lines(1) = 'ERROR: "-radiation" AND "-elements" SWITCHES CANNOT BOTH BE PRESENT.'
     return
   endif
 
-  if (where == "S_LOC" .and. output_type == "RADIATION") then
+  if (where == "S_LOC" .and. has_radiation) then
     nl=1; lines(1) = 'ERROR: "-radiation" AND "-s" SWITCHES CANNOT BOTH BE PRESENT.'
     return
   endif
@@ -5258,7 +5260,7 @@ case ('taylor_map', 'matrix')
     !---------------------------------------
     ! Radiation
 
-  if (output_type == 'RADIATION') then
+  if (has_radiation) then
     if (.not. s%global%rf_on) then
       nl=nl+1; lines(nl) = 'Note: RF IS TURNED OFF!'
       nl=nl+1; lines(nl) = '   TO TURN ON USE: "set global rf_on = T"'
@@ -5319,7 +5321,7 @@ case ('taylor_map', 'matrix')
 
   ! Print results
 
-  if (output_type == 'ELEMENTS') THEN
+  if (has_elements) then
     call tao_locate_elements (ele_name, u%ix_uni, eles, err)
     if (err .or. size(eles) == 0) return
 
