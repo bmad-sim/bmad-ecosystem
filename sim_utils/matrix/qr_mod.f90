@@ -43,7 +43,7 @@ CONTAINS
 ! Input:
 !   Ain(:,:)   -- REAL(rp), INTENT(IN):  m*n, m>=n, array of reals.
 ! 
-! Ouput:
+! Output:
 !   Q(:,:)     -- Double precision m*m array of reals.
 !   R(:,:)     -- Double precision n*n array of reals.
 !-
@@ -92,7 +92,7 @@ END SUBROUTINE qr
 ! Input:
 !   Ain(:,:)   -- REAL(rp), INTENT(IN): m*n, m>=n, array of reals.
 ! 
-! Ouput:
+! Output:
 !   Q1(:,:)    -- REAL(rp), INTENT(OUT): m*n array of reals.
 !   R1(:,:)    -- REAL(rp), INTENT(OUT): n*n array of reals.
 !-

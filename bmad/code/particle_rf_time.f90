@@ -25,7 +25,7 @@
 !   abs_time          -- real(rp), optional: If False (default) use setting of bmad_com%absolute_time_tracking.
 !                           If True, use absolute time instead of relative time.
 !
-! Ouput:
+! Output:
 !   time      -- Real(rp): Current time.
 !-
 

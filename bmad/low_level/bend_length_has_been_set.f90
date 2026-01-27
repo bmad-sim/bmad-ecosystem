@@ -10,7 +10,7 @@
 ! Input:
 !   ele           -- ele_struct: Element to be checked.
 !
-! Ouput:
+! Output:
 !   is_set        -- logical: Note: will be set True for non-bend elements.
 
 function bend_length_has_been_set(ele) result (is_set)

@@ -18,7 +18,7 @@ contains
 !   ele           -- ele_struct: Element associated with the map.
 !   cart_map      -- cartesian_map_struct: Cartesian map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -77,7 +77,7 @@ end subroutine write_binary_cartesian_map
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   cart_map      -- cartesian_map_struct, cartesian map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
@@ -142,7 +142,7 @@ end subroutine read_binary_cartesian_map
 !   ele           -- ele_struct: Element associated with the map.
 !   cl_map        -- cylindrical_map_struct: Cylindrical map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -203,7 +203,7 @@ end subroutine write_binary_cylindrical_map
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   cl_map        -- cylindrical_map_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
@@ -268,7 +268,7 @@ end subroutine read_binary_cylindrical_map
 !   ele           -- ele_struct: Element associated with the map.
 !   g_field       -- grid_field_struct: Cylindrical map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -330,7 +330,7 @@ end subroutine write_binary_grid_field
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   g_field       -- grid_field_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-

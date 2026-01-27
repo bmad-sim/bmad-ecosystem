@@ -6,7 +6,7 @@
 ! Input:
 !   lat         -- lat_struct: Lattice.
 !
-! Ouput:
+! Output:
 !   nametable   -- nametable_struct: Nametable of the elment names
 !-
 

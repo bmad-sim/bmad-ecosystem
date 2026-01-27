@@ -425,7 +425,7 @@ end subroutine lux_init_data
 !   lux_param   -- lux_param_struct: Lux input parameters.
 !   lux_com     -- lux_common_struct: Common parameters.
 !
-! Ouput:
+! Output:
 !   orb         -- coord_struct: Initialized starting coords.
 !-
 

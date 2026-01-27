@@ -12,7 +12,7 @@
 !   ele      -- ele_struct: RF Element being tracked through.
 !   ds       -- real(rp), optional: Distance of particle from start edge. Default is zero.
 !
-! Ouput:
+! Output:
 !   time  -- Real(rp): Offset time.
 !-
 
