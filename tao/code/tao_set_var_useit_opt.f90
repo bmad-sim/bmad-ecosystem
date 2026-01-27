@@ -4,7 +4,10 @@
 ! Calculate which variables will be used by optimizer.
 ! This is indicated by s%u(:)%var(:)%useit_opt
 !
-! Input/Output:
+! Input:
+!   s     -- type_super_universe_struct
+!
+! Output:
 !   s     -- type_super_universe_struct
 !-
 
