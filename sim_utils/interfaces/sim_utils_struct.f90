@@ -135,7 +135,7 @@ contains
 ! Input:
 !   logic   -- logical: logical to translate.
 !
-! Ouput:
+! Output:
 !   int     -- integer: Translated logical.
 !-
 

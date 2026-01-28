@@ -19,7 +19,7 @@ contains
 !   ele           -- ele_struct: Element associated with the map.
 !   cart_map      -- cartesian_map_struct: Cartesian map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -79,7 +79,7 @@ end subroutine hdf5_write_cartesian_map
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   cart_map      -- cartesian_map_struct, cartesian map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
@@ -147,7 +147,7 @@ end subroutine hdf5_read_cartesian_map
 !   ele           -- ele_struct: Element associated with the map.
 !   cl_map        -- cylindrical_map_struct: Cylindrical map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -188,7 +188,7 @@ end subroutine hdf5_write_cylindrical_map
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   cl_map        -- cylindrical_map_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
@@ -232,7 +232,7 @@ end subroutine hdf5_read_cylindrical_map
 !   ele           -- ele_struct: Element associated with the map.
 !   g_field       -- grid_field_struct: Cylindrical map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -289,7 +289,7 @@ end subroutine hdf5_write_grid_field
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   g_field       -- grid_field_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
@@ -333,7 +333,7 @@ end subroutine hdf5_read_grid_field
 !   ele           -- ele_struct: Element associated with the map.
 !   t_field       -- taylor_field_struct: Cylindrical map.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 
@@ -374,7 +374,7 @@ end subroutine hdf5_write_taylor_field
 !   file_name     -- character(*): File to create.
 !   ele           -- ele_struct: Element associated with the map.
 !
-! Ouput:
+! Output:
 !   t_field       -- taylor_field_struct, cylindrical map.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-

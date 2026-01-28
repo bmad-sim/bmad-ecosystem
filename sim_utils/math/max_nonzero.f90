@@ -5,7 +5,7 @@
 ! with index greater than ix_max are zero. and either array1(ix_max) or array2(ix_max) 
 ! is non zero.
 !
-! Inputs:
+! Input:
 !   lbnd        -- integer: Lower bound of array1 and array2
 !   array1(:)   -- real(rp): Array of numbers.
 !   array2(:)   -- real(rp), optional: Array of numbers. 

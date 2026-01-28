@@ -27,7 +27,7 @@
 !                       This is only needed if save_field = True.
 !   strong_beam     -- strong_beambeam_struct, optional: Strong beam info if tracking through a beambeam element.
 !
-! Ouput:
+! Output:
 !   track           -- track_struct: Track with current position appended on.
 !-
 

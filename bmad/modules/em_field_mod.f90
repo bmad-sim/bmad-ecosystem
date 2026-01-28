@@ -93,7 +93,7 @@ end function g_bend_from_em_field
 !   r0(3)             -- real(rp): origin point of the fieldmap.
 !   curved_ref_frame  -- logical: If the element is a bend: Does the field map follow the bend reference coords?
 !
-! Outpt:
+! Output:
 !   x, y, z           -- real(rp): Coords relative to the field map.
 !   cos_ang, sin_ang  -- real(rp): cos and sin of coordinate rotation angle.
 !   err_flag          -- logical: Set True if there is an error. False otherwise.

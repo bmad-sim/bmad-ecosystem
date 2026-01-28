@@ -5,7 +5,7 @@
 ! This function is a slight modification of the function ZBRENT given
 !     in Numerical Recipes.
 !
-! Inputs:
+! Input:
 !   funct(x) -- Function: Function to be inverted.
 !   y        -- Real(rp): Value to be inverted.
 !   x1, x2   -- Real(rp): X must lie between: X1 < X < X2.

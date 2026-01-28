@@ -7,7 +7,7 @@
 !   d1        -- tao_d1_data_struct: D1 data struct to search.
 !   ele_name  -- character(*): Name of lattice element to match to.
 !
-! Ouput:
+! Output:
 !   datum_ptr   -- data_struct, pointer: Pointer to the matched datum. 
 !                   Will be null if no match found.
 !-

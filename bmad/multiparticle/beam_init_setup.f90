@@ -13,7 +13,7 @@
 !   species       -- integer: Beam particle species.
 !   modes         -- normal_modes_struct, optional: Normal mode parameters.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
 !   beam_init_set -- beam_init_struct: See above.
 !-

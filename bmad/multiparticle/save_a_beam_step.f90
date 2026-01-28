@@ -12,7 +12,7 @@
 !   is_time_coords  -- logical, optional: Default is False. If True, input beam is using time coordinates in which
 !                       case there will be a conversion to s-coords before bunch_params are computed.
 !
-! Ouput:
+! Output:
 !   bunch_tracks(:) -- bunch_track_struct, optional: Track with current bunch info appended on. This routine does nothing
 !                       if this argument is not present.
 !-

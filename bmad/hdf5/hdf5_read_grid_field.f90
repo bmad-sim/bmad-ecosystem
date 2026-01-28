@@ -10,7 +10,7 @@
 !   combine       -- logical, optional: If False (the default), discard existing data in input g_field.
 !                     If True, output g_field(:) array combines old and new data.
 !
-! Ouput:
+! Output:
 !   g_field(:)    -- grid_field_struct, pointer: Grid field array.
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !   pmd_header    -- pmd_header_struct, optional: Extra info like file creation date.

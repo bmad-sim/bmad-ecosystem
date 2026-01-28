@@ -15,7 +15,7 @@
 !                   Also used to set the integer part of the tune.
 !   delta_input -- logical: If true then qa_str and qb_str are deltas from present tune.
 !
-! Outut:
+! Output:
 !   q_val       -- real(rp): Tune value. Set zero if there is an error.
 !-
 

@@ -9,7 +9,7 @@
 !   ele           -- ele_struct: Element associated with the map.
 !   g_field(:)    -- grid_field_struct: Grid field.
 !
-! Ouput:
+! Output:
 !   err_flag      -- logical: Set True if there is an error. False otherwise.
 !-
 

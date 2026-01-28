@@ -7,7 +7,7 @@
 ! Input:
 !   ele     -- ele_struct: Lattice element to start at.
 !
-! Ouput:
+! Output:
 !   tree(:) -- ele_pointer_struct, allocatable: Array of elements.
 !-
 
