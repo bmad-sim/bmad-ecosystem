@@ -292,6 +292,7 @@ if (use_cache .or. init_cache) then
     if (key2 == undulator$ .or. key2 == em_field$) key2 = wiggler$
 
     orb_start = orbit(ixe-1)
+    orb_start%time_dir = 1    ! Can be -1 if there are fixer elements in the lattice.
     call set_tracking_method_for_element_integration(ele2)
 
     !------------------------------------
