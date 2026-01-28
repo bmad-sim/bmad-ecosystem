@@ -118,6 +118,10 @@ if (ix_fix > 0) then
       call out_io (s_blank$, r_name, ele%name, '\6es16.6\ ', r_array = orbit(n-1)%vec)
     endif
   enddo
+
+  ! Having time_dir = -1 can be confusing for routines that use the orbit.
+  ! So set time_dir = 1. 
+  orbit(1:ix_fix)%time_dir = 1
 endif
 
 ! Fill in orbits for lord elements.
