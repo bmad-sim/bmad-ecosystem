@@ -109,6 +109,7 @@ uni_loop: do iuni = lbound(s%u, 1), ubound(s%u, 1)
       tao_branch%chrom_calc_ok = .false.
       tao_branch%sigma_track_ok = .false.
       tao_branch%ix_ele_taylor = -1      ! Force tao_branch%taylor_save recalc.
+      tao_branch%ix_ref_taylor = -1
 
       u%model%tao_branch(:)%plot_cache_valid = .false.
       u%design%tao_branch(:)%plot_cache_valid = .false.

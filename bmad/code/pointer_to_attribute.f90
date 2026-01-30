@@ -839,6 +839,7 @@ case ('FRINGE_AT');                      a_ptr%r => ele%value(fringe_at$)
 case ('MAT6_CALC_METHOD');               a_ptr%i => ele%mat6_calc_method
 case ('MODE');                           a_ptr%r => ele%value(mode$)
 case ('ORIGIN_ELE_REF_PT');              a_ptr%r => ele%value(origin_ele_ref_pt$)
+case ('PARSER_MAKE_XFER_MATS');          a_ptr%l => branch%lat%parser_make_xfer_mats
 case ('PTC_INTEGRATION_TYPE');           a_ptr%i => ele%ptc_integration_type
 case ('PTC_FRINGE_GEOMETRY');            a_ptr%r => ele%value(ptc_fringe_geometry$)
 case ('PTC_FIELD_GEOMETRY');             a_ptr%r => ele%value(ptc_field_geometry$)

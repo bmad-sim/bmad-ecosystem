@@ -3185,13 +3185,7 @@ case ('t.', 'tt.')
 
   if (ix_start == ix_ele) then
     if (tao_branch%ix_ref_taylor /= ix_ref .or. tao_branch%ix_ele_taylor /= ix_ele) then
-      ix0 = tao_branch%ix_ele_taylor
-      if (tao_branch%ix_ref_taylor == ix_ref .and. ix_ele > ix0) then
-        call transfer_map_calc (lat, tao_branch%taylor_save, err, ix0, ix_ele, orbit(ix0), &
-                                                  unit_start = .false., concat_if_possible = s%global%concatenate_maps)
-      else
-        call transfer_map_calc (lat, tao_branch%taylor_save, err, ix_ref, ix_ele, orbit(ix_ref), concat_if_possible = s%global%concatenate_maps)
-      endif
+      call transfer_map_calc (lat, tao_branch%taylor_save, err, ix_ref, ix_ele, orbit(ix_ref), concat_if_possible = s%global%concatenate_maps)
 
       if (err) then
         call tao_set_invalid (datum, 'MAP TERM OVERFLOW', why_invalid, print_err = print_err)

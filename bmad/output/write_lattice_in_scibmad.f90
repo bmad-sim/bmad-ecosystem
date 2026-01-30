@@ -352,7 +352,7 @@ do ib = 0, ubound(lat%branch, 1)
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
       if (ele%key == rfcavity$) line = trim(line) // ', zero_phase = PhaseReference.AboveTransition'
       if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
-      if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$))
+      if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$)/abs(charge_of(branch%param%particle)))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$))
     endif
 

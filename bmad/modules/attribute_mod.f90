@@ -1112,7 +1112,7 @@ call init_attribute_name1 (is_ok, def_parameter$, exact_misalign$,              
 call init_attribute_name1 (is_ok, def_parameter$, default_tracking_species$,     'DEFAULT_TRACKING_SPECIES')
 call init_attribute_name1 (is_ok, def_parameter$, electric_dipole_moment$,       'ELECTRIC_DIPOLE_MOMENT')
 call init_attribute_name1 (is_ok, def_parameter$, high_energy_space_charge_on$,  'HIGH_ENERGY_SPACE_CHARGE_ON')
-
+call init_attribute_name1 (is_ok, def_parameter$, parser_make_xfer_mats$,        'PARSER_MAKE_XFER_MATS')
 call init_attribute_name1 (is_ok, def_ptc_com$, exact_model$,                    'EXACT_MODEL')
 call init_attribute_name1 (is_ok, def_ptc_com$, exact_misalign$,                 'EXACT_MISALIGN')
 call init_attribute_name1 (is_ok, def_ptc_com$, old_integrator$,                 'OLD_INTEGRATOR')
@@ -2068,7 +2068,7 @@ case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
       'AUTOSCALE_AMPLITUDE', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', 'HIGH_ENERGY_SPACE_CHARGE_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
-      'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', &
+      'BRANCHES_ARE_COHERENT', 'E_CENTER_RELATIVE_TO_REF', 'SCALE_FIELD_TO_ONE', 'PARSER_MAKE_XFER_MATS', &
       'MULTIPOLES_ON', 'LR_SELF_WAKE_ON', 'GEO', 'SCATTER', 'SCATTER_TEST', 'DELTA_REF_TIME_USER_SET', &
       'CONSTANT_REF_ENERGY', 'CREATE_JUMBO_SLAVE', 'PTC_CANONICAL_COORDS', 'LR_WAKE%SELF_WAKE_ON', &
       'SR_WAKE%SCALE_WITH_LENGTH', 'IS_MOSAIC', 'INHERIT_FROM_FORK', 'MODE_FLIP', 'MODE_FLIP_STORED', &
@@ -3209,7 +3209,7 @@ endif
 ! Calculated quantities like the Twiss function do not have an entry in the attribute table (except for fixer and beginning elements).
 ! pointer_to_attribute will return a pointer.
 select case (attrib_name)
-case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', 'DPHI_A', 'DPHI_B', &
+case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', &
       'ETA_A', 'ETAP_A', 'ETA_B', 'ETAP_B', 'ETA_X', 'ETA_Y', 'ETAP_X', 'ETAP_Y', &
       'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'DBETA_DPZ_A', 'DBETA_DPZ_B', &
       'DALPHA_DPZ_A', 'DALPHA_DPZ_B', 'DETA_DPZ_X', 'DETA_DPZ_Y', 'DETAP_DPZ_X', 'DETAP_DPZ_Y')
