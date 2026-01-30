@@ -169,7 +169,7 @@ do i = 1, nn
       enddo 
     elseif (ns == 1) then
       info_loc%good = info_loc%good .and. node1%info(1)%good
-    elseif (ni == 1) then
+    elseif (ni == 1 .and. ns > 0) then
       call tao_re_allocate_expression_info(info_loc, ns)
       info_loc%good = info_loc(1)%good .and. node1%info(1)%good
     endif
@@ -297,10 +297,14 @@ do i = 1, nn
       val = atan2(stk2(i2)%value(1), stk2(i2)%value(2))
       call re_allocate(stk2(i2)%value, 1)
       stk2(i2)%value = val
+      info_loc(1)%good = any(info_loc%good)
+      call tao_re_allocate_expression_info(info_loc, 1)
     case ('modulo')
       val = modulo(stk2(i2)%value(1), stk2(i2)%value(2))
       call re_allocate(stk2(i2)%value, 1)
       stk2(i2)%value = val
+      info_loc(1)%good = any(info_loc%good)
+      call tao_re_allocate_expression_info(info_loc, 1)
     case ('sinh');      stk2(i2)%value = sinh(stk2(i2)%value)
     case ('cosh');      stk2(i2)%value = cosh(stk2(i2)%value)
     case ('tanh');      stk2(i2)%value = tanh(stk2(i2)%value)
@@ -363,7 +367,7 @@ do i = 1, nn
         return
       endif
 
-      if (nint(tao_tree%node(i-1)%value(1)) == 0) then
+      if (size(tao_tree%node(i-1)%value) == 0) then
         sig_cut = -1
       else
         sig_cut = stk2(i2)%value(1)
