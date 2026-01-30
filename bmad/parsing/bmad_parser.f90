@@ -916,7 +916,8 @@ branch_loop: do i_loop = 1, n_branch_max
     lat%ele(0)                  = in_lat%ele(0)    ! Beginning element
     lat%ele(0)%orientation      = lat%ele(1)%orientation
     lat%version                 = bmad_inc_version$
-    lat%input_file_name         = full_lat_file_name             ! save input file  
+    lat%input_file_name         = full_lat_file_name             ! save input file
+    lat%parser_make_xfer_mats   = in_lat%parser_make_xfer_mats  
     lat%particle_start          = in_lat%particle_start
     lat%a                       = in_lat%a
     lat%b                       = in_lat%b
@@ -1254,12 +1255,20 @@ enddo
 
 ! Make the transfer matrices.
 ! Note: The bmad_parser err_flag argument does *not* include errors in 
-! lat_make_mat6 since if there is a match element, there is an error raised 
-! here since the Twiss parameters have not been set. But this is expected. 
+! lat_make_mat6 since the inability to make matrices is not a parsing error.
 
 call cpu_time(bp_com%time2)
 
-if (logic_option (.true., make_mats6)) call lat_make_mat6(lat, ix_branch = -1) 
+if (logic_option (.true., make_mats6) .and. lat%parser_make_xfer_mats) then
+  call lat_make_mat6(lat, ix_branch = -1, err_flag = err) 
+  if (err) then
+    call out_io(s_warn$, r_name, 'NOTE! There has been an error constructing element matrices about the zero orbit', &
+                                 '  just after lattice parsing.  This can happen for a number of reasons. ', &
+                                 '  One of them is that matrices just cannot be constructed around the zero orbit.', &
+                                 '  In any case, if you do not want to see these matrix construction error messages, ', &
+                                 '  just set "parameter[parser_make_xfer_mats] = False" in the lattice file.')
+  endif
+endif
 
 call g_integrals_calc(lat)
 

@@ -132,6 +132,7 @@ do n_step = 1, n_step_max
     if (present(track) .and. s_body /= s_last_save) call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)
 
     call apply_element_edge_kick (orbit, fringe_info, ele, param, track_spin, mat6, make_matrix)
+    if (orbit%state /= alive$) return
 
     if (present(track)) then
       call save_a_step (track, ele, param, .true., orbit, s_body, .true., mat6, make_matrix)

@@ -98,7 +98,7 @@ if (allocated(lat%custom)) n_custom = size(lat%custom)
 n_print = -1
 if (allocated(lat%print_str)) n_print = size(lat%print_str)
 write (d_unit) lat%use_name, lat%machine, lat%lattice, lat%input_file_name, lat%title
-write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track
+write (d_unit) lat%a, lat%b, lat%z, lat%param, lat%version, lat%n_ele_track, lat%parser_make_xfer_mats
 write (d_unit) lat%n_ele_track, lat%n_ele_max, lat%lord_state, lat%n_control_max, lat%n_ic_max
 write (d_unit) lat%input_taylor_order, lat%photon_type, stale$
 write (d_unit) ubound(lat%branch, 1), lat%pre_tracker, n_custom, n_print

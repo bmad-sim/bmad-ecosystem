@@ -19,6 +19,7 @@
 !   vec0(6)             -- Real(rp): 0th order part of the transfer map.
 !   mat6(6,6)           -- Real(rp): Transfer matrix (1st order part of xfer map).
 !   err_flag            -- Logical: Set true if there is an error. False otherwise.
+!                           Note: Currently err_flag is never set True.
 !-
 
 subroutine match_ele_to_mat6 (ele, start_orb, mat6, vec0, err_flag, include_delta_time, set_trombone)
