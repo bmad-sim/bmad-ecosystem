@@ -530,20 +530,28 @@ dx_origin [m]                    & offset [m]                       & reference 
  \label{s:list.fixer}
  
  \begin{tabular}{llll} \toprule
-alias                            & dcmat_dpz_12_stored [???]        & etap_y_stored                    & reference                        \\
-alpha_a_stored                   & dcmat_dpz_21_stored [???]        & is_on                            & spin_tracking_method             \\
-alpha_b_stored                   & dcmat_dpz_22_stored [???]        & mat6_calc_method                 & spin_x_stored                    \\
-beta_a_stored [m]                & delta_ref_time [sec]             & mode_flip_stored                 & spin_y_stored                    \\
-beta_b_stored [m]                & descrip                          & offset [m]                       & spin_z_stored                    \\
-cmat_11_stored                   & deta_dpz_x_stored [m]            & p0c [eV]                         & superimpose                      \\
-cmat_12_stored [m]               & deta_dpz_y_stored [m]            & phi_a_stored                     & tracking_method                  \\
-cmat_21_stored [1/m]             & detap_dpz_x_stored               & phi_b_stored                     & type                             \\
-cmat_22_stored                   & detap_dpz_y_stored               & ptc_integration_type             & wrap_superimpose                 \\
-dalpha_dpz_a_stored              & e_tot [eV]                       & px_stored                        & x_stored [m]                     \\
-dalpha_dpz_b_stored              & ele_origin                       & py_stored                        & y_stored [m]                     \\
-dbeta_dpz_a_stored [m]           & eta_x_stored [m]                 & pz_stored                        & z_stored [m]                     \\
-dbeta_dpz_b_stored [m]           & eta_y_stored [m]                 & ref_origin                       &                                  \\
-dcmat_dpz_11_stored [???]        & etap_x_stored                    & ref_time_start [sec]             &                                  \\
+alias                            & dbeta_dpz_a_stored [m]           & eta_y_stored [m]                 & ref_origin                       \\
+alpha_a                          & dbeta_dpz_b [m]                  & eta_z [m]                        & ref_time_start [sec]             \\
+alpha_a_stored                   & dbeta_dpz_b_stored [m]           & etap_x                           & reference                        \\
+alpha_b                          & dcmat_dpz_11_stored [???]        & etap_x_stored                    & s [m]                            \\
+alpha_b_stored                   & dcmat_dpz_12_stored [???]        & etap_y                           & spin_dn_dpz_x                    \\
+beta_a [m]                       & dcmat_dpz_21_stored [???]        & etap_y_stored                    & spin_dn_dpz_y                    \\
+beta_a_stored [m]                & dcmat_dpz_22_stored [???]        & is_on                            & spin_dn_dpz_z                    \\
+beta_b [m]                       & delta_ref_time [sec]             & mat6_calc_method                 & spin_tracking_method             \\
+beta_b_stored [m]                & descrip                          & mode_flip                        & spin_x_stored                    \\
+cmat_11                          & deta_dpz_x [m]                   & mode_flip_stored                 & spin_y_stored                    \\
+cmat_11_stored                   & deta_dpz_x_stored [m]            & offset [m]                       & spin_z_stored                    \\
+cmat_12 [m]                      & deta_dpz_y [m]                   & p0c [eV]                         & superimpose                      \\
+cmat_12_stored [m]               & deta_dpz_y_stored [m]            & phi_a [rad]                      & theta_position [rad]             \\
+cmat_21 [1/m]                    & detap_dpz_x                      & phi_a_stored                     & tracking_method                  \\
+cmat_21_stored [1/m]             & detap_dpz_x_stored               & phi_b [rad]                      & type                             \\
+cmat_22                          & detap_dpz_y                      & phi_b_stored                     & wrap_superimpose                 \\
+cmat_22_stored                   & detap_dpz_y_stored               & phi_position [rad]               & x_position [m]                   \\
+dalpha_dpz_a                     & e_tot [eV]                       & psi_position [rad]               & x_stored [m]                     \\
+dalpha_dpz_a_stored              & ele_origin                       & ptc_integration_type             & y_position [m]                   \\
+dalpha_dpz_b                     & eta_x [m]                        & px_stored                        & y_stored [m]                     \\
+dalpha_dpz_b_stored              & eta_x_stored [m]                 & py_stored                        & z_position [m]                   \\
+dbeta_dpz_a [m]                  & eta_y [m]                        & pz_stored                        & z_stored [m]                     \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -967,17 +975,17 @@ ele_origin                       & ref_wavelength [m]               & x2_limit [
  \label{s:list.multipole}
  
  \begin{tabular}{llll} \toprule
-alias                            & k0l - k20l, t0 - t20             & superimpose                      & x_offset_tot [m]                 \\
-aperture [m]                     & l [m]                            & tilt [rad]                       & y1_limit [m]                     \\
-aperture_at                      & mat6_calc_method                 & tilt_tot [rad]                   & y2_limit [m]                     \\
-aperture_type                    & offset [m]                       & tracking_method                  & y_limit [m]                      \\
-create_jumbo_slave               & offset_moves_aperture            & type                             & y_offset [m]                     \\
-delta_ref_time [sec]             & p0c [eV]                         & wall                             & y_offset_tot [m]                 \\
-descrip                          & ptc_integration_type             & wrap_superimpose                 & z_offset [m]                     \\
-e_tot [eV]                       & ref_origin                       & x1_limit [m]                     & z_offset_tot [m]                 \\
-ele_origin                       & ref_time_start [sec]             & x2_limit [m]                     &                                  \\
-field_master                     & reference                        & x_limit [m]                      &                                  \\
-is_on                            & spin_tracking_method             & x_offset [m]                     &                                  \\
+alias                            & k0l - k20l, t0 - t20             & spin_tracking_method             & x_offset [m]                     \\
+aperture [m]                     & k0l_status                       & superimpose                      & x_offset_tot [m]                 \\
+aperture_at                      & l [m]                            & tilt [rad]                       & y1_limit [m]                     \\
+aperture_type                    & mat6_calc_method                 & tilt_tot [rad]                   & y2_limit [m]                     \\
+create_jumbo_slave               & offset [m]                       & tracking_method                  & y_limit [m]                      \\
+delta_ref_time [sec]             & offset_moves_aperture            & type                             & y_offset [m]                     \\
+descrip                          & p0c [eV]                         & wall                             & y_offset_tot [m]                 \\
+e_tot [eV]                       & ptc_integration_type             & wrap_superimpose                 & z_offset [m]                     \\
+ele_origin                       & ref_origin                       & x1_limit [m]                     & z_offset_tot [m]                 \\
+field_master                     & ref_time_start [sec]             & x2_limit [m]                     &                                  \\
+is_on                            & reference                        & x_limit [m]                      &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -1029,11 +1037,11 @@ gang                             & slave                            & x_knot    
  \label{s:list.parameter}
  
  \begin{tabular}{llll} \toprule
-absolute_time_tracking           & high_energy_space_charge_on      & n_part                           & ptc_exact_misalign               \\
-default_tracking_species         & lattice                          & no_end_marker                    & ptc_exact_model                  \\
-e_tot [eV]                       & lattice_type                     & p0c [eV]                         & ran_seed                         \\
-electric_dipole_moment           & live_branch                      & particle                         & taylor_order                     \\
-geometry                         & machine                          & photon_type                      &                                  \\
+absolute_time_tracking           & high_energy_space_charge_on      & n_part                           & photon_type                      \\
+default_tracking_species         & lattice                          & no_end_marker                    & ptc_exact_misalign               \\
+e_tot [eV]                       & lattice_type                     & p0c [eV]                         & ptc_exact_model                  \\
+electric_dipole_moment           & live_branch                      & parser_make_xfer_mats            & ran_seed                         \\
+geometry                         & machine                          & particle                         & taylor_order                     \\
  \bottomrule
  \end{tabular}
  \vfill

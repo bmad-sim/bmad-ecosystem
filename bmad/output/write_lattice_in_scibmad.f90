@@ -228,17 +228,17 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (ele%key == sbend$) then
-      if (ele%sub_key == rbend$) then
-        ang2 = 0.5_rp * ele%value(angle$) 
-        line = trim(line) // ', bend_type = rbend'
-        line = trim(line) // ', L_chord = ' // re_str(ele%value(l_chord$))
-        if (abs(ele%value(e1$) - ang2) > 1d-14) line = trim(line) // ', e1_rect = ' // re_str(ele%value(e1$) - ang2)
-        if (abs(ele%value(e2$) - ang2) > 1d-14) line = trim(line) // ', e2_rect = ' // re_str(ele%value(e2$) - ang2)
-      else
+      !if (ele%sub_key == rbend$) then
+      !  ang2 = 0.5_rp * ele%value(angle$) 
+      !  line = trim(line) // ', bend_type = rbend'
+      !  line = trim(line) // ', L_chord = ' // re_str(ele%value(l_chord$))
+      !  if (abs(ele%value(e1$) - ang2) > 1d-14) line = trim(line) // ', e1_rect = ' // re_str(ele%value(e1$) - ang2)
+      !  if (abs(ele%value(e2$) - ang2) > 1d-14) line = trim(line) // ', e2_rect = ' // re_str(ele%value(e2$) - ang2)
+      !else
         line = trim(line) // ', L = ' // re_str(length)
         if (ele%value(e1$) /= 0) line = trim(line) // ', e1 = ' // re_str(ele%value(e1$))
         if (ele%value(e2$) /= 0) line = trim(line) // ', e2 = ' // re_str(ele%value(e2$))
-      endif
+      !endif
 
       if (ele%value(g$) /= 0)  line = trim(line) // ', g_ref = ' // re_str(ele%value(g$))
       if (ele%value(ref_tilt$) /= 0)  line = trim(line) // ', tilt_ref = ' // re_str(ele%value(ref_tilt$))
@@ -328,7 +328,7 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       if (has_attribute(ele, 'TILT')) then
-        if (ele%value(tilt$) /= 0)  line = trim(line) // ', z_rot = ' // re_str(ele%value(tilt$))
+        if (ele%value(tilt$) /= 0)  line = trim(line) // ', tilt = ' // re_str(ele%value(tilt$))
       endif
     endif
 
