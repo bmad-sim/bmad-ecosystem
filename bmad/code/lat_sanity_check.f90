@@ -631,12 +631,21 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    ! Zero length cavity is verboten
+    !
 
-    if (ele%key == lcavity$ .and. ele%value(l$) == 0) then
+    if (ele%key == lcavity$ .and. ele%value(l$) > 0 .and. ele%value(l$) < 1d-3) then
       call out_io (s_fatal$, r_name, &
                     'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                    'WHICH IS AN LCAVITY HAS ZERO LENGTH WHICH GIVES AN INFINITE GRADIENT.')
+                    'IS A LCAVITY WITH A SMALL (< 1 mm) BUT FINITE LENGTH. THIS CAN LEAD TO PROBLEMS WITH TRACKING.', &
+                    'EITHER MAKE THE CAVITY ZERO LENGTH OR SOMETHING LARGER THAN 1 mm.')
+      err_flag = .true.
+    endif
+
+    if (ele%key == lcavity$ .and. ele%value(l$) == 0 .and. nint(ele%value(cavity_type$)) == standing_wave$) then
+      call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                    'WHICH IS A STANDING_WAVE LCAVITY HAS ZERO LENGTH WHICH GIVES AN INFINITE PONDERMOTIVE KICK.', &
+                    'SWITCH TO "CAVITY_TYPE = TRAVELING_WAVE" IF YOU REALLY WANT A ZERO LENGTH CAVITY.')
       err_flag = .true.
     endif
 

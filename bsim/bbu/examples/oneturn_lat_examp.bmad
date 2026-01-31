@@ -10,7 +10,7 @@ parameter[absolute_time_tracking] = T ! clock not tied to reference particle
 parameter[e_tot] = 1000e6  !total energy at start of lattice
 parameter[n_part] = 10
 
-cavity1: lcavity, L = 1e-10, RF_FREQUENCY = 299792458/0.5, voltage = 1
+cavity1: lcavity, L = 0, RF_FREQUENCY = 299792458/0.5, voltage = 1, cavity_type = traveling_wave
 !cavity1: lcavity, L = 0, RF_FREQUENCY = 1.3E9, voltage = 1
 
 ! Arc

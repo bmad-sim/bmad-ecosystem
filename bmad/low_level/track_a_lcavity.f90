@@ -35,6 +35,7 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord
 type (lat_param_struct) :: param
 type (rf_stair_step_struct), pointer :: step, step0
+type (rf_stair_step_struct) :: step1
 
 real(rp), optional :: mat6(6,6)
 real(rp) s_now, s_end, kmat(6,6), phase, ds, mc2
@@ -56,8 +57,6 @@ if (ele%value(rf_frequency$) == 0  .and. (ele%value(voltage$) /= 0 .or. ele%valu
   return
 endif
 
-if (ele%value(l$) == 0) return
-
 ! The lord will have the step information.
 ! See the documentation for the rf_ele_struct for some details.
 
@@ -72,6 +71,31 @@ n_steps = ubound(lord%rf%steps, 1) - 1
 s_dir = orbit%time_dir * orbit%direction        ! Longitudinal propagation direction 
 body_dir = orbit%direction * ele%orientation    ! Forward time direction of travel with respect to body coordinates
 
+call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
+call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+!
+
+call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
+
+! Zero length.
+! Note: Electric fields do not make sense in this case
+
+if (ele%value(l$) == 0) then
+  step1%p0c = ele%value(p0c_start$)
+  step1%p1c = ele%value(p0c$)
+  step1%scale = 1.0_rp
+  step1%time = 0.0_rp
+  phase = this_rf_phase(orbit, ele, lord, step1)
+  call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
+  call this_energy_kick(orbit, lord, step1, body_dir, mat6, make_mat)
+  call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
+  call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_mat)
+  return
+endif
+
+! Calculate tracking start and end steps
+
 if (s_dir == 1) then
   s_now = ele%s_start - lord%s_start
   s_end = ele%s       - lord%s_start
@@ -83,13 +107,6 @@ else
   ix_step_start = ele_rf_step_index(ele%value(E_tot$), s_now, lord)
   ix_step_end   = ele_rf_step_index(ele%value(E_tot_start$), s_end, lord)
 endif
-
-call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
-call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
-
-!
-
-call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
 
 ! Forward tracking
 
