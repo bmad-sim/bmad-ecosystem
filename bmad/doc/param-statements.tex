@@ -26,12 +26,13 @@ can be set by \vn{parameter} are
   parameter[e_tot]                    = <Real>      ! Reference total Energy. 
                                                     !      Default: 1000 * rest_energy.
   parameter[electric_dipole_moment]   = <Real>      ! Particle electric dipole moment.
-  parameter[live_branch]              = <Logical>   ! Is branch fit for tracking?
   parameter[geometry]                 = <Switch>    ! Open or closed
   parameter[lattice]                  = <String>    ! Lattice name.
+  parameter[live_branch]              = <Logical>   ! Is branch fit for tracking?
   parameter[machine]                  = <String>    ! Machine name.
-  parameter[n_part]                   = <Real>      ! Number of particles in a bunch.
+  parameter[n_part]                   = <Real>      ! Number of particles in a strong beam-beam bunch.
   parameter[no_end_marker]            = <Logical>   ! Default: False.
+  parameter[parser_make_xfer_mats]    = <Logical>   ! Make element transfer maps during lattice parsing?
   parameter[p0c]                      = <Real>      ! Reference momentum.
   parameter[particle]                 = <speciesID> ! Reference species: positron, proton, etc.
   parameter[photon_type]              = <Switch>    ! Incoherent or coherent photons?
@@ -54,19 +55,6 @@ Examples
   \item[{parameter[custom_attributeN]}] \Newline
 Here \vn{N} is an integer between 1 and 40.  For more information on defining custom attributes, see
 \sref{s:cust.att}.
-%
-  \index{machine}
-Name of the machine the lattice simulates. Example: "LHC".
-%
-  \index{live_branch}
-  \item[{parameter[live_branch]}] \Newline
-Setting \vn{live_branch} to \vn{False} (default is \vn{True}) indicates to a program that no
-tracking or other analysis of the root branch should be done. This can be useful if the lattice has
-multiple branches and analysis of the root branch is not necessary. Other branches can also be
-marked as alive/dead using line parameter statements (\sref{s:beginning}). Note that the \bmad
-library itself ignores the setting of \vn{live_branch} and it is up to the program being run to
-decide if this parameter is ignored or not. In particular, the \tao program (\sref{s:tao.intro})
-{\em will} respect the setting of \vn{live_branch}.
 %
   \index{default_tracking_species}
   \item[{parameter[default_tracking_species]}] \Newline
@@ -126,6 +114,19 @@ closed if that is desired.
 Used to set the lattice name. The \vn{lattice} name is stored by \bmad for use by a program but it
 does not otherwise effect any \bmad routines.
 %
+  \index{live_branch}
+  \item[{parameter[live_branch]}] \Newline
+Setting \vn{live_branch} to \vn{False} (default is \vn{True}) indicates to a program that no
+tracking or other analysis of the root branch should be done. This can be useful if the lattice has
+multiple branches and analysis of the root branch is not necessary. Other branches can also be
+marked as alive/dead using line parameter statements (\sref{s:beginning}). Note that the \bmad
+library itself ignores the setting of \vn{live_branch} and it is up to the program being run to
+decide if this parameter is ignored or not. In particular, the \tao program (\sref{s:tao.intro})
+{\em will} respect the setting of \vn{live_branch}.
+%
+  \index{machine}
+Name of the machine the lattice simulates. Example: "LHC".
+%
   \index{n_part}\index{beambeam}\index{lcavity}
   \item[{parameter[n_part]}] \Newline
 The \vn{parameter[n_part]} is the number of particle in a bunch. This parameter is used in a number
@@ -141,6 +142,13 @@ of a marker named \vn{END} at the end of the lattice (\sref{s:branch.construct})
 %
   \item[{parameter[p0c]}] \Newline
 See \vn{parameter[e_tot]}.
+%
+  \item[{parameter[parser_make_xfer_mats]}] \Newline
+Default is True. If True, element-by-element transfer matrices will be constructed and put in the
+digested lattice file (\sref{s:digested}) to save time next time the lattice is parsed. These
+matrices are constructed around the zero orbit.  Occasionally, it is not possible to construct such
+matrices and this will generate error messages even though the analysis program being used will
+otherwise run normally. To suppress such messages, set this parameter to False.
 %
   \index{particle}
   \item[{parameter[particle]}] \Newline
