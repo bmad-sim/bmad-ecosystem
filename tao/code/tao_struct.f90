@@ -1184,12 +1184,16 @@ implicit none
 
 type (tao_lattice_branch_struct), intent(inout) :: tlb1(:)
 type (tao_lattice_branch_struct), intent(in) :: tlb2(:)
-integer i
+integer i, j
 
 !
 
 do i = 1, size(tlb1)
+  call kill_taylor(tlb1(i)%taylor_save)
   tlb1(i) = tlb2(i)
+  do j = 1, 6
+    tlb1(i)%taylor_save(j)%term => null()
+  enddo
 enddo
 
 end subroutine tao_lattice_branches_equal_tao_lattice_branches
