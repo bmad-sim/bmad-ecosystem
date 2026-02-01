@@ -1085,7 +1085,7 @@ holds the coefficients for calculating the outgoing particle direction. \vn{prob
     ...                   ! More rows
   \}
 \end{example}
-A \vn{probl_pc_r} has one \vn{r_values} component and multiple \vn{row} components. The
+A \vn{prob_pc_r} has one \vn{r_values} component and multiple \vn{row} components. The
 \vn{r_values} component is a vector of radius values for the columns of the probability table.  The
 value for the first column is always zero and the radius values are strictly increasing.  Each
 \vn{row} component represents one row of the table. Each row has a momentum value \vn{pc_out} in eV
@@ -2120,7 +2120,7 @@ machine.
 
 A \vn{fixer} element is used to set the particle orbit and Twiss parameters at any point in an open
 geometry lattice branch. The orbit and Twiss parameters can then be propagated from the fixer
-element both forward and backwards to the ends of the branch. \vn{Fixe} elements are convenient, for
+element both forward and backwards to the ends of the branch. \vn{Fixed} elements are convenient, for
 example, when it is desired to design a beam line with Twiss and/or orbit parameters that are fixed
 at some point that is not the beginning of the line. Another example is when the orbit or Twiss parameters
 have been measured at some point in a beam line and a calculation of the orbit or Twiss parameters at
@@ -3309,14 +3309,14 @@ pass. See \sref{c:multipass} for details.
 The \vn{phi0_autoscale} and \vn{field_autoscale} parameters are
 calculated by \bmad's auto-scale module to adjust the RF amplitude and phase so that during tracking,
 the energy gain of
-a particle on the reference orb is what the user expects based upon the set set volateage and phase. See
+a particle on the reference orb is what the user expects based upon the set set voltage and phase. See
 Section~\sref{s:autoscale} for more details. In particular, the gradient and phase are adjusted by
 \begin{example}
   gradient (tracking) = gradient_tot * field_autoscale
   \(\phi_\REF\) (tracking) = \(\phi_\REF\) + phi0_autoscale
 \end{example}
 These autoscale shifts are not used when an element's \vn{tracking_method} is \vn{bmad_standard} since,
-in this case, the tracking algoithms is such that no adjustments are needed.
+in this case, the tracking algorithm is such that no adjustments are needed.
 The calculation of autoscale values
 can be toggled on/off by setting the \vn{autoscale_phase} and \vn{autoscale_amplitude} logicals.
 
@@ -3337,7 +3337,7 @@ This is incorrect.
 The \vn{n_rf_steps} parameter sets the number of drifts used in the kick-drift-kick model
 (\sref{s:lcavity.std}) used when the \vn{tracking_method} is set to \vn{bmad_standard}. When using
 a fixed step Runge-Kutta \vn{tracking_method}, the step size is determined by the setting of
-\vn{num_steps} or \vn{ds_step}. The reason why there are two different paramters to choose a step
+\vn{num_steps} or \vn{ds_step}. The reason why there are two different parameters to choose a step
 size is due to the fact that, in general, the number of drifts needed for an accurate result
 is much smaller than the number Runge-Kutta steps.
 
@@ -3381,7 +3381,7 @@ the default setting is 0. The electromagnetic fields are used for tracking when 
 \vn{bmad_standard}, the ``active region'' over which there is a finite field is \vn{n_cell}
 half-wave pillbox resonators where each pillbox has length $\lambda/2$ (\sref{s:rf.fields}). The
 default setting for \vn{n_cell} is 1. The dependent parameter \vn{l_active} is set to the length of
-the active region. The active region should have a length less than the length of the element. If
+the active region. The active region is limited to not exceed the length of the element. If
 the length of the element is not equal to the active region, the active region is centered in the
 element and the regions to either side are treated as field free.
 
@@ -3836,7 +3836,7 @@ appropriately. Possible settings of \vn{K0L_status} are:
   straight_reference    ! Compatible with PTC.
 \end{example}
 The tracking with \vn{K0L_status} set to \vn{bends_reference} follows MAD. Here a paraxial
-apporoximation is used. That is, \vn{K0L} is assumed small compared to one. With this approximation,
+approximation is used. That is, \vn{K0L} is assumed small compared to one. With this approximation,
 a particle with zero $p_z$ will exit the multipole with the same phase space coordinates as it
 enters with. Notice that since the reference orbit is shifted, the setting of \vn{K0L} will affect
 the placement of elements downstream of the multipole in the global coordinate system (analogous to
@@ -4863,14 +4863,14 @@ the particle
 The \vn{phi0_autoscale} and \vn{field_autoscale} parameters are
 calculated by \bmad's auto-scale module to adjust the RF amplitude and phase so that during tracking,
 the energy gain of
-a particle on the reference orb is what the user expects based upon the set set volateage and phase. See
+a particle on the reference orb is what the user expects based upon the set set voltage and phase. See
 Section~\sref{s:autoscale} for more details. In particular, the gradient and phase are adjusted by
 \begin{example}
   gradient (tracking) = gradient * field_autoscale
   \(\phi_\REF\) (tracking) = \(\phi_\REF\) + phi0_autoscale
 \end{example}
 These autoscale shifts are not used when an element's \vn{tracking_method} is \vn{bmad_standard} since,
-in this case, the tracking algoithms is such that no adjustments are needed.
+in this case, the tracking algorithm is such that no adjustments are needed.
 The calculation of autoscale values
 can be toggled on/off by setting the \vn{autoscale_phase} and \vn{autoscale_amplitude} logicals.
 
