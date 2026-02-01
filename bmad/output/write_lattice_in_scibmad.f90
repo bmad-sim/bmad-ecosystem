@@ -295,6 +295,15 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(x2_limit$) /= 0) line = trim(line) // ', x2_limit = ' // trim(aper_str(ele%value(x2_limit$)))
       if (ele%value(y1_limit$) /= 0) line = trim(line) // ', y1_limit = ' // trim(aper_str(-ele%value(y1_limit$)))
       if (ele%value(y2_limit$) /= 0) line = trim(line) // ', y2_limit = ' // trim(aper_str(ele%value(y2_limit$)))
+
+      if (ele%value(x1_limit$) /= 0 .or. ele%value(x2_limit$) /= 0 .or. &
+          ele%value(y1_limit$) /= 0 .or. ele%value(y2_limit$) /= 0) then
+        if (ele%aperture_type == elliptical$) then
+          line = trim(line) // ', aperture_shape = ApertureShape.Elliptical'
+        else
+          line = trim(line) // ', aperture_shape = ApertureShape.Rectangular'
+        endif
+      endif
     endif
 
     !
