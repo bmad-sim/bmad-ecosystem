@@ -181,13 +181,13 @@ do ib = 0, ubound(lat%branch, 1)
     !!! if (ele%lord_status == super_lord$ .and. ix_pass > 0) cycle
     !!! if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
 
-!!!    if (ele%slave_status == super_slave$) then
-!!!      lord => pointer_to_lord(ele, 1)
-!!!      slave => pointer_to_slave(lord, 1)
-!!!      slave2 => pointer_to_slave(lord, lord%n_slave)
-!!!      write (iu, '(2(a, i0), 2a)') '  slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
-!!!      cycle
-!!!    endif
+    !!!if (ele%slave_status == super_slave$) then
+    !!!  lord => pointer_to_lord(ele, 1)
+    !!!  slave => pointer_to_slave(lord, 1)
+    !!!  slave2 => pointer_to_slave(lord, lord%n_slave)
+    !!!  write (iu, '(2(a, i0), 2a)') '  slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
+    !!!  cycle
+    !!!endif
 
     !!! if (ix_pass > 0) cycle
 
@@ -321,8 +321,8 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(x_offset$) /= 0)      line = trim(line) // ', dx = ' // re_str(ele%value(x_offset$))
       if (ele%value(y_offset$) /= 0)      line = trim(line) // ', dy = ' // re_str(ele%value(y_offset$))
       if (ele%value(z_offset$) /= 0)      line = trim(line) // ', dz = ' // re_str(ele%value(z_offset$))
-      if (ele%value(y_pitch$) /= 0)       line = trim(line) // ', dx_rot = ' // re_str(ele%value(y_pitch$))
-      if (ele%value(x_pitch$) /= 0)       line = trim(line) // ', dy_rot = ' // re_str(-ele%value(x_pitch$))
+      if (ele%value(y_pitch$) /= 0)       line = trim(line) // ', dx_rot = ' // re_str(-ele%value(y_pitch$))
+      if (ele%value(x_pitch$) /= 0)       line = trim(line) // ', dy_rot = ' // re_str(ele%value(x_pitch$))
       if (ele%value(tilt$) /= 0)          line = trim(line) // ', dz_rot = ' // re_str(ele%value(tilt$))
       if (ele%value(E_tot_offset$) /= 0)  line = trim(line) // ', dE_ref = ' // re_str(ele%value(E_tot_offset$))
       if (ele%value(E_tot_set$) /= 0)     line = trim(line) // ', E_ref = ' // re_str(ele%value(E_tot_set$))
@@ -332,8 +332,8 @@ do ib = 0, ubound(lat%branch, 1)
         if (ele%value(x_offset$) /= 0)  line = trim(line) // ', x_offset = ' // re_str(ele%value(x_offset$))
         if (ele%value(y_offset$) /= 0)  line = trim(line) // ', y_offset = ' // re_str(ele%value(y_offset$))
         if (ele%value(z_offset$) /= 0)  line = trim(line) // ', z_offset = ' // re_str(ele%value(z_offset$))
-        if (ele%value(y_pitch$) /= 0)  line = trim(line) // ', x_rot = ' // re_str(ele%value(y_pitch$))
-        if (ele%value(x_pitch$) /= 0)  line = trim(line) // ', y_rot = ' // re_str(-ele%value(x_pitch$))
+        if (ele%value(y_pitch$) /= 0)  line = trim(line) // ', x_rot = ' // re_str(-ele%value(y_pitch$))
+        if (ele%value(x_pitch$) /= 0)  line = trim(line) // ', y_rot = ' // re_str(ele%value(x_pitch$))
       endif
 
       if (has_attribute(ele, 'TILT')) then
