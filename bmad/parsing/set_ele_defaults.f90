@@ -202,7 +202,7 @@ case (hybrid$)
 case (lcavity$)
   ele%value(coupler_at$) = exit_end$
   ele%value(field_autoscale$) = 1
-  ele%value(n_cell$) = 1
+  ele%value(n_cell$) = -1
   ele%value(cavity_type$) = standing_wave$
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$

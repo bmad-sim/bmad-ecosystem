@@ -655,7 +655,11 @@ case (lcavity$)
   if (ele%slave_status /= multipass_slave$) then
     ! Make sure active length is slightly less than the element length to avoid round-off during tracking.
     if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
-      n_cell = max(1, min(nint(ele%value(n_cell$)), floor(2.0_rp * val(l$) / val(rf_wavelength$))))
+      if (nint(ele%value(n_cell$)) < 0) then
+        n_cell = floor(2.0_rp * val(l$) / val(rf_wavelength$))
+      else
+        n_cell = max(0, min(nint(ele%value(n_cell$)), floor(2.0_rp * val(l$) / val(rf_wavelength$))))
+      endif
       val(l_active$) = min(0.5_rp * val(rf_wavelength$) * n_cell, val(l$)-10*bmad_com%significant_length)
     else
       val(l_active$) = val(l$) - 10*bmad_com%significant_length

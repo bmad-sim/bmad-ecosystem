@@ -3265,7 +3265,7 @@ The attributes specific to an \vn{lcavity} are
   voltage_err                 ! Error voltage
   voltage_tot                 ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).
   l_active        = <Real>    ! Active region length. Dependent attribute (\sref{s:depend}).
-  n_cell          = <Int>     ! Number of cavity cells. Default is 1.
+  n_cell          = <Int>     ! Number of cavity cells. Default is -1.
   n_rf_steps      = <Int>     ! Number of steps in kick-drift-kick model.
   ks              = <Real>    ! Normalized solenoid strength.
   bs_field        = <Real>    ! Solenoid field strength.
@@ -3380,7 +3380,10 @@ the default setting is 0. The electromagnetic fields are used for tracking when 
 \vn{cavity_type} parameter is set to \vn{standing_wave}, with \vn{field_calc} set to
 \vn{bmad_standard}, the ``active region'' over which there is a finite field is \vn{n_cell}
 half-wave pillbox resonators where each pillbox has length $\lambda/2$ (\sref{s:rf.fields}). The
-default setting for \vn{n_cell} is 1. The dependent parameter \vn{l_active} is set to the length of
+default setting for \vn{n_cell} is -1 which will result in the active region being as large as
+possible without exceeding the length of the element.
+
+The dependent parameter \vn{l_active} is set to the length of
 the active region. The active region is limited to not exceed the length of the element. If
 the length of the element is not equal to the active region, the active region is centered in the
 element and the regions to either side are treated as field free.

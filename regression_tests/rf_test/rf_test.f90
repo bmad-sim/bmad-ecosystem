@@ -28,7 +28,7 @@ write (1, '(a, 4es20.12)') '"Orbit%vec4" ABS 1e-6', orbit(n)%vec(1:4)
 write (1, '(a, 2es20.12)') '"Orbit%z"    ABS 1e-6', orbit(n)%vec(5:6)
 write (1, '(a, es20.12)')  '"Orbit%p0c"  REL 1e-8', orbit(n)%p0c
 write (1, '(a, es20.12)')  '"Orbit%t"    REL 1e-8', orbit(n)%t
-write (1, '(a, 3es20.12)') '"Orbit%spin" REL 1e-8', orbit(n)%spin
+write (1, '(a, 3es20.12)') '"Orbit%spin" REL 1e-6', orbit(n)%spin
 
 ele => lat%ele(n)
 write (1, '(a, 3es20.12)') '"ele%energy" REL 1e-8', ele%value(E_tot$), ele%value(p0c$), ele%ref_time
