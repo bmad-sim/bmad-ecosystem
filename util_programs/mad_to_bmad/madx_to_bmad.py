@@ -561,6 +561,9 @@ def parse_and_write_element(dlist, write_to_file, command):
     elif kill_ent:
       params['fringe_at'] = 'exit_end'
 
+  elif ele.madx_base_type == 'multipole':
+    if 'k0l' in params: params['K0L_status'] = 'bends_reference'
+
   elif ele.madx_base_type == 'quadrupole':
     if 'k1' in params and 'k1s' in params:
       if 'tilt' in params:

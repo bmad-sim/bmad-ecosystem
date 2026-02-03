@@ -525,6 +525,9 @@ def parse_element(dlist, write_to_file):
   elif ele.mad8_base_type == 'quadrupole':
     if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/4'
 
+  elif ele.mad8_base_type == 'multipole':
+    if 'k0l' in params: params['K0L_status'] = 'bends_reference'
+
   elif ele.mad8_base_type == 'sextupole':
     if 'tilt' in params and params['tilt'] == '': params['tilt'] = 'pi/6'
 
