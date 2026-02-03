@@ -39,14 +39,23 @@ dE = ele%value(E_tot$) - ele%value(E_tot_start$)
 ! dE == 0 case. Must use s_rel in this case.
 
 if (dE == 0 .or. E_ref < 0) then
-  r_rel = (s_rel - 0.5_rp * (ele%value(l$) - ele%value(l_active$))) / ele%rf%ds_step
-  if (r_rel <= 0) then
-    ix_step = 0
-  elseif (r_rel > n_step) then
-    ix_step = n_step + 1
+  if (ele%rf%ds_step == 0) then   ! That is, L_active = 0
+    if (s_rel < ele%value(l$)) then
+      ix_step = 0
+    else
+      ix_step = n_step + 1
+    endif
   else
-    ix_step = int(r_rel) + 1
+    r_rel = (s_rel - 0.5_rp * (ele%value(l$) - ele%value(l_active$))) / ele%rf%ds_step
+    if (r_rel <= 0) then
+      ix_step = 0
+    elseif (r_rel > n_step) then
+      ix_step = n_step + 1
+    else
+      ix_step = int(r_rel) + 1
+    endif
   endif
+
   return
 endif
 
