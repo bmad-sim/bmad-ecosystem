@@ -246,6 +246,7 @@ logical make_mat
 ! The fringe kick only exists if there is a wave traveling in the same direction as the particle.
 
 if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == -1) return
+if (lord%value(l_active$) == 0) return
 
 ! Init
 
@@ -409,7 +410,7 @@ logical make_mat
 ! The pondermotive force only occurs if there is a EM wave in the opposite direction from the direction of travel.
 
 if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) return
-
+if (lord%value(l_active$) == 0) return
 !
 
 n_step = nint(lord%value(n_rf_steps$))

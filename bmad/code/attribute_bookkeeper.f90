@@ -115,7 +115,7 @@ ele%bookkeeping_state%ptc     = stale$
 if (associated(ele%wake)) then
   do i = 1, size(ele%wake%lr%mode)
     lr => ele%wake%lr%mode(i)
-    if (lr%freq_in < 0) lr%freq = ele%value(rf_frequency$)
+    if (lr%freq_in < 0) lr%freq = val(rf_frequency$)
 
     ! Old style lattice files set Q and not damp.
     if (lr%q /= real_garbage$) then  
@@ -174,7 +174,7 @@ endif
 if (ele%lord_status == super_lord$ .and. dval(l$) /= 0) then
   slave => pointer_to_slave(ele, ele%n_slave)
   len_old = slave%value(l$)
-  slave%value(l$) = ele%value(l$) + ele%value(lord_pad1$) + ele%value(lord_pad2$)
+  slave%value(l$) = val(l$) + val(lord_pad1$) + val(lord_pad2$)
   do i = 1, ele%n_slave - 1
     slave2 => pointer_to_slave(ele, i)
     slave%value(l$) = slave%value(l$) - slave2%value(l$)
@@ -218,10 +218,10 @@ if (field_bookkeeping_doable) then
       val(ks$) = factor * val(Bs_field$)
       val(k1$) = factor * val(B1_gradient$)
     case (rf_bend$)
-      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
+      if (is_true(val(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(g$)     = factor * val(B_field$)
     case (sbend$)
-      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
+      if (is_true(val(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(g$)     = factor * val(B_field$)
       val(dg$)    = factor * val(dB_field$)
       val(k1$)    = factor * val(B1_gradient$)
@@ -258,10 +258,10 @@ if (field_bookkeeping_doable) then
       val(Bs_field$)    = factor * val(ks$)
       val(B1_gradient$) = factor * val(k1$)
     case (rf_bend$)
-      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
+      if (is_true(val(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(B_field$)     = factor * val(g$)
     case (sbend$)
-      if (is_true(ele%value(init_needed$))) call settable_dep_var_bookkeeping(ele)
+      if (is_true(val(init_needed$))) call settable_dep_var_bookkeeping(ele)
       val(B_field$)     = factor * val(g$)
       val(dB_field$)    = factor * val(dg$)
       val(B1_gradient$) = factor * val(k1$)
@@ -315,13 +315,13 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
           call multipole_ele_to_kt (ele, .false., ix, knl, tilt, magnetic$, include_kicks$)
           knl = abs(knl)
           bend_factor = knl(0) / val(l$)
-          radius0 = ele%value(r0_mag$)
+          radius0 = val(r0_mag$)
           if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
 
          select case (ele%key)
          case (sbend$)
            bend_factor = bend_factor + max(abs(val(g$)), abs(val(g$) + val(dg$)))
-           quad_factor = knl(1) + knl(2) * radius0 + ele%value(l$) * bend_factor**2
+           quad_factor = knl(1) + knl(2) * radius0 + val(l$) * bend_factor**2
          case (quadrupole$)
            ! The factor of 50 here is empirical based upon simulations with the canonical
            ! CESR bmad_L9a18A000-_MOVEREC lattice.
@@ -331,11 +331,11 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
          end select
 
          if (associated(ele%a_pole_elec)) then
-           radius0 = ele%value(r0_elec$)
+           radius0 = val(r0_elec$)
            if (radius0 == 0) radius0 = 0.01   ! Use a 1 cm scale default
            call multipole_ele_to_ab (ele, .false., ix_pole_max, a_pole, b_pole, electric$)
-           bend_factor = bend_factor + (abs(a_pole(0)) + abs(b_pole(0))) / ele%value(p0c$)
-           quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / ele%value(p0c$)
+           bend_factor = bend_factor + (abs(a_pole(0)) + abs(b_pole(0))) / val(p0c$)
+           quad_factor = quad_factor + (abs(a_pole(1)) + abs(b_pole(1)) + radius0 * (abs(a_pole(2)) + abs(b_pole(2)))) / val(p0c$)
          endif
 
           ! check_bend is a PTC routine
@@ -445,7 +445,7 @@ case (crab_cavity$)
   endif
 
   if (val(e_tot$) /= 0) then
-    beta = ele%value(p0c$) / ele%value(e_tot$)
+    beta = val(p0c$) / val(e_tot$)
     time = branch%param%total_length / (c_light * beta)
     if (time /= 0) then
       if (is_true(val(harmon_master$))) then
@@ -525,10 +525,10 @@ case (foil$)
 
     if (material%density == real_garbage$) then
       if (material%area_density /= real_garbage$) then
-        if (ele%value(thickness$) == 0) then
+        if (val(thickness$) == 0) then
           material%density_used = real_garbage$
         else
-          material%density_used = material%area_density / ele%value(thickness$)
+          material%density_used = material%area_density / val(thickness$)
         endif
       else
         material%density_used = ElementDensity(z_material) * 1e3_rp  ! From xraylib. Convert to kg/m^3
@@ -538,7 +538,7 @@ case (foil$)
     endif
 
     if (material%area_density == real_garbage$) then
-      material%area_density_used = material%density_used * ele%value(thickness$)
+      material%area_density_used = material%density_used * val(thickness$)
     else
       material%area_density_used = material%area_density
     endif
@@ -585,7 +585,7 @@ case (e_gun$)
 
 case (multipole$)
   if (associated(ele%a_pole)) then
-    if (ele%a_pole(0) /= 0 .and. nint(ele%value(k0l_status$)) == not_allowed$) then
+    if (ele%a_pole(0) /= 0 .and. nint(val(k0l_status$)) == not_allowed$) then
       call out_io (s_fatal$, r_name, &
                 'MULTIPOLE: ' // ele_full_name(ele, '@N (&#)'), &
                 ' CANNOT HAVE A FINITE K0L VALUE UNLESS K0L_STATUS IS SET TO BENDS_REFERENCE OR STRAIGHT_REFERENCE.', &
@@ -655,16 +655,23 @@ case (lcavity$)
   if (ele%slave_status /= multipass_slave$) then
     ! Make sure active length is slightly less than the element length to avoid round-off during tracking.
     if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
-      if (nint(ele%value(n_cell$)) < 0) then
+      if (nint(val(n_cell$)) < 0) then
         n_cell = floor(2.0_rp * val(l$) / val(rf_wavelength$))
       else
-        n_cell = max(0, min(nint(ele%value(n_cell$)), floor(2.0_rp * val(l$) / val(rf_wavelength$))))
+        n_cell = max(0, min(nint(val(n_cell$)), floor(2.0_rp * val(l$) / val(rf_wavelength$))))
       endif
-      val(l_active$) = min(0.5_rp * val(rf_wavelength$) * n_cell, val(l$)-10*bmad_com%significant_length)
+      val(l_active$) = min(0.5_rp * val(rf_wavelength$) * n_cell, val(l$))
     else
       val(l_active$) = val(l$) - 10*bmad_com%significant_length
     endif
+
     val(l_active$) = max(0.0_rp, val(l_active$))
+    if (nint(val(n_cell$)) < 0 .and. val(l_active$) == 0 .and. val(l$) > 0 .and. val(warn_count$) < 1.5) then
+      val(warn_count$) = val(warn_count$) + 1
+      call out_io(s_warn$, r_name, &
+          'Lcavity element ' // trim(ele%name) // ' has a finite length that is less than 1/2 of the RF wavelength.', &
+          'This means that the active length L_active will be zero and there will be no transverse pondermotive kick.')
+    endif
   endif
 
   val(voltage_tot$)  = val(voltage$)  + val(voltage_err$)
@@ -683,7 +690,7 @@ case (quadrupole$)
 
 case (rfcavity$)
   if (associated(branch) .and. val(e_tot$) /= 0) then
-    beta = ele%value(p0c$) / ele%value(e_tot$)
+    beta = val(p0c$) / val(e_tot$)
     time = branch%param%total_length / (c_light * beta)
     if (time /= 0) then
       if (is_true(val(harmon_master$))) then
