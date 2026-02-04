@@ -543,6 +543,15 @@ do k = 1, k_max
   ele%value(ix_value(k)) = value(k)
 enddo
 
+if (ele%key == lcavity$) then
+  if (nint(ele%value(n_cell$)) < 0 .and. ele%value(l_active$) == 0 .and. ele%value(l$) > 0) then
+    ele%value(warn_count$) = 1
+    call out_io(s_warn$, r_name, &
+        'Lcavity element ' // trim(ele%name) // ' has a finite length that is less than 1/2 of the RF wavelength.', &
+        'This means that the active length L_active will be zero and there will be no transverse pondermotive kick.')
+  endif
+endif
+
 ! Control vars
 
 if (ix_c /= 0) then

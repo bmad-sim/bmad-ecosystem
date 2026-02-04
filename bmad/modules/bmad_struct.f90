@@ -1778,7 +1778,7 @@ integer, parameter :: l$ = 1                          ! Assumed unique. Do not a
 integer, parameter :: tilt$ = 2, roll$ = 2, n_part$ = 2, inherit_from_fork$ = 2 ! Important: tilt$ = roll$
 integer, parameter :: ref_tilt$ = 3, direction$ = 3, repetition_frequency$ = 3, deta_ds_master$ = 3, &
                       kick$ = 3, x_gain_err$ = 3, taylor_order$ = 3, r_solenoid$ = 3, final_charge$ = 3, &
-                      k0l_status$ = 3
+                      k0l_status$ = 3, warn_count$ = 3
 integer, parameter :: k1$ = 4, kx$ = 4, harmon$ = 4, h_displace$ = 4, y_gain_err$ = 4, s_twiss_ref$ = 4, &
                       critical_angle_factor$ = 4, tilt_corr$ = 4, ref_coords$ = 4, dt_max$ = 4, ix_fixer$ = 4
 integer, parameter :: graze_angle$ = 5, k2$ = 5, b_max$ = 5, v_displace$ = 5, gradient_tot$ = 5, harmon_master$ = 5, &

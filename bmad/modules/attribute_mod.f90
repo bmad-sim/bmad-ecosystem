@@ -1365,6 +1365,7 @@ call init_attribute_name1 (is_ok, lcavity$, voltage_tot$,                  'VOLT
 call init_attribute_name1 (is_ok, lcavity$, gradient_tot$,                 'GRADIENT_TOT', dependent$)
 call init_attribute_name1 (is_ok, lcavity$, ks$,                           'KS', quasi_free$)
 call init_attribute_name1 (is_ok, lcavity$, bs_field$,                     'BS_FIELD', quasi_free$)
+call init_attribute_name1 (is_ok, lcavity$, warn_count$,                   'warn_count', private$)
 
 call init_attribute_name1 (is_ok, marker$, l$,                             'L', dependent$)
 call init_attribute_name1 (is_ok, marker$, e_tot_ref_init$,                'e_tot_ref_init', private$)
