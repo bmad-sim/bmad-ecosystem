@@ -31,10 +31,10 @@ function map_match1(v, q)
   v_out6= 
       1.0000E+00*v[6]                                                                                                                                                                                   
 
-  q_out0 = 0.0
-  q_out1 = 0.0
-  q_out2 = 0.0
-  q_out3 = 0.0
+ q_out0 = 1.0
+ q_out1 = 0.0
+ q_out2 = 0.0
+ q_out3 = 0.0
 
   return (v_out1, v_out2, v_out3, v_out4, v_out5, v_out6), (q_out1, q_out2, q_out3, q_out4)
 end

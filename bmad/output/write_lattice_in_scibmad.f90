@@ -44,6 +44,7 @@ logical, optional :: err_flag
 
 character(*) scibmad_file
 character(1) prefix
+character(3), parameter :: unit_spin_map(0:3) = ['1.0', '0.0', '0.0', '0.0']
 character(40) name, look_for, ele_name
 character(40), allocatable :: names(:)
 character(240) fname
@@ -863,10 +864,10 @@ write (iu, '(a)')
 
 do i = 0, 3
   if (.not. associated(ele%spin_taylor(i)%term)) then
-    write (iu, '(2(a, i0))') '  q_out', i, ' = 0.0'
+    write (iu, '(a, i0, 2a)') ' q_out', i, ' = ', unit_spin_map(i)
     cycle
   elseif (size(ele%spin_taylor(i)%term) == 0) then
-    write (iu, '(2(a, i0))') '  q_out', i, ' = 0.0'
+    write (iu, '(a, i0, 2a)') '  q_out', i, ' = ', unit_spin_map(i)
     cycle
   endif
 
