@@ -59,7 +59,8 @@ if (dE == 0 .or. E_ref < 0) then
   return
 endif
 
-! dE /= 0 case
+! dE /= 0 case.
+! Remember: The zeroth and Nth steps have half the energy change as the steps in between.
 
 ix_step = nint(2.0_rp * n_step * (E_ref - ele%value(E_tot_start$)) / dE)
 if (ix_step == 2*n_step) then
