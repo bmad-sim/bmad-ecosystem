@@ -422,6 +422,13 @@ case (bmad_standard$)
 
     if (ele%value(rf_frequency$) == 0) return
 
+    s_active_offset = (ele%value(l$) - ele%value(l_active$)) / 2  ! Relative to entrance end of the cavity
+    s_eff = s_body - s_active_offset
+    if (s_eff < 0 .or. s_eff > ele%value(l_active$)) then
+      dfield_computed = .true.
+      goto 8000  ! Zero field outside
+    endif
+
     phase = twopi * (ele%value(phi0$) + ele%value(phi0_err$) + ele%value(phi0_autoscale$))
     if (.not. bmad_com%absolute_time_tracking) then
       if (present(original_ele)) then
@@ -441,14 +448,6 @@ case (bmad_standard$)
     gradient = gradient * ele%value(l$) / ele%value(l_active$)
     omega = twopi * ele%value(rf_frequency$)
     k_wave = omega / c_light
-
-    s_active_offset = (ele%value(l$) - ele%value(l_active$)) / 2  ! Relative to entrance end of the cavity
-    s_eff = s_body - s_active_offset
-    if (s_eff < 0 .or. s_eff > ele%value(l_active$)) then
-      dfield_computed = .true.
-      goto 8000  ! Zero field outside
-    endif
-
     beta_start = ele%value(p0c_start$) / ele%value(e_tot_start$)
 
     if (present(rf_time)) then

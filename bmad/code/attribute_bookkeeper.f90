@@ -670,7 +670,8 @@ case (lcavity$)
       val(warn_count$) = val(warn_count$) + 1
       call out_io(s_warn$, r_name, &
           'Lcavity element ' // trim(ele%name) // ' has a finite length that is less than 1/2 of the RF wavelength.', &
-          'This means that the active length L_active will be zero and there will be no transverse pondermotive kick.')
+          'This means that the active length L_active will be zero and there will be no transverse pondermotive kick.', &
+          'Set "n_cell = 0" if you want a zero active length without this warning message.')
     endif
   endif
 

@@ -457,7 +457,17 @@ endif  !!!
 !!!!!!!!!!!!!!!!!
 
 !------------------------------
+! Overlay and group elements.
 
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(ie)
+  if (ele%key == overlay$) then
+
+  endif
+
+enddo
+
+!------------------------------
 ! Lines for all the branches.
 ! If we get into a multipass region then name in the main_line list is "multi_line_nn".
 ! But only write this once.
