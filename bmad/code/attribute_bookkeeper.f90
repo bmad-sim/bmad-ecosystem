@@ -652,7 +652,7 @@ case (lcavity$)
   endif
 
   ! Note: multipass_slaves will inherit from lord
-  if (ele%slave_status /= multipass_slave$) then
+  if (ele%slave_status /= multipass_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= super_slave$) then
     ! Make sure active length is slightly less than the element length to avoid round-off during tracking.
     if (val(rf_frequency$) /= 0 .and. ele%field_calc == bmad_standard$) then
       if (nint(val(n_cell$)) < 0) then

@@ -189,9 +189,7 @@ case (kicker$)
 
 case (lcavity$)
   select case (method)
-  case (symp_lie_ptc$, runge_kutta$, time_runge_kutta$)
-    if (ele%value(l_active$) /= 0) is_valid = .true.
-  case (bmad_standard$, linear$, taylor$, custom$)
+  case (symp_lie_ptc$, runge_kutta$, time_runge_kutta$, bmad_standard$, linear$, taylor$, custom$)
     is_valid = .true.
   end select
 
