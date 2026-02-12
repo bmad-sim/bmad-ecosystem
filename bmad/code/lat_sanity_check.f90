@@ -641,6 +641,18 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       err_flag = .true.
     endif
 
+    if (ele%key == lcavity$) then
+      select case (ele%tracking_method)
+      case (symp_lie_ptc$, runge_kutta$, time_runge_kutta$)
+        if (ele%value(l_active$) == 0) then
+          call out_io (s_fatal$, r_name, &
+                    'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
+                    'WHICH IS A LCAVITY HAS ZERO ACTIVE LENGTH WHICH MEANS THAT INTEGRATION TRACKING_METHODS', &
+                    'LIKE SYMP_LIE_PTC, RUNGE_KUTTA, OR TIME_RUNGE_KUTTA ARE NOT VALID.')
+        endif
+      end select
+    endif
+
     if (ele%key == lcavity$ .and. ele%value(l$) == 0 .and. nint(ele%value(cavity_type$)) == standing_wave$) then
       call out_io (s_fatal$, r_name, &
                     'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &

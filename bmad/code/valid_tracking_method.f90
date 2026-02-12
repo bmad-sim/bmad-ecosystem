@@ -189,7 +189,7 @@ case (kicker$)
 
 case (lcavity$)
   select case (method)
-  case (bmad_standard$, symp_lie_ptc$, runge_kutta$, linear$, taylor$, time_runge_kutta$, custom$)
+  case (symp_lie_ptc$, runge_kutta$, time_runge_kutta$, bmad_standard$, linear$, taylor$, custom$)
     is_valid = .true.
   end select
 

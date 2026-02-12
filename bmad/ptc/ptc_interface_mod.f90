@@ -3244,8 +3244,13 @@ if (add_multipoles) then
   select case (ele%key)
   case (hkicker$, vkicker$, kicker$)
   case (lcavity$, rfcavity$)
-    an0 = an0 / ele%value(l_active$)
-    bn0 = bn0 / ele%value(l_active$)
+    if (ele%value(l_active$) /= 0) then
+      an0 = an0 / ele%value(l_active$)
+      bn0 = bn0 / ele%value(l_active$)
+    else
+      an0 = 0    ! Punt
+      bn0 = 0
+    endif
   case (multipole$)
     if (nint(ele%value(k0l_status$)) == bends_reference$) then
       bn0(0) = 0

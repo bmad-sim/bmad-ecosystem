@@ -2251,8 +2251,7 @@ case ('datum_has_ele')
 ! Command syntax:
 !   pipe derivative
 !
-! Note: To save time, this command will not recalculate derivatives. 
-! Use the "derivative" command beforehand to recalcuate if needed.
+! Note: If a universe is off, there will be no derivatives for this universe.
 ! 
 ! Returns
 ! -------
@@ -2270,6 +2269,8 @@ case ('derivative')
 
   do iu = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(iu)
+    if (.not. u%is_on) cycle
+
     n2 = ubound(u%dModel_dVar, 2)
     do id = 1, ubound(u%dModel_dVar, 1)
       do iv = 0, (n2-1)/10

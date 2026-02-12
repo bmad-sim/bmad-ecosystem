@@ -75,13 +75,13 @@ contains
 subroutine track_it(lat, ele_o_sign, orb_dir_sign, abs_time)
 
 type (lat_struct), target :: lat
-type (coord_struct) start_orb, end_orb, end_bs, end_ptc
+type (coord_struct) start_orb, end_orb, end_bs, end_ptc, e_orb
 type (ele_struct), pointer :: ele
 type (branch_struct), pointer :: branch
 type (track_struct) track
-real(rp) del
+real(rp) del, spin_rot(3,3)
 integer ele_o_sign, orb_dir_sign
-integer ib, i, j, isn
+integer ib, i, j, isn, k
 integer, parameter :: n_methods = ubound(tracking_method_name, 1)
 logical abs_time
 character(8) o_dir_str
@@ -90,15 +90,15 @@ character(200) :: line(10), line_debug(10)
 
 !
 
-      if (orb_dir_sign == 1 .and. ele_o_sign == 1) then
-        o_dir_str = ''
-      elseif (orb_dir_sign == 1 .and. ele_o_sign == -1) then
-        o_dir_str = '-Anti_O'
-      elseif (orb_dir_sign == -1 .and. ele_o_sign == 1) then
-        o_dir_str = '-Anti_D'
-      else
-        o_dir_str = '-Anti_OD'
-      endif
+if (orb_dir_sign == 1 .and. ele_o_sign == 1) then
+  o_dir_str = ''
+elseif (orb_dir_sign == 1 .and. ele_o_sign == -1) then
+  o_dir_str = '-Anti_O'
+elseif (orb_dir_sign == -1 .and. ele_o_sign == 1) then
+  o_dir_str = '-Anti_D'
+else
+  o_dir_str = '-Anti_OD'
+endif
 
 
 do ib = 0, ubound(lat%branch, 1)
@@ -192,6 +192,12 @@ do ib = 0, ubound(lat%branch, 1)
       if (debug_mode) then
         track%n_pt = -1  ! Reset
         call track1 (start_orb, ele, branch%param, end_orb, track = track)
+        do k = 1, 3
+          start_orb%spin = 0
+          start_orb%spin(k) = 1
+          call track1 (start_orb, ele, branch%param, e_orb)
+          spin_rot(:,k) = e_orb%spin
+        enddo
       else
         call track1 (start_orb, ele, branch%param, end_orb)
       endif
@@ -238,10 +244,14 @@ do ib = 0, ubound(lat%branch, 1)
 
       select case (j)
       case (bmad_standard$, runge_kutta$, symp_lie_ptc$, time_runge_kutta$, taylor$, symp_lie_bmad$, linear$)
+        if (debug_mode) then
+          write(line_debug(isn+1), '(a, t40, 4f14.9)') trim(out_str) // ' Quat', w_mat_to_quat(spin_rot)
+          !! write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
+        endif
+
         out_str = trim(out_str) // ' dSpin'
         isn=isn+1; write (line(isn), '(a, t50, a,  3f14.9, 4x, f14.9)') '"' // trim(out_str) // '"', tolerance_spin(out_str), &
                                                                 end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
-        if (debug_mode) write(line_debug(isn), '(a40, 3f14.9, 4x, f14.9)') out_str, end_orb%spin-start_orb%spin, norm2(end_orb%spin) - norm2(start_orb%spin)
       end select
 
       if (branch%param%particle == photon$) then
@@ -274,7 +284,10 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     if (isn == 0) cycle
-    if (debug_mode) print '(t46, a, t60, a, t74, a, t91, a)', 'dSpin_x', 'dSpin_y', 'dSpin_z', 'dSpin_amp'
+    if (debug_mode) then
+      print '(t46, a, t60, a, t74, a, t88, a)', 'Q0', 'Qx', 'Qy', 'Qz'
+      !! print '(t46, a, t60, a, t74, a, t91, a)', 'dSpin_x', 'dSpin_y', 'dSpin_z', 'dSpin_amp'
+    endif
 
     do j = 1, isn
       write (1, '(a)') trim(line(j))
