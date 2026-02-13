@@ -524,6 +524,9 @@ The \vn{activate} subcommand activates (turns on) a given fixer element.
 The \vn{save} subcommand takes actual parameter values and saves them in the corresponding
 stored parameters. Either an individual or a parameter group may be used for \vn{<parameters>}.
 
+Note: To set stored parameters to arbitrary values, use the \vn{set element} (\sref{s:set.element})
+or \vn{change element} (\sref{s:change}) commands.
+
 The \vn{write} subcommand write a file of fixer stored values. This file is in Bmad lattice
 format. The default file name is \vn{<fixer>.bmad} where \vn{<fixer>} is the name of the fixer
 element.
@@ -533,6 +536,7 @@ For example:
   fixer save f1 orbit    ! Save orbit parameters in the fixer named f1.
   fixer activate f1      ! Set fixer f1 to be active.
   fixer write f1         ! Write fixer stored values in Bmad lattice file f1.bmad.
+  set ele f1 x_stored = 0.001  ! Set x_stored parameter.
 \end{example}
 
 %% flatten --------------------------------------------------------------
