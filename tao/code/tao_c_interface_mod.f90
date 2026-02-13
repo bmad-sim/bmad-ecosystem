@@ -100,6 +100,9 @@ integer(c_int) :: err
 
 ! For keep terminal printing on for debugging.
 
+s%init   = tao_init_struct()
+s%initialized = .false.
+
 call out_io_print_and_capture_setup (print_on = .false., capture_state = 'BUFFERED', capture_add_null = .true.)
 call to_f_str (c_str, f_str)
 call tao_top_level(command = trim(f_str), errcode = errcode)
