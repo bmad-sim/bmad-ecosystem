@@ -95,7 +95,7 @@ end subroutine set_active_fixer
 ! Input:
 !   fixer       -- ele_struct: Fixer element to set.
 !   to_stored   -- logical: If False, set real Twiss from stored. If True, set stored Twiss from real.
-!   orbit       -- coord_struct, optional: Used for 'phase_space' transfers.
+!   orbit       -- coord_struct, optional: Used for 'phase_space' transfers. Used for input if to_stored = True.
 !   who         -- logical, optional: Who to set. Possibilities are:
 !                   Groups:
 !                     'all', ' ' (default and same as 'all') Note: This excludes all 'start' sets.,
@@ -106,6 +106,7 @@ end subroutine set_active_fixer
 !                     'x', 'px', 'cmat_11', etc.
 !
 ! Output:
+!   orbit       -- coord_struct, optional: Used for 'phase_space' transfers. Used for output if to_stored = False.
 !   is_ok       -- logical
 !-
 
@@ -300,8 +301,9 @@ subroutine fix_this1(branch, fixer, to_stored, is_ok, whom, orbit)
 
 type (branch_struct) branch
 type (ele_struct) fixer
-type (coord_struct), optional :: orbit
-type (coord_struct) this_orb
+type (coord_struct), optional, target :: orbit
+type (coord_struct), target :: orb0
+type (coord_struct), pointer :: this_orb
 
 real(rp) gc2
 logical to_stored, is_ok
@@ -310,9 +312,10 @@ character(*) whom
 !
 
 if (present(orbit)) then
-  this_orb = orbit
+  this_orb => orbit
 else
-  this_orb = coord_struct()
+  orb0 = coord_struct()
+  this_orb => orb0
 endif
 
 if (to_stored) then

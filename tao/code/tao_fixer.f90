@@ -63,7 +63,7 @@ case ('activate', 'on')
     return
   endif
 
-  call set_active_fixer(fixer, .true.)
+  call set_active_fixer(fixer, .true., branch%particle_start)
   u%calc%lattice = .true.
 
 case ('save')
