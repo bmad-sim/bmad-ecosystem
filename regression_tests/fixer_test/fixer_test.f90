@@ -41,6 +41,7 @@ subroutine this_fixer_test(indx, fixer)
 
 type (ele_struct) fixer, ele0, eleN
 type (coord_struct), allocatable :: orbit(:)
+type (coord_struct) fix_orb
 
 integer indx, nn
 
@@ -49,7 +50,7 @@ integer indx, nn
 nn = lat%n_ele_track
 fixer = lat2%ele(fixer%ix_ele)
 ok = transfer_fixer_params(fixer, .true., orbit2(fixer%ix_ele))
-call set_active_fixer(fixer)
+call set_active_fixer(fixer, .true., fix_orb)
 
 if (fixer%ix_ele /= 0) call init_this_ele(lat%ele(0))
 call init_this_ele(lat%ele(nn))
@@ -57,6 +58,7 @@ call init_this_ele(lat%ele(nn))
 call twiss_and_track(lat, orbit, orb_start = orbit2(fixer%ix_ele))
 call chrom_calc(lat, delta_e, chrom_a, chrom_b, orb0 = orbit2(fixer%ix_ele))
 
+call orbit_delta_write(indx, 99, fix_orb, orbit2(fixer%ix_ele))
 call orbit_delta_write(indx, 0, orbit(0), orbit2(0))
 call twiss_delta_write(indx, 0, 'A', lat%ele(0)%a, lat2%ele(0)%a)
 call twiss_delta_write(indx, 0, 'B', lat%ele(0)%b, lat2%ele(0)%b)

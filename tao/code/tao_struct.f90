@@ -931,7 +931,8 @@ type tao_lattice_branch_struct
   type (tao_plot_cache_struct), allocatable :: plot_cache(:)  ! Plotting data cache
   type (tao_spin_polarization_struct) spin
   type (summation_rdt_struct) srdt
-  type (coord_struct) orb0                                ! For saving beginning orbit
+  type (coord_struct) orb0                                ! For saving beginning orbit in closed geometry branches. 
+                                                          !   orb0 can then be used as an initial guess when closed_orbit is called again.
   type (normal_modes_struct) modes_ri                     ! Synchrotron integrals stuff
   type (normal_modes_struct) modes_6d                     ! 6D radiation matrices.
   type (ptc_normal_form_struct) ptc_normal_form           ! Collection of normal form structures defined in PTC
