@@ -151,6 +151,10 @@ if (present(old_slice) .and. .not. rad_map_stale .and. .not. include_upstream_en
   case (sbend$, quadrupole$, sextupole$, octupole$, thick_multipole$)
     if (associated(sliced_ele%rad_map)) sliced_ele%rad_map%stale = .false.
   end select
+else
+  if (associated(sliced_ele%rad_map)) then
+    sliced_ele%rad_map%stale = .true.
+  endif
 endif
 
 ! For a sliced taylor element the %taylor%term components point to the lord components. 
