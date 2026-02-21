@@ -229,6 +229,8 @@ For photons, \vn{<coordinate>} may also be:
 For closed lattices only the \vn{pz} component is applicable. For lattices that have an \vn{e_gun}
 (which necessarily implies that the lattice has an open geometry), the time \vn{t} coordinate must
 be varied instead of \vn{pz}.
+Note: Setting \vn{particle_start} will affect the orbit at the active \vn{fixer} element and the 
+default active fixer element is the \vn{beginning} element.
 
 For open lattices, \vn{change element beginning <twiss>} can be used to vary the starting Twiss
 parameters where \vn{<twiss>} is one of:
@@ -464,16 +466,16 @@ The \vn{derivative} command calculates the \vn{dModel_Data/dVar} derivative matr
 \section{fixer}\index{commands!fixer}
 \label{s:fixer}
 
-NOTE: The fixer element is in construction and is not yet usable.
-
 The \vn{Fixer} command can be used to set the active fixer and can be used to transfer fixer
-parameters from the from the actual to the stored.  Format:
+parameters from the from the actual to the stored. See the \bmad manual for documentation
+on fixer elements. Command format:
 \begin{example}
   fixer activate <fixer>
   fixer save <fixer> \{<parameters>\}
   fixer write <fixer> \{<file-name>\}
 \end{example}
-here \vn{<fixer>} is the name of a fixer element
+here \vn{<fixer>} is the name of a fixer element (Note: For the purposes of this discussion, the
+\vn{BEGINNING} element is considered a fixer element).
 
 The basic stored parameters are:
 \begin{example}
@@ -519,13 +521,15 @@ In addition, the following groups of stored values are recognized:
   z_plane                 ! z and pz
 \end{example}
 
-The \vn{activate} subcommand activates (turns on) a given fixer element.
+The \vn{activate} subcommand activates (turns on) a given fixer element. When a fixer element is
+activated, the stored Twiss and orbit parameters will be used to set the actual Twiss and orbit.
 
 The \vn{save} subcommand takes actual parameter values and saves them in the corresponding
 stored parameters. Either an individual or a parameter group may be used for \vn{<parameters>}.
 
-Note: To set stored parameters to arbitrary values, use the \vn{set element} (\sref{s:set.element})
-or \vn{change element} (\sref{s:change}) commands.
+Note: To set stored parameters to arbitrary values, use the \vn{set element} (\sref{s:set.element}),
+or \vn{change element} (\sref{s:change}) commands. Note: Changing stored values does not affect
+the actual values. To load stored values to actual use the \vn{fixer activate} command.
 
 The \vn{write} subcommand write a file of fixer stored values. This file is in Bmad lattice
 format. The default file name is \vn{<fixer>.bmad} where \vn{<fixer>} is the name of the fixer
@@ -1576,6 +1580,8 @@ The \vn{set particle_start} command sets the starting coordinates for single par
 lattices with an open geometry. If the \vn{use_particle_start} of the \vn{beam_init}
 structure (\sref{s:beam.init}) is set to True, \vn{particle_start} will also vary the beam centroid
 and beam particle spin for beam tracking.
+Note: Setting \vn{particle_start} will affect the orbit at the active \vn{fixer} element and the 
+default active fixer element is the \vn{beginning} element.
 
 The optional \vn{n@} universe specification (\sref{s:universe}) may be used to specify the universe
 or universes to apply the set command to.
