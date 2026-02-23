@@ -3,7 +3,7 @@
 !
 ! Routine to change one entry in a nametable.
 !
-! The existing names with indexes in the range [ix_name:] will have their indexes increased by 1.
+! Note: Use find_index to find names in the nametable.
 !
 ! Input:
 !   nametable   -- nametable_struct: Nametable.

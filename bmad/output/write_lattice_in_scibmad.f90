@@ -14,7 +14,8 @@
 subroutine write_lattice_in_scibmad(scibmad_file, lat, err_flag)
 
 use write_lattice_file_mod, dummy => write_lattice_in_scibmad
-use bmad_routine_interface,  dummy2 => write_lattice_in_scibmad
+use bmad_routine_interface, dummy2 => write_lattice_in_scibmad
+use expression_mod
 use taylor_mod, only: mat6_to_taylor
 
 implicit none
@@ -31,15 +32,18 @@ type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique elemen
 type (lat_ele_order_struct) order
 type (ele_attribute_struct) info
 type (taylor_struct) taylor(6), spin_taylor(0:3)
+type (nametable_struct) nametab
+type (control_struct), pointer :: ctl
+type (control_struct) control
 
 real(rp) f, length, ang2
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer n, i, j, ix, ib, ie, iu, n_names, ix_match, ix_pass, ix_r
+integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r
 integer ix_lord, ix_super, ie1, ib1
 integer, allocatable :: an_indexx(:), index_list(:)
 
-logical has_been_added, in_multi_region, have_expand_lattice_line, err
+logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added
 logical, optional :: err_flag
 
 character(*) scibmad_file
@@ -58,9 +62,9 @@ character(20) :: scibmad_ele_type(n_key$)
 scibmad_ele_type(drift$)                = 'Drift'
 scibmad_ele_type(sbend$)                = 'SBend'
 scibmad_ele_type(quadrupole$)           = 'Quadrupole'
-scibmad_ele_type(group$)                = 'Group'
+scibmad_ele_type(group$)                = '??Group'
 scibmad_ele_type(sextupole$)            = 'Sextupole'
-scibmad_ele_type(overlay$)              = 'Overlay'
+scibmad_ele_type(overlay$)              = '??Overlay'
 scibmad_ele_type(custom$)               = 'Custom'
 scibmad_ele_type(taylor$)               = 'LineElement'
 scibmad_ele_type(rfcavity$)             = 'RFCavity'
@@ -173,7 +177,7 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_track   !!! Note: Not n_ele_max since superimpose/multipass not handled
     ele => branch%ele(ie)
     length = ele%value(l$)
-    ele_name = scibmad_name(ele)
+    ele_name = scibmad_ele_name(ele)
 
     if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$ .or. ele%key == girder$) cycle   ! Not currently handled
     if (ele%key == null_ele$) cycle
@@ -229,24 +233,16 @@ do ib = 0, ubound(lat%branch, 1)
     !
 
     if (ele%key == sbend$) then
-      !if (ele%sub_key == rbend$) then
-      !  ang2 = 0.5_rp * ele%value(angle$) 
-      !  line = trim(line) // ', bend_type = rbend'
-      !  line = trim(line) // ', L_chord = ' // re_str(ele%value(l_chord$))
-      !  if (abs(ele%value(e1$) - ang2) > 1d-14) line = trim(line) // ', e1_rect = ' // re_str(ele%value(e1$) - ang2)
-      !  if (abs(ele%value(e2$) - ang2) > 1d-14) line = trim(line) // ', e2_rect = ' // re_str(ele%value(e2$) - ang2)
-      !else
-        line = trim(line) // ', L = ' // re_str(length)
-        if (ele%value(e1$) /= 0) line = trim(line) // ', e1 = ' // re_str(ele%value(e1$))
-        if (ele%value(e2$) /= 0) line = trim(line) // ', e2 = ' // re_str(ele%value(e2$))
-      !endif
+      line = trim(line) // ', L = ' // re_str(length)
+      if (ele%value(e1$) /= 0) line = trim(line) // ', e1 = ' // re_str(ele%value(e1$))
+      if (ele%value(e2$) /= 0) line = trim(line) // ', e2 = ' // re_str(ele%value(e2$))
 
       if (ele%value(g$) /= 0)  line = trim(line) // ', g_ref = ' // re_str(ele%value(g$))
       if (ele%value(ref_tilt$) /= 0)  line = trim(line) // ', tilt_ref = ' // re_str(ele%value(ref_tilt$))
       if (ele%value(roll$) /= 0)  line = trim(line) // ', roll = ' // re_str(ele%value(roll$))
       !!! if (ele%value(fint$)*ele%value(hgap$) /= 0)    line = trim(line) // ', edge_int1 = ' // re_str(ele%value(fint$)*ele%value(hgap$))
       !!! if (ele%value(fintx$)*ele%value(hgapx$) /= 0)  line = trim(line) // ', edge_int2 = ' // re_str(ele%value(fintx$)*ele%value(hgapx$))
-      print *, 'BEND EDGE_INT NOT YET INCLUDED!'
+      if (ele%value(fint$)*ele%value(hgap$) /= 0 .or. ele%value(fintx$)*ele%value(hgapx$) /= 0) print *, 'BEND EDGE_INT PARAMETER CANNOT YET BE TRANSLATED!'
 
     elseif (has_attribute(ele, 'L')) then
       if (length /= 0) line = trim(line) // ', L = ' // re_str(length)
@@ -358,6 +354,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$) + ele%value(voltage_err$))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$) + ele%value(phi0_err$))
+      line = trim(line) // ', tracking_method = SaganCavity(num_cells = ' // re_str(ele%value(n_rf_steps$)) // ', L_active = ' // re_str(ele%value(L_active$)) // ')'
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
       if (ele%key == rfcavity$) line = trim(line) // ', zero_phase = PhaseReference.AboveTransition'
@@ -366,14 +363,13 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$))
     endif
 
-!!    if (has_attribute(ele, 'N_CELL')) then
-!!      if (ele%value(n_cell$) /= 0)  line = trim(line) // ', n_cell = ' // re_str(ele%value(n_cell$))
-!!      if (nint(ele%value(cavity_type$)) == standing_wave$) then
-!!        line = trim(line) // ', cavity_type = standing_wave'
-!!      else
-!!        line = trim(line) // ', cavity_type = traveling_wave'
-!!      endif
-!!    endif
+    if (has_attribute(ele, 'CAVITY_TYPE')) then
+      if (nint(ele%value(cavity_type$)) == standing_wave$) then
+        line = trim(line) // ', traveling_wave = false'
+      else
+        line = trim(line) // ', traveling_wave = true'
+      endif
+    endif
 
     !
 
@@ -388,7 +384,7 @@ do ib = 0, ubound(lat%branch, 1)
       line = trim(line) // ', to_line = ' // trim(downcase(lat%branch(n)%name))
       if (ele%value(ix_to_element$) > 0) then
         i = nint(ele%value(ix_to_element$))
-        line = trim(line) // ', to_element = ' // trim(scibmad_name(lat%branch(n)%ele(i)))
+        line = trim(line) // ', to_element = ' // trim(scibmad_ele_name(lat%branch(n)%ele(i)))
       endif
     endif
 
@@ -457,14 +453,55 @@ endif  !!!
 !!!!!!!!!!!!!!!!!
 
 !------------------------------
-! Overlay and group elements.
+! Overlay and group elements....
+
+write (iu, '(a)'), '#---------------------------------------------------------------------------------------'
+write (iu, '(a)'), '# Overlay and Group elements'
+write (iu, '(a)')
+
+! First print constants used in expressions.
+
+call nametable_init(nametab)
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
-  ele => lat%ele(ie)
-  if (ele%key == overlay$) then
-
+  lord => lat%ele(ie)
+  if (lord%key == group$) then
+    print *, 'GROUP ELEMENTS CANNOT YET BE TRANSLATED!'
+    cycle
   endif
 
+  if (lord%key == girder$) then
+    print *, 'GIRDER ELEMENTS CANNOT YET BE TRANSLATED!'
+    cycle
+  endif
+
+  if (lord%key == overlay$) then
+    do is = 1, lord%n_slave
+      slave => pointer_to_slave(lord, is, ctl)
+      control = ctl
+      if (.not. allocated(control%stack)) then
+        print *, 'Overlay: ' // trim(lord%name) // ' uses knot points for the control curve. This cannot yet be translated!'
+        exit
+      endif
+
+      do k = 1, size(control%stack)
+        if (control%stack(k)%type /= variable$) cycle
+        call find_index(control%stack(k)%name, nametab, ix_match, add_to_list = .true., has_been_added = is_added)
+        if (is_added) write (iu, '(2a, es24.17)') trim(control%stack(k)%name), ' = ', control%stack(k)%value
+      enddo
+    enddo
+  endif
+enddo
+
+! 
+
+lat%ele%select = .false.
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  lord => lat%ele(ie)
+  if (lord%key == overlay$) then
+    call overlay_out(lord, lat)
+  endif
 enddo
 
 !------------------------------
@@ -478,7 +515,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(a)')
   name = downcase(branch%name)
   if (name == '') name = 'lat_line'
-  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(scibmad_name(branch%ele(0))) // ','
+  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(scibmad_ele_name(branch%ele(0))) // ','
 
   in_multi_region = .false.
   do ie = 1, branch%n_ele_track
@@ -555,7 +592,7 @@ do ie = 1, lat%n_ele_max
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(phi0_multipass$) == 0) cycle
     if (.not. have_expand_lattice_line) call write_expand_lat_header (iu, have_expand_lattice_line)
-    write (iu, '(3a)') trim(scibmad_name(ele)), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
+    write (iu, '(3a)') trim(scibmad_ele_name(ele)), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
   endif
 
 enddo
@@ -665,9 +702,9 @@ integer iu, ix
 !!!
 !!!else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(scibmad_name(ele)), ','
+    write (line, '(4a)') trim(line), ' ', trim(scibmad_ele_name(ele)), ','
   else
-    write (line, '(4a)') trim(line), ' reverse(', trim(scibmad_name(ele)), '),'
+    write (line, '(4a)') trim(line), ' reverse(', trim(scibmad_ele_name(ele)), '),'
   endif
 !!!endif
 
@@ -790,7 +827,7 @@ end subroutine write_this_differing_attrib
 !--------------------------------------------------------------------------------
 ! contains
 
-function scibmad_name(ele) result (name_out)
+function scibmad_ele_name(ele) result (name_out)
 
 type (ele_struct) ele
 character(40) name_out
@@ -805,7 +842,7 @@ if (ix /= 0) name_out = name_out(1:ix-1) // '!s' // name_out(ix+1:)
 ix = index(name_out, '\')     !'
 if (ix /= 0) name_out = name_out(1:ix-1) // '!m' // name_out(ix+1:)
 
-end function scibmad_name
+end function scibmad_ele_name
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -823,7 +860,7 @@ character(200) line
 !
 
 write (iu, '(a)')
-write (iu, '(9a)') 'function map_', trim(scibmad_name(ele)), '(v, q)'
+write (iu, '(9a)') 'function map_', trim(scibmad_ele_name(ele)), '(v, q)'
 
 e_max = 0
 do i = 1, 6
@@ -911,5 +948,254 @@ write (iu, '(a)') '  return (v_out1, v_out2, v_out3, v_out4, v_out5, v_out6), (q
 write (iu, '(a)') 'end'
 
 end subroutine write_this_taylor
+
+!------------------------------------------------------
+! contains
+
+recursive subroutine overlay_out(overlay, lat)
+
+type (lat_struct), target :: lat
+type (ele_struct) overlay
+type (ele_struct), pointer :: lord, slave
+type (control_struct), pointer :: ctl
+type (control_struct) control
+
+integer ix, j, iv, it
+
+character(1000) c_str(40)
+
+! Output is top down.
+! Do not output if overlay is already outputted or has lords that have not yet been outputted.
+
+if (overlay%select) return
+do ix = 1, overlay%n_lord
+  lord => pointer_to_lord(overlay, ix)
+  if (.not. lord%select) return
+enddo
+
+! Output vars.
+! Controled vars are defined with a defered expression.
+
+overlay%select = .true.
+
+c_str = ''
+do ix = 1, overlay%n_lord
+  lord => pointer_to_lord(overlay, ix)
+  do j = 1, lord%n_slave
+    slave => pointer_to_slave(lord, j, ctl)
+    control = ctl
+    if (slave%ix_ele /= overlay%ix_ele) cycle
+    it = control%ix_attrib - var_offset$
+    if (c_str(it) == '') then
+      c_str(it) = this_expression(control%stack, lord)
+    else
+      c_str(it) = trim(c_str(it)) // ' + ' // this_expression(control%stack, lord)
+    endif
+  enddo
+enddo
+
+do iv = 1, size(overlay%control%var)
+  if (c_str(iv) == '') then
+    write (iu, '(4a, es24.16)') trim(overlay%name), '_', trim(downcase(overlay%control%var(iv)%name)), ' = ', overlay%control%var(iv)%value
+  else
+    write (iu, '(7a)') 'const ', trim(overlay%name), '_', trim(downcase(overlay%control%var(iv)%name)), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
+  endif
+enddo
+
+! Now that this overlay has been outputted, check if any overlay slaves need outputting.
+
+do ix = 1, overlay%n_slave
+  slave => pointer_to_slave(overlay, ix)
+  if (slave%key == overlay$) then
+    call overlay_out(slave, lat)
+  else
+    call overlay_slave_out(slave, lat)
+  endif
+enddo
+
+end subroutine overlay_out
+
+!------------------------------------------------------
+! contains
+
+recursive subroutine overlay_slave_out(slave, lat)
+
+type (lat_struct), target :: lat
+type (ele_struct) slave
+type (ele_struct), pointer :: lord
+type (control_struct), pointer :: ctl
+type (control_struct)  control
+
+real(rp) f
+integer ix, j, iv, it, n_contl, indx(40), ixm
+
+character(40) sci_name, attrib_names(40)
+character(1000) :: c_str(40)
+
+! Do not output if slave is already outputted or has overlay lords that have not yet been outputted.
+
+if (slave%select) return
+do ix = 1, slave%n_lord
+  lord => pointer_to_lord(slave, ix)
+  if (.not. lord%key == overlay$) cycle
+  if (.not. lord%select) return
+enddo
+
+! Output slave dependentcies.
+
+slave%select = .true.
+
+c_str = ''
+attrib_names = ''
+n_contl = 0
+
+do ix = 1, slave%n_lord
+  lord => pointer_to_lord(slave, ix)
+  do j = 1, lord%n_slave
+    slave2 => pointer_to_slave(lord, j, ctl)
+    control = ctl
+    if (slave2%ix_ele /= slave%ix_ele) cycle
+    call find_index(control%attribute, attrib_names, indx, n_contl, ixm)
+    if (ixm == 0) call find_index(control%attribute, attrib_names, indx, n_contl, ixm, add_to_list = .true.)
+
+    if (c_str(ixm) == '') then
+      c_str(ixm) = this_expression(control%stack, lord)
+    else
+      c_str(ixm) = trim(c_str(ixm)) // ' + ' // this_expression(control%stack, lord)
+    endif
+  enddo
+enddo
+
+do iv = 1, n_contl
+  sci_name = scibmad_attrib_name(attrib_names(iv), slave, f)
+  if (f == 1.0_rp) then
+    write (iu, '(7a)') trim(downcase(slave%name)), '.', trim(sci_name), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
+  else
+    write (iu, '(4a, es24.16, 3a)') trim(downcase(slave%name)), '.', trim(sci_name), ' = DefExpr(() -> ', f, ' * (', trim(c_str(iv)), '))'
+  endif
+enddo
+
+end subroutine overlay_slave_out
+
+!------------------------------------------------------
+! contains
+
+recursive function this_expression(stack, lord) result(expr)
+
+type (expression_atom_struct) :: stack(:)
+type (ele_struct) lord
+
+integer i
+
+character(1000) expr
+
+!
+
+do i = 1, size(stack)
+  select case (stack(i)%type)
+  case (constant$)      ! Something like "c_light"
+    stack(i)%name = upcase(stack(i)%name)
+  case (variable$)
+
+  case default
+    if (stack(i)%type > var_offset$ .and. stack(i)%type < var_offset$ + n_var_max$) then
+      stack(i)%name = trim(lord%name) // '_' // downcase(stack(i)%name)
+    endif
+  end select
+enddo
+
+expr = expression_stack_to_string(stack)
+
+end function this_expression
+
+!------------------------------------------------------
+! contains
+
+! Return SciBmad attribute name given Bmad attribute name.
+
+function scibmad_attrib_name(bmad_name, ele, factor) result (sci_name)
+
+type (ele_struct) ele
+
+character(*) bmad_name
+character(40) sci_name
+real(rp) factor
+
+!
+
+factor = 1.0_rp
+
+if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_name(2:), ix)) then
+  if (ele%field_master) then
+    sci_name = 'B'
+    factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+  else
+    sci_name = 'K'
+    factor = 1
+  endif
+
+  if (bmad_name(1:1) == 'A') then
+    sci_name = sci_name(1:1) // 's'
+  else
+    sci_name = sci_name(1:1) // 'n'
+  endif
+
+  sci_name = trim(sci_name) // bmad_name(2:)
+  factor = factor * factorial(ix)
+
+  if (ele%value(l$) == 0) then
+    sci_name = trim(sci_name) // 'L'
+  else
+    factor = factor / ele%value(l$)
+  endif
+
+  return
+endif
+
+select case (bmad_name)
+case ('BL_KICK');       sci_name = 'Bn0L'
+case ('BL_HKICK');      sci_name = 'Bn0L'
+case ('BL_VKICK');      sci_name = 'Bs0L'
+case ('B1_GRADIENT');   sci_name = 'Bn1'
+case ('B2_GRADIENT');   sci_name = 'Bn2'
+case ('B3_GRADIENT');   sci_name = 'Bn3'
+case ('K1');            sci_name = 'Kn1'
+case ('K2');            sci_name = 'Kn2'
+case ('K3');            sci_name = 'Kn3'
+case ('E1');            sci_name = 'e1'
+case ('E2');            sci_name = 'e2'
+case ('G');             sci_name = 'g_ref'
+case ('ANGLE');         sci_name = 'g_ref'
+case ('L');             sci_name = 'L'
+case ('X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH', 'TILT')
+  if (ele%key == patch$) then
+    select case (bmad_name)
+    case ('X_OFFSET');      sci_name = 'dx'
+    case ('Y_OFFSET');      sci_name = 'dy'
+    case ('Z_OFFSET');      sci_name = 'dz'
+    case ('X_PITCH');       sci_name = 'dy_rot'
+    case ('Y_PITCH');       sci_name = 'dx_rot'; factor = -1
+    case ('TILT');          sci_name = 'dz_rot'
+    end select
+  else
+    select case (bmad_name)
+    case ('X_OFFSET');      sci_name = 'x_offset'
+    case ('Y_OFFSET');      sci_name = 'y_offset'
+    case ('Z_OFFSET');      sci_name = 'z_offset'
+    case ('X_PITCH');       sci_name = 'y_rot'
+    case ('Y_PITCH');       sci_name = 'x_rot'; factor = -1
+    case ('TILT');          sci_name = 'z_rot'
+    end select
+  endif
+
+case ('T_OFFSET');      sci_name = 't_offset'
+case ('KS');            sci_name = 'Ksol'
+case ('BS_FIELD');      sci_name = 'Bsol'
+case default
+  print *, 'Attribute not yet coded for translation: ' // trim(bmad_name)
+  print *, 'Please report this.'
+end select
+
+end function scibmad_attrib_name
 
 end subroutine write_lattice_in_scibmad

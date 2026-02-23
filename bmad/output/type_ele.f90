@@ -1249,7 +1249,7 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
         nl=nl+1; write (li(nl), '(a, i4)') 'Slaves: [Attrib_Value = Value of the controlled attribute, Expression_Val = Value calculated by this Group element.]'
       endif
 
-      nl=nl+1; li(nl) = ' Ele_Loc   Ele_Name';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression/Knot Points'
+      nl=nl+1; li(nl) = 'Slave';  li(nl)(n_char+14:) = 'Attribute         Attrib_Value  Expression_Val     Expression/Knot Points'
       do ix = 1, ele%n_slave
         slave => pointer_to_slave (ele, ix, ctl)
 
@@ -1271,7 +1271,7 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
         endif
 
         nl=nl+1; write (li(nl), '(a)') ele_full_name(slave)
-        write (li(nl)(50:), '(a18, 2a, 4x, a)') ctl%attribute, attrib_val_str, str1(1:17), trim(li2(1))
+        write (li(nl)(n_char+14:), '(a18, 2a, 4x, a)') ctl%attribute, attrib_val_str, str1(1:17), trim(li2(1))
         if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
         do im = 2, size(li2)
           n = 50 + n_char + len(attrib_val_str)
