@@ -591,8 +591,8 @@ case (lcavity$, nonconst_ref_energy$)
   else
     phi = twopi * (lord%value(phi0$) + lord%value(phi0_multipass$))
     e_tot = ele%value(e_tot_start$) + lord%value(voltage$) * cos(phi)
-    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
-    if (err_flag) then
+    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err, print_err = .false.)
+    if (err) then
       call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
       ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
       param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
