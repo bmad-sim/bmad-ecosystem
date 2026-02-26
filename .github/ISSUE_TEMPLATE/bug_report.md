@@ -21,6 +21,10 @@ Additionally, please try to avoid the use of PyTao and Jupyter notebooks in exam
 debugger cannot not handle this. If the problem is with PyTao, the bug report should created in the
 PyTao repo.
 
+Also: If a change to the input files will produce a state where the bug does not appear, document this
+but leave the input files in a state where the bug is apparent. It can be confusing if the input files
+are in a state where the bug does not appear.
+
 **To Reproduce**
 Steps to reproduce the behavior:
 1. Go to '...'

@@ -1317,6 +1317,11 @@ case ('data')
     
     nl=nl+1; write(lines(nl), '(2a)') 'Data name: ', trim(d1_ptr%d2%name) // '.' // d1_ptr%name
 
+    if (size(d_array) == 0) then
+      nl=nl+1; write(lines(nl), '(a)') '  No datums here!'
+      return
+    endif      
+
     ! find string widths
     ! Expressions generally have very long strings so we let this spill over to
     ! the where0 and where fields

@@ -455,8 +455,8 @@ endif  !!!
 !------------------------------
 ! Overlay and group elements....
 
-write (iu, '(a)'), '#---------------------------------------------------------------------------------------'
-write (iu, '(a)'), '# Overlay and Group elements'
+write (iu, '(a)') '#---------------------------------------------------------------------------------------'
+write (iu, '(a)') '# Overlay and Group elements'
 write (iu, '(a)')
 
 ! First print constants used in expressions.

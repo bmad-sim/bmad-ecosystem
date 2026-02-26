@@ -8526,12 +8526,16 @@ call lat_ele_locator (line, lat, eles, n_loc)
 
 select case (n_loc)
 case (0) 
-  call invalid ('Cannot locate element.')
+  if (line == '') then
+    call invalid ('No element specified!')
+  else
+    call invalid ('Cannot locate element: ' // line)
+  endif
   return
 case (1)
   ! Good
 case default
-  call invalid ('Multiple matches to element.')
+  call invalid ('Multiple matches to element: ' // line)
   return
 end select
 

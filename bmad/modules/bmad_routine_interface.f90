@@ -1633,7 +1633,7 @@ end subroutine
 subroutine lcavity_rf_step_setup(ele)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
 end subroutine
 
 subroutine linear_to_spin_taylor(q_map, spin_taylor)
