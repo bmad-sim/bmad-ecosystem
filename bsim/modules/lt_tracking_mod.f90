@@ -68,6 +68,8 @@ type ltt_params_struct
   integer :: beam_output_every_n_turns = -1
   integer :: random_seed = 0
   integer :: output_only_last_turns = -1
+  integer :: space_charge_emit_calc_every_n_turns = -1
+  real(rp) :: space_charge_core_cutoff = 0.8
   real(rp) :: random_sigma_cut = -1  ! If positive, cutoff for Gaussian random num generator.
   real(rp) :: core_emit_cutoff(core_max$) = [0.5_rp, (-1.0_rp, i_loop = 2, core_max$)]
   real(rp) :: ramping_start_time = 0
@@ -860,82 +862,85 @@ species = branch%ele(0)%ref_species
 e_tot = branch%ele(0)%value(e_tot$)
 a_gam = anomalous_moment_of(species) * e_tot / mass_of(species)
 t0 = branch%ele(branch%n_ele_track)%ref_time
-call ltt_write_line('# e_tot                                   = ' // real_str(e_tot, 6), lttp, iu, print_this)
-call ltt_write_line('# t_1turn                                 = ' // real_str(t0, 6), lttp, iu, print_this)
-call ltt_write_line('# anom_moment_times_gamma                 = ' // real_str(a_gam, 6), lttp, iu, print_this)
-call ltt_write_line('# master_input_file                       = ' // quote(ltt_com%master_input_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%lat_file                            = ' // quote(lttp%lat_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%averages_output_file                = ' // quote(lttp%averages_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%beam_output_file                    = ' // quote(lttp%beam_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%custom_output_file                  = ' // quote(lttp%custom_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%per_particle_output_file            = ' // quote(lttp%per_particle_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%phase_space_output_file             = ' // quote(lttp%phase_space_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%action_angle_output_file            = ' // quote(lttp%action_angle_output_file), lttp, iu, print_this)
-call ltt_write_line('# ltt%map_file_prefix                     = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
-call ltt_write_line('# ltt%simulation_mode                     = ' // quote(lttp%simulation_mode), lttp, iu, print_this)
-call ltt_write_line('# ltt%tracking_method                     = ' // quote(lttp%tracking_method), lttp, iu, print_this)
-call ltt_write_line('# ltt%ele_start                           = ' // quote(lttp%ele_start), lttp, iu, print_this)
+call ltt_write_line('# e_tot                                     = ' // real_str(e_tot, 6), lttp, iu, print_this)
+call ltt_write_line('# t_1turn                                   = ' // real_str(t0, 6), lttp, iu, print_this)
+call ltt_write_line('# anom_moment_times_gamma                   = ' // real_str(a_gam, 6), lttp, iu, print_this)
+call ltt_write_line('# master_input_file                         = ' // quote(ltt_com%master_input_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%lat_file                              = ' // quote(lttp%lat_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%averages_output_file                  = ' // quote(lttp%averages_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%beam_output_file                      = ' // quote(lttp%beam_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%custom_output_file                    = ' // quote(lttp%custom_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%per_particle_output_file              = ' // quote(lttp%per_particle_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%phase_space_output_file               = ' // quote(lttp%phase_space_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%action_angle_output_file              = ' // quote(lttp%action_angle_output_file), lttp, iu, print_this)
+call ltt_write_line('# ltt%map_file_prefix                       = ' // quote(lttp%map_file_prefix), lttp, iu, print_this)
+call ltt_write_line('# ltt%simulation_mode                       = ' // quote(lttp%simulation_mode), lttp, iu, print_this)
+call ltt_write_line('# ltt%tracking_method                       = ' // quote(lttp%tracking_method), lttp, iu, print_this)
+call ltt_write_line('# ltt%ele_start                             = ' // quote(lttp%ele_start), lttp, iu, print_this)
 
-call ltt_write_line('# ltt%extraction_method                   = ' // quote(lttp%extraction_method), lttp, iu, print_this)
+call ltt_write_line('# ltt%extraction_method                     = ' // quote(lttp%extraction_method), lttp, iu, print_this)
 if (lttp%extraction_method /= '') then
-  call ltt_write_line('# ltt%ele_extract                         = ' // quote(lttp%ele_extract), lttp, iu, print_this)
-  call ltt_write_line('# ltt%ele_write_at                        = ' // quote(lttp%ele_write_at), lttp, iu, print_this)
+  call ltt_write_line('# ltt%ele_extract                           = ' // quote(lttp%ele_extract), lttp, iu, print_this)
+  call ltt_write_line('# ltt%ele_write_at                          = ' // quote(lttp%ele_write_at), lttp, iu, print_this)
 endif
 
 if (lttp%simulation_mode == 'CHECK') then
-  call ltt_write_line('# ltt%ele_stop                            = ' // quote(lttp%ele_stop), lttp, iu, print_this)
+  call ltt_write_line('# ltt%ele_stop                              = ' // quote(lttp%ele_stop), lttp, iu, print_this)
 endif
 
 if (lttp%tracking_method == 'MAP' .or. lttp%simulation_mode == 'CHECK') then
-  call ltt_write_line('# ltt%map_order                           = ' // int_str(lttp%map_order), lttp, iu, print_this)
-  call ltt_write_line('# ltt%exclude_from_maps                   = ' // quote(lttp%exclude_from_maps), lttp, iu, print_this)
-  call ltt_write_line('# ltt%symplectic_map_tracking             = ' // logic_str(lttp%symplectic_map_tracking), lttp, iu, print_this)
-  call ltt_write_line('# Number_of_maps                          = ' // int_str(ltt_com%num_maps), lttp, iu, print_this)
+  call ltt_write_line('# ltt%map_order                             = ' // int_str(lttp%map_order), lttp, iu, print_this)
+  call ltt_write_line('# ltt%exclude_from_maps                     = ' // quote(lttp%exclude_from_maps), lttp, iu, print_this)
+  call ltt_write_line('# ltt%symplectic_map_tracking               = ' // logic_str(lttp%symplectic_map_tracking), lttp, iu, print_this)
+  call ltt_write_line('# Number_of_maps                            = ' // int_str(ltt_com%num_maps), lttp, iu, print_this)
 endif
 
-call ltt_write_line('# ltt%split_bends_for_stochastic_rad      = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, print_this)
-call ltt_write_line('# ltt%core_emit_combined_calc             = ' // logic_str(lttp%core_emit_combined_calc), lttp, iu, print_this)
-call ltt_write_line('# ltt%action_angle_calc_uses_1turn_matrix = ' // logic_str(lttp%action_angle_calc_uses_1turn_matrix), lttp, iu, print_this)
+call ltt_write_line('# ltt%split_bends_for_stochastic_rad        = ' // logic_str(lttp%split_bends_for_stochastic_rad), lttp, iu, print_this)
+call ltt_write_line('# ltt%core_emit_combined_calc               = ' // logic_str(lttp%core_emit_combined_calc), lttp, iu, print_this)
+call ltt_write_line('# ltt%action_angle_calc_uses_1turn_matrix   = ' // logic_str(lttp%action_angle_calc_uses_1turn_matrix), lttp, iu, print_this)
 
 if (bmad_com%sr_wakes_on) then
-  call ltt_write_line('# Number_of_wake_elements                 = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
+  call ltt_write_line('# Number_of_wake_elements                   = ' // int_str(size(ltt_com%ix_wake_ele)), lttp, iu, print_this)
 endif
 
-call ltt_write_line('# ltt%random_sigma_cut                    = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%n_turns                             = ' // int_str(lttp%n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%ix_turn_start                       = ' // int_str(lttp%ix_turn_start), lttp, iu, print_this)
-call ltt_write_line('# ltt%ix_turn_stop                        = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
-call ltt_write_line('# ltt%beam_output_every_n_turns           = ' // int_str(lttp%beam_output_every_n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%particle_output_every_n_turns       = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%averages_output_every_n_turns       = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%output_only_last_turns              = ' // int_str(lttp%output_only_last_turns), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramping_on                          = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
-call ltt_write_line('# ltt%output_combined_bunches             = ' // logic_str(lttp%output_combined_bunches), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramp_update_each_particle           = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramp_particle_energy_without_rf     = ' // logic_str(lttp%ramp_particle_energy_without_rf), lttp, iu, print_this)
-call ltt_write_line('# ltt%ramping_start_time                  = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
-call ltt_write_line('# ltt%set_beambeam_crossing_time          = ' // logic_str(lttp%set_beambeam_crossing_time), lttp, iu, print_this)
-call ltt_write_line('# ltt%random_seed                         = ' // int_str(lttp%random_seed), lttp, iu, print_this)
+call ltt_write_line('# ltt%n_turns                               = ' // int_str(lttp%n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%space_charge_emit_calc_every_n_turns  = ' // int_str(lttp%space_charge_emit_calc_every_n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%space_charge_core_cutoff              = ' // real_str(lttp%space_charge_core_cutoff), lttp, iu, print_this)
+call ltt_write_line('# ltt%ix_turn_start                         = ' // int_str(lttp%ix_turn_start), lttp, iu, print_this)
+call ltt_write_line('# ltt%ix_turn_stop                          = ' // int_str(lttp%ix_turn_stop), lttp, iu, print_this)
+call ltt_write_line('# ltt%beam_output_every_n_turns             = ' // int_str(lttp%beam_output_every_n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%particle_output_every_n_turns         = ' // int_str(lttp%particle_output_every_n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%averages_output_every_n_turns         = ' // int_str(lttp%averages_output_every_n_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%output_only_last_turns                = ' // int_str(lttp%output_only_last_turns), lttp, iu, print_this)
+call ltt_write_line('# ltt%ramping_on                            = ' // logic_str(lttp%ramping_on), lttp, iu, print_this)
+call ltt_write_line('# ltt%output_combined_bunches               = ' // logic_str(lttp%output_combined_bunches), lttp, iu, print_this)
+call ltt_write_line('# ltt%ramp_update_each_particle             = ' // logic_str(lttp%ramp_update_each_particle), lttp, iu, print_this)
+call ltt_write_line('# ltt%ramp_particle_energy_without_rf       = ' // logic_str(lttp%ramp_particle_energy_without_rf), lttp, iu, print_this)
+call ltt_write_line('# ltt%ramping_start_time                    = ' // real_str(lttp%ramping_start_time, 6), lttp, iu, print_this)
+call ltt_write_line('# ltt%set_beambeam_crossing_time            = ' // logic_str(lttp%set_beambeam_crossing_time), lttp, iu, print_this)
+call ltt_write_line('# ltt%random_sigma_cut                      = ' // real_str(lttp%random_sigma_cut, 6), lttp, iu, print_this)
+call ltt_write_line('# ltt%random_seed                           = ' // int_str(lttp%random_seed), lttp, iu, print_this)
 
 if (lttp%random_seed == 0) then
-  call ltt_write_line('# random_seed_actual                      = ' // int_str(ltt_com%random_seed_actual), lttp, iu, print_this)
+  call ltt_write_line('# random_seed_actual                        = ' // int_str(ltt_com%random_seed_actual), lttp, iu, print_this)
 endif
 
-call ltt_write_line('# ltt%rfcavity_on                         = ' // logic_str(lttp%rfcavity_on), lttp, iu, print_this)
-call ltt_write_line('# is_RF_on                                = ' // logic_str(rf_is_on(branch)) // '  #  M65 /= 0 ?', lttp, iu, print_this)
-call ltt_write_line('# bmad_com%radiation_damping_on           = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%radiation_fluctuations_on      = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%spin_tracking_on               = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
-call ltt_write_line('# bmad_com%sr_wakes_on                    = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
+call ltt_write_line('# ltt%rfcavity_on                           = ' // logic_str(lttp%rfcavity_on), lttp, iu, print_this)
+call ltt_write_line('# is_RF_on                                  = ' // logic_str(rf_is_on(branch)) // '  #  M65 / = 0 ?', lttp, iu, print_this)
+call ltt_write_line('# bmad_com%radiation_damping_on             = ' // logic_str(bmad_com%radiation_damping_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%radiation_fluctuations_on        = ' // logic_str(bmad_com%radiation_fluctuations_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%spin_tracking_on                 = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%sr_wakes_on                      = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%high_energy_space_charge_on      = ' // logic_str(bmad_com%high_energy_space_charge_on), lttp, iu, print_this)
 
 bi => ltt_com%beam_init_used
 if (bi%a_emit /= real_garbage$) then
-  call ltt_write_line('# a_emit                                  = ' // real_str(bi%a_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# b_emit                                  = ' // real_str(bi%b_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# a_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# b_norm_emit                             = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
-  call ltt_write_line('# sig_z                                   = ' // real_str(bi%sig_z, 6), lttp, iu, print_this)
-  call ltt_write_line('# sig_pz                                  = ' // real_str(bi%sig_pz, 6), lttp, iu, print_this)
+  call ltt_write_line('# a_emit                                    = ' // real_str(bi%a_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# b_emit                                    = ' // real_str(bi%b_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# a_norm_emit                               = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# b_norm_emit                               = ' // real_str(bi%a_norm_emit, 6), lttp, iu, print_this)
+  call ltt_write_line('# sig_z                                     = ' // real_str(bi%sig_z, 6), lttp, iu, print_this)
+  call ltt_write_line('# sig_pz                                    = ' // real_str(bi%sig_pz, 6), lttp, iu, print_this)
 endif
 call ltt_write_line('#--------------------------------------', lttp, iu, print_this)
 
@@ -1697,6 +1702,7 @@ do i_turn = ix_start_turn, ix_end_turn-1
     call ltt_write_averages_data(lttp, i_turn+1, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn+1, beam = beam)
     call ltt_write_beam_file(lttp, ltt_com, i_turn+1, beam)
+    call ltt_space_charge_emit_calc(lttp, ltt_com, i_turn+1, beam)
   endif
 end do
 
@@ -1847,6 +1853,11 @@ logical err
 
 if (.not. bmad_com%high_energy_space_charge_on) return
 
+if (ltt_com%beam_init%n_bunch > 1) then
+  print '(a)', 'ERROR! THE HIGH ENERGY SPACE CHARGE CODE IS NOT CONFIGURED TO SUPPORT MORE THAN ONE BUNCH! STOPPING HERE!'
+  stop
+endif
+
 if (lttp%tracking_method == 'MAP') then
   print '(a)', 'WARNING! Space effects are not present when using a map tracking!'
   return
@@ -1857,6 +1868,10 @@ if (.not. lttp%rfcavity_on) then
   print '(a)', '      Therefore no space charge kick will be applied.'
   return
 endif
+
+if (lttp%space_charge_emit_calc_every_n_turns > 0 .and. (lttp%simulation_mode == 'SINGLE' .or. lttp%simulation_mode == 'INDIVIDUAL')) then
+  print '(a)', 'Note: lttp%space_charge_emit_calc_every_n_turns ignored with simulation_mode set to "SINGLE" or "INDIVIDUAL"'
+endif 
 
 n_particle = abs(ltt_com%beam_init%bunch_charge / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
 
@@ -2326,6 +2341,7 @@ write (iu,  '(a, l1)')   '# Radiation_Damping_on                = ', bmad_com%ra
 write (iu,  '(a, l1)')   '# Radiation_Fluctuations_on           = ', bmad_com%radiation_fluctuations_on
 write (iu,  '(a, l1)')   '# Spin_tracking_on                    = ', bmad_com%spin_tracking_on
 write (iu,  '(a, l1)')   '# sr_wakes_on                         = ', bmad_com%sr_wakes_on
+write (iu,  '(a, l1)')   '# high_energy_space_charge_on         = ', bmad_com%high_energy_space_charge_on
 write (iu,  '(a, l1)')   '# RF_is_on                            = ', rf_is_on(ltt_com%tracking_lat%branch(ltt_com%ix_branch))
 write (iu,  '(a, l1)')   '# action_angle_calc_uses_1turn_matrix = ', lttp%action_angle_calc_uses_1turn_matrix
 if (bmad_com%sr_wakes_on) then
@@ -2451,14 +2467,14 @@ allocate (core_bunch%particle(n_cut))
 cutoff = min(1.0_rp-1e-8_rp, core_emit_cutoff)
  
 if (lttp%core_emit_combined_calc) then
-  sig_cut = -log(inverse(beam_fraction, cutoff, 1e-12_rp, 1.0_rp, 1e-8_rp))
+  sig_cut = -log(inverse(ltt_beam_fraction, cutoff, 1e-12_rp, 1.0_rp, 1e-8_rp))
   f = cutoff / (1 - (1 + sig_cut + sig_cut**2/2 + sig_cut**3/6) * exp(-sig_cut))
 
-  call core_bunch_construct(0, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch, bd%params)
+  call ltt_core_bunch_construct(0, bunch, core_emit_cutoff, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch, bd%params)
 
   call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat);  if (error) return
   call mat_inverse (n_inv_mat, n_inv_mat)
-  call core_bunch_construct(0, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch, b_params)
+  call ltt_core_bunch_construct(0, bunch, core_emit_cutoff, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch, b_params)
 
   call calc_bunch_params(core_bunch, b_params, error);  if (error) return
   core_emit(1) = f * b_params%a%emit
@@ -2470,12 +2486,12 @@ else
   f =  cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
 
   do i = 1, 3
-    call core_bunch_construct(i, bunch, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch)
+    call ltt_core_bunch_construct(i, bunch, core_emit_cutoff, bd%params%centroid%vec, n_inv_mat0, n_cut, core_bunch)
 
     call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat); if (error) return
 
     call mat_inverse (n_inv_mat, n_inv_mat)
-    call core_bunch_construct(i, bunch, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
+    call ltt_core_bunch_construct(i, bunch, core_emit_cutoff, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
 
     call calc_bunch_params(core_bunch, b_params, error);  if (error) return
     select case (i)
@@ -2488,26 +2504,19 @@ endif
 
 end subroutine this_core_calc
 
-!------------------------------------------------
-! contains
-! Fraction of the beam within region jx+jy+jz < jc where jx,jy,jz are normalized action coordinates.
+end subroutine ltt_calc_bunch_data
 
-function beam_fraction(exp_njc) result (fract)
-real(rp) exp_njc, jc, fract
-jc = -log(exp_njc)
-fract = 1.0_rp - exp_njc * (1 + jc + 0.5_rp*jc**2)
-end function beam_fraction
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
 
-!------------------------------------------------
-! contains
-
-subroutine core_bunch_construct(ix_mode, bunch, center, n_inv_mat, n_cut, core_bunch, b_params)
+subroutine ltt_core_bunch_construct(ix_mode, bunch, core_emit_cutoff, center, n_inv_mat, n_cut, core_bunch, b_params)
 
 type (bunch_struct), target :: bunch, core_bunch
 type (bunch_params_struct), optional :: b_params
 type (coord_struct), pointer :: p
 
-real(rp) n_inv_mat(6,6), center(6), jvec(6)
+real(rp) core_emit_cutoff, n_inv_mat(6,6), center(6), jvec(6)
 real(rp), allocatable :: jamp(:)
 
 integer ix_mode, n_cut
@@ -2546,9 +2555,18 @@ do ip = 1, n_cut
   core_bunch%particle(ip) = bunch%particle(j)
 enddo
 
-end subroutine core_bunch_construct
+end subroutine ltt_core_bunch_construct
 
-end subroutine ltt_calc_bunch_data
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+! Fraction of the beam within region jx+jy+jz < jc where jx,jy,jz are normalized action coordinates.
+
+function ltt_beam_fraction(exp_njc) result (fract)
+real(rp) exp_njc, jc, fract
+jc = -log(exp_njc)
+fract = 1.0_rp - exp_njc * (1 + jc + 0.5_rp*jc**2)
+end function ltt_beam_fraction
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -3582,5 +3600,68 @@ if (lttp%add_closed_orbit_to_init_position) then
 endif
 
 end subroutine ltt_init_coord
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Recalculate emit for high energy space charge kick
+!-
+
+subroutine ltt_space_charge_emit_calc(lttp, ltt_com, ix_turn, beam)
+
+type (ltt_params_struct), target :: lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (bunch_struct), pointer :: bunch
+type (bunch_struct) core_bunch
+type (lat_struct), pointer :: lat
+type (bunch_params_struct) b_params
+type (normal_modes_struct) modes
+
+real(rp) cutoff, sig_cut, f, g, n_inv_mat0(6,6), n_inv_mat(6,6), core_emit(3), n_particle
+integer i, ix_turn, n_cut, ix_branch
+logical error
+
+!
+
+if (.not. bmad_com%high_energy_space_charge_on) return
+if (lttp%space_charge_emit_calc_every_n_turns < 1) return
+if (mod(ix_turn - lttp%ix_turn_start, lttp%space_charge_emit_calc_every_n_turns) /= 0) return
+
+bunch => beam%bunch(1)
+call calc_bunch_params(bunch, b_params, error, .true., n_inv_mat)
+n_particle = abs(b_params%charge_live / (e_charge * charge_of(ltt_com%bmad_closed_orb(0)%species)))
+
+cutoff = min(1.0_rp-1e-8_rp, lttp%space_charge_core_cutoff)
+n_cut = int(cutoff * b_params%n_particle_live)
+allocate (core_bunch%particle(n_cut))
+sig_cut = -log(1 - cutoff)
+f = cutoff / (1 - (1+sig_cut)*exp(-sig_cut))
+
+do i = 1, 3
+  call ltt_core_bunch_construct(i, bunch, cutoff, b_params%centroid%vec, n_inv_mat0, n_cut, core_bunch)
+
+  call calc_bunch_params(core_bunch, b_params, error, n_mat = n_inv_mat); if (error) return
+
+  call mat_inverse (n_inv_mat, n_inv_mat)
+  call ltt_core_bunch_construct(i, bunch, cutoff, b_params%centroid%vec, n_inv_mat, n_cut, core_bunch)
+
+  call calc_bunch_params(core_bunch, b_params, error);  if (error) return
+  select case (i)
+  case (1); modes%a%emittance = f * b_params%a%emit
+  case (2); modes%b%emittance = f * b_params%b%emit
+  case (3)
+    modes%sig_z  = sqrt(f) * b_params%z%sigma
+    modes%sigE_E = sqrt(f) * b_params%z%sigma_p
+  end select
+enddo
+
+lat => ltt_com%tracking_lat
+ix_branch = ltt_com%ix_branch
+
+call setup_high_energy_space_charge_calc (.true., lat%branch(ix_branch), n_particle, modes, closed_orb = ltt_com%bmad_closed_orb)
+
+end subroutine ltt_space_charge_emit_calc
 
 end module
