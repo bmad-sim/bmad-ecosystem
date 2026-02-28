@@ -92,13 +92,13 @@ TYPE sub_taylor
 
 
   TYPE UNIVERSAL_TAYLOR
-     INTEGER, POINTER:: N,NV    !  Number of coeeficients and number of variables
-     REAL(DP), POINTER,dimension(:)::C  ! Coefficients C(N)
-     INTEGER, POINTER,dimension(:,:)::J ! Exponents of each coefficients J(N,NV)
+     INTEGER, POINTER:: N=>null(),NV=>null()    !  Number of coeeficients and number of variables
+     REAL(DP), POINTER,dimension(:)::C=>null()  ! Coefficients C(N)
+     INTEGER, POINTER,dimension(:,:)::J=>null() ! Exponents of each coefficients J(N,NV)
   END TYPE UNIVERSAL_TAYLOR
 
   TYPE c_UNIVERSAL_TAYLOR
-     INTEGER, POINTER:: N,NV,nd2 => null()   !  Number of coeeficients and number of variables
+     INTEGER, POINTER:: N=>null(),NV=>null(),nd2 => null()   !  Number of coeeficients and number of variables
      complex(DP), POINTER,dimension(:)::C => null() ! Coefficients C(N)
      INTEGER, POINTER,dimension(:,:)::J=> null() ! Exponents of each coefficients J(N,NV)
   END TYPE c_UNIVERSAL_TAYLOR

@@ -43,6 +43,9 @@ module ptc_spin
   integer  :: item_min=3,mfdebug
   integer  :: case_map=case1,i11min=6776, i22max=8055
  ! logical :: excludedelta=.false.
+  type(tree_element_zhe), pointer :: t_mapexam_map(:)=> null();
+  type(tree_element), pointer :: t_mapexam_map8(:)=> null();
+  real(dp) mapexam_closed_orbit(6)
 
   INTERFACE assignment (=)
      MODULE PROCEDURE equal_temporal
@@ -1823,6 +1826,12 @@ if(C%parent_fibre%mag%name(1:3)=="MAP") then
  return
  endif
 
+ 
+ if(C%parent_fibre%mag%name=="MAPZHE") then
+    if(c%cas==case_map) call track_zher(C,XS,K)
+ return
+ endif
+
  if(C%parent_fibre%mag%name=="MAPYE") then
     if(c%cas==case_map) call track_yer(C,XS,K)
  return
@@ -1915,6 +1924,11 @@ revert_to_ptc=.false.
     endif
 
 if(C%parent_fibre%magp%name(1:3)=="MAP") then
+
+ if(C%parent_fibre%mag%name=="MAPZHE") then
+    if(c%cas==case_map) call track_zhep(C,XS,K)
+ return
+ endif
  if(C%parent_fibre%mag%name=="MAPEXAM") then
     if(c%cas==case_map) call track_examp(C,XS,K)
  return
@@ -2509,7 +2523,8 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
      xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
 
-    xs%x(2)=xs%x(2)-b4*xs%x(1)**n
+    xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+    xs%x(1)=xs%x(1)-C%PARENT_FIBRE%MAG%bn(1)*b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
 
 !call add(m1,2,0,beta)
 !call add(m1,4,0,1.d0)   ! multipole strength
@@ -2521,9 +2536,70 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
  call GRNF(b4,10.d0)
     xs%x(2)=xs%x(2)+C%PARENT_FIBRE%MAG%an(3)*b4 
 
+mu=1.5_dp*mu
+    x=(cos(mu)+alpha*sin(mu))*xs%x(3)+beta*sin(mu)*xs%x(4)
+    xs%x(4)=(cos(mu)-alpha*sin(mu))*xs%x(4)-gamma*sin(mu)*xs%x(3)
+    xs%x(3)=x
+ mu=1.5_dp*mu
+    x=(cos(mu)+alpha*sin(mu))*xs%x(5)+beta*sin(mu)*xs%x(6)
+    xs%x(6)=(cos(mu)-alpha*sin(mu))*xs%x(6)-gamma*sin(mu)*xs%x(5)
+    xs%x(5)=x
 
- 
   end subroutine track_examr
+
+  subroutine track_zher(c,xs,K)   !electric teapot s
+use gauss_dis
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    type(probe_zhe) xs0_zhe
+
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+ !xs0_zhe%x=xs%x
+
+     ! call track_TREE_probe_complex_zhe(t_mapexam_map(1:3),xs0_zhe,spin=.false.,rad=.false.,stoch=.false.)  !stoch=state%stochastic)
+      call track_TREE_probe_simple_zher_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation,stoch=k%stochastic)  !stoch=state%stochastic)
+!xs%u=xs0_zhe%u
+!xs%x=xs0_zhe%x
+ 
+
+  end subroutine track_zher
+
+ subroutine track_zhep(c,xs,K)   !electric teapot s
+use gauss_dis
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+ !   type(probe_zhe) xs0_zhe
+
+    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGp%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+ !xs0_zhe%x=xs%x
+
+     ! call track_TREE_probe_complex_zhe(t_mapexam_map(1:3),xs0_zhe,spin=.false.,rad=.false.,stoch=.false.)  !stoch=state%stochastic)
+      call track_TREE_probe_simple_zhep_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation)  !stoch=state%stochastic)
+!xs%u=xs0_zhe%u
+!xs%x=xs0_zhe%x
+ 
+
+  end subroutine track_zhep
+
+
 
   subroutine track_examp(c,xs,K)   !electric teapot s
     IMPLICIT NONE
@@ -2554,8 +2630,20 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
      xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
 
-    xs%x(2)=xs%x(2)-b4*xs%x(1)**n
+    xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+    xs%x(1)=xs%x(1)-C%PARENT_FIBRE%MAGp%bn(1)*b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+
     xs%E_ij(2,2)=C%PARENT_FIBRE%MAG%an(3)**2
+
+mu=1.5_dp*mu
+    x=(cos(mu)+alpha*sin(mu))*xs%x(3)+beta*sin(mu)*xs%x(4)
+    xs%x(4)=(cos(mu)-alpha*sin(mu))*xs%x(4)-gamma*sin(mu)*xs%x(3)
+    xs%x(3)=x
+ mu=1.5_dp*mu
+    x=(cos(mu)+alpha*sin(mu))*xs%x(5)+beta*sin(mu)*xs%x(6)
+    xs%x(6)=(cos(mu)-alpha*sin(mu))*xs%x(6)-gamma*sin(mu)*xs%x(5)
+    xs%x(5)=x
+
 call kill(x)
   end subroutine track_examp
 

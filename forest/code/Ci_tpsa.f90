@@ -4568,7 +4568,7 @@ endif
          fac=jc(l)+fac
         enddo
         fac=fac+1
-       if(ss<0) then  !  fixed bug 2017 jan 9
+       if(ss/=0) then  !  fixed bug 2017 jan 9  2   fixed bug again 2026 
         if(mod(j,2)==0) then  
           x=((value/fac).cmono.jc)*(1.0_dp.cmono.(j-1))+x
         else
@@ -4589,6 +4589,8 @@ endif
     c_master=localmaster
 
   END FUNCTION getpb
+
+
 
 
   FUNCTION cgetpb( S1,S1p, S2 )  
@@ -8873,18 +8875,22 @@ end   SUBROUTINE  c_clean_yu_w
   end SUBROUTINE  clean_vector 
 
 
- SUBROUTINE  clean_c_universal_taylor(S1,S2,prec,relative)
+ SUBROUTINE  clean_c_universal_taylor(S1,S2,prec,relative,sub,cray)
     implicit none
     type (c_UNIVERSAL_TAYLOR),INTENT(INOUT)::S2
     type (c_UNIVERSAL_TAYLOR), intent(INOUT):: s1
     type (c_UNIVERSAL_TAYLOR) u,w
     real(dp) prec,siz
     complex(dp) c
-    integer i,count,j,cnv
+    integer i,count,j,cnv,isub
+    integer, optional :: sub
     logical,optional :: relative
+    type(c_ray),optional :: cray
+
     logical rel
      real(dp), allocatable :: norm(:)
- 
+     isub=-1
+     if(present(sub)) isub=sub
       rel=.false.
      if(present(relative)) rel=relative
      if(rel) then
@@ -8944,7 +8950,30 @@ end   SUBROUTINE  c_clean_yu_w
      call kill(s2)
       call alloc(s2,u%N,u%NV,u%nd2)
 
+     if(isub>0) then
+   
+      do i=1,w%n
+
+          count=0
+       do j=1,w%nv
+         count=w%J(i,j)+count
+       enddo
+       if(count/=isub) w%c(i)=0
+
+      enddo
+
+     endif
+
+     if(present(cray)) then
+      do i=1,w%n
+      do j=1,w%nv
+         w%c(i) =w%c(i)*cray%x(j)**w%j(i,j)
+      enddo
+       enddo
+     endif
+
      s2=w
+
 
      if(rel)  deallocate(norm )
       

@@ -70,7 +70,7 @@ write (1, '(a, 2es20.10)') '"bbi_kick4-lin-nk"   ABS 1e-10', nk
 write (1, '(a, 4es20.10)') '"bbi_kick4-lin-dnk"  ABS 1e-10', dnk
 
 !sigma = [2.0_rp, 1.0_rp]
-!call bbi_kick(1.0_rp, 0.5_rp, sigma, nk, dnk)
+!call bbi_kick(1.0_rp, 5.0_rp, sigma, nk, dnk)
 !write (1, '(a, 2es20.10)') '"bbi_kick-nk"   ABS 1e-10', nk
 !write (1, '(a, 4es20.10)') '"bbi_kick-dnk"  ABS 1e-10', dnk
 
@@ -78,9 +78,6 @@ write (1, '(a, 4es20.10)') '"bbi_kick4-lin-dnk"  ABS 1e-10', dnk
 !call bbi_kick(1.0_rp, 0.5_rp, sigma, nk, dnk, .true.)
 !write (1, '(a, 2es20.10)') '"bbi_kick-nk"   ABS 1e-10', nk
 !write (1, '(a, 4es20.10)') '"bbi_kick-dnk"  ABS 1e-10', dnk
-
-
-
 
 ! Gun test
 
