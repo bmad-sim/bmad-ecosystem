@@ -406,7 +406,7 @@ if (ltt_com%mpi_rank == master_rank$) then
     call ltt_write_averages_data (lttp, i_turn, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
     call ltt_write_beam_file(lttp, ltt_com, i_turn, beam)
-    call ltt_space_charge_emit_calc(lttp, ltt_com, i_turn)
+    call ltt_space_charge_emit_calc(lttp, ltt_com, i_turn, beam)
   enddo
 
   ! Extraction
