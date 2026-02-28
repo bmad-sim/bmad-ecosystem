@@ -932,6 +932,7 @@ call ltt_write_line('# bmad_com%radiation_fluctuations_on        = ' // logic_st
 call ltt_write_line('# bmad_com%spin_tracking_on                 = ' // logic_str(bmad_com%spin_tracking_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%sr_wakes_on                      = ' // logic_str(bmad_com%sr_wakes_on), lttp, iu, print_this)
 call ltt_write_line('# bmad_com%high_energy_space_charge_on      = ' // logic_str(bmad_com%high_energy_space_charge_on), lttp, iu, print_this)
+call ltt_write_line('# bmad_com%high_energy_space_charge_linear   = ' // logic_str(bmad_com%high_energy_space_charge_linear), lttp, iu, print_this)
 
 bi => ltt_com%beam_init_used
 if (bi%a_emit /= real_garbage$) then

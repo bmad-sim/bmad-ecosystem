@@ -2231,6 +2231,7 @@ type extra_parsing_info_struct
   logical :: sr_wakes_on_set                        = .false.
   logical :: lr_wakes_on_set                        = .false.
   logical :: high_energy_space_charge_on_set        = .false.
+  logical :: high_energy_space_charge_linear_set    = .false.
   logical :: csr_and_space_charge_on_set            = .false.
   logical :: spin_tracking_on_set                   = .false.
   logical :: spin_sokolov_ternov_flipping_on_set    = .false.
@@ -2317,6 +2318,7 @@ type bmad_common_struct
   logical :: lr_wakes_on = .true.                      ! Long range wakefields
   logical :: auto_bookkeeper = .true.                  ! Deprecated and no longer used.
   logical :: high_energy_space_charge_on = .false.     ! High energy space charge effect switch.
+  logical :: high_energy_space_charge_linear = .false. ! High energy space charge effect switch.
   logical :: csr_and_space_charge_on = .false.         ! Space charge switch.
   logical :: spin_tracking_on = .false.                ! spin tracking?
   logical :: spin_sokolov_ternov_flipping_on = .false. ! Spin flipping during synchrotron radiation emission?

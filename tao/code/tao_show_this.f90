@@ -2271,6 +2271,7 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %convert_to_kinetic_momentum     = ', bmad_com%convert_to_kinetic_momentum
     nl=nl+1; write(lines(nl), lmt) '  %csr_and_space_charge_on         = ', bmad_com%csr_and_space_charge_on
     nl=nl+1; write(lines(nl), lmt) '  %high_energy_space_charge_on     = ', bmad_com%high_energy_space_charge_on
+    nl=nl+1; write(lines(nl), lmt) '  %high_energy_space_charge_linear = ', bmad_com%high_energy_space_charge_linear
     nl=nl+1; write(lines(nl), lmt) '  %lr_wakes_on                     = ', bmad_com%lr_wakes_on
     nl=nl+1; write(lines(nl), lmt) '  %normalize_twiss                 = ', bmad_com%normalize_twiss
     nl=nl+1; write(lines(nl), lmt) '  %radiation_damping_on            = ', bmad_com%radiation_damping_on

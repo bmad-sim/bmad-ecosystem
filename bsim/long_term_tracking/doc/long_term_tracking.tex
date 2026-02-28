@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 26, 2026}
+\date{David Sagan \\ February 28, 2026}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -761,10 +761,11 @@ Example:
 
   ! Bmad_com parameters affecting the tracking.
   ! See the Bmad manual for details.
-  bmad_com%spin_tracking_on            = T
-  bmad_com%radiation_damping_on        = F
-  bmad_com%radiation_fluctuations_on   = F
-  bmad_com%high_energy_space_charge_on = F
+  bmad_com%spin_tracking_on                = T
+  bmad_com%radiation_damping_on            = F
+  bmad_com%radiation_fluctuations_on       = F
+  bmad_com%high_energy_space_charge_on     = F
+  bmad_com%high_energy_space_charge_linear = F
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = T
@@ -1166,6 +1167,11 @@ coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode c
 ``vertical'' mode.] These emittance can be specified by setting \vn{beam_init%a_emit} and/or
 \vn{beam_init%b_emit}. If set to zero or negative, an emittance is calculated using a radiation
 integral calculation. Additionally, the longitudinal beam size is calculated via radiation integrals.
+
+To test with a linear space charge kick, set:
+\begin{code}
+bmad_com%high_energy_space_charge_linear = T
+\end{code}
 
 When using BEAM mode, the emittances used in the calculation can be periodically recomputed every $N$ turns
 from the tracked beam distribution by setting the input parameters

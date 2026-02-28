@@ -516,10 +516,11 @@ function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
   real(rp) frac1
 end function
 
-subroutine bbi_kick (x, y, sigma, nk, dnk)
+subroutine bbi_kick (x, y, sigma, nk, dnk, linear_kick)
   import
   implicit none
   real(rp) x, y, sigma(2), nk(2), dnk(2,2)
+  logical, optional :: linear_kick
 end subroutine
 
 subroutine bbi_slice_calc (ele, n_slice, z_slice)

@@ -16,8 +16,70 @@ type (coord_struct) :: p0, delp
 type (beam_init_struct) beam_init
 type (coord_struct), allocatable :: centroid(:)
 
+real(rp) sigma(2), nk(2), dnk(2,2)
 logical err
 integer i
+
+!
+
+open (1, file = 'output.now')
+
+! bbi_kick test
+
+sigma = [10.0_rp, 10.0_rp]
+call bbi_kick(0.01_rp, 0.02_rp, sigma, nk, dnk)
+write (1, '(a, 2es20.10)') '"bbi_kick1-rnd-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick1-rnd-dnk"  ABS 1e-10', dnk
+
+sigma = [10.0_rp, 10.1_rp]
+call bbi_kick(0.01_rp, 0.02_rp, sigma, nk, dnk, .false.)
+write (1, '(a, 2es20.10)') '"bbi_kick1-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick1-dnk"  ABS 1e-10', dnk
+
+
+sigma = [10.0_rp, 10.1_rp]
+call bbi_kick(20.0_rp, 40.0_rp, sigma, nk, dnk, .false.)
+write (1, '(a, 2es20.10)') '"bbi_kick2-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick2-dnk"  ABS 1e-10', dnk
+
+sigma = [10.0_rp, 10.0_rp]
+call bbi_kick(20.0_rp, 40.0_rp, sigma, nk, dnk)
+write (1, '(a, 2es20.10)') '"bbi_kick2-rnd-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick2-rnd-dnk"  ABS 1e-10', dnk
+
+
+sigma = [10.0_rp, 10.1_rp]
+call bbi_kick(200.0_rp, 400.0_rp, sigma, nk, dnk, .false.)
+write (1, '(a, 2es20.10)') '"bbi_kick3-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick3-dnk"  ABS 1e-10', dnk
+
+sigma = [10.0_rp, 10.0_rp]
+call bbi_kick(200.0_rp, 400.0_rp, sigma, nk, dnk)
+write (1, '(a, 2es20.10)') '"bbi_kick3-rnd-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick3-rnd-dnk"  ABS 1e-10', dnk
+
+
+sigma = [20.0_rp, 10.0_rp]
+call bbi_kick(0.01_rp, 0.04_rp, sigma, nk, dnk)
+write (1, '(a, 2es20.10)') '"bbi_kick4-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick4-dnk"  ABS 1e-10', dnk
+
+sigma = [20.0_rp, 10.1_rp]
+call bbi_kick(0.01_rp, 0.04_rp, sigma, nk, dnk, .true.)
+write (1, '(a, 2es20.10)') '"bbi_kick4-lin-nk"   ABS 1e-10', nk
+write (1, '(a, 4es20.10)') '"bbi_kick4-lin-dnk"  ABS 1e-10', dnk
+
+!sigma = [2.0_rp, 1.0_rp]
+!call bbi_kick(1.0_rp, 0.5_rp, sigma, nk, dnk)
+!write (1, '(a, 2es20.10)') '"bbi_kick-nk"   ABS 1e-10', nk
+!write (1, '(a, 4es20.10)') '"bbi_kick-dnk"  ABS 1e-10', dnk
+
+!sigma = [2.0_rp, 1.0_rp]
+!call bbi_kick(1.0_rp, 0.5_rp, sigma, nk, dnk, .true.)
+!write (1, '(a, 2es20.10)') '"bbi_kick-nk"   ABS 1e-10', nk
+!write (1, '(a, 4es20.10)') '"bbi_kick-dnk"  ABS 1e-10', dnk
+
+
 
 
 ! Gun test
@@ -31,7 +93,6 @@ do i = 1, lat%n_ele_track
   call track1_bunch_space_charge(bunch, ele, err)
 enddo
   
-open (1, file = 'output.now')
 p => bunch%particle(1)
 write (1, '(a, es20.10)') '"cathode_sc:vec(1)" ABS  2e-07', p%vec(1)
 write (1, '(a, es20.10)') '"cathode_sc:vec(2)" ABS  2e-07', p%vec(2)

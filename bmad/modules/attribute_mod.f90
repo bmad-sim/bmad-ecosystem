@@ -952,6 +952,7 @@ call init_attribute_name1 (is_ok, def_line$, default_tracking_species$,         
 call init_attribute_name1 (is_ok, def_line$, ix_branch$,                        'ix_branch', private$)
 call init_attribute_name1 (is_ok, def_line$, high_energy_space_charge_on$,      'HIGH_ENERGY_SPACE_CHARGE_ON')
 
+call init_attribute_name1 (is_ok, beginning_ele$, ref_species$,                    'REF_SPECIES')
 call init_attribute_name1 (is_ok, beginning_ele$, spin_x_stored$,                  'SPIN_X_STORED')
 call init_attribute_name1 (is_ok, beginning_ele$, spin_y_stored$,                  'SPIN_Y_STORED')
 call init_attribute_name1 (is_ok, beginning_ele$, spin_z_stored$,                  'SPIN_Z_STORED')
@@ -2065,7 +2066,7 @@ endif
 
 select case (attrib_name)
 case ('NO_END_MARKER', 'SYMPLECTIFY', 'IS_ON', 'LIVE_BRANCH', 'HARMON_MASTER', &
-      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', &
+      'APERTURE_LIMIT_ON', 'ABSOLUTE_TIME_TRACKING', 'AUTOSCALE_PHASE', 'GANG', 'HIGH_ENERGY_SPACE_CHARGE_LINEAR', &
       'AUTOSCALE_AMPLITUDE', 'PTC_EXACT_MODEL', 'PTC_EXACT_MISALIGN', 'HIGH_ENERGY_SPACE_CHARGE_ON', &
       'TAYLOR_MAP_INCLUDES_OFFSETS', 'OFFSET_MOVES_APERTURE', 'FIELD_MASTER', 'SCALE_MULTIPOLES', &
       'FLEXIBLE', 'NEW_BRANCH', 'SPIN_FRINGE_ON', 'REF_TIME_OFFSET', 'WRAP_SUPERIMPOSE', &
