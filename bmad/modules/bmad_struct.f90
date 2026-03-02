@@ -2194,7 +2194,7 @@ type (time_runge_kutta_common_struct), save :: time_runge_kutta_com
 !------------------------------------------------------------------------------
 
 integer, parameter :: invalid_name$ = 0, is_logical$ = 1, is_integer$ = 2, is_real$ = 3, is_switch$ = 4, is_string$ = 5
-integer, parameter :: is_struct$ = 6, unknown$ = 7
+integer, parameter :: is_struct$ = 6, is_species$ = 7, unknown$ = 8
 
 ! For coords_floor_to_curvilinear status argument
 

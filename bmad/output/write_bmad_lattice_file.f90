@@ -874,7 +874,7 @@ do ib = 0, ubound(lat%branch, 1)
         write (line, '(4a, i0)') trim(line), ', ', trim(attrib%name), ' = ', int(val)
       case (is_real$)
         line = trim(line) // ', ' // trim(attrib%name) // ' = ' // re_str(val)
-      case (is_switch$)
+      case (is_switch$, is_species$)
         name = switch_attrib_value_name (attrib%name, val, ele, is_default)
         if (.not. is_default) then
           line = trim(line) // ', ' // trim(attrib%name) // ' = ' // name

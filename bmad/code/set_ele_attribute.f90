@@ -68,7 +68,7 @@ if (ix == 0) then
 endif
 
 a_name = upcase(adjustl(set_string(1:ix-1)))
-if (attribute_type(a_name) == is_string$) then
+if (attribute_type(a_name) == is_string$ .or. attribute_type(a_name) == is_species$) then
   string = trim(a_name) // set_string(ix:)
 else
   call str_upcase (string, set_string)
