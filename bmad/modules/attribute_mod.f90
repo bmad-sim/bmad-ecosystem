@@ -2034,7 +2034,7 @@ end function has_orientation_attributes
 !
 ! Output:
 !   attrib_type  -- Integer: Attribute type: 
-!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, is_struct$ or invalid_name$
+!                     is_string$, is_logical$, is_integer$, is_real$, is_switch$, is_struct$, is_species$ or invalid_name$
 !                     Note: An overlay or group variable will be marked invalid_name$ if ele is missing.
 !-
 
@@ -2086,13 +2086,13 @@ case ('TAYLOR_ORDER', 'N_SLICE', 'DIRECTION', 'TIME_DIR', 'VERTICAL_KICK', 'N_CE
 
 case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPOLES', &
       'FRINGE_TYPE', 'GEOMETRY', 'FRINGE_AT', 'MAT6_CALC_METHOD', 'MATRIX', 'KICK0', &
-      'ORIGIN_ELE_REF_PT', 'PARTICLE', 'PTC_FIELD_GEOMETRY', 'DEFAULT_TRACKING_SPECIES', &
+      'ORIGIN_ELE_REF_PT', 'PTC_FIELD_GEOMETRY', &
       'PTC_INTEGRATION_TYPE', 'SPIN_TRACKING_METHOD', 'PTC_FRINGE_GEOMETRY', 'INTERPOLATION', &
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
-      'MULTIPASS_REF_ENERGY', 'REF_SPECIES', 'SPECIES_OUT', 'DISTRIBUTION', 'LATTICE_TYPE', &
-      'SPECIES_STRONG', 'SCATTER_METHOD', 'FIDUCIAL_PT', 'K0L_STATUS')
+      'MULTIPASS_REF_ENERGY', 'DISTRIBUTION', 'LATTICE_TYPE', &
+      'SCATTER_METHOD', 'FIDUCIAL_PT', 'K0L_STATUS')
   attrib_type = is_switch$
 
 case ('TYPE', 'ALIAS', 'DESCRIP', 'SR_WAKE_FILE', 'LR_WAKE_FILE', 'LATTICE', 'PHYSICAL_SOURCE', &
@@ -2105,6 +2105,9 @@ case ('CARTESIAN_MAP', 'CYLINDRICAL_MAP', 'FIELD_OVERLAPS', 'GEN_GRAD_MAP', 'GRI
       'VAR', 'WALL', 'AMP_VS_TIME', 'FREQUENCIES', 'X_KNOT', 'SR_WAKE', 'LR_WAKE', 'CURVATURE', &
       'ENERGY_PROBABILITY_CURVE', 'REFLECTIVITY_TABLE')
   attrib_type = is_struct$
+
+case ('PARTICLE', 'DEFAULT_TRACKING_SPECIES', 'REF_SPECIES', 'SPECIES_OUT', 'SPECIES_STRONG')
+  attrib_type = is_species$
 
 case default
   attrib_type = is_real$
@@ -2404,7 +2407,7 @@ end subroutine string_attrib
 !
 ! Routine to return the name corresponding to the value of a given switch attribute.
 !
-! This routine is for "switch" attributes. For example, the "aperture_type" attribute
+! This routine is for "switch" and "species" attributes. For example, the "aperture_type" attribute
 ! can have value names of "Entrance_End", "Exit_End", etc.
 !
 ! Optionally, this routine can determine if the attribute value corresponds 

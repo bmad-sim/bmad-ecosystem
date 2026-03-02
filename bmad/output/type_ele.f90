@@ -1789,7 +1789,7 @@ case (is_integer$)
   write (line, '(a, 2x, 2a, i0)')  str_ix, attrib%name(1:n_name_width), '= ', nint(attrib%value)
 case (is_real$)
   write (line, '(a, 2x, 2a, es15.7, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', attrib%value, attrib%units
-case (is_switch$)
+case (is_switch$, is_species$)
   if (attrib%name == 'SPECIES_STRONG' .and. attrib%value == real_garbage$) then
     name = 'Not_Set'
   else

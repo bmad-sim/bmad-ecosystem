@@ -28,11 +28,11 @@ type (multipass_region_lat_struct), target :: mult_lat
 type (multipass_all_info_struct), target :: m_info
 type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
 type (multipass_ele_info_struct), pointer :: e_info
-type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
+type (ele_pointer_struct), allocatable :: named_eles_ptr(:)  ! List of unique element names 
 type (lat_ele_order_struct) order
 type (ele_attribute_struct) info
 type (taylor_struct) taylor(6), spin_taylor(0:3)
-type (nametable_struct) nametab
+type (nametable_struct) var_nametab, defexpr_nametab
 type (control_struct), pointer :: ctl
 type (control_struct) control
 
@@ -43,13 +43,13 @@ integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r
 integer ix_lord, ix_super, ie1, ib1
 integer, allocatable :: an_indexx(:), index_list(:)
 
-logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added
+logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added, has_defexpr_var
 logical, optional :: err_flag
 
 character(*) scibmad_file
 character(1) prefix
 character(3), parameter :: unit_spin_map(0:3) = ['1.0', '0.0', '0.0', '0.0']
-character(40) name, look_for, ele_name
+character(100) name, look_for, ele_name
 character(40), allocatable :: names(:)
 character(240) fname
 character(1000) line
@@ -167,7 +167,7 @@ enddo
 
 n_names = 0
 n = lat%n_ele_max
-allocate (names(n), an_indexx(n), named_eles(n))
+allocate (names(n), an_indexx(n), named_eles_ptr(n))
 
 write (iu, '(a)')
 write (iu, '(a)') '@elements begin'
@@ -198,7 +198,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Do not write anything for elements that have a duplicate name.
 
-    call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
+    call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles_ptr)
     if (.not. has_been_added) cycle
 
     ! Write element def
@@ -461,7 +461,8 @@ write (iu, '(a)')
 
 ! First print constants used in expressions.
 
-call nametable_init(nametab)
+call nametable_init(var_nametab)
+call nametable_init(defexpr_nametab)
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(ie)
@@ -486,7 +487,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
       do k = 1, size(control%stack)
         if (control%stack(k)%type /= variable$) cycle
-        call find_index(control%stack(k)%name, nametab, ix_match, add_to_list = .true., has_been_added = is_added)
+        call find_index(control%stack(k)%name, var_nametab, ix_match, add_to_list = .true., has_been_added = is_added)
         if (is_added) write (iu, '(2a, es24.17)') trim(control%stack(k)%name), ' = ', control%stack(k)%value
       enddo
     enddo
@@ -500,7 +501,7 @@ lat%ele%select = .false.
 do ie = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(ie)
   if (lord%key == overlay$) then
-    call overlay_out(lord, lat)
+    call overlay_out(lord, lat, defexpr_nametab)
   endif
 enddo
 
@@ -607,7 +608,7 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(ie)
     if (ele%slave_status == super_slave$) cycle
     if (ele%slave_status == multipass_slave$) cycle
-    !!! call eles_with_same_name_handler(ele, named_eles, an_indexx, names, n_names, order)
+    !!! call eles_with_same_name_handler(ele, named_eles_ptr, an_indexx, names, n_names, order)
   enddo
 enddo
 
@@ -619,29 +620,6 @@ deallocate (names, an_indexx)
 
 !----------------------------------------------------------------------------------------------
 contains
-
-function unique_name(ele, lat) result (name)
-
-type (lat_struct) lat
-type (ele_struct) ele
-integer n_match, ine, imax
-character(50) name
-
-!
-
-imax = nametable_bracket_indexx(lat%nametable, ele%name, n_match)
-if (n_match == 1) then
-  name = ele%name
-  return
-endif
-
-ine = ele_nametable_index(ele)
-name = trim(ele%name) // '_' // int_str(ine - (imax - n_match))
-
-end function unique_name
-
-!----------------------------------------------------------------------------------------------
-! contains
 
 function jbool(logic) result (bool_str)
 logical logic
@@ -732,12 +710,12 @@ end subroutine write_expand_lat_header
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine eles_with_same_name_handler(ele, named_eles, an_indexx, names, n_names, order)
+subroutine eles_with_same_name_handler(ele, named_eles_ptr, an_indexx, names, n_names, order)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
 type (lat_struct), pointer :: lat
-type (ele_pointer_struct) :: named_eles(:)
+type (ele_pointer_struct) :: named_eles_ptr(:)
 type (lat_ele_order_struct) order
 
 real(rp), pointer :: a0(:), b0(:), ksl0(:), a(:), b(:), ksl(:)
@@ -752,7 +730,7 @@ integer i, iv
 lat => ele%branch%lat
 if (ele%slave_status == multipass_slave$) return
 call find_index (ele%name, names, an_indexx, n_names, ix_match)
-ele0 => named_eles(ix_match)%ele   ! Element with this name whose attributes were written to the lattice file.
+ele0 => named_eles_ptr(ix_match)%ele   ! Element with this name whose attributes were written to the lattice file.
 if (ele%ix_ele == ele0%ix_ele .and. ele%ix_branch == ele0%ix_branch) return
 
 do iv = 1, num_ele_attrib$
@@ -952,13 +930,14 @@ end subroutine write_this_taylor
 !------------------------------------------------------
 ! contains
 
-recursive subroutine overlay_out(overlay, lat)
+recursive subroutine overlay_out(overlay, lat, defexpr_nametab)
 
 type (lat_struct), target :: lat
 type (ele_struct) overlay
 type (ele_struct), pointer :: lord, slave
 type (control_struct), pointer :: ctl
 type (control_struct) control
+type (nametable_struct) defexpr_nametab
 
 integer ix, j, iv, it
 
@@ -977,8 +956,9 @@ enddo
 ! Controled vars are defined with a defered expression.
 
 overlay%select = .true.
-
 c_str = ''
+has_defexpr_var = .false.
+
 do ix = 1, overlay%n_lord
   lord => pointer_to_lord(overlay, ix)
   do j = 1, lord%n_slave
@@ -987,18 +967,27 @@ do ix = 1, overlay%n_lord
     if (slave%ix_ele /= overlay%ix_ele) cycle
     it = control%ix_attrib - var_offset$
     if (c_str(it) == '') then
-      c_str(it) = this_expression(control%stack, lord)
+      c_str(it) = this_expression(control%stack, lord, has_defexpr_var)
     else
-      c_str(it) = trim(c_str(it)) // ' + ' // this_expression(control%stack, lord)
+      c_str(it) = trim(c_str(it)) // ' + ' // this_expression(control%stack, lord, has_defexpr_var)
     endif
   enddo
 enddo
 
 do iv = 1, size(overlay%control%var)
+  name = trim(overlay%name) // '_' // trim(downcase(overlay%control%var(iv)%name))
   if (c_str(iv) == '') then
-    write (iu, '(4a, es24.16)') trim(overlay%name), '_', trim(downcase(overlay%control%var(iv)%name)), ' = ', overlay%control%var(iv)%value
+    write (iu, '(2a, es24.16)') trim(name), ' = ', overlay%control%var(iv)%value
+  elseif (has_defexpr_var) then
+    write (iu, '(3a)') 'if !@isdefined(', trim(name), ')'
+    write (iu, '(7a)') '  const ', trim(name), ' = ', trim(c_str(iv))
+    write (iu, '(a)')  'end'
+    call nametable_add(defexpr_nametab, name, 1)
   else
-    write (iu, '(7a)') 'const ', trim(overlay%name), '_', trim(downcase(overlay%control%var(iv)%name)), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
+    write (iu, '(3a)') 'if !@isdefined(', trim(name), ')'
+    write (iu, '(7a)') '  const ', trim(name), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
+    write (iu, '(a)')  'end'
+    call nametable_add(defexpr_nametab, name, 1)
   endif
 enddo
 
@@ -1007,9 +996,9 @@ enddo
 do ix = 1, overlay%n_slave
   slave => pointer_to_slave(overlay, ix)
   if (slave%key == overlay$) then
-    call overlay_out(slave, lat)
+    call overlay_out(slave, lat, defexpr_nametab)
   else
-    call overlay_slave_out(slave, lat)
+    call overlay_slave_out(slave, lat, defexpr_nametab)
   endif
 enddo
 
@@ -1018,19 +1007,22 @@ end subroutine overlay_out
 !------------------------------------------------------
 ! contains
 
-recursive subroutine overlay_slave_out(slave, lat)
+recursive subroutine overlay_slave_out(slave, lat, defexpr_nametab)
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
 type (ele_struct), pointer :: lord
 type (control_struct), pointer :: ctl
 type (control_struct)  control
+type (nametable_struct) defexpr_nametab
 
 real(rp) f
 integer ix, j, iv, it, n_contl, indx(40), ixm
 
 character(40) sci_name, attrib_names(40)
+character(100) name
 character(1000) :: c_str(40)
+logical has_defexpr_var(40)
 
 ! Do not output if slave is already outputted or has overlay lords that have not yet been outputted.
 
@@ -1048,6 +1040,7 @@ slave%select = .true.
 c_str = ''
 attrib_names = ''
 n_contl = 0
+has_defexpr_var = .false.
 
 do ix = 1, slave%n_lord
   lord => pointer_to_lord(slave, ix)
@@ -1059,20 +1052,24 @@ do ix = 1, slave%n_lord
     if (ixm == 0) call find_index(control%attribute, attrib_names, indx, n_contl, ixm, add_to_list = .true.)
 
     if (c_str(ixm) == '') then
-      c_str(ixm) = this_expression(control%stack, lord)
+      c_str(ixm) = this_expression(control%stack, lord, has_defexpr_var(ixm))
     else
-      c_str(ixm) = trim(c_str(ixm)) // ' + ' // this_expression(control%stack, lord)
+      c_str(ixm) = trim(c_str(ixm)) // ' + ' // this_expression(control%stack, lord, has_defexpr_var(ixm))
     endif
   enddo
 enddo
 
 do iv = 1, n_contl
   sci_name = scibmad_attrib_name(attrib_names(iv), slave, f)
-  if (f == 1.0_rp) then
-    write (iu, '(7a)') trim(downcase(slave%name)), '.', trim(sci_name), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
+  name = trim(downcase(slave%name)) // '.' // trim(sci_name)
+  if (f /= 1.0_rp) c_str(iv) = re_str(f) // ' * (' // trim(c_str(iv)) // ')'
+
+  if (has_defexpr_var(iv)) then
+    write (iu, '(4a)') trim(name), ' = ', trim(c_str(iv))
   else
-    write (iu, '(4a, es24.16, 3a)') trim(downcase(slave%name)), '.', trim(sci_name), ' = DefExpr(() -> ', f, ' * (', trim(c_str(iv)), '))'
+    write (iu, '(6a)') trim(name), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
   endif
+
 enddo
 
 end subroutine overlay_slave_out
@@ -1080,14 +1077,14 @@ end subroutine overlay_slave_out
 !------------------------------------------------------
 ! contains
 
-recursive function this_expression(stack, lord) result(expr)
+recursive function this_expression(stack, lord, has_defexpr_var) result(expr)
 
 type (expression_atom_struct) :: stack(:)
 type (ele_struct) lord
 
-integer i
-
+integer ix_match
 character(1000) expr
+logical has_defexpr_var
 
 !
 
@@ -1100,6 +1097,8 @@ do i = 1, size(stack)
   case default
     if (stack(i)%type > var_offset$ .and. stack(i)%type < var_offset$ + n_var_max$) then
       stack(i)%name = trim(lord%name) // '_' // downcase(stack(i)%name)
+      call find_index(stack(i)%name, defexpr_nametab, ix_match)
+      if (ix_match >0) has_defexpr_var = .true.
     endif
   end select
 enddo
