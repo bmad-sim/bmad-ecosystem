@@ -3958,6 +3958,7 @@ Format:
   write matrix ...                ! \sref{s:write.mat}
   write namelist ...              ! \sref{s:write.namelist}
   write opal ...                  ! \sref{s:write.opal}
+  write pals ...                  ! \sref{s:write.pals}
   write pdf ...                   ! \sref{s:write.pdf}  
   write plot_commands             ! \sref{s:write.plot.cmds}
   write ps ...                    ! \sref{s:write.ps}  
@@ -4327,6 +4328,18 @@ Syntax:
 \end{example}
 
 The default file name is \vn{lat_\#.opal} where \vn{\#} is replaced by the universe number. 
+
+%% write pals --------------------------------------------------------------
+
+\subsection{write pals}
+\label{s:write.pals}
+
+Syntax:
+\begin{example}
+    write pals \{<file_name>\}  ! Write a PALS lattice file of the model in YAML format.
+\end{example}
+
+The default file name is \vn{lat_\#.pals.yaml} where \vn{\#} is replaced by the universe number. 
 
 %% write pdf --------------------------------------------------------------
 

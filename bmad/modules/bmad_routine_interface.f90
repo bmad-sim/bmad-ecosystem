@@ -3754,6 +3754,14 @@ subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_m
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
+subroutine write_lattice_in_pals (pals_file, lat, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) :: pals_file
+  logical, optional :: err_flag
+end subroutine
+
 subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
   import
   implicit none

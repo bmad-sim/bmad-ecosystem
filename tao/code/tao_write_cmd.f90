@@ -85,7 +85,7 @@ call match_word (action, [character(20):: &
               '3d_model', 'beam', 'bmad', 'blender', 'bunch_comb', 'covariance_matrix', 'curve', &
               'derivative_matrix', 'digested', 'elegant', 'field', &
               'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
-              'namelist', 'opal', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
+              'namelist', 'opal', 'pals', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
               'sad', 'scibmad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
               ix, .true., matched_name = action)
 
@@ -638,17 +638,18 @@ case ('hard', 'hard-l')
 !---------------------------------------------------
 ! Foreign lattice format
 
-case ('mad', 'mad8', 'madx', 'opal_latice', 'sad', 'xsif', 'elegant', 'scibmad')
+case ('mad', 'mad8', 'madx', 'opal_latice', 'pals', 'sad', 'xsif', 'elegant', 'scibmad')
 
   select case (action)
-  case ('mad');     file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('mad8');    file_name0 = 'lat_#.mad8'; lat_type = 'MAD-8'
-  case ('madx');    file_name0 = 'lat_#.madx'; lat_type = 'MAD-X'
-  case ('opal');    file_name0 = 'lat_#.opal'; lat_type = 'OPAL-T'
-  case ('xsif');    file_name0 = 'lat_#.xsif'; lat_type = 'XSIF'
-  case ('sad');     file_name0 = 'lat_#.sad';  lat_type = 'SAD'
-  case ('elegant'); file_name0 = 'lat_#.lte';  lat_type = 'ELEGANT'
-  case ('scibmad'); file_name0 = 'lat_#.jl';  lat_type = 'SCIBMAD'
+  case ('mad');     file_name0 = 'lat_#.mad8';      lat_type = 'MAD-8'
+  case ('mad8');    file_name0 = 'lat_#.mad8';      lat_type = 'MAD-8'
+  case ('madx');    file_name0 = 'lat_#.madx';      lat_type = 'MAD-X'
+  case ('opal');    file_name0 = 'lat_#.opal';      lat_type = 'OPAL-T'
+  case ('pals');    file_name0 = 'lat_#.pals.yaml'; lat_type = 'PALS'
+  case ('xsif');    file_name0 = 'lat_#.xsif';      lat_type = 'XSIF'
+  case ('sad');     file_name0 = 'lat_#.sad';       lat_type = 'SAD'
+  case ('elegant'); file_name0 = 'lat_#.lte';       lat_type = 'ELEGANT'
+  case ('scibmad'); file_name0 = 'lat_#.jl';        lat_type = 'SCIBMAD'
   end select
 
   if (word(1) /= '') file_name0 = word(1) 
