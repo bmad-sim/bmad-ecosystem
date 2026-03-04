@@ -474,6 +474,9 @@ else
     has_associated_ele = tao_datum_has_associated_ele(tao_d2_d1_name(d1_this))
     if (has_associated_ele == yes$) then
       call out_io (s_error$, r_name, 'NO DATA FOUND FOR: ' // tao_d2_d1_name(d1_this))
+      n1 = u%n_data_used + 1
+      n2 = u%n_data_used
+      call tao_point_d1_to_data (d1_this, u%data(n1:n2), 1)
       return
     else
       ix_min_data = 1

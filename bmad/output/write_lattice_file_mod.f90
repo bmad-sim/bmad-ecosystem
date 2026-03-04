@@ -304,7 +304,7 @@ end function rchomp
 !-------------------------------------------------------
 !-------------------------------------------------------
 !+
-! Subroutine write_lat_line (line, iu, end_is_neigh, do_split)
+! Subroutine write_lat_line (line, iu, end_is_neigh, do_split, ampersand_at_ends)
 !
 ! Routine to write strings to a lattice file.
 ! This routine will break the string up into multiple lines
@@ -314,21 +314,21 @@ end function rchomp
 ! then only part of the line may be written and the part not written will be returned.
 !
 ! Input:
-!   line          -- character(*): String of text.
-!   iu            -- integer: Unit number to write to.
-!   end_is_neigh  -- logical: If true then write out everything.
-!                      Otherwise wait for a full line of max_char characters or so.
-!   do_split      -- logical, optional: Split line if overlength? Default is True.
-!                      False is used when line has already been split for expressions since
-!                      the expression splitting routine does a much better job of it.
-!   scibmad       -- logical, optional: Default False. If True then do not include "&" line continuation
+!   line              -- character(*): String of text.
+!   iu                -- integer: Unit number to write to.
+!   end_is_neigh      -- logical: If true then write out everything.
+!                          Otherwise wait for a full line of max_char characters or so.
+!   do_split          -- logical, optional: Split line if overlength? Default is True.
+!                          False is used when line has already been split for expressions since
+!                          the expression splitting routine does a much better job of it.
+!   ampersand_at_ends -- logical, optional: Default True. If False then do not include "&" line continuation
 !
 ! Output:
-!   line          -- character(*): part of the string not written. 
-!                       If end_is_neigh = T then line will be blank.
+!   line              -- character(*): part of the string not written. 
+!                           If end_is_neigh = T then line will be blank.
 !-
 
-subroutine write_lat_line (line, iu, end_is_neigh, do_split, scibmad)
+subroutine write_lat_line (line, iu, end_is_neigh, do_split, ampersand_at_ends)
 
 implicit none
 
@@ -337,7 +337,7 @@ integer i, iu, n
 integer, parameter :: max_char = 105
 logical end_is_neigh
 logical, save :: init = .true.
-logical, optional :: do_split, scibmad
+logical, optional :: do_split, ampersand_at_ends
 
 !
 
@@ -349,10 +349,10 @@ if (.not. logic_option(.true., do_split)) then
   elseif (index(',[{(=', line(n:n)) /= 0) then
     call write_this (line)
   else
-    if (logic_option(.false., scibmad)) then
-      call write_this (trim(line))
-    else
+    if (logic_option(.true., ampersand_at_ends)) then
       call write_this (trim(line) // ' &')
+    else
+      call write_this (trim(line))
     endif
   endif
 
@@ -393,10 +393,10 @@ outer_loop: do
     return
   endif
 
-  if (logic_option(.false., scibmad)) then
-    call write_this (trim(line))
-  else
+  if (logic_option(.true., ampersand_at_ends)) then
     call write_this (trim(line) // ' &')
+  else
+    call write_this (trim(line))
   endif
   line = ''
   return

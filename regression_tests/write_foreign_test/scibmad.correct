@@ -211,13 +211,13 @@ end
    x_offset =   2.0000E-02, x_rot =  -1.0000E-03, tilt =   1.0000E-01)
   rfcavity1 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
    tilt =   1.0000E-01, zero_phase = PhaseReference.AboveTransition, rf_frequency =   5.0000E+08,
-   voltage =   1.0000E+05, phi0 =   1.0000E-01)
+   voltage =   1.0000E+05, phi0 =   1.0000E-01, traveling_wave = false)
   rfcavity2 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
    tilt =   1.0000E-01, zero_phase = PhaseReference.AboveTransition, rf_frequency =   5.0000E+08,
-   voltage =   1.0000E+05, phi0 =   1.0000E-01)
+   voltage =   1.0000E+05, phi0 =   1.0000E-01, traveling_wave = true)
   rfcavity3 = RFCavity(x_offset =   5.0000E-02, x_rot =  -1.0000E-03, tilt =   1.0000E-01,
    zero_phase = PhaseReference.AboveTransition, rf_frequency =   5.0000E+08, voltage =   1.0000E+05,
-   phi0 =   1.0000E-01)
+   phi0 =   1.0000E-01, traveling_wave = false)
   sad_mult1 = SadMult(L =   1.0000E-01, Ks1 =   2.0000E-01, Kn2 =   8.0000E+02, Ks10 =   3.6288E+27,
    Ksol =   5.0000E-01)
   sad_mult2 = SadMult(Ks1L =   2.0000E-02, Kn2L =   8.0000E+01, Ks10L =   3.6288E+26,
@@ -259,13 +259,22 @@ end
   vkicker1 = Kicker(L =   4.5000E+00, Ks0 =   1.1111E-03, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
    tilt =   1.0000E-01)
   lcavity1 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
-   tilt =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0000E+03, phi0 =  -1.9000E-01)
+   tilt =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0000E+03, phi0 =  -1.9000E-01,
+   tracking_method = SaganCavity(num_cells =   1.0000E+01             ,
+   L_active =   4.4969E+00             ), traveling_wave = false)
   lcavity2 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
-   tilt =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0000E+00, phi0 =  -1.9000E-01)
+   tilt =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0000E+00, phi0 =  -1.9000E-01,
+   tracking_method = SaganCavity(num_cells =   1.0000E+01             ,
+   L_active =   4.4969E+00             ), traveling_wave = false)
   lcavity3 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
-   tilt =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0450E+03, phi0 =  -1.9000E-01)
+   tilt =   1.0000E-01, rf_frequency =   5.0000E+08, voltage =   5.0450E+03, phi0 =  -1.9000E-01,
+   tracking_method = SaganCavity(num_cells =   1.0000E+01             ,
+   L_active =   4.4969E+00             ), traveling_wave = true)
   end_b0 = Marker()
 end    # @elements
+#---------------------------------------------------------------------------------------
+# Overlay and Group elements
+
 
 l1 = Beamline([ ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
    crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1,

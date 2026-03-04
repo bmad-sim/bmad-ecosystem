@@ -193,6 +193,7 @@ call write_if_logic_param_changed (bmad_com%rf_phase_below_transition_ref,   bma
 call write_if_logic_param_changed (bmad_com%sr_wakes_on,                     bmad_com_default%sr_wakes_on,                      'bmad_com[sr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%lr_wakes_on,                     bmad_com_default%lr_wakes_on,                      'bmad_com[lr_wakes_on]')
 call write_if_logic_param_changed (bmad_com%high_energy_space_charge_on,     bmad_com_default%high_energy_space_charge_on,      'bmad_com[high_energy_space_charge_on]')
+call write_if_logic_param_changed (bmad_com%high_energy_space_charge_linear, bmad_com_default%high_energy_space_charge_linear,  'bmad_com[high_energy_space_charge_linear]')
 call write_if_logic_param_changed (bmad_com%csr_and_space_charge_on,         bmad_com_default%csr_and_space_charge_on,          'bmad_com[csr_and_space_charge_on]')
 call write_if_logic_param_changed (bmad_com%spin_tracking_on,                bmad_com_default%spin_tracking_on,                 'bmad_com[spin_tracking_on]')
 call write_if_logic_param_changed (bmad_com%spin_sokolov_ternov_flipping_on, bmad_com_default%spin_sokolov_ternov_flipping_on,  'bmad_com[spin_sokolov_ternov_flipping_on]')
@@ -873,7 +874,7 @@ do ib = 0, ubound(lat%branch, 1)
         write (line, '(4a, i0)') trim(line), ', ', trim(attrib%name), ' = ', int(val)
       case (is_real$)
         line = trim(line) // ', ' // trim(attrib%name) // ' = ' // re_str(val)
-      case (is_switch$)
+      case (is_switch$, is_species$)
         name = switch_attrib_value_name (attrib%name, val, ele, is_default)
         if (.not. is_default) then
           line = trim(line) // ', ' // trim(attrib%name) // ' = ' // name

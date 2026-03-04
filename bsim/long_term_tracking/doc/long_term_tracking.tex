@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ December 13, 2025}
+\date{David Sagan \\ February 28, 2026}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -729,36 +729,43 @@ program. The master input file must contain a single namelist (\sref{s:namelist}
 Example:
 \begin{code}
 &params
-  ltt%lat_file                       =  "lat.bmad" ! Bmad lattice file
-  ltt%ramping_on                     = F
-  ltt%ramp_update_each_particle      = F
+  ltt%lat_file                        =  "lat.bmad" ! Bmad lattice file
+  ltt%ramping_on                      = F
+  ltt%ramp_update_each_particle       = F
   ltt%ramp_particle_energy_without_rf = F
-  ltt%ramping_start_time             = 0
-  ltt%extraction_method              = ""
-  ltt%simulation_mode                = "BEAM"
-  ltt%tracking_method                = "BMAD"
-  ltt%ele_start                      = ""
-  ltt%ele_stop                       = ""  ! Used for "CHECK" simulation_mode.
-  ltt%ele_write_at                   = ""  ! Used with extraction lines.
-  ltt%n_turns                        = 1000
-  ltt%ix_turn_start                  = 0
-  ltt%ix_turn_end                    = -1
-  ltt%map_order                      = 5
-  ltt%rfcavity_on                    = T
-  ltt%timer_print_dtime              = 300
-  ltt%random_seed                    = 0
-  ltt%ptc_aperture                   = 0.1, 0.1
-  ltt%exclude_from_maps              = "beambeam::*"
+  ltt%ramping_start_time              = 0
+  ltt%extraction_method               = ""
+  ltt%simulation_mode                 = "BEAM"
+  ltt%tracking_method                 = "BMAD"
+  ltt%ele_start                       = ""
+  ltt%ele_stop                        = ""  ! Used for "CHECK" simulation_mode.
+  ltt%ele_write_at                    = ""  ! Used with extraction lines.
+  ltt%n_turns                         = 1000
+  ltt%ix_turn_start                   = 0
+  ltt%ix_turn_end                     = -1
+  ltt%map_order                       = 5
+  ltt%rfcavity_on                     = T
+  ltt%timer_print_dtime               = 300
+  ltt%random_seed                     = 0
+  ltt%ptc_aperture                    = 0.1, 0.1
+  ltt%exclude_from_maps               = "beambeam::*"
   ltt%action_angle_calc_uses_1turn_matrix = F
-  ltt%split_bends_for_stochastic_rad = F
-  ltt%symplectic_map_tracking        = F
-  ltt%set_beambeam_crossing_time     = F
-  ltt%dead_cutoff                    = 0.99
-  ltt%b_emittance                    = 1e-9 ! Used with space charge calc.
-  ltt%debug                          = F
-  bmad_com%spin_tracking_on          = T   ! See Bmad manual for 
-  bmad_com%radiation_damping_on      = F   !    bmad_com parameters.
-  bmad_com%radiation_fluctuations_on = F 
+  ltt%split_bends_for_stochastic_rad  = F
+  ltt%symplectic_map_tracking         = F
+  ltt%set_beambeam_crossing_time      = F
+  ltt%space_charge_emit_calc_every_n_turns = -1
+  ltt%space_charge_core_cutoff        = 0.8
+  ltt%dead_cutoff                     = 0.99
+  ltt%b_emittance                     = 1e-9 ! Used with space charge calc.
+  ltt%debug                           = F
+
+  ! Bmad_com parameters affecting the tracking.
+  ! See the Bmad manual for details.
+  bmad_com%spin_tracking_on                = T
+  bmad_com%radiation_damping_on            = F
+  bmad_com%radiation_fluctuations_on       = F
+  bmad_com%high_energy_space_charge_on     = F
+  bmad_com%high_energy_space_charge_linear = F
 
   ! Beam initialization
   ltt%add_closed_orbit_to_init_position = T
@@ -1150,15 +1157,32 @@ Default is -1 which will cause a message printed every turn where there is parti
 
 A space charge kick can be applied in the simulation. The space charge kick is calculated using an
 approximation suitable at ultra-relativistic energies. The kick is turned on by setting the logical
-\vn{bmad_com[high_energy_space_charge_on]} to \vn{True} (default is \vn{False} in the lattice
-file. See the Bmad manual documentation for more details. The high energy space charge kick is only
-applied when \vn{ltt%tracking_method} is set to \vn{"BMAD"}.
+\vn{bmad_com[high_energy_space_charge_on]} to \vn{True} (default is \vn{False}) in the lattice
+file. See the Bmad manual documentation for more details. Since the space charge kick is applied
+element-by-element, the high energy space charge kick can only applied when \vn{ltt%tracking_method}
+is set to \vn{"BMAD"}. The space charge kick can be used in both BEAM and SINGLE mode.
 
 The $a$ and $b$ mode emittances are used as input to the space charge calculation. [If there is no
 coupling, the $a$ mode corresponds to the ``horizontal'' mode and the $b$ mode corresponds to the
 ``vertical'' mode.] These emittance can be specified by setting \vn{beam_init%a_emit} and/or
 \vn{beam_init%b_emit}. If set to zero or negative, an emittance is calculated using a radiation
 integral calculation. Additionally, the longitudinal beam size is calculated via radiation integrals.
+
+To test with a linear space charge kick, set:
+\begin{code}
+bmad_com%high_energy_space_charge_linear = T
+\end{code}
+
+When using BEAM mode, the emittances used in the calculation can be periodically recomputed every $N$ turns
+from the tracked beam distribution by setting the input parameters
+\begin{code}
+ltt%space_charge_emit_calc_every_n_turns    ! Set positive to enable periodic calc. Default is -1
+ltt%space_charge_core_cutoff                ! Default is 0.8
+\end{code}
+Setting \vn{ltt%space_charge_emit_calc_every_n_turns} positive to the desired $N$ will enable the
+calculation.  To prevent particles in the tails of the distribution from unduely affecting the
+calculation, a core emittance (\sref{s:core}) calculation is used with a cutoff determined by
+\vn{ltt%space_charge_core_cutoff}.
 
 %------------------------------------------------------------------
 \Section{Core Emittance}

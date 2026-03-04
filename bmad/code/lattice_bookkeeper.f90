@@ -90,7 +90,7 @@ enddo
 stat => lat%lord_state
 if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
     stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-  call out_io (s_info$, r_name, 'Stale bookkeeping lord_status flags detected.', &
+  call out_io (s_error$, r_name, 'Stale bookkeeping lord_status flags detected.', &
                                 'Please contact DCS!', 'Status: \5i6\ ', &
           i_array = [stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
 endif
@@ -101,7 +101,7 @@ do i = 0, ubound(lat%branch, 1)
   stat => branch%param%bookkeeping_state
   if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
       stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-    call out_io (s_info$, r_name, 'Stale bookkeeping status flags detected at branch: \i0\.', &
+    call out_io (s_error$, r_name, 'Stale bookkeeping status flags detected at branch: \i0\.', &
                                   'Please contact DCS!', 'Status: \5i6\ ', &
             i_array = [i, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])
   endif
@@ -113,7 +113,7 @@ do i = 0, ubound(lat%branch, 1)
     stat => ele%bookkeeping_state
     if (stat%control == stale$ .or. stat%attributes == stale$ .or. stat%floor_position == stale$ .or. &
         stat%s_position == stale$ .or. stat%ref_energy == stale$) then
-      call out_io (s_info$, r_name, &
+      call out_io (s_error$, r_name, &
             'Stale bookkeeping status flags detected at element: ' // trim(ele%name) // ' (\i0\>>\i0\).', &
             'Please contact DCS!', 'Status: \5i6\ ', &
             i_array = [i, j, stat%attributes, stat%control, stat%floor_position, stat%s_position, stat%ref_energy])

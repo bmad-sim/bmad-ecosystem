@@ -1,20 +1,20 @@
 !+
-! Subroutine write_lattice_in_scibmad(scibmad_file, lat, err_flag)
+! Subroutine write_lattice_in_pals(pals_file, lat, err_flag)
 !
-! Routine to create a SciBmad lattice file.
+! Routine to create a Pals lattice file.
 !
 ! Input:
 !   lat           -- lat_struct: Lattice
 !
 ! Output:
-!   scibmad_file  -- character(*): SciBmad lattice file name.
+!   pals_file  -- character(*): Pals lattice file name.
 !   err_flag      -- logical: Error flag
 !-
 
-subroutine write_lattice_in_scibmad(scibmad_file, lat, err_flag)
+subroutine write_lattice_in_pals(pals_file, lat, err_flag)
 
-use write_lattice_file_mod, dummy => write_lattice_in_scibmad
-use bmad_routine_interface, dummy2 => write_lattice_in_scibmad
+use write_lattice_file_mod, dummy => write_lattice_in_pals
+use bmad_routine_interface, dummy2 => write_lattice_in_pals
 use expression_mod
 use taylor_mod, only: mat6_to_taylor
 
@@ -46,88 +46,88 @@ integer, allocatable :: an_indexx(:), index_list(:)
 logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added, has_defexpr_var
 logical, optional :: err_flag
 
-character(*) scibmad_file
+character(*) pals_file
 character(1) prefix
 character(3), parameter :: unit_spin_map(0:3) = ['1.0', '0.0', '0.0', '0.0']
 character(100) name, look_for, ele_name
 character(40), allocatable :: names(:)
 character(240) fname
 character(1000) line
-character(*), parameter :: r_name = 'write_lattice_in_scibmad'
+character(*), parameter :: r_name = 'write_lattice_in_pals'
 
-character(20) :: scibmad_ele_type(n_key$)
+character(20) :: pals_ele_type(n_key$)
 
 !
 
-scibmad_ele_type(drift$)                = 'Drift'
-scibmad_ele_type(sbend$)                = 'SBend'
-scibmad_ele_type(quadrupole$)           = 'Quadrupole'
-scibmad_ele_type(group$)                = '??Group'
-scibmad_ele_type(sextupole$)            = 'Sextupole'
-scibmad_ele_type(overlay$)              = '??Overlay'
-scibmad_ele_type(custom$)               = 'Custom'
-scibmad_ele_type(taylor$)               = 'LineElement'
-scibmad_ele_type(rfcavity$)             = 'RFCavity'
-scibmad_ele_type(elseparator$)          = 'ELSeparator'
-scibmad_ele_type(beambeam$)             = 'BeamBeam'
-scibmad_ele_type(wiggler$)              = 'Wiggler'
-scibmad_ele_type(sol_quad$)             = 'Solenoid'
-scibmad_ele_type(marker$)               = 'Marker'
-scibmad_ele_type(kicker$)               = 'Kicker'
-scibmad_ele_type(hybrid$)               = 'Hybrid'
-scibmad_ele_type(octupole$)             = 'Octupole'
-scibmad_ele_type(rbend$)                = 'SBend'
-scibmad_ele_type(multipole$)            = 'Multipole'
-scibmad_ele_type(ab_multipole$)         = 'Multipole'
-scibmad_ele_type(solenoid$)             = 'Solenoid'
-scibmad_ele_type(patch$)                = 'Patch'
-scibmad_ele_type(lcavity$)              = 'RFCavity'
-scibmad_ele_type(null_ele$)             = 'NullEle'
-scibmad_ele_type(beginning_ele$)        = 'BeginningEle'
-scibmad_ele_type(def_line$)             = '!Line'
-scibmad_ele_type(match$)                = 'LineElement'
-scibmad_ele_type(monitor$)              = 'Drift'
-scibmad_ele_type(instrument$)           = 'Drift'
-scibmad_ele_type(hkicker$)              = 'Kicker'
-scibmad_ele_type(vkicker$)              = 'Kicker'
-scibmad_ele_type(rcollimator$)          = 'Drift'
-scibmad_ele_type(ecollimator$)          = 'Drift'
-scibmad_ele_type(girder$)               = 'Girder'
-scibmad_ele_type(converter$)            = 'Converter'
-scibmad_ele_type(photon_fork$)          = 'Fork'
-scibmad_ele_type(fork$)                 = 'Fork'
-scibmad_ele_type(mirror$)               = 'Mirror'
-scibmad_ele_type(crystal$)              = 'Crystal'
-scibmad_ele_type(pipe$)                 = 'Drift'
-scibmad_ele_type(capillary$)            = 'Capillary'
-scibmad_ele_type(multilayer_mirror$)    = 'MultilayerMirror'
-scibmad_ele_type(e_gun$)                = 'EGun'
-scibmad_ele_type(em_field$)             = 'EMField'
-scibmad_ele_type(floor_shift$)          = 'FloorShift'
-scibmad_ele_type(fiducial$)             = 'Fiducial'
-scibmad_ele_type(undulator$)            = 'Undulator'
-scibmad_ele_type(diffraction_plate$)    = 'DiffractionPlate'
-scibmad_ele_type(photon_init$)          = 'PhotonInit'
-scibmad_ele_type(sample$)               = 'Sample'
-scibmad_ele_type(detector$)             = 'Detector'
-scibmad_ele_type(sad_mult$)             = 'SadMult'
-scibmad_ele_type(mask$)                 = 'Mask'
-scibmad_ele_type(ac_kicker$)            = 'ACKicker'
-scibmad_ele_type(lens$)                 = 'Lens'
-scibmad_ele_type(crab_cavity$)          = 'CrabCavity'
-scibmad_ele_type(ramper$)               = 'Ramper'
-scibmad_ele_type(def_ptc_com$)          = '!PTC_Com'
-scibmad_ele_type(rf_bend$)              = 'RFBend'
-scibmad_ele_type(gkicker$)              = 'Kicker'
-scibmad_ele_type(foil$)                 = 'Foil'
-scibmad_ele_type(thick_multipole$)      = 'ThickMultipole'
-scibmad_ele_type(pickup$)               = 'Drift'
-scibmad_ele_type(feedback$)             = 'Drift'
-scibmad_ele_type(fixer$)                = 'Fixer'
+pals_ele_type(drift$)                = 'Drift'
+pals_ele_type(sbend$)                = 'SBend'
+pals_ele_type(quadrupole$)           = 'Quadrupole'
+pals_ele_type(group$)                = '??Group'
+pals_ele_type(sextupole$)            = 'Sextupole'
+pals_ele_type(overlay$)              = '??Overlay'
+pals_ele_type(custom$)               = 'Custom'
+pals_ele_type(taylor$)               = 'LineElement'
+pals_ele_type(rfcavity$)             = 'RFCavity'
+pals_ele_type(elseparator$)          = 'ELSeparator'
+pals_ele_type(beambeam$)             = 'BeamBeam'
+pals_ele_type(wiggler$)              = 'Wiggler'
+pals_ele_type(sol_quad$)             = 'Solenoid'
+pals_ele_type(marker$)               = 'Marker'
+pals_ele_type(kicker$)               = 'Kicker'
+pals_ele_type(hybrid$)               = 'Hybrid'
+pals_ele_type(octupole$)             = 'Octupole'
+pals_ele_type(rbend$)                = 'SBend'
+pals_ele_type(multipole$)            = 'Multipole'
+pals_ele_type(ab_multipole$)         = 'Multipole'
+pals_ele_type(solenoid$)             = 'Solenoid'
+pals_ele_type(patch$)                = 'Patch'
+pals_ele_type(lcavity$)              = 'RFCavity'
+pals_ele_type(null_ele$)             = 'NullEle'
+pals_ele_type(beginning_ele$)        = 'BeginningEle'
+pals_ele_type(def_line$)             = '!Line'
+pals_ele_type(match$)                = 'LineElement'
+pals_ele_type(monitor$)              = 'Drift'
+pals_ele_type(instrument$)           = 'Drift'
+pals_ele_type(hkicker$)              = 'Kicker'
+pals_ele_type(vkicker$)              = 'Kicker'
+pals_ele_type(rcollimator$)          = 'Drift'
+pals_ele_type(ecollimator$)          = 'Drift'
+pals_ele_type(girder$)               = 'Girder'
+pals_ele_type(converter$)            = 'Converter'
+pals_ele_type(photon_fork$)          = 'Fork'
+pals_ele_type(fork$)                 = 'Fork'
+pals_ele_type(mirror$)               = 'Mirror'
+pals_ele_type(crystal$)              = 'Crystal'
+pals_ele_type(pipe$)                 = 'Drift'
+pals_ele_type(capillary$)            = 'Capillary'
+pals_ele_type(multilayer_mirror$)    = 'MultilayerMirror'
+pals_ele_type(e_gun$)                = 'EGun'
+pals_ele_type(em_field$)             = 'EMField'
+pals_ele_type(floor_shift$)          = 'FloorShift'
+pals_ele_type(fiducial$)             = 'Fiducial'
+pals_ele_type(undulator$)            = 'Undulator'
+pals_ele_type(diffraction_plate$)    = 'DiffractionPlate'
+pals_ele_type(photon_init$)          = 'PhotonInit'
+pals_ele_type(sample$)               = 'Sample'
+pals_ele_type(detector$)             = 'Detector'
+pals_ele_type(sad_mult$)             = 'SadMult'
+pals_ele_type(mask$)                 = 'Mask'
+pals_ele_type(ac_kicker$)            = 'ACKicker'
+pals_ele_type(lens$)                 = 'Lens'
+pals_ele_type(crab_cavity$)          = 'CrabCavity'
+pals_ele_type(ramper$)               = 'Ramper'
+pals_ele_type(def_ptc_com$)          = '!PTC_Com'
+pals_ele_type(rf_bend$)              = 'RFBend'
+pals_ele_type(gkicker$)              = 'Kicker'
+pals_ele_type(foil$)                 = 'Foil'
+pals_ele_type(thick_multipole$)      = 'ThickMultipole'
+pals_ele_type(pickup$)               = 'Drift'
+pals_ele_type(feedback$)             = 'Drift'
+pals_ele_type(fixer$)                = 'Fixer'
 
 ! Open file
 
-call fullfilename(scibmad_file, fname)
+call fullfilename(pals_file, fname)
 iu = lunget()
 open (iu, file = fname, status = 'unknown')
 
@@ -177,7 +177,7 @@ do ib = 0, ubound(lat%branch, 1)
   ele_loop: do ie = 1, branch%n_ele_track   !!! Note: Not n_ele_max since superimpose/multipass not handled
     ele => branch%ele(ie)
     length = ele%value(l$)
-    ele_name = scibmad_ele_name(ele)
+    ele_name = pals_ele_name(ele)
 
     if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$ .or. ele%key == girder$) cycle   ! Not currently handled
     if (ele%key == null_ele$) cycle
@@ -205,7 +205,7 @@ do ib = 0, ubound(lat%branch, 1)
     ! The beginning element for all branches has the same name so use a unique name here.
 
     if (ie == 0) ele_name = 'begin' // int_str(ib+1)
-    line = '  ' // trim(ele_name) // ' = ' // trim(scibmad_ele_type(ele%key)) // '('
+    line = '  ' // trim(ele_name) // ' = ' // trim(pals_ele_type(ele%key)) // '('
 
     if (ie == 0) then  ! Currently not used since ie starts at 1.
       line = trim(line) // ', pc_ref = ' // re_str(ele%value(p0c$))
@@ -384,7 +384,7 @@ do ib = 0, ubound(lat%branch, 1)
       line = trim(line) // ', to_line = ' // trim(downcase(lat%branch(n)%name))
       if (ele%value(ix_to_element$) > 0) then
         i = nint(ele%value(ix_to_element$))
-        line = trim(line) // ', to_element = ' // trim(scibmad_ele_name(lat%branch(n)%ele(i)))
+        line = trim(line) // ', to_element = ' // trim(pals_ele_name(lat%branch(n)%ele(i)))
       endif
     endif
 
@@ -436,7 +436,7 @@ if (.false.) then   !!!
         call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #2! PLEASE REPORT THIS!')
       endif
 
-      call write_scibmad_element (line, iu, ele, lat)
+      call write_pals_element (line, iu, ele, lat)
 
       if (mult_ele(ie)%region_stop_pt) then
         line = line(:len_trim(line)-1) // ')'
@@ -516,7 +516,7 @@ do ib = 0, ubound(lat%branch, 1)
   write (iu, '(a)')
   name = downcase(branch%name)
   if (name == '') name = 'lat_line'
-  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(scibmad_ele_name(branch%ele(0))) // ','
+  line = trim(name) // ' = Beamline(['     ! // quote(name) // ', [' // trim(pals_ele_name(branch%ele(0))) // ','
 
   in_multi_region = .false.
   do ie = 1, branch%n_ele_track
@@ -525,7 +525,7 @@ do ib = 0, ubound(lat%branch, 1)
     !!! e_info => m_info%branch(ib)%ele(ie)
 
     !!!if (.not. e_info%multipass) then
-      call write_scibmad_element (line, iu, ele, lat)
+      call write_pals_element (line, iu, ele, lat)
       cycle
     !!!endif
 
@@ -593,7 +593,7 @@ do ie = 1, lat%n_ele_max
   if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
     if (ele%value(phi0_multipass$) == 0) cycle
     if (.not. have_expand_lattice_line) call write_expand_lat_header (iu, have_expand_lattice_line)
-    write (iu, '(3a)') trim(scibmad_ele_name(ele)), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
+    write (iu, '(3a)') trim(pals_ele_name(ele)), '[phi0_multipass] = ', re_str(ele%value(phi0_multipass$))
   endif
 
 enddo
@@ -654,7 +654,7 @@ end function aper_str
 !----------------------------------------------------------------------------------------------
 ! contains
 
-subroutine write_scibmad_element (line, iu, ele, lat)
+subroutine write_pals_element (line, iu, ele, lat)
 
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
@@ -680,15 +680,15 @@ integer iu, ix
 !!!
 !!!else
   if (ele%orientation == 1) then
-    write (line, '(4a)') trim(line), ' ', trim(scibmad_ele_name(ele)), ','
+    write (line, '(4a)') trim(line), ' ', trim(pals_ele_name(ele)), ','
   else
-    write (line, '(4a)') trim(line), ' reverse(', trim(scibmad_ele_name(ele)), '),'
+    write (line, '(4a)') trim(line), ' reverse(', trim(pals_ele_name(ele)), '),'
   endif
 !!!endif
 
 if (len_trim(line) > 100) call write_lat_line(line, iu, .false., ampersand_at_ends = .false.)
 
-end subroutine write_scibmad_element
+end subroutine write_pals_element
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -805,7 +805,7 @@ end subroutine write_this_differing_attrib
 !--------------------------------------------------------------------------------
 ! contains
 
-function scibmad_ele_name(ele) result (name_out)
+function pals_ele_name(ele) result (name_out)
 
 type (ele_struct) ele
 character(40) name_out
@@ -820,7 +820,7 @@ if (ix /= 0) name_out = name_out(1:ix-1) // '!s' // name_out(ix+1:)
 ix = index(name_out, '\')     !'
 if (ix /= 0) name_out = name_out(1:ix-1) // '!m' // name_out(ix+1:)
 
-end function scibmad_ele_name
+end function pals_ele_name
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -838,7 +838,7 @@ character(200) line
 !
 
 write (iu, '(a)')
-write (iu, '(9a)') 'function map_', trim(scibmad_ele_name(ele)), '(v, q)'
+write (iu, '(9a)') 'function map_', trim(pals_ele_name(ele)), '(v, q)'
 
 e_max = 0
 do i = 1, 6
@@ -1019,7 +1019,7 @@ type (nametable_struct) defexpr_nametab
 real(rp) f
 integer ix, j, iv, it, n_contl, indx(40), ixm
 
-character(40) sci_name, attrib_names(40)
+character(40) pals_name, attrib_names(40)
 character(100) name
 character(1000) :: c_str(40)
 logical has_defexpr_var(40)
@@ -1056,8 +1056,8 @@ do ix = 1, slave%n_lord
 enddo
 
 do iv = 1, n_contl
-  sci_name = scibmad_attrib_name(attrib_names(iv), slave, f)
-  name = trim(downcase(slave%name)) // '.' // trim(sci_name)
+  pals_name = pals_attrib_name(attrib_names(iv), slave, f)
+  name = trim(downcase(slave%name)) // '.' // trim(pals_name)
   if (f /= 1.0_rp) c_str(iv) = re_str(f) // ' * (' // trim(c_str(iv)) // ')'
 
   if (has_defexpr_var(iv)) then
@@ -1106,14 +1106,14 @@ end function this_expression
 !------------------------------------------------------
 ! contains
 
-! Return SciBmad attribute name given Bmad attribute name.
+! Return Pals attribute name given Bmad attribute name.
 
-function scibmad_attrib_name(bmad_name, ele, factor) result (sci_name)
+function pals_attrib_name(bmad_name, ele, factor) result (pals_name)
 
 type (ele_struct) ele
 
 character(*) bmad_name
-character(40) sci_name
+character(40) pals_name
 real(rp) factor
 
 !
@@ -1122,24 +1122,24 @@ factor = 1.0_rp
 
 if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_name(2:), ix)) then
   if (ele%field_master) then
-    sci_name = 'B'
+    pals_name = 'B'
     factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
   else
-    sci_name = 'K'
+    pals_name = 'K'
     factor = 1
   endif
 
   if (bmad_name(1:1) == 'A') then
-    sci_name = sci_name(1:1) // 's'
+    pals_name = pals_name(1:1) // 's'
   else
-    sci_name = sci_name(1:1) // 'n'
+    pals_name = pals_name(1:1) // 'n'
   endif
 
-  sci_name = trim(sci_name) // bmad_name(2:)
+  pals_name = trim(pals_name) // bmad_name(2:)
   factor = factor * factorial(ix)
 
   if (ele%value(l$) == 0) then
-    sci_name = trim(sci_name) // 'L'
+    pals_name = trim(pals_name) // 'L'
   else
     factor = factor / ele%value(l$)
   endif
@@ -1148,49 +1148,49 @@ if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_nam
 endif
 
 select case (bmad_name)
-case ('BL_KICK');       sci_name = 'Bn0L'
-case ('BL_HKICK');      sci_name = 'Bn0L'
-case ('BL_VKICK');      sci_name = 'Bs0L'
-case ('B1_GRADIENT');   sci_name = 'Bn1'
-case ('B2_GRADIENT');   sci_name = 'Bn2'
-case ('B3_GRADIENT');   sci_name = 'Bn3'
-case ('K1');            sci_name = 'Kn1'
-case ('K2');            sci_name = 'Kn2'
-case ('K3');            sci_name = 'Kn3'
-case ('E1');            sci_name = 'e1'
-case ('E2');            sci_name = 'e2'
-case ('G');             sci_name = 'g_ref'
-case ('ANGLE');         sci_name = 'g_ref'
-case ('L');             sci_name = 'L'
+case ('BL_KICK');       pals_name = 'Bn0L'
+case ('BL_HKICK');      pals_name = 'Bn0L'
+case ('BL_VKICK');      pals_name = 'Bs0L'
+case ('B1_GRADIENT');   pals_name = 'Bn1'
+case ('B2_GRADIENT');   pals_name = 'Bn2'
+case ('B3_GRADIENT');   pals_name = 'Bn3'
+case ('K1');            pals_name = 'Kn1'
+case ('K2');            pals_name = 'Kn2'
+case ('K3');            pals_name = 'Kn3'
+case ('E1');            pals_name = 'e1'
+case ('E2');            pals_name = 'e2'
+case ('G');             pals_name = 'g_ref'
+case ('ANGLE');         pals_name = 'g_ref'
+case ('L');             pals_name = 'L'
 case ('X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH', 'TILT')
   if (ele%key == patch$) then
     select case (bmad_name)
-    case ('X_OFFSET');      sci_name = 'dx'
-    case ('Y_OFFSET');      sci_name = 'dy'
-    case ('Z_OFFSET');      sci_name = 'dz'
-    case ('X_PITCH');       sci_name = 'dy_rot'
-    case ('Y_PITCH');       sci_name = 'dx_rot'; factor = -1
-    case ('TILT');          sci_name = 'dz_rot'
+    case ('X_OFFSET');      pals_name = 'dx'
+    case ('Y_OFFSET');      pals_name = 'dy'
+    case ('Z_OFFSET');      pals_name = 'dz'
+    case ('X_PITCH');       pals_name = 'dy_rot'
+    case ('Y_PITCH');       pals_name = 'dx_rot'; factor = -1
+    case ('TILT');          pals_name = 'dz_rot'
     end select
   else
     select case (bmad_name)
-    case ('X_OFFSET');      sci_name = 'x_offset'
-    case ('Y_OFFSET');      sci_name = 'y_offset'
-    case ('Z_OFFSET');      sci_name = 'z_offset'
-    case ('X_PITCH');       sci_name = 'y_rot'
-    case ('Y_PITCH');       sci_name = 'x_rot'; factor = -1
-    case ('TILT');          sci_name = 'z_rot'
+    case ('X_OFFSET');      pals_name = 'x_offset'
+    case ('Y_OFFSET');      pals_name = 'y_offset'
+    case ('Z_OFFSET');      pals_name = 'z_offset'
+    case ('X_PITCH');       pals_name = 'y_rot'
+    case ('Y_PITCH');       pals_name = 'x_rot'; factor = -1
+    case ('TILT');          pals_name = 'z_rot'
     end select
   endif
 
-case ('T_OFFSET');      sci_name = 't_offset'
-case ('KS');            sci_name = 'Ksol'
-case ('BS_FIELD');      sci_name = 'Bsol'
+case ('T_OFFSET');      pals_name = 't_offset'
+case ('KS');            pals_name = 'Ksol'
+case ('BS_FIELD');      pals_name = 'Bsol'
 case default
   print *, 'Attribute not yet coded for translation: ' // trim(bmad_name)
   print *, 'Please report this.'
 end select
 
-end function scibmad_attrib_name
+end function pals_attrib_name
 
-end subroutine write_lattice_in_scibmad
+end subroutine write_lattice_in_pals

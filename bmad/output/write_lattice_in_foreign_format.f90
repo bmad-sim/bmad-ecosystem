@@ -2,7 +2,7 @@
 ! Subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, &
 !        use_matrix_model, include_apertures, dr12_drift_max, ix_branch, err)
 !
-! Subroutine to write a Elegant, MAD-8, MAD-X, OPAL, SAD, or SCIBMAD, lattice file using the 
+! Subroutine to write a Elegant, MAD-8, MAD-X, OPAL, SAD, PALS, or SCIBMAD, lattice file using the 
 ! information in a lat_struct. Optionally, only part of the lattice can be generated.
 !
 ! To write a Bmad lattice file, use: write_bmad_lattice_file
@@ -24,7 +24,7 @@
 ! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
 !
 ! Input:
-!   out_type          -- character(*): Either 'ELEGANT', 'MAD-8', 'MAD-X', 'SAD', or 'OPAL-T', 'SCIBMAD'.
+!   out_type          -- character(*): Either 'ELEGANT', 'MAD-8', 'MAD-X', 'SAD', 'OPAL-T', 'PALS', or 'SCIBMAD'.
 !   out_file_name     -- character(*): Name of the mad output lattice file.
 !   lat               -- lat_struct: Holds the lattice information.
 !   ref_orbit(0:)     -- coord_struct, allocatable, optional: Referece orbit for sad_mult and patch elements.
@@ -74,6 +74,9 @@ select case (out_type)
 
 case ('SCIBMAD')
   call write_lattice_in_scibmad(out_file_name, lat)
+
+case ('PALS')
+  call write_lattice_in_pals(out_file_name, lat)
 
 case ('ELEGANT')
   call write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &

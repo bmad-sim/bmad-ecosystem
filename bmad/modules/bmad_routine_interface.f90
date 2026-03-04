@@ -516,10 +516,11 @@ function average_twiss (frac1, twiss1, twiss2) result (ave_twiss)
   real(rp) frac1
 end function
 
-subroutine bbi_kick (x, y, sigma, nk, dnk)
+subroutine bbi_kick (x, y, sigma, nk, dnk, linear_kick)
   import
   implicit none
   real(rp) x, y, sigma(2), nk(2), dnk(2,2)
+  logical, optional :: linear_kick
 end subroutine
 
 subroutine bbi_slice_calc (ele, n_slice, z_slice)
@@ -1633,7 +1634,7 @@ end subroutine
 subroutine lcavity_rf_step_setup(ele)
   import
   implicit none
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
 end subroutine
 
 subroutine linear_to_spin_taylor(q_map, spin_taylor)
@@ -3751,6 +3752,14 @@ subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_m
   integer, optional :: ix_branch
   character(*) out_file_name
   logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_in_pals (pals_file, lat, err_flag)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  character(*) :: pals_file
+  logical, optional :: err_flag
 end subroutine
 
 subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)

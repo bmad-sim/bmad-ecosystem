@@ -141,7 +141,8 @@ else
   call create_element_slice (half_ele, ele, ds_wake, 0.0_rp, branch%param, .true., .false., err_flag)
 endif
 
-if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
+if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele, err_flag)
+
 !$OMP parallel do if (thread_safe)
 do j = 1, size(bunch%particle)
   if (bunch%particle(j)%state /= alive$) cycle

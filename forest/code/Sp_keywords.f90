@@ -86,11 +86,12 @@ contains
      call MAKE_NODE_LAYOUT( mylat)     
     endif
   end subroutine create_fibre_append
-   
+ 
   subroutine change_method_in_create_fibre(ptc_key,nterm,change)
    implicit none
    type(keywords) ptc_key
    integer kind00,met,nst,nterm
+
    logical change
 
    kind00=0

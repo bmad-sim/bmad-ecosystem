@@ -533,6 +533,7 @@ integer i, dir
 
 !
 
+phi0_auto = 0
 ele%value(phi0$) = phi0
 dE_target = ele%value(voltage$) * cos(twopi*phi0)
 pz_target = (dpc_given_dE(ele%value(p0c_start$), mass_of(ele%ref_species), dE_target) + ele%value(p0c_start$)) / ele%value(p0c$) - 1.0_rp 
@@ -557,7 +558,7 @@ do i = 1, 200
     dir = +1
   endif
 
-  if (i == 100) then
+  if (i == 200) then
     call out_io (s_error$, r_name, 'CANNOT FIND ACCEPTABLE PHI0_AUTOSCALE FOR: ' // ele_full_name(ele))
     err_flag = .true.
     return

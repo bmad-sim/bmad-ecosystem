@@ -28,6 +28,8 @@ character(*), parameter :: r_name = 'ele_rf_step_index'
 
 !
 
+ix_step = -1
+
 if (.not. associated(ele%rf)) then
   call out_io(s_error$, r_name, 'MISSING RF STEP BOOKKEEPING PARAMETERS. PLEASE REPORT THIS! FOR ELEMENT ' // ele_full_name(ele))
   return

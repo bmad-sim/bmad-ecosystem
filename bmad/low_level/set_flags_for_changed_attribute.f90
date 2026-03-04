@@ -78,6 +78,10 @@ case (rfcavity$, lcavity$, e_gun$)
   if (associated(a_ptr, ele%tracking_method) .or. associated(a_ptr, ele%field_calc)) then
     call set_ele_status_stale (ele, ref_energy_group$)
   endif
+case (beginning_ele$)
+  if (associated(a_ptr, ele%ref_species)) then
+    if (associated(ele%branch)) ele%branch%param%particle = ele%ref_species
+  endif
 end select
 
 ! Set independent stuff in multipass lord

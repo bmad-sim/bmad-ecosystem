@@ -510,40 +510,41 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
       return
     endif
     a_ptrs(1)%i = nint_chk(value)
-    if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                   bp_com%extra%taylor_order_set                    = .true.
-    if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))            bp_com%extra%default_integ_order_set             = .true.
-    if (associated(a_ptrs(1)%i, bmad_com%runge_kutta_order))              bp_com%extra%runge_kutta_order_set               = .true.
-    if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                  bp_com%extra%sad_n_div_max_set                   = .true.
-    if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))       bp_com%extra%max_num_runge_kutta_step_set        = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%taylor_order))                    bp_com%extra%taylor_order_set                    = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%default_integ_order))             bp_com%extra%default_integ_order_set             = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%runge_kutta_order))               bp_com%extra%runge_kutta_order_set               = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%sad_n_div_max))                   bp_com%extra%sad_n_div_max_set                   = .true.
+    if (associated(a_ptrs(1)%i, bmad_com%max_num_runge_kutta_step))        bp_com%extra%max_num_runge_kutta_step_set        = .true.
 
-    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                       = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set           = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set             = .true.
-    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set               = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_bin))                   bp_com%extra%n_bin_set                           = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%particle_bin_span))       bp_com%extra%particle_bin_span_set               = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%n_shield_images))         bp_com%extra%n_shield_images_set                 = .true.
+    if (associated(a_ptrs(1)%i, space_charge_com%sc_min_in_bin))           bp_com%extra%sc_min_in_bin_set                   = .true.
 
-    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set            = .true.
-    if (associated(a_ptrs(1)%i, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set              = .true.
+    if (associated(a_ptrs(1)%i, ptc_com%max_fringe_order))                 bp_com%extra%max_fringe_order_set                = .true.
+    if (associated(a_ptrs(1)%i, ptc_com%old_integrator))                   bp_com%extra%old_integrator_set                  = .true.
 
   elseif (associated(a_ptrs(1)%l)) then
     call parser_get_logical (word, a_ptrs(1)%l, ele%name, delim, delim_found, err_flag)
     if (err_flag) return
-    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_ref_shift))        bp_com%extra%absolute_time_ref_shift_set         = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))  bp_com%extra%rf_phase_below_transition_ref_set   = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                    bp_com%extra%sr_wakes_on_set                     = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                    bp_com%extra%lr_wakes_on_set                     = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%high_energy_space_charge_on))    bp_com%extra%high_energy_space_charge_on_set     = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%csr_and_space_charge_on))        bp_com%extra%csr_and_space_charge_on_set         = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))               bp_com%extra%spin_tracking_on_set                = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%radiation_damping_on))           bp_com%extra%radiation_damping_on_set            = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%radiation_zero_average))         bp_com%extra%radiation_zero_average_set          = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%radiation_fluctuations_on))      bp_com%extra%radiation_fluctuations_on_set       = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%conserve_taylor_maps))           bp_com%extra%conserve_taylor_maps_set            = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking))         bp_com%extra%absolute_time_tracking_set          = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))    bp_com%extra%convert_to_kinetic_momentum_set     = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))              bp_com%extra%aperture_limit_on_set               = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%normalize_twiss))                bp_com%extra%normalize_twiss_set                 = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%spin_n0_direction_user_set))     bp_com%extra%spin_n0_direction_user_set_set      = .true.
-    if (associated(a_ptrs(1)%l, bmad_com%debug))                          bp_com%extra%debug_set                           = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_ref_shift))         bp_com%extra%absolute_time_ref_shift_set         = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%rf_phase_below_transition_ref))   bp_com%extra%rf_phase_below_transition_ref_set   = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%sr_wakes_on))                     bp_com%extra%sr_wakes_on_set                     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%lr_wakes_on))                     bp_com%extra%lr_wakes_on_set                     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%high_energy_space_charge_on))     bp_com%extra%high_energy_space_charge_on_set     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%high_energy_space_charge_linear)) bp_com%extra%high_energy_space_charge_on_set     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%csr_and_space_charge_on))         bp_com%extra%csr_and_space_charge_on_set         = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%spin_tracking_on))                bp_com%extra%spin_tracking_on_set                = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%radiation_damping_on))            bp_com%extra%radiation_damping_on_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%radiation_zero_average))          bp_com%extra%radiation_zero_average_set          = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%radiation_fluctuations_on))       bp_com%extra%radiation_fluctuations_on_set       = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%conserve_taylor_maps))            bp_com%extra%conserve_taylor_maps_set            = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%absolute_time_tracking))          bp_com%extra%absolute_time_tracking_set          = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%convert_to_kinetic_momentum))     bp_com%extra%convert_to_kinetic_momentum_set     = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%aperture_limit_on))               bp_com%extra%aperture_limit_on_set               = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%normalize_twiss))                 bp_com%extra%normalize_twiss_set                 = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%spin_n0_direction_user_set))      bp_com%extra%spin_n0_direction_user_set_set      = .true.
+    if (associated(a_ptrs(1)%l, bmad_com%debug))                           bp_com%extra%debug_set                           = .true.
 
     if (associated(a_ptrs(1)%l, space_charge_com%lsc_kick_transverse_dependence)) bp_com%extra%lsc_kick_transverse_dependence_set = .true.
     if (associated(a_ptrs(1)%l, space_charge_com%debug))                   bp_com%extra%sc_debug_set                    = .true.
@@ -2069,7 +2070,7 @@ case ('ORIGIN_ELE_REF_PT')
   call get_switch (attrib_word, ref_pt_name(1:), ix, err_flag, ele, delim, delim_found); if (err_flag) return
   ele%value(origin_ele_ref_pt$) = ix
 
-case ('PARTICLE')
+case ('PARTICLE', 'REF_SPECIES')
   ! "()" are not delims since "antiparticle(...)" is possible.
   call get_next_word (word, ix_word, ':,={}', delim, delim_found, .false.)
   ix = species_id(word)
