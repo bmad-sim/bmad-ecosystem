@@ -40,7 +40,7 @@ character(*), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 
 ! propagate the energy through the tracking part of the lattice
 
-err_flag = .true.
+err_flag = .false.
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -124,6 +124,7 @@ do ib = 0, ubound(lat%branch, 1)
         else
           call out_io (s_fatal$, r_name, 'REFERENCE ENERGY IS SET BELOW MC^2 IN BRANCH ' // branch%name)
         endif
+        err_flag = .true.
         if (global_com%exit_on_error) call err_exit
         return
       endif
@@ -211,6 +212,7 @@ do ib = 0, ubound(lat%branch, 1)
         (is_true(gun_ele%value(autoscale_amplitude$)) .or. gun_ele%tracking_method == bmad_standard$)) then
       call out_io (s_fatal$, r_name, '(INITIAL ENERGY) + (E_GUN VOLTAGE) MUST BE NON-NEGATIVE! ' // gun_ele%name, &
                                      'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+      err_flag = .true.
       if (global_com%exit_on_error) call err_exit
       return
     endif
@@ -229,6 +231,7 @@ do ib = 0, ubound(lat%branch, 1)
       if (err) then
         call out_io (s_fatal$, r_name, 'AUTOSCALE FAILED FOR ELEMENT: ' // ele%name)
         if (global_com%exit_on_error) call err_exit
+        err_flag = .true.
         return
       endif
 
@@ -388,14 +391,14 @@ do ib = 0, ubound(lat%branch, 1)
           else
             call ele_compute_ref_energy_and_time (ele0, lord, branch%param, err)
           endif
-          if (err) return
+          if (err) err_flag = .true.
         endif
 
         ! Compute energy/time for a combo super_lord/multipass_slave element
         if (associated(lord2)) then
           lord2%time_ref_orb_in = ele%time_ref_orb_in
           call ele_compute_ref_energy_and_time (ele0, lord2, branch%param, err)
-          if (err) return
+          if (err) err_flag = .true.
         endif
       enddo
     endif
@@ -404,9 +407,9 @@ do ib = 0, ubound(lat%branch, 1)
 
     call ele_compute_ref_energy_and_time (ele0, ele, branch%param, err)
     if (err) then
-      call out_io (s_error$, r_name, 'CANNOT COMPUTE REFERENCE ENERGY FOR: ' // ele%name, &
-                                      'REFERENCE ENERGY NOT COMPUTED FOR REST OF LATTICE')
-      return
+      call out_io (s_warn$, r_name, 'CANNOT COMPUTE REFERENCE ENERGY FOR: ' // ele%name, &
+                                    'ANY SIMULATIONS WILL LIKELY BE VERY INACCURATE!')
+      err_flag = .true.
     endif
 
     ele%bookkeeping_state%ref_energy = ok$
@@ -476,7 +479,6 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 enddo ! Branch loop
 
 lat%lord_state%ref_energy = ok$
-err_flag = .false.
 
 end subroutine lat_compute_ref_energy_and_time
 
@@ -527,8 +529,6 @@ character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
 ! which will overwrite ele%old_value.
 
-err_flag = .true.
-
 bmad_com_saved = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.
@@ -537,7 +537,7 @@ bmad_com%radiation_zero_average = .false.
 E_tot_start    = ele0%value(E_tot$)
 p0c_start      = ele0%value(p0c$)
 ref_time_start = ele0%ref_time
-value_saved = ele%value
+value_saved    = ele%value
 
 ele%value(E_tot_start$)    = E_tot_start
 ele%value(p0c_start$)      = p0c_start
@@ -591,8 +591,8 @@ case (lcavity$, nonconst_ref_energy$)
   else
     phi = twopi * (lord%value(phi0$) + lord%value(phi0_multipass$))
     e_tot = ele%value(e_tot_start$) + lord%value(voltage$) * cos(phi)
-    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err, print_err = .false.)
-    if (err) then
+    call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
+    if (err_flag) then
       call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
       ! Unstable_factor is formulated to be usable for optimization when the lattice is not stable.
       param%unstable_factor = ele%ix_ele - e_tot / mass_of(param%particle)
@@ -612,7 +612,6 @@ case (lcavity$, nonconst_ref_energy$)
   if ((ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) .or. &
                                                                                           ele%tracking_method == bmad_standard$) then
     call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
-    if (err) goto 9000
   endif
 
   ! Note: If ele is a super_slave and ele spans the length of the super_lord, do not need to track.
@@ -630,7 +629,7 @@ case (lcavity$, nonconst_ref_energy$)
   endif
 
   if (do_track) then
-    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
+    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err_flag); if (err_flag) goto 9000
     call calc_time_ref_orb_out(ele, orb_end)
     ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
@@ -639,16 +638,16 @@ case (lcavity$, nonconst_ref_energy$)
 
 case (custom$, hybrid$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)   ! Delta_ref_time is an independent attrib here.
-  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-  if (err) goto 9000
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err_flag)
+  if (err_flag) goto 9000
 
   ele%ref_time = ref_time_start + ele%value(delta_ref_time$)
   ele%time_ref_orb_out%t = ele%ref_time
 
 case (taylor$)
   ele%value(E_tot$) = E_tot_start + ele%value(delta_e_ref$)
-  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-  if (err) goto 9000
+  call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err_flag)
+  if (err_flag) goto 9000
 
   ! Delta_ref_time is an independent attrib if L = 0.
   if (ele%value(l$) /= 0) then
@@ -670,7 +669,7 @@ case (e_gun$)
     endif
   endif
 
-  call track_this_ele (orb_start, orb_end, ref_time_start, .true., err); if (err) goto 9000
+  call track_this_ele (orb_start, orb_end, ref_time_start, .true., err_flag); if (err_flag) goto 9000
   call calc_time_ref_orb_out(ele, orb_end)
   ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
 
@@ -694,8 +693,8 @@ case (patch$)
     else
       ele%value(E_tot$) = e_tot_start - ele%value(e_tot_offset$)
     endif
-    call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err)
-    if (err) goto 9000
+    call convert_total_energy_to (ele%value(E_tot$), param%particle, pc = ele%value(p0c$), err_flag = err_flag)
+    if (err_flag) goto 9000
 
   elseif (ele%value(E_tot_set$) /= 0) then
     ele%value(E_tot$) = ele%value(E_tot_set$)
@@ -732,8 +731,8 @@ case default
   
   if (ele%key == rfcavity$ .and. ele%slave_status /= super_slave$ .and. &
                         ele%slave_status /= slice_slave$ .and. ele%slave_status /= multipass_slave$) then
-    call autoscale_phase_and_amp (ele, param, err, call_bookkeeper = .false.)
-    if (err) goto 9000
+    call autoscale_phase_and_amp (ele, param, err_flag, call_bookkeeper = .false.)
+    if (err_flag) goto 9000
   endif
 
   if ((ele%key == wiggler$ .or. ele%key == undulator$) .and. is_true(ele%value(delta_ref_time_user_set$))) then
@@ -749,7 +748,7 @@ case default
     ele%time_ref_orb_out%t = ele%ref_time
 
   else
-    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err); if (err) goto 9000
+    call track_this_ele (orb_start, orb_end, ref_time_start, .false., err_flag); if (err_flag) goto 9000
     call calc_time_ref_orb_out(ele, orb_end)
     ele%value(delta_ref_time$) = ele%ref_time - ref_time_start
   endif
@@ -798,8 +797,6 @@ if (energy_stale.or. ele%bookkeeping_state%control /= ok$ .or. ele%bookkeeping_s
 endif
 
 !
-
-err_flag = .false.
 
 9000 continue
 bmad_com = bmad_com_saved
