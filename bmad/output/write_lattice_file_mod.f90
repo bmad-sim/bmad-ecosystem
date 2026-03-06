@@ -227,7 +227,7 @@ function array_re_str(arr, parens_in) result (str_out)
 
 real(rp) arr(:)
 integer i
-character(120) str_out
+character(200) str_out
 character(*), optional :: parens_in
 character(2) parens
 
