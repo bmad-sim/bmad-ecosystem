@@ -22,7 +22,6 @@ contains
 ! Subroutine to get the next Tao command. In order of precedence, input may come from:
 !   1) s%com%cmd string (if s%com%use_cmd_here is set to True). 
 !      Used for recalling commands from the history stack.
-!   2) A saved command string. 
 !   3) A command file.
 !   4) The cmd_in argument (if present). Used, for example, when interfacing with Python.
 !   5) The terminal.
@@ -58,7 +57,7 @@ character(40) name
 character(*), parameter :: r_name = 'tao_get_user_input'
 
 logical, optional :: wait_flag
-logical err, wait, flush, boldit, using_saved_cmd
+logical err, wait, flush, boldit
 logical, save :: init_needed = .true.
 
 ! Init single char input
@@ -122,15 +121,6 @@ if (s%com%use_cmd_here) then
   return
 endif
 
-! Check if we still have something from a line with multiple commands
-
-using_saved_cmd = .false.
-if (s%com%saved_cmd_line /= '') then
-  call string_trim (s%com%saved_cmd_line, s%com%saved_cmd_line, ix)
-  cmd_out = s%com%saved_cmd_line
-  using_saved_cmd = .true.
-endif
-
 ! If a command file is open then read a line from the file.
 
 n_level = s%com%cmd_file_level
@@ -144,28 +134,34 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   call output_direct (print_and_capture = (s%global%quiet /= 'all'), min_level = s_blank$, max_level = s_dwarn$)
 
   if (cmd_out == '') then
-    ix = 0
-    do
-      read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out(ix+1:)
-      if (ios /= 0) then
-        call tao_quiet_set('off')
-        call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%full_name)
-        goto 8000
-      endif
+    if (s%com%cmd_file(n_level)%full_name == multi_cmd_file_name) then
+      cmd_out = s%com%cmd_file(n_level)%multi_cmd
+      call check_for_multi_commands(cmd_out, .true.)
 
-      s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line + 1
-      s%com%cmd_from_cmd_file = .true.
-      call string_trim (cmd_out, cmd_out, ix)
-      ix = len_trim(cmd_out)
-      if (ix == 0) cycle
-      if (cmd_out(ix:ix) == '&') then
-        cmd_out(ix:ix) = ' '
+    else
+      ix = 0
+      do
+        read (s%com%cmd_file(n_level)%ix_unit, '(a)', end = 8000, iostat = ios) cmd_out(ix+1:)
+        if (ios /= 0) then
+          call tao_quiet_set('off')
+          call out_io (s_error$, r_name, 'CANNOT READ LINE FROM FILE: ' // s%com%cmd_file(n_level)%full_name)
+          goto 8000
+        endif
+
+        s%com%cmd_file(n_level)%n_line = s%com%cmd_file(n_level)%n_line + 1
+        s%com%cmd_from_cmd_file = .true.
+        call string_trim (cmd_out, cmd_out, ix)
         ix = len_trim(cmd_out)
-        cycle
-      endif
-      !!!! if (any(cmd_out(ix:ix) == [',', '(', '{', '[', '='])) cycle
-      exit
-    enddo
+        if (ix == 0) cycle
+        if (cmd_out(ix:ix) == '&') then
+          cmd_out(ix:ix) = ' '
+          ix = len_trim(cmd_out)
+          cycle
+        endif
+        !!!! if (any(cmd_out(ix:ix) == [',', '(', '{', '[', '='])) cycle
+        exit
+      enddo
+    endif
 
     ! Nothing more to do if an alias definition
 
@@ -223,11 +219,7 @@ if (n_level /= 0 .and. .not. s%com%cmd_file(n_level)%paused) then
   !
 
   cmd_out = tao_alias_translate (cmd_out, err)
-  call check_for_multi_commands()
-
-  if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
-    call out_io (s_blank$, r_name, '', trim(prompt_string_with_color) // ': ' // trim(cmd_out))
-  endif
+  call check_for_multi_commands(cmd_out, .false.)
 
   call tao_quiet_set(s%global%quiet)
   return
@@ -236,7 +228,7 @@ endif
 !-------------------------------------------------------------------------
 ! Here if no command file is being read from...
 
-! Get a command if cmd_out has not already been set due to stuff saved in s%com%saved_cmd_line.
+! Get a command 
 
 if (cmd_out == '') then
   if (present(cmd_in)) then
@@ -258,11 +250,7 @@ endif
 ! Alias translate the command and do other bookkeeping.
 
 cmd_out = tao_alias_translate (cmd_out, err)
-call check_for_multi_commands ()
-
-if (using_saved_cmd .or. s%com%saved_cmd_line /= '') then
-  call out_io (s_blank$, r_name, '', trim(prompt_string_with_color) // ': ' // trim(cmd_out))
-endif
+call check_for_multi_commands (cmd_out, .false.)
 
 return
 
@@ -288,25 +276,50 @@ return
 !-------------------------------------------------------------------------
 contains
 
-subroutine check_for_multi_commands ()
+! A multi-command string is treated on par with a command file.
+! The basic difference is that a multi-command string is stored in the tao_command_file_struct itself.
 
-integer ix
+subroutine check_for_multi_commands (cmd_out, in_file)
+
+type (tao_command_file_struct), allocatable :: tmp_cmd_file(:)
+
+integer ix, cfl
+character(*) cmd_out
 character(1) quote
+logical in_file
 
 !
 
 if (cmd_out(1:5) == 'alias') return
 
 quote = ''   ! Not in quote string
-do ix = 1, len(cmd_out)
 
+do ix = 1, len(cmd_out)
   if (quote == '') then
     select case (cmd_out(ix:ix))
     case ('!')
       exit
 
     case (';')
-      s%com%saved_cmd_line = cmd_out(ix+1:)
+      if (in_file) then
+        cfl = s%com%cmd_file_level
+        s%com%cmd_file(cfl)%multi_cmd = cmd_out(ix+1:)  
+        if (s%com%cmd_file(cfl)%multi_cmd == '') s%com%cmd_file_level = s%com%cmd_file_level - 1
+
+      else
+        s%com%cmd_file_level = s%com%cmd_file_level + 1
+        cfl = s%com%cmd_file_level
+        ! reallocate cmd_file array
+        if (ubound(s%com%cmd_file, 1) < cfl) then
+          call move_alloc (s%com%cmd_file, tmp_cmd_file)
+          allocate (s%com%cmd_file(0:cfl))
+          s%com%cmd_file(0:cfl-1) = tmp_cmd_file
+        endif
+        s%com%cmd_file(cfl) = s%com%cmd_file(cfl-1)
+        s%com%cmd_file(cfl)%full_name = multi_cmd_file_name
+        s%com%cmd_file(cfl)%multi_cmd = cmd_out(ix+1:)  
+      endif
+
       cmd_out = cmd_out(:ix-1)
       return
 
@@ -317,10 +330,9 @@ do ix = 1, len(cmd_out)
   else ! quote /= ''
     if (cmd_out(ix:ix) == quote .and. cmd_out(ix-1:ix-1) /= '\') quote = ''           ! '
   endif
-
 enddo
 
-s%com%saved_cmd_line = ' '
+if (in_file) s%com%cmd_file_level = s%com%cmd_file_level - 1
 
 end subroutine check_for_multi_commands
 

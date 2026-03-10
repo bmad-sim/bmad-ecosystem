@@ -720,6 +720,8 @@ type tao_alias_struct
   character(200) :: expanded_str = ''
 end type
 
+! Note: A multi-command string is treated as a "command file".
+
 type tao_command_file_struct
   character(400) :: full_name = ''
   character(400) :: dir = './'
@@ -731,7 +733,10 @@ type tao_command_file_struct
   logical :: reset_at_end = .true.  ! Reset lattice_calc_on and plot_on at end of file?
   logical :: lattice_calc_save = .true.
   logical :: plot_save = .true.
+  character(200) :: multi_cmd = ''  ! Commands not yet executed when there are mulitple commands on a line
 end type
+
+character(20), parameter :: multi_cmd_file_name = '! Multi-Command'
 
 type do_loop_struct
   character(20) :: name = ''                           ! do loop index name
@@ -790,7 +795,6 @@ type tao_common_struct
   character(16) :: valid_plot_who(10) = ''            ! model, base, ref etc...
   character(200) :: single_mode_buffer = ''
   character(200) :: cmd = ''                          ! Used for the cmd history
-  character(200) :: saved_cmd_line = ''               ! Saved part of command line when there are mulitple commands on a line
 end type
 
 ! Initialization parameters
