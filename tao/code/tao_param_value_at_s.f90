@@ -382,7 +382,8 @@ case ('floor')
 
 case ('floor_orbit')
   floor = orbit_to_local_curvilinear(orb, ele_to_s, relative_to = downstream_end$)
-  floor = coords_local_curvilinear_to_floor (floor, ele_to_s, .false., relative_to = downstream_end$)
+  floor = coords_local_curvilinear_to_floor (floor, ele_to_s, .false., &
+                                        end_origin = downstream_end$, downstream_dir_ref = .true.)
 
   select case (d_type)
   case ('floor_orbit.x');       value = floor%r(1)
