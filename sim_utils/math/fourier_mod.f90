@@ -4,6 +4,8 @@ use fgsl
 use precision_def
 use physical_constants
 
+real(rp), pointer, private :: data_ptr(:)
+
 contains
 
 !---------------------------------------------------------------------------
@@ -114,10 +116,9 @@ use super_recipes_mod, only: super_dbrent
 
 implicit none
 
-real(rp) :: data(:)
+real(rp), target :: data(:)
 real(rp) :: frequency
 real(rp) :: ftry, fbin, fmin, fmax, festimate, df, f1, f2
-real(rp) :: cos_amp, sin_amp, dcos_amp, dsin_amp, omega
 real(rp) :: amp, max_amp
 integer :: i, imax, status
 integer, parameter :: nscan = 4 !Scan points
@@ -137,12 +138,17 @@ endif
 fbin = 1.0_rp/size(data)
 fmin = ftry - fbin
 fmax = ftry + fbin
+data_ptr => data
 
-max_amp =  -super_dbrent(fmin,ftry,fmax, negative_ampsquared, negative_dampsquared, &
+max_amp =  -super_dbrent(fmin, ftry, fmax, negative_ampsquared, negative_dampsquared, &
                                                                  1e-12_rp, fbin*1e-15_rp, frequency, status)
 
+end function fine_frequency_estimate
+
 !---------------------------------------------------------------------------
-contains
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Used with fine_frequency_estimate
 
 function negative_ampsquared(frequency, status) result(amp)
 
@@ -154,13 +160,15 @@ integer, optional :: status
 
 !
 
-call fourier_amplitude(data, frequency, cos_amp, sin_amp)
+call fourier_amplitude(data_ptr, frequency, cos_amp, sin_amp)
 amp = -cos_amp**2 - sin_amp**2
 
 end function negative_ampsquared
 
 !---------------------------------------------------------------------------
-! contains
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Used with fine_frequency_estimate
 
 function negative_dampsquared(frequency, status) result(damp)
 implicit none
@@ -171,13 +179,10 @@ integer, optional :: status
 
 !
 
-call fourier_amplitude(data, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
+call fourier_amplitude(data_ptr, frequency, cos_amp, sin_amp, dcos_amp, dsin_amp)
 damp = -cos_amp*dcos_amp - sin_amp*dsin_amp
 
 end function negative_dampsquared
-
-end function fine_frequency_estimate
-
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
