@@ -1,23 +1,29 @@
 !+
 ! Function coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, 
-!                                                 w_mat, calculate_angles, relative_to) result (global_position)
+!                    w_mat, calculate_angles, end_origin, downstream_dir_ref) result (global_position)
 !
 ! Given a position local to ele, return global floor coordinates.
 !
 ! Input:
-!   local_position    -- floor_position_struct: Floor position in local curvilinear coordinates,
-!                          with %r = [x, y, z_local] where z_local is wrt the entrance end of the element
-!                          except if relative_to = downstream_end$. In this case, z_local is a distance -ele%value(l$)
-!                          from the exit end (important for patch elements).
-!   ele               -- ele_struct: element that local_position coordinates are relative to.
-!   in_body_frame     -- logical, optional: True => local_position is in ele body frame and includes misalignments.
-!                          Ignored if element is a patch. Default: False. 
-!   calculate_angles  -- logical, optional: calculate angles for global_position 
-!                          Default: True.
-!                          False returns local_position angles (%theta, %phi, %psi) = 0.
-!   relative_to       -- integer, optional: not_set$ (default), upstream_end$, or downstream_end$. Force which end is used
-!                         for z = 0. If upstream_end$, local_position%r(3) is relative to the 
-!                         upstream end which will not be the entrance end if ele%orientation = -1.
+!   local_position      -- floor_position_struct: Floor position in local curvilinear coordinates,
+!                            with %r = [x, y, z_local] where z_local is wrt the entrance end of the element
+!                            except if end_origin = downstream_end$. In this case, z_local is a distance -ele%value(l$)
+!                            from the exit end (important for patch elements).
+!   ele                 -- ele_struct: element that local_position coordinates are relative to.
+!   in_body_frame       -- logical, optional: True => local_position is in ele body frame and includes misalignments.
+!                            Ignored if element is a patch. Default: False. 
+!   calculate_angles    -- logical, optional: calculate angles for global_position 
+!                            Default: True.
+!                            False returns local_position angles (%theta, %phi, %psi) = 0.
+!   end_origin          -- integer, optional: not_set$ (default), upstream_end$, or downstream_end$. 
+!                           Force which end is used for z = 0. 
+!                           If upstream_end$, local_position%r(3) is relative to the 
+!                           upstream end which will not be the entrance end if ele%orientation = -1.
+!   downstream_dir_ref  -- logical, optional: Default False. The output theta angle is calculated so that moduo 2pi
+!                           this angle is near ele%floor%theta. If the element is reversed (ele%direction = -1),
+!                           the element body coords point upstream which is not always wanted. If this arg is
+!                           set True, ele%floor%theta+pi modulo to be in the range [-pi, pi] is the reference.
+!
 !
 ! Output:
 !   w_mat(3,3)        -- real(rp), optional: W matrix at z, to transform vectors. 
@@ -27,7 +33,7 @@
 !-  
 
 function coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, &
-                                                 w_mat, calculate_angles, relative_to) result (global_position)
+                     w_mat, calculate_angles, end_origin, downstream_dir_ref) result (global_position)
 
 use bmad_interface, dummy => coords_local_curvilinear_to_floor
 
@@ -41,9 +47,8 @@ real(rp) :: ds, w_mat_local(3,3), L_vec(3), S_mat(3,3), z, sm2(3,3)
 real(rp), optional :: w_mat(3,3)
 
 integer rel_to
-integer, optional :: relative_to
-logical, optional :: in_body_frame
-logical, optional :: calculate_angles
+integer, optional :: end_origin
+logical, optional :: in_body_frame, calculate_angles, downstream_dir_ref
 character(*), parameter :: r_name = 'coords_local_curvilinear_to_floor'
 
 ! If a overlay, group or multipass then just use the first slave
@@ -57,7 +62,7 @@ endif
 !
 
 p = floor_position_struct(local_position%r, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
-rel_to = integer_option(not_set$, relative_to)
+rel_to = integer_option(not_set$, end_origin)
 
 ! patch
 
@@ -84,7 +89,7 @@ if (ele1%key == patch$) then
 ! Not a patch
 
 else
-  if (integer_option(not_set$, relative_to) == upstream_end$ .and. ele1%orientation == -1) then
+  if (integer_option(not_set$, end_origin) == upstream_end$ .and. ele1%orientation == -1) then
     p%r(3) = ele%value(l$) - p%r(3)
   endif
 
@@ -127,6 +132,7 @@ if (logic_option(.true., calculate_angles)) then
   ! Note: Only floor0%theta angle is needed for calc.
   fl = ele1%floor
   if (ele1%key == sbend$ .or. ele1%key == sbend$) call ele_geometry(fl, ele1, fl, -0.5_rp)
+  if (logic_option(.false., downstream_dir_ref)) fl%theta = modulo2(fl%theta+pi, pi)
   call update_floor_angles(global_position, fl)
 else
   global_position%theta = 0

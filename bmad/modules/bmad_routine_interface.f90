@@ -759,15 +759,14 @@ function coords_local_curvilinear_to_body (local_position, ele, w_mat, calculate
 end function
 
 function coords_local_curvilinear_to_floor (local_position, ele, in_body_frame, &
-                                                w_mat, calculate_angles, relative_to) result (global_position)
+                            w_mat, calculate_angles, end_origin, downstream_dir_ref) result (global_position)
   import
   implicit none
   type (floor_position_struct) :: local_position, global_position
   type (ele_struct), target :: ele
   real(rp), optional :: w_mat(3,3)
-  logical, optional :: in_body_frame
-  logical, optional :: calculate_angles
-  integer, optional :: relative_to
+  logical, optional :: calculate_angles, in_body_frame, downstream_dir_ref
+  integer, optional :: end_origin
 end function coords_local_curvilinear_to_floor
 
 function coords_curvilinear_to_floor (xys, branch, err_flag) result (global)

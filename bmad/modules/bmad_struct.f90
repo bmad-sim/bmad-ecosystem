@@ -1427,6 +1427,8 @@ type ele_struct
   type (foil_struct), pointer :: foil => null()
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
+  ! %floor is floor coord of lab coordinates at the downstream end. 
+  ! Notice that if ele%direction = -1, the lab coords have the z-axis antiparallel to the +s-direction.
   type (floor_position_struct) :: floor = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                        ! 6D normal mode structure.
