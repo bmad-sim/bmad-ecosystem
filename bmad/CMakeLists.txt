@@ -21,6 +21,21 @@ ELSE ()
   )
 ENDIF ()
 
+# ---- cuFFT / GPU acceleration for space-charge FFTs ----
+# Enable by setting ACC_ENABLE_CUFFT=Y in the environment.
+# Requires CUDA Toolkit (provides cufft.h, libcufft, libcudart).
+IF ("$ENV{ACC_ENABLE_CUFFT}" STREQUAL "Y")
+  find_package(CUDAToolkit QUIET)
+  IF (CUDAToolkit_FOUND)
+    MESSAGE(STATUS "cuFFT enabled — CUDA Toolkit ${CUDAToolkit_VERSION} found at ${CUDAToolkit_TARGET_DIR}")
+    LIST(APPEND INC_DIRS ${CUDAToolkit_INCLUDE_DIRS})
+    add_definitions(-DUSE_CUFFT)
+    SET (CUFFT_LINK_LIBS CUDA::cufft CUDA::cudart)
+  ELSE ()
+    MESSAGE(WARNING "ACC_ENABLE_CUFFT=Y but CUDA Toolkit not found — falling back to FFTW")
+  ENDIF ()
+ENDIF ()
+
 SET (SRC_DIRS 
   code 
   ### custom  # Using function pointers now
@@ -41,6 +56,7 @@ SET (SRC_DIRS
 SET (SHARED_DEPS
   sim_utils
   $ENV{ACC_BMAD_LINK_LIBS}
+  ${CUFFT_LINK_LIBS}
   X11
   readline
 )

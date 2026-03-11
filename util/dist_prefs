@@ -181,3 +181,14 @@ export ACC_CONDA_BUILD="N"
 # environment.
 #-----------------------------------------------------------
 export ACC_CONDA_PATH="${CONDA_PREFIX}"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_CUFFT here to "Y" will
+# enable GPU-accelerated FFTs via NVIDIA cuFFT for the
+# space charge solver. Requires the CUDA Toolkit to be
+# installed. At runtime, cuFFT is only used if this
+# variable is also set in the environment AND a CUDA GPU
+# is detected; otherwise FFTW is used as the fallback.
+#-----------------------------------------------------------
+export ACC_ENABLE_CUFFT="Y"

@@ -95,6 +95,25 @@ util/dist_build_production
 # or util/dist_build_debug
 ```
 
+### GPU-accelerated space charge (cuFFT)
+
+The space charge solver can use NVIDIA cuFFT for GPU-accelerated 3D FFTs.
+This is opt-in at both build time and run time.
+
+**Build time:** In `util/dist_prefs`, set `ACC_ENABLE_CUFFT` to `Y`.
+The CUDA Toolkit must be available (provides `cufft.h`, `libcufft`, `libcudart`).
+If the toolkit is not found, the build will fall back to FFTW with a warning.
+
+**Run time:** Set `ACC_ENABLE_CUFFT=Y` in your environment before running a program.
+If the variable is not set, or no CUDA GPU is detected, FFTW is used automatically.
+This means a binary built with cuFFT support works on machines with or without an
+NVIDIA GPU.
+
+```bash
+# Enable GPU FFTs at runtime
+export ACC_ENABLE_CUFFT=Y
+```
+
 ## Contributing to Bmad: Pull Requests
 
 What is a Pull Request? A Pull Request (PR) is a mechanism for requesting that changes that you have made

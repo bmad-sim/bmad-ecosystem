@@ -6,89 +6,105 @@ implicit none
 ! Fortran 2008
 integer, parameter, private :: dp = REAL64
 
+#ifdef USE_CUFFT
+!------------------------------------------------------------------------
+! Interface to C cuFFT wrapper (cufft_wrapper.c)
+! This is the GPU-accelerated FFT backend.
+!------------------------------------------------------------------------
+interface
+  subroutine cufft_ccfft3d(a, b, idir1, n1, n2, n3) bind(C, name='cufft_ccfft3d_')
+    use, intrinsic :: iso_c_binding
+    complex(C_DOUBLE_COMPLEX), intent(in)  :: a(*)
+    complex(C_DOUBLE_COMPLEX), intent(out) :: b(*)
+    integer(C_INT), value, intent(in) :: idir1
+    integer(C_INT), value, intent(in) :: n1, n2, n3
+  end subroutine
+
+  subroutine cufft_cleanup() bind(C, name='cufft_cleanup_')
+  end subroutine
+
+  function cufft_gpu_available() result(avail) bind(C, name='cufft_gpu_available_')
+    use, intrinsic :: iso_c_binding
+    integer(C_INT) :: avail
+  end function
+end interface
+#endif
+
+! Cached runtime GPU dispatch decision (checked once, reused thereafter)
+logical, private, save :: gpu_checked  = .false.
+logical, private, save :: use_gpu_fft  = .false.
+
 contains
 
 
-
-! Old routines, using numerical recipes routines 
-#ifdef NO_USE_FFTW
+#ifdef USE_CUFFT
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
+! cuFFT + FFTW runtime dispatch.
+! Uses cuFFT when a GPU is available, otherwise falls back to FFTW.
 !------------------------------------------------------------------------
 !+
-subroutine ccfft3d(a,b,idir,n1,n2,n3,iskiptrans)
+subroutine ccfft3d(a, b, idir, n1, n2, n3, iskiptrans)
+use, intrinsic :: iso_c_binding
+use omp_lib
 implicit none
-integer, dimension(3) :: idir
-complex(dp), dimension(:,:,:) :: a,b
-complex(dp), allocatable :: tmp1(:,:,:), tmp2(:,:,:)
-integer :: n1,n2,n3
-integer :: iskiptrans
-integer :: ileft,iright,i,j,k
-b(:,:,:)=a(:,:,:)
-allocate(tmp1(n2,n1,n3))
-allocate(tmp2(n3,n2,n1))
-if(idir(1).eq.0.and.idir(2).eq.0.and.idir(3).eq.0)return
-call mccfft1d(b,n2*n3,n1,idir(1))
-forall(k=1:n3, j=1:n2, i=1:n1)
-! there's some problem with the commented out statements
-!       iright=(k-1)*n1*n2+(j-1)*n2+i
-!       ileft =(k-1)*n2*n1+(i-1)*n1+j
-!       tmp(ileft)=b(iright)
-  tmp1(j,i,k)=b(i,j,k)
-end forall
+include 'fftw3.f03'
 
-call mccfft1d(tmp1,n3*n1,n2,idir(2))
-forall(k=1:n3, j=1:n2, i=1:n1)
-!       iright=(k-1)*n2*n1+(i-1)*n1+j
-!       ileft =(i-1)*n2*n3+(j-1)*n3+k
-!       b(ileft)=tmp(iright)
-  tmp2(k,j,i)=tmp1(j,i,k)
-end forall
+integer :: idir(3)
+complex(C_DOUBLE_COMPLEX), dimension(:,:,:) :: a, b
+integer :: n1, n2, n3, iskiptrans
+type(C_PTR) :: plan
+integer :: fdir, n_threads
+character(len=32) :: env_val
+integer :: env_len, env_stat
 
-call mccfft1d(tmp2,n1*n2,n3,idir(3))
-if(iskiptrans.eq.1)return
-forall(k=1:n3, j=1:n2, i=1:n1)
-!       ileft =(k-1)*n1*n2+(j-1)*n2+i
-!       iright=(i-1)*n2*n3+(j-1)*n3+k
-!       b(ileft)=tmp(iright)
-        b(i,j,k)=tmp2(k,j,i)
-end forall
-
-end subroutine 
-!------------------------------------------------------------------------
-!------------------------------------------------------------------------
-!-------------------------------ccfftnr-----------------------------------------
-!+
-subroutine mccfft1d(a,ntot,lenfft,idir)
-implicit none
-complex(dp), dimension(*) :: a
-integer :: ntot,lenfft,idir
-integer :: n,ierr
-do n=1,ntot*lenfft,lenfft
-  call ccfftam(a(n),lenfft,idir,ierr)  ! Alan Miller version of FFT package
-  !call my_fft(a(n),lenfft,idir) ! FFTW
-  !ierr =  0
-  
-  if(ierr.ne.0)then
-    write(6,*)'Error return from FFT package due to transform length.'
-    write(6,*)'Try increasing the padding by 1 in each dimension and re-run'
-    stop
+! One-time check: use cuFFT only if the user sets ACC_ENABLE_CUFFT=Y at runtime
+! AND a CUDA GPU is actually present. Default is FFTW.
+if (.not. gpu_checked) then
+  gpu_checked = .true.
+  call get_environment_variable('ACC_ENABLE_CUFFT', env_val, env_len, env_stat)
+  if (env_stat == 0 .and. trim(env_val) == 'Y') then
+    if (cufft_gpu_available() == 1) then
+      use_gpu_fft = .true.
+      print *, 'fft_interface: ACC_ENABLE_CUFFT=Y and CUDA GPU detected — using cuFFT'
+    else
+      print *, 'fft_interface: ACC_ENABLE_CUFFT=Y but no CUDA GPU found — using FFTW'
+    endif
   endif
-! call ccfftnr(a(n),lenfft,idir) !numerical recipes power-of-2 routine
-! call gsl_fft(a(n),lenfft,idir)
-enddo
+endif
 
-end
+if (use_gpu_fft) then
+  ! cuFFT path: idir(1) sets the direction for all 3 axes.
+  call cufft_ccfft3d(a, b, idir(1), n1, n2, n3)
+else
+  ! FFTW path
+  if (idir(1) == 1) then
+    fdir = FFTW_BACKWARD
+  else
+    fdir = FFTW_FORWARD
+  endif
+
+  !$ n_threads = omp_get_max_threads()
+  !$ if (n_threads > 1) then
+  !$   call fftw_plan_with_nthreads(n_threads)
+  !$ endif
+
+  plan = fftw_plan_dft_3d(n3,n2,n1, a,b, fdir,FFTW_ESTIMATE)
+  call fftw_execute_dft(plan,a, b)
+  call fftw_destroy_plan(plan)
+
+  !$ if (n_threads > 1) call fftw_cleanup_threads()
+endif
+
+end subroutine
 
 
+#elif !defined(NO_USE_FFTW)
 
-
-#else
-
-! FFTW
-
-
+! ======================================================================
+! FFTW backend (production default when neither USE_CUFFT nor NO_USE_FFTW)
+! ======================================================================
 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
@@ -161,6 +177,82 @@ call fftw_execute_dft(plan, data, data)
 call fftw_destroy_plan(plan)
 
 end subroutine
+
+
+#else
+
+! ======================================================================
+! Fallback: Alan Miller mixed-radix FFT (pure Fortran, no external libs)
+! ======================================================================
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+subroutine ccfft3d(a,b,idir,n1,n2,n3,iskiptrans)
+implicit none
+integer, dimension(3) :: idir
+complex(dp), dimension(:,:,:) :: a,b
+complex(dp), allocatable :: tmp1(:,:,:), tmp2(:,:,:)
+integer :: n1,n2,n3
+integer :: iskiptrans
+integer :: ileft,iright,i,j,k
+b(:,:,:)=a(:,:,:)
+allocate(tmp1(n2,n1,n3))
+allocate(tmp2(n3,n2,n1))
+if(idir(1).eq.0.and.idir(2).eq.0.and.idir(3).eq.0)return
+call mccfft1d(b,n2*n3,n1,idir(1))
+forall(k=1:n3, j=1:n2, i=1:n1)
+! there's some problem with the commented out statements
+!       iright=(k-1)*n1*n2+(j-1)*n2+i
+!       ileft =(k-1)*n2*n1+(i-1)*n1+j
+!       tmp(ileft)=b(iright)
+  tmp1(j,i,k)=b(i,j,k)
+end forall
+
+call mccfft1d(tmp1,n3*n1,n2,idir(2))
+forall(k=1:n3, j=1:n2, i=1:n1)
+!       iright=(k-1)*n2*n1+(i-1)*n1+j
+!       ileft =(i-1)*n2*n3+(j-1)*n3+k
+!       b(ileft)=tmp(iright)
+  tmp2(k,j,i)=tmp1(j,i,k)
+end forall
+
+call mccfft1d(tmp2,n1*n2,n3,idir(3))
+if(iskiptrans.eq.1)return
+forall(k=1:n3, j=1:n2, i=1:n1)
+!       ileft =(k-1)*n1*n2+(j-1)*n2+i
+!       iright=(i-1)*n2*n3+(j-1)*n3+k
+!       b(ileft)=tmp(iright)
+        b(i,j,k)=tmp2(k,j,i)
+end forall
+
+end subroutine 
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!-------------------------------ccfftnr-----------------------------------------
+!+
+subroutine mccfft1d(a,ntot,lenfft,idir)
+implicit none
+complex(dp), dimension(*) :: a
+integer :: ntot,lenfft,idir
+integer :: n,ierr
+do n=1,ntot*lenfft,lenfft
+  call ccfftam(a(n),lenfft,idir,ierr)  ! Alan Miller version of FFT package
+  !call my_fft(a(n),lenfft,idir) ! FFTW
+  !ierr =  0
+  
+  if(ierr.ne.0)then
+    write(6,*)'Error return from FFT package due to transform length.'
+    write(6,*)'Try increasing the padding by 1 in each dimension and re-run'
+    stop
+  endif
+! call ccfftnr(a(n),lenfft,idir) !numerical recipes power-of-2 routine
+! call gsl_fft(a(n),lenfft,idir)
+enddo
+
+end
+
 
 #endif
 
