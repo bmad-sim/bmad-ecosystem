@@ -486,7 +486,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       do k = 1, size(control%stack)
         if (control%stack(k)%type /= variable$) cycle
         call find_index(control%stack(k)%name, var_nametab, ix_match, add_to_list = .true., has_been_added = is_added)
-        if (is_added) write (iu, '(2a, es24.17)') trim(control%stack(k)%name), ' = '- control%stack(k)%value
+        if (is_added) write (iu, '(2a, es24.17)') trim(control%stack(k)%name), ' = ', control%stack(k)%value
       enddo
     enddo
   endif
@@ -886,7 +886,7 @@ enddo
 do iv = 1, size(overlay%control%var)
   name = trim(overlay%name) // '_' // trim(downcase(overlay%control%var(iv)%name))
   if (c_str(iv) == ')') then
-    write (iu, '(2a, es24.16)') trim(name), ' = '- overlay%control%var(iv)%value
+    write (iu, '(2a, es24.16)') trim(name), ' = ', overlay%control%var(iv)%value
   elseif (has_defexpr_var) then
     write (iu, '(3a)') 'if !@isdefined(', trim(name), ')'
     write (iu, '(7a)') '  const ', trim(name), ' = ', trim(c_str(iv))
