@@ -32,12 +32,24 @@ use ptc_layout_mod, only: update_ele_from_fibre
 use particle_species_mod
 use bmad_parser_struct, only: bp_com
 use bmad_parser_mod, only: settable_dep_var_bookkeeping
+use private_pointer_mod
 
 implicit none
 
+interface
+  function wiggler_field (z, status) result (b_field)
+    use bmad_routine_interface
+    use private_pointer_mod
+    implicit none
+    real(rp), intent(in) :: z
+    real(rp) b_field
+    integer, optional :: status
+  end function wiggler_field
+end interface
+
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, slave, slave2
-type (coord_struct) start, end
+type (coord_struct), target :: start, end
 type (em_field_struct) field
 type (branch_struct), pointer :: branch
 type (photon_element_struct), pointer :: ph
@@ -847,6 +859,10 @@ case (wiggler$, undulator$)
   ! Calculate b_max for fieldmap wigglers. 
 
   if (ele%field_calc == fieldmap$ .and. val(b_max$) == 0 .and. val(p0c$) > 0) then
+    ele_ptr => ele
+    param_ptr => branch%param
+    start_ptr => start
+
     is_on = ele%is_on  ! Save
     polarity = val(polarity$)
     ele%is_on = .true.
@@ -992,22 +1008,9 @@ enddo
 ele%bookkeeping_state%attributes = ok$
 ele%old_value = val
 
-!----------------------------------------------------
+!-----------------------------------------------------
 contains
 
-function wiggler_field (z, status) result (b_field)
-
-real(rp), intent(in) :: z
-real(rp) b_field
-integer, optional :: status
-
-
-call em_field_calc (ele, branch%param, z, start, .true., field, rf_time = 0.0_rp)
-b_field = -norm2(field%b)
-
-end function wiggler_field
-
-!-----------------------------------------------------
 !+
 ! Subroutine attributes_need_bookkeeping (ele) result (is_needed)
 !
@@ -1085,4 +1088,24 @@ endif
 end subroutine attributes_need_bookkeeping
 
 end subroutine attribute_bookkeeper
+
+!-------------------------------------------------------------------------------------
+
+function wiggler_field (z, status) result (b_field)
+
+use bmad_routine_interface
+use private_pointer_mod
+
+implicit none
+
+type (em_field_struct) field
+real(rp), intent(in) :: z
+real(rp) b_field
+integer, optional :: status
+
+
+call em_field_calc (ele_ptr, param_ptr, z, start_ptr, .true., field, rf_time = 0.0_rp)
+b_field = -norm2(field%b)
+
+end function wiggler_field
 

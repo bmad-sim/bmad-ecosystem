@@ -35,6 +35,8 @@ use sim_utils
 
 implicit none
 
+complex(rp), pointer, private :: wcdata_ptr(:)
+
 contains
 
 !--------------------------------------------------------------------------------------------------
@@ -178,7 +180,7 @@ real(rp) fa,fb,fc
 
 real(rp) r, window, hsamp
 
-complex(rp) wcdata(size(cdata))
+complex(rp), target :: wcdata(size(cdata))
 
 N = size(cdata)
 small_step = 0.1d0/N
@@ -192,15 +194,16 @@ do i=1, N
   wcdata(i)= cdata(i) * window
 enddo
 
+wcdata_ptr => wcdata
 ax = seed
 bx = seed+small_step
 cx = 0.0d0
 call super_mnbrak(ax, bx, cx, fa, fb, fc, special_projection, status)
 fmin = super_brent(ax, bx, cx, special_projection, tol, abs_tol, maximize_projection, status)
 
-!--------------------------------------------
+end function maximize_projection
 
-contains
+!--------------------------------------------
 !+
 ! function special_projection
 !
@@ -213,10 +216,8 @@ function special_projection (f, status)
   integer, optional :: status
   real(rp), intent(in) :: f
   real(rp) special_projection
-  special_projection = -1.0d0*abs(projdd(wcdata,ed(f,N)))
+  special_projection = -1.0d0 * abs(projdd(wcdata_ptr, ed(f,size(wcdata_ptr))))
 end function special_projection
-
-end function maximize_projection
 
 !--------------------------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------------------------
