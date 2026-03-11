@@ -155,7 +155,6 @@ case ("'")
     found = .false.
     if (associated(tao_hook_command_ptr)) call tao_hook_command_ptr (line, found)
     if (.not. found) call tao_command (line, err, err_is_fatal)
-    if (s%com%saved_cmd_line /= '') cycle ! Use up all commands on line
     ! Keep on going if a command file is open
     ix = s%com%cmd_file_level
     if (ix == 0 .and. .not. s%com%cmd_file(ix)%paused) exit  

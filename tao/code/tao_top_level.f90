@@ -53,8 +53,7 @@ if (.not. s%initialized) then
   if (err) return
   s%initialized = .true.
   n_lev = s%com%cmd_file_level
-  need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
-                                                                                  .not. s%com%single_mode)
+  need_input = ((n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. .not. s%com%single_mode)
   if (present(command) .and. need_input) then
     if (present(errcode)) errcode = 0
     return
@@ -99,8 +98,7 @@ do
   ! Exit if current command line parsing is finished (may not be if multiple commands were present) and 
   ! Tao is getting commands through the command argument
   n_lev = s%com%cmd_file_level
-  need_input = (s%com%saved_cmd_line == '' .and. (n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. &
-                                                                                  .not. s%com%single_mode)
+  need_input = ((n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. .not. s%com%single_mode)
   if (present(command) .and. need_input) exit
 enddo
 
