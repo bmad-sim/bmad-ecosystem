@@ -76,7 +76,7 @@
 
 \title{Dynamic_Aperture Program}
 \author{}
-\date{David Sagan \\ June 28, 2024}
+\date{David Sagan \\ March 10, 2026}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -250,10 +250,14 @@ Logical values are specified by \vn{True} or \vn{False} or can be abbreviated \v
   \caption{
 The calculation of a dynamic aperture curve in the $x$-$y$ plane at a given initial $p_z$ value
 involves calculating aperture curve points (blue dots) along a set of ``rays'' (dashed lines) having
-a common origin point ($\cal O$) which is taken to be the reference orbit. The line segments between
-points is simply for visualization purposes. The calculation of an aperture curve point along a
-given ray involves iteratively tracking particles with different starting $(x, y)$ position values
-to find the boundary between stable (green dots) and unstable (red dots) motion.
+a common origin point ($\cal O$) which is the closed orbit. The line segments between points is
+simply for visualization purposes. The calculation of an aperture curve point along a given ray
+involves iteratively tracking particles with different starting $(x, y)$ position values to find the
+boundary between stable (green dots) and unstable (red dots) motion.
+When the dynamic aperture is plotted (Fig.~\ref{f:da-plot}), the curves are plotted with respect to
+($\cal O$). Notice that if the RF is off, $\cal O$ is dependent upon $p_z$. That is, with the RF
+off, and with finite dispersion at the starting point, each curve in a DA plot will have a different
+$\cal O$.
   }
   \label{f:da-ray}
 \end{figure}
@@ -487,7 +491,7 @@ message and stop.
 
 The \ltt program uses the PTC/FPP library of \'Etienne Forest to handle Taylor maps which can be
 constructed to any arbitrary order. In particular, PTC is used for constructing the map(s) used for
-tracking when the \vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:sim.params}). PTC
+tracking when the \vn{ltt%tracking_method} parameter is set to "\vn{MAP}" (\sref{s:track.methods}). PTC
 tracking is also used when \vn{ltt%tracking_method} is set to "\vn{PTC}". In this case, tracking is
 done element-by-element using symplectic integration.
 
@@ -582,7 +586,8 @@ well. How to do this is covered in the Bmad and Tao Cookbook available from the 
   \centering
   \includegraphics[width=4in]{da-plot.pdf}
   \caption{
-Example dynamic aperture plot using \vn{gnuplot}.
+Example dynamic aperture plot using \vn{gnuplot}. Since the RF is off here, the $(0,0)$ origin for
+each curve is the closed orbit point for the $p_z$ associated with that curve (Fig~\ref{f:da-ray}).
   }
   \label{f:da-plot}
 \end{figure}
