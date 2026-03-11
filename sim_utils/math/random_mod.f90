@@ -281,7 +281,7 @@ type (random_state_struct), pointer :: r_state
 
 real(rp), optional :: sigma_cut
 real(rp), intent(out) :: harvest(:)
-real(rp) :: v1, v2, r, sig_cut, u1, u2, g1, g2
+real(rp) :: v1, v2, r, sig_cut, u1, u2
 real(sp) :: l_am
 integer :: i, n
 
@@ -313,6 +313,15 @@ if (present(sigma_cut)) then
   if (sigma_cut > 0) sig_cut = sigma_cut
 endif
 
+! When sigma_cut is active, fall back to scalar path which correctly handles
+! the save/check behavior for rejected Box-Muller pairs.
+if (sig_cut < 10) then
+  do i = 1, n
+    call ran_gauss_scalar (harvest(i), ran_state, sigma_cut)
+  enddo
+  return
+endif
+
 ! Copy state to locals (compiler can't register-promote pointer members)
 l_ix = r_state%ix
 l_iy = r_state%iy
@@ -321,108 +330,49 @@ l_am = r_state%am
 i = 1
 
 ! Use stored value from previous call if available
-if (r_state%number_stored .and. i <= n) then
+if (r_state%number_stored) then
   r_state%number_stored = .false.
-  if (sig_cut < 10 .and. abs(r_state%h_saved) >= sig_cut) then
-    ! Reject stored value when sigma_cut is active
+  harvest(i) = r_state%h_saved
+  i = i + 1
+endif
+
+! Fast loop: no sigma_cut checking needed (sig_cut >= 10, no practical truncation)
+do while (i <= n)
+  do
+    l_ix = ieor(l_ix, ishft(l_ix, 13))
+    l_ix = ieor(l_ix, ishft(l_ix, -17))
+    l_ix = ieor(l_ix, ishft(l_ix, 5))
+    k = l_iy/iq
+    l_iy = ia*(l_iy - k*iq) - ir * k
+    if (l_iy < 0) l_iy = l_iy + im_nr_ran
+    u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+    l_ix = ieor(l_ix, ishft(l_ix, 13))
+    l_ix = ieor(l_ix, ishft(l_ix, -17))
+    l_ix = ieor(l_ix, ishft(l_ix, 5))
+    k = l_iy/iq
+    l_iy = ia*(l_iy - k*iq) - ir * k
+    if (l_iy < 0) l_iy = l_iy + im_nr_ran
+    u2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+    v1 = 2*u1 - 1
+    v2 = 2*u2 - 1
+    r = v1**2 + v2**2
+    if (r > 0 .and. r < 1) exit
+  enddo
+
+  r = sqrt(-2*log(r)/r)
+  harvest(i) = v1 * r
+  i = i + 1
+
+  if (i <= n) then
+    harvest(i) = v2 * r
+    i = i + 1
   else
-    harvest(i) = r_state%h_saved
-    i = i + 1
+    r_state%h_saved = v2 * r
+    r_state%number_stored = .true.
   endif
-endif
-
-! Two versions: with and without sigma_cut checking.
-! sig_cut >= 10 means no practical truncation (default is 1000).
-
-if (sig_cut >= 10) then
-  ! Fast loop: no sigma_cut checking needed
-  do while (i <= n)
-    do
-      l_ix = ieor(l_ix, ishft(l_ix, 13))
-      l_ix = ieor(l_ix, ishft(l_ix, -17))
-      l_ix = ieor(l_ix, ishft(l_ix, 5))
-      k = l_iy/iq
-      l_iy = ia*(l_iy - k*iq) - ir * k
-      if (l_iy < 0) l_iy = l_iy + im_nr_ran
-      u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
-
-      l_ix = ieor(l_ix, ishft(l_ix, 13))
-      l_ix = ieor(l_ix, ishft(l_ix, -17))
-      l_ix = ieor(l_ix, ishft(l_ix, 5))
-      k = l_iy/iq
-      l_iy = ia*(l_iy - k*iq) - ir * k
-      if (l_iy < 0) l_iy = l_iy + im_nr_ran
-      u2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
-
-      v1 = 2*u1 - 1
-      v2 = 2*u2 - 1
-      r = v1**2 + v2**2
-      if (r > 0 .and. r < 1) exit
-    enddo
-
-    r = sqrt(-2*log(r)/r)
-    harvest(i) = v1 * r
-    i = i + 1
-
-    if (i <= n) then
-      harvest(i) = v2 * r
-      i = i + 1
-    else
-      r_state%h_saved = v2 * r
-      r_state%number_stored = .true.
-    endif
-  enddo
-
-else
-  ! Slow loop: with sigma_cut rejection
-  do while (i <= n)
-    do
-      l_ix = ieor(l_ix, ishft(l_ix, 13))
-      l_ix = ieor(l_ix, ishft(l_ix, -17))
-      l_ix = ieor(l_ix, ishft(l_ix, 5))
-      k = l_iy/iq
-      l_iy = ia*(l_iy - k*iq) - ir * k
-      if (l_iy < 0) l_iy = l_iy + im_nr_ran
-      u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
-
-      l_ix = ieor(l_ix, ishft(l_ix, 13))
-      l_ix = ieor(l_ix, ishft(l_ix, -17))
-      l_ix = ieor(l_ix, ishft(l_ix, 5))
-      k = l_iy/iq
-      l_iy = ia*(l_iy - k*iq) - ir * k
-      if (l_iy < 0) l_iy = l_iy + im_nr_ran
-      u2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
-
-      v1 = 2*u1 - 1
-      v2 = 2*u2 - 1
-      r = v1**2 + v2**2
-      if (r > 0 .and. r < 1) exit
-    enddo
-
-    r = sqrt(-2*log(r)/r)
-    g1 = v1 * r
-    g2 = v2 * r
-
-    if (abs(g1) < sig_cut) then
-      harvest(i) = g1
-      i = i + 1
-    else
-      cycle
-    endif
-
-    if (i <= n) then
-      if (abs(g2) < sig_cut) then
-        harvest(i) = g2
-        i = i + 1
-      endif
-    else
-      if (abs(g2) < sig_cut) then
-        r_state%h_saved = g2
-        r_state%number_stored = .true.
-      endif
-    endif
-  enddo
-endif
+enddo
 
 ! Write local state back
 r_state%ix = l_ix
