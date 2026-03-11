@@ -136,13 +136,18 @@ type (random_state_struct), pointer :: r_state
 
 real(rp), intent(out) :: harvest
 real(rp), optional :: sigma_cut
-real(rp) a(2), v1, v2, r, sig_cut, fac
+real(rp) a(2), v1, v2, r, sig_cut, fac, u1, u2
 real(rp), parameter :: sigma_max = 8
 
 integer, parameter :: n_pts_per_sigma = 25
 integer, parameter :: max_g = sigma_max * n_pts_per_sigma
 integer, optional :: index_quasi
 integer i, ss, ix
+
+integer(kr4b) :: k, l_ix, l_iy
+integer(kr4b), parameter :: ia = 16807
+integer(kr4b), parameter :: iq = 127773, ir = 2836
+real(sp) :: l_am
 
 real(rp), save :: erf_array(0:max_g) = 0
 
@@ -200,7 +205,14 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
   return
 endif
 
-! Loop until we get an acceptable number
+! Exact Gaussian via Box-Muller with inlined uniform RNG
+! Copy state to locals for register promotion
+
+if (r_state%iy < 0) call ran_seed_put(r_state%seed)
+
+l_ix = r_state%ix
+l_iy = r_state%iy
+l_am = r_state%am
 
 do 
   ! If we have a stored value then just use it
@@ -211,14 +223,29 @@ do
     if (sig_cut <= 0 .or. abs(harvest) < sig_cut) exit
   endif
 
-  ! else we generate a number
+  ! Generate two uniform random numbers inline (Marsaglia + Park-Miller)
 
   do
-    call ran_uniform(a, ran_state)
-    v1 = 2*a(1) - 1
-    v2 = 2*a(2) - 1
+    l_ix = ieor(l_ix, ishft(l_ix, 13))
+    l_ix = ieor(l_ix, ishft(l_ix, -17))
+    l_ix = ieor(l_ix, ishft(l_ix, 5))
+    k = l_iy/iq
+    l_iy = ia*(l_iy - k*iq) - ir * k
+    if (l_iy < 0) l_iy = l_iy + im_nr_ran
+    u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+    l_ix = ieor(l_ix, ishft(l_ix, 13))
+    l_ix = ieor(l_ix, ishft(l_ix, -17))
+    l_ix = ieor(l_ix, ishft(l_ix, 5))
+    k = l_iy/iq
+    l_iy = ia*(l_iy - k*iq) - ir * k
+    if (l_iy < 0) l_iy = l_iy + im_nr_ran
+    u2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+    v1 = 2*u1 - 1
+    v2 = 2*u2 - 1
     r = v1**2 + v2**2
-    if (r > 0 .and. r < 1) exit   ! In unit circle
+    if (r > 0 .and. r < 1) exit
   enddo
 
   r = sqrt(-2*log(r)/r)
@@ -228,6 +255,10 @@ do
   harvest = v1 * r
   if (sig_cut <= 0 .or. abs(harvest) < sig_cut) exit
 enddo
+
+! Write local state back
+r_state%ix = l_ix
+r_state%iy = l_iy
 
 end subroutine ran_gauss_scalar
 
@@ -246,16 +277,156 @@ subroutine ran_gauss_vector (harvest, ran_state, sigma_cut)
 implicit none
 
 type (random_state_struct), optional, target :: ran_state
+type (random_state_struct), pointer :: r_state
 
 real(rp), optional :: sigma_cut
 real(rp), intent(out) :: harvest(:)
-integer i
+real(rp) :: v1, v2, r, sig_cut, u1, u2, g1, g2
+real(sp) :: l_am
+integer :: i, n
+
+integer(kr4b) :: k, l_ix, l_iy
+integer(kr4b), parameter :: ia = 16807
+integer(kr4b), parameter :: iq = 127773, ir = 2836
 
 !
 
-do i = 1, size(harvest)
-  call ran_gauss_scalar (harvest(i), ran_state, sigma_cut, i)
-enddo
+n = size(harvest)
+
+! For quasi-random engine or quick Gaussian, must use per-scalar path
+r_state => pointer_to_ran_state(ran_state)
+if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussian$) then
+  do i = 1, n
+    call ran_gauss_scalar (harvest(i), ran_state, sigma_cut, i)
+  enddo
+  return
+endif
+
+! Fast path for pseudo-random + exact_gaussian (the common radiation case)
+! Resolve state once, copy to locals for register promotion, batch Box-Muller
+
+if (r_state%iy < 0) call ran_seed_put(r_state%seed)
+
+sig_cut = 1000
+if (r_state%gauss_sigma_cut > 0) sig_cut = r_state%gauss_sigma_cut
+if (present(sigma_cut)) then
+  if (sigma_cut > 0) sig_cut = sigma_cut
+endif
+
+! Copy state to locals (compiler can't register-promote pointer members)
+l_ix = r_state%ix
+l_iy = r_state%iy
+l_am = r_state%am
+
+i = 1
+
+! Use stored value from previous call if available
+if (r_state%number_stored .and. i <= n) then
+  r_state%number_stored = .false.
+  if (sig_cut < 10 .and. abs(r_state%h_saved) >= sig_cut) then
+    ! Reject stored value when sigma_cut is active
+  else
+    harvest(i) = r_state%h_saved
+    i = i + 1
+  endif
+endif
+
+! Two versions: with and without sigma_cut checking.
+! sig_cut >= 10 means no practical truncation (default is 1000).
+
+if (sig_cut >= 10) then
+  ! Fast loop: no sigma_cut checking needed
+  do while (i <= n)
+    do
+      l_ix = ieor(l_ix, ishft(l_ix, 13))
+      l_ix = ieor(l_ix, ishft(l_ix, -17))
+      l_ix = ieor(l_ix, ishft(l_ix, 5))
+      k = l_iy/iq
+      l_iy = ia*(l_iy - k*iq) - ir * k
+      if (l_iy < 0) l_iy = l_iy + im_nr_ran
+      u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+      l_ix = ieor(l_ix, ishft(l_ix, 13))
+      l_ix = ieor(l_ix, ishft(l_ix, -17))
+      l_ix = ieor(l_ix, ishft(l_ix, 5))
+      k = l_iy/iq
+      l_iy = ia*(l_iy - k*iq) - ir * k
+      if (l_iy < 0) l_iy = l_iy + im_nr_ran
+      u2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+      v1 = 2*u1 - 1
+      v2 = 2*u2 - 1
+      r = v1**2 + v2**2
+      if (r > 0 .and. r < 1) exit
+    enddo
+
+    r = sqrt(-2*log(r)/r)
+    harvest(i) = v1 * r
+    i = i + 1
+
+    if (i <= n) then
+      harvest(i) = v2 * r
+      i = i + 1
+    else
+      r_state%h_saved = v2 * r
+      r_state%number_stored = .true.
+    endif
+  enddo
+
+else
+  ! Slow loop: with sigma_cut rejection
+  do while (i <= n)
+    do
+      l_ix = ieor(l_ix, ishft(l_ix, 13))
+      l_ix = ieor(l_ix, ishft(l_ix, -17))
+      l_ix = ieor(l_ix, ishft(l_ix, 5))
+      k = l_iy/iq
+      l_iy = ia*(l_iy - k*iq) - ir * k
+      if (l_iy < 0) l_iy = l_iy + im_nr_ran
+      u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+      l_ix = ieor(l_ix, ishft(l_ix, 13))
+      l_ix = ieor(l_ix, ishft(l_ix, -17))
+      l_ix = ieor(l_ix, ishft(l_ix, 5))
+      k = l_iy/iq
+      l_iy = ia*(l_iy - k*iq) - ir * k
+      if (l_iy < 0) l_iy = l_iy + im_nr_ran
+      u2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+      v1 = 2*u1 - 1
+      v2 = 2*u2 - 1
+      r = v1**2 + v2**2
+      if (r > 0 .and. r < 1) exit
+    enddo
+
+    r = sqrt(-2*log(r)/r)
+    g1 = v1 * r
+    g2 = v2 * r
+
+    if (abs(g1) < sig_cut) then
+      harvest(i) = g1
+      i = i + 1
+    else
+      cycle
+    endif
+
+    if (i <= n) then
+      if (abs(g2) < sig_cut) then
+        harvest(i) = g2
+        i = i + 1
+      endif
+    else
+      if (abs(g2) < sig_cut) then
+        r_state%h_saved = g2
+        r_state%number_stored = .true.
+      endif
+    endif
+  enddo
+endif
+
+! Write local state back
+r_state%ix = l_ix
+r_state%iy = l_iy
 
 end subroutine ran_gauss_vector
 

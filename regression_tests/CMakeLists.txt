@@ -44,6 +44,7 @@ set (EXE_SPECS
   cmake_files/cmake.patch_test
   cmake_files/cmake.photon_test
   cmake_files/cmake.ptc_test
+  cmake_files/cmake.ran_gauss_test
   cmake_files/cmake.radiation_test
   cmake_files/cmake.reverse_test
   cmake_files/cmake.rf_test
