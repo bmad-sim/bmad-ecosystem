@@ -177,7 +177,7 @@ type (random_state_struct), pointer :: r_state
 
 real(rp), intent(out) :: harvest
 real(rp), optional :: sigma_cut
-real(rp) a(2), v1, v2, r, sig_cut, fac, u1, u2
+real(rp) v1, v2, r, sig_cut, fac, u1, u2
 real(rp), parameter :: sigma_max = 8
 
 integer, parameter :: n_pts_per_sigma = 25
