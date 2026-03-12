@@ -57,6 +57,7 @@ fortran_tests = pytest.mark.parametrize(
         pytest.param("photon_test"),
         pytest.param("ptc_test"),
         pytest.param("radiation_test"),
+        pytest.param("ran_gauss_test"),
         pytest.param("reverse_test", marks=pytest.mark.skip(reason="TODO reason here")),
         pytest.param("sad_test"),
         pytest.param("sim_utils_test"),
