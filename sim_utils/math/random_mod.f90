@@ -20,10 +20,10 @@ integer(i4_b), private, parameter :: sobseq_maxbit = 30, sobseq_maxdim = 6
 ! common variables for random number generator.
 
 character(8), parameter :: ran_engine_name(2) = [character(8):: 'pseudo', 'quasi']
-character(8), parameter :: ran_gauss_converter_name(4) = [character(8):: '', '', 'quick', 'exact']
+character(8), parameter :: ran_gauss_converter_name(5) = [character(8):: '', '', 'quick', 'exact', 'ziggurat']
 
 integer, parameter :: pseudo_random$ = 1, quasi_random$ = 2
-integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4
+integer, parameter :: quick_gaussian$ = 3, exact_gaussian$ = 4, ziggurat$ = 5
 
 type random_state_struct
   integer(kr4b) :: ix = -1, iy = -1
@@ -43,6 +43,13 @@ end type
 type (random_state_struct), private, target, save :: ran_state_save
 type (random_state_struct), private, target, save, allocatable :: thread_ran_state(:)
 logical, private, save :: thread_state_allocated = .false.
+
+! Ziggurat algorithm tables (Marsaglia & Tsang, 2000)
+integer, private, parameter :: n_zig = 128
+real(rp), private, parameter :: zig_r = 3.442619855899_rp      ! tail start
+real(rp), private, parameter :: zig_v = 9.91256303526217e-3_rp ! area per layer
+real(rp), private, save :: zig_xtab(0:n_zig) = 0, zig_ytab(0:n_zig) = 0
+logical, private, save :: zig_initialized = .false.
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -114,6 +121,40 @@ interface ran_uniform
 end interface
 
 contains
+
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!-----------------------------------------------------------------------------
+!+
+! Subroutine zig_table_init ()
+!
+! Private routine to initialize the Ziggurat lookup tables on first use.
+! Based on Marsaglia & Tsang (2000), "The Ziggurat Method for Generating
+! Random Variables", Journal of Statistical Software 5(8).
+!-
+
+subroutine zig_table_init ()
+
+implicit none
+
+integer :: j
+
+zig_xtab(n_zig) = zig_v / exp(-0.5_rp * zig_r**2)
+zig_xtab(n_zig-1) = zig_r
+zig_ytab(n_zig) = exp(-0.5_rp * zig_r**2)
+
+do j = n_zig-2, 1, -1
+  zig_xtab(j) = sqrt(-2.0_rp * log(zig_v / zig_xtab(j+1) + exp(-0.5_rp * zig_xtab(j+1)**2)))
+  zig_ytab(j+1) = exp(-0.5_rp * zig_xtab(j+1)**2)
+enddo
+
+zig_xtab(0) = 0.0_rp
+zig_ytab(0) = 1.0_rp
+zig_ytab(1) = exp(-0.5_rp * zig_xtab(1)**2)
+
+zig_initialized = .true.
+
+end subroutine zig_table_init
 
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
@@ -205,6 +246,95 @@ if (r_state%engine == quasi_random$ .or. r_state%gauss_converter == quick_gaussi
   return
 endif
 
+! Ziggurat Gaussian (Marsaglia & Tsang, 2000)
+! ~97% fast-accept rate, avoids log/sqrt on fast path
+
+if (r_state%gauss_converter == ziggurat$) then
+  if (.not. zig_initialized) call zig_table_init()
+  if (r_state%iy < 0) call ran_seed_put(r_state%seed)
+
+  l_ix = r_state%ix
+  l_iy = r_state%iy
+  l_am = r_state%am
+
+  do
+    ! Generate uniform random number inline
+    l_ix = ieor(l_ix, ishft(l_ix, 13))
+    l_ix = ieor(l_ix, ishft(l_ix, -17))
+    l_ix = ieor(l_ix, ishft(l_ix, 5))
+    k = l_iy/iq
+    l_iy = ia*(l_iy - k*iq) - ir * k
+    if (l_iy < 0) l_iy = l_iy + im_nr_ran
+    ix = iand(ieor(l_ix, l_iy), 127)  ! layer index 0..127
+    u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+    ! Map to signed value within layer
+    v1 = (2*u1 - 1) * zig_xtab(ix+1)
+
+    ! Fast acceptance
+    if (abs(v1) < zig_xtab(ix)) then
+      harvest = v1
+      if (sig_cut <= 0 .or. abs(harvest) < sig_cut) then
+        r_state%ix = l_ix; r_state%iy = l_iy
+        return
+      endif
+      cycle  ! rejected by sigma_cut, try again
+    endif
+
+    ! Tail sampling (layer 0)
+    if (ix == 0) then
+      do
+        l_ix = ieor(l_ix, ishft(l_ix, 13))
+        l_ix = ieor(l_ix, ishft(l_ix, -17))
+        l_ix = ieor(l_ix, ishft(l_ix, 5))
+        k = l_iy/iq
+        l_iy = ia*(l_iy - k*iq) - ir * k
+        if (l_iy < 0) l_iy = l_iy + im_nr_ran
+        r = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+        l_ix = ieor(l_ix, ishft(l_ix, 13))
+        l_ix = ieor(l_ix, ishft(l_ix, -17))
+        l_ix = ieor(l_ix, ishft(l_ix, 5))
+        k = l_iy/iq
+        l_iy = ia*(l_iy - k*iq) - ir * k
+        if (l_iy < 0) l_iy = l_iy + im_nr_ran
+        v2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+        r = -log(max(r, 1.0e-30_rp)) / zig_r
+        v2 = -log(max(v2, 1.0e-30_rp))
+        if (2*v2 > r**2) exit
+      enddo
+      if (u1 < 0.5_rp) then
+        harvest = -(r + zig_r)
+      else
+        harvest = r + zig_r
+      endif
+      if (sig_cut <= 0 .or. abs(harvest) < sig_cut) then
+        r_state%ix = l_ix; r_state%iy = l_iy
+        return
+      endif
+      cycle
+    endif
+
+    ! Wedge sampling
+    l_ix = ieor(l_ix, ishft(l_ix, 13))
+    l_ix = ieor(l_ix, ishft(l_ix, -17))
+    l_ix = ieor(l_ix, ishft(l_ix, 5))
+    k = l_iy/iq
+    l_iy = ia*(l_iy - k*iq) - ir * k
+    if (l_iy < 0) l_iy = l_iy + im_nr_ran
+    v2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+    if (zig_ytab(ix) + v2 * (zig_ytab(ix+1) - zig_ytab(ix)) < exp(-0.5_rp * v1**2)) then
+      harvest = v1
+      if (sig_cut <= 0 .or. abs(harvest) < sig_cut) then
+        r_state%ix = l_ix; r_state%iy = l_iy
+        return
+      endif
+    endif
+  enddo
+endif
+
 ! Exact Gaussian via Box-Muller with inlined uniform RNG
 ! Copy state to locals for register promotion
 
@@ -283,7 +413,7 @@ real(rp), optional :: sigma_cut
 real(rp), intent(out) :: harvest(:)
 real(rp) :: v1, v2, r, sig_cut, u1, u2
 real(sp) :: l_am
-integer :: i, n
+integer :: i, n, ix
 
 integer(kr4b) :: k, l_ix, l_iy
 integer(kr4b), parameter :: ia = 16807
@@ -311,6 +441,95 @@ sig_cut = 1000
 if (r_state%gauss_sigma_cut > 0) sig_cut = r_state%gauss_sigma_cut
 if (present(sigma_cut)) then
   if (sigma_cut > 0) sig_cut = sigma_cut
+endif
+
+! Ziggurat vector path
+if (r_state%gauss_converter == ziggurat$) then
+  if (.not. zig_initialized) call zig_table_init()
+
+  ! When sigma_cut is active, fall back to scalar which handles rejection
+  if (sig_cut < 10) then
+    do i = 1, n
+      call ran_gauss_scalar (harvest(i), ran_state, sigma_cut)
+    enddo
+    return
+  endif
+
+  l_ix = r_state%ix
+  l_iy = r_state%iy
+  l_am = r_state%am
+
+  do i = 1, n
+    zig_sample: do
+      ! Generate uniform random number inline
+      l_ix = ieor(l_ix, ishft(l_ix, 13))
+      l_ix = ieor(l_ix, ishft(l_ix, -17))
+      l_ix = ieor(l_ix, ishft(l_ix, 5))
+      k = l_iy/iq
+      l_iy = ia*(l_iy - k*iq) - ir * k
+      if (l_iy < 0) l_iy = l_iy + im_nr_ran
+      ix = iand(ieor(l_ix, l_iy), 127)  ! layer index 0..127
+      u1 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+      ! Map to signed value within layer
+      v1 = (2*u1 - 1) * zig_xtab(ix+1)
+
+      ! Fast acceptance (~97% of the time)
+      if (abs(v1) < zig_xtab(ix)) then
+        harvest(i) = v1
+        exit zig_sample
+      endif
+
+      ! Tail sampling (layer 0)
+      if (ix == 0) then
+        do
+          l_ix = ieor(l_ix, ishft(l_ix, 13))
+          l_ix = ieor(l_ix, ishft(l_ix, -17))
+          l_ix = ieor(l_ix, ishft(l_ix, 5))
+          k = l_iy/iq
+          l_iy = ia*(l_iy - k*iq) - ir * k
+          if (l_iy < 0) l_iy = l_iy + im_nr_ran
+          r = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+          l_ix = ieor(l_ix, ishft(l_ix, 13))
+          l_ix = ieor(l_ix, ishft(l_ix, -17))
+          l_ix = ieor(l_ix, ishft(l_ix, 5))
+          k = l_iy/iq
+          l_iy = ia*(l_iy - k*iq) - ir * k
+          if (l_iy < 0) l_iy = l_iy + im_nr_ran
+          v2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+          r = -log(max(r, 1.0e-30_rp)) / zig_r
+          v2 = -log(max(v2, 1.0e-30_rp))
+          if (2*v2 > r**2) exit
+        enddo
+        if (u1 < 0.5_rp) then
+          harvest(i) = -(r + zig_r)
+        else
+          harvest(i) = r + zig_r
+        endif
+        exit zig_sample
+      endif
+
+      ! Wedge sampling (rare, ~3%)
+      l_ix = ieor(l_ix, ishft(l_ix, 13))
+      l_ix = ieor(l_ix, ishft(l_ix, -17))
+      l_ix = ieor(l_ix, ishft(l_ix, 5))
+      k = l_iy/iq
+      l_iy = ia*(l_iy - k*iq) - ir * k
+      if (l_iy < 0) l_iy = l_iy + im_nr_ran
+      v2 = l_am * ior(iand(im_nr_ran, ieor(l_ix, l_iy)), 1)
+
+      if (zig_ytab(ix) + v2 * (zig_ytab(ix+1) - zig_ytab(ix)) < exp(-0.5_rp * v1**2)) then
+        harvest(i) = v1
+        exit zig_sample
+      endif
+    enddo zig_sample
+  enddo
+
+  r_state%ix = l_ix
+  r_state%iy = l_iy
+  return
 endif
 
 ! When sigma_cut is active, fall back to scalar path which correctly handles
@@ -467,6 +686,7 @@ end subroutine ran_engine
 !   set -- Character(*), optional: Set the random number engine. Possibilities are:
 !             'exact'
 !             'quick'  ! Old deprecated: 'limited'
+!             'ziggurat'
 !             ''       ! Do nothing
 !   set_sigma_cut -- Real(rp), optional: Sigma cutoff. Initially: sigma_cut = -1.
 !   ran_state -- random_state_struct, optional: Internal state.
@@ -499,6 +719,8 @@ if (present (get)) then
     get = 'quick'
   case (exact_gaussian$)
     get = 'exact'
+  case (ziggurat$)
+    get = 'ziggurat'
   end select
 endif
 
@@ -516,6 +738,8 @@ if (present(set)) then
     r_state%gauss_converter = quick_gaussian$
   case ('exact')
     r_state%gauss_converter = exact_gaussian$
+  case ('ziggurat')
+    r_state%gauss_converter = ziggurat$
   case ('')
     ! Do nothing
   case default
