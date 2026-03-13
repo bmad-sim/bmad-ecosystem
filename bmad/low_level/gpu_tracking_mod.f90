@@ -6,14 +6,14 @@ use bmad_routine_interface, dummy_gtm => track_a_drift
 implicit none
 private
 
-public :: gpu_tracking_is_active
-public :: gpu_tracking_reset
+public :: gpu_tracking_init
 public :: track_bunch_thru_drift_gpu
 public :: track_bunch_thru_quad_gpu
 
-! Cached runtime dispatch decision (checked once per process)
-logical, save :: gpu_trk_checked  = .false.
-logical, save :: gpu_trk_active   = .false.
+! Whether gpu_tracking_init has been called
+logical, save :: gpu_trk_initialized = .false.
+! Whether CUDA hardware is present (checked once, does not change)
+logical, save :: gpu_hw_available = .false.
 
 #ifdef USE_GPU_TRACKING
 ! ----- C interfaces (gpu_tracking_kernels.cu) ---------------------------------
@@ -59,37 +59,36 @@ end interface
 contains
 
 !------------------------------------------------------------------------
-! gpu_tracking_is_active — check env var + GPU presence (once per process)
+! gpu_tracking_init — initialize GPU tracking from env var (call once)
+!
+! Reads ACC_ENABLE_GPU_TRACKING env var and checks for CUDA hardware.
+! Sets bmad_com%gpu_tracking_on = .true. if env var is 'Y' and GPU is
+! present. After this, callers can toggle bmad_com%gpu_tracking_on
+! directly. Does nothing if called more than once.
 !------------------------------------------------------------------------
-function gpu_tracking_is_active() result (is_active)
-logical :: is_active
+subroutine gpu_tracking_init()
 character(len=32) :: env_val
 integer :: env_len, env_stat
 
-if (.not. gpu_trk_checked) then
-  gpu_trk_checked = .true.
+if (gpu_trk_initialized) return
+gpu_trk_initialized = .true.
+
 #ifdef USE_GPU_TRACKING
-  call get_environment_variable('ACC_ENABLE_GPU_TRACKING', env_val, env_len, env_stat)
-  if (env_stat == 0 .and. trim(env_val) == 'Y') then
-    if (gpu_tracking_available() == 1) then
-      gpu_trk_active = .true.
-      print *, 'gpu_tracking: ACC_ENABLE_GPU_TRACKING=Y and CUDA GPU detected — using GPU tracking'
-    else
-      print *, 'gpu_tracking: ACC_ENABLE_GPU_TRACKING=Y but no CUDA GPU found — using CPU tracking'
-    endif
-  endif
-#endif
+if (gpu_tracking_available() == 1) then
+  gpu_hw_available = .true.
 endif
 
-is_active = gpu_trk_active
-end function
+call get_environment_variable('ACC_ENABLE_GPU_TRACKING', env_val, env_len, env_stat)
+if (env_stat == 0 .and. trim(env_val) == 'Y') then
+  if (gpu_hw_available) then
+    bmad_com%gpu_tracking_on = .true.
+    print *, 'gpu_tracking: GPU tracking enabled (ACC_ENABLE_GPU_TRACKING=Y, CUDA GPU detected)'
+  else
+    print *, 'gpu_tracking: ACC_ENABLE_GPU_TRACKING=Y but no CUDA GPU found — using CPU tracking'
+  endif
+endif
+#endif
 
-!------------------------------------------------------------------------
-! gpu_tracking_reset — force re-check of env var on next call
-!------------------------------------------------------------------------
-subroutine gpu_tracking_reset()
-gpu_trk_checked = .false.
-gpu_trk_active  = .false.
 end subroutine
 
 !------------------------------------------------------------------------
