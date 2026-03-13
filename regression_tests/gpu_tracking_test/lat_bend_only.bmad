@@ -1,0 +1,16 @@
+no_digested
+
+parameter[lattice] = "GPU tracking plain bend"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+b1: sbend, L = 1.0, g = 0.5
+
+lat: line = (b1)
+
+use, lat

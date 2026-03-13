@@ -1,0 +1,22 @@
+no_digested
+
+parameter[lattice] = "GPU tracking bend with everything combined"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! Bend with k1 + fringe + misalignment + multipoles + aperture
+b1: sbend, L = 1.0, g = 0.5, k1 = 0.6,
+    fringe_type = full,
+    x_offset = 2e-4, y_offset = -1e-4, ref_tilt = 0.005,
+    b2 = 0.2, a2 = 0.03,
+    x1_limit = 3e-4, x2_limit = 3e-4,
+    y1_limit = 3e-4, y2_limit = 3e-4
+
+lat: line = (b1)
+
+use, lat

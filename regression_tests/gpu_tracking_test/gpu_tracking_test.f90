@@ -16,6 +16,12 @@
 !  11. CPU-only mode (bmad_com%gpu_tracking_on = .false.)
 !  12. Quad with tight aperture (verify particles clipped identically)
 !  13. Drift with tight aperture
+!  14. Plain bend
+!  15. Bend with k1 (sbend_body_with_k1_map)
+!  16. Bend with fringe fields
+!  17. Bend with misalignment
+!  18. Bend with magnetic multipoles
+!  19. Bend with k1+fringe+misalign+multipoles+aperture
 !-
 
 program gpu_tracking_test
@@ -176,6 +182,42 @@ call run_aperture_test('Test 12: Quad with aperture', lat, tol, n_pass, n_fail)
 ! ======================================================================
 call bmad_parser('lat_drift_aperture.bmad', lat)
 call run_aperture_test('Test 13: Drift with aperture', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 14: Plain bend
+! ======================================================================
+call bmad_parser('lat_bend_only.bmad', lat)
+call run_comparison_test('Test 14: Plain bend', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 15: Bend with k1
+! ======================================================================
+call bmad_parser('lat_bend_k1.bmad', lat)
+call run_comparison_test('Test 15: Bend with k1', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 16: Bend with fringe fields
+! ======================================================================
+call bmad_parser('lat_bend_fringe.bmad', lat)
+call run_comparison_test('Test 16: Bend with fringe', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 17: Bend with misalignment
+! ======================================================================
+call bmad_parser('lat_bend_misalign.bmad', lat)
+call run_comparison_test('Test 17: Bend with misalignment', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 18: Bend with magnetic multipoles
+! ======================================================================
+call bmad_parser('lat_bend_multipole.bmad', lat)
+call run_comparison_test('Test 18: Bend with multipoles', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 19: Bend with k1+fringe+misalign+multipoles+aperture
+! ======================================================================
+call bmad_parser('lat_bend_combo.bmad', lat)
+call run_aperture_test('Test 19: Bend combo+aperture', lat, tol, n_pass, n_fail)
 
 ! ======================================================================
 ! Summary

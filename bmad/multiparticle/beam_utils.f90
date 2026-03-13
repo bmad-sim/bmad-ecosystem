@@ -89,6 +89,15 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
         return
       endif
     endif
+
+    if (ele%key == sbend$) then
+      call track_bunch_thru_bend_gpu(bunch, ele, branch%param, gpu_did_track)
+      if (gpu_did_track) then
+        call check_apertures_after_gpu(bunch, ele, branch%param)
+        bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+        return
+      endif
+    endif
   endif
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
