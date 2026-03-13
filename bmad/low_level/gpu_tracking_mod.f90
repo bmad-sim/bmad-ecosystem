@@ -32,14 +32,18 @@ interface
   subroutine gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                             state, beta, p0c, t_time, &
                             mc2, b1, ele_length, delta_ref_time, &
-                            e_tot_ele, charge_dir, n) bind(C, name='gpu_track_quad_')
+                            e_tot_ele, charge_dir, n_particles, &
+                            a2_arr, b2_arr, cm_arr, &
+                            ix_mag_max, n_step) bind(C, name='gpu_track_quad_')
     use, intrinsic :: iso_c_binding
     real(C_DOUBLE), intent(inout) :: vx(*), vpx(*), vy(*), vpy(*), vz(*), vpz(*)
     integer(C_INT), intent(inout) :: state(*)
     real(C_DOUBLE), intent(inout) :: beta(*), p0c(*), t_time(*)
     real(C_DOUBLE), value, intent(in) :: mc2, b1, ele_length
     real(C_DOUBLE), value, intent(in) :: delta_ref_time, e_tot_ele, charge_dir
-    integer(C_INT), value, intent(in) :: n
+    integer(C_INT), value, intent(in) :: n_particles
+    real(C_DOUBLE), intent(in) :: a2_arr(*), b2_arr(*), cm_arr(*)
+    integer(C_INT), value, intent(in) :: ix_mag_max, n_step
   end subroutine
 
   function gpu_tracking_available() result(avail) bind(C, name='gpu_tracking_available_')
@@ -171,6 +175,7 @@ end subroutine track_bunch_thru_drift_gpu
 !------------------------------------------------------------------------
 subroutine track_bunch_thru_quad_gpu (bunch, ele, param, did_track)
 
+use multipole_mod, only: ab_multipole_kicks
 use, intrinsic :: iso_c_binding
 
 type (bunch_struct),     intent(inout) :: bunch
@@ -179,14 +184,20 @@ type (lat_param_struct), intent(in)    :: param
 logical,                 intent(out)   :: did_track
 
 #ifdef USE_GPU_TRACKING
+integer, parameter :: n_multi = n_pole_maxx + 1  ! = 22
 integer(C_INT) :: n
-integer :: j, ix_mag_max, ix_elec_max
+integer :: j, nn, mm, ix_mag_max, ix_elec_max, n_step
 real(rp) :: ele_length, mc2, b1, delta_ref_time, e_tot_ele
-real(rp) :: charge_dir, rel_tracking_charge
+real(rp) :: charge_dir, rel_tracking_charge, r_step, length
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+real(rp) :: f_charge, r_ratio
 type (fringe_field_info_struct) :: fringe_info
-logical :: has_misalign
+logical :: has_misalign, has_mag_multipoles
+
+! Precomputed scaled multipole arrays and c_multi coefficients for CUDA
+real(C_DOUBLE) :: a2_arr(0:n_pole_maxx), b2_arr(0:n_pole_maxx)
+real(C_DOUBLE) :: cm_arr(0:n_pole_maxx, 0:n_pole_maxx)
 
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
@@ -214,12 +225,16 @@ call init_fringe_info(fringe_info, ele)
 
 ! Get the quad gradient b1 and check for extra multipoles
 call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$, b1)
-
-! Bail out if higher magnetic multipoles are present (GPU kernel only handles b1)
-if (ix_mag_max > -1) return
-
-! Bail out if electric multipoles are present
 call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+! Determine n_step for split-step integration
+has_mag_multipoles = (ix_mag_max > -1)
+length = bunch%particle(1)%time_dir * ele_length
+n_step = 1
+if (has_mag_multipoles .or. ix_elec_max > -1) &
+  n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
+
+! Bail out if electric multipoles are present (pz changes require special handling)
 if (ix_elec_max > -1) return
 
 ! Compute charge_dir: rel_charge * orientation (forward tracking: direction=1, time_dir=1)
@@ -250,6 +265,30 @@ if (fringe_info%has_fringe) then
   enddo
 endif
 
+! Precompute scaled multipole arrays for CUDA kernel
+! The kernel uses a2[n], b2[n] which include charge/scale factors.
+! Scale factor = r_step for full kicks (half is applied inside kernel).
+! The c_multi coefficients (with no_n_fact=.true.) are precomputed.
+a2_arr = 0
+b2_arr = 0
+cm_arr = 0
+if (has_mag_multipoles) then
+  r_ratio = ele%value(p0c$) / bunch%particle(1)%p0c
+  f_charge = bunch%particle(1)%direction * ele%orientation * &
+             charge_to_mass_of(bunch%particle(1)%species) / charge_to_mass_of(ele%ref_species)
+  r_step = real(bunch%particle(1)%time_dir, rp) / n_step
+  do nn = 0, ix_mag_max
+    a2_arr(nn) = r_ratio * an(nn) * f_charge * r_step
+    b2_arr(nn) = r_ratio * bn(nn) * f_charge * r_step
+  enddo
+  ! Precompute c_multi table (with no_n_fact=.true.)
+  do nn = 0, ix_mag_max
+    do mm = 0, nn
+      cm_arr(nn, mm) = c_multi(nn, mm, .true.)
+    enddo
+  enddo
+endif
+
 ! AoS -> SoA extraction (now in body frame, after fringe)
 do j = 1, n
   vx(j)      = bunch%particle(j)%vec(1)
@@ -267,11 +306,13 @@ enddo
 ! All checks passed — proceed with GPU tracking
 did_track = .true.
 
-! Call CUDA kernel
+! Call CUDA kernel (with multipole and step parameters)
 call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     state_a, beta_a, p0c_a, t_a, &
                     mc2, b1, ele_length, delta_ref_time, &
-                    e_tot_ele, charge_dir, n)
+                    e_tot_ele, charge_dir, n, &
+                    a2_arr, b2_arr, cm_arr, &
+                    int(ix_mag_max, C_INT), int(n_step, C_INT))
 
 ! SoA -> AoS write-back (still in body frame if misaligned)
 do j = 1, n

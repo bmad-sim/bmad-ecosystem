@@ -137,102 +137,173 @@ __global__ void drift_kernel(
     s_pos[i] += length;
 }
 
+/* --------------------------------------------------------------------------
+ * Device helper: compute x^p for small non-negative integer p
+ * -------------------------------------------------------------------------- */
+__device__ __forceinline__ double ipow(double x, int p)
+{
+    if (p == 0) return 1.0;
+    double r = 1.0;
+    for (int k = 0; k < p; k++) r *= x;
+    return r;
+}
+
+/* --------------------------------------------------------------------------
+ * Device helper: apply magnetic multipole kicks (ab_multipole_kick equivalent)
+ *
+ * Precomputed c_multi coefficients are passed in cm[N_MULTI*N_MULTI].
+ * Scaled a2[n], b2[n] arrays include charge/orientation/scale factors.
+ * -------------------------------------------------------------------------- */
+#define N_MULTI 22   /* n_pole_maxx + 1 = 22 */
+
+__device__ void multipole_kick_dev(
+    const double *a2, const double *b2, int ix_max,
+    const double *cm,
+    double x, double y, double *kx_out, double *ky_out)
+{
+    double kx = 0.0, ky = 0.0;
+    for (int nn = 0; nn <= ix_max; nn++) {
+        if (a2[nn] == 0.0 && b2[nn] == 0.0) continue;
+        /* even m — cm is Fortran column-major: cm(nn, m) at offset m*N_MULTI+nn */
+        for (int m = 0; m <= nn; m += 2) {
+            double f = cm[m * N_MULTI + nn] * ipow(x, nn - m) * ipow(y, m);
+            kx += b2[nn] * f;
+            ky -= a2[nn] * f;
+        }
+        /* odd m */
+        for (int m = 1; m <= nn; m += 2) {
+            double f = cm[m * N_MULTI + nn] * ipow(x, nn - m) * ipow(y, m);
+            kx += a2[nn] * f;
+            ky += b2[nn] * f;
+        }
+    }
+    *kx_out = kx;
+    *ky_out = ky;
+}
+
 /* =========================================================================
  * QUADRUPOLE KERNEL
- * Replicates the core body of track_a_quadrupole:
- *   - No fringe fields, no extra multipoles, n_step = 1, forward tracking
- *   - Includes low_energy_z_correction
+ * Replicates the full body of track_a_quadrupole including:
+ *   - Split-step integration with n_step steps
+ *   - Magnetic multipole kicks (interleaved)
+ *   - low_energy_z_correction
+ *   - Forward tracking only (direction=1, time_dir=1)
+ *
+ * When ix_mag_max < 0 and n_step == 1, this reduces to the simple case.
  * ========================================================================= */
 __global__ void quad_kernel(
     double *vx, double *vpx, double *vy, double *vpy, double *vz, double *vpz,
     int *state, double *beta_arr, double *p0c_arr, double *t_arr,
     double mc2, double b1, double ele_length,
     double delta_ref_time, double e_tot_ele, double charge_dir,
-    int n)
+    int n_particles,
+    /* Multipole parameters (may be NULL/unused if ix_mag_max < 0) */
+    const double *d_a2, const double *d_b2, const double *d_cm,
+    int ix_mag_max, int n_step)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
-    if (i >= n) return;
+    if (i >= n_particles) return;
     if (state[i] != ALIVE_ST) return;
 
-    double pz_val = vpz[i];
-    double rel_p  = 1.0 + pz_val;
-    double k1     = charge_dir * b1 / (ele_length * rel_p);
-    double step_len = ele_length;
-
-    /* --- quad_mat2_calc for x plane (k_x = -k1) --- */
-    double k1_x    = -k1;
-    double abs_k_x = fabs(k1_x);
-    double sqrt_k  = sqrt(abs_k_x);
-    double sk_l    = sqrt_k * step_len;
-    double cx, sx;
-
-    if (fabs(sk_l) < 1e-10) {
-        double kl2 = k1_x * step_len * step_len;
-        cx = 1.0 + kl2 * 0.5;
-        sx = (1.0 + kl2 / 6.0) * step_len;
-    } else if (k1_x < 0.0) {
-        cx = cos(sk_l);
-        sx = sin(sk_l) / sqrt_k;
-    } else {
-        cx = cosh(sk_l);
-        sx = sinh(sk_l) / sqrt_k;
-    }
-
-    double zc_x1 = k1_x * (-cx * sx + step_len) / 4.0;
-    double zc_x2 = -k1_x * sx * sx / (2.0 * rel_p);
-    double zc_x3 = -(cx * sx + step_len) / (4.0 * rel_p * rel_p);
-
-    /* --- quad_mat2_calc for y plane (k_y = +k1) --- */
-    double k1_y    = k1;
-    double abs_k_y = fabs(k1_y);
-    double sqrt_ky = sqrt(abs_k_y);
-    double sk_ly   = sqrt_ky * step_len;
-    double cy, sy;
-
-    if (fabs(sk_ly) < 1e-10) {
-        double kl2y = k1_y * step_len * step_len;
-        cy = 1.0 + kl2y * 0.5;
-        sy = (1.0 + kl2y / 6.0) * step_len;
-    } else if (k1_y < 0.0) {
-        cy = cos(sk_ly);
-        sy = sin(sk_ly) / sqrt_ky;
-    } else {
-        cy = cosh(sk_ly);
-        sy = sinh(sk_ly) / sqrt_ky;
-    }
-
-    double zc_y1 = k1_y * (-cy * sy + step_len) / 4.0;
-    double zc_y2 = -k1_y * sy * sy / (2.0 * rel_p);
-    double zc_y3 = -(cy * sy + step_len) / (4.0 * rel_p * rel_p);
-
-    /* Save old coordinates */
-    double x0  = vx[i];
-    double px0 = vpx[i];
-    double y0  = vy[i];
-    double py0 = vpy[i];
-    double z0  = vz[i];
-    double t0  = t_arr[i];
-
-    /* z update from quad focussing */
-    double dz_quad = zc_x1*x0*x0 + zc_x2*x0*px0 + zc_x3*px0*px0 +
-                     zc_y1*y0*y0 + zc_y2*y0*py0 + zc_y3*py0*py0;
-    vz[i] += dz_quad;
-
-    /* Apply 2x2 matrices */
-    vx[i]  = cx * x0 + (sx / rel_p) * px0;
-    vpx[i] = (k1_x * sx * rel_p) * x0 + cx * px0;
-    vy[i]  = cy * y0 + (sy / rel_p) * py0;
-    vpy[i] = (k1_y * sy * rel_p) * y0 + cy * py0;
-
-    /* Low energy z correction: dz = ds * (beta - beta_ref) / beta_ref */
-    double p0c_val  = p0c_arr[i];
-    double beta_ref = p0c_val / e_tot_ele;
+    int has_multipoles = (ix_mag_max >= 0);
+    double step_len = ele_length / (double)n_step;
+    double z_start = vz[i];
+    double t_start = t_arr[i];
     double beta_val = beta_arr[i];
-    double dz_low   = step_len * (beta_val - beta_ref) / beta_ref;
-    vz[i] += dz_low;
+    double p0c_val = p0c_arr[i];
+    double beta_ref = p0c_val / e_tot_ele;
 
-    /* Time update: t = t_start + delta_ref_time + (z_start - z_end) / (beta * c_light) */
-    t_arr[i] = t0 + delta_ref_time + (z0 - vz[i]) / (beta_val * C_LIGHT);
+    /* Entrance half multipole kick */
+    if (has_multipoles) {
+        double kx, ky;
+        multipole_kick_dev(d_a2, d_b2, ix_mag_max, d_cm,
+                           vx[i], vy[i], &kx, &ky);
+        vpx[i] += 0.5 * kx;
+        vpy[i] += 0.5 * ky;
+    }
+
+    /* Body: n_step integration steps */
+    for (int istep = 1; istep <= n_step; istep++) {
+
+        double rel_p = 1.0 + vpz[i];
+        double k1 = charge_dir * b1 / (ele_length * rel_p);
+
+        /* quad_mat2_calc for x plane (k_x = -k1) */
+        double k1_x = -k1;
+        double abs_k_x = fabs(k1_x);
+        double sqrt_k = sqrt(abs_k_x);
+        double sk_l = sqrt_k * step_len;
+        double cx, sx;
+
+        if (fabs(sk_l) < 1e-10) {
+            double kl2 = k1_x * step_len * step_len;
+            cx = 1.0 + kl2 * 0.5;
+            sx = (1.0 + kl2 / 6.0) * step_len;
+        } else if (k1_x < 0.0) {
+            cx = cos(sk_l);
+            sx = sin(sk_l) / sqrt_k;
+        } else {
+            cx = cosh(sk_l);
+            sx = sinh(sk_l) / sqrt_k;
+        }
+
+        double zc_x1 = k1_x * (-cx * sx + step_len) / 4.0;
+        double zc_x2 = -k1_x * sx * sx / (2.0 * rel_p);
+        double zc_x3 = -(cx * sx + step_len) / (4.0 * rel_p * rel_p);
+
+        /* quad_mat2_calc for y plane (k_y = +k1) */
+        double k1_y = k1;
+        double abs_k_y = fabs(k1_y);
+        double sqrt_ky = sqrt(abs_k_y);
+        double sk_ly = sqrt_ky * step_len;
+        double cy, sy;
+
+        if (fabs(sk_ly) < 1e-10) {
+            double kl2y = k1_y * step_len * step_len;
+            cy = 1.0 + kl2y * 0.5;
+            sy = (1.0 + kl2y / 6.0) * step_len;
+        } else if (k1_y < 0.0) {
+            cy = cos(sk_ly);
+            sy = sin(sk_ly) / sqrt_ky;
+        } else {
+            cy = cosh(sk_ly);
+            sy = sinh(sk_ly) / sqrt_ky;
+        }
+
+        double zc_y1 = k1_y * (-cy * sy + step_len) / 4.0;
+        double zc_y2 = -k1_y * sy * sy / (2.0 * rel_p);
+        double zc_y3 = -(cy * sy + step_len) / (4.0 * rel_p * rel_p);
+
+        /* Save pre-matrix coords for z update */
+        double x0 = vx[i], px0 = vpx[i];
+        double y0 = vy[i], py0 = vpy[i];
+
+        /* z update from quad focusing */
+        vz[i] += zc_x1*x0*x0 + zc_x2*x0*px0 + zc_x3*px0*px0 +
+                 zc_y1*y0*y0 + zc_y2*y0*py0 + zc_y3*py0*py0;
+
+        /* Apply 2x2 matrices */
+        vx[i]  = cx * x0 + (sx / rel_p) * px0;
+        vpx[i] = (k1_x * sx * rel_p) * x0 + cx * px0;
+        vy[i]  = cy * y0 + (sy / rel_p) * py0;
+        vpy[i] = (k1_y * sy * rel_p) * y0 + cy * py0;
+
+        /* Low energy z correction */
+        vz[i] += step_len * (beta_val - beta_ref) / beta_ref;
+
+        /* Multipole kick (half at last step, full otherwise) */
+        if (has_multipoles) {
+            double kx, ky;
+            multipole_kick_dev(d_a2, d_b2, ix_mag_max, d_cm,
+                               vx[i], vy[i], &kx, &ky);
+            double scale = (istep == n_step) ? 0.5 : 1.0;
+            vpx[i] += scale * kx;
+            vpy[i] += scale * ky;
+        }
+    }
+
+    /* Time update */
+    t_arr[i] = t_start + delta_ref_time + (z_start - vz[i]) / (beta_val * C_LIGHT);
 }
 
 /* =========================================================================
@@ -287,8 +358,18 @@ extern "C" void gpu_track_drift_(
     cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
 }
 
+/* Cached device buffers for multipole data */
+static double *d_a2  = NULL;
+static double *d_b2  = NULL;
+static double *d_cm  = NULL;
+
 /* =========================================================================
  * HOST WRAPPER: gpu_track_quad
+ *
+ * h_a2, h_b2: scaled multipole arrays [0:N_MULTI-1] (host)
+ * h_cm: c_multi coefficient table [N_MULTI * N_MULTI] (host)
+ * ix_mag_max: highest non-zero multipole order (-1 = none)
+ * n_step: number of integration steps
  * ========================================================================= */
 extern "C" void gpu_track_quad_(
     double *h_vx, double *h_vpx, double *h_vy, double *h_vpy,
@@ -296,14 +377,16 @@ extern "C" void gpu_track_quad_(
     int *h_state, double *h_beta, double *h_p0c, double *h_t,
     double mc2, double b1, double ele_length,
     double delta_ref_time, double e_tot_ele, double charge_dir,
-    int n)
+    int n_particles,
+    double *h_a2, double *h_b2, double *h_cm,
+    int ix_mag_max, int n_step)
 {
-    if (ensure_buffers(n) != 0) return;
+    if (ensure_buffers(n_particles) != 0) return;
 
-    size_t db = (size_t)n * sizeof(double);
-    size_t ib = (size_t)n * sizeof(int);
+    size_t db = (size_t)n_particles * sizeof(double);
+    size_t ib = (size_t)n_particles * sizeof(int);
 
-    /* Host -> Device */
+    /* Host -> Device: particle data */
     cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
     cudaMemcpy(d_vec[1], h_vpx, db, cudaMemcpyHostToDevice);
     cudaMemcpy(d_vec[2], h_vy,  db, cudaMemcpyHostToDevice);
@@ -315,13 +398,26 @@ extern "C" void gpu_track_quad_(
     cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
     cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
 
+    /* Host -> Device: multipole data (small fixed-size arrays) */
+    if (ix_mag_max >= 0) {
+        size_t multi_sz  = N_MULTI * sizeof(double);
+        size_t cm_sz     = N_MULTI * N_MULTI * sizeof(double);
+        if (!d_a2) cudaMalloc((void**)&d_a2, multi_sz);
+        if (!d_b2) cudaMalloc((void**)&d_b2, multi_sz);
+        if (!d_cm) cudaMalloc((void**)&d_cm, cm_sz);
+        cudaMemcpy(d_a2, h_a2, multi_sz, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_b2, h_b2, multi_sz, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_cm, h_cm, cm_sz,    cudaMemcpyHostToDevice);
+    }
+
     /* Launch kernel */
     int threads = 256;
-    int blocks  = (n + threads - 1) / threads;
+    int blocks  = (n_particles + threads - 1) / threads;
     quad_kernel<<<blocks, threads>>>(
         d_vec[0], d_vec[1], d_vec[2], d_vec[3], d_vec[4], d_vec[5],
         d_state, d_beta, d_p0c, d_t,
-        mc2, b1, ele_length, delta_ref_time, e_tot_ele, charge_dir, n);
+        mc2, b1, ele_length, delta_ref_time, e_tot_ele, charge_dir,
+        n_particles, d_a2, d_b2, d_cm, ix_mag_max, n_step);
     cudaDeviceSynchronize();
 
     /* Device -> Host */
@@ -346,6 +442,9 @@ extern "C" void gpu_tracking_cleanup_(void)
     if (d_p0c)   cudaFree(d_p0c);   d_p0c   = NULL;
     if (d_s)     cudaFree(d_s);     d_s     = NULL;
     if (d_t)     cudaFree(d_t);     d_t     = NULL;
+    if (d_a2)    cudaFree(d_a2);    d_a2    = NULL;
+    if (d_b2)    cudaFree(d_b2);    d_b2    = NULL;
+    if (d_cm)    cudaFree(d_cm);    d_cm    = NULL;
     d_cap = 0;
 }
 
