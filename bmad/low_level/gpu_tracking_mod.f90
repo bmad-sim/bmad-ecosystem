@@ -163,16 +163,20 @@ end subroutine track_bunch_thru_drift_gpu
 !------------------------------------------------------------------------
 ! track_bunch_thru_quad_gpu
 !
-! GPU batch tracking through a quadrupole (simple case: no fringe, no
-! extra multipoles, n_step = 1, forward direction).
+! GPU batch tracking through a quadrupole.  Only handles the simple case:
+! no fringe fields, no multipoles beyond b1, no electric multipoles.
+! Sets did_track = .false. and returns immediately if the element has
+! features the GPU kernel cannot handle, so the caller can fall back to
+! CPU tracking.
 !------------------------------------------------------------------------
-subroutine track_bunch_thru_quad_gpu (bunch, ele, param)
+subroutine track_bunch_thru_quad_gpu (bunch, ele, param, did_track)
 
 use, intrinsic :: iso_c_binding
 
 type (bunch_struct),     intent(inout) :: bunch
 type (ele_struct),       intent(in)    :: ele
 type (lat_param_struct), intent(in)    :: param
+logical,                 intent(out)   :: did_track
 
 #ifdef USE_GPU_TRACKING
 integer(C_INT) :: n
@@ -181,21 +185,43 @@ real(rp) :: ele_length, mc2, b1, delta_ref_time, e_tot_ele
 real(rp) :: charge_dir, rel_tracking_charge
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+type (fringe_field_info_struct) :: fringe_info
 
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
 integer(C_INT), allocatable :: state_a(:)
 
+did_track = .false.
+
 n = size(bunch%particle)
 ele_length = ele%value(l$)
-if (ele_length == 0) return
+if (ele_length == 0) then
+  did_track = .true.
+  return
+endif
 
 mc2 = mass_of(bunch%particle(1)%species)
 delta_ref_time = ele%value(delta_ref_time$)
 e_tot_ele = ele%value(e_tot$)
 
-! Get the quad gradient b1
+! --- Safety checks: bail out to CPU if element has unsupported features ---
+
+! Bail out if element has misalignment or tilt
+if (ele%bookkeeping_state%has_misalign) return
+
+! Bail out if fringe fields are active
+call init_fringe_info(fringe_info, ele)
+if (fringe_info%has_fringe) return
+
+! Get the quad gradient b1 and check for extra multipoles
 call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$, b1)
+
+! Bail out if higher magnetic multipoles are present (GPU kernel only handles b1)
+if (ix_mag_max > -1) return
+
+! Bail out if electric multipoles are present
+call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+if (ix_elec_max > -1) return
 
 ! Compute charge_dir: rel_charge * orientation (forward tracking: direction=1, time_dir=1)
 rel_tracking_charge = rel_tracking_charge_to_mass(bunch%particle(1), param%particle)
@@ -218,6 +244,9 @@ do j = 1, n
   p0c_a(j)   = bunch%particle(j)%p0c
   t_a(j)     = bunch%particle(j)%t
 enddo
+
+! All checks passed — proceed with GPU tracking
+did_track = .true.
 
 ! Call CUDA kernel
 call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &

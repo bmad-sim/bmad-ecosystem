@@ -47,7 +47,7 @@ real(rp) charge, ds_wake
 
 integer, optional :: direction
 integer i, j, n, jj
-logical err_flag, finished, thread_safe
+logical err_flag, finished, thread_safe, gpu_did_track
 
 character(*), parameter :: r_name = 'track1_bunch_hom'
 
@@ -79,10 +79,12 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
       return
     endif
 
-    if (ele%key == quadrupole$ .and. .not. ele%bookkeeping_state%has_misalign) then
-      call track_bunch_thru_quad_gpu(bunch, ele, branch%param)
-      bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
-      return
+    if (ele%key == quadrupole$) then
+      call track_bunch_thru_quad_gpu(bunch, ele, branch%param, gpu_did_track)
+      if (gpu_did_track) then
+        bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+        return
+      endif
     endif
   endif
 
