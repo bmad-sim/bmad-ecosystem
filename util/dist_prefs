@@ -192,3 +192,15 @@ export ACC_CONDA_PATH="${CONDA_PREFIX}"
 # is detected; otherwise FFTW is used as the fallback.
 #-----------------------------------------------------------
 export ACC_ENABLE_CUFFT="N"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_GPU_TRACKING here to "Y"
+# will enable GPU-accelerated particle tracking through
+# drift and quadrupole elements via NVIDIA CUDA kernels.
+# Requires the CUDA Toolkit to be installed. At runtime,
+# GPU tracking is only used if this variable is also set
+# in the environment AND a CUDA GPU is detected; otherwise
+# the standard CPU tracking is used as the fallback.
+#-----------------------------------------------------------
+export ACC_ENABLE_GPU_TRACKING="N"

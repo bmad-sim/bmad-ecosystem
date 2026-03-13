@@ -2,6 +2,7 @@ module beam_utils
 
 use beam_file_io
 use wake_mod
+use gpu_tracking_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
@@ -64,6 +65,26 @@ call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
 
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
+
+  ! GPU batch tracking for drift and quadrupole elements (opt-in).
+  ! Bypasses per-particle track1 dispatch for large bunches.
+  if (gpu_tracking_is_active() .and. ele%tracking_method == bmad_standard$ .and. ele%is_on .and. &
+      .not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on .and. &
+      .not. bmad_com%spin_tracking_on .and. &
+      bunch%particle(1)%direction == 1 .and. bunch%particle(1)%time_dir == 1) then
+
+    if (ele%key == drift$) then
+      call track_bunch_thru_drift_gpu(bunch, ele)
+      bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+      return
+    endif
+
+    if (ele%key == quadrupole$ .and. .not. ele%bookkeeping_state%has_misalign) then
+      call track_bunch_thru_quad_gpu(bunch, ele, branch%param)
+      bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+      return
+    endif
+  endif
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
   !$OMP parallel do if (thread_safe)
