@@ -314,8 +314,19 @@ __global__ void quad_kernel(
         vy[i]  = cy * y0 + (sy / rel_p) * py0;
         vpy[i] = (k1_y * sy * rel_p) * y0 + cy * py0;
 
-        /* Low energy z correction */
-        vz[i] += step_len * (beta_val - beta_ref) / beta_ref;
+        /* Low energy z correction (matches low_energy_z_correction.f90) */
+        {
+            double pz_val = vpz[i];
+            if (mc2 * (beta_ref * pz_val) * (beta_ref * pz_val) < 3e-7 * e_tot_ele) {
+                /* Taylor expansion for small pz — avoids precision loss */
+                double mr = mc2 / e_tot_ele;  /* mass / e_tot */
+                double b02 = beta_ref * beta_ref;
+                double f_tay = b02 * (2.0 * b02 - mr * mr * 0.5);
+                vz[i] += step_len * pz_val * (1.0 - 1.5 * pz_val * b02 + pz_val * pz_val * f_tay) * mr * mr;
+            } else {
+                vz[i] += step_len * (beta_val - beta_ref) / beta_ref;
+            }
+        }
 
         /* Magnetic multipole kick (half at last step, full otherwise) */
         if (has_mag) {
