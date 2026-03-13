@@ -185,11 +185,11 @@ __device__ void multipole_kick_dev(
  * QUADRUPOLE KERNEL
  * Replicates the full body of track_a_quadrupole including:
  *   - Split-step integration with n_step steps
- *   - Magnetic multipole kicks (interleaved)
+ *   - Magnetic and electric multipole kicks (interleaved)
  *   - low_energy_z_correction
  *   - Forward tracking only (direction=1, time_dir=1)
  *
- * When ix_mag_max < 0 and n_step == 1, this reduces to the simple case.
+ * When ix_mag_max < 0, ix_elec_max < 0, and n_step == 1, reduces to simple case.
  * ========================================================================= */
 __global__ void quad_kernel(
     double *vx, double *vpx, double *vy, double *vpy, double *vz, double *vpz,
@@ -197,15 +197,18 @@ __global__ void quad_kernel(
     double mc2, double b1, double ele_length,
     double delta_ref_time, double e_tot_ele, double charge_dir,
     int n_particles,
-    /* Multipole parameters (may be NULL/unused if ix_mag_max < 0) */
+    /* Multipole parameters (may be NULL/unused if ix < 0) */
     const double *d_a2, const double *d_b2, const double *d_cm,
-    int ix_mag_max, int n_step)
+    int ix_mag_max, int n_step,
+    /* Electric multipole parameters */
+    const double *d_ea2, const double *d_eb2, int ix_elec_max)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i >= n_particles) return;
     if (state[i] != ALIVE_ST) return;
 
-    int has_multipoles = (ix_mag_max >= 0);
+    int has_mag = (ix_mag_max >= 0);
+    int has_elec = (ix_elec_max >= 0);
     double step_len = ele_length / (double)n_step;
     double z_start = vz[i];
     double t_start = t_arr[i];
@@ -213,13 +216,36 @@ __global__ void quad_kernel(
     double p0c_val = p0c_arr[i];
     double beta_ref = p0c_val / e_tot_ele;
 
-    /* Entrance half multipole kick */
-    if (has_multipoles) {
+    /* Entrance half magnetic multipole kick (scale = r_step/2, built into d_a2/d_b2) */
+    if (has_mag) {
         double kx, ky;
         multipole_kick_dev(d_a2, d_b2, ix_mag_max, d_cm,
                            vx[i], vy[i], &kx, &ky);
         vpx[i] += 0.5 * kx;
         vpy[i] += 0.5 * ky;
+    }
+
+    /* Entrance half electric multipole kick (scale = step_len/2, built into d_ea2/d_eb2) */
+    /* d_ea2/d_eb2 are precomputed WITHOUT 1/beta; we apply 1/beta per-particle here */
+    if (has_elec) {
+        double kx, ky;
+        multipole_kick_dev(d_ea2, d_eb2, ix_elec_max, d_cm,
+                           vx[i], vy[i], &kx, &ky);
+        kx /= beta_val;
+        ky /= beta_val;
+        double px_old = vpx[i], py_old = vpy[i], pz_old = vpz[i];
+        double kx_h = 0.5 * kx, ky_h = 0.5 * ky;
+        vpx[i] += kx_h;
+        vpy[i] += ky_h;
+        /* pz update for electric kick */
+        double alpha = (kx_h * (2.0*px_old + kx_h) + ky_h * (2.0*py_old + ky_h)) / ((1.0 + pz_old) * (1.0 + pz_old));
+        if (alpha < -1.0) { state[i] = LOST_PZ; return; }
+        double dpz = (1.0 + pz_old) * sqrt_one_dev(alpha);
+        vpz[i] = pz_old + dpz;
+        double new_beta = (1.0 + vpz[i]) / sqrt((1.0 + vpz[i])*(1.0 + vpz[i]) + (mc2/p0c_val)*(mc2/p0c_val));
+        vz[i] = vz[i] * new_beta / beta_val;
+        beta_val = new_beta;
+        beta_arr[i] = beta_val;
     }
 
     /* Body: n_step integration steps */
@@ -291,14 +317,38 @@ __global__ void quad_kernel(
         /* Low energy z correction */
         vz[i] += step_len * (beta_val - beta_ref) / beta_ref;
 
-        /* Multipole kick (half at last step, full otherwise) */
-        if (has_multipoles) {
+        /* Magnetic multipole kick (half at last step, full otherwise) */
+        if (has_mag) {
             double kx, ky;
             multipole_kick_dev(d_a2, d_b2, ix_mag_max, d_cm,
                                vx[i], vy[i], &kx, &ky);
-            double scale = (istep == n_step) ? 0.5 : 1.0;
-            vpx[i] += scale * kx;
-            vpy[i] += scale * ky;
+            double scl = (istep == n_step) ? 0.5 : 1.0;
+            vpx[i] += scl * kx;
+            vpy[i] += scl * ky;
+        }
+
+        /* Electric multipole kick (half at last step, full otherwise) */
+        /* d_ea2/d_eb2 are precomputed WITHOUT 1/beta; apply per-particle */
+        if (has_elec) {
+            double kx, ky;
+            multipole_kick_dev(d_ea2, d_eb2, ix_elec_max, d_cm,
+                               vx[i], vy[i], &kx, &ky);
+            kx /= beta_val;
+            ky /= beta_val;
+            double scl = (istep == n_step) ? 0.5 : 1.0;
+            double px_old = vpx[i], py_old = vpy[i], pz_old = vpz[i];
+            double kx_s = scl * kx, ky_s = scl * ky;
+            vpx[i] += kx_s;
+            vpy[i] += ky_s;
+            /* pz update for electric kick */
+            double alpha = (kx_s * (2.0*px_old + kx_s) + ky_s * (2.0*py_old + ky_s)) / ((1.0 + pz_old) * (1.0 + pz_old));
+            if (alpha < -1.0) { state[i] = LOST_PZ; return; }
+            double dpz = (1.0 + pz_old) * sqrt_one_dev(alpha);
+            vpz[i] = pz_old + dpz;
+            double new_beta = (1.0 + vpz[i]) / sqrt((1.0 + vpz[i])*(1.0 + vpz[i]) + (mc2/p0c_val)*(mc2/p0c_val));
+            vz[i] = vz[i] * new_beta / beta_val;
+            beta_val = new_beta;
+            beta_arr[i] = beta_val;
         }
     }
 
@@ -361,15 +411,12 @@ extern "C" void gpu_track_drift_(
 /* Cached device buffers for multipole data */
 static double *d_a2  = NULL;
 static double *d_b2  = NULL;
+static double *d_ea2 = NULL;
+static double *d_eb2 = NULL;
 static double *d_cm  = NULL;
 
 /* =========================================================================
  * HOST WRAPPER: gpu_track_quad
- *
- * h_a2, h_b2: scaled multipole arrays [0:N_MULTI-1] (host)
- * h_cm: c_multi coefficient table [N_MULTI * N_MULTI] (host)
- * ix_mag_max: highest non-zero multipole order (-1 = none)
- * n_step: number of integration steps
  * ========================================================================= */
 extern "C" void gpu_track_quad_(
     double *h_vx, double *h_vpx, double *h_vy, double *h_vpy,
@@ -379,12 +426,15 @@ extern "C" void gpu_track_quad_(
     double delta_ref_time, double e_tot_ele, double charge_dir,
     int n_particles,
     double *h_a2, double *h_b2, double *h_cm,
-    int ix_mag_max, int n_step)
+    int ix_mag_max, int n_step,
+    double *h_ea2, double *h_eb2, int ix_elec_max)
 {
     if (ensure_buffers(n_particles) != 0) return;
 
     size_t db = (size_t)n_particles * sizeof(double);
     size_t ib = (size_t)n_particles * sizeof(int);
+    size_t multi_sz = N_MULTI * sizeof(double);
+    size_t cm_sz    = N_MULTI * N_MULTI * sizeof(double);
 
     /* Host -> Device: particle data */
     cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
@@ -398,16 +448,26 @@ extern "C" void gpu_track_quad_(
     cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
     cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
 
-    /* Host -> Device: multipole data (small fixed-size arrays) */
+    /* Ensure c_multi table is always uploaded if any multipoles present */
+    if (ix_mag_max >= 0 || ix_elec_max >= 0) {
+        if (!d_cm) cudaMalloc((void**)&d_cm, cm_sz);
+        cudaMemcpy(d_cm, h_cm, cm_sz, cudaMemcpyHostToDevice);
+    }
+
+    /* Host -> Device: magnetic multipole data */
     if (ix_mag_max >= 0) {
-        size_t multi_sz  = N_MULTI * sizeof(double);
-        size_t cm_sz     = N_MULTI * N_MULTI * sizeof(double);
         if (!d_a2) cudaMalloc((void**)&d_a2, multi_sz);
         if (!d_b2) cudaMalloc((void**)&d_b2, multi_sz);
-        if (!d_cm) cudaMalloc((void**)&d_cm, cm_sz);
         cudaMemcpy(d_a2, h_a2, multi_sz, cudaMemcpyHostToDevice);
         cudaMemcpy(d_b2, h_b2, multi_sz, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_cm, h_cm, cm_sz,    cudaMemcpyHostToDevice);
+    }
+
+    /* Host -> Device: electric multipole data */
+    if (ix_elec_max >= 0) {
+        if (!d_ea2) cudaMalloc((void**)&d_ea2, multi_sz);
+        if (!d_eb2) cudaMalloc((void**)&d_eb2, multi_sz);
+        cudaMemcpy(d_ea2, h_ea2, multi_sz, cudaMemcpyHostToDevice);
+        cudaMemcpy(d_eb2, h_eb2, multi_sz, cudaMemcpyHostToDevice);
     }
 
     /* Launch kernel */
@@ -417,7 +477,8 @@ extern "C" void gpu_track_quad_(
         d_vec[0], d_vec[1], d_vec[2], d_vec[3], d_vec[4], d_vec[5],
         d_state, d_beta, d_p0c, d_t,
         mc2, b1, ele_length, delta_ref_time, e_tot_ele, charge_dir,
-        n_particles, d_a2, d_b2, d_cm, ix_mag_max, n_step);
+        n_particles, d_a2, d_b2, d_cm, ix_mag_max, n_step,
+        d_ea2, d_eb2, ix_elec_max);
     cudaDeviceSynchronize();
 
     /* Device -> Host */
@@ -429,6 +490,10 @@ extern "C" void gpu_track_quad_(
     cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost);
     cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost);
     cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
+    /* Electric kicks can modify beta and pz — copy back */
+    if (ix_elec_max >= 0) {
+        cudaMemcpy(h_beta, d_beta, db, cudaMemcpyDeviceToHost);
+    }
 }
 
 /* --------------------------------------------------------------------------
@@ -444,6 +509,8 @@ extern "C" void gpu_tracking_cleanup_(void)
     if (d_t)     cudaFree(d_t);     d_t     = NULL;
     if (d_a2)    cudaFree(d_a2);    d_a2    = NULL;
     if (d_b2)    cudaFree(d_b2);    d_b2    = NULL;
+    if (d_ea2)   cudaFree(d_ea2);   d_ea2   = NULL;
+    if (d_eb2)   cudaFree(d_eb2);   d_eb2   = NULL;
     if (d_cm)    cudaFree(d_cm);    d_cm    = NULL;
     d_cap = 0;
 }

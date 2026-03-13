@@ -34,7 +34,8 @@ interface
                             mc2, b1, ele_length, delta_ref_time, &
                             e_tot_ele, charge_dir, n_particles, &
                             a2_arr, b2_arr, cm_arr, &
-                            ix_mag_max, n_step) bind(C, name='gpu_track_quad_')
+                            ix_mag_max, n_step, &
+                            ea2_arr, eb2_arr, ix_elec_max) bind(C, name='gpu_track_quad_')
     use, intrinsic :: iso_c_binding
     real(C_DOUBLE), intent(inout) :: vx(*), vpx(*), vy(*), vpy(*), vz(*), vpz(*)
     integer(C_INT), intent(inout) :: state(*)
@@ -44,6 +45,8 @@ interface
     integer(C_INT), value, intent(in) :: n_particles
     real(C_DOUBLE), intent(in) :: a2_arr(*), b2_arr(*), cm_arr(*)
     integer(C_INT), value, intent(in) :: ix_mag_max, n_step
+    real(C_DOUBLE), intent(in) :: ea2_arr(*), eb2_arr(*)
+    integer(C_INT), value, intent(in) :: ix_elec_max
   end subroutine
 
   function gpu_tracking_available() result(avail) bind(C, name='gpu_tracking_available_')
@@ -197,7 +200,10 @@ logical :: has_misalign, has_mag_multipoles
 
 ! Precomputed scaled multipole arrays and c_multi coefficients for CUDA
 real(C_DOUBLE) :: a2_arr(0:n_pole_maxx), b2_arr(0:n_pole_maxx)
+real(C_DOUBLE) :: ea2_arr(0:n_pole_maxx), eb2_arr(0:n_pole_maxx)
 real(C_DOUBLE) :: cm_arr(0:n_pole_maxx, 0:n_pole_maxx)
+real(rp) :: f_elec, step_len_val
+logical :: has_elec_multipoles
 
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
@@ -234,9 +240,6 @@ n_step = 1
 if (has_mag_multipoles .or. ix_elec_max > -1) &
   n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
 
-! Bail out if electric multipoles are present (pz changes require special handling)
-if (ix_elec_max > -1) return
-
 ! Compute charge_dir: rel_charge * orientation (forward tracking: direction=1, time_dir=1)
 rel_tracking_charge = rel_tracking_charge_to_mass(bunch%particle(1), param%particle)
 charge_dir = rel_tracking_charge * ele%orientation
@@ -271,23 +274,43 @@ endif
 ! The c_multi coefficients (with no_n_fact=.true.) are precomputed.
 a2_arr = 0
 b2_arr = 0
+ea2_arr = 0
+eb2_arr = 0
 cm_arr = 0
+has_elec_multipoles = (ix_elec_max > -1)
+r_ratio = ele%value(p0c$) / bunch%particle(1)%p0c
+r_step = real(bunch%particle(1)%time_dir, rp) / n_step
+step_len_val = ele_length * r_step
+
+! Precompute scaled magnetic multipole arrays for CUDA kernel
 if (has_mag_multipoles) then
-  r_ratio = ele%value(p0c$) / bunch%particle(1)%p0c
   f_charge = bunch%particle(1)%direction * ele%orientation * &
              charge_to_mass_of(bunch%particle(1)%species) / charge_to_mass_of(ele%ref_species)
-  r_step = real(bunch%particle(1)%time_dir, rp) / n_step
   do nn = 0, ix_mag_max
     a2_arr(nn) = r_ratio * an(nn) * f_charge * r_step
     b2_arr(nn) = r_ratio * bn(nn) * f_charge * r_step
   enddo
-  ! Precompute c_multi table (with no_n_fact=.true.)
-  do nn = 0, ix_mag_max
-    do mm = 0, nn
-      cm_arr(nn, mm) = c_multi(nn, mm, .true.)
-    enddo
+endif
+
+! Precompute scaled electric multipole arrays for CUDA kernel
+! Electric scale: charge_of(species) / (beta * p0c) * step_len
+! Beta varies per particle, so we factor out 1/beta here and apply it in the kernel.
+! p0c is the same for all particles at a given element.
+if (has_elec_multipoles) then
+  f_elec = charge_of(bunch%particle(1)%species) / bunch%particle(1)%p0c
+  do nn = 0, ix_elec_max
+    ea2_arr(nn) =  r_ratio * an_elec(nn) * f_elec * step_len_val
+    eb2_arr(nn) = -r_ratio * bn_elec(nn) * f_elec * step_len_val
   enddo
 endif
+
+! Precompute c_multi table (shared by magnetic and electric)
+nn = max(ix_mag_max, ix_elec_max)
+do j = 0, nn
+  do mm = 0, j
+    cm_arr(j, mm) = c_multi(j, mm, .true.)
+  enddo
+enddo
 
 ! AoS -> SoA extraction (now in body frame, after fringe)
 do j = 1, n
@@ -312,7 +335,8 @@ call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     mc2, b1, ele_length, delta_ref_time, &
                     e_tot_ele, charge_dir, n, &
                     a2_arr, b2_arr, cm_arr, &
-                    int(ix_mag_max, C_INT), int(n_step, C_INT))
+                    int(ix_mag_max, C_INT), int(n_step, C_INT), &
+                    ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
 
 ! SoA -> AoS write-back (still in body frame if misaligned)
 do j = 1, n
@@ -323,6 +347,7 @@ do j = 1, n
   bunch%particle(j)%vec(5) = vz(j)
   bunch%particle(j)%vec(6) = vpz(j)
   bunch%particle(j)%state  = state_a(j)
+  bunch%particle(j)%beta   = beta_a(j)
   bunch%particle(j)%t      = t_a(j)
   bunch%particle(j)%location = downstream_end$
   bunch%particle(j)%ix_ele   = ele%ix_ele
