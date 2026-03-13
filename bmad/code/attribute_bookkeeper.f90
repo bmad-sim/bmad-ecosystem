@@ -13,7 +13,6 @@
 !                  -- Logical, optional: If present and True then force
 !                       attribute bookkeeping to be done independent of
 !                       the state of ele%bookkeeping_stat%attributes.
-!                       This will also cause attribute_bookkeeper to assume intelligent bookkeeping.
 ! Output:
 !   ele            -- Ele_struct: Element with self-consistant attributes.
 !
