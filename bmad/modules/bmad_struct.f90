@@ -1161,8 +1161,8 @@ type beam_init_struct
   logical :: renorm_center = .true.          ! Renormalize centroid?
   logical :: renorm_sigma = .true.           ! Renormalize sigma?
   character(16) :: random_engine = 'pseudo'  ! Or 'quasi'. Random number engine to use. 
-  character(16) :: random_gauss_converter = 'exact'  
-                                             ! Or 'quick'. Uniform to gauss conversion method.
+  character(16) :: random_gauss_converter = 'ziggurat'  
+                                             ! Or 'quick' or 'exact'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = -1       ! Cut-off in sigmas.
   real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * beta * gamma)
   real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * beta * gamma)
@@ -1189,8 +1189,6 @@ type beam_init_struct
 end type
 
 
-character(8), parameter :: random_engine_name(2) = [character(8):: 'pseudo', 'quasi'] ! Case sensitive
-character(8), parameter :: random_gauss_converter_name(2) = [character(8):: 'exact', 'quick'] ! Case sensitive
 character(12), parameter :: beam_distribution_type_name(5) = [character(12):: &
                                     'Ellipse', 'KV', 'Grid', 'File', 'Ran_Gauss']
 
@@ -1427,6 +1425,8 @@ type ele_struct
   type (foil_struct), pointer :: foil => null()
   type (ele_struct), pointer :: lord => null()                           ! Pointer to a slice lord.
   type (fibre), pointer :: ptc_fibre => null()                           ! PTC track corresponding to this ele.
+  ! %floor is floor coord of lab coordinates at the downstream end. 
+  ! Notice that if ele%direction = -1, the lab coords have the z-axis antiparallel to the +s-direction.
   type (floor_position_struct) :: floor = floor_position_struct(vec3_zero$, mat3_unit$, 0.0_rp, 0.0_rp, 0.0_rp)
   type (high_energy_space_charge_struct), pointer :: high_energy_space_charge => null()
   type (mode3_struct), pointer :: mode3 => null()                        ! 6D normal mode structure.

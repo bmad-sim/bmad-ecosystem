@@ -350,15 +350,21 @@ do ib = 0, ubound(lat%branch, 1)
 
     !
 
+    if (has_attribute(ele, 'RF_FREQUENCY')) then
+      if (is_true(ele%value(harmon_master$))) then
+        if (ele%value(harmon$) /= 0)  line = trim(line) // ', harmon = ' // re_str(ele%value(harmon$))
+      else
+        if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
+      endif
+    endif
+
     if (ele%key == lcavity$) then
-      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
-      if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$) + ele%value(voltage_err$))
+      if (ele%value(voltage$)+ele%value(voltage_err$) /= 0)  line = trim(line) // ', voltage = ' // re_str((ele%value(voltage$) + ele%value(voltage_err$)))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$) + ele%value(phi0_err$))
       line = trim(line) // ', tracking_method = SaganCavity(num_cells = ' // re_str(ele%value(n_rf_steps$)) // ', L_active = ' // re_str(ele%value(L_active$)) // ')'
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
       if (ele%key == rfcavity$) line = trim(line) // ', zero_phase = PhaseReference.AboveTransition'
-      if (ele%value(rf_frequency$) /= 0)  line = trim(line) // ', rf_frequency = ' // re_str(ele%value(rf_frequency$))
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$)/abs(charge_of(branch%param%particle)))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$))
     endif

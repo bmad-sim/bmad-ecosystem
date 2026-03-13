@@ -529,6 +529,7 @@ character(*), parameter :: r_name = 'ele_compute_ref_energy_and_time'
 
 ! which will overwrite ele%old_value.
 
+err_flag = .false.
 bmad_com_saved = bmad_com
 bmad_com%radiation_fluctuations_on = .false.
 bmad_com%radiation_damping_on = .false.

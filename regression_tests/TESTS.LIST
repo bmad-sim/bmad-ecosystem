@@ -32,6 +32,7 @@ photon_test
 ptc_test
 NOTE: SKIPPING REVERSE_TEST!
 ! reverse_test
+ran_gauss_test
 radiation_test
 rf_test
 sad_test

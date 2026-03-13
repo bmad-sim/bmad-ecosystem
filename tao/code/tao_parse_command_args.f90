@@ -34,7 +34,6 @@ logical error, negate
 if (s%initialized) then
   com_saved = s%com
   s%com = tao_common0
-  s%com%saved_cmd_line = com_saved%saved_cmd_line
   s%com%ix_history     = com_saved%ix_history
   s%com%n_history      = com_saved%n_history
   s%com%cmd_file       = com_saved%cmd_file

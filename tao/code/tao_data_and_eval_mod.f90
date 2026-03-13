@@ -2114,7 +2114,8 @@ else
 endif
 
 position = orbit_to_local_curvilinear(orbit, ele, relative_to = downstream_end$)
-position = coords_local_curvilinear_to_floor (position, ele, .false., relative_to = downstream_end$)
+position = coords_local_curvilinear_to_floor (position, ele, .false., &
+                                    end_origin = downstream_end$, downstream_dir_ref = .true.)
 
 !
 

@@ -1058,7 +1058,7 @@ real(rp) r(3)
 
 local%r = r
 call mat_make_unit(local%w)
-floor = coords_local_curvilinear_to_floor(local, ele, relative_to = upstream_end$)
+floor = coords_local_curvilinear_to_floor(local, ele, end_origin = upstream_end$)
 
 end function this_coords_to_floor
 

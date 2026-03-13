@@ -3902,7 +3902,7 @@ case ('ele:wake')
   case ('sr_trans_table')
     do i = 1, size(wake%sr%trans)
       wsr => wake%sr%trans(i)
-      nl=incr(nl); write (li(nl), '(4(es16.8), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
+      nl=incr(nl); write (li(nl), '(4(es16.8, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
           sr_transverse_polarization_name(wsr%polarization), ';', sr_transverse_position_dep_name(wsr%position_dependence)
     enddo
 
