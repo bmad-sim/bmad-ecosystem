@@ -5,9 +5,10 @@
 ! track1_bunch_csr tracking path. Uses a simple bend with varying
 ! n_bin to demonstrate scaling.
 !
-! The benchmark sweeps n_bin = 40, 80, 160, 320 and reports timing
+! The benchmark sweeps n_bin = 500, 1000, 2000 and reports timing
 ! for each. Larger n_bin values emphasize the O(n_bin^2) LSC cost
 ! where vectorization has the biggest impact.
+! Note: n_particles must be >> n_bin for meaningful statistics per bin.
 !-
 
 program perf_lsc
@@ -25,13 +26,13 @@ type (branch_struct), pointer :: branch
 
 real(rp) :: t_start, t_end, t_total
 integer :: i, iter, n_iter
-integer :: n_bin_vals(6), ib
+integer :: n_bin_vals(3), ib
 logical :: err
 
 !
 
-n_bin_vals = [40, 80, 160, 320, 640, 1280]
-n_iter = 5
+n_bin_vals = [500, 1000, 2000]
+n_iter = 2
 
 call bmad_parser ('perf_lsc.bmad', lat)
 
@@ -39,7 +40,7 @@ branch => lat%branch(0)
 bmad_com%csr_and_space_charge_on = .true.
 
 call ran_seed_put(1)
-beam_init%n_particle = 2000
+beam_init%n_particle = 10000
 beam_init%a_norm_emit = 1.0e-6
 beam_init%b_norm_emit = 1.0e-6
 beam_init%dPz_dz = 0.0
