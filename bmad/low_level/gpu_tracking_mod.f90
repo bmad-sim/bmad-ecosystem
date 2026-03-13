@@ -186,6 +186,7 @@ real(rp) :: charge_dir, rel_tracking_charge
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 type (fringe_field_info_struct) :: fringe_info
+logical :: has_misalign
 
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
@@ -206,8 +207,7 @@ e_tot_ele = ele%value(e_tot$)
 
 ! --- Safety checks: bail out to CPU if element has unsupported features ---
 
-! Bail out if element has misalignment or tilt
-if (ele%bookkeeping_state%has_misalign) return
+has_misalign = ele%bookkeeping_state%has_misalign
 
 ! Bail out if fringe fields are active
 call init_fringe_info(fringe_info, ele)
@@ -231,7 +231,16 @@ charge_dir = rel_tracking_charge * ele%orientation
 allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
 allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
 
-! AoS -> SoA extraction
+! Apply entrance misalignment transform (lab → body frame) on CPU
+if (has_misalign) then
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      call offset_particle(ele, set$, bunch%particle(j), set_hvkicks = .false.)
+    endif
+  enddo
+endif
+
+! AoS -> SoA extraction (now in body frame if misaligned)
 do j = 1, n
   vx(j)      = bunch%particle(j)%vec(1)
   vpx(j)     = bunch%particle(j)%vec(2)
@@ -254,7 +263,7 @@ call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     mc2, b1, ele_length, delta_ref_time, &
                     e_tot_ele, charge_dir, n)
 
-! SoA -> AoS write-back
+! SoA -> AoS write-back (still in body frame if misaligned)
 do j = 1, n
   bunch%particle(j)%vec(1) = vx(j)
   bunch%particle(j)%vec(2) = vpx(j)
@@ -271,6 +280,15 @@ enddo
 
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)
+
+! Apply exit misalignment transform (body → lab frame) on CPU
+if (has_misalign) then
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      call offset_particle(ele, unset$, bunch%particle(j), set_hvkicks = .false.)
+    endif
+  enddo
+endif
 #endif
 
 end subroutine track_bunch_thru_quad_gpu
