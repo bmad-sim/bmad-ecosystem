@@ -191,4 +191,4 @@ export ACC_CONDA_PATH="${CONDA_PREFIX}"
 # variable is also set in the environment AND a CUDA GPU
 # is detected; otherwise FFTW is used as the fallback.
 #-----------------------------------------------------------
-export ACC_ENABLE_CUFFT="Y"
+export ACC_ENABLE_CUFFT="N"
