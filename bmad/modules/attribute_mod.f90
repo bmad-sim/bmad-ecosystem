@@ -56,7 +56,7 @@ private init_short_attrib_array
 !   Function attribute_free2 (ele, attrib_name, err_print_flag, 
 !                                except_overlay, dependent_attribs_free, why_not_free) result (free)
 !   Function attribute_free3 (ix_ele, ix_branch, attrib_name, lat, err_print_flag, 
-!                                except_overlay, why_not_free) result (free)
+!                                except_overlay, dependent_attribs_free, why_not_free) result (free)
 !
 ! Routine to check if an attribute is free to vary.
 !
@@ -80,8 +80,8 @@ private init_short_attrib_array
 !                               This is used by, for example, the create_overlay routine.
 !   dependent_attribs_free  -- logical, optional: If present and True then mark as free 
 !                               attributes that are dependent. For example, if ele%field_master = F,
-!                               b1_field is dependent upon k1. Default is False. Use True when
-!                               using intelligent bookkeeping.
+!                               b1_field is dependent upon k1. Default is False.
+!                               Also fixer Twiss/dispersion/orbit attributes are considered "dependent".
 !
 ! Output:
 !   free          -- logical: Set True if attribtute not found or attriubte
@@ -3223,7 +3223,7 @@ case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', &
   case (beginning_ele$, fixer$)
     if (branch%param%geometry == closed$) then
       call it_is_not_free (free, ele, ix_attrib, dependent$, 'THIS ATTRIBUTE IS A COMPUTED PARAMETER FOR CLOSED GEOMETRY BRANCHES.')
-    elseif (.not. ele%is_on) then
+    elseif (.not. ele%is_on .and. .not. dep_attribs_free) then
       if (ele%key == beginning_ele$) then
         call it_is_not_free (free, ele, ix_attrib, dependent$, 'THERE IS AN ACTIVE FIXER SO THIS ATTRIBUTE IS A COMPUTED PARAMETER.')
         return

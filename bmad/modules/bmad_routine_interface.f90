@@ -282,7 +282,7 @@ end interface
 !+
 ! Subroutine set_flags_for_changed_attribute (...)
 !
-! Routine to mark an element or lattice as modified for use with "intelligent" bookkeeping.
+! Routine to mark an element or lattice as modified.
 ! Also will do some dependent variable bookkeeping when a particular attribute has 
 ! been altered.
 !

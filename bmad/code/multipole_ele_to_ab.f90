@@ -62,7 +62,6 @@ if (present(b1)) b1 = 0
 if (.not. ele%is_on .or. ele%key == pipe$) return
 
 ! Use cache if possible. 
-! Caching requires intelligent bookkeeping to mark when the cache goes stale.
 
 p_type = integer_option(magnetic$, pole_type)
 include_kck = integer_option(no$, include_kicks)

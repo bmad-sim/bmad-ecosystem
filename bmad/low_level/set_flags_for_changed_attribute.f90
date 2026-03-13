@@ -4,7 +4,7 @@
 !+
 ! Subroutine set_flags_for_changed_all_attribute (ele, all_attrib, set_dependent)
 !
-! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+! Routine to mark an element as modified.
 !
 ! This routine is overloaded by set_flags_for_changed_attribute. 
 ! See set_flags_for_changed_attribute for more details.
@@ -34,7 +34,7 @@ end subroutine set_flags_for_changed_all_attribute
 !+
 ! Subroutine set_flags_for_changed_integer_attribute (ele, attrib, set_dependent)
 !
-! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+! Routine to mark an element as modified.
 !
 ! This routine is overloaded by set_flags_for_changed_attribute. 
 ! See set_flags_for_changed_attribute for more details.
@@ -133,7 +133,7 @@ end subroutine set_flags_for_changed_integer_attribute
 !+
 ! Subroutine set_flags_for_changed_logical_attribute (ele, attrib, set_dependent)
 !
-! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+! Routine to mark an element as modified.
 !
 ! This routine is overloaded by set_flags_for_changed_attribute. 
 ! See set_flags_for_changed_attribute for more details.
@@ -226,7 +226,7 @@ end subroutine set_flags_for_changed_logical_attribute
 !+
 ! Subroutine set_flags_for_changed_lat_attribute (lat, set_dependent)
 !
-! Routine to mark a lattice as modified for use with "intelligent" bookkeeping.
+! Routine to mark a lattice as modified.
 !
 ! This routine is overloaded by set_flags_for_changed_attribute. 
 ! See set_flags_for_changed_attribute for more details.
@@ -262,7 +262,7 @@ end subroutine set_flags_for_changed_lat_attribute
 !+
 ! Subroutine set_flags_for_changed_real_attribute (ele, attrib, set_dependent)
 !
-! Routine to mark an element as modified for use with "intelligent" bookkeeping.
+! Routine to mark an element as modified.
 !
 ! This routine is overloaded by set_flags_for_changed_attribute. 
 ! See set_flags_for_changed_attribute for more details.

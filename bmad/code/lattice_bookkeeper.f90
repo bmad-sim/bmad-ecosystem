@@ -48,10 +48,6 @@ character(20), parameter :: r_name = 'lattice_bookkeeper'
 ! Set PTC E_MUON just to make sure it has the same value as bmad_com%electric_dipole_moment
 
 E_MUON = bmad_com%electric_dipole_moment
-
-! Turn on intelligent bookkeeping while this routine is running
-! If bookkeeping has not been intelligent then mark everything as stale.
-
 if (present(err_flag)) err_flag = .true.
 
 ! Cases where bookkeeping routines have to be called multiple times:
