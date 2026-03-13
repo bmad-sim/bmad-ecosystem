@@ -1,0 +1,16 @@
+no_digested
+
+parameter[lattice] = "GPU tracking drift benchmark"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+d1: drift, L = 10
+
+lat: line = (d1)
+
+use, lat

@@ -1,0 +1,18 @@
+no_digested
+
+parameter[lattice] = "GPU tracking quad with multiple multipoles"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! Quad with sextupole + octupole + skew sextupole + misalignment + fringe
+q1: quadrupole, L = 1.0, k1 = 0.8, b2 = 0.3, b3 = 0.1, a2 = 0.05,
+    x_offset = 5e-4, fringe_type = full
+
+lat: line = (q1)
+
+use, lat

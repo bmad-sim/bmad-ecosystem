@@ -29,6 +29,7 @@ set (EXE_SPECS
   cmake_files/cmake.fringe_test
   cmake_files/cmake.geometry_test
   cmake_files/cmake.girder_test
+  cmake_files/cmake.gpu_tracking_test
   cmake_files/cmake.hdf5_test
   cmake_files/cmake.mad_to_bmad_test
   cmake_files/cmake.mat6_calc_method_test
