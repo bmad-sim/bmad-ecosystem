@@ -1,0 +1,58 @@
+no_digested
+
+parameter[lattice] = "GPU tracking kitchen sink — all parameters"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! 1. Plain drift (L only)
+d_plain: drift, L = 2.0
+
+! 2. Drift with aperture
+d_aper: drift, L = 1.5,
+    x1_limit = 2e-4, x2_limit = 2e-4,
+    y1_limit = 2e-4, y2_limit = 2e-4
+
+! 3. Plain quadrupole (L, k1)
+q_plain: quadrupole, L = 0.5, k1 = 0.8
+
+! 4. Quad with misalignment (x_offset, y_offset, tilt)
+q_misalign: quadrupole, L = 0.4, k1 = 1.0,
+    x_offset = 3e-4, y_offset = -2e-4, tilt = 0.01
+
+! 5. Quad with fringe fields
+q_fringe: quadrupole, L = 0.6, k1 = 1.2, fringe_type = full
+
+! 6. Quad with magnetic multipoles (b2 sextupole, a2 skew sext, b3 octupole)
+q_mag_multi: quadrupole, L = 0.5, k1 = 0.9,
+    b2 = 0.3, a2 = 0.05, b3 = 0.1
+
+! 7. Quad with electric multipoles (a0_elec, b1_elec)
+q_elec: quadrupole, L = 0.5, k1 = 1.0,
+    a0_elec = 500, b1_elec = 200
+
+! 8. Quad with aperture
+q_aper: quadrupole, L = 0.5, k1 = 0.7,
+    x1_limit = 2e-4, x2_limit = 2e-4,
+    y1_limit = 2e-4, y2_limit = 2e-4
+
+! 9. Everything combined: fringe + misalign + tilt + mag multipoles + elec multipoles + aperture
+q_combo: quadrupole, L = 0.5, k1 = 1.0,
+    x_offset = 2e-4, y_offset = -1e-4, tilt = 0.005,
+    fringe_type = full,
+    b2 = 0.2, a2 = 0.03, b3 = 0.08,
+    a0_elec = 400, b1_elec = 150,
+    x1_limit = 3e-4, x2_limit = 3e-4,
+    y1_limit = 3e-4, y2_limit = 3e-4
+
+! 10. Another drift to let the beam propagate
+d_final: drift, L = 1.0
+
+lat: line = (d_plain, q_plain, d_aper, q_misalign, q_fringe,
+             q_mag_multi, q_elec, q_aper, q_combo, d_final)
+
+use, lat
