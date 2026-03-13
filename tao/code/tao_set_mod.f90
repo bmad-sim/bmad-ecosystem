@@ -1207,7 +1207,7 @@ else
   select case (who2)
   case ('random_engine')
     call downcase_string(value_str)
-    call match_word(unquote(value_str), random_engine_name, ix, .true., .false.)
+    call match_word(unquote(value_str), ran_engine_name, ix, .true., .false.)
     if (ix == 0) then
       call out_io (s_error$, r_name, 'INVALID RANDOM_ENGINE VALUE: ' // value_str)
       return
@@ -1216,7 +1216,7 @@ else
 
   case ('random_gauss_converter')
     call downcase_string(value_str)
-    call match_word(unquote(value_str), random_gauss_converter_name, ix, .true., .false.)
+    call match_word(unquote(value_str), ran_gauss_converter_name, ix, .true., .false.)
     if (ix == 0) then
       call out_io (s_error$, r_name, 'INVALID RANDOM_GAUSS_CONVERTER VALUE: ' // value_str)
       return

@@ -241,24 +241,40 @@ contains
 !-
 
 subroutine shell_sort(arr)
-real(rp), intent(inout) :: arr(:)
-real(rp) :: tmp
-integer :: n_arr, gap, i_s, j_s
+    implicit none
+    ! Sorts an array arr into ascending numerical order by Shell's method.
+    ! arr is replaced on output by its sorted rearrangement.
+    real(rp), dimension(:), intent(inout) :: arr
+    integer :: i, j, inc, n
+    real :: v
 
-n_arr = size(arr)
-gap = n_arr / 2
-do while (gap > 0)
-  do i_s = gap + 1, n_arr
-    tmp = arr(i_s)
-    j_s = i_s
-    do while (j_s > gap .and. arr(j_s - gap) > tmp)
-      arr(j_s) = arr(j_s - gap)
-      j_s = j_s - gap
-    enddo
-    arr(j_s) = tmp
-  enddo
-  gap = gap / 2
-enddo
+    n = size(arr)
+    inc = 1
+
+    ! Determine the starting increment using Knuth's 3*inc+1 sequence.
+    do
+        inc = 3 * inc + 1
+        if (inc > n) exit
+    end do
+
+    ! Loop over the partial sorts with diminishing increments.
+    do
+        inc = inc / 3
+        ! Outer loop of straight insertion sort for the current increment.
+        do i = inc + 1, n
+            v = arr(i)
+            j = i
+            ! Inner loop to insert arr(i) into the correct position in the sub-array.
+            do
+                if (arr(j - inc) <= v) exit
+                arr(j) = arr(j - inc)
+                j = j - inc
+                if (j <= inc) exit
+            end do
+            arr(j) = v
+        end do
+        if (inc <= 1) exit
+    end do
 
 end subroutine shell_sort
 
