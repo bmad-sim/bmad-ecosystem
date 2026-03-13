@@ -66,9 +66,10 @@ call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
 
-  ! GPU batch tracking for drift and quadrupole elements (opt-in via bmad_com%gpu_tracking_on).
-  ! Bypasses per-particle track1 dispatch for large bunches.
-  if (bmad_com%gpu_tracking_on .and. ele%tracking_method == bmad_standard$ .and. ele%is_on .and. &
+  ! GPU batch tracking (opt-in via bmad_com%gpu_tracking_on).
+  ! ele_gpu_eligible checks element type, tracking method, and is_on.
+  ! Runtime conditions (radiation, spin, direction) are checked here.
+  if (bmad_com%gpu_tracking_on .and. ele_gpu_eligible(ele) .and. &
       .not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on .and. &
       .not. bmad_com%spin_tracking_on .and. &
       bunch%particle(1)%direction == 1 .and. bunch%particle(1)%time_dir == 1) then

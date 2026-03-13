@@ -7,6 +7,7 @@ implicit none
 private
 
 public :: gpu_tracking_init
+public :: ele_gpu_eligible
 public :: track_bunch_thru_drift_gpu
 public :: track_bunch_thru_quad_gpu
 
@@ -90,6 +91,36 @@ endif
 #endif
 
 end subroutine
+
+!------------------------------------------------------------------------
+! ele_gpu_eligible — check if an element can be GPU-tracked
+!
+! Returns .true. if the element's intrinsic properties allow GPU tracking.
+! This checks element type, tracking method, and on/off state.
+! Runtime conditions (bmad_com flags, particle direction, wakefields)
+! are NOT checked here — those are evaluated at dispatch time.
+!
+! Currently supported element types: drift, quadrupole.
+!------------------------------------------------------------------------
+function ele_gpu_eligible(ele) result (eligible)
+type (ele_struct), intent(in) :: ele
+logical :: eligible
+
+eligible = .false.
+
+! Must use bmad_standard tracking
+if (ele%tracking_method /= bmad_standard$) return
+
+! Must be turned on
+if (.not. ele%is_on) return
+
+! Check supported element types
+select case (ele%key)
+case (drift$, quadrupole$)
+  eligible = .true.
+end select
+
+end function ele_gpu_eligible
 
 !------------------------------------------------------------------------
 ! track_bunch_thru_drift_gpu
