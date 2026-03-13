@@ -209,9 +209,8 @@ e_tot_ele = ele%value(e_tot$)
 
 has_misalign = ele%bookkeeping_state%has_misalign
 
-! Bail out if fringe fields are active
+! Fringe fields are handled on CPU (before/after GPU body tracking)
 call init_fringe_info(fringe_info, ele)
-if (fringe_info%has_fringe) return
 
 ! Get the quad gradient b1 and check for extra multipoles
 call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$, b1)
@@ -240,7 +239,18 @@ if (has_misalign) then
   enddo
 endif
 
-! AoS -> SoA extraction (now in body frame if misaligned)
+! Apply entrance fringe kick on CPU (after misalignment, before body tracking)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = first_track_edge$
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
+      if (bunch%particle(j)%state /= alive$) cycle
+    endif
+  enddo
+endif
+
+! AoS -> SoA extraction (now in body frame, after fringe)
 do j = 1, n
   vx(j)      = bunch%particle(j)%vec(1)
   vpx(j)     = bunch%particle(j)%vec(2)
@@ -280,6 +290,17 @@ enddo
 
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)
+
+! Apply exit fringe kick on CPU (after body tracking, before misalignment undo)
+if (fringe_info%has_fringe) then
+  fringe_info%particle_at = second_track_edge$
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
+      if (bunch%particle(j)%state /= alive$) cycle
+    endif
+  enddo
+endif
 
 ! Apply exit misalignment transform (body → lab frame) on CPU
 if (has_misalign) then
