@@ -33,7 +33,7 @@ type random_state_struct
   ! Params
   integer :: seed = 0
   real(sp) :: am = 0
-  integer :: gauss_converter = exact_gaussian$
+  integer :: gauss_converter = ziggurat$
   real(rp) :: gauss_sigma_cut = -1  ! Only used if positive.
   integer(i4_b) :: in_sobseq = 0
   integer(i4_b) :: ix_sobseq(sobseq_maxdim) = 0

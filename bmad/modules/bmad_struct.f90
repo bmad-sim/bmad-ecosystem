@@ -1161,8 +1161,8 @@ type beam_init_struct
   logical :: renorm_center = .true.          ! Renormalize centroid?
   logical :: renorm_sigma = .true.           ! Renormalize sigma?
   character(16) :: random_engine = 'pseudo'  ! Or 'quasi'. Random number engine to use. 
-  character(16) :: random_gauss_converter = 'exact'  
-                                             ! Or 'quick'. Uniform to gauss conversion method.
+  character(16) :: random_gauss_converter = 'ziggurat'  
+                                             ! Or 'quick' or 'exact'. Uniform to gauss conversion method.
   real(rp) :: random_sigma_cutoff = -1       ! Cut-off in sigmas.
   real(rp) :: a_norm_emit = 0                ! a-mode normalized emittance (emit * beta * gamma)
   real(rp) :: b_norm_emit = 0                ! b-mode normalized emittance (emit * beta * gamma)
@@ -1189,8 +1189,6 @@ type beam_init_struct
 end type
 
 
-character(8), parameter :: random_engine_name(2) = [character(8):: 'pseudo', 'quasi'] ! Case sensitive
-character(8), parameter :: random_gauss_converter_name(2) = [character(8):: 'exact', 'quick'] ! Case sensitive
 character(12), parameter :: beam_distribution_type_name(5) = [character(12):: &
                                     'Ellipse', 'KV', 'Grid', 'File', 'Ran_Gauss']
 

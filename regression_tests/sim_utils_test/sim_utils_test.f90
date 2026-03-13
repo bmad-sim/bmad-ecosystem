@@ -90,7 +90,7 @@ enddo
 
 call ran_seed_put (123)
 call ran_gauss(array, sigma_cut = 0.5_rp)
-write (1, '(a, 4f14.8)') '"Ran-Gauss-pseudo" ABS 1e-10 ', array
+write (1, '(a, 4f14.8)') '"Ran-Gauss-default" ABS 1e-10 ', array
 call ran_engine (set = 'quasi')
 do i = 1, size(array)
   call ran_gauss(array(i), sigma_cut = 0.5_rp)

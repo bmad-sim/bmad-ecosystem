@@ -40,7 +40,7 @@ real(rp) f, length, ang2
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r
-integer ix_lord, ix_super, ie1, ib1, indent, id
+integer :: ix_lord, ix_super, ie1, ib1, id, id2, id_del = 2
 integer, allocatable :: an_indexx(:), index_list(:)
 
 logical header_out, has_been_added, in_multi_region, have_expand_lattice_line, err, is_added
@@ -145,8 +145,7 @@ write (iu, '(a)')  '        SciBmad'
 write (iu, '(a)')  '    - Prefixes:'
 write (iu, '(a)')  '        SciBmad_'
 write (iu, '(a)')  ''
-
-indent = 4
+write (iu, '(a)')  '  facility:'
 
 ! Write element defs
 
@@ -165,85 +164,72 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$ .or. ele%key == girder$) cycle   ! Not currently handled
     if (ele%key == null_ele$) cycle
 
-    !!! multi_lord => pointer_to_multipass_lord (ele, ix_pass) 
-    !!! if (ele%lord_status == super_lord$ .and. ix_pass > 0) cycle
-    !!! if (ele%slave_status == super_slave$ .and. ix_pass > 1) cycle
-
-    !!!if (ele%slave_status == super_slave$) then
-    !!!  lord => pointer_to_lord(ele, 1)
-    !!!  slave => pointer_to_slave(lord, 1)
-    !!!  slave2 => pointer_to_slave(lord, lord%n_slave)
-    !!!  write (iu, '(2(a, i0), 2a)') '  slave_drift_', ib, '_', ele%ix_ele, ' = Drift(L = ', re_str(length) // ')'
-    !!!  cycle
-    !!!endif
-
-    !!! if (ix_pass > 0) cycle
-
     ! Do not write anything for elements that have a duplicate name.
 
     call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles_ptr)
     if (.not. has_been_added) cycle
-    id = indent + 2
+    id = 2 * id_del
+    id2 = id + id_del
 
     ele_name = pals_ele_name(ele)
     if (ie == 0) ele_name = 'begin' // int_str(ib+1)
-    call write_param_group(id, ele_name)
+    write (iu, '(a)')
+    call write_param(id, ele_name)
 
-    call write_param(id, '', 'kind', pals_ele_type(ele%key), .true.)
-    call write_logic_param(id, '', 'is_on', .true., ele%is_on, .true.)
+    call write_str_param(id, '', 'kind', pals_ele_type(ele%key))
+    call write_logic_param(id, '', 'is_on', .true., ele%is_on)
 
 
-    call write_param(id, '', 'label', quote(ele%type), header_out)
-    call write_param(id, '', 'alias', quote(ele%alias), header_out)
-    if (associated(ele%descrip)) call write_param(id, '', 'description', quote(ele%descrip), .true.)
+    call write_str_param(id, '', 'label', quote(ele%type), header_out)
+    call write_str_param(id, '', 'alias', quote(ele%alias), header_out)
+    if (associated(ele%descrip)) call write_str_param(id, '', 'description', quote(ele%descrip))
 
-    if (has_attribute(ele, 'L') .and. length /= 0) call write_real_param(id, '', 'L', length, .true.)
+    if (has_attribute(ele, 'L') .and. length /= 0) call write_real_param(id, '', 'L', length)
 
     if (ie == 0) then
       header_out = .false.
-      call write_real_param(id, 'ReferenceP', 'pc_ref', ele%value(p0c$), header_out)
-      call write_param(id, 'ReferenceP', 'species_ref: ', quote(openpmd_species_name(ele%ref_species)), header_out)
+      call write_real_param(id2, 'ReferenceP', 'pc_ref', ele%value(p0c$), header_out)
+      call write_str_param(id2, 'ReferenceP', 'species_ref: ', quote(openpmd_species_name(ele%ref_species)), header_out)
 
       header_out = .false.
-      write (iu, '(2a)') blank(1:id), '- TwissP:'
-      call write_real_param(id, 'TwissP', 'beta_a',  ele%a%beta, header_out)
-      call write_real_param(id, 'TwissP', 'beta_b',  ele%b%beta, header_out)
-      call write_real_param(id, 'TwissP', 'alpha_a', ele%a%alpha, header_out)
-      call write_real_param(id, 'TwissP', 'alpha_b', ele%b%alpha, header_out)
-      call write_real_param(id, 'TwissP', 'eta_x',   ele%x%eta, header_out)
-      call write_real_param(id, 'TwissP', 'eta_y',   ele%y%eta, header_out)
-      call write_real_param(id, 'TwissP', 'etap_x',  ele%x%etap, header_out)
-      call write_real_param(id, 'TwissP', 'etap_y',  ele%y%etap, header_out)
-      call write_real_param(id, 'TwissP', 'c_mat11', ele%c_mat(1,1), header_out)
-      call write_real_param(id, 'TwissP', 'c_mat12', ele%c_mat(1,2), header_out)
-      call write_real_param(id, 'TwissP', 'c_mat21', ele%c_mat(2,1), header_out)
-      call write_real_param(id, 'TwissP', 'c_mat22', ele%c_mat(2,2), header_out)
+      call write_real_param(id2, 'TwissP', 'beta_a',  ele%a%beta, header_out)
+      call write_real_param(id2, 'TwissP', 'beta_b',  ele%b%beta, header_out)
+      call write_real_param(id2, 'TwissP', 'alpha_a', ele%a%alpha, header_out)
+      call write_real_param(id2, 'TwissP', 'alpha_b', ele%b%alpha, header_out)
+      call write_real_param(id2, 'TwissP', 'eta_x',   ele%x%eta, header_out)
+      call write_real_param(id2, 'TwissP', 'eta_y',   ele%y%eta, header_out)
+      call write_real_param(id2, 'TwissP', 'etap_x',  ele%x%etap, header_out)
+      call write_real_param(id2, 'TwissP', 'etap_y',  ele%y%etap, header_out)
+      call write_real_param(id2, 'TwissP', 'c_mat11', ele%c_mat(1,1), header_out)
+      call write_real_param(id2, 'TwissP', 'c_mat12', ele%c_mat(1,2), header_out)
+      call write_real_param(id2, 'TwissP', 'c_mat21', ele%c_mat(2,1), header_out)
+      call write_real_param(id2, 'TwissP', 'c_mat22', ele%c_mat(2,2), header_out)
 
       orb => lat%particle_start
       header_out = .false.
-      call write_real_param(id, 'ParticleP', 'x',  orb%vec(1), header_out)
-      call write_real_param(id, 'ParticleP', 'px', orb%vec(2), header_out)
-      call write_real_param(id, 'ParticleP', 'y',  orb%vec(3), header_out)
-      call write_real_param(id, 'ParticleP', 'py', orb%vec(4), header_out)
-      call write_real_param(id, 'ParticleP', 'z',  orb%vec(5), header_out)
-      call write_real_param(id, 'ParticleP', 'pz', orb%vec(6), header_out)
-      call write_real_param(id, 'ParticleP', 'spin_x', orb%spin(1), header_out)
-      call write_real_param(id, 'ParticleP', 'spin_y', orb%spin(2), header_out)
-      call write_real_param(id, 'ParticleP', 'spin_z', orb%spin(3), header_out)
+      call write_real_param(id2, 'ParticleP', 'x',  orb%vec(1), header_out)
+      call write_real_param(id2, 'ParticleP', 'px', orb%vec(2), header_out)
+      call write_real_param(id2, 'ParticleP', 'y',  orb%vec(3), header_out)
+      call write_real_param(id2, 'ParticleP', 'py', orb%vec(4), header_out)
+      call write_real_param(id2, 'ParticleP', 'z',  orb%vec(5), header_out)
+      call write_real_param(id2, 'ParticleP', 'pz', orb%vec(6), header_out)
+      call write_real_param(id2, 'ParticleP', 'spin_x', orb%spin(1), header_out)
+      call write_real_param(id2, 'ParticleP', 'spin_y', orb%spin(2), header_out)
+      call write_real_param(id2, 'ParticleP', 'spin_z', orb%spin(3), header_out)
     endif
 
     !
 
     if (ele%key == sbend$) then
       header_out = .false.
-      call write_real_param(id, 'ParticleP', 'g_ref',     ele%value(g$), header_out)
-      call write_real_param(id, 'ParticleP', 'tilt_ref',  ele%value(ref_tilt$), header_out)
-      call write_real_param(id, 'ParticleP', 'e1',        ele%value(e1$), header_out)
-      call write_real_param(id, 'ParticleP', 'e2',        ele%value(e2$), header_out)
-      call write_real_param(id, 'ParticleP', 'h1',        ele%value(h1$), header_out)
-      call write_real_param(id, 'ParticleP', 'h2',        ele%value(h2$), header_out)
-      call write_real_param(id, 'ParticleP', 'edge_int1', ele%value(fint$)*ele%value(hgap$), header_out)
-      call write_real_param(id, 'ParticleP', 'edge_int2', ele%value(fintx$)*ele%value(hgapx$), header_out)
+      call write_real_param(id2, 'ParticleP', 'g_ref',     ele%value(g$), header_out)
+      call write_real_param(id2, 'ParticleP', 'tilt_ref',  ele%value(ref_tilt$), header_out)
+      call write_real_param(id2, 'ParticleP', 'e1',        ele%value(e1$), header_out)
+      call write_real_param(id2, 'ParticleP', 'e2',        ele%value(e2$), header_out)
+      call write_real_param(id2, 'ParticleP', 'h1',        ele%value(h1$), header_out)
+      call write_real_param(id2, 'ParticleP', 'h2',        ele%value(h2$), header_out)
+      call write_real_param(id2, 'ParticleP', 'edge_int1', ele%value(fint$)*ele%value(hgap$), header_out)
+      call write_real_param(id2, 'ParticleP', 'edge_int2', ele%value(fintx$)*ele%value(hgapx$), header_out)
     endif
 
     ! Magnetic multipoles
@@ -267,11 +253,11 @@ do ib = 0, ubound(lat%branch, 1)
 
     do j = 0, ix
       if (length == 0) then
-        call write_real_param(id, 'MagneticMultipoleP', prefix // 's' // int_str(j) // 'L', f * factorial(j) * a_pole(j), header_out)
-        call write_real_param(id, 'MagneticMultipoleP', prefix // 'n' // int_str(j) // 'L', f * factorial(j) * b_pole(j), header_out)
+        call write_real_param(id2, 'MagneticMultipoleP', prefix // 's' // int_str(j) // 'L', f * factorial(j) * a_pole(j), header_out)
+        call write_real_param(id2, 'MagneticMultipoleP', prefix // 'n' // int_str(j) // 'L', f * factorial(j) * b_pole(j), header_out)
       else
-        call write_real_param(id, 'MagneticMultipoleP', prefix // 's' // int_str(j), f * factorial(j) * a_pole(j), header_out)
-        call write_real_param(id, 'MagneticMultipoleP', prefix // 'n' // int_str(j), f * factorial(j) * b_pole(j), header_out)
+        call write_real_param(id2, 'MagneticMultipoleP', prefix // 's' // int_str(j), f * factorial(j) * a_pole(j), header_out)
+        call write_real_param(id2, 'MagneticMultipoleP', prefix // 'n' // int_str(j), f * factorial(j) * b_pole(j), header_out)
       endif
     enddo
 
@@ -281,21 +267,21 @@ do ib = 0, ubound(lat%branch, 1)
     header_out = .false.
 
     do j = 0, ix
-      call write_real_param(id, 'ElectricMultipoleP', 'Es' // int_str(j), factorial(j) * a_pole(j), header_out)
-      call write_real_param(id, 'ElectricMultipoleP', 'En' // int_str(j), factorial(j) * b_pole(j), header_out)
+      call write_real_param(id2, 'ElectricMultipoleP', 'Es' // int_str(j), factorial(j) * a_pole(j), header_out)
+      call write_real_param(id2, 'ElectricMultipoleP', 'En' // int_str(j), factorial(j) * b_pole(j), header_out)
     enddo
 
     !
 
     if (has_attribute(ele, 'X1_LIMIT')) then
       header_out = .false.
-      call write_real_param(id,   'ApertureP', 'x_min', -ele%value(x1_limit$), header_out)
-      call write_real_param(id,   'ApertureP', 'x_max',  ele%value(x2_limit$), header_out)
-      call write_real_param(id,   'ApertureP', 'y_min', -ele%value(y1_limit$), header_out)
-      call write_real_param(id,   'ApertureP', 'y_max',  ele%value(y2_limit$), header_out)
-      call write_switch_param(id, 'ApertureP', 'shape', 0, [character(16):: 'Auto', 'RECTANGULAR', 'ELLIPTICAL'], ele%aperture_type, header_out)
-      call write_switch_param(id, 'ApertureP', 'location', 1, [character(16):: 'ENTRANCE_END', 'EXIT_END', 'BOTH_ENDS', 'NOWHERE', 'EVERYWHERE'], ele%aperture_at, header_out)
-      call write_logic_param(id,  'ApertureP', 'aperture_shifts_with_body', .false., ele%offset_moves_aperture, header_out)
+      call write_real_param(id2,   'ApertureP', 'x_min', -ele%value(x1_limit$), header_out)
+      call write_real_param(id2,   'ApertureP', 'x_max',  ele%value(x2_limit$), header_out)
+      call write_real_param(id2,   'ApertureP', 'y_min', -ele%value(y1_limit$), header_out)
+      call write_real_param(id2,   'ApertureP', 'y_max',  ele%value(y2_limit$), header_out)
+      call write_switch_param(id2, 'ApertureP', 'shape', 0, [character(16):: 'Auto', 'RECTANGULAR', 'ELLIPTICAL'], ele%aperture_type, header_out)
+      call write_switch_param(id2, 'ApertureP', 'location', 1, [character(16):: 'ENTRANCE_END', 'EXIT_END', 'BOTH_ENDS', 'NOWHERE', 'EVERYWHERE'], ele%aperture_at, header_out)
+      call write_logic_param(id2,  'ApertureP', 'aperture_shifts_with_body', .false., ele%offset_moves_aperture, header_out)
     endif
 
     !
@@ -307,11 +293,11 @@ do ib = 0, ubound(lat%branch, 1)
       select case (ele%key)
       case (match$)
         call mat6_to_taylor(ele%vec0, ele%mat6, taylor)
-        call write_this_taylor(indent, ele, taylor)
+        call write_this_taylor(id2, ele, taylor)
         cycle
 
       case (taylor$)
-        call write_this_taylor(indent, ele, ele%taylor)
+        call write_this_taylor(id2, ele, ele%taylor)
         cycle
       end select
     end select
@@ -320,31 +306,31 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == patch$) then
       header_out = .false.
-      call write_real_param(id,   'PatchP', 'x_offset', ele%value(x_offset$), header_out)
-      call write_real_param(id,   'PatchP', 'y_offset', ele%value(y_offset$), header_out)
-      call write_real_param(id,   'PatchP', 'z_offset', ele%value(z_offset$), header_out)
-      call write_real_param(id,   'PatchP', 'x_rot',   -ele%value(y_pitch$), header_out)
-      call write_real_param(id,   'PatchP', 'y_rot',    ele%value(x_pitch$), header_out)
-      call write_real_param(id,   'PatchP', 'z_rot',    ele%value(tilt$), header_out)
-      call write_logic_param(id,  'PatchP', 'flexible', .false., is_true(ele%value(flexible$)), header_out)
-      call write_logic_param(id,  'PatchP', 'user_sets_length', .false., is_true(ele%value(user_sets_length$)), header_out)
-      call write_switch_param(id, 'PatchP', 'ref_coords', 2, [character(16):: 'entrance_end ', 'exit_end'], nint(ele%value(ref_coords$)), header_out)
+      call write_real_param(id2,   'PatchP', 'x_offset', ele%value(x_offset$), header_out)
+      call write_real_param(id2,   'PatchP', 'y_offset', ele%value(y_offset$), header_out)
+      call write_real_param(id2,   'PatchP', 'z_offset', ele%value(z_offset$), header_out)
+      call write_real_param(id2,   'PatchP', 'x_rot',   -ele%value(y_pitch$), header_out)
+      call write_real_param(id2,   'PatchP', 'y_rot',    ele%value(x_pitch$), header_out)
+      call write_real_param(id2,   'PatchP', 'z_rot',    ele%value(tilt$), header_out)
+      call write_logic_param(id2,  'PatchP', 'flexible', .false., is_true(ele%value(flexible$)), header_out)
+      call write_logic_param(id2,  'PatchP', 'user_sets_length', .false., is_true(ele%value(user_sets_length$)), header_out)
+      call write_switch_param(id2, 'PatchP', 'ref_coords', 2, [character(16):: 'entrance_end ', 'exit_end'], nint(ele%value(ref_coords$)), header_out)
 
 
       header_out = .false.
-      call write_real_param(id, 'ReferenceChangeP', 'dE_ref',    ele%value(E_tot_offset$), header_out)
-      call write_real_param(id, 'ReferenceChangeP', 'E_tot_ref', ele%value(E_tot_set$), header_out)
-      call write_real_param(id, 'ReferenceChangeP', 't_offset',  ele%value(t_offset$), header_out)
+      call write_real_param(id2, 'ReferenceChangeP', 'dE_ref',    ele%value(E_tot_offset$), header_out)
+      call write_real_param(id2, 'ReferenceChangeP', 'E_tot_ref', ele%value(E_tot_set$), header_out)
+      call write_real_param(id2, 'ReferenceChangeP', 't_offset',  ele%value(t_offset$), header_out)
 
 
     elseif (has_attribute(ele, 'X_PITCH')) then
       header_out = .false.
-      call write_real_param(id, 'BodyShiftP', 'x_offset', ele%value(x_offset$), header_out)
-      call write_real_param(id, 'BodyShiftP', 'y_offset', ele%value(y_offset$), header_out)
-      call write_real_param(id, 'BodyShiftP', 'z_offset', ele%value(z_offset$), header_out)
-      call write_real_param(id, 'BodyShiftP', 'x_rot',   -ele%value(y_pitch$), header_out)
-      call write_real_param(id, 'BodyShiftP', 'y_rot',    ele%value(x_pitch$), header_out)
-      call write_real_param(id, 'BodyShiftP', 'z_rot',    ele%value(tilt$), header_out)
+      call write_real_param(id2, 'BodyShiftP', 'x_offset', ele%value(x_offset$), header_out)
+      call write_real_param(id2, 'BodyShiftP', 'y_offset', ele%value(y_offset$), header_out)
+      call write_real_param(id2, 'BodyShiftP', 'z_offset', ele%value(z_offset$), header_out)
+      call write_real_param(id2, 'BodyShiftP', 'x_rot',   -ele%value(y_pitch$), header_out)
+      call write_real_param(id2, 'BodyShiftP', 'y_rot',    ele%value(x_pitch$), header_out)
+      call write_real_param(id2, 'BodyShiftP', 'z_rot',    ele%value(tilt$), header_out)
     endif
 
     !
@@ -352,18 +338,18 @@ do ib = 0, ubound(lat%branch, 1)
     if (has_attribute(ele, 'KS')) then
       header_out = .false.
       if (ele%field_master) then
-        call write_real_param(id, 'SolenoidP', 'Bsol', ele%value(bs_field$), header_out)
+        call write_real_param(id2, 'SolenoidP', 'Bsol', ele%value(bs_field$), header_out)
       else
-        call write_real_param(id, 'SolenoidP', 'Ksol', ele%value(ks$), header_out)
+        call write_real_param(id2, 'SolenoidP', 'Ksol', ele%value(ks$), header_out)
       endif
     endif
 
     !
 
     if (ele%key == lcavity$) then
-      call write_param_group(id, 'TrackingP')
-      call write_param_group(id+2, 'SciBmad')
-      call write_param(id+2, 'SciBmad', 'tracking_method', 'SaganCavity', .true.)
+      call write_param(id2, 'TrackingP')
+      call write_param(id+id_del, 'SciBmad')
+      call write_str_param(id+id_del, 'SciBmad', 'tracking_method', 'SaganCavity')
     endif
 
 
@@ -371,36 +357,36 @@ do ib = 0, ubound(lat%branch, 1)
       header_out = .false.
 
       if (is_true(ele%value(harmon_master$))) then
-        call write_real_param(id, 'RFP', 'rf_frequency', ele%value(rf_frequency$), header_out)
+        call write_real_param(id2, 'RFP', 'rf_frequency', ele%value(rf_frequency$), header_out)
       else
-        call write_real_param(id, 'RFP', 'rf_frequency', ele%value(rf_frequency$), header_out)
+        call write_real_param(id2, 'RFP', 'rf_frequency', ele%value(rf_frequency$), header_out)
       endif
 
       if (ele%key == lcavity$) then
         if (ele%field_master) then
-          call write_real_param(id, 'RFP', 'gradient', ele%value(gradient$) + ele%value(gradient_err$), header_out)
+          call write_real_param(id2, 'RFP', 'gradient', ele%value(gradient$) + ele%value(gradient_err$), header_out)
         else
-          call write_real_param(id, 'RFP', 'voltage', ele%value(voltage$) + ele%value(voltage_err$), header_out)
+          call write_real_param(id2, 'RFP', 'voltage', ele%value(voltage$) + ele%value(voltage_err$), header_out)
         endif
 
-        call write_real_param(id, 'RFP', 'phi0', ele%value(phi0$) + ele%value(phi0_err$), header_out)
-        call write_real_param(id, 'RFP', 'num_cells', ele%value(n_rf_steps$), header_out)
-        call write_real_param(id, 'RFP', 'SciBmad_L_active', ele%value(l_active$), header_out)
+        call write_real_param(id2, 'RFP', 'phi0', ele%value(phi0$) + ele%value(phi0_err$), header_out)
+        call write_real_param(id2, 'RFP', 'num_cells', ele%value(n_rf_steps$), header_out)
+        call write_real_param(id2, 'RFP', 'SciBmad_L_active', ele%value(l_active$), header_out)
 
       else
         if (ele%field_master) then
-          call write_real_param(id, 'RFP', 'gradient', ele%value(gradient$), header_out)
+          call write_real_param(id2, 'RFP', 'gradient', ele%value(gradient$), header_out)
         else
-          call write_real_param(id, 'RFP', 'voltage', ele%value(voltage$), header_out)
+          call write_real_param(id2, 'RFP', 'voltage', ele%value(voltage$), header_out)
         endif
 
-        call write_real_param(id, 'RFP', 'phi0', ele%value(phi0$), header_out)
-        call write_param(id, 'RFP', 'zero_phase', 'ABOVE_TRANSITION', header_out)
+        call write_real_param(id2, 'RFP', 'phi0', ele%value(phi0$), header_out)
+        call write_str_param(id2, 'RFP', 'zero_phase', 'ABOVE_TRANSITION', header_out)
       endif
 
 
       if (has_attribute(ele, 'CAVITY_TYPE')) then
-        call write_switch_param(id, 'RFP', 'cavity_type', 0, [character(20):: 'standing_wave', 'traveling_wave', 'standing_wave'], nint(ele%value(cavity_type$)), header_out)
+        call write_switch_param(id2, 'RFP', 'cavity_type', 0, [character(20):: 'standing_wave', 'traveling_wave', 'standing_wave'], nint(ele%value(cavity_type$)), header_out)
       endif
     endif
 
@@ -430,16 +416,16 @@ do ib = 0, ubound(lat%branch, 1)
       in_multi_region = .true.
       ix_r = mult_ele(ie)%ix_region
       write (iu, '(a)')
-      call write_param_group(id, 'BeamLine')
-      call write_param(id, 'BeamLine', 'name', 'multi_line_' // int_str(ix_r), .true.)
-      call write_param(id, 'BeamLine', 'multipass', 'true', .true.)
+      call write_param(id, 'BeamLine')
+      call write_str_param(id, 'BeamLine', 'name', 'multi_line_' // int_str(ix_r))
+      call write_str_param(id, 'BeamLine', 'multipass', 'true')
     endif
 
     if (mult_ele(ie)%ix_region /= ix_r) then
       call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #2! PLEASE REPORT THIS!')
     endif
 
-    call write_pals_element (line, iu, ele, lat)
+    call write_pals_element (id, ele, lat)
 
     if (mult_ele(ie)%region_stop_pt) in_multi_region = .false.
   enddo
@@ -513,17 +499,16 @@ do ib = 0, ubound(lat%branch, 1)
 
   write (iu, '(a)')
   name = downcase(branch%name)
-  if (name == ')') name = 'lat_line'
-  !!line = trim(name), ' = Beamline(['     !, quote(name), '- [', trim(pals_ele_name(branch%ele(0))), ','
-
+  call write_param(id, name)
   in_multi_region = .false.
+
   do ie = 1, branch%n_ele_track
     ele => branch%ele(ie)
 
     e_info => m_info%branch(ib)%ele(ie)
 
     if (.not. e_info%multipass) then
-      call write_pals_element (line, iu, ele, lat)
+      call write_pals_element (id, ele, lat)
       cycle
     endif
 
@@ -537,11 +522,11 @@ do ib = 0, ubound(lat%branch, 1)
     ! If entering new multipass region
     if (.not. in_multi_region) then
       in_multi_region = .true.
-        call write_param_group(id, 'multi_line_' // int_str(ix_r))
+        call write_param(id, 'multi_line_' // int_str(ix_r))
       if (m_ele%region_start_pt) then
         look_for = 'stop'
       else
-        call write_param(id+2, '', 'direction', '-1', .true.)
+        call write_str_param(id+id_del, '', 'direction', '-1')
         look_for = 'start'
       endif
     endif
@@ -615,17 +600,17 @@ enddo
 ix = index(lat%use_name, ',')
 if (ix == 0) ix = len_trim(lat%use_name)+1
 
-call write_param_group(id, quote(lat%use_name(1:ix-1)))
+call write_param(id, quote(lat%use_name(1:ix-1)))
 
 if (ele%key == fork$ .or. ele%key == photon_fork$) then
   header_out = .false.
-  !! call write_param(id, '', 'to_line', )
+  !! call write_str_param(id, '', 'to_line', )
 
   n = nint(ele%value(ix_to_branch$))
-  call write_param(id, '', 'to_line', trim(downcase(lat%branch(n)%name)), .true.)
+  call write_str_param(id, '', 'to_line', trim(downcase(lat%branch(n)%name)))
   if (ele%value(ix_to_element$) > 0) then
     i = nint(ele%value(ix_to_element$))
-    call write_param(id, '', 'to_element', trim(pals_ele_name(lat%branch(n)%ele(i))), .true.)
+    call write_str_param(id, '', 'to_element', trim(pals_ele_name(lat%branch(n)%ele(i))))
   endif
 endif
 
@@ -655,37 +640,33 @@ end function jbool
 !----------------------------------------------------------------------------------------------
 ! contains
 
-subroutine write_pals_element (line, iu, ele, lat)
+subroutine write_pals_element (idnt, ele, lat)
 
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
 type (ele_struct), pointer :: lord, m_lord, slave
 
-character(*) line
 character(40) lord_name
 
-integer iu, ix
+integer idnt, iu, ix, ii, ix_slave
 
 !
 
-!!!if (ele%slave_status == super_slave$) then
-!!!  if (ele%orientation == 1) then
-!!!    write (line, '(a, 2(a, i0), a)') ' slave_drift_'- ele%ix_branch, '_'- ele%ix_ele, ','
-!!!  else
-!!!    write (line, '(a, 2(a, i0), a)') ' reverse(slave_drift_'- ele%ix_branch, '_'- ele%ix_ele, '),'
-!!!  endif
-!!!
-!!!elseif (ele%slave_status == multipass_slave$) then
-!!!  lord => pointer_to_lord(ele, 1)
-!!!  write (line, '(4a)') ' '- trim(downcase(lord%name)), ','
-!!!
-!!!else
-  if (ele%orientation == 1) then
-    !! write (line, '(4a)') ' '- trim(pals_ele_name(ele)), ','
-  else
-    !! write (line, '(4a)') ' reverse('- trim(pals_ele_name(ele)), '),'
-  endif
-!!!endif
+if (ele%slave_status == super_slave$) then
+  do ii = 1, slave%n_lord
+    lord => pointer_to_lord(ele, ii, ix_slave_back = ix_slave)
+    if (lord%lord_status /= super_lord$) cycle
+    if (ix_slave /= 1) cycle
+    call write_param(id, lord%name)
+  enddo
+
+elseif (ele%slave_status == multipass_slave$) then
+  lord => pointer_to_lord(ele, 1)
+  call write_param(id, lord%name)
+
+else
+  call write_param(id, ele%name)
+endif
 
 end subroutine write_pals_element
 
@@ -850,6 +831,7 @@ type (nametable_struct) defexpr_nametab
 
 integer ix, j, iv, it
 
+character(100) name
 character(1000) c_str(40)
 
 ! Output is top down.
@@ -1105,23 +1087,36 @@ end function pals_attrib_name
 !------------------------------------------------------
 ! contains
 
-subroutine write_param(indnt, group_name, name, value, header_out)
+subroutine write_param(indnt, name)
 
 integer indnt
-character(*) group_name, name, value
-logical header_out
+character(*) name
+character(100) :: blank = ''
+
+!
+
+write (iu, '(4a)') blank(1:indnt), '- ', trim(name), ': '
 
 end subroutine write_param
 
 !------------------------------------------------------
 ! contains
 
-subroutine write_param_group(indnt, name)
+subroutine write_str_param(indnt, group_name, name, value, header_out)
 
 integer indnt
-character(*) name
+character(*) group_name, name, value
+character(100) :: blank = ''
+logical, optional :: header_out
 
-end subroutine write_param_group
+!
+
+if (value == '' .or. value == '""') return
+if (.not. logic_option(.true., header_out) .and. group_name /= '') write (iu, '(4a)') blank(1:indnt), '- ', trim(group_name), ':'  
+write (iu, '(5a)') blank(1:indnt+id_del), '- ', trim(name), ': ', trim(value)
+if (present(header_out)) header_out = .true.
+
+end subroutine write_str_param
 
 !------------------------------------------------------
 ! contains
@@ -1130,9 +1125,16 @@ subroutine write_real_param(indnt, group_name, name, value, header_out)
 
 real(rp) value
 integer indnt
-logical header_out
+logical, optional :: header_out
 character(*) group_name, name
+character(100) :: blank = ''
 
+!
+
+if (value == 0) return
+if (.not. logic_option(.true., header_out) .and. group_name /= '') write (iu, '(4a)') blank(1:indnt), '- ', trim(group_name), ':'  
+write (iu, '(5a)') blank(1:indnt+id_del), '- ', trim(name), ': ', re_str(value)
+if (present(header_out)) header_out = .true.
 
 end subroutine write_real_param
 
@@ -1141,10 +1143,20 @@ end subroutine write_real_param
 
 subroutine write_logic_param(indnt, group_name, name, default, value, header_out)
 
-logical default, value, header_out
+logical default, value
+logical, optional :: header_out
 integer indnt
 character(*) group_name, name
+character(100) :: blank = ''
 
+if (value .eqv. default) return
+if (.not. logic_option(.true., header_out) .and. group_name /= '') write (iu, '(4a)') blank(1:indnt), '- ', trim(group_name), ':'  
+if (value) then
+  write (iu, '(4a)') blank(1:indnt+id_del), '- ', trim(name), ': true'
+else
+  write (iu, '(4a)') blank(1:indnt+id_del), '- ', trim(name), ': false'
+endif
+if (present(header_out)) header_out = .true.
 
 end subroutine write_logic_param
 
@@ -1153,11 +1165,17 @@ end subroutine write_logic_param
 
 subroutine write_switch_param(indnt, group_name, name, default, value_names, value, header_out)
 
-
 integer indnt, default, value
-logical header_out
+logical, optional :: header_out
 character(*) group_name, name, value_names(:)
+character(100) :: blank = ''
 
+!
+
+if (value == default) return
+if (.not. logic_option(.true., header_out) .and. group_name /= '') write (iu, '(4a)') blank(1:indnt), '- ', trim(group_name), ':'  
+write (iu, '(5a)') blank(1:indnt+id_del), '- ', trim(name), ': ', value_names(value)
+if (present(header_out)) header_out = .true.
 
 end subroutine write_switch_param
 
