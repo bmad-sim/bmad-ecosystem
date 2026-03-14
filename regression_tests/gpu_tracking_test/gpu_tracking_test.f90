@@ -27,6 +27,8 @@
 !  22. Lcavity standing wave (ponderomotive kicks)
 !  23. Lcavity with phi0/phi0_err/voltage_err
 !  24. Lcavity with aperture
+!  25. Lcavity with fringe fields
+!  26. Lcavity fringe standing wave
 !-
 
 program gpu_tracking_test
@@ -253,6 +255,18 @@ call run_comparison_test('Test 23: Lcavity phase+voltage offsets', lat, tol, n_p
 ! ======================================================================
 call bmad_parser('lat_lcavity_aperture.bmad', lat)
 call run_aperture_test('Test 24: Lcavity with aperture', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 25: Lcavity with fringe fields (default fringe_type=full)
+! ======================================================================
+call bmad_parser('lat_lcavity_fringe.bmad', lat)
+call run_comparison_test('Test 25: Lcavity fringe', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 26: Lcavity with fringe fields (standing wave)
+! ======================================================================
+call bmad_parser('lat_lcavity_fringe_standing.bmad', lat)
+call run_comparison_test('Test 26: Lcavity fringe standing wave', lat, tol, n_pass, n_fail)
 
 ! ======================================================================
 ! Summary

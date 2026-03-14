@@ -84,7 +84,9 @@ interface
                                voltage, voltage_err, field_autoscale, &
                                rf_frequency, phi0_total, &
                                voltage_tot, l_active, &
-                               cavity_type, n_particles) bind(C, name='gpu_track_lcavity_')
+                               cavity_type, &
+                               fringe_at, charge_ratio, &
+                               n_particles) bind(C, name='gpu_track_lcavity_')
     use, intrinsic :: iso_c_binding
     real(C_DOUBLE), intent(inout) :: vx(*), vpx(*), vy(*), vpy(*), vz(*), vpz(*)
     integer(C_INT), intent(inout) :: state(*)
@@ -96,7 +98,10 @@ interface
     real(C_DOUBLE), value, intent(in) :: voltage, voltage_err, field_autoscale
     real(C_DOUBLE), value, intent(in) :: rf_frequency, phi0_total
     real(C_DOUBLE), value, intent(in) :: voltage_tot, l_active
-    integer(C_INT), value, intent(in) :: cavity_type, n_particles
+    integer(C_INT), value, intent(in) :: cavity_type
+    integer(C_INT), value, intent(in) :: fringe_at
+    real(C_DOUBLE), value, intent(in) :: charge_ratio
+    integer(C_INT), value, intent(in) :: n_particles
   end subroutine
 
   function gpu_tracking_available() result(avail) bind(C, name='gpu_tracking_available_')
@@ -172,6 +177,75 @@ end select
 end function ele_gpu_eligible
 
 !------------------------------------------------------------------------
+! bunch_to_soa — extract particle data from AoS bunch to SoA arrays
+!------------------------------------------------------------------------
+subroutine bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
+
+use, intrinsic :: iso_c_binding
+
+type (bunch_struct), intent(in) :: bunch
+integer,             intent(in) :: n
+real(C_DOUBLE),      intent(out) :: vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n)
+real(C_DOUBLE),      intent(out) :: beta_a(n), p0c_a(n), t_a(n)
+integer(C_INT),      intent(out) :: state_a(n)
+
+integer :: j
+
+do j = 1, n
+  vx(j)      = bunch%particle(j)%vec(1)
+  vpx(j)     = bunch%particle(j)%vec(2)
+  vy(j)      = bunch%particle(j)%vec(3)
+  vpy(j)     = bunch%particle(j)%vec(4)
+  vz(j)      = bunch%particle(j)%vec(5)
+  vpz(j)     = bunch%particle(j)%vec(6)
+  state_a(j) = bunch%particle(j)%state
+  beta_a(j)  = bunch%particle(j)%beta
+  p0c_a(j)   = bunch%particle(j)%p0c
+  t_a(j)     = bunch%particle(j)%t
+enddo
+
+end subroutine bunch_to_soa
+
+!------------------------------------------------------------------------
+! soa_to_bunch — write SoA arrays back to AoS bunch structure
+!
+! copy_beta/copy_p0c control optional write-back of beta and p0c.
+! lcavity: both true. quad/bend: copy_beta true. drift: both false.
+!------------------------------------------------------------------------
+subroutine soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                         copy_beta, copy_p0c)
+
+use, intrinsic :: iso_c_binding
+
+type (bunch_struct), intent(inout) :: bunch
+type (ele_struct),   intent(in)    :: ele
+integer,             intent(in)    :: n
+real(C_DOUBLE),      intent(in)    :: vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n)
+real(C_DOUBLE),      intent(in)    :: beta_a(n), p0c_a(n), t_a(n)
+integer(C_INT),      intent(in)    :: state_a(n)
+logical,             intent(in)    :: copy_beta, copy_p0c
+
+integer :: j
+
+do j = 1, n
+  bunch%particle(j)%vec(1)    = vx(j)
+  bunch%particle(j)%vec(2)    = vpx(j)
+  bunch%particle(j)%vec(3)    = vy(j)
+  bunch%particle(j)%vec(4)    = vpy(j)
+  bunch%particle(j)%vec(5)    = vz(j)
+  bunch%particle(j)%vec(6)    = vpz(j)
+  bunch%particle(j)%state     = state_a(j)
+  bunch%particle(j)%t         = t_a(j)
+  if (copy_beta) bunch%particle(j)%beta = beta_a(j)
+  if (copy_p0c)  bunch%particle(j)%p0c  = p0c_a(j)
+  bunch%particle(j)%location  = downstream_end$
+  bunch%particle(j)%ix_ele    = ele%ix_ele
+  bunch%particle(j)%ix_branch = ele%ix_branch
+enddo
+
+end subroutine soa_to_bunch
+
+!------------------------------------------------------------------------
 ! track_bunch_thru_drift_gpu
 !
 ! GPU batch tracking of all particles in a bunch through a drift.
@@ -204,18 +278,9 @@ allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
 allocate(state_a(n), beta_a(n), p0c_a(n), s_a(n), t_a(n))
 
 ! AoS -> SoA extraction
+call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
 do j = 1, n
-  vx(j)      = bunch%particle(j)%vec(1)
-  vpx(j)     = bunch%particle(j)%vec(2)
-  vy(j)      = bunch%particle(j)%vec(3)
-  vpy(j)     = bunch%particle(j)%vec(4)
-  vz(j)      = bunch%particle(j)%vec(5)
-  vpz(j)     = bunch%particle(j)%vec(6)
-  state_a(j) = bunch%particle(j)%state
-  beta_a(j)  = bunch%particle(j)%beta
-  p0c_a(j)   = bunch%particle(j)%p0c
-  s_a(j)     = bunch%particle(j)%s
-  t_a(j)     = bunch%particle(j)%t
+  s_a(j) = bunch%particle(j)%s
 enddo
 
 ! Call CUDA kernel
@@ -224,20 +289,10 @@ call gpu_track_drift(vx, vpx, vy, vpy, vz, vpz, &
                      mc2, length, n)
 
 ! SoA -> AoS write-back
+call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                   .false., .false.)
 do j = 1, n
-  bunch%particle(j)%vec(1) = vx(j)
-  bunch%particle(j)%vec(2) = vpx(j)
-  bunch%particle(j)%vec(3) = vy(j)
-  bunch%particle(j)%vec(4) = vpy(j)
-  bunch%particle(j)%vec(5) = vz(j)
-  bunch%particle(j)%vec(6) = vpz(j)
-  bunch%particle(j)%state  = state_a(j)
-  bunch%particle(j)%s      = s_a(j)
-  bunch%particle(j)%t      = t_a(j)
-  ! Set location to downstream end
-  bunch%particle(j)%location = downstream_end$
-  bunch%particle(j)%ix_ele   = ele%ix_ele
-  bunch%particle(j)%ix_branch = ele%ix_branch
+  bunch%particle(j)%s = s_a(j)
 enddo
 
 deallocate(vx, vpx, vy, vpy, vz, vpz)
@@ -392,18 +447,7 @@ do j = 0, nn
 enddo
 
 ! AoS -> SoA extraction (now in body frame, after fringe)
-do j = 1, n
-  vx(j)      = bunch%particle(j)%vec(1)
-  vpx(j)     = bunch%particle(j)%vec(2)
-  vy(j)      = bunch%particle(j)%vec(3)
-  vpy(j)     = bunch%particle(j)%vec(4)
-  vz(j)      = bunch%particle(j)%vec(5)
-  vpz(j)     = bunch%particle(j)%vec(6)
-  state_a(j) = bunch%particle(j)%state
-  beta_a(j)  = bunch%particle(j)%beta
-  p0c_a(j)   = bunch%particle(j)%p0c
-  t_a(j)     = bunch%particle(j)%t
-enddo
+call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
 
 ! All checks passed — proceed with GPU tracking
 did_track = .true.
@@ -418,20 +462,8 @@ call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
 
 ! SoA -> AoS write-back (still in body frame if misaligned)
-do j = 1, n
-  bunch%particle(j)%vec(1) = vx(j)
-  bunch%particle(j)%vec(2) = vpx(j)
-  bunch%particle(j)%vec(3) = vy(j)
-  bunch%particle(j)%vec(4) = vpy(j)
-  bunch%particle(j)%vec(5) = vz(j)
-  bunch%particle(j)%vec(6) = vpz(j)
-  bunch%particle(j)%state  = state_a(j)
-  bunch%particle(j)%beta   = beta_a(j)
-  bunch%particle(j)%t      = t_a(j)
-  bunch%particle(j)%location = downstream_end$
-  bunch%particle(j)%ix_ele   = ele%ix_ele
-  bunch%particle(j)%ix_branch = ele%ix_branch
-enddo
+call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                   .true., .false.)
 
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)
@@ -624,18 +656,7 @@ do j = 0, nn
 enddo
 
 ! AoS -> SoA
-do j = 1, n
-  vx(j)      = bunch%particle(j)%vec(1)
-  vpx(j)     = bunch%particle(j)%vec(2)
-  vy(j)      = bunch%particle(j)%vec(3)
-  vpy(j)     = bunch%particle(j)%vec(4)
-  vz(j)      = bunch%particle(j)%vec(5)
-  vpz(j)     = bunch%particle(j)%vec(6)
-  state_a(j) = bunch%particle(j)%state
-  beta_a(j)  = bunch%particle(j)%beta
-  p0c_a(j)   = bunch%particle(j)%p0c
-  t_a(j)     = bunch%particle(j)%t
-enddo
+call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
 
 did_track = .true.
 
@@ -650,20 +671,8 @@ call gpu_track_bend(vx, vpx, vy, vpy, vz, vpz, &
                     ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
 
 ! SoA -> AoS
-do j = 1, n
-  bunch%particle(j)%vec(1) = vx(j)
-  bunch%particle(j)%vec(2) = vpx(j)
-  bunch%particle(j)%vec(3) = vy(j)
-  bunch%particle(j)%vec(4) = vpy(j)
-  bunch%particle(j)%vec(5) = vz(j)
-  bunch%particle(j)%vec(6) = vpz(j)
-  bunch%particle(j)%state  = state_a(j)
-  bunch%particle(j)%beta   = beta_a(j)
-  bunch%particle(j)%t      = t_a(j)
-  bunch%particle(j)%location = downstream_end$
-  bunch%particle(j)%ix_ele   = ele%ix_ele
-  bunch%particle(j)%ix_branch = ele%ix_branch
-enddo
+call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                   .true., .false.)
 
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)
@@ -706,9 +715,10 @@ end subroutine track_bunch_thru_bend_gpu
 ! ponderomotive transverse kicks (standing wave), and coordinate
 ! transformations.
 !
-! CPU sandwich: misalignment, fringe kicks, coupler kicks.
+! CPU sandwich: misalignment. Fringe kicks handled on GPU.
 ! Falls back to CPU if: multipoles present, solenoid (ks/=0),
-!   zero length, zero rf_frequency, absolute time tracking.
+!   zero length, zero rf_frequency, absolute time tracking,
+!   coupler kicks (coupler_strength /= 0).
 !------------------------------------------------------------------------
 subroutine track_bunch_thru_lcavity_gpu (bunch, ele, param, did_track)
 
@@ -726,6 +736,8 @@ real(rp) :: mc2, phi0_total
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 logical :: has_misalign
+integer :: i_fringe_at
+real(rp) :: charge_ratio_val
 type (ele_struct), pointer :: lord
 type (rf_stair_step_struct), pointer :: step
 
@@ -766,8 +778,14 @@ if (ix_elec_max > -1) return
 ! Check for coupler kicks → CPU
 if (ele%value(coupler_strength$) /= 0) return
 
-! Fringe kicks → CPU (lcavity fringe is element-specific, inside step loop)
-if (nint(ele%value(fringe_type$)) /= none$) return
+! Compute fringe parameters (fringe is handled on GPU)
+if (nint(lord%value(fringe_type$)) == none$) then
+  i_fringe_at = 0
+else
+  i_fringe_at = nint(lord%value(fringe_at$))
+  if (i_fringe_at < 1 .or. i_fringe_at > 3) i_fringe_at = 0
+endif
+charge_ratio_val = charge_of(bunch%particle(1)%species) / (2.0_rp * charge_of(lord%ref_species))
 
 mc2 = mass_of(bunch%particle(1)%species)
 n_steps = nint(lord%value(n_rf_steps$))
@@ -804,19 +822,8 @@ if (has_misalign) then
   enddo
 endif
 
-! AoS → SoA extraction
-do j = 1, n
-  vx(j)      = bunch%particle(j)%vec(1)
-  vpx(j)     = bunch%particle(j)%vec(2)
-  vy(j)      = bunch%particle(j)%vec(3)
-  vpy(j)     = bunch%particle(j)%vec(4)
-  vz(j)      = bunch%particle(j)%vec(5)
-  vpz(j)     = bunch%particle(j)%vec(6)
-  state_a(j) = bunch%particle(j)%state
-  beta_a(j)  = bunch%particle(j)%beta
-  p0c_a(j)   = bunch%particle(j)%p0c
-  t_a(j)     = bunch%particle(j)%t
-enddo
+! AoS -> SoA extraction
+call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
 
 did_track = .true.
 
@@ -832,24 +839,12 @@ call gpu_track_lcavity(vx, vpx, vy, vpy, vz, vpz, &
                        ele%value(rf_frequency$), phi0_total, &
                        lord%value(voltage_tot$), lord%value(l_active$), &
                        int(nint(lord%value(cavity_type$)), C_INT), &
+                       int(i_fringe_at, C_INT), charge_ratio_val, &
                        int(n, C_INT))
 
-! SoA → AoS write-back
-do j = 1, n
-  bunch%particle(j)%vec(1) = vx(j)
-  bunch%particle(j)%vec(2) = vpx(j)
-  bunch%particle(j)%vec(3) = vy(j)
-  bunch%particle(j)%vec(4) = vpy(j)
-  bunch%particle(j)%vec(5) = vz(j)
-  bunch%particle(j)%vec(6) = vpz(j)
-  bunch%particle(j)%state  = state_a(j)
-  bunch%particle(j)%beta   = beta_a(j)
-  bunch%particle(j)%p0c    = p0c_a(j)
-  bunch%particle(j)%t      = t_a(j)
-  bunch%particle(j)%location = downstream_end$
-  bunch%particle(j)%ix_ele   = ele%ix_ele
-  bunch%particle(j)%ix_branch = ele%ix_branch
-enddo
+! SoA -> AoS write-back
+call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                   .true., .true.)
 
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)

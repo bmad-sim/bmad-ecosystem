@@ -69,13 +69,13 @@ b_multi: sbend, L = 1.0, g = 0.5, b2 = 0.3, a2 = 0.05, b3 = 0.1
 
 ! --- Lcavities ---
 
-! 15. Plain lcavity (standing wave, no fringe for GPU)
+! 15. Plain lcavity (standing wave, with fringe)
 lc_plain: lcavity, L = 1.0, rf_frequency = 1e9, gradient = 1e5,
-    n_rf_steps = 10, fringe_type = none
+    n_rf_steps = 10
 
 ! 16. Lcavity with misalignment + phase offsets
 lc_misalign: lcavity, L = 0.8, rf_frequency = 1e9, gradient = 8e4,
-    n_rf_steps = 10, fringe_type = none,
+    n_rf_steps = 10,
     x_offset = 2e-4, y_offset = -1e-4, tilt = 0.005,
     phi0 = 0.1, phi0_err = -0.05, voltage_err = 5e3
 

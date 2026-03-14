@@ -21,6 +21,19 @@
 #include <stdio.h>
 #include <string.h>
 
+/* --------------------------------------------------------------------------
+ * CUDA error checking macro.  Returns -1 from the calling function on error.
+ * Host wrappers (void) check the return value and issue a bare "return;".
+ * -------------------------------------------------------------------------- */
+#define CUDA_CHECK(call) do { \
+    cudaError_t err_ = (call); \
+    if (err_ != cudaSuccess) { \
+        fprintf(stderr, "[gpu_tracking] CUDA error: %s at %s:%d\n", \
+                cudaGetErrorString(err_), __FILE__, __LINE__); \
+        return -1; \
+    } \
+} while(0)
+
 /* Physical constants (must match Bmad values exactly) */
 #define C_LIGHT   2.99792458e8
 #define ALIVE_ST  1   /* alive$ */
@@ -36,6 +49,13 @@ static double *d_p0c     = NULL;
 static double *d_s       = NULL;
 static double *d_t       = NULL;
 static int     d_cap     = 0;          /* allocated capacity (particles) */
+
+/* Cached device buffers for multipole data */
+static double *d_a2  = NULL;
+static double *d_b2  = NULL;
+static double *d_ea2 = NULL;
+static double *d_eb2 = NULL;
+static double *d_cm  = NULL;
 
 /* --------------------------------------------------------------------------
  * ensure_buffers — (re-)allocate device arrays when size changes
@@ -90,6 +110,25 @@ __device__ __forceinline__ double sqrt_one_dev(double x)
 {
     double sq = sqrt(1.0 + x);
     return x / (sq + 1.0);
+}
+
+/* --------------------------------------------------------------------------
+ * Low energy z correction (matches low_energy_z_correction.f90).
+ * Returns the z increment for one integration step.
+ * -------------------------------------------------------------------------- */
+__device__ __forceinline__ double low_energy_z_correction_dev(
+    double pz_val, double step_len, double beta_val, double beta_ref,
+    double mc2, double e_tot_ele)
+{
+    if (mc2 * (beta_ref * pz_val) * (beta_ref * pz_val) < 3e-7 * e_tot_ele) {
+        /* Taylor expansion for small pz — avoids precision loss */
+        double mr = mc2 / e_tot_ele;
+        double b02 = beta_ref * beta_ref;
+        double f_tay = b02 * (2.0 * b02 - mr * mr * 0.5);
+        return step_len * pz_val * (1.0 - 1.5 * pz_val * b02 + pz_val * pz_val * f_tay) * mr * mr;
+    } else {
+        return step_len * (beta_val - beta_ref) / beta_ref;
+    }
 }
 
 /* =========================================================================
@@ -314,19 +353,8 @@ __global__ void quad_kernel(
         vy[i]  = cy * y0 + (sy / rel_p) * py0;
         vpy[i] = (k1_y * sy * rel_p) * y0 + cy * py0;
 
-        /* Low energy z correction (matches low_energy_z_correction.f90) */
-        {
-            double pz_val = vpz[i];
-            if (mc2 * (beta_ref * pz_val) * (beta_ref * pz_val) < 3e-7 * e_tot_ele) {
-                /* Taylor expansion for small pz — avoids precision loss */
-                double mr = mc2 / e_tot_ele;  /* mass / e_tot */
-                double b02 = beta_ref * beta_ref;
-                double f_tay = b02 * (2.0 * b02 - mr * mr * 0.5);
-                vz[i] += step_len * pz_val * (1.0 - 1.5 * pz_val * b02 + pz_val * pz_val * f_tay) * mr * mr;
-            } else {
-                vz[i] += step_len * (beta_val - beta_ref) / beta_ref;
-            }
-        }
+        /* Low energy z correction */
+        vz[i] += low_energy_z_correction_dev(vpz[i], step_len, beta_val, beta_ref, mc2, e_tot_ele);
 
         /* Magnetic multipole kick (half at last step, full otherwise) */
         if (has_mag) {
@@ -367,6 +395,87 @@ __global__ void quad_kernel(
     t_arr[i] = t_start + delta_ref_time + (z_start - vz[i]) / (beta_val * C_LIGHT);
 }
 
+/* --------------------------------------------------------------------------
+ * upload_particle_data — H→D transfer of core particle arrays
+ * -------------------------------------------------------------------------- */
+static int upload_particle_data(int n,
+    double *h_vx, double *h_vpx, double *h_vy, double *h_vpy,
+    double *h_vz, double *h_vpz,
+    int *h_state, double *h_beta, double *h_p0c, double *h_t)
+{
+    size_t db = (size_t)n * sizeof(double);
+    size_t ib = (size_t)n * sizeof(int);
+    CUDA_CHECK(cudaMemcpy(d_vec[0], h_vx,    db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_vec[1], h_vpx,   db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_vec[2], h_vy,    db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_vec[3], h_vpy,   db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_vec[4], h_vz,    db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_vec[5], h_vpz,   db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_state,  h_state,  ib, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_beta,   h_beta,   db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_p0c,    h_p0c,    db, cudaMemcpyHostToDevice));
+    CUDA_CHECK(cudaMemcpy(d_t,      h_t,      db, cudaMemcpyHostToDevice));
+    return 0;
+}
+
+/* --------------------------------------------------------------------------
+ * download_particle_data — D→H transfer of core particle arrays
+ *
+ * copy_beta/copy_p0c: set to 1 to also download beta/p0c arrays.
+ * Drift: both 0.  Quad/bend: copy_beta only when electric multipoles.
+ * Lcavity: both 1.
+ * -------------------------------------------------------------------------- */
+static int download_particle_data(int n,
+    double *h_vx, double *h_vpx, double *h_vy, double *h_vpy,
+    double *h_vz, double *h_vpz,
+    int *h_state, double *h_beta, double *h_p0c, double *h_t,
+    int copy_beta, int copy_p0c)
+{
+    size_t db = (size_t)n * sizeof(double);
+    size_t ib = (size_t)n * sizeof(int);
+    CUDA_CHECK(cudaMemcpy(h_vx,    d_vec[0], db, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_vpx,   d_vec[1], db, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_vy,    d_vec[2], db, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_vpy,   d_vec[3], db, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_vz,    d_vec[4], db, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost));
+    CUDA_CHECK(cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost));
+    if (copy_beta) { CUDA_CHECK(cudaMemcpy(h_beta, d_beta, db, cudaMemcpyDeviceToHost)); }
+    if (copy_p0c)  { CUDA_CHECK(cudaMemcpy(h_p0c, d_p0c,  db, cudaMemcpyDeviceToHost)); }
+    return 0;
+}
+
+/* --------------------------------------------------------------------------
+ * upload_multipole_data — H→D transfer of multipole coefficient arrays
+ * -------------------------------------------------------------------------- */
+static int upload_multipole_data(
+    double *h_a2, double *h_b2, double *h_cm,
+    double *h_ea2, double *h_eb2,
+    int ix_mag_max, int ix_elec_max)
+{
+    size_t multi_sz = N_MULTI * sizeof(double);
+    size_t cm_sz    = N_MULTI * N_MULTI * sizeof(double);
+
+    if (ix_mag_max >= 0 || ix_elec_max >= 0) {
+        if (!d_cm) { CUDA_CHECK(cudaMalloc((void**)&d_cm, cm_sz)); }
+        CUDA_CHECK(cudaMemcpy(d_cm, h_cm, cm_sz, cudaMemcpyHostToDevice));
+    }
+    if (ix_mag_max >= 0) {
+        if (!d_a2) { CUDA_CHECK(cudaMalloc((void**)&d_a2, multi_sz)); }
+        if (!d_b2) { CUDA_CHECK(cudaMalloc((void**)&d_b2, multi_sz)); }
+        CUDA_CHECK(cudaMemcpy(d_a2, h_a2, multi_sz, cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(d_b2, h_b2, multi_sz, cudaMemcpyHostToDevice));
+    }
+    if (ix_elec_max >= 0) {
+        if (!d_ea2) { CUDA_CHECK(cudaMalloc((void**)&d_ea2, multi_sz)); }
+        if (!d_eb2) { CUDA_CHECK(cudaMalloc((void**)&d_eb2, multi_sz)); }
+        CUDA_CHECK(cudaMemcpy(d_ea2, h_ea2, multi_sz, cudaMemcpyHostToDevice));
+        CUDA_CHECK(cudaMemcpy(d_eb2, h_eb2, multi_sz, cudaMemcpyHostToDevice));
+    }
+    return 0;
+}
+
 /* =========================================================================
  * HOST WRAPPER: gpu_track_drift
  *
@@ -384,20 +493,11 @@ extern "C" void gpu_track_drift_(
     if (ensure_buffers(n) != 0) return;
 
     size_t db = (size_t)n * sizeof(double);
-    size_t ib = (size_t)n * sizeof(int);
 
     /* Host -> Device */
-    cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[1], h_vpx, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[2], h_vy,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[3], h_vpy, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[4], h_vz,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[5], h_vpz, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_state,  h_state, ib, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_beta,   h_beta,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_s,      h_s,     db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
+    if (upload_particle_data(n, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                             h_state, h_beta, h_p0c, h_t) != 0) return;
+    cudaMemcpy(d_s, h_s, db, cudaMemcpyHostToDevice);
 
     /* Launch kernel */
     int threads = 256;
@@ -408,23 +508,10 @@ extern "C" void gpu_track_drift_(
     cudaDeviceSynchronize();
 
     /* Device -> Host */
-    cudaMemcpy(h_vx,    d_vec[0], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpx,   d_vec[1], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vy,    d_vec[2], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpy,   d_vec[3], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vz,    d_vec[4], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_s,      d_s,      db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
+    if (download_particle_data(n, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                               h_state, h_beta, h_p0c, h_t, 0, 0) != 0) return;
+    cudaMemcpy(h_s, d_s, db, cudaMemcpyDeviceToHost);
 }
-
-/* Cached device buffers for multipole data */
-static double *d_a2  = NULL;
-static double *d_b2  = NULL;
-static double *d_ea2 = NULL;
-static double *d_eb2 = NULL;
-static double *d_cm  = NULL;
 
 /* =========================================================================
  * HOST WRAPPER: gpu_track_quad
@@ -442,44 +529,11 @@ extern "C" void gpu_track_quad_(
 {
     if (ensure_buffers(n_particles) != 0) return;
 
-    size_t db = (size_t)n_particles * sizeof(double);
-    size_t ib = (size_t)n_particles * sizeof(int);
-    size_t multi_sz = N_MULTI * sizeof(double);
-    size_t cm_sz    = N_MULTI * N_MULTI * sizeof(double);
-
-    /* Host -> Device: particle data */
-    cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[1], h_vpx, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[2], h_vy,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[3], h_vpy, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[4], h_vz,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[5], h_vpz, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_state,  h_state, ib, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_beta,   h_beta,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
-
-    /* Ensure c_multi table is always uploaded if any multipoles present */
-    if (ix_mag_max >= 0 || ix_elec_max >= 0) {
-        if (!d_cm) cudaMalloc((void**)&d_cm, cm_sz);
-        cudaMemcpy(d_cm, h_cm, cm_sz, cudaMemcpyHostToDevice);
-    }
-
-    /* Host -> Device: magnetic multipole data */
-    if (ix_mag_max >= 0) {
-        if (!d_a2) cudaMalloc((void**)&d_a2, multi_sz);
-        if (!d_b2) cudaMalloc((void**)&d_b2, multi_sz);
-        cudaMemcpy(d_a2, h_a2, multi_sz, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_b2, h_b2, multi_sz, cudaMemcpyHostToDevice);
-    }
-
-    /* Host -> Device: electric multipole data */
-    if (ix_elec_max >= 0) {
-        if (!d_ea2) cudaMalloc((void**)&d_ea2, multi_sz);
-        if (!d_eb2) cudaMalloc((void**)&d_eb2, multi_sz);
-        cudaMemcpy(d_ea2, h_ea2, multi_sz, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_eb2, h_eb2, multi_sz, cudaMemcpyHostToDevice);
-    }
+    /* Host -> Device */
+    if (upload_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                             h_state, h_beta, h_p0c, h_t) != 0) return;
+    if (upload_multipole_data(h_a2, h_b2, h_cm, h_ea2, h_eb2,
+                              ix_mag_max, ix_elec_max) != 0) return;
 
     /* Launch kernel */
     int threads = 256;
@@ -492,19 +546,10 @@ extern "C" void gpu_track_quad_(
         d_ea2, d_eb2, ix_elec_max);
     cudaDeviceSynchronize();
 
-    /* Device -> Host */
-    cudaMemcpy(h_vx,    d_vec[0], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpx,   d_vec[1], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vy,    d_vec[2], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpy,   d_vec[3], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vz,    d_vec[4], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
-    /* Electric kicks can modify beta and pz — copy back */
-    if (ix_elec_max >= 0) {
-        cudaMemcpy(h_beta, d_beta, db, cudaMemcpyDeviceToHost);
-    }
+    /* Device -> Host (electric kicks can modify beta) */
+    if (download_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                               h_state, h_beta, h_p0c, h_t,
+                               (ix_elec_max >= 0), 0) != 0) return;
 }
 
 /* =========================================================================
@@ -681,17 +726,7 @@ __global__ void bend_kernel(
                      z33*r3*r3 + z34*r3*r4 + z44*r4*r4;
 
             /* Low energy z correction for k1 map */
-            {
-                double pz_v = vpz[i];
-                if (mc2 * (beta_ref * pz_v) * (beta_ref * pz_v) < 3e-7 * e_tot_ele) {
-                    double mr = mc2 / e_tot_ele;
-                    double b02 = beta_ref * beta_ref;
-                    double f_tay = b02 * (2.0*b02 - mr*mr*0.5);
-                    vz[i] += step_len * pz_v * (1.0 - 1.5*pz_v*b02 + pz_v*pz_v*f_tay) * mr*mr;
-                } else {
-                    vz[i] += step_len * (beta_val - beta_ref) / beta_ref;
-                }
-            }
+            vz[i] += low_energy_z_correction_dev(vpz[i], step_len, beta_val, beta_ref, mc2, e_tot_ele);
 
         /* ---- Branch 2: g=0 and dg=0 → pure drift ---- */
         } else if ((g == 0.0 && dg == 0.0) || step_len == 0.0) {
@@ -840,40 +875,11 @@ extern "C" void gpu_track_bend_(
 {
     if (ensure_buffers(n_particles) != 0) return;
 
-    size_t db = (size_t)n_particles * sizeof(double);
-    size_t ib = (size_t)n_particles * sizeof(int);
-    size_t multi_sz = N_MULTI * sizeof(double);
-    size_t cm_sz    = N_MULTI * N_MULTI * sizeof(double);
-
-    /* Host -> Device: particle data */
-    cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[1], h_vpx, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[2], h_vy,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[3], h_vpy, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[4], h_vz,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[5], h_vpz, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_state,  h_state, ib, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_beta,   h_beta,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
-
-    /* Upload multipole data if present */
-    if (ix_mag_max >= 0 || ix_elec_max >= 0) {
-        if (!d_cm) cudaMalloc((void**)&d_cm, cm_sz);
-        cudaMemcpy(d_cm, h_cm, cm_sz, cudaMemcpyHostToDevice);
-    }
-    if (ix_mag_max >= 0) {
-        if (!d_a2) cudaMalloc((void**)&d_a2, multi_sz);
-        if (!d_b2) cudaMalloc((void**)&d_b2, multi_sz);
-        cudaMemcpy(d_a2, h_a2, multi_sz, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_b2, h_b2, multi_sz, cudaMemcpyHostToDevice);
-    }
-    if (ix_elec_max >= 0) {
-        if (!d_ea2) cudaMalloc((void**)&d_ea2, multi_sz);
-        if (!d_eb2) cudaMalloc((void**)&d_eb2, multi_sz);
-        cudaMemcpy(d_ea2, h_ea2, multi_sz, cudaMemcpyHostToDevice);
-        cudaMemcpy(d_eb2, h_eb2, multi_sz, cudaMemcpyHostToDevice);
-    }
+    /* Host -> Device */
+    if (upload_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                             h_state, h_beta, h_p0c, h_t) != 0) return;
+    if (upload_multipole_data(h_a2, h_b2, h_cm, h_ea2, h_eb2,
+                              ix_mag_max, ix_elec_max) != 0) return;
 
     /* Launch kernel */
     int threads = 256;
@@ -887,18 +893,10 @@ extern "C" void gpu_track_bend_(
         d_ea2, d_eb2, ix_elec_max);
     cudaDeviceSynchronize();
 
-    /* Device -> Host */
-    cudaMemcpy(h_vx,    d_vec[0], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpx,   d_vec[1], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vy,    d_vec[2], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpy,   d_vec[3], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vz,    d_vec[4], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
-    if (ix_elec_max >= 0) {
-        cudaMemcpy(h_beta, d_beta, db, cudaMemcpyDeviceToHost);
-    }
+    /* Device -> Host (electric kicks can modify beta) */
+    if (download_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                               h_state, h_beta, h_p0c, h_t,
+                               (ix_elec_max >= 0), 0) != 0) return;
 }
 
 /* =========================================================================
@@ -920,6 +918,51 @@ __device__ __forceinline__ double dpc_given_dE_dev(double pc_old, double mc2, do
     return sqrt(pc_old * pc_old + del2) - pc_old;
 }
 
+/* Device helper: lcavity fringe kick (entrance or exit)
+ * Matches track_a_lcavity.f90 fringe_kick subroutine (lines 232-301)
+ * for GPU case: body_dir=1, time_dir=1.
+ * edge: +1 for entrance, -1 for exit.
+ */
+__device__ void lcavity_fringe_kick_dev(
+    double &x, double &px, double &y, double &py, double &z, double &pz,
+    double &beta_val, double p0c, double mc2,
+    int edge,
+    double gradient_tot,
+    double charge_ratio,
+    double rf_frequency, double phi0_total)
+{
+    double particle_time = -z / (beta_val * C_LIGHT);
+    double phase = TWOPI * (phi0_total + particle_time * rf_frequency);
+
+    double ez_field = gradient_tot * cos(phase);
+    double rf_omega = TWOPI * rf_frequency / C_LIGHT;
+    double dez_dz_field = gradient_tot * sin(phase) * rf_omega;
+
+    double ff = edge * charge_ratio;
+    double f = ff / p0c;
+
+    double dE = -ff * 0.5 * dez_dz_field * (x * x + y * y);
+
+    double pc = p0c * (1.0 + pz);
+    double pz_end = pz + dpc_given_dE_dev(pc, mc2, dE) / p0c;
+
+    /* to_energy_coords */
+    z = z / beta_val;
+    pz = (1.0 + pz) / beta_val;
+
+    /* kicks in energy coords */
+    px = px - f * ez_field * x;
+    py = py - f * ez_field * y;
+    pz = pz + dE / p0c;
+
+    /* to_momentum_coords */
+    double pc_new = (1.0 + pz_end) * p0c;
+    double beta_new = pc_new / (p0c * pz);
+    z = z * beta_new;
+    pz = pz_end;
+    beta_val = beta_new;
+}
+
 __global__ void lcavity_kernel(
     double *vx, double *vpx, double *vy, double *vpy, double *vz, double *vpz,
     int *state, double *beta_arr, double *p0c_arr, double *t_arr,
@@ -935,6 +978,8 @@ __global__ void lcavity_kernel(
     double phi0_total,      /* phi0 + phi0_err + phi0_multipass (precomputed) */
     double voltage_tot, double l_active,
     int cavity_type,        /* 1=standing_wave, 2=traveling_wave */
+    int fringe_at,          /* 0=none, 1=entrance, 2=exit, 3=both */
+    double charge_ratio,    /* charge_of(species) / (2 * charge_of(ref_species)) */
     int n_particles)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -974,6 +1019,13 @@ __global__ void lcavity_kernel(
 
             double dt = ds / (beta_val * ps_rel * C_LIGHT);
             t += dt;
+        }
+
+        /* ---- Entrance fringe: step 0, after drift, before energy kick ---- */
+        if (ix == 0 && (fringe_at & 1) && l_active > 0.0) {
+            double grad_tot = voltage_tot * field_autoscale / l_active;
+            lcavity_fringe_kick_dev(x, px, y, py, z, pz, beta_val, p0c, mc2,
+                +1, grad_tot, charge_ratio, rf_frequency, phi0_total);
         }
 
         /* ---- Stair-step kick (not at phantom step) ---- */
@@ -1042,6 +1094,13 @@ __global__ void lcavity_kernel(
                 t -= dzp / (C_LIGHT * beta_val);
             }
         }
+
+        /* ---- Exit fringe: step n_rf_steps, after energy kick ---- */
+        if (ix == n_rf_steps && (fringe_at & 2) && l_active > 0.0) {
+            double grad_tot = voltage_tot * field_autoscale / l_active;
+            lcavity_fringe_kick_dev(x, px, y, py, z, pz, beta_val, p0c, mc2,
+                -1, grad_tot, charge_ratio, rf_frequency, phi0_total);
+        }
     }
 
     /* Write back */
@@ -1103,28 +1162,20 @@ extern "C" void gpu_track_lcavity_(
     double voltage, double voltage_err, double field_autoscale,
     double rf_frequency, double phi0_total,
     double voltage_tot, double l_active,
-    int cavity_type, int n_particles)
+    int cavity_type,
+    int fringe_at, double charge_ratio,
+    int n_particles)
 {
     if (ensure_buffers(n_particles) != 0) return;
 
     int n_steps_total = n_rf_steps + 2;  /* indices 0..n_rf_steps+1 */
     if (ensure_step_buffers(n_steps_total) != 0) return;
 
-    size_t db = (size_t)n_particles * sizeof(double);
-    size_t ib = (size_t)n_particles * sizeof(int);
     size_t sb = (size_t)n_steps_total * sizeof(double);
 
     /* Host -> Device: particle data */
-    cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[1], h_vpx, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[2], h_vy,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[3], h_vpy, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[4], h_vz,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_vec[5], h_vpz, db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_state,  h_state, ib, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_beta,   h_beta,  db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
+    if (upload_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                             h_state, h_beta, h_p0c, h_t) != 0) return;
 
     /* Host -> Device: step data */
     cudaMemcpy(d_step_s0,   h_step_s0,    sb, cudaMemcpyHostToDevice);
@@ -1144,20 +1195,14 @@ extern "C" void gpu_track_lcavity_(
         n_rf_steps,
         voltage, voltage_err, field_autoscale,
         rf_frequency, phi0_total, voltage_tot, l_active,
-        cavity_type, n_particles);
+        cavity_type,
+        fringe_at, charge_ratio,
+        n_particles);
     cudaDeviceSynchronize();
 
-    /* Device -> Host */
-    cudaMemcpy(h_vx,    d_vec[0], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpx,   d_vec[1], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vy,    d_vec[2], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpy,   d_vec[3], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vz,    d_vec[4], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_beta,   d_beta,   db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_p0c,    d_p0c,    db, cudaMemcpyDeviceToHost);
-    cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
+    /* Device -> Host (lcavity changes beta and p0c) */
+    if (download_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
+                               h_state, h_beta, h_p0c, h_t, 1, 1) != 0) return;
 }
 
 /* --------------------------------------------------------------------------

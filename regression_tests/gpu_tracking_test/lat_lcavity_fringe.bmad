@@ -1,6 +1,6 @@
 no_digested
 
-parameter[lattice] = "GPU tracking plain lcavity"
+parameter[lattice] = "GPU tracking lcavity fringe"
 
 beginning[beta_a] = 10
 beginning[beta_b] = 10
