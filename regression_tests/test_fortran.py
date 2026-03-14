@@ -53,6 +53,7 @@ fortran_tests = pytest.mark.parametrize(
         pytest.param("nonlin_test"),
         pytest.param("parse_test"),
         pytest.param("particle_species_test"),
+        pytest.param("perf_lsc"),
         pytest.param("patch_test"),
         pytest.param("photon_test"),
         pytest.param("ptc_test"),
