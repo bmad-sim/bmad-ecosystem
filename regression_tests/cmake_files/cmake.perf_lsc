@@ -1,0 +1,12 @@
+set (EXENAME perf_lsc)
+
+FILE (GLOB SRC_FILES "perf_lsc/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

@@ -1,2 +1,3 @@
 print, 'In sub_dir/sub.bmad'
-abz = 10;  call, file = sub2_dir/sub2.bmad; atc = 7
+setenv S2=sub2_dir
+abz = 10;  call, file = $S2/sub2.bmad; atc = 7

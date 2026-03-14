@@ -59,7 +59,7 @@ character(1) delim
 character(40) word_1, slice_start, slice_end, temp_ele_name
 character(40) word_2, name, this_name, old_parser_name
 character(80) debug_line
-character(280) parse_line_save, string, extra_ele_names
+character(280) parse_line_save, string, extra_ele_names, str1, str2
 character(*), parameter :: r_name = 'bmad_parser2'
 
 logical, optional :: make_mats6, err_flag
@@ -289,6 +289,21 @@ parsing_loop: do
 
     cycle parsing_loop
   endif
+
+  !-------------------------------------------
+  ! SETENV
+
+  if (word_1(:ix_word) == 'SETENV') then
+    call get_next_word(str1, ix_word, '=', delim, delim_found, .false., err_flag = err); if (err) return
+    call get_next_word(str2, ix_word, ' ', delim, delim_found, .false., err_flag = err); if (err) return
+    if (bp_com%parse_line /= '') then
+      call parser_error ('EXTRA STUFF ON SETENV LINE: ' // bp_com%parse_line)
+      bp_com%parse_line = ''
+    endif
+    call set_env(str1, str2, err)
+    if (err) call parser_error('ERROR SETTING ENVIRONMENT VARIABLE: ' // quote(str1) // ' TO: ' // quote(str2))
+    cycle parsing_loop
+  endif 
 
   !-------------------------------------------
   ! PARSER_DEBUG

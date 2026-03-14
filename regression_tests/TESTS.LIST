@@ -53,3 +53,4 @@ wall3d_test
 write_bmad_test
 write_foreign_test
 xraylib_test
+perf_lsc

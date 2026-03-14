@@ -66,6 +66,7 @@ set (EXE_SPECS
   cmake_files/cmake.write_bmad_test
   cmake_files/cmake.write_foreign_test
   cmake_files/cmake.xraylib_test
+  cmake_files/cmake.perf_lsc
 )
 
 set(SRC_DIRS

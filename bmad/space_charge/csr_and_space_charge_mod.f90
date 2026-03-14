@@ -1003,14 +1003,21 @@ implicit none
 
 type (ele_struct) ele
 type (csr_struct), target :: csr
-type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp), pointer :: f(:,:)
-real(rp) sx, sy, a, b, c, z_slice, factor, f00
-real(rp) radix, sr, z1, z2, rho0, drho_dz, dk0, atz1, atz2, bcd, abcz1, abcz2, b2cz1, b2cz2
-real(rp) sx2, sy2, g_z1, g_z2, h_z1, h_z2, alph, bet, ss, f1(0:2,0:2)
+real(rp) factor, f00, c_val, dz_half, z_center_i
+real(rp) sx2, sy2, g_z1_s, g_z2_s, h_z1_s, h_z2_s, alph, bet, ss, f1(0:2,0:2)
 
-integer i, j, sign_of_z_slice
+integer i, j, n_bin
+
+! Vectorized working arrays for inner loop over source slices
+real(rp), allocatable :: sx_v(:), sy_v(:), a_v(:), b_v(:)
+real(rp), allocatable :: charge_v(:), dcdz_v(:), z_center_v(:)
+real(rp), allocatable :: abs_z_v(:), z1_v(:), z2_v(:), rho0_v(:), drho_v(:)
+real(rp), allocatable :: radix_v(:), sr_v(:)
+real(rp), allocatable :: b2cz1_v(:), b2cz2_v(:), abcz1_v(:), abcz2_v(:)
+real(rp), allocatable :: atz1_v(:), atz2_v(:), bcd_v(:), dk0_v(:)
+integer, allocatable :: sign_v(:)
 
 character(*), parameter :: r_name = 'lsc_kick_params_calc'
 
@@ -1018,75 +1025,122 @@ character(*), parameter :: r_name = 'lsc_kick_params_calc'
 
 if (ele%space_charge_method /= slice$) return
 
+n_bin = space_charge_com%n_bin
+
 factor = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / &
                               (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+
+c_val = csr%gamma**2
+dz_half = csr%dz_slice / 2
+
+! Precompute j-dependent arrays (source slice properties, independent of kick index i)
+
+allocate(sx_v(n_bin), sy_v(n_bin), a_v(n_bin), b_v(n_bin))
+allocate(charge_v(n_bin), dcdz_v(n_bin), z_center_v(n_bin))
+allocate(abs_z_v(n_bin), z1_v(n_bin), z2_v(n_bin), rho0_v(n_bin), drho_v(n_bin))
+allocate(radix_v(n_bin), sr_v(n_bin))
+allocate(b2cz1_v(n_bin), b2cz2_v(n_bin), abcz1_v(n_bin), abcz2_v(n_bin))
+allocate(atz1_v(n_bin), atz2_v(n_bin), bcd_v(n_bin), dk0_v(n_bin))
+allocate(sign_v(n_bin))
+
+do j = 1, n_bin
+  sx_v(j) = csr%slice(j)%sig_x
+  sy_v(j) = csr%slice(j)%sig_y
+  charge_v(j) = csr%slice(j)%charge
+  dcdz_v(j) = csr%slice(j)%dcharge_density_dz
+  z_center_v(j) = csr%slice(j)%z_center
+enddo
+
+! Quantities that depend only on the source slice (j), not on kick slice (i)
+a_v = sx_v * sy_v
+b_v = csr%gamma * (sx_v**2 + sy_v**2) / (sx_v + sy_v)
+radix_v = -b_v**2 + 4 * a_v * c_val
+sr_v = sqrt(abs(radix_v))
 
 ! Compute the kick at the center of each bin
 ! i = index of slice where kick is computed
 
-do i = 1, space_charge_com%n_bin
+do i = 1, n_bin
+  z_center_i = csr%slice(i)%z_center
 
-  ! Loop over all slices and calculate kick at slice i due to slice j.
+  ! Vectorized computation of z-separations and signs
+  abs_z_v = abs(z_center_i - z_center_v)
 
-  do j = 1, space_charge_com%n_bin
-    slice => csr%slice(j)
-    sx = slice%sig_x
-    sy = slice%sig_y
-    sx2 = sx*sx
-    sy2 = sy*sy
-    a = sx * sy
-    b = csr%gamma * (sx2 + sy2) / (sx + sy)
-    c = csr%gamma**2
-
-    z_slice = csr%slice(i)%z_center - csr%slice(j)%z_center
-    sign_of_z_slice = sign_of(z_slice)
-
-    ! The kick is computed for z_slice positive and then the sign of the kick is corrected.
-    radix = -b**2 + 4 * a * c
-    sr = sqrt(abs(radix))
-    z1 = abs(z_slice) - csr%dz_slice / 2
-    z2 = abs(z_slice) + csr%dz_slice / 2
-    drho_dz = csr%slice(j)%dcharge_density_dz * sign_of_z_slice
-    rho0 = csr%slice(j)%charge / csr%dz_slice - drho_dz * abs(z_slice)
-
-    if (i == j) then ! Self slice kick
-      drho_dz = csr%slice(j)%dcharge_density_dz
-      rho0 = 0
-      z1 = 0
-      z2 = csr%dz_slice/2       ! Integrate over 1/2 the slice
-      sign_of_z_slice = -2      ! Factor of 2 accounts for 1/2 we did not integrate over.
-    endif
-
-    bcd = 2 * c * rho0 - b * drho_dz
-    abcz1 = a + b*z1 + c*z1**2
-    abcz2 = a + b*z2 + c*z2**2
-    b2cz1 = b + 2*c*z1
-    b2cz2 = b + 2*c*z2
-
-    if (radix > 0) then
-      atz1 = atan (b2cz1/sr) / sr
-      atz2 = atan (b2cz2/sr) / sr
+  do j = 1, n_bin
+    if (z_center_i > z_center_v(j)) then
+      sign_v(j) = 1
+    elseif (z_center_i < z_center_v(j)) then
+      sign_v(j) = -1
     else
-      atz1 = log((b2cz1 - sr) / (b2cz1 + sr)) / (2 * sr)
-      atz2 = log((b2cz2 - sr) / (b2cz2 + sr)) / (2 * sr)
+      sign_v(j) = 0
     endif
+  enddo
 
-    dk0 = factor * ((2 * atz2 * bcd + drho_dz * log(abcz2)) - (2 * atz1 * bcd + drho_dz * log(abcz1))) / (2 * c)
-    if (dk0 == 0) cycle
+  ! General case: compute z1, z2, drho, rho0 for all source slices
+  z1_v = abs_z_v - dz_half
+  z2_v = abs_z_v + dz_half
+  drho_v = dcdz_v * sign_v
+  rho0_v = charge_v / csr%dz_slice - drho_v * abs_z_v
 
-    csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sign_of_z_slice * dk0
+  ! Self-slice override (diagonal: i == j)
+  drho_v(i) = dcdz_v(i)
+  rho0_v(i) = 0
+  z1_v(i) = 0
+  z2_v(i) = dz_half
+  sign_v(i) = -2        ! Factor of 2 accounts for 1/2 we did not integrate over.
 
-    if (space_charge_com%lsc_kick_transverse_dependence) then
-      f00 = 1 / dk0
-      g_z1 = a * (b2cz1*bcd + 4*abcz1*atz1*bcd*c - drho_dz*radix) / (2*abcz1*c*radix)
-      g_z2 = a * (b2cz2*bcd + 4*abcz2*atz2*bcd*c - drho_dz*radix) / (2*abcz2*c*radix)
-      h_z1 = (b*b*b2cz1*bcd - 6*a*b2cz1*bcd*c - 4*abcz1*b2cz1*bcd*c - 24*abcz1**2*atz1*bcd*c**2 + drho_dz*radix**2 - 2*b*b2cz1*bcd*c*z1 - 2*b2cz1*bcd*(c*z1)**2)
-      h_z2 = (b*b*b2cz2*bcd - 6*a*b2cz2*bcd*c - 4*abcz2*b2cz2*bcd*c - 24*abcz2**2*atz2*bcd*c**2 + drho_dz*radix**2 - 2*b*b2cz2*bcd*c*z2 - 2*b2cz2*bcd*(c*z2)**2)
+  ! Vectorized intermediate computations
+  bcd_v = 2 * c_val * rho0_v - b_v * drho_v
+  abcz1_v = a_v + b_v * z1_v + c_val * z1_v**2
+  abcz2_v = a_v + b_v * z2_v + c_val * z2_v**2
+  b2cz1_v = b_v + 2 * c_val * z1_v
+  b2cz2_v = b_v + 2 * c_val * z2_v
 
-      alph = f00**2 * (g_z2 - g_z1)
-      bet = f00**3 * (g_z2 - g_z1)**2 + (f00 * a)**2 * (h_z2/abcz2**2 - h_z1/abcz1**2) / (4 * c * radix**2)
+  ! Compute atan for all elements (always safe), then override with log where radix <= 0
+  atz1_v = atan(b2cz1_v / sr_v) / sr_v
+  atz2_v = atan(b2cz2_v / sr_v) / sr_v
 
-      ss = 1.0_rp / sign_of_z_slice
+  do j = 1, n_bin
+    if (radix_v(j) <= 0) then
+      atz1_v(j) = log((b2cz1_v(j) - sr_v(j)) / (b2cz1_v(j) + sr_v(j))) / (2 * sr_v(j))
+      atz2_v(j) = log((b2cz2_v(j) - sr_v(j)) / (b2cz2_v(j) + sr_v(j))) / (2 * sr_v(j))
+    endif
+  enddo
+
+  ! Vectorized kick computation
+  dk0_v = factor * ((2 * atz2_v * bcd_v + drho_v * log(abcz2_v)) - &
+                     (2 * atz1_v * bcd_v + drho_v * log(abcz1_v))) / (2 * c_val)
+
+  ! Accumulate kick_lsc (sum over all source slices)
+  csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sum(sign_v * dk0_v)
+
+  ! Transverse dependence: scalar loop required for DA2 accumulation
+  if (space_charge_com%lsc_kick_transverse_dependence) then
+    do j = 1, n_bin
+      if (dk0_v(j) == 0) cycle
+
+      f00 = 1 / dk0_v(j)
+      sx2 = sx_v(j)**2
+      sy2 = sy_v(j)**2
+
+      g_z1_s = a_v(j) * (b2cz1_v(j)*bcd_v(j) + 4*abcz1_v(j)*atz1_v(j)*bcd_v(j)*c_val - drho_v(j)*radix_v(j)) / &
+               (2*abcz1_v(j)*c_val*radix_v(j))
+      g_z2_s = a_v(j) * (b2cz2_v(j)*bcd_v(j) + 4*abcz2_v(j)*atz2_v(j)*bcd_v(j)*c_val - drho_v(j)*radix_v(j)) / &
+               (2*abcz2_v(j)*c_val*radix_v(j))
+      h_z1_s = (b_v(j)*b_v(j)*b2cz1_v(j)*bcd_v(j) - 6*a_v(j)*b2cz1_v(j)*bcd_v(j)*c_val - &
+                4*abcz1_v(j)*b2cz1_v(j)*bcd_v(j)*c_val - 24*abcz1_v(j)**2*atz1_v(j)*bcd_v(j)*c_val**2 + &
+                drho_v(j)*radix_v(j)**2 - 2*b_v(j)*b2cz1_v(j)*bcd_v(j)*c_val*z1_v(j) - &
+                2*b2cz1_v(j)*bcd_v(j)*(c_val*z1_v(j))**2)
+      h_z2_s = (b_v(j)*b_v(j)*b2cz2_v(j)*bcd_v(j) - 6*a_v(j)*b2cz2_v(j)*bcd_v(j)*c_val - &
+                4*abcz2_v(j)*b2cz2_v(j)*bcd_v(j)*c_val - 24*abcz2_v(j)**2*atz2_v(j)*bcd_v(j)*c_val**2 + &
+                drho_v(j)*radix_v(j)**2 - 2*b_v(j)*b2cz2_v(j)*bcd_v(j)*c_val*z2_v(j) - &
+                2*b2cz2_v(j)*bcd_v(j)*(c_val*z2_v(j))**2)
+
+      alph = f00**2 * (g_z2_s - g_z1_s)
+      bet = f00**3 * (g_z2_s - g_z1_s)**2 + (f00 * a_v(j))**2 * &
+            (h_z2_s/abcz2_v(j)**2 - h_z1_s/abcz1_v(j)**2) / (4 * c_val * radix_v(j)**2)
+
+      ss = 1.0_rp / sign_v(j)
       f1(0,0) = ss * f00
       f1(0,1) = ss * alph / (2 * sy2)
       f1(0,2) = ss * (alph + 2*bet) / (8 * sy2**2)
@@ -1105,10 +1159,15 @@ do i = 1, space_charge_com%n_bin
       else
         f = da2_div(da2_mult(f1, f), f + f1)
       endif
-    endif
+    enddo
+  endif
 
-  enddo
 enddo
+
+deallocate(sx_v, sy_v, a_v, b_v, charge_v, dcdz_v, z_center_v)
+deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v, radix_v, sr_v)
+deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
+deallocate(sign_v)
 
 end subroutine lsc_kick_params_calc
 
