@@ -246,6 +246,112 @@ enddo
 end subroutine soa_to_bunch
 
 !------------------------------------------------------------------------
+! apply_misalign_to_bunch — apply misalignment transform to all alive particles
+!------------------------------------------------------------------------
+subroutine apply_misalign_to_bunch(bunch, ele, n, set_or_unset)
+
+type (bunch_struct), intent(inout) :: bunch
+type (ele_struct),   intent(in)    :: ele
+integer,             intent(in)    :: n
+integer,             intent(in)    :: set_or_unset  ! set$ or unset$
+
+integer :: j
+
+do j = 1, n
+  if (bunch%particle(j)%state == alive$) then
+    call offset_particle(ele, set_or_unset, bunch%particle(j), set_hvkicks = .false.)
+  endif
+enddo
+
+end subroutine apply_misalign_to_bunch
+
+!------------------------------------------------------------------------
+! apply_fringe_to_bunch — apply fringe kicks to all alive particles
+!------------------------------------------------------------------------
+subroutine apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, particle_at)
+
+type (bunch_struct),              intent(inout) :: bunch
+type (ele_struct),                intent(in)    :: ele
+type (lat_param_struct),          intent(in)    :: param
+integer,                          intent(in)    :: n
+type (fringe_field_info_struct),  intent(inout) :: fringe_info
+integer,                          intent(in)    :: particle_at
+
+integer :: j
+
+fringe_info%particle_at = particle_at
+do j = 1, n
+  if (bunch%particle(j)%state == alive$) then
+    call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
+    if (bunch%particle(j)%state /= alive$) cycle
+  endif
+enddo
+
+end subroutine apply_fringe_to_bunch
+
+!------------------------------------------------------------------------
+! precompute_multipole_arrays — compute scaled multipole coefficients for CUDA
+!
+! Computes a2/b2 (magnetic), ea2/eb2 (electric), and cm (c_multi) arrays
+! from the raw multipole data.  These include all element-level scaling
+! factors; per-particle factors (1/beta for electric, (1+g*x) for bends)
+! are applied in the CUDA kernels.
+!------------------------------------------------------------------------
+subroutine precompute_multipole_arrays(particle1, ele, &
+    ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec, &
+    ele_length, n_step, &
+    a2_arr, b2_arr, ea2_arr, eb2_arr, cm_arr)
+
+use, intrinsic :: iso_c_binding
+
+type (coord_struct),  intent(in)  :: particle1
+type (ele_struct),    intent(in)  :: ele
+integer,              intent(in)  :: ix_mag_max, ix_elec_max, n_step
+real(rp),             intent(in)  :: an(0:), bn(0:)
+real(rp),             intent(in)  :: an_elec(0:), bn_elec(0:)
+real(rp),             intent(in)  :: ele_length
+real(C_DOUBLE),       intent(out) :: a2_arr(0:n_pole_maxx), b2_arr(0:n_pole_maxx)
+real(C_DOUBLE),       intent(out) :: ea2_arr(0:n_pole_maxx), eb2_arr(0:n_pole_maxx)
+real(C_DOUBLE),       intent(out) :: cm_arr(0:n_pole_maxx, 0:n_pole_maxx)
+
+integer :: nn, mm
+real(rp) :: r_ratio, r_step, step_len_val, f_charge, f_elec
+
+a2_arr = 0; b2_arr = 0; ea2_arr = 0; eb2_arr = 0; cm_arr = 0
+
+r_ratio = ele%value(p0c$) / particle1%p0c
+r_step = 1.0_rp / n_step
+step_len_val = ele_length / n_step
+
+! Magnetic multipoles
+if (ix_mag_max > -1) then
+  f_charge = particle1%direction * ele%orientation * &
+             charge_to_mass_of(particle1%species) / charge_to_mass_of(ele%ref_species)
+  do nn = 0, ix_mag_max
+    a2_arr(nn) = r_ratio * an(nn) * f_charge * r_step
+    b2_arr(nn) = r_ratio * bn(nn) * f_charge * r_step
+  enddo
+endif
+
+! Electric multipoles (1/beta applied per-particle in kernel)
+if (ix_elec_max > -1) then
+  f_elec = charge_of(particle1%species) / particle1%p0c
+  do nn = 0, ix_elec_max
+    ea2_arr(nn) =  r_ratio * an_elec(nn) * f_elec * step_len_val
+    eb2_arr(nn) = -r_ratio * bn_elec(nn) * f_elec * step_len_val
+  enddo
+endif
+
+! c_multi coefficient table
+do nn = 0, max(ix_mag_max, ix_elec_max)
+  do mm = 0, nn
+    cm_arr(nn, mm) = c_multi(nn, mm, .true.)
+  enddo
+enddo
+
+end subroutine precompute_multipole_arrays
+
+!------------------------------------------------------------------------
 ! track_bunch_thru_drift_gpu
 !
 ! GPU batch tracking of all particles in a bunch through a drift.
@@ -382,69 +488,14 @@ charge_dir = rel_tracking_charge * ele%orientation
 allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
 allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
 
-! Apply entrance misalignment transform (lab → body frame) on CPU
-if (has_misalign) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call offset_particle(ele, set$, bunch%particle(j), set_hvkicks = .false.)
-    endif
-  enddo
-endif
-
-! Apply entrance fringe kick on CPU (after misalignment, before body tracking)
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = first_track_edge$
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
-      if (bunch%particle(j)%state /= alive$) cycle
-    endif
-  enddo
-endif
+! Apply entrance misalignment and fringe on CPU
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
+if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, first_track_edge$)
 
 ! Precompute scaled multipole arrays for CUDA kernel
-! The kernel uses a2[n], b2[n] which include charge/scale factors.
-! Scale factor = r_step for full kicks (half is applied inside kernel).
-! The c_multi coefficients (with no_n_fact=.true.) are precomputed.
-a2_arr = 0
-b2_arr = 0
-ea2_arr = 0
-eb2_arr = 0
-cm_arr = 0
-has_elec_multipoles = (ix_elec_max > -1)
-r_ratio = ele%value(p0c$) / bunch%particle(1)%p0c
-r_step = real(bunch%particle(1)%time_dir, rp) / n_step
-step_len_val = ele_length * r_step
-
-! Precompute scaled magnetic multipole arrays for CUDA kernel
-if (has_mag_multipoles) then
-  f_charge = bunch%particle(1)%direction * ele%orientation * &
-             charge_to_mass_of(bunch%particle(1)%species) / charge_to_mass_of(ele%ref_species)
-  do nn = 0, ix_mag_max
-    a2_arr(nn) = r_ratio * an(nn) * f_charge * r_step
-    b2_arr(nn) = r_ratio * bn(nn) * f_charge * r_step
-  enddo
-endif
-
-! Precompute scaled electric multipole arrays for CUDA kernel
-! Electric scale: charge_of(species) / (beta * p0c) * step_len
-! Beta varies per particle, so we factor out 1/beta here and apply it in the kernel.
-! p0c is the same for all particles at a given element.
-if (has_elec_multipoles) then
-  f_elec = charge_of(bunch%particle(1)%species) / bunch%particle(1)%p0c
-  do nn = 0, ix_elec_max
-    ea2_arr(nn) =  r_ratio * an_elec(nn) * f_elec * step_len_val
-    eb2_arr(nn) = -r_ratio * bn_elec(nn) * f_elec * step_len_val
-  enddo
-endif
-
-! Precompute c_multi table (shared by magnetic and electric)
-nn = max(ix_mag_max, ix_elec_max)
-do j = 0, nn
-  do mm = 0, j
-    cm_arr(j, mm) = c_multi(j, mm, .true.)
-  enddo
-enddo
+call precompute_multipole_arrays(bunch%particle(1), ele, &
+    ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec, &
+    ele_length, n_step, a2_arr, b2_arr, ea2_arr, eb2_arr, cm_arr)
 
 ! AoS -> SoA extraction (now in body frame, after fringe)
 call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
@@ -468,25 +519,9 @@ call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)
 
-! Apply exit fringe kick on CPU (after body tracking, before misalignment undo)
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = second_track_edge$
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
-      if (bunch%particle(j)%state /= alive$) cycle
-    endif
-  enddo
-endif
-
-! Apply exit misalignment transform (body → lab frame) on CPU
-if (has_misalign) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call offset_particle(ele, unset$, bunch%particle(j), set_hvkicks = .false.)
-    endif
-  enddo
-endif
+! Apply exit fringe and misalignment on CPU
+if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, second_track_edge$)
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
 #endif
 
 end subroutine track_bunch_thru_quad_gpu
@@ -591,69 +626,15 @@ call init_fringe_info(fringe_info, ele)
 allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
 allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
 
-! Apply entrance misalignment on CPU
-if (has_misalign) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call offset_particle(ele, set$, bunch%particle(j), set_hvkicks = .false.)
-    endif
-  enddo
-endif
+! Apply entrance misalignment and fringe on CPU
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
+if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, first_track_edge$)
 
-! Apply entrance fringe kick on CPU
-if (fringe_info%has_fringe) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
-      if (bunch%particle(j)%state /= alive$) cycle
-    endif
-  enddo
-endif
-
-! Precompute scaled multipole arrays for bend
-! For bends, magnetic multipole kicks use field formulation with (1+g*x) factor.
-! The (1+g*x) factor is applied per-particle in the kernel.
-! Here we precompute the element-level scaling without (1+g*x).
-a2_arr = 0
-b2_arr = 0
-ea2_arr = 0
-eb2_arr = 0
-cm_arr = 0
-r_ratio = p0c_ele / bunch%particle(1)%p0c
-
-! Magnetic multipoles: use field formulation matching apply_multipole_kicks
-! f_coef = coef * c_dir * (1+g*x) * c_light / p0c
-! Precompute: r_step * p0c_ele / (c_light * charge_of(param%particle)) gives f_p0c
-! Then actual B field kicks: kx from ab_multipole_kick, multiplied by f_p0c → B field
-! Then px -= c_dir * (1+g*x) * c_light / p0c * B_y
-! So the total scale per kick = c_dir * c_light / p0c * f_p0c * kx = c_dir * c_light / p0c * r_step * p0c_ele / (c_light * charge_ref) * kx
-! = c_dir * r_step * p0c_ele / (p0c * charge_ref) * kx
-! The kernel applies (1+g*x) per particle.
-! For the ab_multipole_kick, kx already includes p0c_ref normalization.
-! Let's follow the quad pattern: a2_arr[n] = r_ratio * an[n] * f_charge * r_step
-if (has_mag_multipoles) then
-  f_charge = bunch%particle(1)%direction * ele%orientation * &
-             charge_to_mass_of(bunch%particle(1)%species) / charge_to_mass_of(ele%ref_species)
-  do nn = 0, ix_mag_max
-    a2_arr(nn) = r_ratio * an(nn) * f_charge * r_step
-    b2_arr(nn) = r_ratio * bn(nn) * f_charge * r_step
-  enddo
-endif
-
-if (has_elec_multipoles) then
-  f_elec = charge_of(bunch%particle(1)%species) / bunch%particle(1)%p0c
-  do nn = 0, ix_elec_max
-    ea2_arr(nn) =  r_ratio * an_elec(nn) * f_elec * step_len_val
-    eb2_arr(nn) = -r_ratio * bn_elec(nn) * f_elec * step_len_val
-  enddo
-endif
-
-nn = max(ix_mag_max, ix_elec_max)
-do j = 0, nn
-  do mm = 0, j
-    cm_arr(j, mm) = c_multi(j, mm, .true.)
-  enddo
-enddo
+! Precompute scaled multipole arrays for CUDA kernel
+! Note: the (1+g*x) curvature factor for bends is applied per-particle in the kernel.
+call precompute_multipole_arrays(bunch%particle(1), ele, &
+    ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec, &
+    ele_length, n_step, a2_arr, b2_arr, ea2_arr, eb2_arr, cm_arr)
 
 ! AoS -> SoA
 call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
@@ -677,25 +658,9 @@ call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c
 deallocate(vx, vpx, vy, vpy, vz, vpz)
 deallocate(state_a, beta_a, p0c_a, t_a)
 
-! Apply exit fringe kick on CPU
-if (fringe_info%has_fringe) then
-  fringe_info%particle_at = second_track_edge$
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call apply_element_edge_kick(bunch%particle(j), fringe_info, ele, param, .false.)
-      if (bunch%particle(j)%state /= alive$) cycle
-    endif
-  enddo
-endif
-
-! Apply exit misalignment on CPU
-if (has_misalign) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call offset_particle(ele, unset$, bunch%particle(j), set_hvkicks = .false.)
-    endif
-  enddo
-endif
+! Apply exit fringe and misalignment on CPU
+if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, second_track_edge$)
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
 
 ! Update s position
 do j = 1, n
@@ -814,13 +779,7 @@ allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
 allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
 
 ! Apply entrance misalignment (lab → body frame) on CPU
-if (has_misalign) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call offset_particle(ele, set$, bunch%particle(j), set_hvkicks = .false.)
-    endif
-  enddo
-endif
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
 
 ! AoS -> SoA extraction
 call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
@@ -851,13 +810,7 @@ deallocate(state_a, beta_a, p0c_a, t_a)
 deallocate(h_step_s0, h_step_s, h_step_p0c, h_step_p1c, h_step_scale, h_step_time)
 
 ! Apply exit misalignment (body → lab frame) on CPU
-if (has_misalign) then
-  do j = 1, n
-    if (bunch%particle(j)%state == alive$) then
-      call offset_particle(ele, unset$, bunch%particle(j), set_hvkicks = .false.)
-    endif
-  enddo
-endif
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
 
 ! Update s position
 do j = 1, n
