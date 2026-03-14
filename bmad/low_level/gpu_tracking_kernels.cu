@@ -11,7 +11,7 @@
  *   - Link with: -lcudart
  *
  * The wrapper caches device memory allocations to avoid re-allocation
- * on repeated calls (similar pattern to cufft_wrapper.c).
+ * on repeated calls.
  */
 
 #ifdef USE_GPU_TRACKING

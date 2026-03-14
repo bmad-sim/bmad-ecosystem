@@ -46,7 +46,7 @@ export DIST_F90_REQUEST="gfortran"
 #   "none"           # No Plot Libraries are built. For cases
 #                      where plot lib building is problematical.
 #-----------------------------------------------------------
-export ACC_PLOT_PACKAGE="plplot"
+export ACC_PLOT_PACKAGE="pgplot"
 
 
 #-----------------------------------------------------------
@@ -173,7 +173,7 @@ export ACC_SET_GMAKE_JOBS="4"
 # the number of targets to only essential pieces.
 # E.g.: regression tests are not compiled
 #-----------------------------------------------------------
-export ACC_CONDA_BUILD="N"
+export ACC_CONDA_BUILD="Y"
 
 
 #-----------------------------------------------------------
@@ -181,17 +181,6 @@ export ACC_CONDA_BUILD="N"
 # environment.
 #-----------------------------------------------------------
 export ACC_CONDA_PATH="${CONDA_PREFIX}"
-
-
-#-----------------------------------------------------------
-# Setting the variable ACC_ENABLE_CUFFT here to "Y" will
-# enable GPU-accelerated FFTs via NVIDIA cuFFT for the
-# space charge solver. Requires the CUDA Toolkit to be
-# installed. At runtime, cuFFT is only used if this
-# variable is also set in the environment AND a CUDA GPU
-# is detected; otherwise FFTW is used as the fallback.
-#-----------------------------------------------------------
-export ACC_ENABLE_CUFFT="N"
 
 
 #-----------------------------------------------------------
@@ -206,4 +195,4 @@ export ACC_ENABLE_CUFFT="N"
 # set bmad_com%gpu_tracking_on directly. When enabled, GPU
 # tracking falls back silently to CPU for unsupported elements.
 #-----------------------------------------------------------
-export ACC_ENABLE_GPU_TRACKING="N"
+export ACC_ENABLE_GPU_TRACKING="Y"

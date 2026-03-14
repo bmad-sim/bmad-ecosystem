@@ -451,7 +451,26 @@ ramping involves the modifying lattice element parameters while tracking and is 
 safe. Another exception is that PTC code (\sref{c:ptc.use}) is not thread safe.
 
 In order to signal routines that have MP code whether it is safe to using threading, there is the
-global switch \vn{global_com%mp_threading_is_safe}. The default is True. 
+global switch \vn{global_com%mp_threading_is_safe}. The default is True.
+
+\subsection{GPU Acceleration}
+\label{s:gpu.accel}
+\index{GPU tracking!parallel processing}
+\index{CUDA!parallel processing}
+
+In addition to CPU-based parallelism via MP and MPI, \bmad supports GPU-accelerated particle
+tracking via NVIDIA CUDA (\sref{s:gpu.tracking}). When \vn{bmad_com%gpu_tracking_on} is set to
+\vn{True}, bunch tracking through eligible elements is offloaded to the GPU, where all particles in
+a bunch are tracked in parallel by CUDA threads.
+
+GPU tracking operates at the bunch level within \vn{track1_bunch_hom} and is orthogonal to MP/MPI
+parallelism. For example, a program could use MPI to distribute different bunches across nodes while
+each node uses GPU tracking to accelerate per-bunch computations. GPU tracking is not thread safe
+with MP: only one CPU thread should call the GPU tracking routines at a time.
+
+To enable GPU tracking at build time, set \vn{ACC_ENABLE_GPU_TRACKING=Y} in
+\vn{util/dist_prefs}. At runtime, call \vn{gpu_tracking_init} or set \vn{bmad_com%gpu_tracking_on}
+directly. See Section~\sref{s:gpu.tracking} for full details.
 
 %-----------------------------------------------------------------------------
 \section{Expression Trees and Expression Stacks}

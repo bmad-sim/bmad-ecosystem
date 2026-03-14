@@ -95,23 +95,26 @@ util/dist_build_production
 # or util/dist_build_debug
 ```
 
-### GPU-accelerated space charge (cuFFT)
+### GPU-accelerated particle tracking
 
-The space charge solver can use NVIDIA cuFFT for GPU-accelerated 3D FFTs.
-This is opt-in at both build time and run time.
+Bmad supports GPU-accelerated batch particle tracking through drift, quadrupole, sbend, and
+lcavity elements via NVIDIA CUDA. This is opt-in at both build time and run time.
 
-**Build time:** In `util/dist_prefs`, set `ACC_ENABLE_CUFFT` to `Y`.
-The CUDA Toolkit must be available (provides `cufft.h`, `libcufft`, `libcudart`).
-If the toolkit is not found, the build will fall back to FFTW with a warning.
+**Build time:** In `util/dist_prefs`, set `ACC_ENABLE_GPU_TRACKING` to `Y`.
+The CUDA Toolkit must be available (provides `nvcc` and `libcudart`).
+If the toolkit is not found, the build will proceed without GPU tracking support.
 
-**Run time:** Set `ACC_ENABLE_CUFFT=Y` in your environment before running a program.
-If the variable is not set, or no CUDA GPU is detected, FFTW is used automatically.
-This means a binary built with cuFFT support works on machines with or without an
-NVIDIA GPU.
+**Run time:** Call `gpu_tracking_init()` at program startup, or set
+`bmad_com%gpu_tracking_on = .true.` directly. The `gpu_tracking_init` routine checks
+for the `ACC_ENABLE_GPU_TRACKING` environment variable and probes for CUDA hardware.
+
+When enabled, eligible elements are tracked on the GPU while unsupported elements
+fall back silently to CPU tracking. GPU tracking is not compatible with radiation
+damping/fluctuations, spin tracking, or backward tracking.
 
 ```bash
-# Enable GPU FFTs at runtime
-export ACC_ENABLE_CUFFT=Y
+# Enable GPU tracking at runtime
+export ACC_ENABLE_GPU_TRACKING=Y
 ```
 
 ## Contributing to Bmad: Pull Requests
