@@ -217,11 +217,11 @@ Routine to initialize GPU tracking. Checks for the \vn{ACC_ENABLE_GPU_TRACKING} 
 and probes for CUDA hardware. If both conditions are met, sets \vn{bmad_com%gpu_tracking_on} to
 \vn{True}. This routine only needs to be called once.
 
-\index[routine]{gpu_tracking_cleanup}
-\label{r:gpu.tracking.cleanup}
-\item[gpu_tracking_cleanup ()] \Newline
-Routine to release all cached GPU device memory. Optional but recommended to call at program
-shutdown.
+\index[routine]{gpu_tracking_reset}
+\label{r:gpu.tracking.reset}
+\item[gpu_tracking_reset ()] \Newline
+Routine to reset GPU tracking state so that \vn{gpu_tracking_init} can re-probe for hardware on
+the next call. Also releases cached GPU device memory.
 
 \end{description}
 

@@ -10,7 +10,7 @@ contains
 
 
 
-! Old routines, using numerical recipes routines
+! Old routines, using numerical recipes routines 
 #ifdef NO_USE_FFTW
 
 !------------------------------------------------------------------------
@@ -55,7 +55,7 @@ forall(k=1:n3, j=1:n2, i=1:n1)
         b(i,j,k)=tmp2(k,j,i)
 end forall
 
-end subroutine
+end subroutine 
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !-------------------------------ccfftnr-----------------------------------------
@@ -69,7 +69,7 @@ do n=1,ntot*lenfft,lenfft
   call ccfftam(a(n),lenfft,idir,ierr)  ! Alan Miller version of FFT package
   !call my_fft(a(n),lenfft,idir) ! FFTW
   !ierr =  0
-
+  
   if(ierr.ne.0)then
     write(6,*)'Error return from FFT package due to transform length.'
     write(6,*)'Try increasing the padding by 1 in each dimension and re-run'
@@ -195,7 +195,7 @@ do i=1,n,2
     data(i+1)=tempi
    endif
   m=n/2
-  do while ((m.ge.2).and.(j>m))
+  do while ((m.ge.2).and.(j>m)) 
     j=j-m
     m=m/2
   enddo
@@ -226,7 +226,7 @@ do while (n>mmax)
     wi=wi*wpr+wtemp*wpi+wi
   enddo
   mmax=istep
-enddo
+enddo 
 !     ezero=0.d0
 !     eunit=1.d0
 do i=1,nn

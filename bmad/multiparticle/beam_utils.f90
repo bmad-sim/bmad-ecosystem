@@ -47,7 +47,8 @@ real(rp) charge, ds_wake
 
 integer, optional :: direction
 integer i, j, n, jj
-logical err_flag, finished, thread_safe, gpu_did_track
+logical err_flag, finished, thread_safe
+logical :: gpu_did_track = .false.
 
 character(*), parameter :: r_name = 'track1_bunch_hom'
 
