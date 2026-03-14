@@ -253,7 +253,7 @@ subroutine apply_misalign_to_bunch(bunch, ele, n, set_or_unset)
 type (bunch_struct), intent(inout) :: bunch
 type (ele_struct),   intent(in)    :: ele
 integer,             intent(in)    :: n
-integer,             intent(in)    :: set_or_unset  ! set$ or unset$
+logical,             intent(in)    :: set_or_unset  ! set$ or unset$
 
 integer :: j
 

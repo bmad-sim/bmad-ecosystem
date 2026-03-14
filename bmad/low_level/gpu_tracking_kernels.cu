@@ -907,9 +907,7 @@ __device__ __forceinline__ double dpc_given_dE_dev(double pc_old, double mc2, do
 __device__ void lcavity_fringe_kick_dev(
     double &x, double &px, double &y, double &py, double &z, double &pz,
     double &beta_val, double p0c, double mc2,
-    int edge,
-    double gradient_tot,
-    double charge_ratio,
+    int edge, double gradient_tot, double charge_ratio,
     double rf_frequency, double phi0_total)
 {
     double particle_time = -z / (beta_val * C_LIGHT);
