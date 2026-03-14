@@ -1,0 +1,19 @@
+no_digested
+
+parameter[lattice] = "GPU tracking lcavity with aperture"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+lc1: lcavity, L = 1.0, rf_frequency = 1e9, gradient = 1e5, n_rf_steps = 10,
+    fringe_type = none,
+    x1_limit = 5e-5, x2_limit = 5e-5,
+    y1_limit = 5e-5, y2_limit = 5e-5
+
+lat: line = (lc1)
+
+use, lat

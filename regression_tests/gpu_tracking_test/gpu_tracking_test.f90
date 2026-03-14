@@ -22,6 +22,11 @@
 !  17. Bend with misalignment
 !  18. Bend with magnetic multipoles
 !  19. Bend with k1+fringe+misalign+multipoles+aperture
+!  20. Plain lcavity
+!  21. Lcavity with misalignment
+!  22. Lcavity standing wave (ponderomotive kicks)
+!  23. Lcavity with phi0/phi0_err/voltage_err
+!  24. Lcavity with aperture
 !-
 
 program gpu_tracking_test
@@ -218,6 +223,36 @@ call run_comparison_test('Test 18: Bend with multipoles', lat, tol, n_pass, n_fa
 ! ======================================================================
 call bmad_parser('lat_bend_combo.bmad', lat)
 call run_aperture_test('Test 19: Bend combo+aperture', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 20: Plain lcavity
+! ======================================================================
+call bmad_parser('lat_lcavity_only.bmad', lat)
+call run_comparison_test('Test 20: Plain lcavity', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 21: Lcavity with misalignment
+! ======================================================================
+call bmad_parser('lat_lcavity_misalign.bmad', lat)
+call run_comparison_test('Test 21: Lcavity with misalignment', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 22: Lcavity standing wave (ponderomotive kicks)
+! ======================================================================
+call bmad_parser('lat_lcavity_standing.bmad', lat)
+call run_comparison_test('Test 22: Lcavity standing wave', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 23: Lcavity with phi0/phi0_err/voltage_err
+! ======================================================================
+call bmad_parser('lat_lcavity_phase.bmad', lat)
+call run_comparison_test('Test 23: Lcavity phase+voltage offsets', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 24: Lcavity with aperture
+! ======================================================================
+call bmad_parser('lat_lcavity_aperture.bmad', lat)
+call run_aperture_test('Test 24: Lcavity with aperture', lat, tol, n_pass, n_fail)
 
 ! ======================================================================
 ! Summary

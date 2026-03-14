@@ -11,6 +11,7 @@ public :: ele_gpu_eligible
 public :: track_bunch_thru_drift_gpu
 public :: track_bunch_thru_quad_gpu
 public :: track_bunch_thru_bend_gpu
+public :: track_bunch_thru_lcavity_gpu
 
 ! Whether gpu_tracking_init has been called
 logical, save :: gpu_trk_initialized = .false.
@@ -74,6 +75,30 @@ interface
     integer(C_INT), value, intent(in) :: ix_elec_max
   end subroutine
 
+  subroutine gpu_track_lcavity(vx, vpx, vy, vpy, vz, vpz, &
+                               state, beta, p0c, t_time, &
+                               mc2, &
+                               step_s0, step_s, step_p0c, step_p1c, &
+                               step_scale, step_time, &
+                               n_rf_steps, &
+                               voltage, voltage_err, field_autoscale, &
+                               rf_frequency, phi0_total, &
+                               voltage_tot, l_active, &
+                               cavity_type, n_particles) bind(C, name='gpu_track_lcavity_')
+    use, intrinsic :: iso_c_binding
+    real(C_DOUBLE), intent(inout) :: vx(*), vpx(*), vy(*), vpy(*), vz(*), vpz(*)
+    integer(C_INT), intent(inout) :: state(*)
+    real(C_DOUBLE), intent(inout) :: beta(*), p0c(*), t_time(*)
+    real(C_DOUBLE), value, intent(in) :: mc2
+    real(C_DOUBLE), intent(in) :: step_s0(*), step_s(*), step_p0c(*), step_p1c(*)
+    real(C_DOUBLE), intent(in) :: step_scale(*), step_time(*)
+    integer(C_INT), value, intent(in) :: n_rf_steps
+    real(C_DOUBLE), value, intent(in) :: voltage, voltage_err, field_autoscale
+    real(C_DOUBLE), value, intent(in) :: rf_frequency, phi0_total
+    real(C_DOUBLE), value, intent(in) :: voltage_tot, l_active
+    integer(C_INT), value, intent(in) :: cavity_type, n_particles
+  end subroutine
+
   function gpu_tracking_available() result(avail) bind(C, name='gpu_tracking_available_')
     use, intrinsic :: iso_c_binding
     integer(C_INT) :: avail
@@ -124,7 +149,7 @@ end subroutine
 ! Runtime conditions (bmad_com flags, particle direction, wakefields)
 ! are NOT checked here — those are evaluated at dispatch time.
 !
-! Currently supported element types: drift, quadrupole, sbend.
+! Currently supported element types: drift, quadrupole, sbend, lcavity.
 !------------------------------------------------------------------------
 function ele_gpu_eligible(ele) result (eligible)
 type (ele_struct), intent(in) :: ele
@@ -140,7 +165,7 @@ if (.not. ele%is_on) return
 
 ! Check supported element types
 select case (ele%key)
-case (drift$, quadrupole$, sbend$)
+case (drift$, quadrupole$, sbend$, lcavity$)
   eligible = .true.
 end select
 
@@ -672,5 +697,181 @@ enddo
 #endif
 
 end subroutine track_bunch_thru_bend_gpu
+
+!------------------------------------------------------------------------
+! track_bunch_thru_lcavity_gpu
+!
+! GPU batch tracking through an lcavity (linac cavity).
+! Handles the stair-step RF approximation with energy kicks,
+! ponderomotive transverse kicks (standing wave), and coordinate
+! transformations.
+!
+! CPU sandwich: misalignment, fringe kicks, coupler kicks.
+! Falls back to CPU if: multipoles present, solenoid (ks/=0),
+!   zero length, zero rf_frequency, absolute time tracking.
+!------------------------------------------------------------------------
+subroutine track_bunch_thru_lcavity_gpu (bunch, ele, param, did_track)
+
+use, intrinsic :: iso_c_binding
+
+type (bunch_struct),     intent(inout) :: bunch
+type (ele_struct), target, intent(inout) :: ele
+type (lat_param_struct), intent(inout) :: param
+logical,                 intent(out)   :: did_track
+
+#ifdef USE_GPU_TRACKING
+integer(C_INT) :: n
+integer :: j, nn, ix_mag_max, ix_elec_max, n_steps
+real(rp) :: mc2, phi0_total
+real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
+real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+logical :: has_misalign
+type (ele_struct), pointer :: lord
+type (rf_stair_step_struct), pointer :: step
+
+real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
+real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
+integer(C_INT), allocatable :: state_a(:)
+real(C_DOUBLE), allocatable :: h_step_s0(:), h_step_s(:)
+real(C_DOUBLE), allocatable :: h_step_p0c(:), h_step_p1c(:)
+real(C_DOUBLE), allocatable :: h_step_scale(:), h_step_time(:)
+
+did_track = .false.
+
+n = size(bunch%particle)
+
+! --- Bail out conditions ---
+
+! Zero length → track on CPU
+if (ele%value(l$) == 0) return
+
+! Zero rf_frequency with non-zero voltage → CPU
+if (ele%value(rf_frequency$) == 0) return
+
+! Absolute time tracking → CPU (phase computation differs)
+if (bmad_com%absolute_time_tracking) return
+
+! Get the super lord for RF step data
+lord => pointer_to_super_lord(ele)
+
+! Solenoid → CPU (step_drift uses solenoid_track_and_mat)
+if (lord%value(ks$) /= 0) return
+
+! Multipoles → CPU (scale varies per step, complex interaction)
+call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$)
+call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+if (ix_mag_max > -1) return
+if (ix_elec_max > -1) return
+
+! Check for coupler kicks → CPU
+if (ele%value(coupler_strength$) /= 0) return
+
+! Fringe kicks → CPU (lcavity fringe is element-specific, inside step loop)
+if (nint(ele%value(fringe_type$)) /= none$) return
+
+mc2 = mass_of(bunch%particle(1)%species)
+n_steps = nint(lord%value(n_rf_steps$))
+has_misalign = ele%bookkeeping_state%has_misalign
+
+! Compute total phase offset (relative time tracking, non-multipass)
+phi0_total = lord%value(phi0$) + lord%value(phi0_err$) + lord%value(phi0_multipass$)
+
+! Extract step data from the lord's RF step array (indices 0..n_steps+1)
+allocate(h_step_s0(n_steps+2), h_step_s(n_steps+2))
+allocate(h_step_p0c(n_steps+2), h_step_p1c(n_steps+2))
+allocate(h_step_scale(n_steps+2), h_step_time(n_steps+2))
+
+do j = 0, n_steps + 1
+  step => lord%rf%steps(j)
+  h_step_s0(j+1)    = step%s0
+  h_step_s(j+1)     = step%s
+  h_step_p0c(j+1)   = step%p0c
+  h_step_p1c(j+1)   = step%p1c
+  h_step_scale(j+1) = step%scale
+  h_step_time(j+1)  = step%time
+enddo
+
+! Allocate SoA arrays
+allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
+allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
+
+! Apply entrance misalignment (lab → body frame) on CPU
+if (has_misalign) then
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      call offset_particle(ele, set$, bunch%particle(j), set_hvkicks = .false.)
+    endif
+  enddo
+endif
+
+! AoS → SoA extraction
+do j = 1, n
+  vx(j)      = bunch%particle(j)%vec(1)
+  vpx(j)     = bunch%particle(j)%vec(2)
+  vy(j)      = bunch%particle(j)%vec(3)
+  vpy(j)     = bunch%particle(j)%vec(4)
+  vz(j)      = bunch%particle(j)%vec(5)
+  vpz(j)     = bunch%particle(j)%vec(6)
+  state_a(j) = bunch%particle(j)%state
+  beta_a(j)  = bunch%particle(j)%beta
+  p0c_a(j)   = bunch%particle(j)%p0c
+  t_a(j)     = bunch%particle(j)%t
+enddo
+
+did_track = .true.
+
+! Call CUDA kernel
+call gpu_track_lcavity(vx, vpx, vy, vpy, vz, vpz, &
+                       state_a, beta_a, p0c_a, t_a, &
+                       mc2, &
+                       h_step_s0, h_step_s, h_step_p0c, h_step_p1c, &
+                       h_step_scale, h_step_time, &
+                       int(n_steps, C_INT), &
+                       lord%value(voltage$), lord%value(voltage_err$), &
+                       lord%value(field_autoscale$), &
+                       ele%value(rf_frequency$), phi0_total, &
+                       lord%value(voltage_tot$), lord%value(l_active$), &
+                       int(nint(lord%value(cavity_type$)), C_INT), &
+                       int(n, C_INT))
+
+! SoA → AoS write-back
+do j = 1, n
+  bunch%particle(j)%vec(1) = vx(j)
+  bunch%particle(j)%vec(2) = vpx(j)
+  bunch%particle(j)%vec(3) = vy(j)
+  bunch%particle(j)%vec(4) = vpy(j)
+  bunch%particle(j)%vec(5) = vz(j)
+  bunch%particle(j)%vec(6) = vpz(j)
+  bunch%particle(j)%state  = state_a(j)
+  bunch%particle(j)%beta   = beta_a(j)
+  bunch%particle(j)%p0c    = p0c_a(j)
+  bunch%particle(j)%t      = t_a(j)
+  bunch%particle(j)%location = downstream_end$
+  bunch%particle(j)%ix_ele   = ele%ix_ele
+  bunch%particle(j)%ix_branch = ele%ix_branch
+enddo
+
+deallocate(vx, vpx, vy, vpy, vz, vpz)
+deallocate(state_a, beta_a, p0c_a, t_a)
+deallocate(h_step_s0, h_step_s, h_step_p0c, h_step_p1c, h_step_scale, h_step_time)
+
+! Apply exit misalignment (body → lab frame) on CPU
+if (has_misalign) then
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      call offset_particle(ele, unset$, bunch%particle(j), set_hvkicks = .false.)
+    endif
+  enddo
+endif
+
+! Update s position
+do j = 1, n
+  if (bunch%particle(j)%state == alive$) then
+    bunch%particle(j)%s = ele%s
+  endif
+enddo
+#endif
+
+end subroutine track_bunch_thru_lcavity_gpu
 
 end module gpu_tracking_mod

@@ -901,6 +901,265 @@ extern "C" void gpu_track_bend_(
     }
 }
 
+/* =========================================================================
+ * LCAVITY KERNEL
+ * Replicates track_a_lcavity stair-step RF approximation.
+ * Each particle independently loops through drift + energy kick steps.
+ * Handles ponderomotive transverse kicks for standing-wave cavities.
+ * Forward tracking only, relative time tracking.
+ * ========================================================================= */
+
+#define TWOPI 6.283185307179586476925286766559
+#define STANDING_WAVE 1
+#define TRAVELING_WAVE 2
+
+/* Device helper: dpc_given_dE — momentum change from energy change */
+__device__ __forceinline__ double dpc_given_dE_dev(double pc_old, double mc2, double dE)
+{
+    double del2 = dE * dE + 2.0 * sqrt(pc_old * pc_old + mc2 * mc2) * dE;
+    return sqrt(pc_old * pc_old + del2) - pc_old;
+}
+
+__global__ void lcavity_kernel(
+    double *vx, double *vpx, double *vy, double *vpy, double *vz, double *vpz,
+    int *state, double *beta_arr, double *p0c_arr, double *t_arr,
+    double mc2,
+    /* Step data arrays: n_steps_total entries (indices 0..n_rf_steps+1) */
+    const double *step_s0, const double *step_s,
+    const double *step_p0c, const double *step_p1c,
+    const double *step_scale, const double *step_time,
+    int n_rf_steps,
+    /* Element parameters */
+    double voltage, double voltage_err, double field_autoscale,
+    double rf_frequency,
+    double phi0_total,      /* phi0 + phi0_err + phi0_multipass (precomputed) */
+    double voltage_tot, double l_active,
+    int cavity_type,        /* 1=standing_wave, 2=traveling_wave */
+    int n_particles)
+{
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    if (i >= n_particles) return;
+    if (state[i] != ALIVE_ST) return;
+
+    double x = vx[i], px = vpx[i], y = vy[i], py = vpy[i], z = vz[i], pz = vpz[i];
+    double beta_val = beta_arr[i], p0c = p0c_arr[i], t = t_arr[i];
+
+    double s_now = step_s0[0];
+    int ix_step_end = n_rf_steps + 1;  /* phantom step index */
+
+    /* Ponderomotive kicks only for standing wave + forward tracking */
+    int do_ponderomotive = (cavity_type == STANDING_WAVE) && (l_active > 0.0);
+
+    for (int ix = 0; ix <= ix_step_end; ix++) {
+        /* ---- Drift to step boundary ---- */
+        double ds = step_s[ix] - s_now;
+        s_now = step_s[ix];
+
+        if (ds != 0.0) {
+            double rel_pc = 1.0 + pz;
+            double px_rel = px / rel_pc;
+            double py_rel = py / rel_pc;
+            double pxy2 = px_rel * px_rel + py_rel * py_rel;
+
+            if (pxy2 >= 1.0) { state[i] = LOST_PZ; return; }
+            double ps_rel = sqrt(1.0 - pxy2);
+
+            x += ds * px_rel / ps_rel;
+            y += ds * py_rel / ps_rel;
+
+            double p_tot = p0c * rel_pc;
+            double A = (mc2 * mc2 * (2.0 * pz + pz * pz)) / (p_tot * p_tot + mc2 * mc2);
+            double dz = ds * (sqrt_one_dev(A) + sqrt_one_dev(-pxy2) / ps_rel);
+            z += dz;
+
+            double dt = ds / (beta_val * ps_rel * C_LIGHT);
+            t += dt;
+        }
+
+        /* ---- Stair-step kick (not at phantom step) ---- */
+        if (ix != ix_step_end) {
+            /* Upstream ponderomotive kick (skip at step 0) */
+            if (do_ponderomotive && ix > 0) {
+                double rel_p = 1.0 + pz;
+                double grad = field_autoscale * voltage_tot / l_active;
+                double coef = grad * grad * l_active / (16.0 * p0c * p0c * rel_p * n_rf_steps);
+                px -= coef * x;
+                py -= coef * y;
+                double dzp = -0.5 * coef * (x * x + y * y) / rel_p;
+                z += dzp;
+                t -= dzp / (C_LIGHT * beta_val);
+            }
+
+            /* ---- Energy kick ---- */
+            /* Compute RF phase (relative time tracking) */
+            double particle_time = -z / (beta_val * C_LIGHT);
+            double phase = TWOPI * (phi0_total + particle_time * rf_frequency);
+
+            /* Energy change */
+            double dE_amp = (voltage + voltage_err) * step_scale[ix] * field_autoscale;
+            double dE = dE_amp * cos(phase);
+
+            /* Compute pz_end before coordinate conversion (avoid round-off) */
+            double rel_p = 1.0 + pz;
+            double pc = rel_p * p0c;
+            double pz_end = pz + dpc_given_dE_dev(pc, mc2, dE) / p0c;
+
+            /* to_energy_coords: (z, pz) -> (c*(t0-t), E/p0c) */
+            z = z / beta_val;
+            pz = (1.0 + pz) / beta_val;  /* now pz = E/p0c in energy coords */
+
+            /* Apply energy kick in energy coords */
+            pz = pz + dE / p0c;
+
+            /* to_momentum_coords: convert back */
+            double pc_new = (1.0 + pz_end) * p0c;
+            double beta_new = pc_new / (p0c * pz);  /* pz here is E/p0c */
+            z = z * beta_new;
+            pz = pz_end;
+            beta_val = beta_new;
+
+            /* orbit_reference_energy_correction */
+            double p1c = step_p1c[ix];
+            double p_rel = p0c / p1c;
+            px = px * p_rel;
+            py = py * p_rel;
+            pz = (pz * p0c - (p1c - p0c)) / p1c;
+            p0c = p1c;
+
+            /* Update beta after reference energy change */
+            pc_new = (1.0 + pz) * p0c;
+            beta_val = pc_new / sqrt(pc_new * pc_new + mc2 * mc2);
+
+            /* Downstream ponderomotive kick (skip at step n_rf_steps) */
+            if (do_ponderomotive && ix < n_rf_steps) {
+                double rel_p2 = 1.0 + pz;
+                double grad = field_autoscale * voltage_tot / l_active;
+                double coef = grad * grad * l_active / (16.0 * p0c * p0c * rel_p2 * n_rf_steps);
+                px -= coef * x;
+                py -= coef * y;
+                double dzp = -0.5 * coef * (x * x + y * y) / rel_p2;
+                z += dzp;
+                t -= dzp / (C_LIGHT * beta_val);
+            }
+        }
+    }
+
+    /* Write back */
+    vx[i] = x;   vpx[i] = px;  vy[i] = y;   vpy[i] = py;
+    vz[i] = z;   vpz[i] = pz;
+    beta_arr[i] = beta_val;
+    p0c_arr[i]  = p0c;
+    t_arr[i]    = t;
+}
+
+/* =========================================================================
+ * HOST WRAPPER: gpu_track_lcavity
+ * ========================================================================= */
+
+/* Step data device buffers */
+static double *d_step_s0   = NULL;
+static double *d_step_s    = NULL;
+static double *d_step_p0c  = NULL;
+static double *d_step_p1c  = NULL;
+static double *d_step_scl  = NULL;
+static double *d_step_time = NULL;
+static int     d_step_cap  = 0;
+
+static int ensure_step_buffers(int n_steps_total)
+{
+    if (n_steps_total <= d_step_cap) return 0;
+    if (d_step_s0)   cudaFree(d_step_s0);
+    if (d_step_s)    cudaFree(d_step_s);
+    if (d_step_p0c)  cudaFree(d_step_p0c);
+    if (d_step_p1c)  cudaFree(d_step_p1c);
+    if (d_step_scl)  cudaFree(d_step_scl);
+    if (d_step_time) cudaFree(d_step_time);
+    d_step_s0 = d_step_s = d_step_p0c = d_step_p1c = d_step_scl = d_step_time = NULL;
+
+    size_t sz = (size_t)n_steps_total * sizeof(double);
+    if (cudaMalloc((void**)&d_step_s0,   sz) != cudaSuccess) goto sfail;
+    if (cudaMalloc((void**)&d_step_s,    sz) != cudaSuccess) goto sfail;
+    if (cudaMalloc((void**)&d_step_p0c,  sz) != cudaSuccess) goto sfail;
+    if (cudaMalloc((void**)&d_step_p1c,  sz) != cudaSuccess) goto sfail;
+    if (cudaMalloc((void**)&d_step_scl,  sz) != cudaSuccess) goto sfail;
+    if (cudaMalloc((void**)&d_step_time, sz) != cudaSuccess) goto sfail;
+    d_step_cap = n_steps_total;
+    return 0;
+sfail:
+    fprintf(stderr, "[gpu_tracking] cudaMalloc failed for %d step buffers\n", n_steps_total);
+    d_step_cap = 0;
+    return -1;
+}
+
+extern "C" void gpu_track_lcavity_(
+    double *h_vx, double *h_vpx, double *h_vy, double *h_vpy,
+    double *h_vz, double *h_vpz,
+    int *h_state, double *h_beta, double *h_p0c, double *h_t,
+    double mc2,
+    double *h_step_s0, double *h_step_s,
+    double *h_step_p0c, double *h_step_p1c,
+    double *h_step_scale, double *h_step_time,
+    int n_rf_steps,
+    double voltage, double voltage_err, double field_autoscale,
+    double rf_frequency, double phi0_total,
+    double voltage_tot, double l_active,
+    int cavity_type, int n_particles)
+{
+    if (ensure_buffers(n_particles) != 0) return;
+
+    int n_steps_total = n_rf_steps + 2;  /* indices 0..n_rf_steps+1 */
+    if (ensure_step_buffers(n_steps_total) != 0) return;
+
+    size_t db = (size_t)n_particles * sizeof(double);
+    size_t ib = (size_t)n_particles * sizeof(int);
+    size_t sb = (size_t)n_steps_total * sizeof(double);
+
+    /* Host -> Device: particle data */
+    cudaMemcpy(d_vec[0], h_vx,  db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vec[1], h_vpx, db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vec[2], h_vy,  db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vec[3], h_vpy, db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vec[4], h_vz,  db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_vec[5], h_vpz, db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_state,  h_state, ib, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_beta,   h_beta,  db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_p0c,    h_p0c,   db, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_t,      h_t,     db, cudaMemcpyHostToDevice);
+
+    /* Host -> Device: step data */
+    cudaMemcpy(d_step_s0,   h_step_s0,    sb, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_step_s,    h_step_s,     sb, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_step_p0c,  h_step_p0c,   sb, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_step_p1c,  h_step_p1c,   sb, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_step_scl,  h_step_scale, sb, cudaMemcpyHostToDevice);
+    cudaMemcpy(d_step_time, h_step_time,  sb, cudaMemcpyHostToDevice);
+
+    /* Launch kernel */
+    int threads = 256;
+    int blocks  = (n_particles + threads - 1) / threads;
+    lcavity_kernel<<<blocks, threads>>>(
+        d_vec[0], d_vec[1], d_vec[2], d_vec[3], d_vec[4], d_vec[5],
+        d_state, d_beta, d_p0c, d_t, mc2,
+        d_step_s0, d_step_s, d_step_p0c, d_step_p1c, d_step_scl, d_step_time,
+        n_rf_steps,
+        voltage, voltage_err, field_autoscale,
+        rf_frequency, phi0_total, voltage_tot, l_active,
+        cavity_type, n_particles);
+    cudaDeviceSynchronize();
+
+    /* Device -> Host */
+    cudaMemcpy(h_vx,    d_vec[0], db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_vpx,   d_vec[1], db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_vy,    d_vec[2], db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_vpy,   d_vec[3], db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_vz,    d_vec[4], db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_vpz,   d_vec[5], db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_state,  d_state,  ib, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_beta,   d_beta,   db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_p0c,    d_p0c,    db, cudaMemcpyDeviceToHost);
+    cudaMemcpy(h_t,      d_t,      db, cudaMemcpyDeviceToHost);
+}
+
 /* --------------------------------------------------------------------------
  * gpu_tracking_cleanup — release cached device buffers
  * -------------------------------------------------------------------------- */
@@ -917,6 +1176,13 @@ extern "C" void gpu_tracking_cleanup_(void)
     if (d_ea2)   cudaFree(d_ea2);   d_ea2   = NULL;
     if (d_eb2)   cudaFree(d_eb2);   d_eb2   = NULL;
     if (d_cm)    cudaFree(d_cm);    d_cm    = NULL;
+    if (d_step_s0)   cudaFree(d_step_s0);   d_step_s0   = NULL;
+    if (d_step_s)    cudaFree(d_step_s);    d_step_s    = NULL;
+    if (d_step_p0c)  cudaFree(d_step_p0c);  d_step_p0c  = NULL;
+    if (d_step_p1c)  cudaFree(d_step_p1c);  d_step_p1c  = NULL;
+    if (d_step_scl)  cudaFree(d_step_scl);  d_step_scl  = NULL;
+    if (d_step_time) cudaFree(d_step_time); d_step_time = NULL;
+    d_step_cap = 0;
     d_cap = 0;
 }
 
