@@ -38,8 +38,8 @@ type (branch_struct), pointer :: branch
 integer :: j, k, np
 integer :: n_state_mismatch, n_lost_cpu, n_lost_gpu, n_alive
 real(rp) :: max_diff, tol
-real(rp) :: t_cpu_start, t_cpu_end, t_gpu_start, t_gpu_end
 real(rp) :: dt_cpu, dt_gpu
+integer(8) :: clock_start, clock_end, clock_rate
 logical :: err, pass
 
 tol = 1d-12
@@ -106,19 +106,19 @@ print *
 ! ---- CPU tracking ----
 print *, 'Tracking CPU...'
 bmad_com%gpu_tracking_on = .false.
-call cpu_time(t_cpu_start)
+call system_clock(clock_start, clock_rate)
 call track_beam(lat, beam_cpu, err=err)
-call cpu_time(t_cpu_end)
-dt_cpu = t_cpu_end - t_cpu_start
+call system_clock(clock_end)
+dt_cpu = real(clock_end - clock_start, rp) / real(clock_rate, rp)
 print '(A,F10.3,A)', '  CPU time: ', dt_cpu, ' s'
 
 ! ---- GPU tracking ----
 print *, 'Tracking GPU...'
 bmad_com%gpu_tracking_on = .true.
-call cpu_time(t_gpu_start)
+call system_clock(clock_start, clock_rate)
 call track_beam(lat, beam_gpu, err=err)
-call cpu_time(t_gpu_end)
-dt_gpu = t_gpu_end - t_gpu_start
+call system_clock(clock_end)
+dt_gpu = real(clock_end - clock_start, rp) / real(clock_rate, rp)
 print '(A,F10.3,A)', '  GPU time: ', dt_gpu, ' s'
 print *
 

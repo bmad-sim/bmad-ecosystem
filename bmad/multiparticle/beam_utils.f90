@@ -73,7 +73,7 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
   gpu_did_track = .false.
   if (bmad_com%gpu_tracking_on .and. ele_gpu_eligible(ele) .and. &
       .not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on .and. &
-      .not. bmad_com%spin_tracking_on .and. &
+      .not. bmad_com%spin_tracking_on .and. .not. bmad_com%high_energy_space_charge_on .and. &
       bunch%particle(1)%direction == 1 .and. bunch%particle(1)%time_dir == 1) then
 
     ! Check entrance aperture (track1 normally does this but GPU path bypasses track1)
@@ -81,8 +81,7 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
 
     select case (ele%key)
     case (drift$)
-      call track_bunch_thru_drift_gpu(bunch, ele)
-      gpu_did_track = .true.
+      call track_bunch_thru_drift_gpu(bunch, ele, gpu_did_track)
     case (quadrupole$)
       call track_bunch_thru_quad_gpu(bunch, ele, branch%param, gpu_did_track)
     case (sbend$)
@@ -93,6 +92,12 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
 
     if (gpu_did_track) then
       call check_apertures_after_gpu(bunch, ele, branch%param)
+      ! Check for NaN/Inf coordinates (track1 does this via orbit_too_large)
+      do j = 1, size(bunch%particle)
+        if (bunch%particle(j)%state == alive$) then
+          if (orbit_too_large(bunch%particle(j), branch%param)) cycle
+        endif
+      enddo
       bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
       return
     endif

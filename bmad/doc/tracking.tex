@@ -880,17 +880,20 @@ conditions hold:
   bmad_com%radiation_damping_on = True
   bmad_com%radiation_fluctuations_on = True
   bmad_com%spin_tracking_on = True
+  bmad_com%high_energy_space_charge_on = True
   Particle direction /= 1 (backward tracking)
   Time direction /= 1
   Element has associated wakefields
 \end{example}
+Note: GPU batch tracking bypasses the \vn{track1} routine, so any user-installed
+\vn{track1_preprocess} or \vn{track1_postprocess} hooks will not be called for GPU-tracked elements.
 
 \subsection{Aperture Checking}
 \label{s:gpu.aperture}
 
-GPU kernels do not check apertures during tracking. Instead, after a bunch is tracked through an
-element on the GPU, aperture limits are checked on the CPU at the element exit. This behavior
-respects the \vn{bmad_com%aperture_limit_on} setting.
+GPU kernels do not check apertures during tracking. Instead, aperture limits are checked on the CPU
+at both the element entrance and exit. This behavior respects the \vn{bmad_com%aperture_limit_on}
+setting.
 
 \subsection{Build and Runtime Setup}
 \label{s:gpu.setup}

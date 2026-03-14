@@ -221,7 +221,8 @@ and probes for CUDA hardware. If both conditions are met, sets \vn{bmad_com%gpu_
 \label{r:gpu.tracking.reset}
 \item[gpu_tracking_reset ()] \Newline
 Routine to reset GPU tracking state so that \vn{gpu_tracking_init} can re-probe for hardware on
-the next call. Also releases cached GPU device memory.
+the next call. Also releases cached GPU device memory and sets \vn{bmad_com%gpu_tracking_on} to
+\vn{False}.
 
 \end{description}
 

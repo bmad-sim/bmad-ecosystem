@@ -268,7 +268,11 @@ do j = 1, n
   bunch%particle(j)%t         = t_a(j)
   if (copy_beta) bunch%particle(j)%beta = beta_a(j)
   if (copy_p0c)  bunch%particle(j)%p0c  = p0c_a(j)
-  bunch%particle(j)%location  = downstream_end$
+  if (state_a(j) == alive$) then
+    bunch%particle(j)%location  = downstream_end$
+  else
+    bunch%particle(j)%location  = inside$
+  endif
   bunch%particle(j)%ix_ele    = ele%ix_ele
   bunch%particle(j)%ix_branch = ele%ix_branch
 enddo
@@ -468,12 +472,13 @@ end subroutine precompute_multipole_arrays
 ! GPU batch tracking of all particles in a bunch through a drift.
 ! Extracts particle data into SoA arrays, calls CUDA kernel, writes back.
 !------------------------------------------------------------------------
-subroutine track_bunch_thru_drift_gpu (bunch, ele)
+subroutine track_bunch_thru_drift_gpu (bunch, ele, did_track)
 
 use, intrinsic :: iso_c_binding
 
 type (bunch_struct), intent(inout) :: bunch
 type (ele_struct),   intent(in)    :: ele
+logical,             intent(out)   :: did_track
 
 #ifdef USE_GPU_TRACKING
 integer(C_INT) :: n
@@ -483,7 +488,11 @@ real(rp) :: length, mc2
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), s_a(:), t_a(:)
 integer(C_INT), allocatable :: state_a(:)
+#endif
 
+did_track = .false.
+
+#ifdef USE_GPU_TRACKING
 n = size(bunch%particle)
 if (n == 0) return
 length = ele%value(l$)
@@ -500,6 +509,8 @@ call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t
 do j = 1, n
   s_a(j) = bunch%particle(j)%s
 enddo
+
+did_track = .true.
 
 ! Call CUDA kernel
 call gpu_track_drift(vx, vpx, vy, vpy, vz, vpz, &
@@ -590,9 +601,9 @@ n_step = 1
 if (has_mag_multipoles .or. ix_elec_max > -1) &
   n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
 
-! Compute charge_dir: rel_charge * orientation (forward tracking: direction=1, time_dir=1)
+! Compute charge_dir: rel_charge * orientation * direction * time_dir
 rel_tracking_charge = rel_tracking_charge_to_mass(bunch%particle(1), param%particle)
-charge_dir = rel_tracking_charge * ele%orientation
+charge_dir = rel_tracking_charge * ele%orientation * bunch%particle(1)%direction * bunch%particle(1)%time_dir
 
 ! Entrance: allocate SoA, misalignment, fringe, AoS→SoA
 call gpu_tracking_pre(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &

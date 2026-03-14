@@ -154,8 +154,29 @@ enddo
 print *
 print '(A)', '  Times in seconds. Speed = CPU_time / GPU_time.'
 print *
+
+! Validate correctness: check max diff against tolerance
+gpu_ok = .true.
+do ilat = 1, n_lats
+  do isz = 1, n_sizes
+    if (mdiff_arr(ilat, isz) > 1d-12) then
+      print '(A,A,A,I8,A,ES12.4)', '  FAIL: ', trim(lat_names(ilat)), &
+        ' n=', sizes(isz), ' max_diff=', mdiff_arr(ilat, isz)
+      gpu_ok = .false.
+    endif
+  enddo
+enddo
+
+if (gpu_ok) then
+  print *, '  All results within tolerance (1e-12)'
+else
+  print *, '  FAIL — some results exceed tolerance'
+endif
+
 print *, '========================================================================================================'
 print *, '  Benchmark complete'
 print *, '========================================================================================================'
+
+if (.not. gpu_ok) stop 1
 
 end program gpu_tracking_benchmark

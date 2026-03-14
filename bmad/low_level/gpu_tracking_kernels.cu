@@ -72,6 +72,7 @@ static double *d_cm  = NULL;
  * -------------------------------------------------------------------------- */
 static int ensure_buffers(int n)
 {
+    if (n <= 0) return (n == 0) ? 0 : -1;
     if (n <= d_cap) return 0;
 
     /* Free old */
@@ -798,7 +799,7 @@ __global__ void bend_kernel(
                 double r_val = cos_plus*cos_plus + g_p*alpha_b;
 
                 if (r_val < 0.0 || (fabs(g_p) < 1e-5 && fabs(cos_plus) < 1e-5)) {
-                    state[i] = 8; /* lost$ mapped to lost_pz for simplicity */
+                    state[i] = LOST_PZ;
                     return;
                 }
 
@@ -808,13 +809,14 @@ __global__ void bend_kernel(
                     double denom = rad + cos_plus;
                     xi = alpha_b / denom;
                 } else {
+                    if (fabs(g_p) < 1e-30) { state[i] = LOST_PZ; return; }
                     xi = (rad - cos_plus) / g_p;
                 }
                 vx[i] = x*cos_a - step_len*step_len*g*cosc_a + xi;
 
                 /* Check aperture limit */
                 if (fabs(vx[i]) > 1.0) {
-                    state[i] = 8; /* lost$ */
+                    state[i] = LOST_PZ;
                     return;
                 }
 
@@ -914,11 +916,14 @@ extern "C" void gpu_track_bend_(
 #define STANDING_WAVE 1
 #define TRAVELING_WAVE 2
 
-/* Device helper: dpc_given_dE — momentum change from energy change */
+/* Device helper: dpc_given_dE — momentum change from energy change.
+ * Uses rationalization to avoid catastrophic cancellation for small dE. */
 __device__ __forceinline__ double dpc_given_dE_dev(double pc_old, double mc2, double dE)
 {
     double del2 = dE * dE + 2.0 * sqrt(pc_old * pc_old + mc2 * mc2) * dE;
-    return sqrt(pc_old * pc_old + del2) - pc_old;
+    double pc_new = sqrt(pc_old * pc_old + del2);
+    /* Rationalize: pc_new - pc_old = del2 / (pc_new + pc_old) to avoid cancellation */
+    return del2 / (pc_new + pc_old);
 }
 
 /* Device helper: lcavity fringe kick (entrance or exit)
