@@ -74,38 +74,22 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
       .not. bmad_com%spin_tracking_on .and. &
       bunch%particle(1)%direction == 1 .and. bunch%particle(1)%time_dir == 1) then
 
-    if (ele%key == drift$) then
+    select case (ele%key)
+    case (drift$)
       call track_bunch_thru_drift_gpu(bunch, ele)
+      gpu_did_track = .true.
+    case (quadrupole$)
+      call track_bunch_thru_quad_gpu(bunch, ele, branch%param, gpu_did_track)
+    case (sbend$)
+      call track_bunch_thru_bend_gpu(bunch, ele, branch%param, gpu_did_track)
+    case (lcavity$)
+      call track_bunch_thru_lcavity_gpu(bunch, ele, branch%param, gpu_did_track)
+    end select
+
+    if (gpu_did_track) then
       call check_apertures_after_gpu(bunch, ele, branch%param)
       bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
       return
-    endif
-
-    if (ele%key == quadrupole$) then
-      call track_bunch_thru_quad_gpu(bunch, ele, branch%param, gpu_did_track)
-      if (gpu_did_track) then
-        call check_apertures_after_gpu(bunch, ele, branch%param)
-        bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
-        return
-      endif
-    endif
-
-    if (ele%key == sbend$) then
-      call track_bunch_thru_bend_gpu(bunch, ele, branch%param, gpu_did_track)
-      if (gpu_did_track) then
-        call check_apertures_after_gpu(bunch, ele, branch%param)
-        bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
-        return
-      endif
-    endif
-
-    if (ele%key == lcavity$) then
-      call track_bunch_thru_lcavity_gpu(bunch, ele, branch%param, gpu_did_track)
-      if (gpu_did_track) then
-        call check_apertures_after_gpu(bunch, ele, branch%param)
-        bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
-        return
-      endif
     endif
   endif
 

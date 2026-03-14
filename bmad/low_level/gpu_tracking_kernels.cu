@@ -220,6 +220,33 @@ __device__ void multipole_kick_dev(
     *ky_out = ky;
 }
 
+/* --------------------------------------------------------------------------
+ * apply_electric_kick_dev — apply a scaled electric multipole kick and
+ * update pz, beta, and z.  Caller pre-computes the scaled kick (kx_s, ky_s)
+ * including any element-specific factors (1/beta, (1+g*x)/ps, etc.).
+ * Returns 1 if particle is lost (alpha < -1), 0 on success.
+ * -------------------------------------------------------------------------- */
+__device__ int apply_electric_kick_dev(
+    double kx_s, double ky_s,
+    double *px, double *py, double *pz, double *z,
+    double *beta_val, double *beta_arr_i,
+    double mc2, double p0c_val, int *state_i)
+{
+    double px_old = *px, py_old = *py, pz_old = *pz;
+    *px += kx_s;
+    *py += ky_s;
+    double alpha = (kx_s * (2.0*px_old + kx_s) + ky_s * (2.0*py_old + ky_s))
+                   / ((1.0 + pz_old) * (1.0 + pz_old));
+    if (alpha < -1.0) { *state_i = LOST_PZ; return 1; }
+    *pz = pz_old + (1.0 + pz_old) * sqrt_one_dev(alpha);
+    double new_beta = (1.0 + *pz) / sqrt((1.0 + *pz) * (1.0 + *pz)
+                      + (mc2 / p0c_val) * (mc2 / p0c_val));
+    *z = *z * new_beta / *beta_val;
+    *beta_val = new_beta;
+    *beta_arr_i = new_beta;
+    return 0;
+}
+
 /* =========================================================================
  * QUADRUPOLE KERNEL
  * Replicates the full body of track_a_quadrupole including:
@@ -264,27 +291,14 @@ __global__ void quad_kernel(
         vpy[i] += 0.5 * ky;
     }
 
-    /* Entrance half electric multipole kick (scale = step_len/2, built into d_ea2/d_eb2) */
-    /* d_ea2/d_eb2 are precomputed WITHOUT 1/beta; we apply 1/beta per-particle here */
+    /* Entrance half electric multipole kick */
     if (has_elec) {
         double kx, ky;
         multipole_kick_dev(d_ea2, d_eb2, ix_elec_max, d_cm,
                            vx[i], vy[i], &kx, &ky);
-        kx /= beta_val;
-        ky /= beta_val;
-        double px_old = vpx[i], py_old = vpy[i], pz_old = vpz[i];
-        double kx_h = 0.5 * kx, ky_h = 0.5 * ky;
-        vpx[i] += kx_h;
-        vpy[i] += ky_h;
-        /* pz update for electric kick */
-        double alpha = (kx_h * (2.0*px_old + kx_h) + ky_h * (2.0*py_old + ky_h)) / ((1.0 + pz_old) * (1.0 + pz_old));
-        if (alpha < -1.0) { state[i] = LOST_PZ; return; }
-        double dpz = (1.0 + pz_old) * sqrt_one_dev(alpha);
-        vpz[i] = pz_old + dpz;
-        double new_beta = (1.0 + vpz[i]) / sqrt((1.0 + vpz[i])*(1.0 + vpz[i]) + (mc2/p0c_val)*(mc2/p0c_val));
-        vz[i] = vz[i] * new_beta / beta_val;
-        beta_val = new_beta;
-        beta_arr[i] = beta_val;
+        if (apply_electric_kick_dev(0.5 * kx / beta_val, 0.5 * ky / beta_val,
+                &vpx[i], &vpy[i], &vpz[i], &vz[i],
+                &beta_val, &beta_arr[i], mc2, p0c_val, &state[i])) return;
     }
 
     /* Body: n_step integration steps */
@@ -367,27 +381,14 @@ __global__ void quad_kernel(
         }
 
         /* Electric multipole kick (half at last step, full otherwise) */
-        /* d_ea2/d_eb2 are precomputed WITHOUT 1/beta; apply per-particle */
         if (has_elec) {
             double kx, ky;
             multipole_kick_dev(d_ea2, d_eb2, ix_elec_max, d_cm,
                                vx[i], vy[i], &kx, &ky);
-            kx /= beta_val;
-            ky /= beta_val;
             double scl = (istep == n_step) ? 0.5 : 1.0;
-            double px_old = vpx[i], py_old = vpy[i], pz_old = vpz[i];
-            double kx_s = scl * kx, ky_s = scl * ky;
-            vpx[i] += kx_s;
-            vpy[i] += ky_s;
-            /* pz update for electric kick */
-            double alpha = (kx_s * (2.0*px_old + kx_s) + ky_s * (2.0*py_old + ky_s)) / ((1.0 + pz_old) * (1.0 + pz_old));
-            if (alpha < -1.0) { state[i] = LOST_PZ; return; }
-            double dpz = (1.0 + pz_old) * sqrt_one_dev(alpha);
-            vpz[i] = pz_old + dpz;
-            double new_beta = (1.0 + vpz[i]) / sqrt((1.0 + vpz[i])*(1.0 + vpz[i]) + (mc2/p0c_val)*(mc2/p0c_val));
-            vz[i] = vz[i] * new_beta / beta_val;
-            beta_val = new_beta;
-            beta_arr[i] = beta_val;
+            if (apply_electric_kick_dev(scl * kx / beta_val, scl * ky / beta_val,
+                    &vpx[i], &vpy[i], &vpz[i], &vz[i],
+                    &beta_val, &beta_arr[i], mc2, p0c_val, &state[i])) return;
         }
     }
 
@@ -638,21 +639,11 @@ __global__ void bend_kernel(
                            vx[i], vy[i], &kx, &ky);
         double f_gx = 1.0 + g * vx[i];
         double rel_p0 = 1.0 + vpz[i];
-        double ps2 = rel_p0*rel_p0 - vpx[i]*vpx[i] - vpy[i]*vpy[i];
-        double ps = sqrt(ps2) / rel_p0;
-        kx *= f_gx / (ps * beta_val);
-        ky *= f_gx / (ps * beta_val);
-        double px_old = vpx[i], py_old = vpy[i], pz_old = vpz[i];
-        double kx_h = 0.5 * kx, ky_h = 0.5 * ky;
-        vpx[i] += kx_h;
-        vpy[i] += ky_h;
-        double alpha_e = (kx_h*(2.0*px_old+kx_h) + ky_h*(2.0*py_old+ky_h)) / (rel_p0*rel_p0);
-        if (alpha_e < -1.0) { state[i] = LOST_PZ; return; }
-        vpz[i] = pz_old + rel_p0 * sqrt_one_dev(alpha_e);
-        double new_beta = (1.0+vpz[i]) / sqrt((1.0+vpz[i])*(1.0+vpz[i]) + (mc2/p0c_val)*(mc2/p0c_val));
-        vz[i] = vz[i] * new_beta / beta_val;
-        beta_val = new_beta;
-        beta_arr[i] = beta_val;
+        double ps = sqrt(rel_p0*rel_p0 - vpx[i]*vpx[i] - vpy[i]*vpy[i]) / rel_p0;
+        double f_scale = 0.5 * f_gx / (ps * beta_val);
+        if (apply_electric_kick_dev(kx * f_scale, ky * f_scale,
+                &vpx[i], &vpy[i], &vpz[i], &vz[i],
+                &beta_val, &beta_arr[i], mc2, p0c_val, &state[i])) return;
     }
 
     /* Body: n_step integration steps */
@@ -834,22 +825,12 @@ __global__ void bend_kernel(
                                vx[i], vy[i], &kx, &ky);
             double f_gx = 1.0 + g * vx[i];
             double rel_p0 = 1.0 + vpz[i];
-            double ps2 = rel_p0*rel_p0 - vpx[i]*vpx[i] - vpy[i]*vpy[i];
-            double ps = sqrt(ps2) / rel_p0;
-            kx *= f_gx / (ps * beta_val);
-            ky *= f_gx / (ps * beta_val);
+            double ps = sqrt(rel_p0*rel_p0 - vpx[i]*vpx[i] - vpy[i]*vpy[i]) / rel_p0;
             double scl = (istep == n_step) ? 0.5 : 1.0;
-            double px_old = vpx[i], py_old = vpy[i], pz_old = vpz[i];
-            double kx_s = scl * kx, ky_s = scl * ky;
-            vpx[i] += kx_s;
-            vpy[i] += ky_s;
-            double alpha_e = (kx_s*(2.0*px_old+kx_s) + ky_s*(2.0*py_old+ky_s)) / ((1.0+pz_old)*(1.0+pz_old));
-            if (alpha_e < -1.0) { state[i] = LOST_PZ; return; }
-            vpz[i] = pz_old + (1.0+pz_old) * sqrt_one_dev(alpha_e);
-            double new_beta = (1.0+vpz[i]) / sqrt((1.0+vpz[i])*(1.0+vpz[i]) + (mc2/p0c_val)*(mc2/p0c_val));
-            vz[i] = vz[i] * new_beta / beta_val;
-            beta_val = new_beta;
-            beta_arr[i] = beta_val;
+            double f_scale = scl * f_gx / (ps * beta_val);
+            if (apply_electric_kick_dev(kx * f_scale, ky * f_scale,
+                    &vpx[i], &vpy[i], &vpz[i], &vz[i],
+                    &beta_val, &beta_arr[i], mc2, p0c_val, &state[i])) return;
         }
     }
 
