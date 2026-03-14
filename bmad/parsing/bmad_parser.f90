@@ -72,11 +72,11 @@ character(*), optional :: use_line
 
 character(1) delim
 character(16), parameter :: r_name = 'bmad_parser'
-character(40) word_1, word_2, name, this_name, this_branch_name
+character(40) name, this_name, this_branch_name
 character(40), allocatable :: seq_name(:)
-character(80) debug_line
-character(400) full_lat_file_name, digested_file, call_file
+character(80) word_1, word_2, debug_line
 character(280) parse_line_save, line, use_line_str
+character(400) full_lat_file_name, digested_file, call_file, str1, str2
 
 logical, optional :: make_mats6, digested_read_ok, err_flag
 logical delim_found, arg_list_found, wild_here
@@ -318,6 +318,21 @@ parsing_loop: do
     word_1 = 'ABC'          ! An executable line to set a break on
     cycle parsing_loop
   endif
+
+  !-------------------------------------------
+  ! SETENV
+
+  if (word_1(:ix_word) == 'SETENV') then
+    call get_next_word(str1, ix_word, '=', delim, delim_found, .false., err_flag = err); if (err) return
+    call get_next_word(str2, ix_word, ' ', delim, delim_found, .false., err_flag = err); if (err) return
+    if (bp_com%parse_line /= '') then
+      call parser_error ('EXTRA STUFF ON SETENV LINE: ' // bp_com%parse_line)
+      bp_com%parse_line = ''
+    endif
+    call set_env(str1, str2, err)
+    if (err) call parser_error('ERROR SETTING ENVIRONMENT VARIABLE: ' // quote(str1) // ' TO: ' // quote(str2))
+    cycle parsing_loop
+  endif 
 
   !-------------------------------------------
   ! SLICE_LATTICE, etc.
