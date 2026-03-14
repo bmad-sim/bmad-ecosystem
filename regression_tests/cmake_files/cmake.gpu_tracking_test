@@ -1,6 +1,6 @@
 set (EXENAME gpu_tracking_test)
 
-FILE (GLOB SRC_FILES "gpu_tracking_test/*.f90")
+set (SRC_FILES "gpu_tracking_test/gpu_tracking_test.f90")
 
 set (INC_DIRS
 )

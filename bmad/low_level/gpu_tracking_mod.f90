@@ -7,6 +7,8 @@ implicit none
 private
 
 public :: gpu_tracking_init
+public :: gpu_tracking_reset
+public :: gpu_tracking_is_active
 public :: ele_gpu_eligible
 public :: track_bunch_thru_drift_gpu
 public :: track_bunch_thru_quad_gpu
@@ -145,6 +147,26 @@ endif
 #endif
 
 end subroutine
+
+!------------------------------------------------------------------------
+! gpu_tracking_reset — reset initialization state so gpu_tracking_init
+! can re-read the environment variable on next call.
+! Used by benchmarks to toggle GPU on/off between runs.
+!------------------------------------------------------------------------
+subroutine gpu_tracking_reset()
+gpu_trk_initialized = .false.
+bmad_com%gpu_tracking_on = .false.
+end subroutine
+
+!------------------------------------------------------------------------
+! gpu_tracking_is_active — initialize if needed and return whether
+! GPU tracking is currently enabled.
+!------------------------------------------------------------------------
+function gpu_tracking_is_active() result (is_active)
+logical :: is_active
+call gpu_tracking_init()
+is_active = bmad_com%gpu_tracking_on
+end function
 
 !------------------------------------------------------------------------
 ! ele_gpu_eligible — check if an element can be GPU-tracked
@@ -288,6 +310,87 @@ do j = 1, n
 enddo
 
 end subroutine apply_fringe_to_bunch
+
+!------------------------------------------------------------------------
+! gpu_tracking_pre — common entrance sequence for GPU element tracking
+!
+! Allocates SoA arrays, applies entrance misalignment and fringe on CPU,
+! then extracts particle data into SoA form for the CUDA kernel.
+!------------------------------------------------------------------------
+subroutine gpu_tracking_pre(bunch, ele, param, n, &
+    vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+    has_misalign, fringe_info, apply_fringe)
+
+use, intrinsic :: iso_c_binding
+
+type (bunch_struct),              intent(inout) :: bunch
+type (ele_struct),                intent(in)    :: ele
+type (lat_param_struct),          intent(in)    :: param
+integer(C_INT),                   intent(in)    :: n
+real(C_DOUBLE), allocatable,      intent(out)   :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
+real(C_DOUBLE), allocatable,      intent(out)   :: beta_a(:), p0c_a(:), t_a(:)
+integer(C_INT), allocatable,      intent(out)   :: state_a(:)
+logical,                          intent(in)    :: has_misalign
+type (fringe_field_info_struct),  intent(inout) :: fringe_info
+logical,                          intent(in)    :: apply_fringe
+
+allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
+allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
+
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
+if (apply_fringe .and. fringe_info%has_fringe) &
+  call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, first_track_edge$)
+
+call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
+
+end subroutine gpu_tracking_pre
+
+!------------------------------------------------------------------------
+! gpu_tracking_post — common exit sequence for GPU element tracking
+!
+! Writes SoA arrays back to bunch, deallocates, applies exit fringe
+! and misalignment on CPU, and optionally updates s position.
+!------------------------------------------------------------------------
+subroutine gpu_tracking_post(bunch, ele, param, n, &
+    vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+    has_misalign, fringe_info, apply_fringe, &
+    copy_beta, copy_p0c, update_s)
+
+use, intrinsic :: iso_c_binding
+
+type (bunch_struct),              intent(inout) :: bunch
+type (ele_struct),                intent(in)    :: ele
+type (lat_param_struct),          intent(in)    :: param
+integer(C_INT),                   intent(in)    :: n
+real(C_DOUBLE), allocatable,      intent(inout) :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
+real(C_DOUBLE), allocatable,      intent(inout) :: beta_a(:), p0c_a(:), t_a(:)
+integer(C_INT), allocatable,      intent(inout) :: state_a(:)
+logical,                          intent(in)    :: has_misalign
+type (fringe_field_info_struct),  intent(inout) :: fringe_info
+logical,                          intent(in)    :: apply_fringe
+logical,                          intent(in)    :: copy_beta, copy_p0c, update_s
+
+integer :: j
+
+call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                   copy_beta, copy_p0c)
+
+deallocate(vx, vpx, vy, vpy, vz, vpz)
+deallocate(state_a, beta_a, p0c_a, t_a)
+
+if (apply_fringe .and. fringe_info%has_fringe) &
+  call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, second_track_edge$)
+if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
+
+if (update_s) then
+  do j = 1, n
+    if (bunch%particle(j)%state == alive$) then
+      bunch%particle(j)%s = ele%s
+    endif
+  enddo
+endif
+
+end subroutine gpu_tracking_post
 
 !------------------------------------------------------------------------
 ! precompute_multipole_arrays — compute scaled multipole coefficients for CUDA
@@ -484,26 +587,18 @@ if (has_mag_multipoles .or. ix_elec_max > -1) &
 rel_tracking_charge = rel_tracking_charge_to_mass(bunch%particle(1), param%particle)
 charge_dir = rel_tracking_charge * ele%orientation
 
-! Allocate SoA arrays
-allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
-allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
-
-! Apply entrance misalignment and fringe on CPU
-if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
-if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, first_track_edge$)
+! Entrance: allocate SoA, misalignment, fringe, AoS→SoA
+call gpu_tracking_pre(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+    state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true.)
 
 ! Precompute scaled multipole arrays for CUDA kernel
 call precompute_multipole_arrays(bunch%particle(1), ele, &
     ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec, &
     ele_length, n_step, a2_arr, b2_arr, ea2_arr, eb2_arr, cm_arr)
 
-! AoS -> SoA extraction (now in body frame, after fringe)
-call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
-
-! All checks passed — proceed with GPU tracking
 did_track = .true.
 
-! Call CUDA kernel (with multipole and step parameters)
+! Call CUDA kernel
 call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     state_a, beta_a, p0c_a, t_a, &
                     mc2, b1, ele_length, delta_ref_time, &
@@ -512,16 +607,10 @@ call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     int(ix_mag_max, C_INT), int(n_step, C_INT), &
                     ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
 
-! SoA -> AoS write-back (still in body frame if misaligned)
-call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
-                   .true., .false.)
-
-deallocate(vx, vpx, vy, vpy, vz, vpz)
-deallocate(state_a, beta_a, p0c_a, t_a)
-
-! Apply exit fringe and misalignment on CPU
-if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, second_track_edge$)
-if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
+! Exit: SoA→AoS, deallocate, fringe, misalignment
+call gpu_tracking_post(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+    state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true., &
+    .true., .false., .false.)
 #endif
 
 end subroutine track_bunch_thru_quad_gpu
@@ -620,22 +709,15 @@ step_len_val = ele_length / n_step
 ! Fringe info
 call init_fringe_info(fringe_info, ele)
 
-! Allocate SoA arrays
-allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
-allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
-
-! Apply entrance misalignment and fringe on CPU
-if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
-if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, first_track_edge$)
+! Entrance: allocate SoA, misalignment, fringe, AoS→SoA
+call gpu_tracking_pre(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+    state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true.)
 
 ! Precompute scaled multipole arrays for CUDA kernel
 ! Note: the (1+g*x) curvature factor for bends is applied per-particle in the kernel.
 call precompute_multipole_arrays(bunch%particle(1), ele, &
     ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec, &
     ele_length, n_step, a2_arr, b2_arr, ea2_arr, eb2_arr, cm_arr)
-
-! AoS -> SoA
-call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
 
 did_track = .true.
 
@@ -649,23 +731,10 @@ call gpu_track_bend(vx, vpx, vy, vpy, vz, vpz, &
                     int(ix_mag_max, C_INT), int(n_step, C_INT), &
                     ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
 
-! SoA -> AoS
-call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
-                   .true., .false.)
-
-deallocate(vx, vpx, vy, vpy, vz, vpz)
-deallocate(state_a, beta_a, p0c_a, t_a)
-
-! Apply exit fringe and misalignment on CPU
-if (fringe_info%has_fringe) call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, second_track_edge$)
-if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
-
-! Update s position
-do j = 1, n
-  if (bunch%particle(j)%state == alive$) then
-    bunch%particle(j)%s = ele%s
-  endif
-enddo
+! Exit: SoA→AoS, deallocate, fringe, misalignment, update s
+call gpu_tracking_post(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+    state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true., &
+    .true., .false., .true.)
 #endif
 
 end subroutine track_bunch_thru_bend_gpu
@@ -698,6 +767,7 @@ integer :: j, nn, ix_mag_max, ix_elec_max, n_steps
 real(rp) :: mc2, phi0_total
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+type (fringe_field_info_struct) :: fringe_info
 logical :: has_misalign
 integer :: i_fringe_at
 real(rp) :: charge_ratio_val
@@ -772,15 +842,9 @@ do j = 0, n_steps + 1
   h_step_time(j+1)  = step%time
 enddo
 
-! Allocate SoA arrays
-allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
-allocate(state_a(n), beta_a(n), p0c_a(n), t_a(n))
-
-! Apply entrance misalignment (lab → body frame) on CPU
-if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
-
-! AoS -> SoA extraction
-call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
+! Entrance: allocate SoA, misalignment, AoS→SoA (no CPU fringe for lcavity)
+call gpu_tracking_pre(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+    state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .false.)
 
 did_track = .true.
 
@@ -799,23 +863,12 @@ call gpu_track_lcavity(vx, vpx, vy, vpy, vz, vpz, &
                        int(i_fringe_at, C_INT), charge_ratio_val, &
                        int(n, C_INT))
 
-! SoA -> AoS write-back
-call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
-                   .true., .true.)
+! Exit: SoA→AoS, deallocate, misalignment, update s (no CPU fringe)
+call gpu_tracking_post(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+    state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .false., &
+    .true., .true., .true.)
 
-deallocate(vx, vpx, vy, vpy, vz, vpz)
-deallocate(state_a, beta_a, p0c_a, t_a)
 deallocate(h_step_s0, h_step_s, h_step_p0c, h_step_p1c, h_step_scale, h_step_time)
-
-! Apply exit misalignment (body → lab frame) on CPU
-if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
-
-! Update s position
-do j = 1, n
-  if (bunch%particle(j)%state == alive$) then
-    bunch%particle(j)%s = ele%s
-  endif
-enddo
 #endif
 
 end subroutine track_bunch_thru_lcavity_gpu
