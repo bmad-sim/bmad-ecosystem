@@ -14,8 +14,8 @@ d_plain: drift, L = 2.0
 
 ! 2. Drift with aperture
 d_aper: drift, L = 1.5,
-    x1_limit = 2e-4, x2_limit = 2e-4,
-    y1_limit = 2e-4, y2_limit = 2e-4
+    x1_limit = 3e-3, x2_limit = 3e-3,
+    y1_limit = 3e-3, y2_limit = 3e-3
 
 ! 3. Plain quadrupole (L, k1)
 q_plain: quadrupole, L = 0.5, k1 = 0.8
@@ -37,8 +37,8 @@ q_elec: quadrupole, L = 0.5, k1 = 1.0,
 
 ! 8. Quad with aperture
 q_aper: quadrupole, L = 0.5, k1 = 0.7,
-    x1_limit = 2e-4, x2_limit = 2e-4,
-    y1_limit = 2e-4, y2_limit = 2e-4
+    x1_limit = 3e-3, x2_limit = 3e-3,
+    y1_limit = 3e-3, y2_limit = 3e-3
 
 ! 9. Everything combined: fringe + misalign + tilt + mag multipoles + elec multipoles + aperture
 q_combo: quadrupole, L = 0.5, k1 = 1.0,
@@ -46,8 +46,8 @@ q_combo: quadrupole, L = 0.5, k1 = 1.0,
     fringe_type = full,
     b2 = 0.2, a2 = 0.03, b3 = 0.08,
     a0_elec = 400, b1_elec = 150,
-    x1_limit = 3e-4, x2_limit = 3e-4,
-    y1_limit = 3e-4, y2_limit = 3e-4
+    x1_limit = 4e-3, x2_limit = 4e-3,
+    y1_limit = 4e-3, y2_limit = 4e-3
 
 ! 10. Another drift to let the beam propagate
 d_mid: drift, L = 1.0
