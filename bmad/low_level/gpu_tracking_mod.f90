@@ -56,7 +56,7 @@ interface
                             state, beta, p0c, t_time, &
                             mc2, g, g_tot, dg, b1, &
                             ele_length, delta_ref_time, e_tot_ele, &
-                            rel_charge_dir, charge_dir_for_multipole, &
+                            rel_charge_dir, &
                             p0c_ele, n_particles, &
                             a2_arr, b2_arr, cm_arr, &
                             ix_mag_max, n_step, &
@@ -67,7 +67,7 @@ interface
     real(C_DOUBLE), intent(inout) :: beta(*), p0c(*), t_time(*)
     real(C_DOUBLE), value, intent(in) :: mc2, g, g_tot, dg, b1
     real(C_DOUBLE), value, intent(in) :: ele_length, delta_ref_time, e_tot_ele
-    real(C_DOUBLE), value, intent(in) :: rel_charge_dir, charge_dir_for_multipole, p0c_ele
+    real(C_DOUBLE), value, intent(in) :: rel_charge_dir, p0c_ele
     integer(C_INT), value, intent(in) :: n_particles
     real(C_DOUBLE), intent(in) :: a2_arr(*), b2_arr(*), cm_arr(*)
     integer(C_INT), value, intent(in) :: ix_mag_max, n_step
@@ -548,7 +548,7 @@ integer, parameter :: n_multi = n_pole_maxx + 1
 integer(C_INT) :: n
 integer :: j, nn, mm, ix_mag_max, ix_elec_max, n_step
 real(rp) :: ele_length, mc2, b1, delta_ref_time, e_tot_ele, p0c_ele
-real(rp) :: g, g_tot, dg, rel_charge_dir, c_dir
+real(rp) :: g, g_tot, dg, rel_charge_dir
 real(rp) :: r_step, length, step_len_val
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
@@ -587,8 +587,6 @@ has_misalign = ele%bookkeeping_state%has_misalign
 ! Compute charge/direction factors
 rel_charge_dir = ele%orientation * bunch%particle(1)%direction * &
                  rel_tracking_charge_to_mass(bunch%particle(1), param%particle)
-c_dir = ele%orientation * bunch%particle(1)%direction * charge_of(bunch%particle(1)%species)
-
 ! Get multipoles
 call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$, b1)
 b1 = b1 * rel_charge_dir
@@ -646,7 +644,7 @@ call gpu_track_bend(vx, vpx, vy, vpy, vz, vpz, &
                     state_a, beta_a, p0c_a, t_a, &
                     mc2, g, g_tot, dg, b1, &
                     ele_length, delta_ref_time, e_tot_ele, &
-                    rel_charge_dir, c_dir, p0c_ele, n, &
+                    rel_charge_dir, p0c_ele, n, &
                     a2_arr, b2_arr, cm_arr, &
                     int(ix_mag_max, C_INT), int(n_step, C_INT), &
                     ea2_arr, eb2_arr, int(ix_elec_max, C_INT))

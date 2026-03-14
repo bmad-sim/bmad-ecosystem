@@ -131,6 +131,40 @@ __device__ __forceinline__ double low_energy_z_correction_dev(
     }
 }
 
+/* --------------------------------------------------------------------------
+ * drift_body_dev — core drift physics for a single particle
+ *
+ * Updates position (x, y), longitudinal (z), and time (t) for a drift of
+ * length ds.  Returns 0 on success, 1 if particle is lost (pxy2 >= 1).
+ * Does NOT update s_pos — callers handle that themselves.
+ * -------------------------------------------------------------------------- */
+__device__ int drift_body_dev(
+    double *x, double *px, double *y, double *py, double *z, double *pz,
+    double *beta, double *t, double mc2, double p0c, double ds)
+{
+    double delta  = *pz;
+    double rel_pc = 1.0 + delta;
+    double px_rel = *px / rel_pc;
+    double py_rel = *py / rel_pc;
+    double pxy2   = px_rel * px_rel + py_rel * py_rel;
+
+    if (pxy2 >= 1.0) return 1;
+
+    double ps_rel = sqrt(1.0 - pxy2);
+
+    *x += ds * px_rel / ps_rel;
+    *y += ds * py_rel / ps_rel;
+
+    double p_tot = p0c * rel_pc;
+    double A = (mc2 * mc2 * (2.0 * delta + delta * delta)) /
+               (p_tot * p_tot + mc2 * mc2);
+    *z += ds * (sqrt_one_dev(A) + sqrt_one_dev(-pxy2) / ps_rel);
+
+    *t += ds / (*beta * ps_rel * C_LIGHT);
+
+    return 0;
+}
+
 /* =========================================================================
  * DRIFT KERNEL
  * Replicates the physics of track_a_drift (forward, include_ref_motion=true)
@@ -144,33 +178,11 @@ __global__ void drift_kernel(
     if (i >= n) return;
     if (state[i] != ALIVE_ST) return;
 
-    double delta  = vpz[i];
-    double rel_pc = 1.0 + delta;
-    double px_rel = vpx[i] / rel_pc;
-    double py_rel = vpy[i] / rel_pc;
-    double pxy2   = px_rel * px_rel + py_rel * py_rel;
-
-    if (pxy2 >= 1.0) {
+    if (drift_body_dev(&vx[i], &vpx[i], &vy[i], &vpy[i], &vz[i], &vpz[i],
+                        &beta[i], &t_time[i], mc2, p0c[i], length)) {
         state[i] = LOST_PZ;
         return;
     }
-
-    double ps_rel = sqrt(1.0 - pxy2);
-
-    /* Position update */
-    vx[i] += length * px_rel / ps_rel;
-    vy[i] += length * py_rel / ps_rel;
-
-    /* z update: dz = length * (sqrt_one(A) + sqrt_one(-pxy2)/ps_rel) */
-    double p_tot = p0c[i] * rel_pc;
-    double A = (mc2 * mc2 * (2.0 * delta + delta * delta)) /
-               (p_tot * p_tot + mc2 * mc2);
-    double dz = length * (sqrt_one_dev(A) + sqrt_one_dev(-pxy2) / ps_rel);
-    vz[i] += dz;
-
-    /* Time update */
-    double dt = length / (beta[i] * ps_rel * C_LIGHT);
-    t_time[i] += dt;
 
     /* s update (direction = +1) */
     s_pos[i] += length;
@@ -247,6 +259,40 @@ __device__ int apply_electric_kick_dev(
     return 0;
 }
 
+/* --------------------------------------------------------------------------
+ * quad_mat2_calc_dev — compute 2x2 transfer matrix and z-correction terms
+ *
+ * Given focusing strength k_val and step length, computes:
+ *   c, s: cosine-like and sine-like matrix elements
+ *   zc1, zc2, zc3: z-correction coefficients for the plane
+ * -------------------------------------------------------------------------- */
+__device__ void quad_mat2_calc_dev(
+    double k_val, double step_len, double rel_p,
+    double *c_out, double *s_out,
+    double *zc1, double *zc2, double *zc3)
+{
+    double abs_k = fabs(k_val);
+    double sqrt_k = sqrt(abs_k);
+    double sk_l = sqrt_k * step_len;
+
+    if (fabs(sk_l) < 1e-10) {
+        double kl2 = k_val * step_len * step_len;
+        *c_out = 1.0 + kl2 * 0.5;
+        *s_out = (1.0 + kl2 / 6.0) * step_len;
+    } else if (k_val < 0.0) {
+        *c_out = cos(sk_l);
+        *s_out = sin(sk_l) / sqrt_k;
+    } else {
+        *c_out = cosh(sk_l);
+        *s_out = sinh(sk_l) / sqrt_k;
+    }
+
+    double c = *c_out, s = *s_out;
+    *zc1 = k_val * (-c * s + step_len) / 4.0;
+    *zc2 = -k_val * s * s / (2.0 * rel_p);
+    *zc3 = -(c * s + step_len) / (4.0 * rel_p * rel_p);
+}
+
 /* =========================================================================
  * QUADRUPOLE KERNEL
  * Replicates the full body of track_a_quadrupole including:
@@ -307,51 +353,11 @@ __global__ void quad_kernel(
         double rel_p = 1.0 + vpz[i];
         double k1 = charge_dir * b1 / (ele_length * rel_p);
 
-        /* quad_mat2_calc for x plane (k_x = -k1) */
-        double k1_x = -k1;
-        double abs_k_x = fabs(k1_x);
-        double sqrt_k = sqrt(abs_k_x);
-        double sk_l = sqrt_k * step_len;
-        double cx, sx;
-
-        if (fabs(sk_l) < 1e-10) {
-            double kl2 = k1_x * step_len * step_len;
-            cx = 1.0 + kl2 * 0.5;
-            sx = (1.0 + kl2 / 6.0) * step_len;
-        } else if (k1_x < 0.0) {
-            cx = cos(sk_l);
-            sx = sin(sk_l) / sqrt_k;
-        } else {
-            cx = cosh(sk_l);
-            sx = sinh(sk_l) / sqrt_k;
-        }
-
-        double zc_x1 = k1_x * (-cx * sx + step_len) / 4.0;
-        double zc_x2 = -k1_x * sx * sx / (2.0 * rel_p);
-        double zc_x3 = -(cx * sx + step_len) / (4.0 * rel_p * rel_p);
-
-        /* quad_mat2_calc for y plane (k_y = +k1) */
-        double k1_y = k1;
-        double abs_k_y = fabs(k1_y);
-        double sqrt_ky = sqrt(abs_k_y);
-        double sk_ly = sqrt_ky * step_len;
-        double cy, sy;
-
-        if (fabs(sk_ly) < 1e-10) {
-            double kl2y = k1_y * step_len * step_len;
-            cy = 1.0 + kl2y * 0.5;
-            sy = (1.0 + kl2y / 6.0) * step_len;
-        } else if (k1_y < 0.0) {
-            cy = cos(sk_ly);
-            sy = sin(sk_ly) / sqrt_ky;
-        } else {
-            cy = cosh(sk_ly);
-            sy = sinh(sk_ly) / sqrt_ky;
-        }
-
-        double zc_y1 = k1_y * (-cy * sy + step_len) / 4.0;
-        double zc_y2 = -k1_y * sy * sy / (2.0 * rel_p);
-        double zc_y3 = -(cy * sy + step_len) / (4.0 * rel_p * rel_p);
+        /* quad_mat2_calc for x plane (k_x = -k1) and y plane (k_y = +k1) */
+        double cx, sx, zc_x1, zc_x2, zc_x3;
+        double cy, sy, zc_y1, zc_y2, zc_y3;
+        quad_mat2_calc_dev(-k1, step_len, rel_p, &cx, &sx, &zc_x1, &zc_x2, &zc_x3);
+        quad_mat2_calc_dev( k1, step_len, rel_p, &cy, &sy, &zc_y1, &zc_y2, &zc_y3);
 
         /* Save pre-matrix coords for z update */
         double x0 = vx[i], px0 = vpx[i];
@@ -362,6 +368,7 @@ __global__ void quad_kernel(
                  zc_y1*y0*y0 + zc_y2*y0*py0 + zc_y3*py0*py0;
 
         /* Apply 2x2 matrices */
+        double k1_x = -k1, k1_y = k1;
         vx[i]  = cx * x0 + (sx / rel_p) * px0;
         vpx[i] = (k1_x * sx * rel_p) * x0 + cx * px0;
         vy[i]  = cy * y0 + (sy / rel_p) * py0;
@@ -596,7 +603,7 @@ __global__ void bend_kernel(
     int *state, double *beta_arr, double *p0c_arr, double *t_arr,
     double mc2, double g, double g_tot, double dg, double b1,
     double ele_length, double delta_ref_time, double e_tot_ele,
-    double rel_charge_dir, double charge_dir_for_multipole,
+    double rel_charge_dir,
     double p0c_ele,
     int n_particles,
     /* Multipole parameters */
@@ -721,19 +728,12 @@ __global__ void bend_kernel(
 
         /* ---- Branch 2: g=0 and dg=0 → pure drift ---- */
         } else if ((g == 0.0 && dg == 0.0) || step_len == 0.0) {
-            double delta = vpz[i];
-            double rel_pc = 1.0 + delta;
-            double px_rel = vpx[i] / rel_pc;
-            double py_rel = vpy[i] / rel_pc;
-            double pxy2 = px_rel*px_rel + py_rel*py_rel;
-            if (pxy2 >= 1.0) { state[i] = LOST_PZ; return; }
-            double ps_rel = sqrt(1.0 - pxy2);
-            vx[i] += step_len * px_rel / ps_rel;
-            vy[i] += step_len * py_rel / ps_rel;
-            double p_tot = p0c_val * rel_pc;
-            double A = (mc2*mc2*(2.0*delta + delta*delta)) / (p_tot*p_tot + mc2*mc2);
-            vz[i] += step_len * (sqrt_one_dev(A) + sqrt_one_dev(-pxy2)/ps_rel);
-            /* time handled at end */
+            double t_dummy = t_arr[i];
+            if (drift_body_dev(&vx[i], &vpx[i], &vy[i], &vpy[i], &vz[i], &vpz[i],
+                                &beta_val, &t_dummy, mc2, p0c_val, step_len)) {
+                state[i] = LOST_PZ; return;
+            }
+            /* time handled at end (not from drift_body_dev) */
 
         /* ---- Branch 3: General bend (g != 0, b1 = 0) ---- */
         } else {
@@ -847,7 +847,7 @@ extern "C" void gpu_track_bend_(
     int *h_state, double *h_beta, double *h_p0c, double *h_t,
     double mc2, double g, double g_tot, double dg, double b1,
     double ele_length, double delta_ref_time, double e_tot_ele,
-    double rel_charge_dir, double charge_dir_for_multipole,
+    double rel_charge_dir,
     double p0c_ele,
     int n_particles,
     double *h_a2, double *h_b2, double *h_cm,
@@ -869,7 +869,7 @@ extern "C" void gpu_track_bend_(
         d_vec[0], d_vec[1], d_vec[2], d_vec[3], d_vec[4], d_vec[5],
         d_state, d_beta, d_p0c, d_t,
         mc2, g, g_tot, dg, b1, ele_length, delta_ref_time, e_tot_ele,
-        rel_charge_dir, charge_dir_for_multipole, p0c_ele,
+        rel_charge_dir, p0c_ele,
         n_particles, d_a2, d_b2, d_cm, ix_mag_max, n_step,
         d_ea2, d_eb2, ix_elec_max);
     cudaDeviceSynchronize();
@@ -942,6 +942,25 @@ __device__ void lcavity_fringe_kick_dev(
     beta_val = beta_new;
 }
 
+/* --------------------------------------------------------------------------
+ * ponderomotive_kick_dev — standing-wave ponderomotive transverse kick
+ *
+ * Applied symmetrically before and after each RF energy kick step.
+ * -------------------------------------------------------------------------- */
+__device__ void ponderomotive_kick_dev(
+    double *px, double *py, double *z, double *t,
+    double x, double y, double pz, double beta_val,
+    double grad, double l_active, double p0c, int n_rf_steps)
+{
+    double rel_p = 1.0 + pz;
+    double coef = grad * grad * l_active / (16.0 * p0c * p0c * rel_p * n_rf_steps);
+    *px -= coef * x;
+    *py -= coef * y;
+    double dzp = -0.5 * coef * (x * x + y * y) / rel_p;
+    *z += dzp;
+    *t -= dzp / (C_LIGHT * beta_val);
+}
+
 __global__ void lcavity_kernel(
     double *vx, double *vpx, double *vy, double *vpy, double *vz, double *vpz,
     int *state, double *beta_arr, double *p0c_arr, double *t_arr,
@@ -980,24 +999,10 @@ __global__ void lcavity_kernel(
         s_now = step_s[ix];
 
         if (ds != 0.0) {
-            double rel_pc = 1.0 + pz;
-            double px_rel = px / rel_pc;
-            double py_rel = py / rel_pc;
-            double pxy2 = px_rel * px_rel + py_rel * py_rel;
-
-            if (pxy2 >= 1.0) { state[i] = LOST_PZ; return; }
-            double ps_rel = sqrt(1.0 - pxy2);
-
-            x += ds * px_rel / ps_rel;
-            y += ds * py_rel / ps_rel;
-
-            double p_tot = p0c * rel_pc;
-            double A = (mc2 * mc2 * (2.0 * pz + pz * pz)) / (p_tot * p_tot + mc2 * mc2);
-            double dz = ds * (sqrt_one_dev(A) + sqrt_one_dev(-pxy2) / ps_rel);
-            z += dz;
-
-            double dt = ds / (beta_val * ps_rel * C_LIGHT);
-            t += dt;
+            if (drift_body_dev(&x, &px, &y, &py, &z, &pz,
+                                &beta_val, &t, mc2, p0c, ds)) {
+                state[i] = LOST_PZ; return;
+            }
         }
 
         /* ---- Entrance fringe: step 0, after drift, before energy kick ---- */
@@ -1011,14 +1016,9 @@ __global__ void lcavity_kernel(
         if (ix != ix_step_end) {
             /* Upstream ponderomotive kick (skip at step 0) */
             if (do_ponderomotive && ix > 0) {
-                double rel_p = 1.0 + pz;
                 double grad = field_autoscale * voltage_tot / l_active;
-                double coef = grad * grad * l_active / (16.0 * p0c * p0c * rel_p * n_rf_steps);
-                px -= coef * x;
-                py -= coef * y;
-                double dzp = -0.5 * coef * (x * x + y * y) / rel_p;
-                z += dzp;
-                t -= dzp / (C_LIGHT * beta_val);
+                ponderomotive_kick_dev(&px, &py, &z, &t, x, y, pz, beta_val,
+                                       grad, l_active, p0c, n_rf_steps);
             }
 
             /* ---- Energy kick ---- */
@@ -1063,14 +1063,9 @@ __global__ void lcavity_kernel(
 
             /* Downstream ponderomotive kick (skip at step n_rf_steps) */
             if (do_ponderomotive && ix < n_rf_steps) {
-                double rel_p2 = 1.0 + pz;
                 double grad = field_autoscale * voltage_tot / l_active;
-                double coef = grad * grad * l_active / (16.0 * p0c * p0c * rel_p2 * n_rf_steps);
-                px -= coef * x;
-                py -= coef * y;
-                double dzp = -0.5 * coef * (x * x + y * y) / rel_p2;
-                z += dzp;
-                t -= dzp / (C_LIGHT * beta_val);
+                ponderomotive_kick_dev(&px, &py, &z, &t, x, y, pz, beta_val,
+                                       grad, l_active, p0c, n_rf_steps);
             }
         }
 
