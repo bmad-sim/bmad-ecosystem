@@ -29,7 +29,6 @@ set (EXE_SPECS
   cmake_files/cmake.fringe_test
   cmake_files/cmake.geometry_test
   cmake_files/cmake.girder_test
-  cmake_files/cmake.gpu_tracking_test
   cmake_files/cmake.hdf5_test
   cmake_files/cmake.mad_to_bmad_test
   cmake_files/cmake.mat6_calc_method_test
@@ -68,6 +67,15 @@ set (EXE_SPECS
   cmake_files/cmake.xraylib_test
   cmake_files/cmake.perf_lsc
 )
+
+# GPU tracking tests — only built when ACC_ENABLE_GPU_TRACKING=Y
+IF ("$ENV{ACC_ENABLE_GPU_TRACKING}" STREQUAL "Y")
+  list(APPEND EXE_SPECS
+    cmake_files/cmake.gpu_tracking_test
+    cmake_files/cmake.gpu_tracking_stress_test
+    cmake_files/cmake.gpu_bend_benchmark
+  )
+ENDIF ()
 
 set(SRC_DIRS
 )

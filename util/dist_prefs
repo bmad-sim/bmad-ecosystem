@@ -186,8 +186,7 @@ export ACC_CONDA_PATH="${CONDA_PREFIX}"
 #-----------------------------------------------------------
 # Setting the variable ACC_ENABLE_GPU_TRACKING here to "Y"
 # will enable GPU-accelerated particle tracking through
-# drift, quadrupole, sbend, and lcavity elements via NVIDIA
-# CUDA kernels.
+# supported elements via NVIDIA CUDA kernels.
 # Requires the CUDA Toolkit to be installed.
 #
 # At runtime, if ACC_ENABLE_GPU_TRACKING=Y is set in the

@@ -410,6 +410,7 @@ do j = 1, np
     mdiff = max(mdiff, abs(b1%bunch(1)%particle(j)%vec(k) - b2%bunch(1)%particle(j)%vec(k)))
   enddo
   mdiff = max(mdiff, abs(b1%bunch(1)%particle(j)%t - b2%bunch(1)%particle(j)%t))
+  mdiff = max(mdiff, abs(b1%bunch(1)%particle(j)%s - b2%bunch(1)%particle(j)%s))
 enddo
 end function compute_max_diff
 

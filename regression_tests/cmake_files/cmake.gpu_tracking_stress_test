@@ -1,0 +1,12 @@
+set (EXENAME gpu_tracking_stress_test)
+
+set (SRC_FILES "gpu_tracking_test/gpu_tracking_stress_test.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

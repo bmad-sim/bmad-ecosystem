@@ -861,8 +861,8 @@ when \vn{exact_multipoles} is set.
 \item[\vn{Lcavity}] \Newline
 Linac cavity tracking using a stair-step RF approximation. Supports both standing-wave and
 traveling-wave cavities, including ponderomotive kicks for standing-wave cavities. Not supported when
-absolute time tracking is enabled, solenoid components are present, multipoles are present, or
-coupler kicks are non-zero.
+absolute time tracking is enabled, solenoid components are present, multipoles are present,
+coupler kicks are non-zero, RF frequency is zero, or the element has zero length.
 \end{description}
 
 For an element to be eligible for GPU tracking, it must use \vn{bmad_standard} tracking

@@ -14,6 +14,7 @@ public :: track_bunch_thru_drift_gpu
 public :: track_bunch_thru_quad_gpu
 public :: track_bunch_thru_bend_gpu
 public :: track_bunch_thru_lcavity_gpu
+public :: check_entrance_aperture_for_gpu
 
 ! Whether gpu_tracking_init has been called
 logical, save :: gpu_trk_initialized = .false.
@@ -110,6 +111,9 @@ interface
     use, intrinsic :: iso_c_binding
     integer(C_INT) :: avail
   end function
+
+  subroutine gpu_tracking_cleanup() bind(C, name='gpu_tracking_cleanup_')
+  end subroutine
 end interface
 #endif
 
@@ -150,10 +154,14 @@ end subroutine
 
 !------------------------------------------------------------------------
 ! gpu_tracking_reset — reset initialization state so gpu_tracking_init
-! can re-read the environment variable on next call.
+! can re-read the environment variable on next call. Also releases
+! cached GPU device memory.
 ! Used by benchmarks to toggle GPU on/off between runs.
 !------------------------------------------------------------------------
 subroutine gpu_tracking_reset()
+#ifdef USE_GPU_TRACKING
+call gpu_tracking_cleanup()
+#endif
 gpu_trk_initialized = .false.
 bmad_com%gpu_tracking_on = .false.
 end subroutine
@@ -477,6 +485,7 @@ real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), s_a(:), t_a(:)
 integer(C_INT), allocatable :: state_a(:)
 
 n = size(bunch%particle)
+if (n == 0) return
 length = ele%value(l$)
 if (length == 0) return
 
@@ -513,11 +522,9 @@ end subroutine track_bunch_thru_drift_gpu
 !------------------------------------------------------------------------
 ! track_bunch_thru_quad_gpu
 !
-! GPU batch tracking through a quadrupole.  Only handles the simple case:
-! no fringe fields, no multipoles beyond b1, no electric multipoles.
-! Sets did_track = .false. and returns immediately if the element has
-! features the GPU kernel cannot handle, so the caller can fall back to
-! CPU tracking.
+! GPU batch tracking through a quadrupole.  Handles fringe fields and
+! misalignment on CPU (before/after GPU body tracking), and magnetic/
+! electric multipole kicks in the CUDA kernel via split-step integration.
 !------------------------------------------------------------------------
 subroutine track_bunch_thru_quad_gpu (bunch, ele, param, did_track)
 
@@ -532,12 +539,11 @@ logical,                 intent(out)   :: did_track
 #ifdef USE_GPU_TRACKING
 integer, parameter :: n_multi = n_pole_maxx + 1  ! = 22
 integer(C_INT) :: n
-integer :: j, nn, mm, ix_mag_max, ix_elec_max, n_step
+integer :: ix_mag_max, ix_elec_max, n_step
 real(rp) :: ele_length, mc2, b1, delta_ref_time, e_tot_ele
-real(rp) :: charge_dir, rel_tracking_charge, r_step, length
+real(rp) :: charge_dir, rel_tracking_charge, length
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) :: f_charge, r_ratio
 type (fringe_field_info_struct) :: fringe_info
 logical :: has_misalign, has_mag_multipoles
 
@@ -545,16 +551,17 @@ logical :: has_misalign, has_mag_multipoles
 real(C_DOUBLE) :: a2_arr(0:n_pole_maxx), b2_arr(0:n_pole_maxx)
 real(C_DOUBLE) :: ea2_arr(0:n_pole_maxx), eb2_arr(0:n_pole_maxx)
 real(C_DOUBLE) :: cm_arr(0:n_pole_maxx, 0:n_pole_maxx)
-real(rp) :: f_elec, step_len_val
-logical :: has_elec_multipoles
 
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
 integer(C_INT), allocatable :: state_a(:)
+#endif
 
 did_track = .false.
 
+#ifdef USE_GPU_TRACKING
 n = size(bunch%particle)
+if (n == 0) return
 ele_length = ele%value(l$)
 if (ele_length == 0) then
   did_track = .true.
@@ -607,10 +614,10 @@ call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
                     int(ix_mag_max, C_INT), int(n_step, C_INT), &
                     ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
 
-! Exit: SoA→AoS, deallocate, fringe, misalignment
+! Exit: SoA→AoS, deallocate, fringe, misalignment, update s
 call gpu_tracking_post(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
     state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true., &
-    .true., .false., .false.)
+    .true., .false., .true.)
 #endif
 
 end subroutine track_bunch_thru_quad_gpu
@@ -629,22 +636,20 @@ use, intrinsic :: iso_c_binding
 
 type (bunch_struct),     intent(inout) :: bunch
 type (ele_struct), target, intent(inout) :: ele
-type (lat_param_struct), intent(inout) :: param
+type (lat_param_struct), intent(in)    :: param
 logical,                 intent(out)   :: did_track
 
 #ifdef USE_GPU_TRACKING
 integer, parameter :: n_multi = n_pole_maxx + 1
 integer(C_INT) :: n
-integer :: j, nn, mm, ix_mag_max, ix_elec_max, n_step
+integer :: ix_mag_max, ix_elec_max, n_step
 real(rp) :: ele_length, mc2, b1, delta_ref_time, e_tot_ele, p0c_ele
 real(rp) :: g, g_tot, dg, rel_charge_dir
 real(rp) :: r_step, length, step_len_val
 real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
 real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
-real(rp) :: f_charge, r_ratio, f_elec, f_p0c
 type (fringe_field_info_struct) :: fringe_info
 logical :: has_misalign, has_mag_multipoles, has_elec_multipoles
-type (coord_struct) :: start_orb
 
 real(C_DOUBLE) :: a2_arr(0:n_pole_maxx), b2_arr(0:n_pole_maxx)
 real(C_DOUBLE) :: ea2_arr(0:n_pole_maxx), eb2_arr(0:n_pole_maxx)
@@ -653,10 +658,13 @@ real(C_DOUBLE) :: cm_arr(0:n_pole_maxx, 0:n_pole_maxx)
 real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
 real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), t_a(:)
 integer(C_INT), allocatable :: state_a(:)
+#endif
 
 did_track = .false.
 
+#ifdef USE_GPU_TRACKING
 n = size(bunch%particle)
+if (n == 0) return
 ele_length = ele%value(l$)
 if (ele_length == 0) then
   did_track = .true.
@@ -758,7 +766,7 @@ use, intrinsic :: iso_c_binding
 
 type (bunch_struct),     intent(inout) :: bunch
 type (ele_struct), target, intent(inout) :: ele
-type (lat_param_struct), intent(inout) :: param
+type (lat_param_struct), intent(in)    :: param
 logical,                 intent(out)   :: did_track
 
 #ifdef USE_GPU_TRACKING
@@ -780,10 +788,13 @@ integer(C_INT), allocatable :: state_a(:)
 real(C_DOUBLE), allocatable :: h_step_s0(:), h_step_s(:)
 real(C_DOUBLE), allocatable :: h_step_p0c(:), h_step_p1c(:)
 real(C_DOUBLE), allocatable :: h_step_scale(:), h_step_time(:)
+#endif
 
 did_track = .false.
 
+#ifdef USE_GPU_TRACKING
 n = size(bunch%particle)
+if (n == 0) return
 
 ! --- Bail out conditions ---
 
@@ -872,5 +883,27 @@ deallocate(h_step_s0, h_step_s, h_step_p0c, h_step_p1c, h_step_scale, h_step_tim
 #endif
 
 end subroutine track_bunch_thru_lcavity_gpu
+
+!------------------------------------------------------------------------
+! check_entrance_aperture_for_gpu — check entrance aperture for all alive particles
+!
+! The GPU dispatch path bypasses track1, which normally checks entrance
+! apertures. This subroutine replicates that check.
+!------------------------------------------------------------------------
+subroutine check_entrance_aperture_for_gpu (bunch, ele, param)
+
+type (bunch_struct), intent(inout) :: bunch
+type (ele_struct),   intent(inout) :: ele
+type (lat_param_struct), intent(inout) :: param
+
+integer :: j
+
+do j = 1, size(bunch%particle)
+  if (bunch%particle(j)%state == alive$) then
+    call check_aperture_limit(bunch%particle(j), ele, first_track_edge$, param)
+  endif
+enddo
+
+end subroutine check_entrance_aperture_for_gpu
 
 end module gpu_tracking_mod

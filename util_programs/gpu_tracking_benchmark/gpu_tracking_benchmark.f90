@@ -65,11 +65,9 @@ do ilat = 1, n_lats
 enddo
 
 ! Warmup: small GPU run to initialize CUDA context
-call gpu_tracking_reset()
-rc = c_setenv('ACC_ENABLE_GPU_TRACKING' // C_NULL_CHAR, 'Y' // C_NULL_CHAR, 1_C_INT)
-gpu_ok = gpu_tracking_is_active()
-if (.not. gpu_ok) then
-  print *, 'FATAL: GPU tracking not available'
+call gpu_tracking_init()
+if (.not. bmad_com%gpu_tracking_on) then
+  print *, 'FATAL: GPU tracking not available (set ACC_ENABLE_GPU_TRACKING=Y)'
   stop
 endif
 
@@ -100,19 +98,15 @@ do ilat = 1, n_lats
     call init_beam_distribution(branch%ele(0), branch%param, beam_init, beam_gpu, err)
     beam_gpu%bunch(1)%particle = beam_cpu%bunch(1)%particle
 
-    ! CPU run
-    call gpu_tracking_reset()
-    rc = c_unsetenv('ACC_ENABLE_GPU_TRACKING' // C_NULL_CHAR)
-    gpu_ok = gpu_tracking_is_active()
+    ! CPU run (toggle flag directly to avoid repeated init messages)
+    bmad_com%gpu_tracking_on = .false.
     call system_clock(clock_start, clock_rate)
     call track_beam(lats(ilat), beam_cpu, err=err)
     call system_clock(clock_end)
     t_cpu = real(clock_end - clock_start, rp) / real(clock_rate, rp)
 
     ! GPU run
-    call gpu_tracking_reset()
-    rc = c_setenv('ACC_ENABLE_GPU_TRACKING' // C_NULL_CHAR, 'Y' // C_NULL_CHAR, 1_C_INT)
-    gpu_ok = gpu_tracking_is_active()
+    bmad_com%gpu_tracking_on = .true.
     call system_clock(clock_start, clock_rate)
     call track_beam(lats(ilat), beam_gpu, err=err)
     call system_clock(clock_end)

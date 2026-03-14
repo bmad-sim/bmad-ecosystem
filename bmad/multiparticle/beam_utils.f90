@@ -48,7 +48,7 @@ real(rp) charge, ds_wake
 integer, optional :: direction
 integer i, j, n, jj
 logical err_flag, finished, thread_safe
-logical :: gpu_did_track = .false.
+logical gpu_did_track
 
 character(*), parameter :: r_name = 'track1_bunch_hom'
 
@@ -70,10 +70,14 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
   ! GPU batch tracking (opt-in via bmad_com%gpu_tracking_on).
   ! ele_gpu_eligible checks element type, tracking method, and is_on.
   ! Runtime conditions (radiation, spin, direction) are checked here.
+  gpu_did_track = .false.
   if (bmad_com%gpu_tracking_on .and. ele_gpu_eligible(ele) .and. &
       .not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on .and. &
       .not. bmad_com%spin_tracking_on .and. &
       bunch%particle(1)%direction == 1 .and. bunch%particle(1)%time_dir == 1) then
+
+    ! Check entrance aperture (track1 normally does this but GPU path bypasses track1)
+    call check_entrance_aperture_for_gpu(bunch, ele, branch%param)
 
     select case (ele%key)
     case (drift$)

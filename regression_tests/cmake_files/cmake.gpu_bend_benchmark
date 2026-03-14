@@ -1,0 +1,12 @@
+set (EXENAME gpu_bend_benchmark)
+
+set (SRC_FILES "gpu_tracking_test/gpu_bend_benchmark.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

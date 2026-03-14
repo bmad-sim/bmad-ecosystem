@@ -1,9 +1,9 @@
 /*
  * gpu_tracking_kernels.cu
  *
- * CUDA kernels for GPU-accelerated particle tracking through drift and
- * quadrupole elements.  Called from Fortran via iso_c_binding wrappers
- * defined in gpu_tracking_mod.f90.
+ * CUDA kernels for GPU-accelerated particle tracking through supported
+ * elements (drift, quadrupole, sbend, lcavity).  Called from Fortran
+ * via iso_c_binding wrappers defined in gpu_tracking_mod.f90.
  *
  * Build requirements:
  *   - CUDA Toolkit (cuda_runtime.h)
@@ -31,6 +31,16 @@
         fprintf(stderr, "[gpu_tracking] CUDA error: %s at %s:%d\n", \
                 cudaGetErrorString(err_), __FILE__, __LINE__); \
         return -1; \
+    } \
+} while(0)
+
+/* Same as CUDA_CHECK but for void functions (host wrappers) */
+#define CUDA_CHECK_VOID(call) do { \
+    cudaError_t err_ = (call); \
+    if (err_ != cudaSuccess) { \
+        fprintf(stderr, "[gpu_tracking] CUDA error: %s at %s:%d\n", \
+                cudaGetErrorString(err_), __FILE__, __LINE__); \
+        return; \
     } \
 } while(0)
 
@@ -89,6 +99,13 @@ static int ensure_buffers(int n)
 
 fail:
     fprintf(stderr, "[gpu_tracking] cudaMalloc failed for %d particles\n", n);
+    /* Clean up any partially allocated buffers */
+    for (int k = 0; k < 6; k++) { if (d_vec[k]) cudaFree(d_vec[k]); d_vec[k] = NULL; }
+    if (d_state) cudaFree(d_state); d_state = NULL;
+    if (d_beta)  cudaFree(d_beta);  d_beta  = NULL;
+    if (d_p0c)   cudaFree(d_p0c);   d_p0c   = NULL;
+    if (d_s)     cudaFree(d_s);     d_s     = NULL;
+    if (d_t)     cudaFree(d_t);     d_t     = NULL;
     d_cap = 0;
     return -1;
 }
@@ -149,6 +166,7 @@ __device__ int drift_body_dev(
     double pxy2   = px_rel * px_rel + py_rel * py_rel;
 
     if (pxy2 >= 1.0) return 1;
+    if (*beta <= 0.0) return 1;
 
     double ps_rel = sqrt(1.0 - pxy2);
 
@@ -205,7 +223,8 @@ __device__ __forceinline__ double ipow(double x, int p)
  * Precomputed c_multi coefficients are passed in cm[N_MULTI*N_MULTI].
  * Scaled a2[n], b2[n] arrays include charge/orientation/scale factors.
  * -------------------------------------------------------------------------- */
-#define N_MULTI 22   /* n_pole_maxx + 1 = 22 */
+/* Must match Bmad's n_pole_maxx + 1 (defined in bmad_struct.f90) */
+#define N_MULTI 22
 
 __device__ void multipole_kick_dev(
     const double *a2, const double *b2, int ix_max,
@@ -505,7 +524,7 @@ extern "C" void gpu_track_drift_(
     /* Host -> Device */
     if (upload_particle_data(n, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
                              h_state, h_beta, h_p0c, h_t) != 0) return;
-    cudaMemcpy(d_s, h_s, db, cudaMemcpyHostToDevice);
+    CUDA_CHECK_VOID(cudaMemcpy(d_s, h_s, db, cudaMemcpyHostToDevice));
 
     /* Launch kernel */
     int threads = 256;
@@ -513,12 +532,13 @@ extern "C" void gpu_track_drift_(
     drift_kernel<<<blocks, threads>>>(
         d_vec[0], d_vec[1], d_vec[2], d_vec[3], d_vec[4], d_vec[5],
         d_state, d_beta, d_p0c, d_s, d_t, mc2, length, n);
-    cudaDeviceSynchronize();
+    CUDA_CHECK_VOID(cudaGetLastError());
+    CUDA_CHECK_VOID(cudaDeviceSynchronize());
 
     /* Device -> Host */
     if (download_particle_data(n, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
                                h_state, h_beta, h_p0c, h_t, 0, 0) != 0) return;
-    cudaMemcpy(h_s, d_s, db, cudaMemcpyDeviceToHost);
+    CUDA_CHECK_VOID(cudaMemcpy(h_s, d_s, db, cudaMemcpyDeviceToHost));
 }
 
 /* =========================================================================
@@ -552,7 +572,8 @@ extern "C" void gpu_track_quad_(
         mc2, b1, ele_length, delta_ref_time, e_tot_ele, charge_dir,
         n_particles, d_a2, d_b2, d_cm, ix_mag_max, n_step,
         d_ea2, d_eb2, ix_elec_max);
-    cudaDeviceSynchronize();
+    CUDA_CHECK_VOID(cudaGetLastError());
+    CUDA_CHECK_VOID(cudaDeviceSynchronize());
 
     /* Device -> Host (electric kicks can modify beta) */
     if (download_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
@@ -872,7 +893,8 @@ extern "C" void gpu_track_bend_(
         rel_charge_dir, p0c_ele,
         n_particles, d_a2, d_b2, d_cm, ix_mag_max, n_step,
         d_ea2, d_eb2, ix_elec_max);
-    cudaDeviceSynchronize();
+    CUDA_CHECK_VOID(cudaGetLastError());
+    CUDA_CHECK_VOID(cudaDeviceSynchronize());
 
     /* Device -> Host (electric kicks can modify beta) */
     if (download_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,
@@ -1120,6 +1142,13 @@ static int ensure_step_buffers(int n_steps_total)
     return 0;
 sfail:
     fprintf(stderr, "[gpu_tracking] cudaMalloc failed for %d step buffers\n", n_steps_total);
+    /* Clean up any partially allocated step buffers */
+    if (d_step_s0)   cudaFree(d_step_s0);   d_step_s0   = NULL;
+    if (d_step_s)    cudaFree(d_step_s);    d_step_s    = NULL;
+    if (d_step_p0c)  cudaFree(d_step_p0c);  d_step_p0c  = NULL;
+    if (d_step_p1c)  cudaFree(d_step_p1c);  d_step_p1c  = NULL;
+    if (d_step_scl)  cudaFree(d_step_scl);  d_step_scl  = NULL;
+    if (d_step_time) cudaFree(d_step_time); d_step_time = NULL;
     d_step_cap = 0;
     return -1;
 }
@@ -1152,12 +1181,12 @@ extern "C" void gpu_track_lcavity_(
                              h_state, h_beta, h_p0c, h_t) != 0) return;
 
     /* Host -> Device: step data */
-    cudaMemcpy(d_step_s0,   h_step_s0,    sb, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_step_s,    h_step_s,     sb, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_step_p0c,  h_step_p0c,   sb, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_step_p1c,  h_step_p1c,   sb, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_step_scl,  h_step_scale, sb, cudaMemcpyHostToDevice);
-    cudaMemcpy(d_step_time, h_step_time,  sb, cudaMemcpyHostToDevice);
+    CUDA_CHECK_VOID(cudaMemcpy(d_step_s0,   h_step_s0,    sb, cudaMemcpyHostToDevice));
+    CUDA_CHECK_VOID(cudaMemcpy(d_step_s,    h_step_s,     sb, cudaMemcpyHostToDevice));
+    CUDA_CHECK_VOID(cudaMemcpy(d_step_p0c,  h_step_p0c,   sb, cudaMemcpyHostToDevice));
+    CUDA_CHECK_VOID(cudaMemcpy(d_step_p1c,  h_step_p1c,   sb, cudaMemcpyHostToDevice));
+    CUDA_CHECK_VOID(cudaMemcpy(d_step_scl,  h_step_scale, sb, cudaMemcpyHostToDevice));
+    CUDA_CHECK_VOID(cudaMemcpy(d_step_time, h_step_time,  sb, cudaMemcpyHostToDevice));
 
     /* Launch kernel */
     int threads = 256;
@@ -1172,7 +1201,8 @@ extern "C" void gpu_track_lcavity_(
         cavity_type,
         fringe_at, charge_ratio,
         n_particles);
-    cudaDeviceSynchronize();
+    CUDA_CHECK_VOID(cudaGetLastError());
+    CUDA_CHECK_VOID(cudaDeviceSynchronize());
 
     /* Device -> Host (lcavity changes beta and p0c) */
     if (download_particle_data(n_particles, h_vx, h_vpx, h_vy, h_vpy, h_vz, h_vpz,

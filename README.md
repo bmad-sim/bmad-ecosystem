@@ -97,8 +97,8 @@ util/dist_build_production
 
 ### GPU-accelerated particle tracking
 
-Bmad supports GPU-accelerated batch particle tracking through drift, quadrupole, sbend, and
-lcavity elements via NVIDIA CUDA. This is opt-in at both build time and run time.
+Bmad supports GPU-accelerated batch particle tracking through supported elements
+via NVIDIA CUDA. This is opt-in at both build time and run time.
 
 **Build time:** In `util/dist_prefs`, set `ACC_ENABLE_GPU_TRACKING` to `Y`.
 The CUDA Toolkit must be available (provides `nvcc` and `libcudart`).
