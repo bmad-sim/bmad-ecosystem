@@ -1,0 +1,19 @@
+no_digested
+
+parameter[lattice] = "GPU tracking quad aperture test"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! Tight aperture so a fraction of particles are clipped at the exit
+q1: quadrupole, L = 0.5, k1 = 1.2,
+    x1_limit = 5e-5, x2_limit = 5e-5,
+    y1_limit = 5e-5, y2_limit = 5e-5
+
+lat: line = (q1)
+
+use, lat

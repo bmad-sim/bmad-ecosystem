@@ -181,3 +181,18 @@ export ACC_CONDA_BUILD="N"
 # environment.
 #-----------------------------------------------------------
 export ACC_CONDA_PATH="${CONDA_PREFIX}"
+
+
+#-----------------------------------------------------------
+# Setting the variable ACC_ENABLE_GPU_TRACKING here to "Y"
+# will enable GPU-accelerated particle tracking through
+# supported elements via NVIDIA CUDA kernels.
+# Requires the CUDA Toolkit to be installed.
+#
+# At runtime, if ACC_ENABLE_GPU_TRACKING=Y is set in the
+# environment AND a CUDA GPU is detected, gpu_tracking_init()
+# sets bmad_com%gpu_tracking_on = .true. Programs can also
+# set bmad_com%gpu_tracking_on directly. When enabled, GPU
+# tracking falls back silently to CPU for unsupported elements.
+#-----------------------------------------------------------
+export ACC_ENABLE_GPU_TRACKING="N"

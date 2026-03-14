@@ -825,6 +825,88 @@ generally involves only very short distances, it is usually acceptable to ignore
 propagate the particles as if they were in a field free region.
 
 %----------------------------------------------------------------
+\section{GPU-Accelerated Tracking}
+\label{s:gpu.tracking}
+\index{tracking!GPU}
+\index{GPU tracking|hyperbf}
+\index{CUDA}
+
+When tracking large bunches (thousands to millions of particles), the body tracking through certain
+element types can be offloaded to an NVIDIA GPU for significant speedup. GPU tracking is transparent
+to the user: when enabled, eligible elements are tracked on the GPU while all others fall back
+silently to the CPU.
+
+GPU tracking is controlled by the \vn{bmad_com%gpu_tracking_on} flag (\sref{s:bmad.common}). This
+flag can be set directly in a program or initialized via the \vn{gpu_tracking_init} routine, which
+checks for the \vn{ACC_ENABLE_GPU_TRACKING} environment variable and the presence of a CUDA GPU.
+
+\subsection{Supported Elements}
+\label{s:gpu.elements}
+
+The following element types are supported for GPU tracking:
+\begin{description}
+\item[\vn{Drift}] \Newline
+Drift tracking with full phase-space update.
+%
+\item[\vn{Quadrupole}] \Newline
+Quadrupole tracking including support for misalignments, fringe fields, magnetic and electric
+multipole kicks, and the low-energy $z$-correction. Split-step integration is used when multipoles
+are present, controlled by the element's \vn{ds_step} parameter.
+%
+\item[\vn{Sbend}] \Newline
+Sector bend tracking with support for the $k_1$ map, general nonlinear bend maps, magnetic and
+electric multipoles with curvature corrections, and the low-energy $z$-correction. Not supported
+when \vn{exact_multipoles} is set.
+%
+\item[\vn{Lcavity}] \Newline
+Linac cavity tracking using a stair-step RF approximation. Supports both standing-wave and
+traveling-wave cavities, including ponderomotive kicks for standing-wave cavities. Not supported when
+absolute time tracking is enabled, solenoid components are present, multipoles are present,
+coupler kicks are non-zero, RF frequency is zero, or the element has zero length.
+\end{description}
+
+For an element to be eligible for GPU tracking, it must use \vn{bmad_standard} tracking
+(\vn{ele%tracking_method = bmad_standard\$}) and be turned on (\vn{ele%is_on = True}). The function
+\vn{ele_gpu_eligible} (\sref{r:ele.gpu.eligible}) can be used to query whether a given element
+supports GPU tracking.
+
+\subsection{Runtime Conditions}
+\label{s:gpu.runtime}
+
+Even when \vn{bmad_com%gpu_tracking_on} is \vn{True} and an element passes the
+\vn{ele_gpu_eligible} check, bunch tracking will fall back to the CPU if any of the following
+conditions hold:
+\begin{example}
+  bmad_com%radiation_damping_on = True
+  bmad_com%radiation_fluctuations_on = True
+  bmad_com%spin_tracking_on = True
+  bmad_com%high_energy_space_charge_on = True
+  Particle direction /= 1 (backward tracking)
+  Time direction /= 1
+  Element has associated wakefields
+\end{example}
+Note: GPU batch tracking bypasses the \vn{track1} routine, so any user-installed
+\vn{track1_preprocess} or \vn{track1_postprocess} hooks will not be called for GPU-tracked elements.
+
+\subsection{Aperture Checking}
+\label{s:gpu.aperture}
+
+GPU kernels do not check apertures during tracking. Instead, aperture limits are checked on the CPU
+at both the element entrance and exit. This behavior respects the \vn{bmad_com%aperture_limit_on}
+setting.
+
+\subsection{Build and Runtime Setup}
+\label{s:gpu.setup}
+
+To use GPU tracking, the code must be compiled with CUDA support. In \vn{util/dist_prefs}, set
+\vn{ACC_ENABLE_GPU_TRACKING} to \vn{Y}. The CUDA Toolkit must be installed (provides \vn{nvcc} and
+\vn{libcudart}). If the toolkit is not found, GPU tracking is disabled with a warning.
+
+At runtime, calling \vn{gpu_tracking_init} will check the \vn{ACC_ENABLE_GPU_TRACKING} environment
+variable and probe for CUDA hardware. If both are satisfied, \vn{bmad_com%gpu_tracking_on} is set to
+\vn{True}. Alternatively, a program can set \vn{bmad_com%gpu_tracking_on} directly.
+
+%----------------------------------------------------------------
 \section{Spin Tracking}
 \label{s:spin.track}
 \index{tracking!spin}

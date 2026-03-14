@@ -120,6 +120,7 @@ instance (\sref{c:param.structs}) of this structure and this instance has the na
     radiation_zero_average = F          ! Shift so that average radiation kick is zero?
     rf_phase_below_transition_ref = F   ! Autoscale around phase phi0 = 0.5
     spin_sokolov_ternov_flipping_on = F ! Spin flipping during radiation emission?
+    gpu_tracking_on = F                 ! GPU-accelerated batch tracking?
     spin_tracking_on = F                ! spin tracking?
     sr_wakes_on = T                     ! Short range wakefields?
   end type
@@ -224,6 +225,18 @@ This is used in \vn{runge-kutta} and \vn{time_runge_kutta} tracking
 This prevents a program from ``hanging'' due to taking a large number
 of extremely small steps. The most common cause of small step size is
 an ``unphysical'' magnetic or electric field.
+%
+\index{gpu_tracking_on}
+\item[\vn{gpu_tracking_on}] \Newline
+Toggle for GPU-accelerated batch particle tracking (\sref{s:gpu.tracking}). Default is \vn{False}.
+When set to \vn{True}, bunch tracking through eligible elements (\vn{drift}, \vn{quadrupole},
+\vn{sbend}, and \vn{lcavity}) is offloaded to an NVIDIA GPU via CUDA kernels. Elements that are not
+eligible for GPU tracking are silently tracked on the CPU. The \vn{gpu_tracking_init} routine can be
+used to initialize this flag based on hardware availability and the \vn{ACC_ENABLE_GPU_TRACKING}
+environment variable. GPU tracking is not compatible with radiation damping, radiation fluctuations,
+spin tracking, or backward tracking --- if any of these are active, a bunch will be tracked on the
+CPU even if \vn{gpu_tracking_on} is \vn{True}. The \vn{ele_gpu_eligible} function can be used to
+query whether a given element supports GPU tracking.
 %
 \item[\vn{high_energy_space_charge_on}] \Newline
 Default is \vn{False}. Toggle to turn on or off the ultra-relativistic space charge effect in

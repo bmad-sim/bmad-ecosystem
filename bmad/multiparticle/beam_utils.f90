@@ -2,6 +2,7 @@ module beam_utils
 
 use beam_file_io
 use wake_mod
+use gpu_tracking_mod
 
 private init_random_distribution, init_grid_distribution
 private init_ellipse_distribution, init_kv_distribution
@@ -47,6 +48,7 @@ real(rp) charge, ds_wake
 integer, optional :: direction
 integer i, j, n, jj
 logical err_flag, finished, thread_safe
+logical gpu_did_track
 
 character(*), parameter :: r_name = 'track1_bunch_hom'
 
@@ -64,6 +66,42 @@ call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
 
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
+
+  ! GPU batch tracking (opt-in via bmad_com%gpu_tracking_on).
+  ! ele_gpu_eligible checks element type, tracking method, and is_on.
+  ! Runtime conditions (radiation, spin, direction) are checked here.
+  gpu_did_track = .false.
+  if (bmad_com%gpu_tracking_on .and. ele_gpu_eligible(ele) .and. &
+      .not. bmad_com%radiation_damping_on .and. .not. bmad_com%radiation_fluctuations_on .and. &
+      .not. bmad_com%spin_tracking_on .and. .not. bmad_com%high_energy_space_charge_on .and. &
+      bunch%particle(1)%direction == 1 .and. bunch%particle(1)%time_dir == 1) then
+
+    ! Check entrance aperture (track1 normally does this but GPU path bypasses track1)
+    call check_entrance_aperture_for_gpu(bunch, ele, branch%param)
+
+    select case (ele%key)
+    case (drift$)
+      call track_bunch_thru_drift_gpu(bunch, ele, gpu_did_track)
+    case (quadrupole$)
+      call track_bunch_thru_quad_gpu(bunch, ele, branch%param, gpu_did_track)
+    case (sbend$)
+      call track_bunch_thru_bend_gpu(bunch, ele, branch%param, gpu_did_track)
+    case (lcavity$)
+      call track_bunch_thru_lcavity_gpu(bunch, ele, branch%param, gpu_did_track)
+    end select
+
+    if (gpu_did_track) then
+      call check_apertures_after_gpu(bunch, ele, branch%param)
+      ! Check for NaN/Inf coordinates (track1 does this via orbit_too_large)
+      do j = 1, size(bunch%particle)
+        if (bunch%particle(j)%state == alive$) then
+          if (orbit_too_large(bunch%particle(j), branch%param)) cycle
+        endif
+      enddo
+      bunch%charge_live = sum(bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+      return
+    endif
+  endif
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
   !$OMP parallel do if (thread_safe)
@@ -163,7 +201,34 @@ end subroutine track1_bunch_hom
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, beam_init_set, 
+! Subroutine check_apertures_after_gpu (bunch, ele, param)
+!
+! After GPU batch tracking, check exit aperture for all alive particles.
+! This replicates the check_aperture_limit call that track1 does at the
+! element exit (second_track_edge$).
+!-
+
+subroutine check_apertures_after_gpu (bunch, ele, param)
+
+type (bunch_struct), intent(inout) :: bunch
+type (ele_struct),   intent(inout) :: ele
+type (lat_param_struct), intent(inout) :: param
+integer :: j
+
+if (.not. bmad_com%aperture_limit_on) return
+
+do j = 1, size(bunch%particle)
+  if (bunch%particle(j)%state /= alive$) cycle
+  call check_aperture_limit(bunch%particle(j), ele, second_track_edge$, param)
+enddo
+
+end subroutine check_apertures_after_gpu
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine init_beam_distribution (ele, param, beam_init, beam, err_flag, modes, beam_init_set,
 !                                                                     print_p0c_shift_warning, conserve_momentum)
 !
 ! Subroutine to initialize a beam of particles. 

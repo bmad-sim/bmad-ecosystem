@@ -31,6 +31,11 @@ set (EXE_SPECS
   cmake_files/cmake.cartesian_map_fit
 )
 
+# GPU tracking benchmark — only built when ACC_ENABLE_GPU_TRACKING=Y
+IF ("$ENV{ACC_ENABLE_GPU_TRACKING}" STREQUAL "Y")
+  list(APPEND EXE_SPECS cmake_files/cmake.gpu_tracking_benchmark)
+ENDIF ()
+
 set (TEST_EXE_SPECS
   cmake_files/cmake.converter_simulation
   cmake_files/cmake.converter_fitter

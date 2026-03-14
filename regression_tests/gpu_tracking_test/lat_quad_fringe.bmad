@@ -1,0 +1,16 @@
+no_digested
+
+parameter[lattice] = "GPU tracking quad fringe test"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+q1: quadrupole, L = 0.5, k1 = 1.2, fringe_type = full
+
+lat: line = (q1)
+
+use, lat

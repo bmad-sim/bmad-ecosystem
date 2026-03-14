@@ -200,8 +200,29 @@ Routine to write a beam file.
 
 \index[routine]{write_beam_floor_positions}
 \label{r:write.beam.floor.positions}
-\item[write_beam_floor_positions (file_name, beam, ele, new_file)] \Newline 
+\item[write_beam_floor_positions (file_name, beam, ele, new_file)] \Newline
 Routine to write a file of beam positions in global floor coordinates.
+
+\index[routine]{ele_gpu_eligible}
+\label{r:ele.gpu.eligible}
+\item[ele_gpu_eligible (ele) result (eligible)] \Newline
+Function that returns \vn{True} if an element is eligible for GPU-accelerated tracking
+(\sref{s:gpu.tracking}). An element is eligible if its \vn{tracking_method} is \vn{bmad_standard},
+it is turned on, and it is one of: \vn{drift}, \vn{quadrupole}, \vn{sbend}, or \vn{lcavity}.
+
+\index[routine]{gpu_tracking_init}
+\label{r:gpu.tracking.init}
+\item[gpu_tracking_init ()] \Newline
+Routine to initialize GPU tracking. Checks for the \vn{ACC_ENABLE_GPU_TRACKING} environment variable
+and probes for CUDA hardware. If both conditions are met, sets \vn{bmad_com%gpu_tracking_on} to
+\vn{True}. This routine only needs to be called once.
+
+\index[routine]{gpu_tracking_reset}
+\label{r:gpu.tracking.reset}
+\item[gpu_tracking_reset ()] \Newline
+Routine to reset GPU tracking state so that \vn{gpu_tracking_init} can re-probe for hardware on
+the next call. Also releases cached GPU device memory and sets \vn{bmad_com%gpu_tracking_on} to
+\vn{False}.
 
 \end{description}
 

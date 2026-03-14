@@ -1,0 +1,17 @@
+no_digested
+
+parameter[lattice] = "GPU tracking lcavity with phase/voltage offsets"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+lc1: lcavity, L = 1.0, rf_frequency = 1e9, gradient = 1e5, n_rf_steps = 10,
+    phi0 = 0.1, phi0_err = -0.05, voltage_err = 1e4
+
+lat: line = (lc1)
+
+use, lat

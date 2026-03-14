@@ -95,6 +95,28 @@ util/dist_build_production
 # or util/dist_build_debug
 ```
 
+### GPU-accelerated particle tracking
+
+Bmad supports GPU-accelerated batch particle tracking through supported elements
+via NVIDIA CUDA. This is opt-in at both build time and run time.
+
+**Build time:** In `util/dist_prefs`, set `ACC_ENABLE_GPU_TRACKING` to `Y`.
+The CUDA Toolkit must be available (provides `nvcc` and `libcudart`).
+If the toolkit is not found, the build will proceed without GPU tracking support.
+
+**Run time:** Call `gpu_tracking_init()` at program startup, or set
+`bmad_com%gpu_tracking_on = .true.` directly. The `gpu_tracking_init` routine checks
+for the `ACC_ENABLE_GPU_TRACKING` environment variable and probes for CUDA hardware.
+
+When enabled, eligible elements are tracked on the GPU while unsupported elements
+fall back silently to CPU tracking. GPU tracking is not compatible with radiation
+damping/fluctuations, spin tracking, or backward tracking.
+
+```bash
+# Enable GPU tracking at runtime
+export ACC_ENABLE_GPU_TRACKING=Y
+```
+
 ## Contributing to Bmad: Pull Requests
 
 What is a Pull Request? A Pull Request (PR) is a mechanism for requesting that changes that you have made

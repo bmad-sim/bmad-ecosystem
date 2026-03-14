@@ -1,0 +1,17 @@
+no_digested
+
+parameter[lattice] = "GPU tracking lcavity standing wave"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+lc1: lcavity, L = 1.0, rf_frequency = 1e9, gradient = 1e5, n_rf_steps = 10,
+    cavity_type = standing_wave
+
+lat: line = (lc1)
+
+use, lat

@@ -1,0 +1,18 @@
+no_digested
+
+parameter[lattice] = "GPU tracking quad electric+magnetic+fringe+misalign"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! Quad with electric multipole + magnetic sextupole + fringe + misalignment
+q1: quadrupole, L = 0.5, k1 = 1.0, a0_elec = 500, b1_elec = 200,
+    b2 = 0.2, fringe_type = full, x_offset = 3e-4, tilt = 0.005
+
+lat: line = (q1)
+
+use, lat
