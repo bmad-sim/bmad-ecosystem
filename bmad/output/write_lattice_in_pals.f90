@@ -172,7 +172,7 @@ do ib = 0, ubound(lat%branch, 1)
     id2 = id + id_del
 
     ele_name = pals_ele_name(ele)
-    if (ie == 0) ele_name = 'begin' // int_str(ib+1)
+    if (ie == 0) ele_name = 'beginning_b' // int_str(ib+1)
     write (iu, '(a)')
     call write_param(id, ele_name)
 
@@ -279,9 +279,11 @@ do ib = 0, ubound(lat%branch, 1)
       call write_real_param(id2,   'ApertureP', 'x_max',  ele%value(x2_limit$), header_out)
       call write_real_param(id2,   'ApertureP', 'y_min', -ele%value(y1_limit$), header_out)
       call write_real_param(id2,   'ApertureP', 'y_max',  ele%value(y2_limit$), header_out)
-      call write_switch_param(id2, 'ApertureP', 'shape', 0, [character(16):: 'Auto', 'RECTANGULAR', 'ELLIPTICAL'], ele%aperture_type, header_out)
-      call write_switch_param(id2, 'ApertureP', 'location', 1, [character(16):: 'ENTRANCE_END', 'EXIT_END', 'BOTH_ENDS', 'NOWHERE', 'EVERYWHERE'], ele%aperture_at, header_out)
-      call write_logic_param(id2,  'ApertureP', 'aperture_shifts_with_body', .false., ele%offset_moves_aperture, header_out)
+      if (header_out) then
+        call write_switch_param(id2, 'ApertureP', 'shape', 1, [character(16):: 'Auto', 'RECTANGULAR', 'ELLIPTICAL'], ele%aperture_type, header_out)
+        call write_switch_param(id2, 'ApertureP', 'location', 0, [character(16):: 'ENTRANCE_END', 'EXIT_END', 'BOTH_ENDS', 'NOWHERE', 'EVERYWHERE'], ele%aperture_at, header_out)
+        call write_logic_param(id2,  'ApertureP', 'aperture_shifts_with_body', .false., ele%offset_moves_aperture, header_out)
+      endif
     endif
 
     !
@@ -386,7 +388,7 @@ do ib = 0, ubound(lat%branch, 1)
 
 
       if (has_attribute(ele, 'CAVITY_TYPE')) then
-        call write_switch_param(id2, 'RFP', 'cavity_type', 0, [character(20):: 'standing_wave', 'traveling_wave', 'standing_wave'], nint(ele%value(cavity_type$)), header_out)
+        call write_switch_param(id2, 'RFP', 'cavity_type', 0, [character(20):: 'STANDING_WAVE', 'TRAVELING_WAVE', 'STANDING_WAVE'], nint(ele%value(cavity_type$)), header_out)
       endif
     endif
 
@@ -425,7 +427,7 @@ do ib = 0, ubound(lat%branch, 1)
       call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #2! PLEASE REPORT THIS!')
     endif
 
-    call write_pals_element (id, ele, lat)
+    call write_element_to_beamline (id+id_del, ele, lat)
 
     if (mult_ele(ie)%region_stop_pt) in_multi_region = .false.
   enddo
@@ -436,11 +438,11 @@ do ib = 0, ubound(lat%branch, 1)
 enddo  ! ib branch loop
 
 
-!------------------------------
 ! Overlay and group elements....
 
+write (iu, '(a)')
 write (iu, '(a)') '#---------------------------------------------------------------------------------------'
-write (iu, '(a)') '# Overlay and Group elements'
+write (iu, '(a)') '# Variables'
 write (iu, '(a)')
 
 ! First print constants used in expressions.
@@ -494,21 +496,30 @@ enddo
 ! If we get into a multipass region then name in the main_line list is "multi_line_nn".
 ! But only write this once.
 
+write (iu, '(a)')
+write (iu, '(a)') '#---------------------------------------------------------------------------------------'
+write (iu, '(a)') '# BeamLines'
+
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
   write (iu, '(a)')
   name = downcase(branch%name)
+  write (iu, '(a)')
   call write_param(id, name)
-  in_multi_region = .false.
+  call write_str_param(id, '', 'kind', 'BeamLine')
 
-  do ie = 1, branch%n_ele_track
+  id2 = id + id_del
+  call write_param(id2, 'line')
+
+  in_multi_region = .false.
+  do ie = 0, branch%n_ele_track
     ele => branch%ele(ie)
 
     e_info => m_info%branch(ib)%ele(ie)
 
     if (.not. e_info%multipass) then
-      call write_pals_element (id, ele, lat)
+      call write_element_to_beamline (id2+id_del, ele, lat)
       cycle
     endif
 
@@ -522,11 +533,11 @@ do ib = 0, ubound(lat%branch, 1)
     ! If entering new multipass region
     if (.not. in_multi_region) then
       in_multi_region = .true.
-        call write_param(id, 'multi_line_' // int_str(ix_r))
+        call write_param(id2, 'multi_line_' // int_str(ix_r))
       if (m_ele%region_start_pt) then
         look_for = 'stop'
       else
-        call write_str_param(id+id_del, '', 'direction', '-1')
+        call write_str_param(id2+id_del, '', 'direction', '-1')
         look_for = 'start'
       endif
     endif
@@ -548,18 +559,14 @@ if (.false.) then
     name = downcase(branch%name)
     if (name == ')') name = 'lat_line'
   enddo
-
-  ix = index(line, '[, ')
-  line = line(:ix) // trim(line(ix+3:)) // '])'
-  write (iu, '(a)')
-  write (iu, '(a)') trim(line)
 endif
+
 
 ! If there are multipass lines then expand the lattice and write out
 ! the post-expand info as needed.
 
 have_expand_lattice_line = .false.
-do ie = 1, lat%n_ele_max
+do ie = 0, lat%n_ele_max
   ele => lat%ele(ie)
   !!! if (ele%slave_status == super_slave$) cycle
 
@@ -577,7 +584,7 @@ enddo
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
 
-  do ie = 1, branch%n_ele_max
+  do ie = 0, branch%n_ele_max
     ele => branch%ele(ie)
     if (ele%slave_status == super_slave$) cycle
     if (ele%slave_status == multipass_slave$) cycle
@@ -588,31 +595,23 @@ enddo
 !---------------------------
 ! Define lattice
 
+ix = index(lat%use_name, ',')
+if (ix == 0) ix = len_trim(lat%use_name)+1
+
+write (iu, '(a)')
+call write_param(id, downcase(lat%use_name(1:ix-1)))
+call write_str_param(id, '', 'kind', 'Lattice')
+
+id2 = id + id_del
+call write_param(id2, 'branches')
+
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
   if (branch%ix_from_branch > -1) cycle
   name = branch%name
-  if (name == '') name = 'lat_line'
-  line = trim(line) // ', ' // name
+  if (name == '') name = 'beam_line' // int_str(ib)
+  call write_list_item(id2, downcase(name))
 enddo
-
-
-ix = index(lat%use_name, ',')
-if (ix == 0) ix = len_trim(lat%use_name)+1
-
-call write_param(id, quote(lat%use_name(1:ix-1)))
-
-if (ele%key == fork$ .or. ele%key == photon_fork$) then
-  header_out = .false.
-  !! call write_str_param(id, '', 'to_line', )
-
-  n = nint(ele%value(ix_to_branch$))
-  call write_str_param(id, '', 'to_line', trim(downcase(lat%branch(n)%name)))
-  if (ele%value(ix_to_element$) > 0) then
-    i = nint(ele%value(ix_to_element$))
-    call write_str_param(id, '', 'to_element', trim(pals_ele_name(lat%branch(n)%ele(i))))
-  endif
-endif
 
 
 
@@ -640,7 +639,7 @@ end function jbool
 !----------------------------------------------------------------------------------------------
 ! contains
 
-subroutine write_pals_element (idnt, ele, lat)
+subroutine write_element_to_beamline (idnt, ele, lat)
 
 type (lat_struct), target :: lat
 type (ele_struct) :: ele
@@ -657,18 +656,18 @@ if (ele%slave_status == super_slave$) then
     lord => pointer_to_lord(ele, ii, ix_slave_back = ix_slave)
     if (lord%lord_status /= super_lord$) cycle
     if (ix_slave /= 1) cycle
-    call write_param(id, lord%name)
+    call write_list_item(id+id_del, pals_ele_name(lord))
   enddo
 
 elseif (ele%slave_status == multipass_slave$) then
   lord => pointer_to_lord(ele, 1)
-  call write_param(id, lord%name)
+  call write_list_item(id+id_del, pals_ele_name(lord))
 
 else
-  call write_param(id, ele%name)
+  call write_list_item(id+id_del, pals_ele_name(ele))
 endif
 
-end subroutine write_pals_element
+end subroutine write_element_to_beamline
 
 !--------------------------------------------------------------------------------
 ! contains
@@ -793,6 +792,8 @@ integer ix
 
 name_out = downcase(ele%name)
 if (name_out == 'end') name_out = 'end_b' // int_str(ele%ix_branch)
+
+if (ele%ix_ele == 0) name_out = 'beginning_b' // int_str(ele%ix_branch)
 
 ix = index(name_out, '#')
 if (ix /= 0) name_out = name_out(1:ix-1) // '!s' // name_out(ix+1:)
@@ -1083,6 +1084,21 @@ case default
 end select
 
 end function pals_attrib_name
+
+!------------------------------------------------------
+! contains
+
+subroutine write_list_item(indnt, name)
+
+integer indnt
+character(*) name
+character(100) :: blank = ''
+
+!
+
+write (iu, '(4a)') blank(1:indnt+id_del), '- ', trim(name)
+
+end subroutine write_list_item
 
 !------------------------------------------------------
 ! contains

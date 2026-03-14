@@ -751,6 +751,12 @@ function real_num_fortran_format (number, width, n_blanks) result (fmt_str)
   character(9) fmt_str
 end function
 
+subroutine set_env(env_name, env_value, err_flag)
+  implicit none
+  character(*) env_name, env_value
+  logical err_flag
+end subroutine
+
 function str_count(str, match) result (num)
   implicit none
   character(*) str, match
