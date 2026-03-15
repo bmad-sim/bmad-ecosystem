@@ -7118,6 +7118,8 @@ case ('space_charge_com')
   nl=incr(nl); write(li(nl), rmt)  'beam_chamber_height;REAL;T;',              space_charge_com%beam_chamber_height
   nl=incr(nl); write(li(nl), rmt)  'lsc_sigma_cutoff;REAL;T;',                 space_charge_com%lsc_sigma_cutoff
   nl=incr(nl); write(li(nl), rmt)  'particle_sigma_cutoff;REAL;T;',            space_charge_com%particle_sigma_cutoff
+  nl=incr(nl); write(li(nl), rmt)  'mesh_growth_factor;REAL;T;',               space_charge_com%mesh_growth_factor
+  nl=incr(nl); write(li(nl), rmt)  'mesh_shrink_factor;REAL;T;',               space_charge_com%mesh_shrink_factor
 
   nl=incr(nl); write(li(nl), iamt) 'space_charge_mesh_size;INT_ARR;T',         (';', space_charge_com%space_charge_mesh_size(j), j = 1, 3)
   nl=incr(nl); write(li(nl), iamt) 'csr3d_mesh_size;INT_ARR;T',                (';', space_charge_com%csr3d_mesh_size(j), j = 1, 3)

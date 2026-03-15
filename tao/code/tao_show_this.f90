@@ -560,6 +560,8 @@ case ('beam')
     nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', space_charge_com%beam_chamber_height
     nl=nl+1; write(lines(nl), rmt) '  %lsc_sigma_cutoff               = ', space_charge_com%lsc_sigma_cutoff
     nl=nl+1; write(lines(nl), rmt) '  %particle_sigma_cutoff          = ', space_charge_com%particle_sigma_cutoff
+    nl=nl+1; write(lines(nl), rmt) '  %mesh_growth_factor             = ', space_charge_com%mesh_growth_factor
+    nl=nl+1; write(lines(nl), rmt) '  %mesh_shrink_factor             = ', space_charge_com%mesh_shrink_factor
     nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size         = ', space_charge_com%space_charge_mesh_size
     nl=nl+1; write(lines(nl), imt) '  %csr3d_mesh_size                = ', space_charge_com%csr3d_mesh_size
     nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', space_charge_com%n_bin
@@ -2306,6 +2308,8 @@ case ('global')
     nl=nl+1; write(lines(nl), rmt) '  %beam_chamber_height            = ', space_charge_com%beam_chamber_height
     nl=nl+1; write(lines(nl), rmt) '  %lsc_sigma_cutoff               = ', space_charge_com%lsc_sigma_cutoff
     nl=nl+1; write(lines(nl), rmt) '  %particle_sigma_cutoff          = ', space_charge_com%particle_sigma_cutoff
+    nl=nl+1; write(lines(nl), rmt) '  %mesh_growth_factor             = ', space_charge_com%mesh_growth_factor
+    nl=nl+1; write(lines(nl), rmt) '  %mesh_shrink_factor             = ', space_charge_com%mesh_shrink_factor
     nl=nl+1; write(lines(nl), imt) '  %space_charge_mesh_size         = ', space_charge_com%space_charge_mesh_size
     nl=nl+1; write(lines(nl), imt) '  %csr3d_mesh_size                = ', space_charge_com%csr3d_mesh_size
     nl=nl+1; write(lines(nl), imt) '  %n_bin                          = ', space_charge_com%n_bin
