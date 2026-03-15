@@ -193,32 +193,39 @@ if (resize) then
   min = [minval(xa), minval(ya), minval(za)]
   max = [maxval(xa), maxval(ya), maxval(za)]
 
-  ! Lazy resize: only change mesh bounds when the bunch no longer fits or is much smaller.
-  ! This keeps delta stable across calls, enabling Green function FFT caching.
-  needs_resize = .not. saved_mesh_valid
-  if (.not. needs_resize) then
-    ! Grow: bunch exceeds saved mesh bounds
-    if (any(min < saved_mesh_min) .or. any(max > saved_mesh_max)) then
-      needs_resize = .true.
-    else
-      ! Shrink: bunch range significantly smaller than mesh range in any dimension
-      delta = saved_mesh_max - saved_mesh_min  ! reuse delta temporarily for mesh_range
-      if (any(max - min < delta * (1.0_dp - shrink_factor))) needs_resize = .true.
-    endif
-  endif
-
-  if (needs_resize) then
-    pad = (max - min) * (growth_factor * 0.5_dp)
-    ! Ensure minimum padding for numerical safety (handles zero-range dimensions)
-    where (pad < 1.0e-10_dp) pad = 1.0e-6_dp
-    min = min - pad
-    max = max + pad
-    saved_mesh_min = min
-    saved_mesh_max = max
-    saved_mesh_valid = .true.
+  if (growth_factor == 0 .and. shrink_factor == 0) then
+    ! Original tight-fit behavior: compute delta, add tiny relative padding.
+    delta = (max - min) / (mesh3d%nhi - mesh3d%nlo)
+    min = min - 1.0e-6_dp * delta
+    max = max + 1.0e-6_dp * delta
   else
-    min = saved_mesh_min
-    max = saved_mesh_max
+    ! Lazy resize: only change mesh bounds when the bunch no longer fits or is much smaller.
+    ! This keeps delta stable across calls, enabling Green function FFT caching.
+    needs_resize = .not. saved_mesh_valid
+    if (.not. needs_resize) then
+      ! Grow: bunch exceeds saved mesh bounds
+      if (any(min < saved_mesh_min) .or. any(max > saved_mesh_max)) then
+        needs_resize = .true.
+      else
+        ! Shrink: bunch range significantly smaller than mesh range in any dimension
+        delta = saved_mesh_max - saved_mesh_min  ! reuse delta temporarily for mesh_range
+        if (any(max - min < delta * (1.0_dp - shrink_factor))) needs_resize = .true.
+      endif
+    endif
+
+    if (needs_resize) then
+      pad = (max - min) * (growth_factor * 0.5_dp)
+      ! Ensure minimum padding for numerical safety (handles zero-range dimensions)
+      where (pad < 1.0e-10_dp) pad = 1.0e-6_dp
+      min = min - pad
+      max = max + pad
+      saved_mesh_min = min
+      saved_mesh_max = max
+      saved_mesh_valid = .true.
+    else
+      min = saved_mesh_min
+      max = saved_mesh_max
+    endif
   endif
 
   delta = (max - min) / (mesh3d%nhi - mesh3d%nlo)
