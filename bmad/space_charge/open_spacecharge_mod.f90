@@ -174,8 +174,10 @@ real(dp) :: growth_factor, shrink_factor
 
 real(dp) :: dx,dy,dz,xmin,ymin,zmin, xmax,ymax,zmax, charge1, min(3), max(3), delta(3), pad(3)
 real(dp) :: dxi,dyi,dzi,ab,de,gh
+real(dp) :: oab  ! 1-ab
 integer :: i, ilo, jlo, klo, ihi, jhi, khi, nlo(3), nhi(3)
 integer :: n,ip,jp,kp, n_particles
+real(dp), allocatable :: rho_priv(:,:,:)
 
 if (present(resize_mesh)) then
     resize = resize_mesh
@@ -190,8 +192,15 @@ shrink_factor = 0
 if (present(mesh_shrink_factor)) shrink_factor = mesh_shrink_factor
 
 if (resize) then
-  min = [minval(xa), minval(ya), minval(za)]
-  max = [maxval(xa), maxval(ya), maxval(za)]
+  ! Fused min/max: single pass over all coordinate arrays instead of 6 separate minval/maxval calls.
+  min(1) = xa(1); max(1) = xa(1)
+  min(2) = ya(1); max(2) = ya(1)
+  min(3) = za(1); max(3) = za(1)
+  do n = 2, size(xa)
+    if (xa(n) < min(1)) then; min(1) = xa(n); else if (xa(n) > max(1)) then; max(1) = xa(n); endif
+    if (ya(n) < min(2)) then; min(2) = ya(n); else if (ya(n) > max(2)) then; max(2) = ya(n); endif
+    if (za(n) < min(3)) then; min(3) = za(n); else if (za(n) > max(3)) then; max(3) = za(n); endif
+  enddo
 
   if (growth_factor == 0 .and. shrink_factor == 0) then
     ! Original tight-fit behavior: compute delta, add tiny relative padding.
@@ -305,35 +314,84 @@ endif
 ! Clear 
 mesh3d%rho(ilo:ihi,jlo:jhi,klo:khi) = 0
 
-do n=1, n_particles
-  !if(lostflag(n).ne.0.d0)cycle
-  ip=floor((xa(n)-xmin)*dxi+1) !this is 1-based; use ilogbl for the general case
-  jp=floor((ya(n)-ymin)*dyi+1)
-  kp=floor((za(n)-zmin)*dzi+1)
-  ab=((xmin-xa(n))+ip*dx)*dxi
-  de=((ymin-ya(n))+jp*dy)*dyi
-  gh=((zmin-za(n))+kp*dz)*dzi
-! this "if" statement slows things down, but I'm using it for debugging purposes
+! Deposit particles onto mesh using trilinear weighting.
+if (n_particles >= 50000) then
+  ! OpenMP path: each thread accumulates into a private rho copy, then sum into shared mesh.
+  !$OMP PARALLEL PRIVATE(rho_priv, n, ip, jp, kp, ab, de, gh, oab, charge1) &
+  !$OMP& SHARED(mesh3d, xa, ya, za, qa, n_particles, dxi, dyi, dzi, dx, dy, dz, xmin, ymin, zmin, ilo, ihi, jlo, jhi, klo, khi)
+  allocate(rho_priv(ilo:ihi+1, jlo:jhi+1, klo:khi+1))
+  rho_priv = 0
 
-!  if(ip<ilo .or. jp<jlo .or. kp<klo .or. ip>ihi .or. jp>jhi .or. kp>khi)then
-!    ifail=ifail+1
-!    cycle
-!  else
+  if (present(qa)) then
+    !$OMP DO SCHEDULE(STATIC)
+    do n = 1, n_particles
+      ip = floor((xa(n)-xmin)*dxi+1)
+      jp = floor((ya(n)-ymin)*dyi+1)
+      kp = floor((za(n)-zmin)*dzi+1)
+      ab = ((xmin-xa(n))+ip*dx)*dxi
+      de = ((ymin-ya(n))+jp*dy)*dyi
+      gh = ((zmin-za(n))+kp*dz)*dzi
+      oab = 1.0_dp - ab
+      charge1 = qa(n)
+      rho_priv(ip,  jp,  kp)   = rho_priv(ip,  jp,  kp)   + ab *de     *gh     *charge1
+      rho_priv(ip,  jp+1,kp)   = rho_priv(ip,  jp+1,kp)   + ab *(1-de) *gh     *charge1
+      rho_priv(ip,  jp+1,kp+1) = rho_priv(ip,  jp+1,kp+1) + ab *(1-de) *(1-gh) *charge1
+      rho_priv(ip,  jp,  kp+1) = rho_priv(ip,  jp,  kp+1) + ab *de     *(1-gh) *charge1
+      rho_priv(ip+1,jp,  kp+1) = rho_priv(ip+1,jp,  kp+1) + oab*de     *(1-gh) *charge1
+      rho_priv(ip+1,jp+1,kp+1) = rho_priv(ip+1,jp+1,kp+1) + oab*(1-de) *(1-gh) *charge1
+      rho_priv(ip+1,jp+1,kp)   = rho_priv(ip+1,jp+1,kp)   + oab*(1-de) *gh     *charge1
+      rho_priv(ip+1,jp,  kp)   = rho_priv(ip+1,jp,  kp)   + oab*de     *gh     *charge1
+    enddo
+    !$OMP END DO
+  else
+    !$OMP DO SCHEDULE(STATIC)
+    do n = 1, n_particles
+      ip = floor((xa(n)-xmin)*dxi+1)
+      jp = floor((ya(n)-ymin)*dyi+1)
+      kp = floor((za(n)-zmin)*dzi+1)
+      ab = ((xmin-xa(n))+ip*dx)*dxi
+      de = ((ymin-ya(n))+jp*dy)*dyi
+      gh = ((zmin-za(n))+kp*dz)*dzi
+      oab = 1.0_dp - ab
+      rho_priv(ip,  jp,  kp)   = rho_priv(ip,  jp,  kp)   + ab *de     *gh     *charge1
+      rho_priv(ip,  jp+1,kp)   = rho_priv(ip,  jp+1,kp)   + ab *(1-de) *gh     *charge1
+      rho_priv(ip,  jp+1,kp+1) = rho_priv(ip,  jp+1,kp+1) + ab *(1-de) *(1-gh) *charge1
+      rho_priv(ip,  jp,  kp+1) = rho_priv(ip,  jp,  kp+1) + ab *de     *(1-gh) *charge1
+      rho_priv(ip+1,jp,  kp+1) = rho_priv(ip+1,jp,  kp+1) + oab*de     *(1-gh) *charge1
+      rho_priv(ip+1,jp+1,kp+1) = rho_priv(ip+1,jp+1,kp+1) + oab*(1-de) *(1-gh) *charge1
+      rho_priv(ip+1,jp+1,kp)   = rho_priv(ip+1,jp+1,kp)   + oab*(1-de) *gh     *charge1
+      rho_priv(ip+1,jp,  kp)   = rho_priv(ip+1,jp,  kp)   + oab*de     *gh     *charge1
+    enddo
+    !$OMP END DO
+  endif
 
-  if (present(qa)) charge1 = qa(n)
+  !$OMP CRITICAL (deposit_rho_reduce)
+  mesh3d%rho(ilo:ihi,jlo:jhi,klo:khi) = mesh3d%rho(ilo:ihi,jlo:jhi,klo:khi) + rho_priv(ilo:ihi,jlo:jhi,klo:khi)
+  !$OMP END CRITICAL (deposit_rho_reduce)
+  deallocate(rho_priv)
+  !$OMP END PARALLEL
 
-  mesh3d%rho(ip,jp,kp)=mesh3d%rho(ip,jp,kp)+ab*de*gh*charge1
-  mesh3d%rho(ip,jp+1,kp)=mesh3d%rho(ip,jp+1,kp)+ab*(1.-de)*gh*charge1
-  mesh3d%rho(ip,jp+1,kp+1)=mesh3d%rho(ip,jp+1,kp+1)+ab*(1.-de)*(1.-gh)*charge1
-  mesh3d%rho(ip,jp,kp+1)=mesh3d%rho(ip,jp,kp+1)+ab*de*(1.-gh)*charge1
-  mesh3d%rho(ip+1,jp,kp+1)=mesh3d%rho(ip+1,jp,kp+1)+(1.-ab)*de*(1.-gh)*charge1
-  mesh3d%rho(ip+1,jp+1,kp+1)=mesh3d%rho(ip+1,jp+1,kp+1)+(1.-ab)*(1.-de)*(1.-gh)*charge1
-  mesh3d%rho(ip+1,jp+1,kp)=mesh3d%rho(ip+1,jp+1,kp)+(1.-ab)*(1.-de)*gh*charge1
-  mesh3d%rho(ip+1,jp,kp)=mesh3d%rho(ip+1,jp,kp)+(1.-ab)*de*gh*charge1
-!  endif
-enddo
-
-!if(ifail.ne.0)write(6,*)'(depose_rho_scalar) ifail=',ifail
+else
+  ! Serial path for small particle counts (avoids OpenMP overhead)
+  do n = 1, n_particles
+    ip = floor((xa(n)-xmin)*dxi+1)
+    jp = floor((ya(n)-ymin)*dyi+1)
+    kp = floor((za(n)-zmin)*dzi+1)
+    ab = ((xmin-xa(n))+ip*dx)*dxi
+    de = ((ymin-ya(n))+jp*dy)*dyi
+    gh = ((zmin-za(n))+kp*dz)*dzi
+    oab = 1.0_dp - ab
+    if (present(qa)) charge1 = qa(n)
+    mesh3d%rho(ip,  jp,  kp)   = mesh3d%rho(ip,  jp,  kp)   + ab *de     *gh     *charge1
+    mesh3d%rho(ip,  jp+1,kp)   = mesh3d%rho(ip,  jp+1,kp)   + ab *(1-de) *gh     *charge1
+    mesh3d%rho(ip,  jp+1,kp+1) = mesh3d%rho(ip,  jp+1,kp+1) + ab *(1-de) *(1-gh) *charge1
+    mesh3d%rho(ip,  jp,  kp+1) = mesh3d%rho(ip,  jp,  kp+1) + ab *de     *(1-gh) *charge1
+    mesh3d%rho(ip+1,jp,  kp+1) = mesh3d%rho(ip+1,jp,  kp+1) + oab*de     *(1-gh) *charge1
+    mesh3d%rho(ip+1,jp+1,kp+1) = mesh3d%rho(ip+1,jp+1,kp+1) + oab*(1-de) *(1-gh) *charge1
+    mesh3d%rho(ip+1,jp+1,kp)   = mesh3d%rho(ip+1,jp+1,kp)   + oab*(1-de) *gh     *charge1
+    mesh3d%rho(ip+1,jp,  kp)   = mesh3d%rho(ip+1,jp,  kp)   + oab*de     *gh     *charge1
+  enddo
+endif
 
 
 end subroutine deposit_particles
@@ -439,6 +497,101 @@ if (present(B)) then
 endif
 
 end subroutine
+
+
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!------------------------------------------------------------------------
+!+
+! Subroutine interpolate_field_batch(x, y, z, mesh3d, n_pts, E, B)
+!
+! Vectorized batch interpolation of fields at multiple points.
+! OpenMP parallelized over the particle dimension.
+!
+! Input:
+!   x(n_pts), y(n_pts), z(n_pts) -- REAL64: coordinate arrays
+!   mesh3d                        -- mesh3d_struct: contains efield, bfield
+!   n_pts                         -- integer: number of points to interpolate
+!
+! Output:
+!   E(3,n_pts) -- REAL64, optional: interpolated electric field
+!   B(3,n_pts) -- REAL64, optional: interpolated magnetic field
+!-
+subroutine interpolate_field_batch(x, y, z, mesh3d, n_pts, E, B)
+type(mesh3d_struct), intent(in) :: mesh3d
+integer, intent(in) :: n_pts
+real(dp), intent(in) :: x(n_pts), y(n_pts), z(n_pts)
+real(dp), optional, intent(out) :: E(3, n_pts), B(3, n_pts)
+
+real(dp) :: hxi, hyi, hzi, ab, de, gh, oab, ode, ogh
+real(dp) :: w000, w010, w011, w001, w101, w111, w110, w100
+integer :: n, ip, jp, kp, ip1, jp1, kp1
+
+hxi = 1.0_dp / mesh3d%delta(1)
+hyi = 1.0_dp / mesh3d%delta(2)
+hzi = 1.0_dp / mesh3d%delta(3)
+
+!$OMP PARALLEL DO PRIVATE(n, ip, jp, kp, ip1, jp1, kp1, ab, de, gh, oab, ode, ogh, &
+!$OMP& w000, w010, w011, w001, w101, w111, w110, w100) &
+!$OMP& SHARED(mesh3d, x, y, z, E, B, n_pts, hxi, hyi, hzi) SCHEDULE(STATIC)
+do n = 1, n_pts
+  ip = floor((x(n) - mesh3d%min(1)) * hxi + 1)
+  jp = floor((y(n) - mesh3d%min(2)) * hyi + 1)
+  kp = floor((z(n) - mesh3d%min(3)) * hzi + 1)
+
+  ! Clamp to valid range
+  ip = max(1, min(ip, mesh3d%nhi(1) - 1))
+  jp = max(1, min(jp, mesh3d%nhi(2) - 1))
+  kp = max(1, min(kp, mesh3d%nhi(3) - 1))
+
+  ab  = ((mesh3d%min(1) - x(n)) + ip * mesh3d%delta(1)) * hxi
+  de  = ((mesh3d%min(2) - y(n)) + jp * mesh3d%delta(2)) * hyi
+  gh  = ((mesh3d%min(3) - z(n)) + kp * mesh3d%delta(3)) * hzi
+  oab = 1.0_dp - ab
+  ode = 1.0_dp - de
+  ogh = 1.0_dp - gh
+
+  ip1 = ip + 1; jp1 = jp + 1; kp1 = kp + 1
+
+  ! Precompute trilinear weights
+  w000 = ab  * de  * gh;   w010 = ab  * ode * gh
+  w011 = ab  * ode * ogh;  w001 = ab  * de  * ogh
+  w101 = oab * de  * ogh;  w111 = oab * ode * ogh
+  w110 = oab * ode * gh;   w100 = oab * de  * gh
+
+  if (present(E)) then
+    E(1,n) = mesh3d%efield(ip,jp,kp,1)*w000 + mesh3d%efield(ip,jp1,kp,1)*w010 &
+           + mesh3d%efield(ip,jp1,kp1,1)*w011 + mesh3d%efield(ip,jp,kp1,1)*w001 &
+           + mesh3d%efield(ip1,jp,kp1,1)*w101 + mesh3d%efield(ip1,jp1,kp1,1)*w111 &
+           + mesh3d%efield(ip1,jp1,kp,1)*w110 + mesh3d%efield(ip1,jp,kp,1)*w100
+    E(2,n) = mesh3d%efield(ip,jp,kp,2)*w000 + mesh3d%efield(ip,jp1,kp,2)*w010 &
+           + mesh3d%efield(ip,jp1,kp1,2)*w011 + mesh3d%efield(ip,jp,kp1,2)*w001 &
+           + mesh3d%efield(ip1,jp,kp1,2)*w101 + mesh3d%efield(ip1,jp1,kp1,2)*w111 &
+           + mesh3d%efield(ip1,jp1,kp,2)*w110 + mesh3d%efield(ip1,jp,kp,2)*w100
+    E(3,n) = mesh3d%efield(ip,jp,kp,3)*w000 + mesh3d%efield(ip,jp1,kp,3)*w010 &
+           + mesh3d%efield(ip,jp1,kp1,3)*w011 + mesh3d%efield(ip,jp,kp1,3)*w001 &
+           + mesh3d%efield(ip1,jp,kp1,3)*w101 + mesh3d%efield(ip1,jp1,kp1,3)*w111 &
+           + mesh3d%efield(ip1,jp1,kp,3)*w110 + mesh3d%efield(ip1,jp,kp,3)*w100
+  endif
+
+  if (present(B)) then
+    B(1,n) = mesh3d%bfield(ip,jp,kp,1)*w000 + mesh3d%bfield(ip,jp1,kp,1)*w010 &
+           + mesh3d%bfield(ip,jp1,kp1,1)*w011 + mesh3d%bfield(ip,jp,kp1,1)*w001 &
+           + mesh3d%bfield(ip1,jp,kp1,1)*w101 + mesh3d%bfield(ip1,jp1,kp1,1)*w111 &
+           + mesh3d%bfield(ip1,jp1,kp,1)*w110 + mesh3d%bfield(ip1,jp,kp,1)*w100
+    B(2,n) = mesh3d%bfield(ip,jp,kp,2)*w000 + mesh3d%bfield(ip,jp1,kp,2)*w010 &
+           + mesh3d%bfield(ip,jp1,kp1,2)*w011 + mesh3d%bfield(ip,jp,kp1,2)*w001 &
+           + mesh3d%bfield(ip1,jp,kp1,2)*w101 + mesh3d%bfield(ip1,jp1,kp1,2)*w111 &
+           + mesh3d%bfield(ip1,jp1,kp,2)*w110 + mesh3d%bfield(ip1,jp,kp,2)*w100
+    B(3,n) = mesh3d%bfield(ip,jp,kp,3)*w000 + mesh3d%bfield(ip,jp1,kp,3)*w010 &
+           + mesh3d%bfield(ip,jp1,kp1,3)*w011 + mesh3d%bfield(ip,jp,kp1,3)*w001 &
+           + mesh3d%bfield(ip1,jp,kp1,3)*w101 + mesh3d%bfield(ip1,jp1,kp1,3)*w111 &
+           + mesh3d%bfield(ip1,jp1,kp,3)*w110 + mesh3d%bfield(ip1,jp,kp,3)*w100
+  endif
+enddo
+!$OMP END PARALLEL DO
+
+end subroutine interpolate_field_batch
 
 
 !------------------------------------------------------------------------
@@ -657,8 +810,11 @@ if (.not. cache_hit) then
 endif
 
 ! rho -> crho -> FFT(crho)
-crho = 0
-crho(1:nx, 1:ny, 1:nz) = rho ! Place in one octant
+! Zero only the padding region (octants beyond 1:nx, 1:ny, 1:nz), then fill the data octant.
+crho(1:nx, 1:ny, 1:nz) = rho
+crho(nx+1:nx2, :, :) = 0
+crho(1:nx, ny+1:ny2, :) = 0
+crho(1:nx, 1:ny, nz+1:nz2) = 0
 call ccfft3d(crho, crho, [1,1,1], nx2, ny2, nz2, 0) 
 
 ! Loop over phi, Ex, Ey, Ez

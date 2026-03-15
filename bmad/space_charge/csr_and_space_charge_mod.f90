@@ -1349,7 +1349,10 @@ type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) zp, r1, r0, dz, dpz, nk(2), dnk(2,2), f0, f, beta0, dpx, dpy, x, y, f_tot
 real(rp) Evec(3), factor, pz0, dct_ave, new_beta, ef
-integer i, n, i0, i_del, ip
+integer i, n, i0, i_del, ip, n_interp
+! Batch interpolation arrays for fft_3d
+real(rp), allocatable :: x_interp(:), y_interp(:), z_interp(:), E_batch(:,:)
+integer, allocatable :: interp_idx(:)
 
 ! CSR kick and Slice space charge kick
 ! We use a weighted average so that the integral varies smoothly as a function of particle%vec(5).
@@ -1470,24 +1473,42 @@ if (ele%space_charge_method == fft_3d$) then
     mesh_growth_factor=space_charge_com%mesh_growth_factor, mesh_shrink_factor=space_charge_com%mesh_shrink_factor)
   ! OLD ROUTINE: call space_charge_freespace(csr%mesh3d)
   call space_charge_3d(csr%mesh3d)
-   
+
+  ! Batch interpolation: gather coordinates for alive particles
+  allocate(x_interp(size(particle)), y_interp(size(particle)), z_interp(size(particle)))
+  allocate(interp_idx(size(particle)), E_batch(3, size(particle)))
+  n_interp = 0
   do i = 1, size(particle)
-    p => particle(i)
-    if (p%state /= alive$) cycle
-    call interpolate_field(p%vec(1), p%vec(3), p%vec(5)-dct_ave*p%beta,  csr%mesh3d, E=Evec)
-    factor = csr%actual_track_step / (p%p0c  * p%beta) 
-    pz0 = sqrt( (1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2 ) ! * p0 
-    ! Considering magnetic field also, effectively reduces this force by 1/gamma^2
-    p%vec(2) = p%vec(2) + Evec(1)*factor / csr%mesh3d%gamma**2
-    p%vec(4) = p%vec(4) + Evec(2)*factor / csr%mesh3d%gamma**2
-    ef = Evec(3) * factor
-    dpz = sqrt_alpha(1 + p%vec(6), ef*ef + 2 * ef * pz0)  ! = sqrt((ef + pz0)^2 + p%vec(2)**2 + p%vec(4)**2) - (1 + p%vec(6))
-    p%vec(6) = p%vec(6) + dpz
-    ! Set beta
-    call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = new_beta)
-    p%vec(5) = p%vec(5) * new_beta / p%beta
-    p%beta = new_beta
+    if (particle(i)%state /= alive$) cycle
+    n_interp = n_interp + 1
+    x_interp(n_interp) = particle(i)%vec(1)
+    y_interp(n_interp) = particle(i)%vec(3)
+    z_interp(n_interp) = particle(i)%vec(5) - dct_ave * particle(i)%beta
+    interp_idx(n_interp) = i
   enddo
+
+  if (n_interp > 0) then
+    call interpolate_field_batch(x_interp, y_interp, z_interp, csr%mesh3d, n_interp, E=E_batch)
+
+    ! Apply kicks
+    do n = 1, n_interp
+      i = interp_idx(n)
+      p => particle(i)
+      factor = csr%actual_track_step / (p%p0c * p%beta)
+      pz0 = sqrt((1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2)
+      ! Considering magnetic field also, effectively reduces this force by 1/gamma^2
+      p%vec(2) = p%vec(2) + E_batch(1,n) * factor / csr%mesh3d%gamma**2
+      p%vec(4) = p%vec(4) + E_batch(2,n) * factor / csr%mesh3d%gamma**2
+      ef = E_batch(3,n) * factor
+      dpz = sqrt_alpha(1 + p%vec(6), ef*ef + 2 * ef * pz0)
+      p%vec(6) = p%vec(6) + dpz
+      call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = new_beta)
+      p%vec(5) = p%vec(5) * new_beta / p%beta
+      p%beta = new_beta
+    enddo
+  endif
+
+  deallocate(x_interp, y_interp, z_interp, interp_idx, E_batch)
 endif
 
 end subroutine csr_and_sc_apply_kicks
