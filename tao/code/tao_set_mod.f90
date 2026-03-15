@@ -682,7 +682,7 @@ case ('diagnostic_output_file')
   space_charge_com%diagnostic_output_file = unquote(value_str)
   return
 
-case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff')
+case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff', 'mesh_growth_factor', 'mesh_shrink_factor')
   call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
   write (val, '(es24.16)', iostat = ios) set_val(1)
 

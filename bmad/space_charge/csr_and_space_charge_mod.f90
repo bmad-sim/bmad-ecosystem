@@ -1466,7 +1466,8 @@ if (ele%space_charge_method == fft_3d$) then
     csr%position(n)%charge = p%charge
   enddo
 
-  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge)
+  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge, &
+    mesh_growth_factor=space_charge_com%mesh_growth_factor, mesh_shrink_factor=space_charge_com%mesh_shrink_factor)
   ! OLD ROUTINE: call space_charge_freespace(csr%mesh3d)
   call space_charge_3d(csr%mesh3d)
    
@@ -1728,7 +1729,8 @@ do i_step = 0, n_step
     csr%position(n)%r = p%vec(1:5:2)
     csr%position(n)%charge = p%charge
   enddo
-  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge)  
+  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge, &
+    mesh_growth_factor=space_charge_com%mesh_growth_factor, mesh_shrink_factor=space_charge_com%mesh_shrink_factor)  
 
   ! Give particles a kick
   ! TODO: simplify with fft_3d

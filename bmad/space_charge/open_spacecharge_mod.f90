@@ -11,6 +11,12 @@ implicit none
 integer, parameter, private :: dp = REAL64
 !integer, parameter, private :: qp = REAL128
 
+! Saved mesh geometry for lazy resizing across calls to deposit_particles.
+! Persists between calls so delta stays constant when the bunch barely changes.
+real(dp), save, private :: saved_mesh_min(3) = 0
+real(dp), save, private :: saved_mesh_max(3) = 0
+logical, save, private :: saved_mesh_valid = .false.
+
 type mesh3d_struct
   integer :: nlo(3) = [ 1,  1,  1]       ! Lowest  grid index in x, y, z (m) of rho and the quantity being computed (phi or E)
   integer :: nhi(3) = [64, 64, 64]       ! Highest grid index in x, y, z (m) of rho and the quantity being computed (phi or E)
@@ -133,18 +139,20 @@ end subroutine
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+
-! Subroutine deposit_particles(xa, ya, za, mesh3d, total_charge, qa, resize_mesh)
+! Subroutine deposit_particles(xa, ya, za, mesh3d, total_charge, qa, resize_mesh, mesh_growth_factor, mesh_shrink_factor)
 !
 ! Deposits particle arrays onto mesh
 !
 ! Input:
-!   xa           -- REAL64: x coordinate array
-!   ya           -- REAL64: y coordinate array
-!   za           -- REAL64: z coordinate array
-!   qa           -- REAL64, optional: charge coordinate array
-!   total_charge -- REAL64, optional: total charge of particles, used only if qa is not present
-!   resize_mesh  -- logical, optional : Set mesh bounds to fit bunch. 
-!                            default  : .true.
+!   xa                  -- REAL64: x coordinate array
+!   ya                  -- REAL64: y coordinate array
+!   za                  -- REAL64: z coordinate array
+!   qa                  -- REAL64, optional: charge coordinate array
+!   total_charge        -- REAL64, optional: total charge of particles, used only if qa is not present
+!   resize_mesh         -- logical, optional : Set mesh bounds to fit bunch. 
+!                                   default  : .true.
+!   mesh_growth_factor  -- REAL64, optional: Fractional padding when growing mesh (default: 0 = tight fit).
+!   mesh_shrink_factor  -- REAL64, optional: Fractional threshold for shrinking mesh (default: 0 = tight fit).
 !
 ! Output:
 !   mesh3d      -- mesh3d_struct:   
@@ -154,13 +162,15 @@ end subroutine
 !-
 
 !routine for charge deposition
-subroutine deposit_particles(xa, ya, za, mesh3d, qa, total_charge, resize_mesh)
+subroutine deposit_particles(xa, ya, za, mesh3d, qa, total_charge, resize_mesh, mesh_growth_factor, mesh_shrink_factor)
 
 real(dp) :: xa(:),ya(:),za(:)
 type(mesh3d_struct) :: mesh3d
 real(dp), optional :: qa(:), total_charge
 logical, optional :: resize_mesh
-logical :: resize, good_mesh_sizes
+real(dp), intent(in), optional :: mesh_growth_factor, mesh_shrink_factor
+logical :: resize, good_mesh_sizes, needs_resize
+real(dp) :: growth_factor, shrink_factor
 
 real(dp) :: dx,dy,dz,xmin,ymin,zmin, xmax,ymax,zmax, charge1, min(3), max(3), delta(3), pad(3)
 real(dp) :: dxi,dyi,dzi,ab,de,gh
@@ -174,16 +184,44 @@ else
     resize = .true.
 endif
 
+growth_factor = 0
+if (present(mesh_growth_factor)) growth_factor = mesh_growth_factor
+shrink_factor = 0
+if (present(mesh_shrink_factor)) shrink_factor = mesh_shrink_factor
+
 if (resize) then
   min = [minval(xa), minval(ya), minval(za)]
-  max = [maxval(xa), maxval(ya), maxval(za)] 
-  delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) )
-  
-  ! Small padding to protect against indexing errors
-  min = min - 1.0e-6_dp*delta
-  max = max + 1.0e-6_dp*delta
-  delta =(max(:) - min(:) ) / (mesh3d%nhi(:) - mesh3d%nlo(:) )
-  
+  max = [maxval(xa), maxval(ya), maxval(za)]
+
+  ! Lazy resize: only change mesh bounds when the bunch no longer fits or is much smaller.
+  ! This keeps delta stable across calls, enabling Green function FFT caching.
+  needs_resize = .not. saved_mesh_valid
+  if (.not. needs_resize) then
+    ! Grow: bunch exceeds saved mesh bounds
+    if (any(min < saved_mesh_min) .or. any(max > saved_mesh_max)) then
+      needs_resize = .true.
+    else
+      ! Shrink: bunch range significantly smaller than mesh range in any dimension
+      delta = saved_mesh_max - saved_mesh_min  ! reuse delta temporarily for mesh_range
+      if (any(max - min < delta * (1.0_dp - shrink_factor))) needs_resize = .true.
+    endif
+  endif
+
+  if (needs_resize) then
+    pad = (max - min) * (growth_factor * 0.5_dp)
+    ! Ensure minimum padding for numerical safety (handles zero-range dimensions)
+    where (pad < 1.0e-10_dp) pad = 1.0e-6_dp
+    min = min - pad
+    max = max + pad
+    saved_mesh_min = min
+    saved_mesh_max = max
+    saved_mesh_valid = .true.
+  else
+    min = saved_mesh_min
+    max = saved_mesh_max
+  endif
+
+  delta = (max - min) / (mesh3d%nhi - mesh3d%nlo)
   mesh3d%min = min
   mesh3d%max = max
   mesh3d%delta = delta
@@ -552,12 +590,20 @@ real(dp), intent(in), optional :: offset(3)
 ! Persistent scratch arrays — only reallocated when doubled mesh size changes
 complex(dp), allocatable, save, dimension(:,:,:) :: crho, cgrn
 integer, save :: alloc_nx2 = 0, alloc_ny2 = 0, alloc_nz2 = 0
-real(dp) :: factr, offset0=0
+! Green function FFT cache — avoids recomputing when (delta, gamma, offset, mesh size) unchanged
+complex(dp), allocatable, save, dimension(:,:,:,:) :: grn_fft_cache  ! (nx2, ny2, nz2, 0:3)
+real(dp), save :: grn_cache_delta(3) = 0
+real(dp), save :: grn_cache_gamma = -1
+real(dp), save :: grn_cache_offset(3) = 0
+integer, save :: grn_cache_nx2 = 0, grn_cache_ny2 = 0, grn_cache_nz2 = 0
+logical, save :: grn_cache_valid(0:3) = .false.
+real(dp) :: factr, offset_eff(3)
 real(dp), parameter :: clight=299792458.0
 real(dp), parameter :: fpei=299792458.0**2*1.00000000055d-7  ! this is 1/(4 pi eps0) after the 2019 SI changes
 
 integer :: nx, ny, nz, nx2, ny2, nz2
 integer :: icomp, ishift, jshift, kshift
+logical :: cache_hit
 
 ! Sizes
 nx = size(rho, 1); ny = size(rho, 2); nz = size(rho, 3)
@@ -575,6 +621,34 @@ if (nx2 /= alloc_nx2 .or. ny2 /= alloc_ny2 .or. nz2 /= alloc_nz2) then
 endif
 !$OMP END CRITICAL (solver2_scratch_lock)
 
+! Effective offset (treat absent as zero for cache key)
+if (present(offset)) then
+  offset_eff = offset
+else
+  offset_eff = 0
+endif
+
+! Check if Green function FFT cache is valid for current parameters
+cache_hit = (nx2 == grn_cache_nx2 .and. ny2 == grn_cache_ny2 .and. nz2 == grn_cache_nz2 .and. &
+             all(delta == grn_cache_delta) .and. gamma == grn_cache_gamma .and. &
+             all(offset_eff == grn_cache_offset))
+if (.not. cache_hit) then
+  grn_cache_valid = .false.
+  grn_cache_delta = delta
+  grn_cache_gamma = gamma
+  grn_cache_offset = offset_eff
+  grn_cache_nx2 = nx2; grn_cache_ny2 = ny2; grn_cache_nz2 = nz2
+  if (allocated(grn_fft_cache)) then
+    if (size(grn_fft_cache, 1) /= nx2 .or. size(grn_fft_cache, 2) /= ny2 .or. &
+        size(grn_fft_cache, 3) /= nz2) then
+      deallocate(grn_fft_cache)
+      allocate(grn_fft_cache(nx2, ny2, nz2, 0:3))
+    endif
+  else
+    allocate(grn_fft_cache(nx2, ny2, nz2, 0:3))
+  endif
+endif
+
 ! rho -> crho -> FFT(crho)
 crho = 0
 crho(1:nx, 1:ny, 1:nz) = rho ! Place in one octant
@@ -585,13 +659,17 @@ do icomp=0, 3
   if ((icomp == 0) .and. (.not. present(phi))) cycle
   if ((icomp == 1) .and. (.not. present(efield))) exit
 
-  call osc_get_cgrn_freespace(cgrn, delta, gamma, icomp, offset=offset)
-  
-  !  cgrn -> FFT(cgrn)
-  call ccfft3d(cgrn, cgrn, [1,1,1], nx2, ny2, nz2, 0)  
-  
-  ! Multiply FFT'd arrays, re-use cgrn
-  cgrn=crho*cgrn
+  if (grn_cache_valid(icomp)) then
+    ! Cache hit: multiply directly from cached FFT'd Green function
+    cgrn = crho * grn_fft_cache(:,:,:,icomp)
+  else
+    ! Cache miss: compute Green function, forward FFT, cache, multiply
+    call osc_get_cgrn_freespace(cgrn, delta, gamma, icomp, offset=offset_eff)
+    call ccfft3d(cgrn, cgrn, [1,1,1], nx2, ny2, nz2, 0)
+    grn_fft_cache(:,:,:,icomp) = cgrn
+    grn_cache_valid(icomp) = .true.
+    cgrn = crho * cgrn
+  endif
 
   ! Inverse FFT
   call ccfft3d(cgrn, cgrn, [-1,-1,-1], nx2, ny2, nz2, 0)  
