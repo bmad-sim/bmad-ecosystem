@@ -107,16 +107,41 @@ end
 !end subroutine
 
 
-subroutine ccfft3d(a,b,idir,n1,n2,n3,iskiptrans)
+subroutine fft_cache_init()
 use, intrinsic :: iso_c_binding
 use omp_lib
 implicit none
 include 'fftw3.f03'
+integer :: n_threads
+logical, save :: initialized = .false.
+! Thread safety: guard module-level state with OMP CRITICAL in case this is
+! ever called from a parallel region. fftw_plan_with_nthreads is not thread-safe.
+!$OMP CRITICAL (fft_cache_init_lock)
+if (.not. initialized) then
+  initialized = .true.
+  !$ n_threads = omp_get_max_threads()
+  !$ if (n_threads > 1) call fftw_plan_with_nthreads(n_threads)
+endif
+!$OMP END CRITICAL (fft_cache_init_lock)
+end subroutine
+
+
+subroutine ccfft3d(a,b,idir,n1,n2,n3,iskiptrans)
+use, intrinsic :: iso_c_binding
+implicit none
+include 'fftw3.f03'
 
 integer :: idir(3)
-type(C_PTR) :: plan
 complex(C_DOUBLE_COMPLEX), dimension(:,:,:) ::a, b
-integer :: dir, fdir, n1, n2, n3, iskiptrans, n_threads
+integer :: fdir, n1, n2, n3, iskiptrans
+
+! Cached plan state
+type(C_PTR), save :: plan_fwd = C_NULL_PTR
+type(C_PTR), save :: plan_bwd = C_NULL_PTR
+integer, save :: cached_n1 = 0, cached_n2 = 0, cached_n3 = 0
+complex(C_DOUBLE_COMPLEX), allocatable, save :: plan_buf(:,:,:)
+
+call fft_cache_init()
 
 if (idir(1) == 1) then
   fdir = FFTW_BACKWARD
@@ -124,18 +149,25 @@ else
   fdir = FFTW_FORWARD
 endif
 
-!$ n_threads = omp_get_max_threads()
-!$ if (n_threads > 1) then
-!! !$   print *, '  FFTW with n_threads: ', n_threads
-!$   call fftw_plan_with_nthreads(n_threads)
-!$ endif
+! Rebuild plans if mesh dimensions changed.
+! Thread safety: guard with OMP CRITICAL since FFTW plan creation is not thread-safe.
+!$OMP CRITICAL (fft_plan_cache_lock)
+if (n1 /= cached_n1 .or. n2 /= cached_n2 .or. n3 /= cached_n3) then
+  if (C_ASSOCIATED(plan_fwd)) call fftw_destroy_plan(plan_fwd)
+  if (C_ASSOCIATED(plan_bwd)) call fftw_destroy_plan(plan_bwd)
+  if (allocated(plan_buf)) deallocate(plan_buf)
+  allocate(plan_buf(n1, n2, n3))
+  plan_fwd = fftw_plan_dft_3d(n3, n2, n1, plan_buf, plan_buf, FFTW_FORWARD,  FFTW_MEASURE)
+  plan_bwd = fftw_plan_dft_3d(n3, n2, n1, plan_buf, plan_buf, FFTW_BACKWARD, FFTW_MEASURE)
+  cached_n1 = n1; cached_n2 = n2; cached_n3 = n3
+endif
+!$OMP END CRITICAL (fft_plan_cache_lock)
 
-plan = fftw_plan_dft_3d(n3,n2,n1, a,b, fdir,FFTW_ESTIMATE)
-call fftw_execute_dft(plan,a, b)
-call fftw_destroy_plan(plan)
-
-!$ if (n_threads > 1) call fftw_cleanup_threads()
-
+if (fdir == FFTW_FORWARD) then
+  call fftw_execute_dft(plan_fwd, a, b)
+else
+  call fftw_execute_dft(plan_bwd, a, b)
+endif
 
 end subroutine
 
