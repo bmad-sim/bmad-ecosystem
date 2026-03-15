@@ -24,6 +24,10 @@ integer i
 
 open (1, file = 'output.now')
 
+! Disable lazy mesh resizing so regression results match the original tight-fit behavior.
+space_charge_com%mesh_growth_factor = 0
+space_charge_com%mesh_shrink_factor = 0
+
 ! bbi_kick test
 
 sigma = [10.0_rp, 10.0_rp]
