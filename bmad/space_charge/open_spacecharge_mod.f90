@@ -549,8 +549,9 @@ real(dp), intent(in) :: gamma, delta(3)
 real(dp), optional, intent(out), dimension(:,:,:,:) :: efield
 real(dp), optional, intent(out), dimension(:,:,:) :: phi
 real(dp), intent(in), optional :: offset(3)
-! internal arrays
-complex(dp), allocatable, dimension(:,:,:) :: crho, cgrn
+! Persistent scratch arrays — only reallocated when doubled mesh size changes
+complex(dp), allocatable, save, dimension(:,:,:) :: crho, cgrn
+integer, save :: alloc_nx2 = 0, alloc_ny2 = 0, alloc_nz2 = 0
 real(dp) :: factr, offset0=0
 real(dp), parameter :: clight=299792458.0
 real(dp), parameter :: fpei=299792458.0**2*1.00000000055d-7  ! this is 1/(4 pi eps0) after the 2019 SI changes
@@ -562,9 +563,17 @@ integer :: icomp, ishift, jshift, kshift
 nx = size(rho, 1); ny = size(rho, 2); nz = size(rho, 3)
 nx2 = 2*nx; ny2 = 2*ny; nz2 = 2*nz; 
 
-! Allocate complex scratch arrays
-allocate(crho(nx2, ny2, nz2))
-allocate(cgrn(nx2, ny2, nz2))
+! Allocate complex scratch arrays only when size changes.
+! Thread safety: guard with OMP CRITICAL in case this is ever called from a parallel region.
+!$OMP CRITICAL (solver2_scratch_lock)
+if (nx2 /= alloc_nx2 .or. ny2 /= alloc_ny2 .or. nz2 /= alloc_nz2) then
+  if (allocated(crho)) deallocate(crho)
+  if (allocated(cgrn)) deallocate(cgrn)
+  allocate(crho(nx2, ny2, nz2))
+  allocate(cgrn(nx2, ny2, nz2))
+  alloc_nx2 = nx2; alloc_ny2 = ny2; alloc_nz2 = nz2
+endif
+!$OMP END CRITICAL (solver2_scratch_lock)
 
 ! rho -> crho -> FFT(crho)
 crho = 0
