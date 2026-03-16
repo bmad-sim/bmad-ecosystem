@@ -1491,6 +1491,7 @@ if (ele%space_charge_method == fft_3d$) then
     call interpolate_field_batch(x_interp, y_interp, z_interp, csr%mesh3d, n_interp, E=E_batch)
 
     ! Apply kicks
+    !$OMP PARALLEL DO PRIVATE(n, i, p, factor, pz0, ef, dpz, new_beta)
     do n = 1, n_interp
       i = interp_idx(n)
       p => particle(i)
@@ -1506,6 +1507,7 @@ if (ele%space_charge_method == fft_3d$) then
       p%vec(5) = p%vec(5) * new_beta / p%beta
       p%beta = new_beta
     enddo
+    !$OMP END PARALLEL DO
   endif
 
   deallocate(x_interp, y_interp, z_interp, interp_idx, E_batch)
