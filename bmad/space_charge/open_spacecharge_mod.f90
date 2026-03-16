@@ -11,12 +11,6 @@ implicit none
 integer, parameter, private :: dp = REAL64
 !integer, parameter, private :: qp = REAL128
 
-! Saved mesh geometry for lazy resizing across calls to deposit_particles.
-! Persists between calls so delta stays constant when the bunch barely changes.
-real(dp), save, private :: saved_mesh_min(3) = 0
-real(dp), save, private :: saved_mesh_max(3) = 0
-logical, save, private :: saved_mesh_valid = .false.
-
 type mesh3d_struct
   integer :: nlo(3) = [ 1,  1,  1]       ! Lowest  grid index in x, y, z (m) of rho and the quantity being computed (phi or E)
   integer :: nhi(3) = [64, 64, 64]       ! Highest grid index in x, y, z (m) of rho and the quantity being computed (phi or E)
@@ -179,6 +173,11 @@ integer :: i, ilo, jlo, klo, ihi, jhi, khi, nlo(3), nhi(3)
 integer :: n,ip,jp,kp, n_particles
 real(dp), allocatable :: rho_priv(:,:,:)
 
+! Saved mesh geometry for lazy resizing. Persists between calls so delta
+! stays constant when the bunch barely changes, enabling Green function caching.
+real(dp), save :: saved_mesh_min(3) = 0, saved_mesh_max(3) = 0
+logical, save :: saved_mesh_valid = .false.
+
 if (present(resize_mesh)) then
     resize = resize_mesh
 else
@@ -255,7 +254,6 @@ if (allocated(mesh3d%rho)) then
   enddo
   
   if (.not. good_mesh_sizes) then
-   ! print *, 'mesh size changed, deallocating'
     deallocate(mesh3d%rho)
     deallocate(mesh3d%phi)
     deallocate(mesh3d%efield)
@@ -266,7 +264,6 @@ endif
 if (.not. allocated(mesh3d%rho)) then
   nlo = mesh3d%nlo
   nhi = mesh3d%nhi 
-  !print *, 'Allocating new meshes, nlo, nhi: ', nlo, nhi
   allocate(mesh3d%rho(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3)))
   allocate(mesh3d%phi(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3)))
   allocate(mesh3d%efield(nlo(1):nhi(1),nlo(2):nhi(2), nlo(3):nhi(3), 3))
@@ -926,7 +923,6 @@ if (present(offset)) then
   wmin = wmin + offset(3)*gamma ! Don't forget this!
 endif
 
-! !$ print *, 'OpenMP Green function calc osc_get_cgrn_freespace'
 !$OMP PARALLEL DO &
 !$OMP DEFAULT(FIRSTPRIVATE), &
 !$OMP SHARED(cgrn)

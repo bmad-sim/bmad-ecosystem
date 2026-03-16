@@ -1349,10 +1349,7 @@ type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) zp, r1, r0, dz, dpz, nk(2), dnk(2,2), f0, f, beta0, dpx, dpy, x, y, f_tot
 real(rp) Evec(3), factor, pz0, dct_ave, new_beta, ef
-integer i, n, i0, i_del, ip, n_interp
-! Batch interpolation arrays for fft_3d
-real(rp), allocatable :: x_interp(:), y_interp(:), z_interp(:), E_batch(:,:)
-integer, allocatable :: interp_idx(:)
+integer i, n, i0, i_del, ip
 
 ! CSR kick and Slice space charge kick
 ! We use a weighted average so that the integral varies smoothly as a function of particle%vec(5).
@@ -1449,71 +1446,106 @@ endif
 ! Mesh Space charge kick
 
 if (ele%space_charge_method == fft_3d$) then
-  if (.not. allocated(csr%position)) allocate(csr%position(size(particle)))
-  if (size(csr%position) < size(particle)) then
-    deallocate(csr%position)
-    allocate(csr%position(size(particle)))
-  endif
-
-  ! Do the calculation with respect to the average of (time - time_ref) so that adding a constant time offset
-  ! will not affect the calculation.
-
-  dct_ave = sum(particle%vec(5)/particle%beta, particle%state == alive$) / count(particle%state == alive$)
-
-  n = 0
-  do i = 1, size(particle)
-    p => particle(i)
-    if (p%state /= alive$) cycle
-    n = n + 1
-    csr%position(n)%r = [p%vec(1), p%vec(3), p%vec(5) - dct_ave * p%beta]
-    csr%position(n)%charge = p%charge
-  enddo
-
-  call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge, &
-    mesh_growth_factor=space_charge_com%mesh_growth_factor, mesh_shrink_factor=space_charge_com%mesh_shrink_factor)
-  ! OLD ROUTINE: call space_charge_freespace(csr%mesh3d)
-  call space_charge_3d(csr%mesh3d)
-
-  ! Batch interpolation: gather coordinates for alive particles
-  allocate(x_interp(size(particle)), y_interp(size(particle)), z_interp(size(particle)))
-  allocate(interp_idx(size(particle)), E_batch(3, size(particle)))
-  n_interp = 0
-  do i = 1, size(particle)
-    if (particle(i)%state /= alive$) cycle
-    n_interp = n_interp + 1
-    x_interp(n_interp) = particle(i)%vec(1)
-    y_interp(n_interp) = particle(i)%vec(3)
-    z_interp(n_interp) = particle(i)%vec(5) - dct_ave * particle(i)%beta
-    interp_idx(n_interp) = i
-  enddo
-
-  if (n_interp > 0) then
-    call interpolate_field_batch(x_interp, y_interp, z_interp, csr%mesh3d, n_interp, E=E_batch)
-
-    ! Apply kicks
-    !$OMP PARALLEL DO PRIVATE(n, i, p, factor, pz0, ef, dpz, new_beta)
-    do n = 1, n_interp
-      i = interp_idx(n)
-      p => particle(i)
-      factor = csr%actual_track_step / (p%p0c * p%beta)
-      pz0 = sqrt((1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2)
-      ! Considering magnetic field also, effectively reduces this force by 1/gamma^2
-      p%vec(2) = p%vec(2) + E_batch(1,n) * factor / csr%mesh3d%gamma**2
-      p%vec(4) = p%vec(4) + E_batch(2,n) * factor / csr%mesh3d%gamma**2
-      ef = E_batch(3,n) * factor
-      dpz = sqrt_alpha(1 + p%vec(6), ef*ef + 2 * ef * pz0)
-      p%vec(6) = p%vec(6) + dpz
-      call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = new_beta)
-      p%vec(5) = p%vec(5) * new_beta / p%beta
-      p%beta = new_beta
-    enddo
-    !$OMP END PARALLEL DO
-  endif
-
-  deallocate(x_interp, y_interp, z_interp, interp_idx, E_batch)
+  call apply_fft_3d_kicks(csr, particle)
 endif
 
 end subroutine csr_and_sc_apply_kicks
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine apply_fft_3d_kicks (csr, particle)
+!
+! Routine to apply FFT-based 3D space charge kicks to particles.
+! Deposits charge on a mesh, solves for the field, interpolates back, and applies kicks.
+!
+! Input:
+!   csr         -- csr_struct: Contains mesh, position arrays, and tracking parameters.
+!   particle(:) -- coord_struct: Particles to kick.
+!
+! Output:
+!   particle(:) -- coord_struct: Particles with kicks applied.
+!-
+
+subroutine apply_fft_3d_kicks (csr, particle)
+
+implicit none
+
+type (csr_struct), target :: csr
+type (coord_struct), target :: particle(:)
+type (coord_struct), pointer :: p
+
+real(rp) :: dct_ave, factor, pz0, ef, dpz, new_beta
+integer :: i, n, n_interp
+real(rp), allocatable :: x_interp(:), y_interp(:), z_interp(:), E_batch(:,:)
+integer, allocatable :: interp_idx(:)
+
+!
+
+if (.not. allocated(csr%position)) allocate(csr%position(size(particle)))
+if (size(csr%position) < size(particle)) then
+  deallocate(csr%position)
+  allocate(csr%position(size(particle)))
+endif
+
+! Do the calculation with respect to the average of (time - time_ref) so that adding a constant time offset
+! will not affect the calculation.
+
+dct_ave = sum(particle%vec(5)/particle%beta, particle%state == alive$) / count(particle%state == alive$)
+
+n = 0
+do i = 1, size(particle)
+  p => particle(i)
+  if (p%state /= alive$) cycle
+  n = n + 1
+  csr%position(n)%r = [p%vec(1), p%vec(3), p%vec(5) - dct_ave * p%beta]
+  csr%position(n)%charge = p%charge
+enddo
+
+call deposit_particles (csr%position(1:n)%r(1), csr%position(1:n)%r(2), csr%position(1:n)%r(3), csr%mesh3d, qa=csr%position(1:n)%charge, &
+  mesh_growth_factor=space_charge_com%mesh_growth_factor, mesh_shrink_factor=space_charge_com%mesh_shrink_factor)
+call space_charge_3d(csr%mesh3d)
+
+! Gather coordinates for alive particles
+allocate(x_interp(size(particle)), y_interp(size(particle)), z_interp(size(particle)))
+allocate(interp_idx(size(particle)), E_batch(3, size(particle)))
+n_interp = 0
+do i = 1, size(particle)
+  if (particle(i)%state /= alive$) cycle
+  n_interp = n_interp + 1
+  x_interp(n_interp) = particle(i)%vec(1)
+  y_interp(n_interp) = particle(i)%vec(3)
+  z_interp(n_interp) = particle(i)%vec(5) - dct_ave * particle(i)%beta
+  interp_idx(n_interp) = i
+enddo
+
+! Batch interpolation and kick application
+if (n_interp > 0) then
+  call interpolate_field_batch(x_interp, y_interp, z_interp, csr%mesh3d, n_interp, E=E_batch)
+
+  !$OMP PARALLEL DO PRIVATE(n, i, p, factor, pz0, ef, dpz, new_beta)
+  do n = 1, n_interp
+    i = interp_idx(n)
+    p => particle(i)
+    factor = csr%actual_track_step / (p%p0c * p%beta)
+    pz0 = sqrt((1.0_rp + p%vec(6))**2 - p%vec(2)**2 - p%vec(4)**2)
+    ! Considering magnetic field also, effectively reduces this force by 1/gamma^2
+    p%vec(2) = p%vec(2) + E_batch(1,n) * factor / csr%mesh3d%gamma**2
+    p%vec(4) = p%vec(4) + E_batch(2,n) * factor / csr%mesh3d%gamma**2
+    ef = E_batch(3,n) * factor
+    dpz = sqrt_alpha(1 + p%vec(6), ef*ef + 2 * ef * pz0)
+    p%vec(6) = p%vec(6) + dpz
+    call convert_pc_to (p%p0c * (1 + p%vec(6)), p%species, beta = new_beta)
+    p%vec(5) = p%vec(5) * new_beta / p%beta
+    p%beta = new_beta
+  enddo
+  !$OMP END PARALLEL DO
+endif
+
+deallocate(x_interp, y_interp, z_interp, interp_idx, E_batch)
+
+end subroutine apply_fft_3d_kicks
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
