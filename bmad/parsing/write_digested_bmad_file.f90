@@ -21,8 +21,9 @@
 
 subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
 
-use equality_mod, only: operator(==)
 use ptc_interface_mod, dummy => write_digested_bmad_file
+use equality_mod, only: operator(==)
+use bmad_parser_struct, only: bp_com
 
 implicit none
 
@@ -88,6 +89,14 @@ do j = 1, n_file
     ierr = stat(fname, stat_b)
   endif
   write (d_unit) fname, stat_b(2), stat_b(8), stat_b(10) ! Inode, Size, Modification date
+enddo
+
+! Write environment variables defined in lattice file.
+
+n = size(bp_com%env_var_name)
+write (d_unit) n
+do j = 1, n
+  write (d_unit) bp_com%env_var_name(j), bp_com%env_var_value(j)
 enddo
 
 ! Write the lat structure to the digested file. We do this in pieces
