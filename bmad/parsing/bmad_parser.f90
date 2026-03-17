@@ -331,6 +331,11 @@ parsing_loop: do
     endif
     call set_env(str1, str2, err)
     if (err) call parser_error('ERROR SETTING ENVIRONMENT VARIABLE: ' // quote(str1) // ' TO: ' // quote(str2))
+    n = size(bp_com%env_var_name) + 1
+    call re_allocate (bp_com%env_var_name, n)
+    call re_allocate (bp_com%env_var_value, n)
+    bp_com%env_var_name(n)  = str1
+    bp_com%env_var_value(n) = str2
     cycle parsing_loop
   endif 
 

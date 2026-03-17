@@ -145,6 +145,8 @@ type bp_common_struct
   character(n_parse_line) :: rest_of_line = ''         ! Line after semicolon saved until current statement is completely parsed.
   character(n_parse_line) :: next_chunk = ''      ! Line waiting to be appended to the parse_line.
   character(1) :: last_char_in_parse_line =  ''   ! Needed for long lines read in pieces.
+  character(100), allocatable :: env_var_name(:)
+  character(400), allocatable :: env_var_value(:)
   ! parser_name is used by routines to tell if parsing is being done or not.
   character(40) :: parser_name = ''               ! Blank means not in bmad_parser nor bmad_parser2.
   character(100) :: last_word = ''                ! Last word to be parsed
@@ -173,6 +175,7 @@ end type
 ! around a bug in gfortran where an error is generated with initialization in the form
 !   bp_com = bp_common_struct()
 ! See GCC Bugzilla Bug report #87568.
+! Note: This looks to be fixed as of GCC 11
 
 type bp_common2_struct
   type (bp_const_struct), allocatable :: const(:)   ! Constant name

@@ -2506,8 +2506,8 @@ the downstream end.
 \begin{example}
   show field q1 0.1  0.2, 0.5*ele::q1[L]  ! Show field at (x, y) = (0.1, 0.2) and 
                                           !    at s-center of q1 element.
-  show field q1 -percent 0.1  0.2 0.5     ! Same as above.
-  show field 2>>3 0 0 0 -deriv            ! Show field at start of 3rd element in branch 2.
+  show field q1 -percent 0.1  0.2 0.5 ! Same as above.
+  show field 2>>3 0 0 0 -deriv        ! Show field at start of 3rd element in branch 2.
 \end{example}
 
 %% show global --------------------------------------------------------------
@@ -2517,10 +2517,16 @@ the downstream end.
 
 Syntax:
 \begin{example}
-  show global \{-bmad_com\} \{-space_charge_com\} \{-optimization\} \{-ptc_com\} \{-ran_state\} 
+  show global \{-bmad_com\} \{environment\} \{-optimization\} \{-ptc_com\} 
+                                              \{-ran_state\} \{-space_charge_com\} 
 \end{example}
 
-The \vn{show global} command prints lists of global parameters. 
+The \vn{show global} command prints lists of global parameters. Only one of the optional
+arguments may be used at one time.
+
+The \vn{-environment} switch shows environment variables defined in any of the \bmad lattice
+files. See the \bmad manual for details. If there are multiple universes, only the environment
+variables associated with the last universe are displayed.
 
 Note: The state of the random number generator is only used for debugging purposes and is not of
 interest to the typical user.
@@ -2529,9 +2535,10 @@ Specifically:
 \begin{example}
   show global                   ! Displays \tao's global parameters.
   show global -bmad_com         ! Displays \vn{bmad_com} parameters (\sref{s:globals}).
-  show global -space_charge_com ! Displays \vn{space_charge_com} parameters (\sref{s:globals}).
+  show global -environment      ! Displays environment variables defined in the lattice files.
   show global -optimization     ! Displays optimization parameters.
   show global -ran_state        ! Displays the state of the random number generator.
+  show global -space_charge_com ! Displays \vn{space_charge_com} parameters (\sref{s:globals}).
 \end{example}
 
 Use the \vn{set} command to set global parameters 

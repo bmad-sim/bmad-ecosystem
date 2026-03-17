@@ -370,10 +370,10 @@ integer, pointer :: i_level
 
 character(*) how
 character(*), optional :: file_name_in
-character(400) file_name, basename, file_name2
+character(400) file_name, basename, file_name2, dir_name
 
 logical, optional :: finished, err, open_file, abort_on_open_error
-logical found_it, is_relative, valid, err_flag, stop_here
+logical found_it, is_relative, valid, err_flag, stop_here, err2
 
 ! "Init" means init
 
@@ -444,6 +444,7 @@ case ('push', 'push_inline')
   endif
 
   ix = splitfilename (file_name2, bp_com%file(i_level)%dir, basename, is_relative)
+  if (bp_com%file(i_level)%dir == '') bp_com%file(i_level)%dir = './'
 
   if (bp_com%use_local_lat_file) then
     inquire (file = basename, exist = found_it, name = file_name2)
@@ -462,6 +463,22 @@ case ('push', 'push_inline')
 
   bp_com%file(i_level)%full_name = file_name
   bp_com%file(i_level)%f_unit = lunget()
+  if (i_level == 1) then
+    if (allocated(bp_com%env_var_name)) then
+      ! n = size(bp_com%env_var_name) + 1
+      ! call re_allocate (bp_com%env_var_name, n)
+      ! bp_com%env_var_name(n) = 'LATTICE_SECONDARY_DIR' 
+    else
+      n = 1
+      call re_allocate (bp_com%env_var_name, n)
+      bp_com%env_var_name(n) = 'LATTICE_ROOT_DIR' 
+
+      ix = splitfilename(file_name, dir_name, basename, is_relative)
+      call re_allocate (bp_com%env_var_value, n)
+      bp_com%env_var_value(n) = dir_name
+      call set_env(bp_com%env_var_name(n), dir_name, err2)
+    endif
+  endif
 
   ! Note: open_file will be False when the file is a binary file.
 
