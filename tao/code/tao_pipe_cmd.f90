@@ -3911,7 +3911,7 @@ case ('ele:wake')
       lr_mode => wake%lr%mode(i)
       v_str = 'none'
       if (lr_mode%polarized) write (v_str, '(f8.3)') lr_mode%angle
-      nl=incr(nl); write (li(nl), '(4(es22.14, a), 2a)') &
+      nl=incr(nl); write (li(nl), '(3(es22.14, a), i0, 2a)') &
                 lr_mode%freq, ';', lr_mode%R_over_Q, ';', lr_mode%Q, ';', lr_mode%m, ';', v_str
     enddo
 
