@@ -1,0 +1,16 @@
+no_digested
+
+parameter[lattice] = "GPU tracking plain pipe test"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+p1: pipe, L = 1.0
+
+lat: line = (p1)
+
+use, lat

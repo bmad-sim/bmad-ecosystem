@@ -1,0 +1,19 @@
+no_digested
+
+parameter[lattice] = "GPU tracking pipe aperture test"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! Tight aperture so a fraction of particles are clipped at the exit
+p1: pipe, L = 1.0,
+    x1_limit = 5e-5, x2_limit = 5e-5,
+    y1_limit = 5e-5, y2_limit = 5e-5
+
+lat: line = (p1)
+
+use, lat

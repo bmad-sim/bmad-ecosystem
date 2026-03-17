@@ -79,12 +79,33 @@ lc_misalign: lcavity, L = 0.8, rf_frequency = 1e9, gradient = 8e4,
     x_offset = 2e-4, y_offset = -1e-4, tilt = 0.005,
     phi0 = 0.1, phi0_err = -0.05, voltage_err = 5e3
 
-! 17. Final drift
+! --- Pipes ---
+
+! 17. Plain pipe (drift-like, no multipoles)
+p_plain: pipe, L = 1.5
+
+! 18. Pipe with misalignment
+p_misalign: pipe, L = 1.0, x_offset = 3e-4, y_offset = -2e-4, tilt = 0.01
+
+! 19. Pipe with aperture
+p_aper: pipe, L = 1.0,
+    x1_limit = 4e-3, x2_limit = 4e-3,
+    y1_limit = 4e-3, y2_limit = 4e-3
+
+! 20. Pipe with misalignment + aperture (combo)
+p_combo: pipe, L = 1.0,
+    x_offset = 2e-4, y_offset = -1e-4, tilt = 0.005,
+    x1_limit = 4e-3, x2_limit = 4e-3,
+    y1_limit = 4e-3, y2_limit = 4e-3
+
+! 21. Final drift
 d_final: drift, L = 1.0
 
 lat: line = (d_plain, q_plain, d_aper, q_misalign, q_fringe,
              q_mag_multi, q_elec, q_aper, q_combo, d_mid,
              b_plain, b_k1, b_fringe_mis, b_multi,
-             lc_plain, lc_misalign, d_final)
+             lc_plain, lc_misalign,
+             p_plain, p_misalign, p_aper, p_combo,
+             d_final)
 
 use, lat

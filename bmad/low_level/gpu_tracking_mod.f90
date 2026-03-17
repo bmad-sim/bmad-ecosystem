@@ -14,6 +14,7 @@ public :: track_bunch_thru_drift_gpu
 public :: track_bunch_thru_quad_gpu
 public :: track_bunch_thru_bend_gpu
 public :: track_bunch_thru_lcavity_gpu
+public :: track_bunch_thru_pipe_gpu
 public :: check_entrance_aperture_for_gpu
 
 ! Whether gpu_tracking_init has been called
@@ -184,7 +185,7 @@ end function
 ! Runtime conditions (bmad_com flags, particle direction, wakefields)
 ! are NOT checked here — those are evaluated at dispatch time.
 !
-! Currently supported element types: drift, quadrupole, sbend, lcavity.
+! Currently supported element types: drift, quadrupole, sbend, lcavity, pipe.
 !------------------------------------------------------------------------
 function ele_gpu_eligible(ele) result (eligible)
 type (ele_struct), intent(in) :: ele
@@ -200,7 +201,7 @@ if (.not. ele%is_on) return
 
 ! Check supported element types
 select case (ele%key)
-case (drift$, quadrupole$, sbend$, lcavity$)
+case (drift$, quadrupole$, sbend$, lcavity$, pipe$)
   eligible = .true.
 end select
 
@@ -894,6 +895,154 @@ deallocate(h_step_s0, h_step_s, h_step_p0c, h_step_p1c, h_step_scale, h_step_tim
 #endif
 
 end subroutine track_bunch_thru_lcavity_gpu
+
+!------------------------------------------------------------------------
+! track_bunch_thru_pipe_gpu
+!
+! GPU batch tracking through a pipe element.  A pipe is tracked as a
+! thick multipole: split-step drift + multipole kicks.
+!
+! When there are no multipoles (the common case), the body is a pure
+! drift and we use the drift kernel for bit-exact agreement with CPU.
+! When multipoles are present, we use the quad kernel with b1=0.
+! In both cases, misalignment and fringe are handled on CPU.
+!------------------------------------------------------------------------
+subroutine track_bunch_thru_pipe_gpu (bunch, ele, param, did_track)
+
+use multipole_mod, only: ab_multipole_kicks
+use, intrinsic :: iso_c_binding
+
+type (bunch_struct),     intent(inout) :: bunch
+type (ele_struct),       intent(in)    :: ele
+type (lat_param_struct), intent(in)    :: param
+logical,                 intent(out)   :: did_track
+
+#ifdef USE_GPU_TRACKING
+integer, parameter :: n_multi = n_pole_maxx + 1  ! = 22
+integer(C_INT) :: n
+integer :: j, ix_mag_max, ix_elec_max, n_step
+real(rp) :: ele_length, mc2, delta_ref_time, e_tot_ele
+real(rp) :: charge_dir, rel_tracking_charge, length
+real(rp) :: an(0:n_pole_maxx), bn(0:n_pole_maxx)
+real(rp) :: an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
+type (fringe_field_info_struct) :: fringe_info
+logical :: has_misalign, has_multipoles
+
+! Precomputed scaled multipole arrays and c_multi coefficients for CUDA
+real(C_DOUBLE) :: a2_arr(0:n_pole_maxx), b2_arr(0:n_pole_maxx)
+real(C_DOUBLE) :: ea2_arr(0:n_pole_maxx), eb2_arr(0:n_pole_maxx)
+real(C_DOUBLE) :: cm_arr(0:n_pole_maxx, 0:n_pole_maxx)
+
+real(C_DOUBLE), allocatable :: vx(:), vpx(:), vy(:), vpy(:), vz(:), vpz(:)
+real(C_DOUBLE), allocatable :: beta_a(:), p0c_a(:), s_a(:), t_a(:)
+integer(C_INT), allocatable :: state_a(:)
+#endif
+
+did_track = .false.
+
+#ifdef USE_GPU_TRACKING
+n = size(bunch%particle)
+if (n == 0) return
+ele_length = ele%value(l$)
+if (ele_length == 0) then
+  did_track = .true.
+  return
+endif
+
+mc2 = mass_of(bunch%particle(1)%species)
+delta_ref_time = ele%value(delta_ref_time$)
+e_tot_ele = ele%value(e_tot$)
+
+has_misalign = ele%bookkeeping_state%has_misalign
+
+! Fringe fields are handled on CPU (before/after GPU body tracking)
+call init_fringe_info(fringe_info, ele)
+
+! Get multipoles (no quad gradient for pipe)
+call multipole_ele_to_ab(ele, .false., ix_mag_max, an, bn, magnetic$, include_kicks$)
+call multipole_ele_to_ab(ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
+
+has_multipoles = (ix_mag_max > -1) .or. (ix_elec_max > -1)
+
+if (has_multipoles) then
+  ! --- Multipole path: use quad kernel with b1=0 ---
+
+  ! Determine n_step for split-step integration
+  length = bunch%particle(1)%time_dir * ele_length
+  n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
+
+  ! Compute charge_dir: rel_charge * orientation * direction * time_dir
+  rel_tracking_charge = rel_tracking_charge_to_mass(bunch%particle(1), param%particle)
+  charge_dir = rel_tracking_charge * ele%orientation * bunch%particle(1)%direction * bunch%particle(1)%time_dir
+
+  ! Entrance: allocate SoA, misalignment, fringe, AoS→SoA
+  call gpu_tracking_pre(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+      state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true.)
+
+  ! Precompute scaled multipole arrays for CUDA kernel
+  call precompute_multipole_arrays(bunch%particle(1), ele, &
+      ix_mag_max, an, bn, ix_elec_max, an_elec, bn_elec, &
+      ele_length, n_step, a2_arr, b2_arr, ea2_arr, eb2_arr, cm_arr)
+
+  did_track = .true.
+
+  ! Call CUDA quad kernel with b1=0 (pipe has no quad gradient)
+  call gpu_track_quad(vx, vpx, vy, vpy, vz, vpz, &
+                      state_a, beta_a, p0c_a, t_a, &
+                      mc2, 0.0_C_DOUBLE, ele_length, delta_ref_time, &
+                      e_tot_ele, charge_dir, n, &
+                      a2_arr, b2_arr, cm_arr, &
+                      int(ix_mag_max, C_INT), int(n_step, C_INT), &
+                      ea2_arr, eb2_arr, int(ix_elec_max, C_INT))
+
+  ! Exit: SoA→AoS, deallocate, fringe, misalignment, update s
+  call gpu_tracking_post(bunch, ele, param, n, vx, vpx, vy, vpy, vz, vpz, &
+      state_a, beta_a, p0c_a, t_a, has_misalign, fringe_info, .true., &
+      .true., .false., .true.)
+
+else
+  ! --- Pure drift path: use drift kernel for bit-exact CPU agreement ---
+
+  ! Apply entrance misalignment and fringe on CPU
+  if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, set$)
+  if (fringe_info%has_fringe) &
+    call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, first_track_edge$)
+
+  ! Allocate SoA arrays (drift kernel needs s_pos)
+  allocate(vx(n), vpx(n), vy(n), vpy(n), vz(n), vpz(n))
+  allocate(state_a(n), beta_a(n), p0c_a(n), s_a(n), t_a(n))
+
+  ! AoS -> SoA extraction
+  call bunch_to_soa(bunch, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a)
+  do j = 1, n
+    s_a(j) = bunch%particle(j)%s
+  enddo
+
+  did_track = .true.
+
+  ! Call CUDA drift kernel
+  call gpu_track_drift(vx, vpx, vy, vpy, vz, vpz, &
+                       state_a, beta_a, p0c_a, s_a, t_a, &
+                       mc2, ele_length, n)
+
+  ! SoA -> AoS write-back
+  call soa_to_bunch(bunch, ele, n, vx, vpx, vy, vpy, vz, vpz, state_a, beta_a, p0c_a, t_a, &
+                     .false., .false.)
+  do j = 1, n
+    bunch%particle(j)%s = s_a(j)
+  enddo
+
+  deallocate(vx, vpx, vy, vpy, vz, vpz)
+  deallocate(state_a, beta_a, p0c_a, s_a, t_a)
+
+  ! Apply exit fringe and misalignment on CPU
+  if (fringe_info%has_fringe) &
+    call apply_fringe_to_bunch(bunch, ele, param, n, fringe_info, second_track_edge$)
+  if (has_misalign) call apply_misalign_to_bunch(bunch, ele, n, unset$)
+endif
+#endif
+
+end subroutine track_bunch_thru_pipe_gpu
 
 !------------------------------------------------------------------------
 ! check_entrance_aperture_for_gpu — check entrance aperture for all alive particles

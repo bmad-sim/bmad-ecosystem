@@ -1,0 +1,20 @@
+no_digested
+
+parameter[lattice] = "GPU tracking pipe combo test"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+! Pipe with misalignment + tight aperture
+p1: pipe, L = 1.0,
+    x_offset = 2e-4, y_offset = -1e-4, tilt = 0.005,
+    x1_limit = 5e-5, x2_limit = 5e-5,
+    y1_limit = 5e-5, y2_limit = 5e-5
+
+lat: line = (p1)
+
+use, lat

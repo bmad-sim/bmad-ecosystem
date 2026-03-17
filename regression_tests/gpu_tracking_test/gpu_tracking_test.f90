@@ -29,6 +29,12 @@
 !  24. Lcavity with aperture
 !  25. Lcavity with fringe fields
 !  26. Lcavity fringe standing wave
+!  27. Plain pipe
+!  28. Pipe with misalignment
+!  29. Pipe with fringe fields
+!  30. Pipe in mixed lattice (drift+pipe+quad)
+!  31. Pipe with tight aperture
+!  32. Pipe combo (misalign+aperture)
 !-
 
 program gpu_tracking_test
@@ -267,6 +273,42 @@ call run_comparison_test('Test 25: Lcavity fringe', lat, tol, n_pass, n_fail)
 ! ======================================================================
 call bmad_parser('lat_lcavity_fringe_standing.bmad', lat)
 call run_comparison_test('Test 26: Lcavity fringe standing wave', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 27: Plain pipe
+! ======================================================================
+call bmad_parser('lat_pipe_only.bmad', lat)
+call run_comparison_test('Test 27: Plain pipe', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 28: Pipe with misalignment
+! ======================================================================
+call bmad_parser('lat_pipe_misalign.bmad', lat)
+call run_comparison_test('Test 28: Pipe with misalignment', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 29: Pipe with fringe fields
+! ======================================================================
+call bmad_parser('lat_pipe_multipole.bmad', lat)
+call run_comparison_test('Test 29: Pipe with fringe', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 30: Pipe in mixed lattice (drift+pipe+quad)
+! ======================================================================
+call bmad_parser('lat_pipe_elec.bmad', lat)
+call run_comparison_test('Test 30: Pipe in mixed lattice', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 31: Pipe with tight aperture
+! ======================================================================
+call bmad_parser('lat_pipe_aperture.bmad', lat)
+call run_aperture_test('Test 31: Pipe with aperture', lat, tol, n_pass, n_fail)
+
+! ======================================================================
+! TEST 32: Pipe combo (misalign+aperture)
+! ======================================================================
+call bmad_parser('lat_pipe_combo.bmad', lat)
+call run_aperture_test('Test 32: Pipe combo+aperture', lat, tol, n_pass, n_fail)
 
 ! ======================================================================
 ! Summary

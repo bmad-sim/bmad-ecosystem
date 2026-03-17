@@ -88,6 +88,8 @@ if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bma
       call track_bunch_thru_bend_gpu(bunch, ele, branch%param, gpu_did_track)
     case (lcavity$)
       call track_bunch_thru_lcavity_gpu(bunch, ele, branch%param, gpu_did_track)
+    case (pipe$)
+      call track_bunch_thru_pipe_gpu(bunch, ele, branch%param, gpu_did_track)
     end select
 
     if (gpu_did_track) then

@@ -1,9 +1,9 @@
 !+
 ! gpu_tracking_stress_test
 !
-! Comprehensive GPU tracking test: 1M particles through a 17-element lattice
-! exercising every parameter that affects drift, quadrupole, bend, and
-! lcavity tracking.
+! Comprehensive GPU tracking test: 1M particles through a 21-element lattice
+! exercising every parameter that affects drift, quadrupole, bend, lcavity,
+! and pipe tracking.
 !
 ! Lattice (lat_kitchen_sink.bmad):
 !   1. Plain drift                    10. Mid drift
@@ -13,8 +13,11 @@
 !   5. Quad with fringe               14. Bend with multipoles
 !   6. Quad with mag multipoles       15. Plain lcavity
 !   7. Quad with elec multipoles      16. Lcavity misalign+phase
-!   8. Quad with aperture             17. Final drift
-!   9. Quad combo
+!   8. Quad with aperture             17. Plain pipe
+!   9. Quad combo                     18. Pipe with misalignment
+!                                     19. Pipe with aperture
+!                                     20. Pipe combo (misalign+aperture)
+!                                     21. Final drift
 !
 ! Compares CPU vs GPU tracking of all 1M particles, reports:
 !   - max coordinate difference (alive particles)
@@ -77,7 +80,7 @@ branch => lat%branch(0)
 
 print *
 print *, '=================================================================='
-print *, '  GPU Tracking Stress Test — 1M particles, 17 elements'
+print *, '  GPU Tracking Stress Test — 1M particles, 21 elements'
 print *, '=================================================================='
 print *
 

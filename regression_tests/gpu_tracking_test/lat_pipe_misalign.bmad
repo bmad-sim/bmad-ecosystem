@@ -1,0 +1,16 @@
+no_digested
+
+parameter[lattice] = "GPU tracking pipe + misalignment test"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+p1: pipe, L = 1.0, x_offset = 1e-3, y_offset = -5e-4, tilt = 0.01
+
+lat: line = (p1)
+
+use, lat

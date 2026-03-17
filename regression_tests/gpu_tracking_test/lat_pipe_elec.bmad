@@ -1,0 +1,18 @@
+no_digested
+
+parameter[lattice] = "GPU tracking pipe in mixed lattice"
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+parameter[e_tot] = 10e6
+parameter[particle] = electron
+
+parameter[geometry] = open
+
+d1: drift, L = 0.5
+p1: pipe, L = 1.0
+q1: quadrupole, L = 0.3, k1 = 0.5
+
+lat: line = (d1, p1, q1)
+
+use, lat

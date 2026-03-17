@@ -2,8 +2,9 @@
  * gpu_tracking_kernels.cu
  *
  * CUDA kernels for GPU-accelerated particle tracking through supported
- * elements (drift, quadrupole, sbend, lcavity).  Called from Fortran
+ * elements (drift, quadrupole, sbend, lcavity, pipe).  Called from Fortran
  * via iso_c_binding wrappers defined in gpu_tracking_mod.f90.
+ * Pipe elements reuse the quad kernel with b1=0 (no quad gradient).
  *
  * Build requirements:
  *   - CUDA Toolkit (cuda_runtime.h)
