@@ -141,12 +141,12 @@ else
 endif
 
 if (ts_com%mpi_rank == master_rank$) then
-  print '(3(a, f10.6) a, i0, a)', 'ts%dQ_a, ts%Q_a0, ts%Q_a1 = [', ts%dQ_a, ', ', ts%Q_a0, ', ', ts%Q_a1, '],   n_a = [0, ', ts_com%n_a, ']'
-  print '(3(a, f10.6) a, i0, a)', 'ts%dQ_b, ts%Q_b0, ts%Q_b1 = [', ts%dQ_b, ', ', ts%Q_b0, ', ', ts%Q_b1, '],   n_b = [0, ', ts_com%n_b, ']'
+  print '(3(a, f10.6), a, i0, a)', 'ts%dQ_a, ts%Q_a0, ts%Q_a1 = [', ts%dQ_a, ', ', ts%Q_a0, ', ', ts%Q_a1, '],   n_a = [0, ', ts_com%n_a, ']'
+  print '(3(a, f10.6), a, i0, a)', 'ts%dQ_b, ts%Q_b0, ts%Q_b1 = [', ts%dQ_b, ', ', ts%Q_b0, ', ', ts%Q_b1, '],   n_b = [0, ', ts_com%n_b, ']'
   if (ts%rf_on) then
-    print '(3(a, f10.6) a, i0, a)', 'ts%dQ_z, ts%Q_z0, ts%Q_z1 = [', ts%dQ_z, ', ', ts%Q_z0, ', ', ts%Q_z1, '],   n_z = [0, ', ts_com%n_z, ']'
+    print '(3(a, f10.6), a, i0, a)', 'ts%dQ_z, ts%Q_z0, ts%Q_z1 = [', ts%dQ_z, ', ', ts%Q_z0, ', ', ts%Q_z1, '],   n_z = [0, ', ts_com%n_z, ']'
   else
-    print '(3(a, f10.6) a, i0, a)', 'ts%dpz, ts%pz0, ts%pz1    = [', ts%dpz,  ', ', ts%pz0,  ', ', ts%pz1,  '],   n_z = [0, ', ts_com%n_z, ']'
+    print '(3(a, f10.6), a, i0, a)', 'ts%dpz, ts%pz0, ts%pz1    = [', ts%dpz,  ', ', ts%pz0,  ', ', ts%pz1,  '],   n_z = [0, ', ts_com%n_z, ']'
   endif
 endif
 
