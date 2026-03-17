@@ -175,6 +175,7 @@ end type
 ! around a bug in gfortran where an error is generated with initialization in the form
 !   bp_com = bp_common_struct()
 ! See GCC Bugzilla Bug report #87568.
+! Note: This looks to be fixed as of GCC 11
 
 type bp_common2_struct
   type (bp_const_struct), allocatable :: const(:)   ! Constant name

@@ -243,14 +243,14 @@ slave elements.
 There is a short list of names that cannot be used as an element, line or list name. These reserved names are:
 \begin{example}
   beam                             no_digested                  root
-  beginning                        no_superimpose               slice_lattice
-  call                             parameter                    start_branch_at
-  calc_reference_orbit             parser_debug                 superimpose
-  combine_consecutive_elements     particle_start               title
-  debug_marker                     print                        use
-  end_file                         redef                        use_local_lat_file
-  expand_lattice                   remove_elements              write_digested
-  merge_elements                   return
+  beginning                        no_superimpose               setenv
+  call                             parameter                    slice_lattice
+  calc_reference_orbit             parser_debug                 start_branch_at
+  combine_consecutive_elements     particle_start               superimpose
+  debug_marker                     print                        title
+  end_file                         redef                        use
+  expand_lattice                   remove_elements              use_local_lat_file
+  merge_elements                   return                       write_digested
 \end{example}
 Note: The one exception is if \vn{end} is used to define a \vn{marker}. This exception is allowed
 since \bmad uses the \vn{end} name to define a marker in any case.
@@ -1277,10 +1277,13 @@ Example:
 In this example, the name of the called file expands to \vn{sub/version2/lat2.bmad}.
 
 An environment variable \vn{LATTICE_ROOT_DIR} is automatically set to the directory that contains
-the head lattice file.
+the top-level lattice file. If multiple lattices are parsed by a program (for example, with multiple
+universes in \tao), the value of \vn{LATTICE_ROOT_DIR} is reset each time a top-level lattice file
+is parsed. However, environment variables that have defined will be retained even when a new top-level
+lattice file is parsed.
 
 Environment variables that are set are local to the execution of the program that calls the lattice
-parser and do not persist after the progam terminates. 
+parser and do not persist after the progam terminates.
 
 %-----------------------------------------------------------------------------
 \section{Print Statement}
@@ -1363,7 +1366,6 @@ To call a file relative to the current working directory, use the environment va
 
 An environment variable \vn{LATTICE_ROOT_DIR} is automatically set to the directory that contains
 the head lattice file.
-
 
 Where a called file is searched for may be modified by using a \vn{use_local_lat_file}
 statement. See Section~\sref{s:use.loc} for more details. Additionally, the \vn{setenv}
