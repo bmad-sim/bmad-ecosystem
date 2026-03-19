@@ -839,25 +839,25 @@ end subroutine truncate_taylor_to_order
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine evaluate_em_taylor (r_pos, em_taylor, field, dfield)
+! Subroutine evaluate_gg_taylor (r_pos, gg_taylor, field, dfield)
 !
-! Routine to evaluate the field using an em_taylor map.
+! Routine to evaluate the field using an gg_taylor map.
 ! Note: dField/dz values will be calculated using Maxwell's Equations for a static field.
 !
 ! Input:
 !   r_pos(2)     -- real(rp): (x, y) position
-!   em_taylor(3) -- em_taylor_struct: em_taylor map.
+!   gg_taylor(3) -- gg_taylor_struct: gg_taylor map.
 !
 ! Output:
 !   field(3)     -- real(rp): Field.
 !   dfield(3,3)  -- real(rp), optional: Field derivatives.
 !-
 
-subroutine evaluate_em_taylor (r_pos, em_taylor, field, dfield)
+subroutine evaluate_gg_taylor (r_pos, gg_taylor, field, dfield)
 
 implicit none
 
-type (em_taylor_struct) :: em_taylor(3)
+type (gg_taylor_struct) :: gg_taylor(3)
 
 real(rp) r_pos(2), field(3)
 real(rp), optional :: dfield(3,3)
@@ -871,8 +871,8 @@ integer i, j, ie_max, iex, iey
 ie_max = 0
 
 do i = 1, 3
-  do j = 1, size(em_taylor(i)%term)
-    ie_max = max (ie_max, maxval(em_taylor(i)%term(j)%expn)) 
+  do j = 1, size(gg_taylor(i)%term)
+    ie_max = max (ie_max, maxval(gg_taylor(i)%term(j)%expn)) 
   enddo
 enddo
 
@@ -891,21 +891,21 @@ enddo
 field = 0
 
 do i = 1, 3
-  do j = 1, size(em_taylor(i)%term)
-    field(i) = field(i) + em_taylor(i)%term(j)%coef * &
-                            expn(em_taylor(i)%term(j)%expn(1), 1) * &
-                            expn(em_taylor(i)%term(j)%expn(2), 2)
+  do j = 1, size(gg_taylor(i)%term)
+    field(i) = field(i) + gg_taylor(i)%term(j)%coef * &
+                            expn(gg_taylor(i)%term(j)%expn(1), 1) * &
+                            expn(gg_taylor(i)%term(j)%expn(2), 2)
   enddo
 enddo
 
 if (present(dfield)) then
   dfield = 0
   do i = 1, 3
-    do j = 1, size(em_taylor(i)%term)
-      iex = em_taylor(i)%term(j)%expn(1)
-      iey = em_taylor(i)%term(j)%expn(2)
-      if (iex > 0) dfield(i,1) = dfield(i,1) + iex * em_taylor(i)%term(j)%coef * expn(iex-1, 1) * expn(iey, 2)
-      if (iey > 0) dfield(i,2) = dfield(i,2) + iey * em_taylor(i)%term(j)%coef * expn(iex, 1) * expn(iey-1, 2)
+    do j = 1, size(gg_taylor(i)%term)
+      iex = gg_taylor(i)%term(j)%expn(1)
+      iey = gg_taylor(i)%term(j)%expn(2)
+      if (iex > 0) dfield(i,1) = dfield(i,1) + iex * gg_taylor(i)%term(j)%coef * expn(iex-1, 1) * expn(iey, 2)
+      if (iey > 0) dfield(i,2) = dfield(i,2) + iey * gg_taylor(i)%term(j)%coef * expn(iex, 1) * expn(iey-1, 2)
     enddo
   enddo
 
@@ -914,43 +914,43 @@ if (present(dfield)) then
   dfield(3,3) = -(dfield(1,1) + dfield(2,2))  ! Divergence is zero
 endif
 
-end subroutine evaluate_em_taylor
+end subroutine evaluate_gg_taylor
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine add_em_taylor_term (em_taylor, coef, expn, replace)
+! Subroutine add_gg_taylor_term (gg_taylor, coef, expn, replace)
 !
 ! Routine to add a Em_taylor term to a Em_taylor series.
 !
-! If em_taylor does not have a term with the same exponents then a new
-! term is added to em_taylor so the total number of terms is increased by one.
+! If gg_taylor does not have a term with the same exponents then a new
+! term is added to gg_taylor so the total number of terms is increased by one.
 !
-! If em_taylor already has a term with the same exponents then
+! If gg_taylor already has a term with the same exponents then
 ! the "replace" argument determines what happens:
 !   If replace = False (default) then
 !      coef is added to the coefficient of the old term.
 !   If replace = True then
 !      coef replaces the coefficient of the old term.
-! In both these cases, the number of terms in em_taylor remains the same.
+! In both these cases, the number of terms in gg_taylor remains the same.
 !
 ! Input:
-!   em_taylor   -- Em_taylor_struct: Em_taylor series.
+!   gg_taylor   -- Em_taylor_struct: Em_taylor series.
 !   coef        -- Real(rp): Coefficient.
 !   expn(2)     -- Integer: Array of exponent indices.
 !   replace     -- Logical, optional: Replace existing term? Default is False.
 !
 ! Output:
-!   em_taylor -- Em_taylor_struct: New series with term added
+!   gg_taylor -- Em_taylor_struct: New series with term added
 !-
 !-
 
-subroutine add_em_taylor_term (em_taylor, coef, expn, replace)
+subroutine add_gg_taylor_term (gg_taylor, coef, expn, replace)
 
 implicit none
 
-type (em_taylor_struct) em_taylor
+type (gg_taylor_struct) gg_taylor
 
 real(rp) coef
 integer expn(:), i, n
@@ -959,18 +959,18 @@ logical, optional :: replace
 
 ! Search for an existing term of the same type
 
-n = size(em_taylor%term)
+n = size(gg_taylor%term)
 
 do i = 1, n
-  if (all(em_taylor%term(i)%expn == expn)) then
+  if (all(gg_taylor%term(i)%expn == expn)) then
     if (logic_option(.false., replace)) then
-      em_taylor%term(i)%coef = coef
+      gg_taylor%term(i)%coef = coef
     else
-      em_taylor%term(i)%coef = coef + em_taylor%term(i)%coef
+      gg_taylor%term(i)%coef = coef + gg_taylor%term(i)%coef
     endif
-    if (em_taylor%term(i)%coef == 0) then  ! Kill this term
-      em_taylor%term(i:n-1) = em_taylor%term(i+1:n)
-      call init_em_taylor_series (em_taylor, n-1, .true.)
+    if (gg_taylor%term(i)%coef == 0) then  ! Kill this term
+      gg_taylor%term(i:n-1) = gg_taylor%term(i+1:n)
+      call init_gg_taylor_series (gg_taylor, n-1, .true.)
     endif
     return
   endif
@@ -978,10 +978,10 @@ enddo
 
 ! new term
 
-call init_em_taylor_series (em_taylor, n+1, .true.)
-em_taylor%term(n+1)%coef = coef
-em_taylor%term(n+1)%expn = expn
+call init_gg_taylor_series (gg_taylor, n+1, .true.)
+gg_taylor%term(n+1)%coef = coef
+gg_taylor%term(n+1)%expn = expn
 
-end subroutine add_em_taylor_term
+end subroutine add_gg_taylor_term
 
 end module

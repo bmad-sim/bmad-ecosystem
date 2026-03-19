@@ -58,7 +58,7 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (gen_grad_map_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field
-type (em_taylor_term_struct), pointer :: t_term
+type (gg_taylor_term_struct), pointer :: t_term
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
 type (bmad_common_struct), parameter :: bmad_com_default = bmad_common_struct()

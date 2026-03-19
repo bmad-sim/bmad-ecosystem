@@ -7001,8 +7001,8 @@ type (ele_struct), target :: ele
 type (ele_struct), pointer :: match_ele
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (em_taylor_term_struct), allocatable :: term(:)
-type (em_taylor_term_struct), pointer :: tm
+type (gg_taylor_term_struct), allocatable :: term(:)
+type (gg_taylor_term_struct), pointer :: tm
 
 real(rp) coef, deriv(0:50), z(1)
 

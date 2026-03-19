@@ -817,17 +817,17 @@ end type
 ! For each plane a taylor series is used to calculate the field components.
 ! The 2-vector of %expn(2) is (x, y).
 
-type em_taylor_term_struct
+type gg_taylor_term_struct
   real(rp) :: coef = 0
   integer :: expn(2) = 0
 end type
 
-type em_taylor_struct
+type gg_taylor_struct
   real (rp) :: ref = 0
-  type (em_taylor_term_struct), allocatable :: term(:)
+  type (gg_taylor_term_struct), allocatable :: term(:)
 end type
 
-! Gfortran bug: "field(3) = em_taylor_struct()" not accepted.
+! Gfortran bug: "field(3) = gg_taylor_struct()" not accepted.
 
 ! Unit and S-Matrices
 

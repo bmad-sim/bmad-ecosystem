@@ -105,8 +105,8 @@ endif
 
 if (branch%param%geometry == closed$) then
   orb_ptr(ix_fix)%vec(6) = pz0-dE_low
-  if (present(low_E_orb)) then; call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err)
-  else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
+  if (present(low_E_orb)) then; call closed_orbit_calc (lat2, low_E_orb, 4, 1, ix_br, err, .false.)
+  else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err, .false.)
   endif
   if (err) then
     call out_io (s_warn$, r_name, 'Closed orbit calc failing for low-energy orbit.')
@@ -202,8 +202,8 @@ endif
 
 if (branch%param%geometry == closed$) then
   orb_ptr(ix_fix)%vec(6) = pz0+delta_e
-  if (present(low_E_orb)) then; call closed_orbit_calc (lat2, high_E_orb, 4, 1, ix_br, err)
-  else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err)
+  if (present(low_E_orb)) then; call closed_orbit_calc (lat2, high_E_orb, 4, 1, ix_br, err, .false.)
+  else;                         call closed_orbit_calc (lat2, this_orb, 4, 1, ix_br, err, .false.)
   endif
   if (err) then
     call out_io (s_warn$, r_name, 'Closed orbit calc failing for high-energy orbit.')
