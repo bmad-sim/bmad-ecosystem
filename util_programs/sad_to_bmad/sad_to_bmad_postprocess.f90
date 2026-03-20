@@ -130,11 +130,11 @@ do
         call err_exit
       endif
     enddo
-    write (line, '(a, es16.8)') line(1:ix), t_shift(i)
+    write (2, '(a, es16.8)') line(1:ix), t_shift(i)
     print '(i4, 2x, a, 2x, a20, es16.8)', i, 'Time Patch:', pname, t_shift(i)
+  else
+    write (2, '(a)') trim(line)    
   endif
-
-  write (2, '(a)') trim(line)    
 enddo
 
 close(1)

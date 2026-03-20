@@ -386,7 +386,7 @@ do
 
   if (len_trim(ele%name) > 16) then
     i_unique = i_unique + 1
-    write (ele%name, '(a, i0)') ele%name(1:11), i_unique
+    write (ele%name(12:), '(i0)') i_unique
   endif
 
   ! Replace element name containing "/" or "#" with "_"

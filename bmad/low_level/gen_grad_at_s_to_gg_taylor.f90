@@ -1,32 +1,32 @@
 !+
-! Subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
+! Subroutine gen_grad_at_s_to_gg_taylor (ele, gen_grad, s_pos, gg_taylor)
 !
 ! Routine to return the equivalent Taylor field map at a point s_pos.
 !
 ! Input:
 !   ele           -- ele: Element containing the map.
 !   gen_grad      -- gen_grad_map_struct: Gen_grad map.
-!   s_pos         -- real(rp): Position to evaluate em_taylor at.
+!   s_pos         -- real(rp): Position to evaluate gg_taylor at.
 !
 ! Output:
-!   em_taylor(3)  -- em_taylor_struct: Map for (Bx, By, Bz) or (Ex, Ey, Ez) fields.
+!   gg_taylor(3)  -- gg_taylor_struct: Map for (Bx, By, Bz) or (Ex, Ey, Ez) fields.
 !-
 
-subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
+subroutine gen_grad_at_s_to_gg_taylor (ele, gen_grad, s_pos, gg_taylor)
 
-use bmad_interface, dummy => gen_grad_at_s_to_em_taylor
+use bmad_interface, dummy => gen_grad_at_s_to_gg_taylor
 
 implicit none
 
-type em_taylor_coef_struct
+type gg_taylor_coef_struct
   real(rp), allocatable :: c(:,:) ! (deriv-order, x_power)  Note: x_power + y_power = deriv_order
 end type
 
 type (ele_struct) ele
 type (gen_grad_map_struct), target :: gen_grad
-type (em_taylor_struct), target :: em_taylor(3)
+type (gg_taylor_struct), target :: gg_taylor(3)
 type (gen_grad1_struct), pointer :: gg
-type (em_taylor_coef_struct) em_coef(3)
+type (gg_taylor_coef_struct) em_coef(3)
 
 real(rp) s_pos, s0, coef, scale, z_rel, s_here
 real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
@@ -36,7 +36,7 @@ integer iz0, nd
 integer i, j, k, d, n, m, io, ix, m_max, iord, it, ig
 
 logical is_even
-character(*), parameter :: r_name = 'gen_grad_at_s_to_em_taylor'
+character(*), parameter :: r_name = 'gen_grad_at_s_to_gg_taylor'
 
 ! Find where to interpolate
 
@@ -216,15 +216,15 @@ scale = gen_grad%field_scale * master_parameter_value(gen_grad%master_parameter,
 
 do i = 1, 3
   n = count(em_coef(i)%c /= 0)
-  call init_em_taylor_series(em_taylor(i), n)
+  call init_gg_taylor_series(gg_taylor(i), n)
 
   n = 0
   do io = 0, ubound(em_coef(i)%c,1)
     do ix = 0, io
       if (em_coef(i)%c(io,ix) == 0) cycle
       n = n + 1
-      em_taylor(i)%term(n)%coef = em_coef(i)%c(io,ix) * scale
-      em_taylor(i)%term(n)%expn = [ix, io-ix]
+      gg_taylor(i)%term(n)%coef = em_coef(i)%c(io,ix) * scale
+      gg_taylor(i)%term(n)%expn = [ix, io-ix]
     enddo
   enddo
 enddo

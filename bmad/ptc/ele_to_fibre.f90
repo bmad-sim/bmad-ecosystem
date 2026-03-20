@@ -43,8 +43,8 @@ type (cartesian_map_struct), pointer :: cm
 type (cylindrical_map_struct), pointer :: cy
 type (gen_grad_map_struct), pointer :: gg_map
 type (gen_grad1_struct), pointer :: gg
-type (em_taylor_struct), target :: em_taylor(3)
-type (em_taylor_term_struct), pointer :: tm
+type (gg_taylor_struct), target :: gg_taylor(3)
+type (gg_taylor_term_struct), pointer :: tm
 type (taylor_struct) spin_taylor(0:3)
 type (fibre), pointer :: ptc_fibre
 type (keywords) ptc_key, key2
@@ -733,12 +733,12 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
       z = z0 + (k + dz_pan7(i-7*k)) * dz_step
     endif
 
-    call gen_grad_at_s_to_em_taylor(ele2, gg_map, z, em_taylor)
+    call gen_grad_at_s_to_gg_taylor(ele2, gg_map, z, gg_taylor)
 
     do j = 1, 3
       call dacon_pancake(field(j), 0.0_rp)
-      do k = 1, size(em_taylor(j)%term)
-        tm => em_taylor(j)%term(k)
+      do k = 1, size(gg_taylor(j)%term)
+        tm => gg_taylor(j)%term(k)
         coef = tm%coef * c_light / ele2%value(p0c$)
         call dacon_pancake(icoef, 0.0_rp)
         call dapok_pancake(icoef, tm%expn, coef)

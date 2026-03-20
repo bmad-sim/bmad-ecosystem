@@ -18,7 +18,7 @@ interface operator (==)
   module procedure eq_interval1_coef, eq_photon_reflect_table, eq_photon_reflect_surface, eq_coord, eq_coord_array
   module procedure eq_bpm_phase_coupling, eq_expression_atom, eq_wake_sr_z_long, eq_wake_sr_mode, eq_wake_sr
   module procedure eq_wake_lr_mode, eq_wake_lr, eq_lat_ele_loc, eq_wake, eq_taylor_term
-  module procedure eq_taylor, eq_em_taylor_term, eq_em_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
+  module procedure eq_taylor, eq_gg_taylor_term, eq_gg_taylor, eq_cartesian_map_term1, eq_cartesian_map_term
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
   module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele
@@ -698,11 +698,11 @@ end function eq_taylor
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_em_taylor_term (f1, f2) result (is_eq)
+elemental function eq_gg_taylor_term (f1, f2) result (is_eq)
 
 implicit none
 
-type(em_taylor_term_struct), intent(in) :: f1, f2
+type(gg_taylor_term_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -713,16 +713,16 @@ is_eq = is_eq .and. (f1%coef == f2%coef)
 !! f_side.equality_test[integer, 1, NOT]
 is_eq = is_eq .and. all(f1%expn == f2%expn)
 
-end function eq_em_taylor_term
+end function eq_gg_taylor_term
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_em_taylor (f1, f2) result (is_eq)
+elemental function eq_gg_taylor (f1, f2) result (is_eq)
 
 implicit none
 
-type(em_taylor_struct), intent(in) :: f1, f2
+type(gg_taylor_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -737,7 +737,7 @@ if (allocated(f1%term)) is_eq = all(shape(f1%term) == shape(f2%term))
 if (.not. is_eq) return
 if (allocated(f1%term)) is_eq = all(f1%term == f2%term)
 
-end function eq_em_taylor
+end function eq_gg_taylor
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------

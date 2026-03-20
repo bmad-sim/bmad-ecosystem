@@ -1498,9 +1498,9 @@ extern "C" void test_c_taylor (Opaque_taylor_class* F, bool& c_ok) {
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_em_taylor_term (CPP_em_taylor_term&, bool&);
+extern "C" void test2_f_gg_taylor_term (CPP_gg_taylor_term&, bool&);
 
-void set_CPP_em_taylor_term_test_pattern (CPP_em_taylor_term& C, int ix_patt) {
+void set_CPP_gg_taylor_term_test_pattern (CPP_gg_taylor_term& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -1515,46 +1515,46 @@ void set_CPP_em_taylor_term_test_pattern (CPP_em_taylor_term& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_taylor_term (Opaque_em_taylor_term_class* F, bool& c_ok) {
+extern "C" void test_c_gg_taylor_term (Opaque_gg_taylor_term_class* F, bool& c_ok) {
 
-  CPP_em_taylor_term C, C2;
+  CPP_gg_taylor_term C, C2;
 
   c_ok = true;
 
-  em_taylor_term_to_c (F, C);
-  set_CPP_em_taylor_term_test_pattern (C2, 1);
+  gg_taylor_term_to_c (F, C);
+  set_CPP_gg_taylor_term_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " em_taylor_term: C side convert F->C: Good" << endl;
+    cout << " gg_taylor_term: C side convert F->C: Good" << endl;
   } else {
-    cout << " em_taylor_term: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gg_taylor_term: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_taylor_term_test_pattern (C2, 2);
+  set_CPP_gg_taylor_term_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_em_taylor_term (C2, c_ok2);
+  test2_f_gg_taylor_term (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_em_taylor_term_test_pattern (C, 3);
+  set_CPP_gg_taylor_term_test_pattern (C, 3);
   if (C == C2) {
-    cout << " em_taylor_term: F side convert F->C: Good" << endl;
+    cout << " gg_taylor_term: F side convert F->C: Good" << endl;
   } else {
-    cout << " em_taylor_term: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gg_taylor_term: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_taylor_term_test_pattern (C2, 4);
-  em_taylor_term_to_f (C2, F);
+  set_CPP_gg_taylor_term_test_pattern (C2, 4);
+  gg_taylor_term_to_f (C2, F);
 
 }
 
 //--------------------------------------------------------------
 //--------------------------------------------------------------
 
-extern "C" void test2_f_em_taylor (CPP_em_taylor&, bool&);
+extern "C" void test2_f_gg_taylor (CPP_gg_taylor&, bool&);
 
-void set_CPP_em_taylor_test_pattern (CPP_em_taylor& C, int ix_patt) {
+void set_CPP_gg_taylor_test_pattern (CPP_gg_taylor& C, int ix_patt) {
 
   int rhs, offset = 100 * ix_patt;
 
@@ -1566,7 +1566,7 @@ void set_CPP_em_taylor_test_pattern (CPP_em_taylor& C, int ix_patt) {
     C.term.resize(0);
   else {
     C.term.resize(3);
-    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_em_taylor_term_test_pattern(C.term[i], ix_patt+i+1);}
+    for (unsigned int i = 0; i < C.term.size(); i++)  {set_CPP_gg_taylor_term_test_pattern(C.term[i], ix_patt+i+1);}
   }
 
 
@@ -1574,37 +1574,37 @@ void set_CPP_em_taylor_test_pattern (CPP_em_taylor& C, int ix_patt) {
 
 //--------------------------------------------------------------
 
-extern "C" void test_c_em_taylor (Opaque_em_taylor_class* F, bool& c_ok) {
+extern "C" void test_c_gg_taylor (Opaque_gg_taylor_class* F, bool& c_ok) {
 
-  CPP_em_taylor C, C2;
+  CPP_gg_taylor C, C2;
 
   c_ok = true;
 
-  em_taylor_to_c (F, C);
-  set_CPP_em_taylor_test_pattern (C2, 1);
+  gg_taylor_to_c (F, C);
+  set_CPP_gg_taylor_test_pattern (C2, 1);
 
   if (C == C2) {
-    cout << " em_taylor: C side convert F->C: Good" << endl;
+    cout << " gg_taylor: C side convert F->C: Good" << endl;
   } else {
-    cout << " em_taylor: C SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gg_taylor: C SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_taylor_test_pattern (C2, 2);
+  set_CPP_gg_taylor_test_pattern (C2, 2);
   bool c_ok2;
-  test2_f_em_taylor (C2, c_ok2);
+  test2_f_gg_taylor (C2, c_ok2);
   if (!c_ok2) c_ok = false;
 
-  set_CPP_em_taylor_test_pattern (C, 3);
+  set_CPP_gg_taylor_test_pattern (C, 3);
   if (C == C2) {
-    cout << " em_taylor: F side convert F->C: Good" << endl;
+    cout << " gg_taylor: F side convert F->C: Good" << endl;
   } else {
-    cout << " em_taylor: F SIDE CONVERT F->C: FAILED!" << endl;
+    cout << " gg_taylor: F SIDE CONVERT F->C: FAILED!" << endl;
     c_ok = false;
   }
 
-  set_CPP_em_taylor_test_pattern (C2, 4);
-  em_taylor_to_f (C2, F);
+  set_CPP_gg_taylor_test_pattern (C2, 4);
+  gg_taylor_to_f (C2, F);
 
 }
 

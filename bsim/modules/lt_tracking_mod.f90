@@ -140,6 +140,7 @@ type ltt_com_struct
   integer :: num_maps = 0
   real(rp) :: ptc_closed_orb(6) = 0
   real(rp) :: time_start = 0
+  real(rp) chrom_x, chrom_y
   logical :: wrote_phase_space_file_header = .false.
   logical :: wrote_action_angle_file_header = .false.
   logical :: debug = .false.
@@ -560,6 +561,10 @@ endif
 
 call twiss_and_track (lat, ltt_com%bmad_closed_orb, ix_branch = ltt_com%ix_branch)
 call radiation_integrals (lat, ltt_com%bmad_closed_orb, ltt_com%modes, ix_branch = ltt_com%ix_branch)
+if (lttp%simulation_mode == 'STAT') then
+  call chrom_calc(lat, 1.0d-6, ltt_com%chrom_x, ltt_com%chrom_y, err, ix_branch = branch%ix_branch)
+  call calc_z_tune (branch)
+endif
 
 ! PTC has an internal aperture of 1.0 meter. To be safe, set default aperture at 0.9 meter
 
@@ -1721,7 +1726,7 @@ type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 
-real(rp) chrom_x, chrom_y, ring_length
+real(rp) ring_length
 integer i
 logical err_flag
 
@@ -1754,8 +1759,6 @@ close(22)
 !
 
 ring_length = branch%param%total_length
-call chrom_calc(lat, 1.0d-6, chrom_x, chrom_y, err_flag, ix_branch = branch%ix_branch)
-call calc_z_tune (branch)
 
 print *, 'Momentum Compaction:', ltt_com%modes%synch_int(1)/ring_length
 print *, 'dE/E=', ltt_com%modes%sigE_E
@@ -1768,8 +1771,8 @@ print *, 'QII=',ele%b%phi/twopi
 print *, 'QIII: ', lat%z%tune / twopi
 print *, '# of elements: ', lat%n_ele_track
 print *, 'L=',ring_length
-print *, 'dQI =',chrom_x
-print *, 'dQII=',chrom_y
+print *, 'dQI =',ltt_com%chrom_x
+print *, 'dQII=',ltt_com%chrom_y
 
 end subroutine ltt_run_stat_mode
 

@@ -20,8 +20,8 @@ interface assignment (=)
   module procedure branch_equal_branch
   module procedure taylor_equal_taylor
   module procedure taylors_equal_taylors
-  module procedure em_taylor_equal_em_taylor
-  module procedure em_taylors_equal_em_taylors
+  module procedure gg_taylor_equal_gg_taylor
+  module procedure gg_taylors_equal_gg_taylors
   module procedure complex_taylor_equal_complex_taylor
   module procedure complex_taylors_equal_complex_taylors
   module procedure bunch_equal_bunch
@@ -1368,21 +1368,21 @@ function gamma_ref(ele) result (gamma)
   real(rp) gamma
 end function
 
-subroutine gen_grad_at_s_to_em_taylor (ele, gen_grad, s_pos, em_taylor)
+subroutine gen_grad_at_s_to_gg_taylor (ele, gen_grad, s_pos, gg_taylor)
   import
   implicit none
   type (ele_struct) ele
   type (gen_grad_map_struct), target :: gen_grad
-  type (em_taylor_struct), target :: em_taylor(3)
+  type (gg_taylor_struct), target :: gg_taylor(3)
   real(rp) s_pos
 end subroutine
 
-subroutine gen_grad1_to_em_taylor (ele, gen_grad, iz, em_taylor)
+subroutine gen_grad1_to_gg_taylor (ele, gen_grad, iz, gg_taylor)
   import
   implicit none
   type (ele_struct) ele
   type (gen_grad_map_struct), target :: gen_grad
-  type (em_taylor_struct), target :: em_taylor(3)
+  type (gg_taylor_struct), target :: gg_taylor(3)
   integer iz
 end subroutine
 
@@ -4967,46 +4967,46 @@ end subroutine taylors_equal_taylors
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine em_taylor_equal_em_taylor (em_taylor1, em_taylor2)
+! Subroutine gg_taylor_equal_gg_taylor (gg_taylor1, gg_taylor2)
 !
-! Subroutine that is used to set one em_taylor equal to another. 
+! Subroutine that is used to set one gg_taylor equal to another. 
 !
 ! Note: This subroutine is called by the overloaded equal sign:
-!		em_taylor1 = em_taylor2
+!		gg_taylor1 = gg_taylor2
 !
 ! Input:
-!   em_taylor2 -- Em_taylor_struct: Input em_taylor.
+!   gg_taylor2 -- gg_taylor_struct: Input gg_taylor.
 !
 ! Output:
-!   em_taylor1 -- Em_taylor_struct: Output em_taylor.
+!   gg_taylor1 -- gg_taylor_struct: Output gg_taylor.
 !-
 
-subroutine em_taylor_equal_em_taylor (em_taylor1, em_taylor2)
+subroutine gg_taylor_equal_gg_taylor (gg_taylor1, gg_taylor2)
 
 implicit none
 	
-type (em_taylor_struct), intent(inout) :: em_taylor1
-type (em_taylor_struct), intent(in) :: em_taylor2
+type (gg_taylor_struct), intent(inout) :: gg_taylor1
+type (gg_taylor_struct), intent(in) :: gg_taylor2
 integer n2
 
 !
 
-em_taylor1%ref = em_taylor2%ref
+gg_taylor1%ref = gg_taylor2%ref
 
-if (allocated(em_taylor2%term)) then
-  n2 = size(em_taylor2%term)
-  if (allocated(em_taylor1%term)) then
-    if (size(em_taylor1%term) /= n2) then
-      deallocate(em_taylor1%term)
-      allocate (em_taylor1%term(n2))
+if (allocated(gg_taylor2%term)) then
+  n2 = size(gg_taylor2%term)
+  if (allocated(gg_taylor1%term)) then
+    if (size(gg_taylor1%term) /= n2) then
+      deallocate(gg_taylor1%term)
+      allocate (gg_taylor1%term(n2))
     endif
   else
-    allocate (em_taylor1%term(n2))
+    allocate (gg_taylor1%term(n2))
   endif
-  em_taylor1%term = em_taylor2%term
+  gg_taylor1%term = gg_taylor2%term
 
 else
-  if (allocated(em_taylor1%term)) deallocate (em_taylor1%term)
+  if (allocated(gg_taylor1%term)) deallocate (gg_taylor1%term)
 endif
 
 end subroutine
@@ -5015,62 +5015,62 @@ end subroutine
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine em_taylors_equal_em_taylors (em_taylor1, em_taylor2)
+! Subroutine gg_taylors_equal_gg_taylors (gg_taylor1, gg_taylor2)
 !
-! Subroutine to transfer the values from one em_taylor map to another:
-!     Em_taylor1 <= Em_taylor2
+! Subroutine to transfer the values from one gg_taylor map to another:
+!     gg_taylor1 <= gg_taylor2
 !
 ! Input:
-!   em_taylor2(:) -- Em_taylor_struct: Em_taylor map.
+!   gg_taylor2(:) -- gg_taylor_struct: gg_taylor map.
 !
 ! Output:
-!   em_taylor1(:) -- Em_taylor_struct: Em_taylor map. 
+!   gg_taylor1(:) -- gg_taylor_struct: gg_taylor map. 
 !-
 
-subroutine em_taylors_equal_em_taylors (em_taylor1, em_taylor2)
+subroutine gg_taylors_equal_gg_taylors (gg_taylor1, gg_taylor2)
 
 implicit none
 
-type (em_taylor_struct), intent(inout) :: em_taylor1(:)
-type (em_taylor_struct), intent(in)    :: em_taylor2(:)
+type (gg_taylor_struct), intent(inout) :: gg_taylor1(:)
+type (gg_taylor_struct), intent(in)    :: gg_taylor2(:)
 
 integer i
 
 !
 
-do i = 1, size(em_taylor1)
-  em_taylor1(i) = em_taylor2(i)
+do i = 1, size(gg_taylor1)
+  gg_taylor1(i) = gg_taylor2(i)
 enddo
 
-end subroutine em_taylors_equal_em_taylors
+end subroutine gg_taylors_equal_gg_taylors
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine init_em_taylor_series (em_taylor, n_term, save_old)
+! Subroutine init_gg_taylor_series (gg_taylor, n_term, save_old)
 !
-! Subroutine to initialize a Bmad Em_taylor series (6 of these series make
-! a Em_taylor map). Note: This routine does not zero the structure. The calling
+! Subroutine to initialize a Bmad gg_taylor series (6 of these series make
+! a gg_taylor map). Note: This routine does not zero the structure. The calling
 ! routine is responsible for setting all values.
 !
 ! Input:
-!   em_taylor   -- Em_taylor_struct: Old structure.
+!   gg_taylor   -- gg_taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
-!                   n_term < 0 => em_taylor%term pointer will be disassociated.
+!                   n_term < 0 => gg_taylor%term pointer will be disassociated.
 !   save_old    -- Logical, optional: If True then save any old terms when
-!                   em_taylor is resized. Default is False.
+!                   gg_taylor is resized. Default is False.
 !
 ! Output:
-!   em_taylor -- Em_taylor_struct: Initalized structure.
+!   gg_taylor -- gg_taylor_struct: Initalized structure.
 !-
 
-subroutine init_em_taylor_series (em_taylor, n_term, save_old)
+subroutine init_gg_taylor_series (gg_taylor, n_term, save_old)
 
 implicit none
 
-type (em_taylor_struct) em_taylor
-type (em_taylor_term_struct), allocatable :: term(:)
+type (gg_taylor_struct) gg_taylor
+type (gg_taylor_term_struct), allocatable :: term(:)
 integer n_term
 integer n
 logical, optional :: save_old
@@ -5078,32 +5078,32 @@ logical, optional :: save_old
 !
 
 if (n_term < 0) then
-  if (allocated(em_taylor%term)) deallocate(em_taylor%term)
+  if (allocated(gg_taylor%term)) deallocate(gg_taylor%term)
   return
 endif
 
-if (.not. allocated (em_taylor%term)) then
-  allocate (em_taylor%term(n_term))
+if (.not. allocated (gg_taylor%term)) then
+  allocate (gg_taylor%term(n_term))
   return
 endif
 
-if (size(em_taylor%term) == n_term) return
+if (size(gg_taylor%term) == n_term) return
 
 !
 
-if (logic_option (.false., save_old) .and. n_term > 0 .and. size(em_taylor%term) > 0) then
-  n = min (n_term, size(em_taylor%term))
-  call move_alloc(em_taylor%term, term)
-  allocate (em_taylor%term(n_term))
-  em_taylor%term(1:n) = term(1:n)
+if (logic_option (.false., save_old) .and. n_term > 0 .and. size(gg_taylor%term) > 0) then
+  n = min (n_term, size(gg_taylor%term))
+  call move_alloc(gg_taylor%term, term)
+  allocate (gg_taylor%term(n_term))
+  gg_taylor%term(1:n) = term(1:n)
   deallocate (term)
 
 else
-  deallocate (em_taylor%term)
-  allocate (em_taylor%term(n_term))
+  deallocate (gg_taylor%term)
+  allocate (gg_taylor%term(n_term))
 endif
 
-end subroutine init_em_taylor_series
+end subroutine init_gg_taylor_series
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
