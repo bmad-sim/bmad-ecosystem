@@ -50,9 +50,9 @@ jobs:
 
       - name: Regenerate Tao interface commands
         shell: bash -l {0}
-        working-directory: ./pytao
+        working-directory: ./pytao/scripts
         run: |
-          bash scripts/bump_minimum_version.sh
+          python generate_interface_commands.py
 
       - name: Reformat the generated source code
         shell: bash -l {0}
