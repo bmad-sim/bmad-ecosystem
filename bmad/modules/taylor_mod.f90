@@ -922,7 +922,7 @@ end subroutine evaluate_gg_taylor
 !+
 ! Subroutine add_gg_taylor_term (gg_taylor, coef, expn, replace)
 !
-! Routine to add a Em_taylor term to a Em_taylor series.
+! Routine to add a gg_taylor term to a gg_taylor series.
 !
 ! If gg_taylor does not have a term with the same exponents then a new
 ! term is added to gg_taylor so the total number of terms is increased by one.
@@ -936,13 +936,13 @@ end subroutine evaluate_gg_taylor
 ! In both these cases, the number of terms in gg_taylor remains the same.
 !
 ! Input:
-!   gg_taylor   -- Em_taylor_struct: Em_taylor series.
+!   gg_taylor   -- gg_taylor_struct: gg_taylor series.
 !   coef        -- Real(rp): Coefficient.
 !   expn(2)     -- Integer: Array of exponent indices.
 !   replace     -- Logical, optional: Replace existing term? Default is False.
 !
 ! Output:
-!   gg_taylor -- Em_taylor_struct: New series with term added
+!   gg_taylor -- gg_taylor_struct: New series with term added
 !-
 !-
 

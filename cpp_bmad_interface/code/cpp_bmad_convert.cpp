@@ -956,22 +956,22 @@ extern "C" void taylor_to_c2 (CPP_taylor& C, c_Real& z_ref, Opaque_taylor_term_c
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_em_taylor_term
+// CPP_gg_taylor_term
 
-extern "C" void em_taylor_term_to_c (const Opaque_em_taylor_term_class*, CPP_em_taylor_term&);
+extern "C" void gg_taylor_term_to_c (const Opaque_gg_taylor_term_class*, CPP_gg_taylor_term&);
 
 // c_side.to_f2_arg
-extern "C" void em_taylor_term_to_f2 (Opaque_em_taylor_term_class*, c_Real&, c_IntArr);
+extern "C" void gg_taylor_term_to_f2 (Opaque_gg_taylor_term_class*, c_Real&, c_IntArr);
 
-extern "C" void em_taylor_term_to_f (const CPP_em_taylor_term& C, Opaque_em_taylor_term_class* F) {
+extern "C" void gg_taylor_term_to_f (const CPP_gg_taylor_term& C, Opaque_gg_taylor_term_class* F) {
 
   // c_side.to_f2_call
-  em_taylor_term_to_f2 (F, C.coef, &C.expn[0]);
+  gg_taylor_term_to_f2 (F, C.coef, &C.expn[0]);
 
 }
 
 // c_side.to_c2_arg
-extern "C" void em_taylor_term_to_c2 (CPP_em_taylor_term& C, c_Real& z_coef, c_IntArr z_expn) {
+extern "C" void gg_taylor_term_to_c2 (CPP_gg_taylor_term& C, c_Real& z_coef, c_IntArr z_expn) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.coef = z_coef;
@@ -981,39 +981,39 @@ extern "C" void em_taylor_term_to_c2 (CPP_em_taylor_term& C, c_Real& z_coef, c_I
 
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------
-// CPP_em_taylor
+// CPP_gg_taylor
 
-extern "C" void em_taylor_to_c (const Opaque_em_taylor_class*, CPP_em_taylor&);
+extern "C" void gg_taylor_to_c (const Opaque_gg_taylor_class*, CPP_gg_taylor&);
 
 // c_side.to_f2_arg
-extern "C" void em_taylor_to_f2 (Opaque_em_taylor_class*, c_Real&, const CPP_em_taylor_term**,
+extern "C" void gg_taylor_to_f2 (Opaque_gg_taylor_class*, c_Real&, const CPP_gg_taylor_term**,
     Int);
 
-extern "C" void em_taylor_to_f (const CPP_em_taylor& C, Opaque_em_taylor_class* F) {
+extern "C" void gg_taylor_to_f (const CPP_gg_taylor& C, Opaque_gg_taylor_class* F) {
   // c_side.to_f_setup[type, 1, ALLOC]
   int n1_term = C.term.size();
-  const CPP_em_taylor_term** z_term = NULL;
+  const CPP_gg_taylor_term** z_term = NULL;
   if (n1_term != 0) {
-    z_term = new const CPP_em_taylor_term*[n1_term];
+    z_term = new const CPP_gg_taylor_term*[n1_term];
     for (int i = 0; i < n1_term; i++) z_term[i] = &C.term[i];
   }
 
   // c_side.to_f2_call
-  em_taylor_to_f2 (F, C.ref, z_term, n1_term);
+  gg_taylor_to_f2 (F, C.ref, z_term, n1_term);
 
   // c_side.to_f_cleanup[type, 1, ALLOC]
  delete[] z_term;
 }
 
 // c_side.to_c2_arg
-extern "C" void em_taylor_to_c2 (CPP_em_taylor& C, c_Real& z_ref, Opaque_em_taylor_term_class**
+extern "C" void gg_taylor_to_c2 (CPP_gg_taylor& C, c_Real& z_ref, Opaque_gg_taylor_term_class**
     z_term, Int n1_term) {
 
   // c_side.to_c2_set[real, 0, NOT]
   C.ref = z_ref;
   // c_side.to_c2_set[type, 1, ALLOC]
   C.term.resize(n1_term);
-  for (int i = 0; i < n1_term; i++) em_taylor_term_to_c(z_term[i], C.term[i]);
+  for (int i = 0; i < n1_term; i++) gg_taylor_term_to_c(z_term[i], C.term[i]);
 
 }
 

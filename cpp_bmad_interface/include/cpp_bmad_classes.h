@@ -121,15 +121,15 @@ typedef valarray<CPP_taylor>          CPP_taylor_ARRAY;
 typedef valarray<CPP_taylor_ARRAY>    CPP_taylor_MATRIX;
 typedef valarray<CPP_taylor_MATRIX>   CPP_taylor_TENSOR;
 
-class CPP_em_taylor_term;
-typedef valarray<CPP_em_taylor_term>          CPP_em_taylor_term_ARRAY;
-typedef valarray<CPP_em_taylor_term_ARRAY>    CPP_em_taylor_term_MATRIX;
-typedef valarray<CPP_em_taylor_term_MATRIX>   CPP_em_taylor_term_TENSOR;
+class CPP_gg_taylor_term;
+typedef valarray<CPP_gg_taylor_term>          CPP_gg_taylor_term_ARRAY;
+typedef valarray<CPP_gg_taylor_term_ARRAY>    CPP_gg_taylor_term_MATRIX;
+typedef valarray<CPP_gg_taylor_term_MATRIX>   CPP_gg_taylor_term_TENSOR;
 
-class CPP_em_taylor;
-typedef valarray<CPP_em_taylor>          CPP_em_taylor_ARRAY;
-typedef valarray<CPP_em_taylor_ARRAY>    CPP_em_taylor_MATRIX;
-typedef valarray<CPP_em_taylor_MATRIX>   CPP_em_taylor_TENSOR;
+class CPP_gg_taylor;
+typedef valarray<CPP_gg_taylor>          CPP_gg_taylor_ARRAY;
+typedef valarray<CPP_gg_taylor_ARRAY>    CPP_gg_taylor_MATRIX;
+typedef valarray<CPP_gg_taylor_MATRIX>   CPP_gg_taylor_TENSOR;
 
 class CPP_cartesian_map_term1;
 typedef valarray<CPP_cartesian_map_term1>          CPP_cartesian_map_term1_ARRAY;
@@ -1194,55 +1194,55 @@ bool operator== (const CPP_taylor&, const CPP_taylor&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_taylor_term
+// CPP_gg_taylor_term
 
-class Opaque_em_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_gg_taylor_term_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_taylor_term {
+class CPP_gg_taylor_term {
 public:
   Real coef;
   Int_ARRAY expn;
 
-  CPP_em_taylor_term() :
+  CPP_gg_taylor_term() :
     coef(0.0),
     expn(0, 2)
     {}
 
-  ~CPP_em_taylor_term() {
+  ~CPP_gg_taylor_term() {
   }
 
 };   // End Class
 
-extern "C" void em_taylor_term_to_c (const Opaque_em_taylor_term_class*, CPP_em_taylor_term&);
-extern "C" void em_taylor_term_to_f (const CPP_em_taylor_term&, Opaque_em_taylor_term_class*);
+extern "C" void gg_taylor_term_to_c (const Opaque_gg_taylor_term_class*, CPP_gg_taylor_term&);
+extern "C" void gg_taylor_term_to_f (const CPP_gg_taylor_term&, Opaque_gg_taylor_term_class*);
 
-bool operator== (const CPP_em_taylor_term&, const CPP_em_taylor_term&);
+bool operator== (const CPP_gg_taylor_term&, const CPP_gg_taylor_term&);
 
 
 //--------------------------------------------------------------------
-// CPP_em_taylor
+// CPP_gg_taylor
 
-class Opaque_em_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_gg_taylor_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_em_taylor {
+class CPP_gg_taylor {
 public:
   Real ref;
-  CPP_em_taylor_term_ARRAY term;
+  CPP_gg_taylor_term_ARRAY term;
 
-  CPP_em_taylor() :
+  CPP_gg_taylor() :
     ref(0.0),
-    term(CPP_em_taylor_term_ARRAY(CPP_em_taylor_term(), 0))
+    term(CPP_gg_taylor_term_ARRAY(CPP_gg_taylor_term(), 0))
     {}
 
-  ~CPP_em_taylor() {
+  ~CPP_gg_taylor() {
   }
 
 };   // End Class
 
-extern "C" void em_taylor_to_c (const Opaque_em_taylor_class*, CPP_em_taylor&);
-extern "C" void em_taylor_to_f (const CPP_em_taylor&, Opaque_em_taylor_class*);
+extern "C" void gg_taylor_to_c (const Opaque_gg_taylor_class*, CPP_gg_taylor&);
+extern "C" void gg_taylor_to_f (const CPP_gg_taylor&, Opaque_gg_taylor_class*);
 
-bool operator== (const CPP_em_taylor&, const CPP_em_taylor&);
+bool operator== (const CPP_gg_taylor&, const CPP_gg_taylor&);
 
 
 //--------------------------------------------------------------------

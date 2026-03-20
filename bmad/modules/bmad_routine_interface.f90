@@ -4975,10 +4975,10 @@ end subroutine taylors_equal_taylors
 !		gg_taylor1 = gg_taylor2
 !
 ! Input:
-!   gg_taylor2 -- Em_taylor_struct: Input gg_taylor.
+!   gg_taylor2 -- gg_taylor_struct: Input gg_taylor.
 !
 ! Output:
-!   gg_taylor1 -- Em_taylor_struct: Output gg_taylor.
+!   gg_taylor1 -- gg_taylor_struct: Output gg_taylor.
 !-
 
 subroutine gg_taylor_equal_gg_taylor (gg_taylor1, gg_taylor2)
@@ -5018,13 +5018,13 @@ end subroutine
 ! Subroutine gg_taylors_equal_gg_taylors (gg_taylor1, gg_taylor2)
 !
 ! Subroutine to transfer the values from one gg_taylor map to another:
-!     Em_taylor1 <= Em_taylor2
+!     gg_taylor1 <= gg_taylor2
 !
 ! Input:
-!   gg_taylor2(:) -- Em_taylor_struct: Em_taylor map.
+!   gg_taylor2(:) -- gg_taylor_struct: gg_taylor map.
 !
 ! Output:
-!   gg_taylor1(:) -- Em_taylor_struct: Em_taylor map. 
+!   gg_taylor1(:) -- gg_taylor_struct: gg_taylor map. 
 !-
 
 subroutine gg_taylors_equal_gg_taylors (gg_taylor1, gg_taylor2)
@@ -5050,19 +5050,19 @@ end subroutine gg_taylors_equal_gg_taylors
 !+
 ! Subroutine init_gg_taylor_series (gg_taylor, n_term, save_old)
 !
-! Subroutine to initialize a Bmad Em_taylor series (6 of these series make
-! a Em_taylor map). Note: This routine does not zero the structure. The calling
+! Subroutine to initialize a Bmad gg_taylor series (6 of these series make
+! a gg_taylor map). Note: This routine does not zero the structure. The calling
 ! routine is responsible for setting all values.
 !
 ! Input:
-!   gg_taylor   -- Em_taylor_struct: Old structure.
+!   gg_taylor   -- gg_taylor_struct: Old structure.
 !   n_term      -- Integer: Number of terms to allocate. 
 !                   n_term < 0 => gg_taylor%term pointer will be disassociated.
 !   save_old    -- Logical, optional: If True then save any old terms when
 !                   gg_taylor is resized. Default is False.
 !
 ! Output:
-!   gg_taylor -- Em_taylor_struct: Initalized structure.
+!   gg_taylor -- gg_taylor_struct: Initalized structure.
 !-
 
 subroutine init_gg_taylor_series (gg_taylor, n_term, save_old)

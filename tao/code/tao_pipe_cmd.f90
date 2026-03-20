@@ -131,7 +131,7 @@ type (wall3d_section_struct), pointer :: sec
 type (gen_grad_map_struct), pointer :: gg_map
 type (gen_grad1_struct), pointer :: gg
 type (twiss_struct), pointer :: twiss_arr(:)
-type (em_taylor_term_struct), pointer :: em_tt
+type (gg_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
 type (tao_drawing_struct), pointer :: drawing

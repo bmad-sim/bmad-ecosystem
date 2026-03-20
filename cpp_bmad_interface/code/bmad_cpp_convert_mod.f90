@@ -206,7 +206,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine em_taylor_term_to_f (C, Fp) bind(c)
+  subroutine gg_taylor_term_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -215,7 +215,7 @@ end interface
 !--------------------------------------------------------------------------
 
 interface 
-  subroutine em_taylor_to_f (C, Fp) bind(c)
+  subroutine gg_taylor_to_f (C, Fp) bind(c)
     import c_ptr
     type(c_ptr), value :: C, Fp
   end subroutine
@@ -3206,24 +3206,24 @@ end subroutine taylor_to_f2
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_taylor_term_to_c (Fp, C) bind(c)
+! Subroutine gg_taylor_term_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad em_taylor_term_struct to a C++ CPP_em_taylor_term structure
+! Routine to convert a Bmad gg_taylor_term_struct to a C++ CPP_gg_taylor_term structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad em_taylor_term_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad gg_taylor_term_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_em_taylor_term struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_gg_taylor_term struct.
 !-
 
-subroutine em_taylor_term_to_c (Fp, C) bind(c)
+subroutine gg_taylor_term_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine em_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
+  subroutine gg_taylor_term_to_c2 (C, z_coef, z_expn) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -3234,7 +3234,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(em_taylor_term_struct), pointer :: F
+type(gg_taylor_term_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 
@@ -3244,33 +3244,33 @@ call c_f_pointer (Fp, F)
 
 
 !! f_side.to_c2_call
-call em_taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 2))
+call gg_taylor_term_to_c2 (C, F%coef, fvec2vec(F%expn, 2))
 
-end subroutine em_taylor_term_to_c
+end subroutine gg_taylor_term_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_taylor_term_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine gg_taylor_term_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_em_taylor_term structure to a Bmad em_taylor_term_struct structure.
-! This routine is called by em_taylor_term_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_gg_taylor_term structure to a Bmad gg_taylor_term_struct structure.
+! This routine is called by gg_taylor_term_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the em_taylor_term_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the gg_taylor_term_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad em_taylor_term_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad gg_taylor_term_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine em_taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
+subroutine gg_taylor_term_to_f2 (Fp, z_coef, z_expn) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(em_taylor_term_struct), pointer :: F
+type(gg_taylor_term_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_coef
@@ -3283,30 +3283,30 @@ F%coef = z_coef
 !! f_side.to_f2_trans[integer, 1, NOT]
 F%expn = z_expn(1:2)
 
-end subroutine em_taylor_term_to_f2
+end subroutine gg_taylor_term_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_taylor_to_c (Fp, C) bind(c)
+! Subroutine gg_taylor_to_c (Fp, C) bind(c)
 !
-! Routine to convert a Bmad em_taylor_struct to a C++ CPP_em_taylor structure
+! Routine to convert a Bmad gg_taylor_struct to a C++ CPP_gg_taylor structure
 !
 ! Input:
-!   Fp -- type(c_ptr), value :: Input Bmad em_taylor_struct structure.
+!   Fp -- type(c_ptr), value :: Input Bmad gg_taylor_struct structure.
 !
 ! Output:
-!   C -- type(c_ptr), value :: Output C++ CPP_em_taylor struct.
+!   C -- type(c_ptr), value :: Output C++ CPP_gg_taylor struct.
 !-
 
-subroutine em_taylor_to_c (Fp, C) bind(c)
+subroutine gg_taylor_to_c (Fp, C) bind(c)
 
 implicit none
 
 interface
   !! f_side.to_c2_f2_sub_arg
-  subroutine em_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
+  subroutine gg_taylor_to_c2 (C, z_ref, z_term, n1_term) bind(c)
     import c_bool, c_double, c_ptr, c_char, c_int, c_long, c_double_complex
     !! f_side.to_c2_type :: f_side.to_c2_name
     type(c_ptr), value :: C
@@ -3318,7 +3318,7 @@ end interface
 
 type(c_ptr), value :: Fp
 type(c_ptr), value :: C
-type(em_taylor_struct), pointer :: F
+type(gg_taylor_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_c_var
 type(c_ptr), allocatable :: z_term(:)
@@ -3339,33 +3339,33 @@ if (allocated(F%term)) then
 endif
 
 !! f_side.to_c2_call
-call em_taylor_to_c2 (C, F%ref, z_term, n1_term)
+call gg_taylor_to_c2 (C, F%ref, z_term, n1_term)
 
-end subroutine em_taylor_to_c
+end subroutine gg_taylor_to_c
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine em_taylor_to_f2 (Fp, ...etc...) bind(c)
+! Subroutine gg_taylor_to_f2 (Fp, ...etc...) bind(c)
 !
-! Routine used in converting a C++ CPP_em_taylor structure to a Bmad em_taylor_struct structure.
-! This routine is called by em_taylor_to_c and is not meant to be called directly.
+! Routine used in converting a C++ CPP_gg_taylor structure to a Bmad gg_taylor_struct structure.
+! This routine is called by gg_taylor_to_c and is not meant to be called directly.
 !
 ! Input:
-!   ...etc... -- Components of the structure. See the em_taylor_to_f2 code for more details.
+!   ...etc... -- Components of the structure. See the gg_taylor_to_f2 code for more details.
 !
 ! Output:
-!   Fp -- type(c_ptr), value :: Bmad em_taylor_struct structure.
+!   Fp -- type(c_ptr), value :: Bmad gg_taylor_struct structure.
 !-
 
 !! f_side.to_c2_f2_sub_arg
-subroutine em_taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
+subroutine gg_taylor_to_f2 (Fp, z_ref, z_term, n1_term) bind(c)
 
 
 implicit none
 
 type(c_ptr), value :: Fp
-type(em_taylor_struct), pointer :: F
+type(gg_taylor_struct), pointer :: F
 integer jd, jd1, jd2, jd3, lb1, lb2, lb3
 !! f_side.to_f2_var && f_side.to_f2_type :: f_side.to_f2_name
 real(c_double) :: z_ref
@@ -3386,12 +3386,12 @@ else
   endif
   if (.not. allocated(F%term)) allocate(F%term(1:n1_term+1-1))
   do jd1 = 1, n1_term
-    call em_taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
+    call gg_taylor_term_to_f (z_term(jd1), c_loc(F%term(jd1+1-1)))
   enddo
 endif
 
 
-end subroutine em_taylor_to_f2
+end subroutine gg_taylor_to_f2
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------

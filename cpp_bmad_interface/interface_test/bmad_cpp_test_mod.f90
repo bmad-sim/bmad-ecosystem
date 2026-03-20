@@ -2210,18 +2210,18 @@ end subroutine set_taylor_test_pattern
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_em_taylor_term (ok)
+subroutine test1_f_gg_taylor_term (ok)
 
 implicit none
 
-type(em_taylor_term_struct), target :: f_em_taylor_term, f2_em_taylor_term
+type(gg_taylor_term_struct), target :: f_gg_taylor_term, f2_gg_taylor_term
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_em_taylor_term (c_em_taylor_term, c_ok) bind(c)
+  subroutine test_c_gg_taylor_term (c_gg_taylor_term, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_em_taylor_term
+    type(c_ptr), value :: c_gg_taylor_term
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -2229,58 +2229,58 @@ end interface
 !
 
 ok = .true.
-call set_em_taylor_term_test_pattern (f2_em_taylor_term, 1)
+call set_gg_taylor_term_test_pattern (f2_gg_taylor_term, 1)
 
-call test_c_em_taylor_term(c_loc(f2_em_taylor_term), c_ok)
+call test_c_gg_taylor_term(c_loc(f2_gg_taylor_term), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_em_taylor_term_test_pattern (f_em_taylor_term, 4)
-if (f_em_taylor_term == f2_em_taylor_term) then
-  print *, 'em_taylor_term: C side convert C->F: Good'
+call set_gg_taylor_term_test_pattern (f_gg_taylor_term, 4)
+if (f_gg_taylor_term == f2_gg_taylor_term) then
+  print *, 'gg_taylor_term: C side convert C->F: Good'
 else
-  print *, 'em_taylor_term: C SIDE CONVERT C->F: FAILED!'
+  print *, 'gg_taylor_term: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_em_taylor_term
+end subroutine test1_f_gg_taylor_term
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_em_taylor_term (c_em_taylor_term, c_ok) bind(c)
+subroutine test2_f_gg_taylor_term (c_gg_taylor_term, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_em_taylor_term
-type(em_taylor_term_struct), target :: f_em_taylor_term, f2_em_taylor_term
+type(c_ptr), value ::  c_gg_taylor_term
+type(gg_taylor_term_struct), target :: f_gg_taylor_term, f2_gg_taylor_term
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call em_taylor_term_to_f (c_em_taylor_term, c_loc(f_em_taylor_term))
+call gg_taylor_term_to_f (c_gg_taylor_term, c_loc(f_gg_taylor_term))
 
-call set_em_taylor_term_test_pattern (f2_em_taylor_term, 2)
-if (f_em_taylor_term == f2_em_taylor_term) then
-  print *, 'em_taylor_term: F side convert C->F: Good'
+call set_gg_taylor_term_test_pattern (f2_gg_taylor_term, 2)
+if (f_gg_taylor_term == f2_gg_taylor_term) then
+  print *, 'gg_taylor_term: F side convert C->F: Good'
 else
-  print *, 'em_taylor_term: F SIDE CONVERT C->F: FAILED!'
+  print *, 'gg_taylor_term: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_em_taylor_term_test_pattern (f2_em_taylor_term, 3)
-call em_taylor_term_to_c (c_loc(f2_em_taylor_term), c_em_taylor_term)
+call set_gg_taylor_term_test_pattern (f2_gg_taylor_term, 3)
+call gg_taylor_term_to_c (c_loc(f2_gg_taylor_term), c_gg_taylor_term)
 
-end subroutine test2_f_em_taylor_term
+end subroutine test2_f_gg_taylor_term
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_em_taylor_term_test_pattern (F, ix_patt)
+subroutine set_gg_taylor_term_test_pattern (F, ix_patt)
 
 implicit none
 
-type(em_taylor_term_struct) F
+type(gg_taylor_term_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -2295,24 +2295,24 @@ do jd1 = 1, size(F%expn,1); lb1 = lbound(F%expn,1) - 1
   F%expn(jd1+lb1) = rhs
 enddo
 
-end subroutine set_em_taylor_term_test_pattern
+end subroutine set_gg_taylor_term_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test1_f_em_taylor (ok)
+subroutine test1_f_gg_taylor (ok)
 
 implicit none
 
-type(em_taylor_struct), target :: f_em_taylor, f2_em_taylor
+type(gg_taylor_struct), target :: f_gg_taylor, f2_gg_taylor
 logical(c_bool) c_ok
 logical ok
 
 interface
-  subroutine test_c_em_taylor (c_em_taylor, c_ok) bind(c)
+  subroutine test_c_gg_taylor (c_gg_taylor, c_ok) bind(c)
     import c_ptr, c_bool
-    type(c_ptr), value :: c_em_taylor
+    type(c_ptr), value :: c_gg_taylor
     logical(c_bool) c_ok
   end subroutine
 end interface
@@ -2320,58 +2320,58 @@ end interface
 !
 
 ok = .true.
-call set_em_taylor_test_pattern (f2_em_taylor, 1)
+call set_gg_taylor_test_pattern (f2_gg_taylor, 1)
 
-call test_c_em_taylor(c_loc(f2_em_taylor), c_ok)
+call test_c_gg_taylor(c_loc(f2_gg_taylor), c_ok)
 if (.not. f_logic(c_ok)) ok = .false.
 
-call set_em_taylor_test_pattern (f_em_taylor, 4)
-if (f_em_taylor == f2_em_taylor) then
-  print *, 'em_taylor: C side convert C->F: Good'
+call set_gg_taylor_test_pattern (f_gg_taylor, 4)
+if (f_gg_taylor == f2_gg_taylor) then
+  print *, 'gg_taylor: C side convert C->F: Good'
 else
-  print *, 'em_taylor: C SIDE CONVERT C->F: FAILED!'
+  print *, 'gg_taylor: C SIDE CONVERT C->F: FAILED!'
   ok = .false.
 endif
 
-end subroutine test1_f_em_taylor
+end subroutine test1_f_gg_taylor
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine test2_f_em_taylor (c_em_taylor, c_ok) bind(c)
+subroutine test2_f_gg_taylor (c_gg_taylor, c_ok) bind(c)
 
 implicit  none
 
-type(c_ptr), value ::  c_em_taylor
-type(em_taylor_struct), target :: f_em_taylor, f2_em_taylor
+type(c_ptr), value ::  c_gg_taylor
+type(gg_taylor_struct), target :: f_gg_taylor, f2_gg_taylor
 logical(c_bool) c_ok
 
 !
 
 c_ok = c_logic(.true.)
-call em_taylor_to_f (c_em_taylor, c_loc(f_em_taylor))
+call gg_taylor_to_f (c_gg_taylor, c_loc(f_gg_taylor))
 
-call set_em_taylor_test_pattern (f2_em_taylor, 2)
-if (f_em_taylor == f2_em_taylor) then
-  print *, 'em_taylor: F side convert C->F: Good'
+call set_gg_taylor_test_pattern (f2_gg_taylor, 2)
+if (f_gg_taylor == f2_gg_taylor) then
+  print *, 'gg_taylor: F side convert C->F: Good'
 else
-  print *, 'em_taylor: F SIDE CONVERT C->F: FAILED!'
+  print *, 'gg_taylor: F SIDE CONVERT C->F: FAILED!'
   c_ok = c_logic(.false.)
 endif
 
-call set_em_taylor_test_pattern (f2_em_taylor, 3)
-call em_taylor_to_c (c_loc(f2_em_taylor), c_em_taylor)
+call set_gg_taylor_test_pattern (f2_gg_taylor, 3)
+call gg_taylor_to_c (c_loc(f2_gg_taylor), c_gg_taylor)
 
-end subroutine test2_f_em_taylor
+end subroutine test2_f_gg_taylor
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------
 
-subroutine set_em_taylor_test_pattern (F, ix_patt)
+subroutine set_gg_taylor_test_pattern (F, ix_patt)
 
 implicit none
 
-type(em_taylor_struct) F
+type(gg_taylor_struct) F
 integer ix_patt, offset, jd, jd1, jd2, jd3, lb1, lb2, lb3, rhs
 
 !
@@ -2387,11 +2387,11 @@ if (ix_patt < 3) then
 else
   if (.not. allocated(F%term)) allocate (F%term(-1:1))
   do jd1 = 1, size(F%term,1); lb1 = lbound(F%term,1) - 1
-    call set_em_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
+    call set_gg_taylor_term_test_pattern (F%term(jd1+lb1), ix_patt+jd1)
   enddo
 endif
 
-end subroutine set_em_taylor_test_pattern
+end subroutine set_gg_taylor_test_pattern
 
 !---------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------

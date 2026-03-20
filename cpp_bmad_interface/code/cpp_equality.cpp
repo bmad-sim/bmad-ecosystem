@@ -407,27 +407,27 @@ template bool is_all_equal (const CPP_taylor_MATRIX&, const CPP_taylor_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_em_taylor_term& x, const CPP_em_taylor_term& y) {
+bool operator== (const CPP_gg_taylor_term& x, const CPP_gg_taylor_term& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.coef == y.coef);
   is_eq = is_eq && is_all_equal(x.expn, y.expn);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_em_taylor_term_ARRAY&, const CPP_em_taylor_term_ARRAY&);
-template bool is_all_equal (const CPP_em_taylor_term_MATRIX&, const CPP_em_taylor_term_MATRIX&);
+template bool is_all_equal (const CPP_gg_taylor_term_ARRAY&, const CPP_gg_taylor_term_ARRAY&);
+template bool is_all_equal (const CPP_gg_taylor_term_MATRIX&, const CPP_gg_taylor_term_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_em_taylor& x, const CPP_em_taylor& y) {
+bool operator== (const CPP_gg_taylor& x, const CPP_gg_taylor& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.ref == y.ref);
   is_eq = is_eq && is_all_equal(x.term, y.term);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_em_taylor_ARRAY&, const CPP_em_taylor_ARRAY&);
-template bool is_all_equal (const CPP_em_taylor_MATRIX&, const CPP_em_taylor_MATRIX&);
+template bool is_all_equal (const CPP_gg_taylor_ARRAY&, const CPP_gg_taylor_ARRAY&);
+template bool is_all_equal (const CPP_gg_taylor_MATRIX&, const CPP_gg_taylor_MATRIX&);
 
 //--------------------------------------------------------------
 
