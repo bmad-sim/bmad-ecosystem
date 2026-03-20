@@ -41,7 +41,7 @@ jobs:
       - uses: ./.github/actions/conda-setup
         with:
           python-version: ${{ matrix.python-version }}
-          environment-file: pytao/dev-environment.yml
+          environment-file: pytao/environment.yml
 
       - name: Setup ACC_ROOT_DIR
         shell: bash -l {0}
