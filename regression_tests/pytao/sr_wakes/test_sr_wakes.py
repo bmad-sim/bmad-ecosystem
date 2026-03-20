@@ -47,17 +47,15 @@ def assert_dicts_allclose(d1, d2, rtol=1e-5, atol=1e-8):
 
 def test_sr_wakes_onoff():
     lattice_root = Path(__file__).parent.resolve()
-    lattice_file = lattice_root / "lat.bmad"
-    startup_file = lattice_root / "tao.startup"
 
     prev = os.getcwd()
     try:
         os.chdir(lattice_root)
         with SubprocessTao(
-            lattice_file=lattice_file,
-            startup_file=startup_file,
-            noplot=True,
+            lattice_file="lat.bmad", startup_file="tao.startup", noplot=True
         ) as tao:
+            print("Init output:")
+            print("\n".join(tao.init_output))
             tao.cmd("set bmad sr_wakes_on = F")
             d1 = tao.bunch_data("end")
 
