@@ -28,6 +28,12 @@ runs:
       run: |
         conda list
 
+    - name: Install PyTao
+      shell: bash -l {0}
+      run: |
+        cd pytao
+        python -m pip install --no-deps .
+
     - name: Ensure importability
       shell: bash -l {0}
       run: |
