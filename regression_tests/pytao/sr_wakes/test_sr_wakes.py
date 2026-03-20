@@ -1,6 +1,9 @@
+import os
 from pathlib import Path
+
 import numpy as np
-from pytao import Tao
+from pytao import SubprocessTao
+
 
 def assert_dicts_allclose(d1, d2, rtol=1e-5, atol=1e-8):
     """
@@ -23,31 +26,46 @@ def assert_dicts_allclose(d1, d2, rtol=1e-5, atol=1e-8):
         If any entry mismatches or types differ.
     """
     assert d1.keys() == d2.keys(), f"Keys differ: {d1.keys()} vs {d2.keys()}"
-    
+
     for key in d1:
         v1 = d1[key]
         v2 = d2[key]
-        
+
         if isinstance(v1, np.ndarray):
-            assert isinstance(v2, np.ndarray), f"Type mismatch for key '{key}': ndarray vs {type(v2)}"
-            assert v1.shape == v2.shape, f"Shape mismatch for key '{key}': {v1.shape} vs {v2.shape}"
-            assert np.allclose(v1, v2, rtol=rtol, atol=atol), f"Array values differ for key '{key}'"
+            assert isinstance(
+                v2, np.ndarray
+            ), f"Type mismatch for key '{key}': ndarray vs {type(v2)}"
+            assert (
+                v1.shape == v2.shape
+            ), f"Shape mismatch for key '{key}': {v1.shape} vs {v2.shape}"
+            assert np.allclose(
+                v1, v2, rtol=rtol, atol=atol
+            ), f"Array values differ for key '{key}'"
         else:
             assert v1 == v2, f"Scalar values differ for key '{key}': {v1} vs {v2}"
 
 
-
 def test_sr_wakes_onoff():
-    lattice_file = Path(__file__).parent / "lat.bmad"
-    startup_file = Path(__file__).parent / "tao.startup"
+    lattice_root = Path(__file__).parent.resolve()
+    lattice_file = lattice_root / "lat.bmad"
+    startup_file = lattice_root / "tao.startup"
 
-    
-    tao = Tao(lattice_file=lattice_file, startup_file=startup_file, noplot=True)
-   
-    tao.cmd('set bmad sr_wakes_on = F')
-    d1 = tao.bunch_data('end')
-    
-    tao.cmd('set bmad sr_wakes_on = T')
-    d2 = tao.bunch_data('end')
+    prev = os.getcwd()
+    try:
+        os.chdir(lattice_root)
+        with SubprocessTao(
+            lattice_file=lattice_file,
+            startup_file=startup_file,
+            noplot=True,
+        ) as tao:
+            tao.cmd("set bmad sr_wakes_on = F")
+            d1 = tao.bunch_data("end")
+
+            tao.cmd("set bmad sr_wakes_on = T")
+            d2 = tao.bunch_data("end")
+    finally:
+        os.chdir(prev)
+
+    assert len(d1)
 
     assert_dicts_allclose(d1, d2)
