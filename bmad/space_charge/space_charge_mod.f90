@@ -43,10 +43,13 @@ type (mesh3d_struct) :: mesh3d, mesh3d_image
 type (bunch_params_struct), optional :: bunch_params
 type (floor_position_struct) pos, pos0
 
-integer :: n, n_alive, i, imin(1), k
+integer :: n, n_alive, i, imin(1), k, n_interp
 real(rp) :: beta, ratio, t_end, s_ave, w_mat_inv(3,3)
 real(rp) :: Evec(3), Bvec(3), Evec_image(3), sigma(3)
 logical :: include_image, err, bend_here
+! Arrays for batch interpolation
+real(rp), allocatable :: x_interp(:), y_interp(:), z_interp(:), E_batch(:,:), B_batch(:,:)
+integer, allocatable :: interp_idx(:)
 
 ! Initialize variables
 mesh3d%nhi = space_charge_com%space_charge_mesh_size
@@ -104,7 +107,9 @@ endif
 
 ! Calculate space charge field
 mesh3d%gamma = 1/sqrt(1- beta**2)
-call deposit_particles (position(1:n)%r(1), position(1:n)%r(2), position(1:n)%r(3), mesh3d, qa=position(1:n)%charge)
+
+call deposit_particles (position(1:n)%r(1), position(1:n)%r(2), position(1:n)%r(3), mesh3d, qa=position(1:n)%charge, &
+  mesh_growth_factor=space_charge_com%mesh_growth_factor, mesh_shrink_factor=space_charge_com%mesh_shrink_factor)
 call space_charge_3d(mesh3d, at_cathode=include_image, calc_bfield=.true., image_efield=mesh3d_image%efield)
 
 ! Determine if cathode image field should be turned off
@@ -126,30 +131,49 @@ if (include_image) then
   if (ratio <= space_charge_com%cathode_strength_cutoff) include_image = .false.
 endif
 
-! Calculate field at particle locations
+! Calculate field at particle locations using batch interpolation
+
+! First pass: identify particles needing interpolation and build coordinate arrays
+allocate(x_interp(size(bunch%particle)), y_interp(size(bunch%particle)), z_interp(size(bunch%particle)))
+allocate(interp_idx(size(bunch%particle)))
+n_interp = 0
 
 do i = 1, size(bunch%particle)
   p => bunch%particle(i)
-  if (p%state == pre_born$ .and. p%t <= t_end) then  ! Particles to be emitted
-    call interpolate_field(p%vec(1), p%vec(3), p%s,  mesh3d, E=sc_field(i)%E, B=sc_field(i)%B)
-  else if (p%state /= alive$) then ! Lost particles
-    sc_field(i)%E = 0
-    sc_field(i)%B = 0
-  else  ! Living particles
+  if (p%state == pre_born$ .and. p%t <= t_end) then
+    n_interp = n_interp + 1
+    x_interp(n_interp) = p%vec(1); y_interp(n_interp) = p%vec(3); z_interp(n_interp) = p%s
+    interp_idx(n_interp) = i
+  else if (p%state /= alive$) then
+    sc_field(i)%E = 0; sc_field(i)%B = 0
+  else
     if (present(bunch_params)) then
-      if (out_of_sigma_cutoff(p)) then  ! Ignore particles too far off the bunch
-        sc_field(i)%E = 0
-        sc_field(i)%B = 0
+      if (out_of_sigma_cutoff(p)) then
+        sc_field(i)%E = 0; sc_field(i)%B = 0
+        cycle
       endif
     endif
-    call interpolate_field(p%vec(1), p%vec(3), p%s,  mesh3d, E=sc_field(i)%E, B=sc_field(i)%B)
-    if (bend_here .and. .false.) then
-      k = w(i)%ixp
-      sc_field(i)%E = matmul(w(k)%w_mat, sc_field(i)%E)
-      sc_field(i)%B = matmul(w(k)%w_mat, sc_field(i)%B)
-    endif
+    n_interp = n_interp + 1
+    x_interp(n_interp) = p%vec(1); y_interp(n_interp) = p%vec(3); z_interp(n_interp) = p%s
+    interp_idx(n_interp) = i
   end if
 enddo
+
+! Batch interpolation (OpenMP parallelized internally)
+if (n_interp > 0) then
+  allocate(E_batch(3, n_interp), B_batch(3, n_interp))
+  call interpolate_field_batch(x_interp, y_interp, z_interp, mesh3d, n_interp, E=E_batch, B=B_batch)
+
+  ! Scatter results back to sc_field
+  do k = 1, n_interp
+    i = interp_idx(k)
+    sc_field(i)%E = E_batch(:, k)
+    sc_field(i)%B = B_batch(:, k)
+  enddo
+  deallocate(E_batch, B_batch)
+endif
+
+deallocate(x_interp, y_interp, z_interp, interp_idx)
 
 !-------------------------------------------------------------------
 contains

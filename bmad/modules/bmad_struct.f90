@@ -2169,6 +2169,10 @@ type space_charge_common_struct                   ! Common block for space charg
                                                   !   If a bin sigma is < cutoff * sigma_ave then ignore.
   real(rp) :: particle_sigma_cutoff = -1          ! 3D SC calc cutoff for particles with (x,y,z) position far from the center.
                                                   !  Negative or zero means ignore.
+  real(rp) :: mesh_growth_factor = 0.1             ! Fractional padding when growing SC mesh (default: 10%).
+                                                  !  Set to 0 for tight-fit (no caching speedup).
+  real(rp) :: mesh_shrink_factor = 0.1             ! Fractional threshold for shrinking SC mesh (default: 10%).
+                                                  !  Mesh shrinks when bunch fills < (1-this) of the mesh range.
   integer :: space_charge_mesh_size(3) = [32, 32, 64]  ! Gird size for fft_3d space charge calc.
   integer :: csr3d_mesh_size(3) = [32, 32, 64]         ! Gird size for CSR.
   integer :: n_bin = 0                            ! Number of bins used
