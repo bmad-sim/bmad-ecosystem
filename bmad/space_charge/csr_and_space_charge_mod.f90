@@ -658,36 +658,6 @@ do ib = space_charge_com%n_bin/2, 1, -1
 enddo
 
 
-!---------------------------------------------------------------------------
-contains
-
-! computes the contribution to the charge in a bin from a given particle.
-! z0_bin, z1_bin are the edge positions of the bin
-
-function particle_overlap_in_bin (z0_bin, z1_bin) result (overlap)
-
-real(rp) z0_bin, z1_bin, overlap, z1, z2
-
-! Integrate over left triangular half of particle distribution
-
-z1 = max(zp0, z0_bin)        ! left integration edge
-z2 = min(zp_center, z1_bin)  ! right integration edge
-if (z2 > z1) then            ! If left particle half is in bin ...
-  overlap = 2 * real(((z2 - zp0)**2 - (z1 - zp0)**2), rp) / dz_particle**2
-else
-  overlap = 0
-endif
-
-! Integrate over right triangular half of particle distribution
-
-z1 = max(zp_center, z0_bin)  ! left integration edge
-z2 = min(zp1, z1_bin)        ! right integration edge
-if (z2 > z1) then            ! If right particle half is in bin ...
-  overlap = overlap + 2 * real(((z1 - zp1)**2 - (z2 - zp1)**2), rp) / dz_particle**2
-endif
-
-end function particle_overlap_in_bin
-
 end subroutine csr_bin_particles
 
 !----------------------------------------------------------------------------
@@ -1140,13 +1110,10 @@ b_v = csr%gamma * (sx_v**2 + sy_v**2) / (sx_v + sy_v)
 radix_v = -b_v**2 + 4 * a_v * c_val
 sr_v = sqrt(abs(radix_v))
 
-! Compute the kick at the center of each bin
-! i = index of slice where kick is computed
-! Each iteration writes only to csr%slice(i), so outer loop is parallelizable.
-! The transverse dependence block (lsc_kick_transverse_dependence) uses DA2 accumulation
-! with pointers to slice data, which is not thread-safe, so OpenMP is only used without it.
-
-if (.not. space_charge_com%lsc_kick_transverse_dependence) then
+! Compute the kick at the center of each bin (parallelized).
+! i = index of slice where kick is computed.
+! Each iteration writes only to csr%slice(i)%kick_lsc, so the outer loop is parallelizable.
+! Thread-private work arrays are allocated once per thread (inside the parallel region, outside the do loop).
 
 !$OMP parallel default(none) &
 !$OMP   shared(n_bin, csr, z_center_v, charge_v, dcdz_v, a_v, b_v, radix_v, sr_v, c_val, dz_half, factor) &
@@ -1161,7 +1128,6 @@ allocate(sign_v(n_bin))
 do i = 1, n_bin
   z_center_i = csr%slice(i)%z_center
 
-  ! Vectorized computation of z-separations and signs
   abs_z_v = abs(z_center_i - z_center_v)
 
   do j = 1, n_bin
@@ -1174,7 +1140,6 @@ do i = 1, n_bin
     endif
   enddo
 
-  ! General case: compute z1, z2, drho, rho0 for all source slices
   z1_v = abs_z_v - dz_half
   z2_v = abs_z_v + dz_half
   drho_v = dcdz_v * sign_v
@@ -1187,14 +1152,12 @@ do i = 1, n_bin
   z2_v(i) = dz_half
   sign_v(i) = -2        ! Factor of 2 accounts for 1/2 we did not integrate over.
 
-  ! Vectorized intermediate computations
   bcd_v = 2 * c_val * rho0_v - b_v * drho_v
   abcz1_v = a_v + b_v * z1_v + c_val * z1_v**2
   abcz2_v = a_v + b_v * z2_v + c_val * z2_v**2
   b2cz1_v = b_v + 2 * c_val * z1_v
   b2cz2_v = b_v + 2 * c_val * z2_v
 
-  ! Compute atan for all elements (always safe), then override with log where radix <= 0
   atz1_v = atan(b2cz1_v / sr_v) / sr_v
   atz2_v = atan(b2cz2_v / sr_v) / sr_v
 
@@ -1205,11 +1168,9 @@ do i = 1, n_bin
     endif
   enddo
 
-  ! Vectorized kick computation
   dk0_v = factor * ((2 * atz2_v * bcd_v + drho_v * log(abcz2_v)) - &
                      (2 * atz1_v * bcd_v + drho_v * log(abcz1_v))) / (2 * c_val)
 
-  ! Accumulate kick_lsc (sum over all source slices)
   csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sum(sign_v * dk0_v)
 
 enddo
@@ -1219,9 +1180,11 @@ deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
 deallocate(sign_v)
 !$OMP end parallel
 
-else
-  ! Serial path when lsc_kick_transverse_dependence is enabled (uses DA2 pointer accumulation)
+! Separate serial pass for transverse dependence DA2 coefficients.
+! This recomputes the intermediates for each bin since the parallel loop above doesn't store them.
+! The DA2 pointer accumulation (da2_div, da2_mult) is not thread-safe, so this must remain serial.
 
+if (space_charge_com%lsc_kick_transverse_dependence) then
   allocate(abs_z_v(n_bin), z1_v(n_bin), z2_v(n_bin), rho0_v(n_bin), drho_v(n_bin))
   allocate(b2cz1_v(n_bin), b2cz2_v(n_bin), abcz1_v(n_bin), abcz2_v(n_bin))
   allocate(atz1_v(n_bin), atz2_v(n_bin), bcd_v(n_bin), dk0_v(n_bin))
@@ -1230,7 +1193,6 @@ else
   do i = 1, n_bin
     z_center_i = csr%slice(i)%z_center
 
-    ! Vectorized computation of z-separations and signs
     abs_z_v = abs(z_center_i - z_center_v)
 
     do j = 1, n_bin
@@ -1243,27 +1205,23 @@ else
       endif
     enddo
 
-    ! General case: compute z1, z2, drho, rho0 for all source slices
     z1_v = abs_z_v - dz_half
     z2_v = abs_z_v + dz_half
     drho_v = dcdz_v * sign_v
     rho0_v = charge_v / csr%dz_slice - drho_v * abs_z_v
 
-    ! Self-slice override (diagonal: i == j)
     drho_v(i) = dcdz_v(i)
     rho0_v(i) = 0
     z1_v(i) = 0
     z2_v(i) = dz_half
-    sign_v(i) = -2        ! Factor of 2 accounts for 1/2 we did not integrate over.
+    sign_v(i) = -2
 
-    ! Vectorized intermediate computations
     bcd_v = 2 * c_val * rho0_v - b_v * drho_v
     abcz1_v = a_v + b_v * z1_v + c_val * z1_v**2
     abcz2_v = a_v + b_v * z2_v + c_val * z2_v**2
     b2cz1_v = b_v + 2 * c_val * z1_v
     b2cz2_v = b_v + 2 * c_val * z2_v
 
-    ! Compute atan for all elements (always safe), then override with log where radix <= 0
     atz1_v = atan(b2cz1_v / sr_v) / sr_v
     atz2_v = atan(b2cz2_v / sr_v) / sr_v
 
@@ -1274,15 +1232,9 @@ else
       endif
     enddo
 
-    ! Vectorized kick computation
     dk0_v = factor * ((2 * atz2_v * bcd_v + drho_v * log(abcz2_v)) - &
                        (2 * atz1_v * bcd_v + drho_v * log(abcz1_v))) / (2 * c_val)
 
-    ! Accumulate kick_lsc (sum over all source slices)
-    csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sum(sign_v * dk0_v)
-
-  ! Transverse dependence: scalar loop required for DA2 accumulation
-  if (space_charge_com%lsc_kick_transverse_dependence) then
     do j = 1, n_bin
       if (dk0_v(j) == 0) cycle
 
@@ -1327,15 +1279,13 @@ else
         f = da2_div(da2_mult(f1, f), f + f1)
       endif
     enddo
-  endif
 
-  enddo  ! end of serial i loop
+  enddo
 
   deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v)
   deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
   deallocate(sign_v)
-
-endif  ! end of lsc_kick_transverse_dependence branch
+endif
 
 deallocate(sx_v, sy_v, a_v, b_v, charge_v, dcdz_v, z_center_v)
 deallocate(radix_v, sr_v)
@@ -1527,15 +1477,21 @@ integer i, n, i0, i_del, ip
 
 if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
 
-  ! CSR-only kick (no space charge): loop is thread-safe since each particle reads shared slice data independently.
+  ! CSR-only kick (no space charge): each particle reads shared slice data and updates only its own vec(6).
   if (ele%csr_method == one_dim$ .and. ele%space_charge_method /= slice$) then
-    !$OMP parallel do private(ip, zp, i0, r1, r0)
+    !$OMP parallel do default(none) shared(particle, csr, space_charge_com, global_com) private(ip, zp, i0, r1, r0)
     do ip = 1, size(particle)
       if (particle(ip)%state /= alive$) cycle
       zp = particle(ip)%vec(5)
       i0 = int((zp - csr%slice(1)%z_center) / csr%dz_slice) + 1
       r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
       r0 = 1 - r1
+      if (r1 < -0.01_rp .or. r1 > 1.01_rp .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
+        !$OMP critical
+        call out_io (s_error$, 'csr_and_sc_apply_kicks', 'CSR INTERNAL ERROR!')
+        !$OMP end critical
+        if (global_com%exit_on_error) call err_exit
+      endif
       particle(ip)%vec(6) = particle(ip)%vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
     enddo
     !$OMP end parallel do
@@ -1555,7 +1511,9 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
 
     ! r1 should be in [0,1] but allow for some round-off error
     if (r1 < -0.01_rp .or. r1 > 1.01_rp .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
-      print *, 'CSR INTERNAL ERROR!'
+      !$OMP critical
+      call out_io (s_error$, 'csr_and_sc_apply_kicks', 'CSR INTERNAL ERROR!')
+      !$OMP end critical
       if (global_com%exit_on_error) call err_exit
     endif
 
