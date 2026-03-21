@@ -1094,11 +1094,13 @@ real(rp) sx2, sy2, g_z1_s, g_z2_s, h_z1_s, h_z2_s, alph, bet, ss, f1(0:2,0:2)
 
 integer i, j, n_bin
 
-! Vectorized working arrays for inner loop over source slices
+! Shared read-only arrays (source slice properties, independent of kick index i)
 real(rp), allocatable :: sx_v(:), sy_v(:), a_v(:), b_v(:)
 real(rp), allocatable :: charge_v(:), dcdz_v(:), z_center_v(:)
-real(rp), allocatable :: abs_z_v(:), z1_v(:), z2_v(:), rho0_v(:), drho_v(:)
 real(rp), allocatable :: radix_v(:), sr_v(:)
+
+! Thread-private work arrays (recomputed each iteration of the i loop)
+real(rp), allocatable :: abs_z_v(:), z1_v(:), z2_v(:), rho0_v(:), drho_v(:)
 real(rp), allocatable :: b2cz1_v(:), b2cz2_v(:), abcz1_v(:), abcz2_v(:)
 real(rp), allocatable :: atz1_v(:), atz2_v(:), bcd_v(:), dk0_v(:)
 integer, allocatable :: sign_v(:)
@@ -1118,14 +1120,11 @@ c_val = csr%gamma**2
 dz_half = csr%dz_slice / 2
 
 ! Precompute j-dependent arrays (source slice properties, independent of kick index i)
+! These are shared read-only across threads.
 
 allocate(sx_v(n_bin), sy_v(n_bin), a_v(n_bin), b_v(n_bin))
 allocate(charge_v(n_bin), dcdz_v(n_bin), z_center_v(n_bin))
-allocate(abs_z_v(n_bin), z1_v(n_bin), z2_v(n_bin), rho0_v(n_bin), drho_v(n_bin))
 allocate(radix_v(n_bin), sr_v(n_bin))
-allocate(b2cz1_v(n_bin), b2cz2_v(n_bin), abcz1_v(n_bin), abcz2_v(n_bin))
-allocate(atz1_v(n_bin), atz2_v(n_bin), bcd_v(n_bin), dk0_v(n_bin))
-allocate(sign_v(n_bin))
 
 do j = 1, n_bin
   sx_v(j) = csr%slice(j)%sig_x
@@ -1143,7 +1142,22 @@ sr_v = sqrt(abs(radix_v))
 
 ! Compute the kick at the center of each bin
 ! i = index of slice where kick is computed
+! Each iteration writes only to csr%slice(i), so outer loop is parallelizable.
+! The transverse dependence block (lsc_kick_transverse_dependence) uses DA2 accumulation
+! with pointers to slice data, which is not thread-safe, so OpenMP is only used without it.
 
+if (.not. space_charge_com%lsc_kick_transverse_dependence) then
+
+!$OMP parallel default(none) &
+!$OMP   shared(n_bin, csr, z_center_v, charge_v, dcdz_v, a_v, b_v, radix_v, sr_v, c_val, dz_half, factor) &
+!$OMP   private(i, j, z_center_i, abs_z_v, z1_v, z2_v, rho0_v, drho_v, bcd_v, abcz1_v, abcz2_v, &
+!$OMP           b2cz1_v, b2cz2_v, atz1_v, atz2_v, dk0_v, sign_v)
+allocate(abs_z_v(n_bin), z1_v(n_bin), z2_v(n_bin), rho0_v(n_bin), drho_v(n_bin))
+allocate(b2cz1_v(n_bin), b2cz2_v(n_bin), abcz1_v(n_bin), abcz2_v(n_bin))
+allocate(atz1_v(n_bin), atz2_v(n_bin), bcd_v(n_bin), dk0_v(n_bin))
+allocate(sign_v(n_bin))
+
+!$OMP do
 do i = 1, n_bin
   z_center_i = csr%slice(i)%z_center
 
@@ -1198,6 +1212,75 @@ do i = 1, n_bin
   ! Accumulate kick_lsc (sum over all source slices)
   csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sum(sign_v * dk0_v)
 
+enddo
+!$OMP end do
+deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v)
+deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
+deallocate(sign_v)
+!$OMP end parallel
+
+else
+  ! Serial path when lsc_kick_transverse_dependence is enabled (uses DA2 pointer accumulation)
+
+  allocate(abs_z_v(n_bin), z1_v(n_bin), z2_v(n_bin), rho0_v(n_bin), drho_v(n_bin))
+  allocate(b2cz1_v(n_bin), b2cz2_v(n_bin), abcz1_v(n_bin), abcz2_v(n_bin))
+  allocate(atz1_v(n_bin), atz2_v(n_bin), bcd_v(n_bin), dk0_v(n_bin))
+  allocate(sign_v(n_bin))
+
+  do i = 1, n_bin
+    z_center_i = csr%slice(i)%z_center
+
+    ! Vectorized computation of z-separations and signs
+    abs_z_v = abs(z_center_i - z_center_v)
+
+    do j = 1, n_bin
+      if (z_center_i > z_center_v(j)) then
+        sign_v(j) = 1
+      elseif (z_center_i < z_center_v(j)) then
+        sign_v(j) = -1
+      else
+        sign_v(j) = 0
+      endif
+    enddo
+
+    ! General case: compute z1, z2, drho, rho0 for all source slices
+    z1_v = abs_z_v - dz_half
+    z2_v = abs_z_v + dz_half
+    drho_v = dcdz_v * sign_v
+    rho0_v = charge_v / csr%dz_slice - drho_v * abs_z_v
+
+    ! Self-slice override (diagonal: i == j)
+    drho_v(i) = dcdz_v(i)
+    rho0_v(i) = 0
+    z1_v(i) = 0
+    z2_v(i) = dz_half
+    sign_v(i) = -2        ! Factor of 2 accounts for 1/2 we did not integrate over.
+
+    ! Vectorized intermediate computations
+    bcd_v = 2 * c_val * rho0_v - b_v * drho_v
+    abcz1_v = a_v + b_v * z1_v + c_val * z1_v**2
+    abcz2_v = a_v + b_v * z2_v + c_val * z2_v**2
+    b2cz1_v = b_v + 2 * c_val * z1_v
+    b2cz2_v = b_v + 2 * c_val * z2_v
+
+    ! Compute atan for all elements (always safe), then override with log where radix <= 0
+    atz1_v = atan(b2cz1_v / sr_v) / sr_v
+    atz2_v = atan(b2cz2_v / sr_v) / sr_v
+
+    do j = 1, n_bin
+      if (radix_v(j) <= 0) then
+        atz1_v(j) = log((b2cz1_v(j) - sr_v(j)) / (b2cz1_v(j) + sr_v(j))) / (2 * sr_v(j))
+        atz2_v(j) = log((b2cz2_v(j) - sr_v(j)) / (b2cz2_v(j) + sr_v(j))) / (2 * sr_v(j))
+      endif
+    enddo
+
+    ! Vectorized kick computation
+    dk0_v = factor * ((2 * atz2_v * bcd_v + drho_v * log(abcz2_v)) - &
+                       (2 * atz1_v * bcd_v + drho_v * log(abcz1_v))) / (2 * c_val)
+
+    ! Accumulate kick_lsc (sum over all source slices)
+    csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sum(sign_v * dk0_v)
+
   ! Transverse dependence: scalar loop required for DA2 accumulation
   if (space_charge_com%lsc_kick_transverse_dependence) then
     do j = 1, n_bin
@@ -1246,12 +1329,16 @@ do i = 1, n_bin
     enddo
   endif
 
-enddo
+  enddo  ! end of serial i loop
+
+  deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v)
+  deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
+  deallocate(sign_v)
+
+endif  ! end of lsc_kick_transverse_dependence branch
 
 deallocate(sx_v, sy_v, a_v, b_v, charge_v, dcdz_v, z_center_v)
-deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v, radix_v, sr_v)
-deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
-deallocate(sign_v)
+deallocate(radix_v, sr_v)
 
 end subroutine lsc_kick_params_calc
 
@@ -1455,6 +1542,9 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
 
   else
   ! General case with possible space charge
+  !$OMP parallel do default(none) &
+  !$OMP   shared(particle, csr, ele, space_charge_com, global_com) &
+  !$OMP   private(ip, p, slice, zp, i0, r1, r0, dpz, x, y, beta0, f0, f, dpx, dpy, nk, dnk)
   do ip = 1, size(particle)
     p => particle(ip)
     if (p%state /= alive$) cycle
@@ -1541,6 +1631,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
 
 
   enddo
+  !$OMP end parallel do
   endif  ! end of general case (else branch)
 endif
 
