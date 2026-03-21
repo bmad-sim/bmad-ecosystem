@@ -426,7 +426,12 @@ type (csr_bunch_slice_struct), pointer :: slice
 
 real(rp) z_center, z_min, z_max, dz_particle, dz, z_maxval, z_minval, c_tot, n_tot
 real(rp) zp_center, zp0, zp1, zb0, zb1, charge, overlap_fraction, charge_tot, sig_x_ave, sig_y_ave, f
-integer i, j, n, ix0, ib, ib2, ib_center, n_bin_eff
+integer i, j, n, ix0, ib, ib2, ib_center, n_bin_eff, n_bin, pbs
+
+! Thread-private accumulation arrays for OpenMP binning
+real(rp), allocatable :: bin_n_particle(:), bin_charge(:), bin_x0(:), bin_y0(:)
+real(rp), allocatable :: bin_sig_x(:), bin_sig_y(:)
+real(rp) :: z1_over, z2_over, overlap, p_charge, p_x, p_y, inv_dz2
 
 logical err_flag
 
@@ -491,29 +496,56 @@ enddo
 
 ! The contribution to the charge in a bin from a particle is computed from the overlap
 ! between the particle and the bin.
- 
-c_tot = 0    ! Used for debugging sanity check
+
+n_bin = space_charge_com%n_bin
+pbs = space_charge_com%particle_bin_span
+inv_dz2 = 1.0_rp / dz_particle**2
+
+!$OMP parallel private(bin_n_particle, bin_charge, bin_x0, bin_y0, zp_center, zp0, zp1, ix0, j, ib, zb0, zb1, z1_over, z2_over, overlap, p_charge, p_x, p_y)
+allocate(bin_n_particle(n_bin), bin_charge(n_bin), bin_x0(n_bin), bin_y0(n_bin))
+bin_n_particle = 0; bin_charge = 0; bin_x0 = 0; bin_y0 = 0
+
+!$OMP do
 do i = 1, size(particle)
-  p => particle(i)
-  if (p%state /= alive$) cycle
-  zp_center = p%vec(5) ! center of particle
-  zp0 = zp_center - dz_particle / 2       ! particle left edge 
-  zp1 = zp_center + dz_particle / 2       ! particle right edge 
-  ix0 = nint((zp0 - z_min) / csr%dz_slice)  ! left most bin index
-  do j = 0, space_charge_com%particle_bin_span+1
+  if (particle(i)%state /= alive$) cycle
+  zp_center = particle(i)%vec(5)
+  zp0 = zp_center - dz_particle / 2
+  zp1 = zp_center + dz_particle / 2
+  p_charge = particle(i)%charge
+  p_x = particle(i)%vec(1)
+  p_y = particle(i)%vec(3)
+  ix0 = nint((zp0 - z_min) / csr%dz_slice)
+  do j = 0, pbs+1
     ib = j + ix0
-    slice => csr%slice(ib)
     zb0 = csr%slice(ib)%z0_edge
-    zb1 = csr%slice(ib)%z1_edge   ! edges of the bin
-    overlap_fraction = particle_overlap_in_bin (zb0, zb1)
-    slice%n_particle = slice%n_particle + overlap_fraction
-    charge = overlap_fraction * p%charge
-    slice%charge = slice%charge + charge
-    slice%x0 = slice%x0 + p%vec(1) * charge
-    slice%y0 = slice%y0 + p%vec(3) * charge
-    c_tot = c_tot + charge
+    zb1 = csr%slice(ib)%z1_edge
+    ! Inline particle_overlap_in_bin for thread safety (avoids host-scope variable sharing)
+    overlap = 0
+    z1_over = max(zp0, zb0)
+    z2_over = min(zp_center, zb1)
+    if (z2_over > z1_over) overlap = 2 * real(((z2_over - zp0)**2 - (z1_over - zp0)**2), rp) * inv_dz2
+    z1_over = max(zp_center, zb0)
+    z2_over = min(zp1, zb1)
+    if (z2_over > z1_over) overlap = overlap + 2 * real(((z1_over - zp1)**2 - (z2_over - zp1)**2), rp) * inv_dz2
+    bin_n_particle(ib) = bin_n_particle(ib) + overlap
+    charge = overlap * p_charge
+    bin_charge(ib) = bin_charge(ib) + charge
+    bin_x0(ib) = bin_x0(ib) + p_x * charge
+    bin_y0(ib) = bin_y0(ib) + p_y * charge
   enddo
 enddo
+!$OMP end do
+
+!$OMP critical
+do ib = 1, n_bin
+  csr%slice(ib)%n_particle = csr%slice(ib)%n_particle + bin_n_particle(ib)
+  csr%slice(ib)%charge = csr%slice(ib)%charge + bin_charge(ib)
+  csr%slice(ib)%x0 = csr%slice(ib)%x0 + bin_x0(ib)
+  csr%slice(ib)%y0 = csr%slice(ib)%y0 + bin_y0(ib)
+enddo
+!$OMP end critical
+deallocate(bin_n_particle, bin_charge, bin_x0, bin_y0)
+!$OMP end parallel
 
 do ib = 1, space_charge_com%n_bin
   if (ib /= 1) csr%slice(ib)%edge_dcharge_density_dz = (csr%slice(ib)%charge - csr%slice(ib-1)%charge) / csr%dz_slice**2
@@ -537,24 +569,47 @@ csr%y0_bunch = sum(csr%slice%y0 * csr%slice%charge) / sum(csr%slice%charge)
 ! Abs(x-x0) is used instead of the usual formula involving (x-x0)^2 to lessen the effect
 ! of non-Gaussian tails.
 
+!$OMP parallel private(bin_sig_x, bin_sig_y, zp_center, zp0, zp1, ix0, j, ib, zb0, zb1, z1_over, z2_over, overlap, p_charge, p_x, p_y)
+allocate(bin_sig_x(n_bin), bin_sig_y(n_bin))
+bin_sig_x = 0; bin_sig_y = 0
+
+!$OMP do
 do i = 1, size(particle)
-  p => particle(i)
-  if (p%state /= alive$) cycle
-  zp_center = p%vec(5) ! center of particle
-  zp0 = zp_center - dz_particle / 2       ! particle left edge 
-  zp1 = zp_center + dz_particle / 2       ! particle right edge 
-  ix0 = nint((zp0 - z_min) / csr%dz_slice)  ! left most bin index
-  do j = 0, space_charge_com%particle_bin_span+1
+  if (particle(i)%state /= alive$) cycle
+  zp_center = particle(i)%vec(5)
+  zp0 = zp_center - dz_particle / 2
+  zp1 = zp_center + dz_particle / 2
+  p_charge = particle(i)%charge
+  p_x = particle(i)%vec(1)
+  p_y = particle(i)%vec(3)
+  ix0 = nint((zp0 - z_min) / csr%dz_slice)
+  do j = 0, pbs+1
     ib = j + ix0
-    slice => csr%slice(ib)
     zb0 = csr%slice(ib)%z0_edge
-    zb1 = csr%slice(ib)%z1_edge   ! edges of the bin
-    overlap_fraction = particle_overlap_in_bin (zb0, zb1)
-    charge = overlap_fraction * p%charge
-    slice%sig_x = slice%sig_x + abs(p%vec(1) - slice%x0) * charge
-    slice%sig_y = slice%sig_y + abs(p%vec(3) - slice%y0) * charge
+    zb1 = csr%slice(ib)%z1_edge
+    ! Inline particle_overlap_in_bin
+    overlap = 0
+    z1_over = max(zp0, zb0)
+    z2_over = min(zp_center, zb1)
+    if (z2_over > z1_over) overlap = 2 * real(((z2_over - zp0)**2 - (z1_over - zp0)**2), rp) * inv_dz2
+    z1_over = max(zp_center, zb0)
+    z2_over = min(zp1, zb1)
+    if (z2_over > z1_over) overlap = overlap + 2 * real(((z1_over - zp1)**2 - (z2_over - zp1)**2), rp) * inv_dz2
+    charge = overlap * p_charge
+    bin_sig_x(ib) = bin_sig_x(ib) + abs(p_x - csr%slice(ib)%x0) * charge
+    bin_sig_y(ib) = bin_sig_y(ib) + abs(p_y - csr%slice(ib)%y0) * charge
   enddo
 enddo
+!$OMP end do
+
+!$OMP critical
+do ib = 1, n_bin
+  csr%slice(ib)%sig_x = csr%slice(ib)%sig_x + bin_sig_x(ib)
+  csr%slice(ib)%sig_y = csr%slice(ib)%sig_y + bin_sig_y(ib)
+enddo
+!$OMP end critical
+deallocate(bin_sig_x, bin_sig_y)
+!$OMP end parallel
 
 charge_tot = 0;  sig_x_ave = 0;  sig_y_ave = 0
 f = sqrt(pi/2)  ! This corrects for the fact that |x - x0| is used instead of (x - x0)^2 to compute the sigma.
@@ -670,40 +725,54 @@ real(rp) ds_kick_pt, coef, dr_match(3)
 integer i, n_bin
 logical err_flag
 
+! Contiguous arrays for vectorized convolution
+real(rp), allocatable :: I_int_arr(:), edge_dcharge_arr(:), image_kick_arr(:), charge_arr(:)
+
 character(16) :: r_name = 'csr_bin_kicks'
 
 ! The kick point P is fixed.
 ! Loop over all kick1 bins and compute the kick.
+! When y_source == 0 (no image charges), only positive bins contribute to CSR kick
+! (source behind kicked particle). Negative bins have dz <= 0 and I_csr returns 0.
 
 err_flag = .false.
 
-do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
+if (csr%y_source == 0) then
+  ! CSR only: skip negative bins since I_csr = 0 for dz_particles <= 0
+  do i = 1, ubound(csr%kick1, 1)
+    kick1 => csr%kick1(i)
+    kick1%dz_particles = i * csr%dz_slice
 
-  kick1 => csr%kick1(i)
-  kick1%dz_particles = i * csr%dz_slice
+    if (i == 1) then
+      kick1%ix_ele_source = csr%ix_ele_kick
+      dr_match = 0
+    else
+      kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
+    endif
 
-  if (i == lbound(csr%kick1, 1)) then
-    kick1%ix_ele_source = csr%ix_ele_kick  ! Initial guess where source point is
-    dr_match = 0  ! Discontinuity factor for match element. See s_source_calc routine.
-  else
-    kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
-  endif
-
-  ! Calculate what element the source point is in.
-
-  kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
-  if (err_flag) return
-
-  ! calculate csr.
-  ! I_csr is only calculated for particles with y = 0 and not for image currents.
-
-  if (csr%y_source == 0) then
+    kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
+    if (err_flag) return
     call I_csr (kick1, i, csr)
-  else
-    call image_charge_kick_calc (kick1, csr)
-  endif
+  enddo
 
-enddo
+else
+  ! Image charges: need full range for both positive and negative separations
+  do i = lbound(csr%kick1, 1), ubound(csr%kick1, 1)
+    kick1 => csr%kick1(i)
+    kick1%dz_particles = i * csr%dz_slice
+
+    if (i == lbound(csr%kick1, 1)) then
+      kick1%ix_ele_source = csr%ix_ele_kick
+      dr_match = 0
+    else
+      kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
+    endif
+
+    kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
+    if (err_flag) return
+    call image_charge_kick_calc (kick1, csr)
+  enddo
+endif
 
 !
 
@@ -712,19 +781,34 @@ coef = csr%actual_track_step * classical_radius(csr%species) / &
 n_bin = space_charge_com%n_bin
 
 ! CSR & Image charge kick
+! Use contiguous arrays for vectorized convolution instead of strided struct access.
 
 if (csr%y_source == 0) then
   if (ele%csr_method == one_dim$) then
+    allocate(I_int_arr(n_bin), edge_dcharge_arr(n_bin))
     do i = 1, n_bin
-      csr%slice(i)%kick_csr = coef * dot_product(csr%kick1(i:1:-1)%I_int_csr, csr%slice(1:i)%edge_dcharge_density_dz)
+      I_int_arr(i) = csr%kick1(i)%I_int_csr
+      edge_dcharge_arr(i) = csr%slice(i)%edge_dcharge_density_dz
     enddo
+    do i = 1, n_bin
+      csr%slice(i)%kick_csr = coef * dot_product(I_int_arr(i:1:-1), edge_dcharge_arr(1:i))
+    enddo
+    deallocate(I_int_arr, edge_dcharge_arr)
   endif
 
 else  ! Image charge
+  allocate(image_kick_arr(-n_bin:n_bin), charge_arr(n_bin))
+  do i = -n_bin, n_bin
+    image_kick_arr(i) = csr%kick1(i)%image_kick_csr
+  enddo
+  do i = 1, n_bin
+    charge_arr(i) = csr%slice(i)%charge
+  enddo
   do i = 1, n_bin
     csr%slice(i)%kick_csr = csr%slice(i)%kick_csr + coef * &
-                  dot_product(csr%kick1(i-1:i-n_bin:-1)%image_kick_csr, csr%slice(1:n_bin)%charge)
+                  dot_product(image_kick_arr(i-1:i-n_bin:-1), charge_arr(1:n_bin))
   enddo
+  deallocate(image_kick_arr, charge_arr)
 endif
 
 ! Longitudinal space charge kick
@@ -1355,6 +1439,22 @@ integer i, n, i0, i_del, ip
 ! We use a weighted average so that the integral varies smoothly as a function of particle%vec(5).
 
 if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
+
+  ! CSR-only kick (no space charge): loop is thread-safe since each particle reads shared slice data independently.
+  if (ele%csr_method == one_dim$ .and. ele%space_charge_method /= slice$) then
+    !$OMP parallel do private(ip, zp, i0, r1, r0)
+    do ip = 1, size(particle)
+      if (particle(ip)%state /= alive$) cycle
+      zp = particle(ip)%vec(5)
+      i0 = int((zp - csr%slice(1)%z_center) / csr%dz_slice) + 1
+      r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
+      r0 = 1 - r1
+      particle(ip)%vec(6) = particle(ip)%vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
+    enddo
+    !$OMP end parallel do
+
+  else
+  ! General case with possible space charge
   do ip = 1, size(particle)
     p => particle(ip)
     if (p%state /= alive$) cycle
@@ -1441,6 +1541,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
 
 
   enddo
+  endif  ! end of general case (else branch)
 endif
 
 ! Mesh Space charge kick
