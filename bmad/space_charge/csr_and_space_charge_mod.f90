@@ -1199,16 +1199,22 @@ deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
 deallocate(sign_v)
 !$OMP end parallel
 
-! Separate serial pass for transverse dependence DA2 coefficients.
-! This recomputes the intermediates for each bin since the parallel loop above doesn't store them.
-! The DA2 pointer accumulation (da2_div, da2_mult) is not thread-safe, so this must remain serial.
+! Transverse dependence DA2 coefficients.
+! Each outer iteration i writes only to csr%slice(i)%coef_lsc_plus/minus, so i is parallelizable.
+! The inner j loop has a serial dependency (harmonic-mean accumulation), but different i are independent.
 
 if (space_charge_com%lsc_kick_transverse_dependence) then
+  !$OMP parallel default(none) &
+  !$OMP   shared(n_bin, csr, z_center_v, charge_v, dcdz_v, a_v, b_v, radix_v, sr_v, sx_v, sy_v, c_val, dz_half, factor) &
+  !$OMP   private(i, j, z_center_i, abs_z_v, z1_v, z2_v, rho0_v, drho_v, bcd_v, abcz1_v, abcz2_v, &
+  !$OMP           b2cz1_v, b2cz2_v, atz1_v, atz2_v, dk0_v, sign_v, &
+  !$OMP           f, f1, f00, sx2, sy2, g_z1_s, g_z2_s, h_z1_s, h_z2_s, alph, bet, ss)
   allocate(abs_z_v(n_bin), z1_v(n_bin), z2_v(n_bin), rho0_v(n_bin), drho_v(n_bin))
   allocate(b2cz1_v(n_bin), b2cz2_v(n_bin), abcz1_v(n_bin), abcz2_v(n_bin))
   allocate(atz1_v(n_bin), atz2_v(n_bin), bcd_v(n_bin), dk0_v(n_bin))
   allocate(sign_v(n_bin))
 
+  !$OMP do
   do i = 1, n_bin
     z_center_i = csr%slice(i)%z_center
 
@@ -1300,10 +1306,11 @@ if (space_charge_com%lsc_kick_transverse_dependence) then
     enddo
 
   enddo
-
+  !$OMP end do
   deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v)
   deallocate(b2cz1_v, b2cz2_v, abcz1_v, abcz2_v, atz1_v, atz2_v, bcd_v, dk0_v)
   deallocate(sign_v)
+  !$OMP end parallel
 endif
 
 deallocate(sx_v, sy_v, a_v, b_v, charge_v, dcdz_v, z_center_v)
