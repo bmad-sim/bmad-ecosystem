@@ -390,11 +390,11 @@ end subroutine track1_bunch_csr
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine csr_bin_parcticles (ele, particle, csr)
+! Subroutine csr_bin_particles (ele, particle, csr)
 !
 ! Routine to bin the particles longitudinally in s. 
 !
-! To avoid noise in the cacluation, every particle is considered to have a 
+! To avoid noise in the calculation, every particle is considered to have a 
 ! triangular distribution with a base length  given by
 !   space_charge_com%particle_bin_span * csr%dz_slice.
 ! That is, particles will, in general, overlap multiple bins. 
