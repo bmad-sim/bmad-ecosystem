@@ -501,7 +501,7 @@ n_bin = space_charge_com%n_bin
 pbs = space_charge_com%particle_bin_span
 inv_dz2 = 1.0_rp / dz_particle**2
 
-!$OMP parallel private(bin_n_particle, bin_charge, bin_x0, bin_y0, zp_center, zp0, zp1, ix0, j, ib, zb0, zb1, z1_over, z2_over, overlap, p_charge, p_x, p_y)
+!$OMP parallel private(bin_n_particle, bin_charge, bin_x0, bin_y0, zp_center, zp0, zp1, ix0, j, ib, zb0, zb1, z1_over, z2_over, overlap, charge, p_charge, p_x, p_y)
 allocate(bin_n_particle(n_bin), bin_charge(n_bin), bin_x0(n_bin), bin_y0(n_bin))
 bin_n_particle = 0; bin_charge = 0; bin_x0 = 0; bin_y0 = 0
 
@@ -569,7 +569,7 @@ csr%y0_bunch = sum(csr%slice%y0 * csr%slice%charge) / sum(csr%slice%charge)
 ! Abs(x-x0) is used instead of the usual formula involving (x-x0)^2 to lessen the effect
 ! of non-Gaussian tails.
 
-!$OMP parallel private(bin_sig_x, bin_sig_y, zp_center, zp0, zp1, ix0, j, ib, zb0, zb1, z1_over, z2_over, overlap, p_charge, p_x, p_y)
+!$OMP parallel private(bin_sig_x, bin_sig_y, zp_center, zp0, zp1, ix0, j, ib, zb0, zb1, z1_over, z2_over, overlap, charge, p_charge, p_x, p_y)
 allocate(bin_sig_x(n_bin), bin_sig_y(n_bin))
 bin_sig_x = 0; bin_sig_y = 0
 
@@ -692,11 +692,14 @@ type (csr_kick1_struct), pointer :: kick1
 
 real(rp) ds_kick_pt, coef, dr_match(3)
 
-integer i, n_bin
+integer i, n_bin, m_fft
 logical err_flag
 
 ! Contiguous arrays for vectorized convolution
 real(rp), allocatable :: I_int_arr(:), edge_dcharge_arr(:), image_kick_arr(:), charge_arr(:)
+
+! FFT workspace for O(n_bin * log(n_bin)) convolution
+complex(rp), allocatable :: fft_a(:), fft_b(:)
 
 character(16) :: r_name = 'csr_bin_kicks'
 
@@ -760,10 +763,34 @@ if (csr%y_source == 0) then
       I_int_arr(i) = csr%kick1(i)%I_int_csr
       edge_dcharge_arr(i) = csr%slice(i)%edge_dcharge_density_dz
     enddo
-    do i = 1, n_bin
-      csr%slice(i)%kick_csr = coef * dot_product(I_int_arr(i:1:-1), edge_dcharge_arr(1:i))
+
+    ! FFT-based linear convolution: O(n_bin * log(n_bin)) instead of O(n_bin^2).
+    ! kick_csr(i) = coef * sum_{k=1}^{i} I_int_arr(k) * edge_dcharge_arr(i+1-k)
+    ! This equals the first n_bin elements of the linear convolution of I_int_arr with edge_dcharge_arr.
+    ! Zero-pad to avoid circular convolution artifacts.
+    m_fft = 1
+    do while (m_fft < 2 * n_bin)
+      m_fft = m_fft * 2
     enddo
-    deallocate(I_int_arr, edge_dcharge_arr)
+
+    allocate(fft_a(m_fft), fft_b(m_fft))
+    fft_a = (0.0_rp, 0.0_rp)
+    fft_b = (0.0_rp, 0.0_rp)
+    do i = 1, n_bin
+      fft_a(i) = cmplx(I_int_arr(i), 0.0_rp, rp)
+      fft_b(i) = cmplx(edge_dcharge_arr(i), 0.0_rp, rp)
+    enddo
+
+    call fft_1d(fft_a, -1)
+    call fft_1d(fft_b, -1)
+    fft_a = fft_a * fft_b
+    call fft_1d(fft_a, 1)
+
+    do i = 1, n_bin
+      csr%slice(i)%kick_csr = coef * real(fft_a(i), rp) / m_fft
+    enddo
+
+    deallocate(fft_a, fft_b, I_int_arr, edge_dcharge_arr)
   endif
 
 else  ! Image charge
@@ -1127,9 +1154,7 @@ allocate(sign_v(n_bin))
 !$OMP do
 do i = 1, n_bin
   z_center_i = csr%slice(i)%z_center
-
   abs_z_v = abs(z_center_i - z_center_v)
-
   do j = 1, n_bin
     if (z_center_i > z_center_v(j)) then
       sign_v(j) = 1
@@ -1139,7 +1164,6 @@ do i = 1, n_bin
       sign_v(j) = 0
     endif
   enddo
-
   z1_v = abs_z_v - dz_half
   z2_v = abs_z_v + dz_half
   drho_v = dcdz_v * sign_v
@@ -1157,22 +1181,17 @@ do i = 1, n_bin
   abcz2_v = a_v + b_v * z2_v + c_val * z2_v**2
   b2cz1_v = b_v + 2 * c_val * z1_v
   b2cz2_v = b_v + 2 * c_val * z2_v
-
   atz1_v = atan(b2cz1_v / sr_v) / sr_v
   atz2_v = atan(b2cz2_v / sr_v) / sr_v
-
   do j = 1, n_bin
     if (radix_v(j) <= 0) then
       atz1_v(j) = log((b2cz1_v(j) - sr_v(j)) / (b2cz1_v(j) + sr_v(j))) / (2 * sr_v(j))
       atz2_v(j) = log((b2cz2_v(j) - sr_v(j)) / (b2cz2_v(j) + sr_v(j))) / (2 * sr_v(j))
     endif
   enddo
-
   dk0_v = factor * ((2 * atz2_v * bcd_v + drho_v * log(abcz2_v)) - &
                      (2 * atz1_v * bcd_v + drho_v * log(abcz1_v))) / (2 * c_val)
-
   csr%slice(i)%kick_lsc = csr%slice(i)%kick_lsc + sum(sign_v * dk0_v)
-
 enddo
 !$OMP end do
 deallocate(abs_z_v, z1_v, z2_v, rho0_v, drho_v)
