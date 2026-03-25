@@ -333,6 +333,18 @@ ENDIF ()
 string (STRIP "${ACC_LINK_FLAGS}" ACC_LINK_FLAGS)
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND NOT $ENV{ACC_CONDA_BUILD} MATCHES "Y")
+  # Set the deployment target to match the running macOS version if not already set.
+  # This prevents linker warnings when GCC's compiled-in default doesn't match the
+  # version the MacPorts/Homebrew dylibs were built against.
+  if (NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+    execute_process(COMMAND sw_vers -productVersion
+      OUTPUT_VARIABLE MACOS_PRODUCT_VERSION
+      OUTPUT_STRIP_TRAILING_WHITESPACE)
+    string(REGEX MATCH "^[0-9]+\\.[0-9]+" MACOS_SHORT_VERSION "${MACOS_PRODUCT_VERSION}")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "${MACOS_SHORT_VERSION}" CACHE STRING
+      "Minimum macOS deployment version (auto-detected)" FORCE)
+    message(STATUS "macOS deployment target set to ${CMAKE_OSX_DEPLOYMENT_TARGET}")
+  endif()
   find_program(BREW "brew")
   find_program(PORT "port")
   set(DO_BREW "NO")
