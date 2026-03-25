@@ -1301,7 +1301,7 @@ endif
 if (all(s%plot_page%template%name /= 'b_div_curl')) then
   call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'b_div_curl'
-  plt%description          = 'Mag Field Divergence and (Curl B - (dE/dt)/c\u2\d) Along Orbit'
+  plt%description          = 'Mag Field Divergence and (Curl B - (dE/dt)/c^2) Along Orbit'
 
   grph => plt%graph(1)
   grph%p => plt
@@ -1373,7 +1373,7 @@ endif
 if (all(s%plot_page%template%name /= 'b0_div_curl')) then
   call default_plot_init (np, plt, default_plot_g1c4)
   plt%name                 = 'b0_div_curl'
-  plt%description          = 'B-Field Divergence and (Curl B - (dE/dt)/c\u2\d) at const x,y,t'
+  plt%description          = 'B-Field Divergence and (Curl B - (dE/dt)/c^2) at const x,y,t'
 
   grph => plt%graph(1)
   grph%p => plt

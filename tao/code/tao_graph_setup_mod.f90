@@ -2736,6 +2736,13 @@ case ('t', 'tt')
   value = taylor_coef (t_map(i), expnt)
 
 case default
+  ! For b0_/e0_ field data types, evaluation is at constant transverse position.
+  if (data_type(1:3) == 'b0_' .or. data_type(1:3) == 'e0_') then
+    orbit%vec(1) = curve%orbit%x
+    orbit%vec(3) = curve%orbit%y
+    orbit%t = curve%orbit%t
+  endif
+
   value = tao_param_value_at_s (data_type, ele_to_s, ele_here, orbit, err_flag, why_invalid)
   if (err_flag) then
     call tao_set_curve_invalid(curve, why_invalid, .true.)
