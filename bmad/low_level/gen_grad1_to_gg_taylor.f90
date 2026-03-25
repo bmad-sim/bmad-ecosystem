@@ -2,6 +2,7 @@
 ! Subroutine gen_grad1_to_gg_taylor (ele, gen_grad, iz, gg_taylor)
 !
 ! Routine to take gen_grad coefs at a given z-position and return the equivalent Taylor field map.
+! Also see: gen_grad_at_s_to_gg_taylor, gen_grad_field.
 !
 ! Input:
 !   ele           -- ele: Element containing the map.
@@ -26,7 +27,7 @@ type (ele_struct) ele
 type (gen_grad_map_struct), target :: gen_grad
 type (gg_taylor_struct), target :: gg_taylor(3)
 type (gen_grad1_struct), pointer :: gg
-type (gg_taylor_coef_struct) em_coef(3)
+type (gg_taylor_coef_struct) gg_coef(3)
 
 real(rp) coef, scale
 real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
@@ -46,10 +47,10 @@ do i = 1, size(gen_grad%gg)
   m_max = max(m_max, gg%m)
 enddo
 
-allocate (em_coef(1)%c(0:io,0:io), em_coef(2)%c(0:io,0:io), em_coef(3)%c(0:io,0:io))  ! (poly order, x^n power)
+allocate (gg_coef(1)%c(0:io,0:io), gg_coef(2)%c(0:io,0:io), gg_coef(3)%c(0:io,0:io))  ! (poly order, x^n power)
 allocate (xy_plus(0:m_max+1), xy_zero(0:m_max), xy_minus(0:m_max-1))
 
-em_coef(1)%c = 0; em_coef(2)%c = 0; em_coef(3)%c = 0
+gg_coef(1)%c = 0; gg_coef(2)%c = 0; gg_coef(3)%c = 0
 
 !
 
@@ -98,22 +99,22 @@ do i = 1, size(gen_grad%gg)
         do k = 0, n
           do j = 0, divide_by_two(m-2)
             it = m-2*j-2
-            em_coef(1)%c(iord,2*k+it) = em_coef(1)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Sin
+            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Sin
           enddo
           do j = 0, divide_by_two(m-1)
             it = m-2*j-1
-            em_coef(2)%c(iord,2*k+it) = em_coef(2)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Cos
+            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Cos
           enddo
         enddo
 
         do k = 0, n-1
           do j = 0, m/2
             it = m-2*j
-            em_coef(1)%c(iord,2*k+it) = em_coef(1)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Sin
+            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Sin
           enddo
           do j = 0, (m+1)/2
             it = m-2*j+1
-            em_coef(2)%c(iord,2*k+it) = em_coef(2)%c(iord,2*k+it) - coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Cos
+            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) - coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Cos
           enddo
         enddo
 
@@ -124,20 +125,20 @@ do i = 1, size(gen_grad%gg)
           ! For m = 0 use the mapping: (sin(m-1), cos(m-1)) -> (-sin(1-m), cos(1-m))
           do k = 0, n
             it = 1
-            em_coef(1)%c(iord,2*k+it) = em_coef(1)%c(iord,2*k+it) + coef * (n) * n_choose_k(n,k)  ! Cos
+            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * (n) * n_choose_k(n,k)  ! Cos
             it = 0
-            em_coef(2)%c(iord,2*k+it) = em_coef(2)%c(iord,2*k+it) + coef * (n) * n_choose_k(n,k)  ! Sin
+            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) + coef * (n) * n_choose_k(n,k)  ! Sin
           enddo
 
         else  ! m /= 0
           do k = 0, n
             do j = 0, divide_by_two(m-1)
               it = m-2*j-1
-              em_coef(1)%c(iord,2*k+it) = em_coef(1)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Cos
+              gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Cos
             enddo
             do j = 0, divide_by_two(m-2)
               it = m-2*j-2
-              em_coef(2)%c(iord,2*k+it) = em_coef(2)%c(iord,2*k+it) - coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Sin
+              gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) - coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Sin
             enddo
           enddo
         endif
@@ -145,11 +146,11 @@ do i = 1, size(gen_grad%gg)
         do k = 0, n-1
           do j = 0, (m+1)/2
             it = m-2*j+1
-            em_coef(1)%c(iord,2*k+it) = em_coef(1)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Cos
+            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Cos
           enddo
           do j = 0, m/2
             it = m-2*j
-            em_coef(2)%c(iord,2*k+it) = em_coef(2)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Sin
+            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Sin
           enddo
         enddo
       endif
@@ -162,7 +163,7 @@ do i = 1, size(gen_grad%gg)
         do k = 0, n
           do j = 0, divide_by_two(m-1)
             it = m-2*j-1
-            em_coef(3)%c(iord,2*k+it) = em_coef(3)%c(iord,2*k+it) + coef * n_choose_k(n,k) * xy_zero(it)  ! Sin
+            gg_coef(3)%c(iord,2*k+it) = gg_coef(3)%c(iord,2*k+it) + coef * n_choose_k(n,k) * xy_zero(it)  ! Sin
           enddo
         enddo
 
@@ -170,7 +171,7 @@ do i = 1, size(gen_grad%gg)
         do k = 0, n
           do j = 0, m/2
             it = m-2*j
-            em_coef(3)%c(iord,2*k+it) = em_coef(3)%c(iord,2*k+it) + coef * n_choose_k(n,k) * xy_zero(it)  ! Cos
+            gg_coef(3)%c(iord,2*k+it) = gg_coef(3)%c(iord,2*k+it) + coef * n_choose_k(n,k) * xy_zero(it)  ! Cos
           enddo
         enddo
       endif
@@ -184,15 +185,15 @@ enddo  ! gg
 scale = gen_grad%field_scale * master_parameter_value(gen_grad%master_parameter, ele)
 
 do i = 1, 3
-  n = count(em_coef(i)%c /= 0)
+  n = count(gg_coef(i)%c /= 0)
   call init_gg_taylor_series(gg_taylor(i), n)
 
   n = 0
-  do io = 0, ubound(em_coef(i)%c,1)
+  do io = 0, ubound(gg_coef(i)%c,1)
     do ix = 0, io
-      if (em_coef(i)%c(io,ix) == 0) cycle
+      if (gg_coef(i)%c(io,ix) == 0) cycle
       n = n + 1
-      gg_taylor(i)%term(n)%coef = em_coef(i)%c(io,ix) * scale
+      gg_taylor(i)%term(n)%coef = gg_coef(i)%c(io,ix) * scale
       gg_taylor(i)%term(n)%expn = [ix, io-ix]
     enddo
   enddo
