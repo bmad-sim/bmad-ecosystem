@@ -15,10 +15,10 @@ corresponding component in the \vn{ele_struct} is the value at the downstream
 end of the element.
 
 For printing information about an element, the
-\Hyperref{r:type.ele}{type_ele} or \Hyperref{r:type.ele}{type_ele} routines
-can be used (\sref{s:first.program}). The difference between the two is
-that \vn{type_ele} will print to the terminal window while \vn{type_ele}
-will return an array of strings containing the element information.
+\Hyperref{r:type.ele}{type_ele} routine can be used (\sref{s:first.program}).
+When called without the optional \vn{lines} and \vn{n_lines} arguments, \vn{type_ele}
+prints to the terminal window; when those arguments are supplied, the element
+information is returned as an array of strings instead.
 \nopagebreak[4]
 \begin{figure}[htb]
 \centering
@@ -35,22 +35,29 @@ type ele_struct
   type (ac_kicker_struct), pointer :: ac_kick  ! ac_kicker element parameters.
   type (bookkeeping_state_struct) bookkeeping_state ! Element attribute bookkeeping
   type (branch_struct), pointer :: branch      ! Pointer to branch containing element.
-  type (controller_struct), pointer :: control ! For group and overlay elements. 
-  type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define DC fields
-  type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define DC fields
+  type (controller_struct), pointer :: control ! For group, overlay, and ramper elements.
+  type (converter_struct), pointer :: converter  ! Positron converter, etc.
+  type (rf_ele_struct), pointer :: rf            ! RF element stair-step parameters.
+  type (foil_struct), pointer :: foil            ! Foil material parameters.
   type (ele_struct), pointer :: lord           ! Pointer to a slice lord.
-  type (gen_grad_map_struct), pointer :: gen_grad_map(:)       ! Used to define DC fields.
-  type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
   type (fibre), pointer :: ptc_fibre           ! PTC tracking.
   type (floor_position_struct) floor           ! Global floor position.
+  type (high_energy_space_charge_struct), pointer :: high_energy_space_charge
+                                               ! High-energy space charge parameters.
   type (mode3_struct), pointer :: mode3        ! Full 6-dimensional normal mode decomposition.
+  type (multipole_cache_struct), allocatable :: multipole_cache  ! Cached multipole values.
   type (photon_element_struct), pointer :: photon
-  type (rad_int_ele_cache_struct), pointer :: rad_int_cache  
-                                               ! Radiation integral calc cached values 
-  type (space_charge_struct), pointer :: space_charge 
+  type (rad_map_ele_struct), pointer :: rad_map ! Radiation damping and stochastic kick maps.
   type (taylor_struct) :: taylor(6)            ! Orbital Taylor map.
-  type (taylor_struct) :: spin_taylor(0:3)     ! Spin Taylor map.
-  type (wake_struct), pointer :: wake    ! Wakes
+  real(rp) :: spin_taylor_ref_orb_in(6)        ! Reference orbit for spin Taylor map.
+  type (taylor_struct) :: spin_taylor(0:3)     ! Spin Taylor map (quaternion representation).
+  type (wake_struct), pointer :: wake          ! Wakes.
+  type (wall3d_struct), pointer :: wall3d(:)   ! Chamber or capillary wall array.
+  ! E/M field map components (see Chapter on Electromagnetic Fields):
+  type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define E/M fields.
+  type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define E/M fields.
+  type (gen_grad_map_struct), pointer :: gen_grad_map(:)       ! Used to define E/M fields.
+  type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
     ele_struct definition continued on next figure...
 \end{verbatim}
 \caption[The \vn{ele_struct} (part 1).]{The \vn{ele_struct}. structure definition. 
@@ -65,23 +72,24 @@ The complete structure is shown in this and the following figure.}
 \footnotesize
 \begin{verbatim}
     ... ele_struct definition continued from previous figure.
-  type (wall3d_struct) :: wall3d               ! Chamber or capillary wall
   type(coord_struct) map_ref_orb_in            ! Transfer map ref orbit at upstream end of element.
   type(coord_struct) map_ref_orb_out           ! Transfer map ref orbit at downstream end of element.
   type(coord_struct) time_ref_orb_in           ! Reference orbit at upstream end for ref_time calc.
   type(coord_struct) time_ref_orb_out          ! Reference orbit at downstream end for ref_time calc.
   real(rp) value(num_ele_attrib$)              ! attribute values.
   real(rp) old_value(num_ele_attrib$)          ! Used to see if %value(:) array has changed.
+  real(rp) spin_q(0:3,0:6)                     ! 0th and 1st order spin transport quaternion.
   real(rp) vec0(6)                             ! 0th order transport vector.
   real(rp) mat6(6,6)                           ! 1st order transport matrix.
   real(rp) c_mat(2,2)                          ! 2x2 C coupling matrix
+  real(rp) dc_mat_dpz(2,2)                     ! d(c_mat)/dpz chromatic variation.
   real(rp) gamma_c                             ! gamma associated with C matrix
   real(rp) s_start                             ! longitudinal ref position at entrance_end
   real(rp) s                                   ! longitudinal position at the downstream end.
   real(rp) ref_time                            ! Time ref particle passes downstream end.
   real(rp), pointer :: r(:,:,:)                ! For general use. Not used by Bmad.
-  real(rp), pointer :: a_pole(:)               ! multipole
-  real(rp), pointer :: b_pole(:)               ! multipoles
+  real(rp), pointer :: a_pole(:)               ! multipole a_n (skew) components.
+  real(rp), pointer :: b_pole(:)               ! multipole b_n (normal) components.
   real(rp), pointer :: a_pole_elec(:)          ! Electrostatic multipoles.
   real(rp), pointer :: b_pole_elec(:)          ! Electrostatic multipoles.
   real(rp), pointer :: custom(:)               ! Custom attributes
@@ -90,36 +98,38 @@ The complete structure is shown in this and the following figure.}
   integer ix_ele                 ! Index in lat%branch(n)%ele(:) array [n = 0 <==> lat%ele(:)].
   integer ix_branch              ! Index in lat%branch(:) array [0 => In lat%ele(:)].
   integer lord_status            ! overlay_lord$, etc.
-  integer n_slave                ! Number of slaves
-  integer n_slave_field          ! Number of field slaves
-  integer ix1_slave              ! Pointer to lat%control array
+  integer n_slave                ! Number of slaves (not counting field overlap slaves).
+  integer n_slave_field          ! Number of field slaves.
+  integer ix1_slave              ! Pointer to lat%control array.
   integer slave_status           ! super_slave$, etc.
-  integer n_lord                 ! Number of lords
-  integer n_lord_field           ! Number of field lords
+  integer n_lord                 ! Number of lords (not counting field overlap and ramper lords).
+  integer n_lord_field           ! Number of field lords.
+  integer n_lord_ramper          ! Number of ramper lords.
   integer ic1_lord               ! Pointer to lat%ic array.
   integer ix_pointer             ! For general use. Not used by Bmad.
-  integer ixx, iyy               ! Index for Bmad internal use
+  integer ixx, iyy, izz          ! Index for Bmad internal use.
   integer mat6_calc_method       ! bmad_standard$, taylor$, etc.
   integer tracking_method        ! bmad_standard$, taylor$, etc.
   integer spin_tracking_method   ! bmad_standard$, symp_lie_ptc$, etc.
+  integer csr_method             ! off$, one_dim$, steady_state_3d$, etc.
+  integer space_charge_method    ! off$, slice$, fft_3d$, cathode_fft_3d$, etc.
   integer ptc_integration_type   ! drift_kick$, matrix_kick$, etc.
-  integer field_calc             ! Used with Runge-Kutta integrators.
-  integer aperture_at            ! Aperture location: exit_end$, ...
-  integer aperture_type          ! Type of aperture: rectanular$, elliptical$, or custom$. 
+  integer field_calc             ! bmad_standard$, no_field$, fieldmap$, custom$, etc.
+  integer ref_species            ! Reference species (not_set$ by default).
+  integer aperture_at            ! Aperture location: exit_end$, entrance_end$, etc.
+  integer aperture_type          ! Type of aperture: rectangular$, elliptical$, or custom$.
   integer orientation            ! -1 -> Element is longitudinally reversed. +1 -> Normal.
   logical symplectify            ! Symplectify mat6 matrices.
   logical mode_flip              ! Have the normal modes traded places?
-  logical multipoles_on          ! For turning multipoles on/off
-  logical scale_multipoles       ! multipole components scaled by the strength of element?
-  logical taylor_map_includes_offsets       ! Taylor map calculated with element offsets?
+  logical multipoles_on          ! For turning multipoles on/off.
+  logical scale_multipoles       ! Multipole components scaled by strength of element?
+  logical taylor_map_includes_offsets  ! Taylor map calculated with element misalignments?
   logical field_master           ! Calculate strength from the field value?
   logical is_on                  ! For turning element on/off.
   logical logic                  ! For general use. Not used by Bmad.
   logical bmad_logic             ! For Bmad internal use only.
   logical select                 ! For element selection. Used by make_hybrid_ring, etc.
-  logical csr_method             ! Coherent synchrotron radiation calculation
-  logical space_charge_method    ! Space charge method.
-  logical offset_moves_aperture  ! element offsets affects aperture?          
+  logical offset_moves_aperture  ! Element offsets affect aperture position?
 end type
 \end{verbatim}
 \caption[The \vn{ele_struct} (part 2).]{The \vn{ele_struct}. 
@@ -161,14 +171,24 @@ In the ``normal'' course of events, the pointers of an \vn{ele_struct} variable 
 pointing to the same memory locations as the pointers of any other \vn{ele_struct} variable. To make
 sure of this, the equal sign in the assignment \vn{ele1 = ele2} is overloaded by the routine
 \Hyperref{r:ele.equal.ele}{ele_equal_ele}.  The exception here are the ``Electro-magnetic field
-component'' pointers \vn{ele%wig_term}, \vn{ele%em_field%mode(:)%map}, and
-\vn{ele%em_field%mode(:)%grid}. Since these components potentially contain large arrays, and since
-the individual sub-components of these components are not likely to be individually modified, The
-field component pointers of \vn{ele1} and \vn{ele2} after the set \vn{ele1 = ele2} will point at the
-same memory locations.
+component'' pointer arrays \vn{ele%cartesian_map}, \vn{ele%cylindrical_map},
+\vn{ele%gen_grad_map}, and \vn{ele%grid_field}. Since these components potentially contain large
+arrays, and since the individual sub-components are not likely to be individually modified, the
+field component pointers of \vn{ele1} and \vn{ele2} after the set \vn{ele1 = ele2} will point at
+the same memory locations.
 
 Note: The assignment \vn{ele1 = ele2} will not modify \vn{ele1%ix_ele} or \vn{ele1%ix_branch}. If
 \vn{ele1} is associated with a lattice then \vn{ele1%lat} will also be unaffected.
+
+%--------------------------------------------------------------------------
+\section{Miscellaneous}
+\label{s:ele.misc}
+
+The \vn{%ref_species} integer component stores the reference particle species for an element
+This can differ from element to element in a branch due to \vn{converter} or \vn{foil} elements.
+Note: The setting of \vn{branch%param%particle} gives the reference species at the beginning of
+a branch and this will correspond to the setting of \vn{%ref_species} of the beginning element
+of that branch.
 
 %--------------------------------------------------------------------------
 \section{Element Attribute Bookkeeping}
@@ -305,18 +325,19 @@ should not be modified outside of \vn{attribute_bookkeeper}.
 
 \index{ele_struct!\%ix_ele}
 \index{ele_struct!\%ix_branch}
-\index{ele_struct!\%lat}
+\index{ele_struct!\%branch}
 If an element is part of a \vn{lat_struct} (\sref{c:lat.struct}), the
 \vn{%ix_ele} and \vn{%ix_branch} components of the \vn{ele_struct}
-identify where the element is. Additionally, the \vn{%lat} component
-will point to the encomposing lattice. That is
+identify where the element is. Additionally, the \vn{%branch} component
+points to the \vn{branch_struct} containing the element, and the
+enclosing \vn{lat_struct} is accessed via \vn{ele%branch%lat}. That is
 \begin{example}
   type (lat_struct), pointer :: lat
   type (ele_struct), pointer :: ele2
   if (ele%ix_ele > -1) then
     ie = ele%ix_ele
     ib = ele%ix_branch
-    lat => ele%lat
+    lat => ele%branch%lat
     ele2 => lat%branch(ib)%ele(ie)
     print *, associated(ele2, ele)  ! Will print True.
   endif
@@ -324,9 +345,9 @@ will point to the encomposing lattice. That is
 In this example the \vn{ele2} pointer is constructed to point to the \vn{ele} element. The test
 (\vn{ele%ix_ele}~>~-1) is needed since \vn{ele_struct} elements may exist outside of any
 \vn{lat_struct} instance. Such ``external'' elements always have \vn{%ix_ele}~<~0.  A value for
-\vn{%ix_ele} of -2 is special in that it prevents the
+\vn{%ix_ele} of \vn{ix_slice_slave\$} (= -2) is special in that it prevents the
 \Hyperref{r:deallocate.ele.pointers}{deallocate_ele_pointers} routine from deallocating the pointers
-of an element which has its \vn{%ix_ele} set to -2.
+of an element which has its \vn{%ix_ele} set to \vn{ix_slice_slave\$}.
 
 An element ``slice'' is an example of an element that exists external to any \vn{lat_struct}
 instance. A slice is an \vn{ele_struct} instance that represents some sub-section of a given
@@ -360,10 +381,15 @@ for more details.
 \index{ele_struct!\%a}\index{ele_struct!\%b}\index{ele_struct!\%z}
 \index{ele_struct!\%mode3}\index{ele_struct!\%mode_flip}
 
-The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat}, 
-\vn{%gamma_c}, \vn{%mode_flip}, and \vn{mode3} 
+The components \vn{%a}, \vn{%b}, \vn{%z}, \vn{%x}, \vn{%y}, \vn{%c_mat},
+\vn{%gamma_c}, \vn{%mode_flip}, and \vn{%mode3}
 hold information on the Twiss parameters, dispersion, and coupling
 at the downstream end of the element. See \cref{c:normal.modes} for more details.
+
+\index{ele_struct!\%dc_mat_dpz}
+The \vn{%dc_mat_dpz(2,2)} component stores the chromatic derivative of the $2 \times 2$
+C-coupling matrix: $\partial C / \partial p_z$. This is computed along with the C matrix
+during the normal mode analysis.
 
 %--------------------------------------------------------------------------
 \section{Element Lords and Element Slaves}
@@ -376,18 +402,20 @@ at the downstream end of the element. See \cref{c:normal.modes} for more details
 \index{ele_struct!\%lord_status}
 \index{ele_struct!\%n_lord}
 \index{ele_struct!\%n_lord_field}
+\index{ele_struct!\%n_lord_ramper}
 \index{ele_struct!\%ic1_lord}
 \index{ele_struct!\%component_name}
 In \bmad, elements in a lattice can control other elements.
 The components that determine this control are:
 \begin{example}
   %slave_status
-  %n_slave
-  %n_slave_field
+  %n_slave          ! Number of slaves (not counting field overlap slaves)
+  %n_slave_field    ! Number of field overlap slaves
   %ix1_slave
   %lord_status
-  %n_lord
-  %n_lord_field
+  %n_lord           ! Number of lords (not counting field overlap and ramper lords)
+  %n_lord_field     ! Number of field overlap lords
+  %n_lord_ramper    ! Number of ramper lords
   %ic1_lord
   %component_name
 \end{example}
@@ -399,17 +427,26 @@ This is explained fully in the chapter on the \vn{lat_struct} (\sref{c:lat.struc
 \label{s:control.ele}
 \index{group}\index{overlay}
 
-\vn{Group} and \vn{overlay} elements use the \vn{%control_var(:)} array for storing information about
-the control variables. Each element in the array represents a single variable. \vn{%control_var(:)}
-is an array of \vn{controller_var_struct} structures and these structures look like:
+\vn{Group}, \vn{overlay}, and \vn{ramper} elements use the \vn{%control} pointer for storing
+controller information. \vn{%control} points to a \vn{controller_struct} which holds the control
+variables and ramp expressions:
 \begin{example}
   type controller_struct
+    type (control_var1_struct), allocatable :: var(:)      ! Control variables
+    type (control_ramp1_struct), allocatable :: ramp(:)    ! For ramper lord elements
+    type (ramper_lord_struct), allocatable :: ramper_lord(:) ! Ramper lord info for this slave
+    real(rp), allocatable :: x_knot(:)
+  end type
+\end{example}
+The \vn{var(:)} component is an array of \vn{control_var1_struct} elements, one per control variable:
+\begin{example}
+  type control_var1_struct
     character(40) :: name = ""
     real(rp) :: value = 0
     real(rp) :: old_value = 0
   end type
 \end{example}
-The \vn{%old_value} component is only used for \vn{group} elements. 
+The \vn{%old_value} component of \vn{control_var1_struct} is only used for \vn{group} elements.
 
 See Section~\sref{s:lat.add.delete} for an example of setting up a controller element within a program.
 
@@ -582,41 +619,25 @@ example, to ensure that when a marker is superimposed on top of a
 wiggler the reference orbit, and hence the reference time, is not altered.
 
 %--------------------------------------------------------------------------
-\section{EM Fields}
+\section{EM Field Maps}
 \label{s:ele.em.field}
 
-\index{ele_struct!\%em_field}
-\vn{%em_field} component holds information on 
-the electric and magnetic fields of an element (\sref{s:em.field})
-Since \vn{ele%em_field} is a pointer its association
-status must be tested before any of its sub--components are accessed.
+\index{ele_struct!\%cartesian_map}
+\index{ele_struct!\%cylindrical_map}
+\index{ele_struct!\%gen_grad_map}
+\index{ele_struct!\%grid_field}
+The electromagnetic field of an element may be described using one or more field map
+representations.  These are stored in four pointer array components of the \vn{ele_struct}:
 \begin{example}
-  type (ele_struct) ele
-  ...
-  if (associated(ele%em_field)) then
-    ...
+  ele%cartesian_map(:)     ! Cartesian harmonic field decomposition
+  ele%cylindrical_map(:)   ! Cylindrical harmonic field decomposition
+  ele%gen_grad_map(:)      ! Generalized gradient field model
+  ele%grid_field(:)        ! Sampled-grid field (DC or AC)
 \end{example}
-
-The \vn{ele%em_field} component is of type \vn{em_fields_struct} which
-holds an array of modes
-\begin{example}
-  type em_fields_struct
-    type (em_field_mode_struct), allocatable :: mode(:)
-  end type
-\end{example}
-Each mode has components
-\begin{example}
-  type em_field_mode_struct
-    integer m                     ! Mode varies as cos(m*phi - phi_0)
-    real(rp) freq                 ! Oscillation frequency (Hz)
-    real(rp) :: f_damp = 0        ! 1/Q damping factor
-    real(rp) :: phi0_autoscale = 0     ! Mode oscillates as: twopi * (f * t + phi0_autoscale)
-    real(rp) :: phi0_azimuth = 0  ! Azimuthal orientation of mode.
-    real(rp) :: field_scale = 1   ! Factor to scale the fields by
-    type (em_field_mode_map_struct), pointer :: map => null()
-    type (em_field_grid_struct), pointer :: grid => null()
-  end type
-\end{example}
+Since each of these is a pointer array, its association status must be tested before accessing
+any sub-components. Multiple field map types may be present simultaneously on a single element.
+Full documentation of these structures and the underlying field models is given in
+Chapter~\ref{c:electromagnetic.fields}.
 
 %--------------------------------------------------------------------------
 \section{Wakes}
@@ -701,39 +722,99 @@ explained in \sref{s:lcav}. \vn{%polarized} is a logical that indicates whether 
 polarization angle. If so, then \vn{%angle} is the polarization angle.
 
 %--------------------------------------------------------------------------
-\section {Wiggler Types}
-\index{wiggler!types}
+\section{Wiggler and Undulator Fields}
+\index{wiggler!field maps}
 
-The \vn{%sub_key} component of the \vn{ele_struct} is used to distinguish
-between \vn{map type} and \vn{periodic type} wigglers (\sref{s:ele.key}):
+Wiggler and undulator elements (\vn{wiggler} and \vn{undulator} element types) define their
+magnetic fields using the standard field map components of the \vn{ele_struct} (see
+\sref{s:ele.em.field}): \vn{%cartesian_map}, \vn{%cylindrical_map}, \vn{%gen_grad_map}, or
+\vn{%grid_field}. The field decomposition models are described in detail in
+Chapter~\ref{c:electromagnetic.fields}.
+
+%--------------------------------------------------------------------------
+\section{Spin Transport}
+\label{s:ele.spin}
+\index{ele_struct!\%spin_q}
+\index{ele_struct!\%spin_taylor}
+\index{ele_struct!\%spin_taylor_ref_orb_in}
+
+The linear spin transport through an element is stored in the \vn{%spin_q(0:3,0:6)} array, which
+gives the zeroth and first order quaternion transfer map. The reference orbit about which
+this map is computed is the same as \vn{%map_ref_orb_in}/\vn{%map_ref_orb_out}
+(\sref{s:ele.maps}).
+
+For higher-order spin transport, the full spin Taylor map is stored in
+\vn{%spin_taylor(0:3)}, a quaternion representation as an array of four
+\vn{taylor_struct} elements. The reference orbit for the spin Taylor map
+may differ from the orbital Taylor map reference orbit; it is stored separately
+in \vn{%spin_taylor_ref_orb_in(6)}.
+
+%--------------------------------------------------------------------------
+\section{Radiation Maps}
+\label{s:ele.rad.map}
+\index{ele_struct!\%rad_map}
+
+The \vn{%rad_map} pointer stores radiation damping and stochastic kick matrices for an element.
+It is of type \vn{rad_map_ele_struct}:
 \begin{example}
-  if (ele%key == wiggler\$ .and. ele%sub_key == map_type$) ...
-  if (ele%key == wiggler\$ .and. ele%sub_key == periodic_type$) ...
-\end{example}
-For a \vn{map} type wiggler, the wiggler field terms
-(\sref{s:wiggler.map}) are stored in the \vn{%wig_term(:)} array of
-the \vn{element_struct}. This is an array of \vn{wig_term_struct}
-structure. A \vn{wig_term_struct} looks like:
-\index{wig_term_struct}
-\begin{example}
-  type wig_term_struct
-    real(rp) coef
-    real(rp) kx, ky, kz
-    real(rp) phi_z
-    integer type      ! hyper_y\$, hyper_xy\$, or hyper_x\$
+  type rad_map_ele_struct
+    type (rad_map_struct) rm0, rm1  ! Upstream and downstream half matrices.
+    logical :: stale = .true.
   end type
 \end{example}
-A \vn{periodic} wiggler will have a single \vn{%wig_term(:)} term that
-can be used for tracking purposes, etc. The setting for this
-\vn{wig_term} element is
+Each \vn{rad_map_struct} contains:
 \begin{example}
-  ele%wig_term(1)%ky     = pi / ele%value(l_pole$)
-  ele%wig_term(1)%coef   = ele%value(b_max$)
-  ele%wig_term(1)%kx     = 0
-  ele%wig_term(1)%kz     = ele%wig_term(1)%ky
-  ele%wig_term(1)%phi_z  = (ele%value(l_pole$) - ele%value(l$)) / 2
-  ele%wig_term(1)%type   = hyper_y$
+  type rad_map_struct
+    real(rp) :: ref_orb(6)           ! Reference orbit for the map.
+    real(rp) :: damp_dmat(6,6)       ! Damping correction matrix.
+    real(rp) :: xfer_damp_vec(6)     ! 0th order transfer vector with damping.
+    real(rp) :: xfer_damp_mat(6,6)   ! 1st order matrix with damping.
+    real(rp) :: stoc_mat(6,6)        ! Stochastic (Cholesky-decomposed) kick matrix.
+  end type
 \end{example}
+Since \vn{ele%rad_map} is a pointer, its association status must be tested before use.
+
+%--------------------------------------------------------------------------
+\section{High-Energy Space Charge}
+\label{s:ele.space.charge}
+\index{ele_struct!\%high_energy_space_charge}
+
+The \vn{%high_energy_space_charge} pointer stores the beam parameters needed for high-energy
+space charge calculations. It is of type \vn{high_energy_space_charge_struct}:
+\begin{example}
+  type high_energy_space_charge_struct
+    type (coord_struct) closed_orb   ! Beam orbit
+    real(rp) kick_const
+    real(rp) sig_x, sig_y, sig_z
+    real(rp) phi                     ! Rotation angle, lab to rotated frame.
+    real(rp) sin_phi, cos_phi
+  end type
+\end{example}
+Since \vn{ele%high_energy_space_charge} is a pointer, its association status must be tested
+before accessing sub-components.
+
+%--------------------------------------------------------------------------
+\section{Converter, Foil, and RF Components}
+\label{s:ele.converter.foil.rf}
+\index{ele_struct!\%converter}
+\index{ele_struct!\%foil}
+\index{ele_struct!\%rf}
+
+Three pointer components of the \vn{ele_struct} are used by specialized element types:
+
+\vn{%converter} is used by elements that convert one particle species to another (for example,
+a positron converter target in a linac). It points to a \vn{converter_struct} holding output
+species information and a table of particle distributions as a function of incoming energy and
+material thickness.
+
+\vn{%foil} is used by \vn{foil} elements and points to a \vn{foil_struct} describing the
+material composition of the foil.
+
+\vn{%rf} is used by RF cavity elements to store the stair-step energy model (\vn{rf_ele_struct}).
+This model divides the cavity into a sequence of energy kicks interspersed with drifts. Note that
+\vn{ele%rf} is not allocated for slice and super slaves.
+
+Since all three are pointers, their association status must be tested before use.
 
 %--------------------------------------------------------------------------
 \section {Multipoles}
@@ -761,18 +842,20 @@ A list of \bmad routines for manipulating multipoles can be found in
 A number of \vn{ele_struct} components control tracking and transfer
 map calculations.  These are:
 \begin{example}
-  %mat6_calc_method
-  %tracking_method
-  %taylor_order
-  %symplectify
-  %multipoles_on
-  %taylor_map_includes_offsets
-  %is_on
-  %csr_method
-  %space_charge_method
-  %offset_moves_apaerture
+  %mat6_calc_method           ! Integer switch: bmad_standard$, taylor$, etc.
+  %tracking_method            ! Integer switch: bmad_standard$, taylor$, linear$, etc.
+  %spin_tracking_method       ! Integer switch: bmad_standard$, symp_lie_ptc$, etc.
+  %field_calc                 ! Integer switch: bmad_standard$, no_field$, fieldmap$, etc.
+  %csr_method                 ! Integer switch: off$, one_dim$, steady_state_3d$, etc.
+  %space_charge_method        ! Integer switch: off$, slice$, fft_3d$, cathode_fft_3d$, etc.
+  %symplectify                ! Logical: symplectify mat6 after calculation?
+  %multipoles_on              ! Logical: include multipole components?
+  %taylor_map_includes_offsets ! Logical: Taylor map includes element misalignments?
+  %is_on                      ! Logical: element on or off?
+  %offset_moves_aperture      ! Logical: does element offset move the aperture?
 \end{example}
-See Chapter~\sref{c:tracking} for more details.
+Note that \vn{%csr_method} and \vn{%space_charge_method} are \vn{integer} switch components
+(not logicals). See Chapter~\sref{c:tracking} for more details.
 
 %--------------------------------------------------------------------------
 \section{Custom and General Use Attributes}
@@ -834,12 +917,14 @@ situation is left to any custom code that a program implements to handle custom 
 %--------------------------------------------------------------------------
 \section{Bmad Reserved Variables}
 
-\index{ele_struct!\%ixx} \index{ele_struct!\%bmad_logic} \index{ele_struct!\%iyy} 
+\index{ele_struct!\%ixx} \index{ele_struct!\%iyy} \index{ele_struct!\%izz} \index{ele_struct!\%bmad_logic}
 A number of \vn{ele_struct} components are reserved for \bmad internal use only. These are:
 \begin{example}
   %ixx
   %iyy
+  %izz
   %bmad_logic
+  %select
 \end{example}
 To avoid conflict with multiple routines trying to use these components simultaneously, these
 components are only used for short term bookkeeping within individual routines.
