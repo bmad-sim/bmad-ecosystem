@@ -3052,6 +3052,31 @@ if (size(eles) == 0) then
   return
 endif
 
+! Special handling for "fieldmap" attribute: share fieldmap data from one element to another.
+! Syntax: set element <ele_out> fieldmap = <ele_in>
+
+if (upcase(attribute) == 'FIELDMAP') then
+  call tao_locate_all_elements (value, v_eles, err)
+  if (err) return
+  if (size(v_eles) /= 1) then
+    call out_io (s_error$, r_name, 'SOURCE ELEMENT FOR FIELDMAP TRANSFER MUST BE A SINGLE ELEMENT. ' // &
+                                   'NUMBER OF ELEMENTS MATCHED: ' // int_str(size(v_eles)))
+    return
+  endif
+
+  do i = 1, size(eles)
+    call transfer_fieldmap (v_eles(1)%ele, eles(i)%ele, all$)
+  enddo
+
+  do i = lbound(s%u, 1), ubound(s%u, 1)
+    u => s%u(i)
+    if (.not. u%calc%lattice .or. .not. s%global%lattice_calc_on) cycle
+    call lattice_bookkeeper (u%model%lat)
+  enddo
+
+  return
+endif
+
 !-----------
 ! The first complication is that what is being set can be a logical, switch (like an element's tracking_method), etc.
 ! So use set_ele_attribute to do the set.

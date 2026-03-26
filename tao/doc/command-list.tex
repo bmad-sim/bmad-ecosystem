@@ -1365,14 +1365,20 @@ only the element in the viewed universe is used. See the examples below.
 Note: It is also possible to use the \vn{change element} command to change real (as opposed to
 logical or integer) attributes.
 
+The \vn{fieldmap} pseudo-attribute transfers all fieldmap data (grid fields, cartesian maps,
+cylindrical maps, and generalized gradient maps) from a source element to the target element(s)
+via pointer sharing. This avoids duplicating large field tables in memory when multiple elements
+use the same field data. The \vn{<value>} must resolve to a single source element.
+
 Examples:
 \begin{example}
   set ele rfcav::* is_on = F         ! Turn off all rfcavity elements the viewed universe.
   set ele *@rfcav::* is_on = F       ! Turn off all rfcavity elements in all universes.
-  set ele A:B track_method = linear  ! Set tracking_method for all elements between 
+  set ele A:B track_method = linear  ! Set tracking_method for all elements between
                                      !   elements A and B
   set ele q10w k1 = 0.7              ! Set element q10w k1 of the viewed universe.
   set ele Q* k1 = ele::Q*[k1]|design ! Set model to design values.
+  set ele sol_b fieldmap = sol_a     ! Share sol_a's fieldmap data with sol_b.
 \end{example}
 
 %% set floor_plan --------------------------------------------------------------

@@ -1,0 +1,44 @@
+! Minimal lattice demonstrating fieldmap transfer between elements.
+! sol_a has an inline grid_field; sol_b and sol_c are identical solenoids
+! whose fieldmap data will be shared from sol_a via the Tao command:
+!   set element sol_b fieldmap = sol_a
+!   set element sol_c fieldmap = sol_a
+
+no_digested
+
+parameter[geometry] = open
+parameter[p0c]      = 1e9
+parameter[particle] = electron
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+d1: drift, l = 0.5
+
+sol_a: solenoid, l = 1,
+  tracking_method   = runge_kutta,
+  mat6_calc_method  = tracking,
+  field_calc        = fieldmap,
+  grid_field = {
+    geometry   = rotationally_symmetric_rz,
+    field_type = magnetic,
+    harmonic   = 0,
+    dr         = (0.01, 0.5),
+    r0         = (0, 0, -0.5),
+    pt(0,0) = (0, 0, 1e-4),
+    pt(0,1) = (0, 0, 1e-4),
+    pt(1,0) = (0, 0, 1e-4),
+    pt(1,1) = (0, 0, 1e-4)}
+
+sol_b: solenoid, l = 1,
+  tracking_method   = runge_kutta,
+  mat6_calc_method  = tracking,
+  field_calc        = fieldmap
+
+sol_c: solenoid, l = 1,
+  tracking_method   = runge_kutta,
+  mat6_calc_method  = tracking,
+  field_calc        = fieldmap
+
+lat: line = (sol_a, d1, sol_b, d1, sol_c)
+use, lat

@@ -1,0 +1,15 @@
+&tao_start
+  startup_file = 'tao.startup'
+/
+
+&tao_design_lattice
+  n_universes = 1
+  design_lattice(1)%file = "lat.bmad"
+/
+
+&tao_params
+  global%track_type = 'single'
+  global%optimizer  = 'lmdif'
+  bmad_com%radiation_damping_on      = F
+  bmad_com%radiation_fluctuations_on = F
+/

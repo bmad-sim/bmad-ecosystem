@@ -1,0 +1,10 @@
+! Show that sol_b has no grid_field before transfer
+show ele sol_b
+
+! Transfer fieldmap data from sol_a to sol_b and sol_c
+set element sol_b fieldmap = sol_a
+set element sol_c fieldmap = sol_a
+
+! Confirm sol_b and sol_c now have grid_field data
+show ele sol_b
+show ele sol_c
