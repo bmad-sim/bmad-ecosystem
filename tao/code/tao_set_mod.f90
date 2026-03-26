@@ -3070,7 +3070,9 @@ if (upcase(attribute) == 'FIELDMAP') then
 
   do i = lbound(s%u, 1), ubound(s%u, 1)
     u => s%u(i)
-    if (.not. u%calc%lattice .or. .not. s%global%lattice_calc_on) cycle
+    u%calc%lattice = .true.
+    if (.not. s%global%lattice_calc_on) cycle
+    call set_flags_for_changed_attribute (u%model%lat)
     call lattice_bookkeeper (u%model%lat)
   enddo
 
