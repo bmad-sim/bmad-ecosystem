@@ -1507,7 +1507,7 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
       return
     endif
     ! Field in lord lab coords to field in global coords
-    call rotate_em_field (l1_field, transpose(w_lord_mat), w_lord_mat, calc_dfield)
+    call rotate_em_field (l1_field, w_lord_mat, transpose(w_lord_mat), calc_dfield)
     if (i == 1) then
       lord_field = l1_field
     else
