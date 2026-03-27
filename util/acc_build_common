@@ -200,7 +200,7 @@ func_set_fpic_flags () {
 func_check_fortran_version () {
 
     # Set minimum Fortran compiler versions 
-    GCC_REQ_VER=6.3
+    GCC_REQ_VER=8.1
     IFORT_REQ_VER=17.0.7.259
 
     func_echo_fortran () {

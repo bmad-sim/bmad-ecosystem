@@ -84,7 +84,7 @@ func_set_os_env () {
 func_check_fortran_version () {
 
     # Set minimum Fortran compiler versions 
-    GCC_REQ_VER=6.3
+    GCC_REQ_VER=8.1
     IFORT_REQ_VER=17.0.7.259
 
 
