@@ -124,7 +124,7 @@ def print_help_message ():
 
 re_routine = re.compile(r'(program|subroutine|recursive subroutine|elemental subroutine|' + \
       r'function|recursive function|elemental function|real\(rp\) *function|' +  \
-      r'integer *function|logical *function|interface) ')
+      r'integer *function|logical *function|interface|module procedure) ')
 
 re_routine_name = re.compile(r'\w+')
 
@@ -152,7 +152,7 @@ re_parameter             = re.compile(r' parameter\s*::')
 re_parameter1            = re.compile(r'\s*([\$\w]+)\s*(\(.+\)|)?\s*=')  # match to: "charge_of(-3:n_charge$) = "
 re_type_interface_end    = re.compile(r'end +(type|interface)')
 re_end                   = re.compile(r'end')
-re_routine_name_here     = re.compile(r'program|subroutine|function|interface')
+re_routine_name_here     = re.compile(r'program|subroutine|function|interface|procedure')
 
 def search_f90 (file_name, search_com):
 

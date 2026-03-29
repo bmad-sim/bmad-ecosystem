@@ -41,6 +41,8 @@ elseif (nargs > 0)then
   print_extra = .true.
 endif
 
+!
+
 call bmad_parser (lat_file, lat)
 
 rf_time = 1.0
@@ -48,9 +50,9 @@ open (1, file = lat_file)
 read (1, nml = params)
 close (1)
 
-!
-
 open (1, file = 'output.now')
+
+!
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
@@ -199,11 +201,18 @@ do ib = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-
     write (1, *)
-
   enddo
 enddo
+
+!
+
+call bmad_parser('overlaps.bmad', lat)
+ele => lat%ele(3)
+orb%vec = [0.001_rp, 0.0_rp, 0.002_rp, 0.0_rp, 0.0_rp, 0.0_rp]
+call em_field_calc(ele, lat%param, 0.01_rp, orb, .false., ff)
+write (1, '(a, 3es16.8)') '"overlap-xy" REL 1E-6', ff%B(1:2)
+write (1, '(a, 3es16.8)') '"overlap-z"  ABS 1E-16', ff%B(3)
 
 !
 

@@ -3,6 +3,8 @@ submodule (bmad_routine_interface) allocate_submod
 contains
 
 !----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
 !+
 ! Subroutine allocate_grid_field (g_field, n_gf)
 !
@@ -15,8 +17,6 @@ contains
 !   g_field(:)      -- grid_field_struct, pointer: Array of grid fields.
 !   n_gf            -- integer: size of g_field after allocation
 !-
-
-
 
 module procedure allocate_grid_field ! (g_field, n_gf)
 

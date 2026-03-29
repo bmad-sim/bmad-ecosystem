@@ -111,21 +111,28 @@ dfield_computed = .false.
 if (present(err_flag)) err_flag = .false.
 if (.not. ele%is_on) return
 
-! Has this element been used before? If so nothing to be done.
+! Has this element been used before? If so, nothing to be done.
 
 if (present(used_eles)) then
-  do j = 1, size(used_eles)
-    if (.not. associated (used_eles(j)%ele)) exit
+  n = size(used_eles)
+  do j = 1, n
     if (associated(used_eles(j)%ele, ele)) return
   enddo
+
+  allocate(used_list(n+1))
+  used_list(1:n) = used_eles
+  used_list(n)%ele => ele
+  used_eles = used_list
+
+else
+  allocate(used_list(1))
+  used_list(1)%ele => ele
 endif
 
 !----------------------------------------------------------------------------
 ! super_slave, multipass_slave, and slice_slave, have their field info stored in the associated lord elements.
 
 if (ele%field_calc == refer_to_lords$) then
-  if (.not. present(used_eles)) allocate (used_list(ele%n_lord+5))
-
   ! The lords of an element may have independent misalignments.
   ! So use an orbit that is in the lab frame and not in the slave's reference frame.
   ! Exception: If ele has only one lord. In this case, it is imporant not to go to the lab frame since an RF
@@ -169,17 +176,9 @@ if (ele%field_calc == refer_to_lords$) then
       s_this2 = s_this + ds
     endif
 
-    if (present(used_eles)) then
-      do j = 1, size(used_eles)
-        if (.not. associated(used_eles(j)%ele)) exit
-        if (associated(used_eles(j)%ele, lord)) cycle lord_loop
-      enddo
-      call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
-                            use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles, print_err, ele)
-    else
-      call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
+    call em_field_calc (lord, param, s_this2, this_orb, stay_local, field2, calc_dfield, err, calc_potential, &
                             use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list, print_err, ele)
-    endif
+    if (present(used_eles)) used_eles = used_list
 
     if (err) then
       if (present(err_flag)) err_flag = .true.
@@ -212,27 +211,10 @@ if (ele%field_calc == custom$) then
     return
   endif
   call em_field_custom_ptr (ele, param, s_pos, orbit, local_ref_frame, field, calc_dfield, err_flag, &
-                                    calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_eles)
+                                    calc_potential, use_overlap, grid_allow_s_out_of_bounds, rf_time, used_list)
+  if (present(used_eles)) used_eles = used_list
   return
 end if
-
-!-----
-! If the used_eles list is present then put the present element in the list.
-
-if (present(used_eles)) then
-  do j = 1, size(used_eles)
-    if (associated (used_eles(j)%ele)) cycle
-    used_eles(j)%ele => ele
-    exit
-  enddo
-
-  if (j == size(used_eles) + 1) then
-    call move_alloc(used_eles, used_list)
-    allocate(used_eles(2*j))
-    used_eles(1:j-1) = used_list
-    used_eles(j)%ele => ele
-  endif
-endif
 
 !----------------------------------------------------------------------------
 ! convert to local coords
@@ -1491,8 +1473,9 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
 
   lab_position%r = [lab_orb%vec(1), lab_orb%vec(3), s_lab]
   global_position = coords_local_curvilinear_to_floor (lab_position, ele, w_mat = w_ele_mat, calculate_angles = .false.)
-
+  lord_field = em_field_struct()
   lord_orb = lab_orb
+
   do i = 1, ele%n_lord_field
     lord => pointer_to_lord(ele, i, lord_type = field_lord$)
     lord_position = coords_floor_to_local_curvilinear (global_position, lord, status, w_lord_mat)
@@ -1500,32 +1483,28 @@ if (ele%n_lord_field /= 0 .and. logic_option(.true., use_overlap)) then
     lord_orb%vec(3) = lord_position%r(2)
     ! Set use_overlap = False to prevent recursion.
     call em_field_calc (lord, param, lord_position%r(3), lord_orb, .false., l1_field, calc_dfield, err, &
-          use_overlap = .false., grid_allow_s_out_of_bounds = .true., used_eles = used_eles, &
-          print_err = print_err)
+               use_overlap = .false., grid_allow_s_out_of_bounds = .true., used_eles = used_list, print_err = print_err)
+    if (present(used_eles)) used_eles = used_list
+
     if (err) then
       if (present(err_flag)) err_flag = .true.
       return
     endif
     ! Field in lord lab coords to field in global coords
-    call rotate_em_field (l1_field, transpose(w_lord_mat), w_lord_mat, calc_dfield)
-    if (i == 1) then
-      lord_field = l1_field
-    else
-      lord_field = lord_field + l1_field
-    endif
+    call rotate_em_field (l1_field, w_lord_mat, transpose(w_lord_mat), calc_dfield)
+    lord_field = lord_field + l1_field
   enddo
 
   ! Field in global coords to field in lab coords
 
-  call rotate_em_field (lord_field, transpose(w_ele_mat), transpose(w_ele_mat))
+  call rotate_em_field (lord_field, transpose(w_ele_mat), w_ele_mat)
 
   if (local_ref_frame) then
     call convert_field_ele_to_lab (ele, s_lab, .false., lord_field, calc_dfield, calc_potential)  ! lab -> ele
-    field = field + lord_field
   else
     call convert_field_ele_to_lab (ele, s_body, .true., field, calc_dfield, calc_potential)
-    field = field + lord_field
   endif
+  field = field + lord_field
 
   return
 endif
