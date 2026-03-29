@@ -57,7 +57,7 @@ use expression_mod
 implicit none
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: lord, slave, ele0, lord2, ele2
+type (ele_struct), pointer :: lord, slave, ele0, lord2, ele2, field_lord, field_slave
 type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (floor_position_struct) :: floor, f0, floor2
@@ -94,7 +94,7 @@ type (rf_stair_step_struct), pointer :: step
 
 integer, optional, intent(in) :: type_control, type_mat6, twiss_out, type_field
 integer, optional, intent(out) :: n_lines
-integer ia, ie, im, i1, ig, i, j, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
+integer ia, ie, im, i1, ig, i, j, k, n, is, ix, iw, ix2_attrib, iv, ic, nl2, l_status, a_type, default_val
 integer nl, nt, n_term, n_att, attrib_type, n_char, iy, particle, ix_pole_max, lb(2), ub(2)
 integer id1, id2, id3, ne, na, nn
 
@@ -1086,63 +1086,6 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
     enddo
   endif
 
-  !
-
-  has_it = .false.
-  nl=nl+1; li(nl) = ' '
-  nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
-  nl=nl+1; li(nl) = '   Index   Name                               Type'
-
-  if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
-    do im = 1, ele%n_lord
-      lord => pointer_to_lord(ele, im)
-      if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-      do j = 1, lord%n_lord_field
-        has_it = .true.
-        lord2 => pointer_to_lord(lord, lord%n_lord+im)
-        nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(lord2), key_name(lord2%key)
-      enddo
-    enddo
-  else
-    do im = 1, ele%n_lord_field
-      has_it = .true.
-      lord => pointer_to_lord(ele, ele%n_lord+im)
-      nl=nl+1; write (li(nl), '(3x, a, t48, a16)') ele_full_name(lord), key_name(lord%key)
-    enddo
-  endif
-
-  if (.not. has_it) nl = nl - 3
-
-  !
-
-  if (ele%n_lord_ramper /= 0) then
-    nl=nl+1; li(nl) = ' '
-    nl=nl+1; li(nl) = 'Ramper Lords:'
-    nl=nl+1; li(nl) = '   Ramper_Name               Attribute           Value                Expression/Knot Points'
-    do ix = 1, ele%n_lord_ramper
-      lord => pointer_to_lord(ele, ix, lord_type = ramper_lord$, ix_control = ic)
-      rmp => lord%control%ramp(ic)
-      if (allocated(rmp%stack)) then
-        call split_expression_string (expression_stack_to_string(rmp%stack), 80, 5, li2)
-      else  ! Spline
-        call split_expression_string (knots_to_string(lord%control%x_knot, rmp%y_knot), 80, 5, li2, '),')
-      endif
-      value = ramper_value(lord, rmp, err_flag)
-
-      nl=nl+1; write (li(nl), '(3x, a, t30, a18, es20.12, 4x, a)') ele_full_name(lord), rmp%attribute, value, trim(li2(1))
-      if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
-      do im = 2, size(li2)
-        n = 70
-        if (im == 3 .and. integer_option(short$, type_control) /= all$) then
-          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im)) // ' ... etc.'
-          exit
-        else
-          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
-        endif
-      enddo
-    enddo
-  endif
-
   ! Print info on elements slaves.
 
   nl=nl+1; li(nl) = ' '
@@ -1282,27 +1225,95 @@ if (associated(lat) .and. integer_option(short$, type_control) /= no$) then
     end select
   endif
 
-  ! Print elements that are field overlapped.
+  ! Ramper lords
+
+  if (ele%n_lord_ramper /= 0) then
+    nl=nl+1; li(nl) = ' '
+    nl=nl+1; li(nl) = 'Ramper Lords:'
+    nl=nl+1; li(nl) = '   Ramper_Name               Attribute           Value                Expression/Knot Points'
+    do ix = 1, ele%n_lord_ramper
+      lord => pointer_to_lord(ele, ix, lord_type = ramper_lord$, ix_control = ic)
+      rmp => lord%control%ramp(ic)
+      if (allocated(rmp%stack)) then
+        call split_expression_string (expression_stack_to_string(rmp%stack), 80, 5, li2)
+      else  ! Spline
+        call split_expression_string (knots_to_string(lord%control%x_knot, rmp%y_knot), 80, 5, li2, '),')
+      endif
+      value = ramper_value(lord, rmp, err_flag)
+
+      nl=nl+1; write (li(nl), '(3x, a, t30, a18, es20.12, 4x, a)') ele_full_name(lord), rmp%attribute, value, trim(li2(1))
+      if (nl+size(li2)+100 > size(li)) call re_allocate (li, nl+size(li2)+100)
+      do im = 2, size(li2)
+        n = 70
+        if (im == 3 .and. integer_option(short$, type_control) /= all$) then
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im)) // ' ... etc.'
+          exit
+        else
+          nl=nl+1; li(nl) = ''; li(nl)(n:) = trim(li2(im))
+        endif
+      enddo
+    enddo
+  endif
+
+  ! Elements who overlap this one
 
   has_it = .false.
   nl=nl+1; li(nl) = ' '
-  nl=nl+1; li(nl) = "This element's field overlaps:"
-  nl=nl+1; li(nl) = '   Name                                               Type '
+  nl=nl+1; li(nl) = 'Elements whose fields overlap this one:'
+  nl=nl+1; li(nl) = '   Name                                        Type'
 
   if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
     do im = 1, ele%n_lord
       lord => pointer_to_lord(ele, im)
       if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
-      do j = 1, lord%n_slave_field
+      field_loop: do j = 1, lord%n_lord_field
+        field_lord => pointer_to_lord(lord, j, lord_type = field_lord$)
+        ! field_lord may be a superlord of ele in which case do not print
+        do k = 1, ele%n_lord
+          lord2 => pointer_to_lord(ele, k)
+          if (lord2%ix_ele == field_lord%ix_ele .and. lord2%ix_branch == field_lord%ix_branch) cycle field_loop
+        enddo
         has_it = .true.
-        slave => pointer_to_slave(lord, j, lord_type = field_lord$)
-        nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(slave), trim(key_name(slave%key))
-      enddo
+        nl=nl+1; write (li(nl), '(3x, a, t48, a16)') ele_full_name(field_lord), key_name(field_lord%key)
+      enddo field_loop
+    enddo
+
+  else
+    do im = 1, ele%n_lord_field
+      has_it = .true.
+      lord => pointer_to_lord(ele, im, lord_type = field_lord$)
+      nl=nl+1; write (li(nl), '(3x, a, t48, a16)') ele_full_name(lord), key_name(lord%key)
+    enddo
+  endif
+
+  if (.not. has_it) nl = nl - 3
+
+  ! Print elements that are field overlapped.
+
+  has_it = .false.
+  nl=nl+1; li(nl) = ' '
+  nl=nl+1; li(nl) = "This element's field overlaps:"
+  nl=nl+1; li(nl) = '   Name                                        Type '
+
+  if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) then
+    do im = 1, ele%n_lord
+      lord => pointer_to_lord(ele, im)
+      if (lord%slave_status == multipass_slave$) lord => pointer_to_lord(lord, 1)
+      field_loop2: do j = 1, lord%n_slave_field
+        field_slave => pointer_to_slave(lord, j, slave_type = field_slave$)
+        ! field_lord may be a superlord of ele in which case do not print
+        do k = 1, ele%n_lord
+          lord2 => pointer_to_lord(ele, k)
+          if (lord2%ix_ele == field_slave%ix_ele .and. lord2%ix_branch == field_slave%ix_branch) cycle field_loop2
+        enddo
+        has_it = .true.
+        nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(field_slave), trim(key_name(field_slave%key))
+      enddo field_loop2
     enddo
   else
     do im = 1, ele%n_slave_field
       has_it = .true.
-      slave => pointer_to_slave(ele, im, lord_type = field_lord$)
+      slave => pointer_to_slave(ele, im, slave_type = field_slave$)
       nl=nl+1; write (li(nl), '(3x, a, t48, a)') ele_full_name(slave), trim(key_name(slave%key))
     enddo
   endif

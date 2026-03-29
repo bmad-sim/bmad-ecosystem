@@ -85,6 +85,9 @@ tao_hook_graph_postsetup
 File: hook/tao_hook_init_lattice_post_parse.f90
 tao_hook_init_lattice_post_parse
 
+File: hook/tao_hook_universe_calc_post_process.f90
+tao_hook_universe_calc_post_process
+
 File: code/tao_lmdif_optimizer.f90
 tao_lmdif_optimizer
 
@@ -375,86 +378,6 @@ tao_wave_data_name
 n_char_show
 assignment
 procedure
-procedure
-tao_cmd_history_struct
-tao_real_pointer_struct
-tao_logical_array_struct
-tao_integer_array_struct
-tao_string_array_struct
-tao_expression_info_struct
-tao_eval_node_struct
-tao_ele_pointer_struct
-tao_ele_shape_struct
-tao_drawing_struct
-tao_shape_pattern_point_struct
-tao_shape_pattern_struct
-var_num$
-lat_num$
-data_num$
-ele_num$
-tao_title_struct
-tao_data_var_component_struct
-tao_histogram_struct
-tao_curve_orbit_struct
-tao_curve_color_struct
-tao_curve_struct
-tao_floor_plan_struct
-tao_graph_struct
-tao_plot_struct
-tao_plot_region_struct
-n_curve_pts_init$
-tao_plot_page_struct
-tao_region_array_struct
-tao_plot_array_struct
-tao_graph_array_struct
-tao_curve_array_struct
-tao_spin_map_struct
-tao_data_struct
-tao_d1_data_struct
-tao_d2_data_struct
-tao_data_array_struct
-tao_d1_data_array_struct
-tao_d2_data_array_struct
-tao_var_slave_struct
-tao_var_struct
-tao_v1_var_struct
-tao_var_array_struct
-tao_v1_var_array_struct
-tao_building_wall_orientation_struct
-tao_building_wall_point_struct
-tao_building_wall_section_struct
-tao_building_wall_struct
-tao_global_struct
-tao_alias_struct
-tao_command_file_struct
-do_loop_struct
-n_uni_init$
-tao_common_struct
-tao_init_struct
-tao_beam_shake_struct
-tao_scratch_space_struct
-tao_lat_sigma_struct
-tao_spin_dn_dpz_struct
-tao_spin_ele_struct
-tao_spin_polarization_struct
-tao_plot_cache_struct
-tao_lattice_branch_struct
-tao_lattice_struct
-tao_model_element_struct
-tao_beam_branch_struct
-tao_model_branch_struct
-tao_beam_uni_struct
-tao_universe_calc_struct
-tao_mpi_struct
-tao_dynamic_aperture_struct
-tao_wave_kick_pt_struct
-tao_wave_struct
-tao_ping_scale_struct
-tao_universe_pointer_struct
-tao_universe_struct
-tao_super_universe_struct
-tao_deallocate_plot_cache
-tao_lattice_branches_equal_tao_lattice_branches
 tao_lattice_equal_tao_lattice
 
 File: code/tao_subin_uni_number.f90
@@ -748,7 +671,7 @@ File: code/tao_interface.f90
 tao_interface
 tao_pointer_to_universe
 procedure
-procedure
+tao_pointer_to_universe_int
 tao_hook_branch_calc_def
 tao_hook_command_def
 tao_hook_curve_s_pt_def
@@ -775,6 +698,7 @@ tao_hook_parse_command_args_def
 tao_hook_plot_setup_def
 tao_hook_post_process_data_def
 tao_hook_show_cmd_def
+tao_hook_universe_calc_post_process_def
 tao_pointer_to_universe_int
 tao_pointer_to_universe_str
 tao_uni_atsign_index

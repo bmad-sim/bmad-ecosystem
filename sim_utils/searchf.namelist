@@ -85,23 +85,7 @@ File: string/indexer_mod.f90
 indexer_mod
 indexer
 procedure
-procedure
-procedure
-procedure
-find_index
-procedure
-procedure
-procedure
-procedure
-init_str_index_struct
-find_index0
-find_index1
-find_index2
-find_index3
 indexer_str
-indexer_var_str
-indexer_real
-indexer_int
 
 File: string/nametable_init.f90
 nametable_init
@@ -131,8 +115,6 @@ File: string/location_encode_mod.f90
 location_encode_mod
 location_encode
 procedure
-procedure
-location_encode2
 location_encode1
 
 File: string/unquote.f90
@@ -223,13 +205,7 @@ File: special_functions/modulo2_mod.f90
 modulo2_mod
 modulo2
 procedure
-procedure
-procedure
-procedure
 modulo2_sp
-modulo2_dp
-modulo2_qp
-modulo2_int
 
 File: special_functions/dj_bessel.f90
 dj_bessel
@@ -238,9 +214,7 @@ File: special_functions/sign_of_mod.f90
 sign_of_mod
 sign_of
 procedure
-procedure
 sign_of_real
-sign_of_int
 
 File: special_functions/sqrt_one.f90
 sqrt_one
@@ -386,6 +360,7 @@ naff
 projdd
 ed
 maximize_projection
+special_projection
 interpolated_fft_gsl
 interpolated_fft
 
@@ -433,25 +408,14 @@ pseudo_random$
 quasi_random$
 quick_gaussian$
 exact_gaussian$
+ziggurat$
 random_state_struct
+n_zig
+zig_r
+zig_v
 ran_gauss
 procedure
-procedure
-ran_uniform
-procedure
-procedure
 ran_gauss_scalar
-ran_gauss_vector
-ran_engine
-ran_gauss_converter
-ran_seed_put
-ran_seed_get
-ran_default_state
-ran_uniform_scalar
-ran_uniform_vector
-super_sobseq
-pointer_to_ran_state
-allocate_thread_states
 
 File: math/super_recipes_mod.f90
 super_recipes_mod
@@ -541,6 +505,8 @@ File: math/fourier_mod.f90
 fourier_mod
 coarse_frequency_estimate
 fine_frequency_estimate
+negative_ampsquared
+negative_dampsquared
 fourier_amplitude
 
 File: math/fft_1d.f90
@@ -550,31 +516,7 @@ File: math/rotation_3d_mod.f90
 rotation_3d_mod
 quat_conj
 procedure
-procedure
-quat_mul
-procedure
-procedure
-quat_rotate
-procedure
-procedure
-w_mat_to_axis_angle
-w_mat_to_quat
-quat_to_w_mat
-axis_angle_to_w_mat
-quat_to_omega
-omega_to_quat
-quat_to_axis_angle
-axis_angle_to_quat
 quat_conj_real
-quat_conj_complex
-quat_inverse
-quat_mul_real
-quat_mul_complex
-quat_rotate_real
-quat_rotate_complex
-rotate_vec_given_axis_angle
-rotate_vec
-rotate_mat
 
 File: math/all_phase_fft.f90
 all_phase_fft
@@ -685,6 +627,9 @@ real_path
 File: file/calc_file_number.f90
 calc_file_number
 
+File: file/set_env.f90
+set_env
+
 File: io/get_tty_char_c.c
 init_tty_char_
 get_tty_char_c_
@@ -744,24 +689,7 @@ out_io_output_direct_struct
 out_io_mod_com_struct
 out_io
 procedure
-procedure
-procedure
-procedure
-procedure
-output_direct
-out_io_line_out
-out_io_real
-out_io_int
-out_io_logical
 out_io_line12
-out_io_lines
-insert_numbers
-find_format
-header_io
-out_io_print_and_capture_setup
-out_io_buffer_reset
-out_io_buffer_num_lines
-out_io_buffer_get_line
 
 File: plot/display_size_and_resolution.f90
 display_size_and_resolution
@@ -1022,58 +950,7 @@ File: misc/re_allocate_mod.f90
 re_allocate_mod
 re_allocate
 procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-re_allocate2
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-procedure
-re_allocate2d
-procedure
-procedure
-procedure
-procedure
-procedure
-re_associate
-procedure
-procedure
-procedure
-procedure
-procedure
 re_allocate_string
-re_allocate_var_string
-re_allocate_var_string1
-re_allocate_integer
-re_allocate_complex
-re_allocate_real
-re_allocate_all_pointer
-re_allocate_logical
-re_allocate2_string
-re_allocate2_var_string
-re_allocate2_integer
-re_allocate2_complex
-re_allocate2_real
-re_allocate2_all_pointer
-re_allocate2_logical
-re_allocate_string2d
-re_allocate_var_string2d
-re_allocate_integer2d
-re_allocate_real2d
-re_allocate_logical2d
-re_associate_string
-re_associate_var_string
-re_associate_integer
-re_associate_real
-re_associate_logical
 
 File: misc/value_of_all_ptr.f90
 value_of_all_ptr
@@ -1088,17 +965,7 @@ File: misc/swap_mod.f90
 swap_mod
 swap
 procedure
-procedure
-procedure
-procedure
-procedure
-procedure
 swap_i
-swap_r
-swap_rv
-swap_c
-swap_cv
-swap_cm
 
 File: misc/virtual_memory_usage.f90
 virtual_memory_usage
@@ -1153,72 +1020,13 @@ fortran_cpp_utils
 c_dummy_struct
 vec2fvec
 procedure
+bool_vec2fvec
 fscalar2scalar
 procedure
+bool_fscalar2scalar
 fvec2vec
 procedure
-procedure
-procedure
-procedure
-mat2vec
-procedure
-procedure
-procedure
-procedure
-tensor2vec
-procedure
-procedure
-procedure
-procedure
-vec2mat
-procedure
-procedure
-procedure
-procedure
-vec2tensor
-procedure
-procedure
-procedure
-procedure
-remove_null_in_string
-procedure
-procedure
-f_logic
-procedure
-procedure
-c_logic
-procedure
-procedure
-f_logic_int
-f_logic_bool
-r_size
-i_size
-remove_null_in_string_arr
-remove_null_in_string_char
-to_f_str
-bool_fscalar2scalar
 real_fvec2vec
-int_fvec2vec
-cmplx_fvec2vec
-bool_fvec2vec
-real_mat2vec
-int_mat2vec
-bool_mat2vec
-cmplx_mat2vec
-real_tensor2vec
-int_tensor2vec
-cmplx_tensor2vec
-bool_tensor2vec
-bool_vec2fvec
-real_vec2mat
-int_vec2mat
-bool_vec2mat
-cmplx_vec2mat
-real_vec2tensor
-int_vec2tensor
-cmplx_vec2tensor
-bool_vec2tensor
-set_fortran_string
 
 File: interfaces/sim_utils_interface.f90
 sim_utils_interface
@@ -1280,6 +1088,7 @@ reals_to_table_row
 all_pointer_to_string
 unquote
 real_num_fortran_format
+set_env
 str_count
 str_set
 svd_fit
