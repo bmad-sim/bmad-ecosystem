@@ -670,6 +670,20 @@ if (word(1:5) == 'WALL%') then
   return
 endif
 
+!
+
+if (word(1:20) == 'ELLIPTICAL_CURVATURE' .or. word(1:19) == 'SHPERICAL_CURVATURE' .or. &
+                    (word(1:11) == 'CURVATURE_X' .and. word(13:14) == '_Y')) then
+  call parser_error('SURFACE CURVATURE SYNTAX HAS CHANGED. ' // quote(word) // ' REPLACED BY "CURVATURE" CONSTRUCT.', &
+                    'SEE THE BMAD MANUAL FOR MORE DETAILS.')
+  return
+endif
+
+if (word == 'SURFACE') then
+  call parser_error('THE "SURFACE" HAS BEEN REPLACED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
+  return
+endif  
+
 ! if not an overlay/group then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
 

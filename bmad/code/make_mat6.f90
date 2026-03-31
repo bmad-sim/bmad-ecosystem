@@ -46,13 +46,12 @@ character(*), parameter :: r_name = 'make_mat6'
 ! The beginning element is handled specially.
 ! Also see twiss_propagate1.
 
-if (ele%key == beginning_ele$) then
-  return
-endif
+if (present(err_flag)) err_flag = .false.
+if (ele%key == beginning_ele$) return
 
 ! X-ray mat6 calc not implemented.
-! Since X-ray tracking is highly nonlinear (think cyrstal diffraction and apertures, etc.), a linear
-! transfer matrix is generally useful.
+! Since X-ray tracking is highly nonlinear (think cyrstal diffraction and apertures, etc.), a 
+! transfer matrix is not generally useful.
 
 if (ele%ref_species == photon$) return
 

@@ -8156,31 +8156,31 @@ end subroutine parse_superimpose_command
 !-----------------------------------------------------------------------------------------------
 !-----------------------------------------------------------------------------------------------
 !+
-! Subroutine init_surface_segment (phot, ix, iy)
+! Subroutine init_surface_segment (phot, ix_pt, iy_pt)
 !
-! Routine to init the componentes in ele%photon%segmented%pt(ix,iy) for use with segmented surface calculations.
+! Routine to init the componentes in ele%photon%segmented%pt(ix_pt,iy_pt) for use with segmented surface calculations.
 !
 ! Input:
 !   phot    -- Surface structure.
-!   ix, iy  -- integer: index of grid point to init.
+!   ix_pt, iy_pt  -- integer: index of grid point to init.
 !-
 
-subroutine init_surface_segment (phot, ix, iy)
+subroutine init_surface_segment (phot, ix_pt, iy_pt)
 
 type (photon_element_struct), target :: phot
 type (surface_segmented_struct), pointer :: seg
 type (surface_segmented_pt_struct), pointer :: pt
 
 real(rp) zt, x0, y0, dx, dy, coef_xx, coef_xy, coef_yy, coef_diag, g(3), gs
-integer ix, iy
+integer ix_pt, iy_pt, ix, iy
 
 !
 
 seg => phot%segmented
-pt => seg%pt(ix, iy)
+pt => seg%pt(ix_pt, iy_pt)
 
-x0 = ix * seg%dr(1) + seg%r0(1)
-y0 = iy * seg%dr(2) + seg%r0(2)
+x0 = ix_pt * seg%dr(1) + seg%r0(1)
+y0 = iy_pt * seg%dr(2) + seg%r0(2)
 
 pt%x0 = x0
 pt%y0 = y0
