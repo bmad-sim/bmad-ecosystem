@@ -124,12 +124,12 @@ def print_help_message ():
 
 re_routine = re.compile(r'(program|subroutine|recursive subroutine|elemental subroutine|' + \
       r'function|recursive function|elemental function|real\(rp\) *function|' +  \
-      r'integer *function|logical *function|interface|module procedure) ')
-
+      r'integer *function|logical *function|interface) ')
+re_modp = re.compile(r'(module procedure)')
 re_routine_name = re.compile(r'\w+')
 
-def routine_here (line2, routine_name):
-  match = re_routine.match(line2)
+def routine_here (in_interface, line2, routine_name):
+  match = re_routine.match(line2) or (not in_interface and re_modp.match(line2))
   if match:
     name_match = re_routine_name.match(line2[match.end(1):].lstrip())
     if name_match: routine_name[0] = name_match.group(0)
@@ -146,13 +146,15 @@ re_interface_end         = re.compile(r'end +interface')
 re_type_var              = re.compile(r'type *\(')
 re_type_def              = re.compile(r'type +\w')
 re_type_def_end          = re.compile(r'end +type')
-re_module_begin          = re.compile(r'module')
+re_module_begin          = re.compile(r'module\s+(?!procedure)')
 re_module_header_end     = re.compile(r'contains')
 re_parameter             = re.compile(r' parameter\s*::')
 re_parameter1            = re.compile(r'\s*([\$\w]+)\s*(\(.+\)|)?\s*=')  # match to: "charge_of(-3:n_charge$) = "
 re_type_interface_end    = re.compile(r'end +(type|interface)')
 re_end                   = re.compile(r'end')
 re_routine_name_here     = re.compile(r'program|subroutine|function|interface|procedure')
+re_interface_begin       = re.compile(r'interface')
+re_interface_end         = re.compile(r'end\s+ interface')
 
 def search_f90 (file_name, search_com):
 
@@ -163,6 +165,7 @@ def search_f90 (file_name, search_com):
   have_printed_file_name = False
   in_module_header = False
   in_type_def = False
+  in_interface = False
   routine_name = ['']
   blank_line_found = False
 
@@ -279,6 +282,9 @@ def search_f90 (file_name, search_com):
     if in_type_def and re_type_def_end.match(line2): in_type_def = False
     if not in_type_def and re_type_def.match(line2): in_type_def = True
 
+    if in_interface and re_interface_end.match(line2):       in_interface = False
+    if not in_interface and re_interface_begin.match(line2): in_interface = True
+
     match = re_type_interface_match.match(line2)
     if match and 'struct'.startswith(search_com.search_only_for):
       search_com.found_one = True
@@ -316,8 +322,7 @@ def search_f90 (file_name, search_com):
       continue
 
     # match to subroutine, function, etc. --------
-
-    if routine_here(line2, routine_name):
+    if routine_here(in_interface, line2, routine_name):
       if re_match_str.match(routine_name[0]) and 'routine'.startswith(search_com.search_only_for):
         search_com.found_one = True
         found_one_in_this_file = True
@@ -344,7 +349,7 @@ def search_f90 (file_name, search_com):
         if re_end.match(line2):
           if re_routine_name_here.match(line2[4:].lstrip()):
             count -= 1
-        elif routine_here(line2, routine_name):
+        elif routine_here(in_interface, line2, routine_name):
             count += 1
 
         if count == 0: break
