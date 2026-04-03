@@ -84,8 +84,16 @@ reals_to_string
 File: string/indexer_mod.f90
 indexer_mod
 indexer
-procedure
+find_index
+init_str_index_struct
+find_index0
+find_index1
+find_index2
+find_index3
 indexer_str
+indexer_var_str
+indexer_real
+indexer_int
 
 File: string/nametable_init.f90
 nametable_init
@@ -114,7 +122,7 @@ logic_str
 File: string/location_encode_mod.f90
 location_encode_mod
 location_encode
-procedure
+location_encode2
 location_encode1
 
 File: string/unquote.f90
@@ -204,8 +212,10 @@ complex_error_function
 File: special_functions/modulo2_mod.f90
 modulo2_mod
 modulo2
-procedure
 modulo2_sp
+modulo2_dp
+modulo2_qp
+modulo2_int
 
 File: special_functions/dj_bessel.f90
 dj_bessel
@@ -213,8 +223,8 @@ dj_bessel
 File: special_functions/sign_of_mod.f90
 sign_of_mod
 sign_of
-procedure
 sign_of_real
+sign_of_int
 
 File: special_functions/sqrt_one.f90
 sqrt_one
@@ -414,8 +424,20 @@ n_zig
 zig_r
 zig_v
 ran_gauss
-procedure
+ran_uniform
+zig_table_init
 ran_gauss_scalar
+ran_gauss_vector
+ran_engine
+ran_gauss_converter
+ran_seed_put
+ran_seed_get
+ran_default_state
+ran_uniform_scalar
+ran_uniform_vector
+super_sobseq
+pointer_to_ran_state
+allocate_thread_states
 
 File: math/super_recipes_mod.f90
 super_recipes_mod
@@ -515,8 +537,26 @@ fft_1d
 File: math/rotation_3d_mod.f90
 rotation_3d_mod
 quat_conj
-procedure
+quat_mul
+quat_rotate
+w_mat_to_axis_angle
+w_mat_to_quat
+quat_to_w_mat
+axis_angle_to_w_mat
+quat_to_omega
+omega_to_quat
+quat_to_axis_angle
+axis_angle_to_quat
 quat_conj_real
+quat_conj_complex
+quat_inverse
+quat_mul_real
+quat_mul_complex
+quat_rotate_real
+quat_rotate_complex
+rotate_vec_given_axis_angle
+rotate_vec
+rotate_mat
 
 File: math/all_phase_fft.f90
 all_phase_fft
@@ -688,8 +728,20 @@ s_important$
 out_io_output_direct_struct
 out_io_mod_com_struct
 out_io
-procedure
+output_direct
+out_io_line_out
+out_io_real
+out_io_int
+out_io_logical
 out_io_line12
+out_io_lines
+insert_numbers
+find_format
+header_io
+out_io_print_and_capture_setup
+out_io_buffer_reset
+out_io_buffer_num_lines
+out_io_buffer_get_line
 
 File: plot/display_size_and_resolution.f90
 display_size_and_resolution
@@ -949,8 +1001,34 @@ qp_end_basic
 File: misc/re_allocate_mod.f90
 re_allocate_mod
 re_allocate
-procedure
+re_allocate2
+re_allocate2d
+re_associate
 re_allocate_string
+re_allocate_var_string
+re_allocate_var_string1
+re_allocate_integer
+re_allocate_complex
+re_allocate_real
+re_allocate_all_pointer
+re_allocate_logical
+re_allocate2_string
+re_allocate2_var_string
+re_allocate2_integer
+re_allocate2_complex
+re_allocate2_real
+re_allocate2_all_pointer
+re_allocate2_logical
+re_allocate_string2d
+re_allocate_var_string2d
+re_allocate_integer2d
+re_allocate_real2d
+re_allocate_logical2d
+re_associate_string
+re_associate_var_string
+re_associate_integer
+re_associate_real
+re_associate_logical
 
 File: misc/value_of_all_ptr.f90
 value_of_all_ptr
@@ -964,8 +1042,12 @@ set_logical_to_garbage
 File: misc/swap_mod.f90
 swap_mod
 swap
-procedure
 swap_i
+swap_r
+swap_rv
+swap_c
+swap_cv
+swap_cm
 
 File: misc/virtual_memory_usage.f90
 virtual_memory_usage
@@ -1018,15 +1100,6 @@ logical_is_garbage
 File: misc/fortran_cpp_utils.f90
 fortran_cpp_utils
 c_dummy_struct
-vec2fvec
-procedure
-bool_vec2fvec
-fscalar2scalar
-procedure
-bool_fscalar2scalar
-fvec2vec
-procedure
-real_fvec2vec
 
 File: interfaces/sim_utils_interface.f90
 sim_utils_interface
@@ -1034,103 +1107,6 @@ set_parameter
 set_parameter_real
 set_parameter_int
 set_parameter_logic
-is_alphabetic
-is_decreasing_sequence
-is_increasing_sequence
-is_integer
-is_logical
-is_real
-isatty
-j_bessel
-linear_fit
-linear_fit_2d
-location_decode
-logic_str
-lunget
-match_reg
-milli_sleep
-make_legal_comment
-match_wild
-mat_pseudoinverse
-mat_eigen
-mat_inverse
-mat_rotation
-mat_scale_p0
-mat_symp_conj
-mat_symp_conj_i
-mat_symp_error
-mat_symplectify
-mat_type
-mat_make_unit
-match_word
-max_nonzero
-n_choose_k
-n_spline_create
-nametable_add
-nametable_bracket_indexx
-nametable_change1
-nametable_init
-nametable_remove
-node_put
-ordinal_str
-outer_product
-parse_fortran_format
-pointer_to_locations
-poly_eval
-probability_funct
-quadratic_roots
-query_string
-quote
-quoten
-real_to_string
-reals_to_string
-reals_to_table_row
-all_pointer_to_string
-unquote
-real_num_fortran_format
-set_env
-str_count
-str_set
-svd_fit
-real_path
-real_str
-rms_value
-rot_2d
-run_timer
-sinc
-sincc
-sinhx_x
-skip_header
-sqrt_one
-sqrt_alpha
-str_first_in_set
-str_first_not_in_set
-str_last_in_set
-str_last_not_in_set
-string_to_int
-string_to_real
-string_trim2
-substr
-to_str
-type_this_file
-upcase
-upcase_string
-word_len
-word_read
-set_all_ptr
-str_substitute
-str_match_wild
-str_upcase
-str_downcase
-system_command
-string_trim
-value_of_all_ptr
-virtual_memory_usage
-find_location
-find_location_real
-find_location_int
-find_location_logic
-find_location_str
 
 File: interfaces/parallel_mod.f90
 parallel_mod
