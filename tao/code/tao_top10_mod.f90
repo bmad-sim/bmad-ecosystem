@@ -331,7 +331,14 @@ type (constraint_struct), pointer :: c
 ! Init
  
 call re_allocate (line, 100)
-this_merit = tao_merit()
+if (s%global%lattice_calc_on) then
+  this_merit = tao_merit()
+else
+  s%global%lattice_calc_on = .true.
+  this_merit = tao_merit()
+  s%global%lattice_calc_on = .false.
+endif
+
 top_merit(:)%valid  = .false.; top_merit(:)%name  = ' '
 
 nc = count (s%var(:)%useit_opt)
@@ -499,7 +506,10 @@ nl=nl+1; line(nl) = l1
 !
 
 nl=nl+1; line(nl) = ' '
-nl=nl+1; write (line(nl), '(1x, a, es13.6)') 'figure of merit:', this_merit
+nl=nl+1; write (line(nl), '(1x, a, es13.6)') 'Figure of merit:', this_merit
+if (.not. s%global%lattice_calc_on) then
+  nl=nl+1; write (line(nl), '(1x, a, es13.6)') 'Note! global%lattice_calc_on is set False!'
+endif
 
 call tao_write_lines (iunit, line(1:nl))
 

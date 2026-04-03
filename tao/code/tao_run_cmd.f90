@@ -33,11 +33,16 @@ real(rp) merit0, merit
 integer n_data, i, j, iu0, iu1
 
 character(*)  which
-character(40) :: r_name = 'tao_run_cmd', my_opti
+character(40) :: r_name = 'tao_run_cmd'
 
 logical abort
 
 !
+
+if (.not. s%global%lattice_calc_on) then
+  call out_io(s_info$, r_name, 'Setting global%lattice_calc_on to True to run optimization.')
+  s%global%lattice_calc_on = .true.
+endif
 
 call tao_set_var_useit_opt()
 call tao_set_data_useit_opt()

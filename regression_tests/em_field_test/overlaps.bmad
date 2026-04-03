@@ -1,0 +1,17 @@
+!no_digested
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+parameter[geometry] = open
+parameter[particle] = electron
+beginning[e_tot] = 500e6
+
+ben: sbend, L = 0.66, g = 0.5 
+pip: pipe, L = 3.0
+
+q1: quadrupole, L = 0.2, k1 = 2.0, superimpose, ref = pip, offset = 0
+q1[field_overlaps] = {pip}
+
+lat: line = (ben, pip)
+use, lat

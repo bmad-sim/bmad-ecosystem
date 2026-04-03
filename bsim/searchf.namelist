@@ -146,6 +146,8 @@ ltt_write_custom
 ltt_write_beam_file
 ltt_write_params_header
 ltt_calc_bunch_data
+ltt_core_bunch_construct
+ltt_beam_fraction
 ltt_averages_file_name
 ltt_write_averages_data
 ltt_write_single_mode_sigma_file
@@ -163,6 +165,7 @@ ltt_apply_rampers_to_slave
 ltt_track1_bunch_hook
 ltt_track1_preprocess
 ltt_init_coord
+ltt_space_charge_emit_calc
 
 File: modules/linear_aperture_mod.f90
 linear_aperture_mod

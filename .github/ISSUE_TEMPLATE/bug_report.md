@@ -15,7 +15,8 @@ Using text which can be copied and pasted is preferable to  screenshots to help 
 Try to provide a minimal working example. Of particular importance is the time it takes for the bug
 to appear from the start of running of any program.  This is important since debugging often
 involves running a program multiple times and so computation time can add up especially when running
-under debug mode which can easily slow the computation by a factor of 10.
+under debug mode which can easily slow the computation by a factor of 10. Note: If field maps are used,
+one way to minimize the example is to use a small field map.
 
 Additionally, please try to avoid the use of PyTao and Jupyter notebooks in examples since the code
 debugger cannot not handle this. If the problem is with PyTao, the bug report should created in the
@@ -26,7 +27,7 @@ but leave the input files in a state where the bug is apparent. It can be confus
 are in a state where the bug does not appear.
 
 **To Reproduce**
-Steps to reproduce the behavior:
+Steps to reproduce the behavior. EG:
 1. Go to '...'
 2. Click on '....'
 3. Scroll down to '....'
@@ -37,6 +38,11 @@ A clear and concise description of what you expected to happen.
 
 **Compiler and Operating system**
  Describe compiler with version number and operating system. 
+
+**Bmad version**
+Describe the Bmad version:
+  If using conda, use the command: "conda list bmad"
+  If not using conda, run Tao and use the command "show version" or look in the file tao/version/tao_version_mod.f90.
 
 **Additional context**
 Add any other context about the problem here.

@@ -670,6 +670,20 @@ if (word(1:5) == 'WALL%') then
   return
 endif
 
+!
+
+if (word(1:20) == 'ELLIPTICAL_CURVATURE' .or. word(1:19) == 'SHPERICAL_CURVATURE' .or. &
+                    (word(1:11) == 'CURVATURE_X' .and. word(13:14) == '_Y')) then
+  call parser_error('SURFACE CURVATURE SYNTAX HAS CHANGED. ' // quote(word) // ' REPLACED BY "CURVATURE" CONSTRUCT.', &
+                    'SEE THE BMAD MANUAL FOR MORE DETAILS.')
+  return
+endif
+
+if (word == 'SURFACE') then
+  call parser_error('THE "SURFACE" HAS BEEN REPLACED. SEE THE BMAD MANUAL FOR MORE DETAILS.')
+  return
+endif  
+
 ! if not an overlay/group then see if it is an ordinary attribute.
 ! if not an ordinary attribute then might be a superimpose switch
 
@@ -1537,18 +1551,7 @@ if (attrib_word == 'GRID_FIELD') then
   endif
 
   if (word /= 'hdf5') then
-    if (associated(ele%grid_field)) then
-      i_ptr = size(ele%grid_field) + 1
-      ele0%grid_field => ele%grid_field
-      allocate(ele%grid_field(i_ptr))
-      do i = 1, i_ptr-1
-       ele%grid_field(i) = ele0%grid_field(i)
-      enddo
-      deallocate (ele0%grid_field)
-    else
-      allocate(ele%grid_field(1))
-      i_ptr = 1
-    endif
+    call allocate_grid_field(ele%grid_field, i_ptr)
   endif
 
   if (word == 'binary') then
@@ -1563,7 +1566,26 @@ if (attrib_word == 'GRID_FIELD') then
   elseif (word == 'hdf5') then
     call get_next_word (line, ix, ', ', delim, delim_found, .false.)
     call parser_file_stack('push', line, err = err_flag, open_file = .false.); if (err_flag) return
-    call hdf5_read_grid_field(bp_com%current_file%full_name, ele, ele%grid_field, err_flag, combine = .true.)
+
+    set_done = .false.
+    branch_loop: do ib = 0, ubound(lat%branch, 1)
+      branch => lat%branch(ib)
+      do ie = 1, branch%n_ele_max
+        ele2 => branch%ele(ie)
+        if (.not. associated(ele2%grid_field)) cycle
+        do j = 1, size(ele2%grid_field)
+          if (ele2%grid_field(j)%ptr%file /= bp_com%current_file%full_name) cycle
+          set_done = .true.
+          call allocate_grid_field(ele%grid_field, i_ptr)
+          ele%grid_field(i_ptr) = ele2%grid_field(j)
+          ele%grid_field(i_ptr)%ptr%n_link = ele%grid_field(i_ptr)%ptr%n_link + 1
+          exit branch_loop
+        enddo
+      enddo
+    enddo branch_loop
+
+
+    if (.not. set_done) call hdf5_read_grid_field(bp_com%current_file%full_name, ele, ele%grid_field, err_flag, combine = .true.)
     call parser_file_stack('pop')
     if (err_flag) then
       call parser_error ('ERROR READING HDF5 GRID_FIELD FILE.')

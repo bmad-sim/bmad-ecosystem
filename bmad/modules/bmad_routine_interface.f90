@@ -409,6 +409,12 @@ subroutine allocate_element_array (ele, upper_bound)
   integer, optional :: upper_bound
 end subroutine
 
+module subroutine allocate_grid_field (g_field, n_gf)
+  implicit none
+  type (grid_field_struct), pointer :: g_field(:)
+  integer n_gf
+end subroutine
+
 subroutine allocate_lat_ele_array (lat, upper_bound, ix_branch, do_ramper_slave_setup)
   import
   implicit none

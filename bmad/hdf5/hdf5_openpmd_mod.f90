@@ -1262,13 +1262,15 @@ end subroutine pmd_read_real_dataset_rank3
 subroutine pmd_read_complex_dataset_rank1 (root_id, name, complex_t, conversion_factor, array, error)
 
 type (hdf5_info_struct) info
+type (hdf5_info_struct) val_info
 
 complex(rp) array(:)
 complex(rp), target :: cc(size(array,1))
+complex(rp), target :: c_val
 real(rp), allocatable :: re(:), im(:)
 real(rp) conversion_factor, unit_si
 
-integer(hid_t) :: root_id, z_id, complex_t
+integer(hid_t) :: root_id, z_id, complex_t, a_id
 integer h5_err
 type(c_ptr) :: f_ptr
 
@@ -1277,7 +1279,7 @@ logical error, err
 character(*) name
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank1'
 
-! Non-compound data means old format
+! Non-compound data means old format or constant record component
 
 error = .true.
 
@@ -1285,14 +1287,25 @@ info = hdf5_object_info(root_id, name, error, .true.)
 z_id = hdf5_open_object(root_id, name, info, error, .true.)
 
 if (info%data_class_type /= H5T_COMPOUND_F) then
-  allocate (re(size(array,1)), im(size(array,1)))
-
   call h5gopen_f(root_id, name, z_id, h5_err);                         if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);  if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);  if (err) return
-  call h5gclose_f(z_id, h5_err)
 
-  array = cmplx(re, im, rp)
+  val_info = hdf5_attribute_info(z_id, 'value', err, .false.)  ! Check for openPMD constant record component
+  if (.not. err) then  ! Constant record component: complex value stored as compound attribute
+    call H5Aopen_f(z_id, 'value', a_id, h5_err);                       if (h5_err < 0) return
+    f_ptr = c_loc(c_val)
+    call H5Aread_f(a_id, complex_t, f_ptr, h5_err)
+    call H5Aclose_f(a_id, h5_err)
+    call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, err, .true.); if (err) return
+    array = c_val
+    if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+  else  ! Old format with 'r' and 'i' sub-datasets
+    allocate (re(size(array,1)), im(size(array,1)))
+    call pmd_read_real_dataset (z_id, 'r', conversion_factor, re, err);  if (err) return
+    call pmd_read_real_dataset (z_id, 'i', conversion_factor, im, err);  if (err) return
+    array = cmplx(re, im, rp)
+  endif
+
+  call h5gclose_f(z_id, h5_err)
   error = .false.
   return
 endif
@@ -1339,13 +1352,15 @@ end subroutine pmd_read_complex_dataset_rank1
 subroutine pmd_read_complex_dataset_rank2 (root_id, name, complex_t, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
+type (hdf5_info_struct) val_info
 
 complex(rp) array(:,:)
 complex(rp), target, allocatable :: cc(:,:)
+complex(rp), target :: c_val
 real(rp), allocatable :: re(:,:), im(:,:)
 real(rp) conversion_factor, unit_si
 
-integer(hid_t) :: root_id, z_id, complex_t
+integer(hid_t) :: root_id, z_id, complex_t, a_id
 integer h5_err, i
 type(c_ptr) :: f_ptr
 
@@ -1355,21 +1370,32 @@ character(*) name
 character(*) data_order
 character(*), parameter :: r_name = 'pmd_read_complex_dataset_rank2'
 
-! Non-compound data means old format
+! Non-compound data means old format or constant record component
 
 error = .true.
 
 info = hdf5_object_info(root_id, name, error, .true.)
 
 if (info%data_class_type /= H5T_COMPOUND_F) then
-  allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
-
   call h5gopen_f(root_id, name, z_id, h5_err); if (h5_err == -1) return
-  call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err); if (err) return
-  call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err); if (err) return
-  call h5gclose_f(z_id, h5_err)
 
-  array = cmplx(re, im, rp)
+  val_info = hdf5_attribute_info(z_id, 'value', err, .false.)  ! Check for openPMD constant record component
+  if (.not. err) then  ! Constant record component: complex value stored as compound attribute
+    call H5Aopen_f(z_id, 'value', a_id, h5_err);               if (h5_err < 0) return
+    f_ptr = c_loc(c_val)
+    call H5Aread_f(a_id, complex_t, f_ptr, h5_err)
+    call H5Aclose_f(a_id, h5_err)
+    call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, err, .true.); if (err) return
+    array = c_val
+    if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
+  else  ! Old format with 'r' and 'i' sub-datasets
+    allocate (re(size(array,1), size(array,2)), im(size(array,1), size(array,2)))
+    call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err); if (err) return
+    call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err); if (err) return
+    array = cmplx(re, im, rp)
+  endif
+
+  call h5gclose_f(z_id, h5_err)
   error = .false.
   return
 endif
@@ -1430,13 +1456,15 @@ end subroutine pmd_read_complex_dataset_rank2
 subroutine pmd_read_complex_dataset_rank3 (root_id, name, complex_t, conversion_factor, data_order, array, error)
 
 type (hdf5_info_struct) info
+type (hdf5_info_struct) val_info
 
 complex(rp) array(:,:,:)
 complex(rp), target, allocatable :: cc(:,:,:)
+complex(rp), target :: c_val
 real(rp), allocatable :: re(:,:,:), im(:,:,:)
 real(rp) conversion_factor, unit_si
 
-integer(hid_t) :: root_id, z_id, complex_t
+integer(hid_t) :: root_id, z_id, complex_t, a_id
 integer h5_err, i, j
 type(c_ptr) :: f_ptr
 
@@ -1455,14 +1483,18 @@ info = hdf5_object_info(root_id, name, err, .true.); if (err) return
 
 if (info%data_class_type /= H5T_COMPOUND_F) then
   call h5gopen_f(root_id, name, z_id, h5_err);                                     if (h5_err == -1) return
-  value_here = hdf5_exists(z_id, 'value', err, .false.) ! "value" attribute that means this is a constant record.
+  val_info = hdf5_attribute_info(z_id, 'value', err, .false.)  ! Check for openPMD constant record component
+  value_here = .not. err
 
-  if (value_here) then
-
-    call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, err, .true.); if (err) return
+  if (value_here) then  ! Constant record component: complex value stored as compound attribute
+    call H5Aopen_f(z_id, 'value', a_id, h5_err);                                   if (h5_err < 0) return
+    f_ptr = c_loc(c_val)
+    call H5Aread_f(a_id, complex_t, f_ptr, h5_err)
+    call H5Aclose_f(a_id, h5_err)
+    call hdf5_read_attribute_real(z_id, 'unitSI', unit_si, err, .true.);           if (err) return
+    array = c_val
     if (abs(unit_si - conversion_factor) > 1d-15 * conversion_factor) array = array * (conversion_factor / unit_si)
-
-  else
+  else  ! Old format with 'r' and 'i' sub-datasets
     allocate (re(size(array,1), size(array,2), size(array,3)), im(size(array,1), size(array,2), size(array,3)))
     call pmd_read_real_dataset (z_id, 'r', conversion_factor, data_order, re, err);  if (err) return
     call pmd_read_real_dataset (z_id, 'i', conversion_factor, data_order, im, err);  if (err) return

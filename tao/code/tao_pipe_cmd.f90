@@ -649,13 +649,13 @@ case ('bunch_comb')
   comb1 => bunch_params_comb(ix_bunch)
 
   if (comb1%ds_save < 0) then
-    call invalid ('COMB_DS_SAVE NOT POSITIVE.')
+    call invalid ('COMB_DS_SAVE IS NOT POSITIVE (WHICH IS THE DEFAULT) AND THERE IS NO COMB TO OUTPUT.')
     return
   endif
 
   n = comb1%n_pt
-  if (n < 0) then
-    call invalid ('COMB POINTS NOT CALCULATED.')
+  if (n <= 0) then
+    call invalid ('NO COMB POINTS NOT CALCULATED.')
     return
   endif
 

@@ -167,6 +167,7 @@ end subroutine to_fieldmap_coords
 !
 ! Output:
 !   field           -- em_field_struct: E and B fields and derivatives.
+!                         %E/%B (out) = w_mat * %E/%B (in)
 !-
 
 subroutine rotate_em_field (field, w_mat, w_inv, calc_dfield, calc_potential)

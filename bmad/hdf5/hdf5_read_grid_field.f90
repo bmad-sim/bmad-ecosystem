@@ -70,7 +70,7 @@ endif
 
 it = index(pmd_head%basePath, '/%T/')
 if (it == 0) then
-  call allocate_this_field (g_field, n_grid)
+  call allocate_grid_field (g_field, n_grid)
   z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.); if (err) return
   call read_this_field (z_id, ele, g_field(n_grid), err)
   call H5Gclose_f(z_id, h5_err)
@@ -90,7 +90,7 @@ do idx = 0, n_links-1
     call out_io (s_warn$, r_name, 'NAME OF DIRECTORY IN PATH IS NOT AN INTEGER: ' // quote(name))
     cycle
   endif
-  call allocate_this_field (g_field, n_grid)
+  call allocate_grid_field (g_field, n_grid)
   z_id = hdf5_open_group(f2_id, name, err, .true.);         if (err) return
   call read_this_field(z_id, ele, g_field(n_grid), err);     if (err) return
   call h5gclose_f(z_id, h5_err)
@@ -106,29 +106,6 @@ err_flag = .false.
 
 !--------------------------------------------------------------------------------
 contains
-
-subroutine allocate_this_field (g_field, n_grid)
-
-type (grid_field_struct), pointer :: g_field(:), g_temp(:)
-integer n_grid
-
-!
-
-if (.not. associated(g_field)) then
-  allocate (g_field(1))
-  n_grid = 1
-  return
-endif
-
-n_grid = size(g_field) + 1
-g_temp => g_field
-allocate (g_field(n_grid))
-g_field(1:n_grid-1) = g_temp
-
-end subroutine allocate_this_field
-
-!--------------------------------------------------------------------------------
-! contains
 
 subroutine read_this_field(root_id, ele, gf, err_flag)
 
