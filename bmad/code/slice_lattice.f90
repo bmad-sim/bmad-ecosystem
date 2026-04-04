@@ -1,5 +1,5 @@
 !+
-! Subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
+! Subroutine slice_lattice (lat, ele_list, error, do_bookkeeping, set_phase_zero)
 !
 ! Routine to discard from the lattice all elements not in ele_list.
 ! This is useful if simulations on just a section of a lattice is desired.
@@ -14,24 +14,26 @@
 !
 ! For all branches:
 !   * The Twiss, reference energy, floor position, and s-position parameters from the first 
-!       non-deleted element are transferred to the beginning element.
+!       non-deleted element are transferred to the beginning element. 
+!       Exception: The betatron phase is set to zero.
 !   * The beginning betatron phase is set to zero.
 !   * The branch geometry is set to open.
 !
 ! Input:
-!   lat            -- lat_struct: Lattice to slice.
-!   ele_list       -- character(*): List of elements to retain. See the documentation for
-!                      the lat_ele_locator routine for the syntax of the list.
-!   do_bookkeeping -- logical, optional: Default is True. If false, the calling routine is responsible for:
-!                       * Modifying lat%particle_start if needed.
-!                       * Calculating Twiss functions.
+!   lat             -- lat_struct: Lattice to slice.
+!   ele_list        -- character(*): List of elements to retain. See the documentation for
+!                       the lat_ele_locator routine for the syntax of the list.
+!   do_bookkeeping  -- logical, optional: Default is True. If false, the calling routine is responsible for:
+!                        * Modifying lat%particle_start if needed.
+!                        * Calculating Twiss functions.
+!   set_phase_zero  -- logical, optional: Default is True. Set betatron phase to zero?
 !
 ! Output:
-!   lat           -- lat_struct: Lattice with unwanted elements sliced out.
-!   error         -- logical: Set True if there is an error Set False if not.
+!   lat             -- lat_struct: Lattice with unwanted elements sliced out.
+!   error           -- logical: Set True if there is an error Set False if not.
 !-
 
-subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
+subroutine slice_lattice (lat, ele_list, error, do_bookkeeping, set_phase_zero)
 
 use twiss_and_track_mod, dummy => slice_lattice
 use fixer_mod, only: transfer_fixer_params
@@ -44,7 +46,7 @@ type (ele_struct), pointer :: ele, ele0, ele1, ele2
 type (ele_pointer_struct), allocatable :: eles(:)
 
 integer i, j, ie, ib, n_loc, n_links, ix_pass, status
-logical, optional :: do_bookkeeping
+logical, optional :: do_bookkeeping, set_phase_zero
 logical error, err, is_ok
 
 character(*) ele_list
@@ -99,7 +101,7 @@ enddo
 ! Transfer particle_start orbit
 
 if (logic_option(.true., do_bookkeeping)) then
-  call twiss_and_track(lat, orb_array, status, calc_chrom = .true.)
+  call twiss_and_track(lat, orb_array, status, calc_chrom = .true., use_particle_start = .true.)
   if (status == ok$) then
     do ib = 0, ubound(lat%branch, 1)
       branch => lat%branch(ib)
@@ -139,9 +141,13 @@ do ib = 0, ubound(lat%branch, 1)
     ele0%value(e_tot_start$) = ele0%value(e_tot$)
     ele0%value(p0c$)         = ele1%value(p0c$)
     ele0%value(p0c_start$)   = ele0%value(p0c$)
-    ele0%a%phi = 0
-    ele0%b%phi = 0
-    ele0%z%phi = 0
+    ele0%map_ref_orb_in      = ele1%map_ref_orb_out
+    ele0%map_ref_orb_out     = ele1%map_ref_orb_out
+    if (logic_option(.true., set_phase_zero)) then
+      ele0%a%phi = 0
+      ele0%b%phi = 0
+      ele0%z%phi = 0
+    endif
     call set_flags_for_changed_attribute(ele0, ele0%value(p0c$))
     exit
   enddo

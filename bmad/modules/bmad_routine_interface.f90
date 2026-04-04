@@ -2677,13 +2677,13 @@ function significant_difference (value1, value2, abs_tol, rel_tol) result (is_di
   logical is_different
 end function
 
-subroutine slice_lattice (lat, ele_list, error, do_bookkeeping)
+subroutine slice_lattice (lat, ele_list, error, do_bookkeeping, set_phase_zero)
   import
   implicit none
   type (lat_struct), target :: lat
   character(*) ele_list
   logical error
-  logical, optional :: do_bookkeeping
+  logical, optional :: do_bookkeeping, set_phase_zero
 end subroutine
 
 subroutine sol_quad_mat6_calc (ks_in, k1_in, tilt, length, ele, orbit, mat6, make_matrix)
