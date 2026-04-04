@@ -184,6 +184,7 @@ character(20) :: r_name = 'twiss_and_track1'
 ! matrix in order for it to do the calculation.
 
 branch => lat%branch(ix_branch)
+status = ok$
 
 ! A match element may complicate things since in order to track correctly we may
 ! need to know the Twiss parameters. This situation is only allowed for open lattices.
@@ -224,8 +225,8 @@ if (branch%param%geometry == closed$) then
   endif
 
 ! Open geometry
-else
 
+else
   if (branch%ix_fixer /= 0) then
     call track_all(lat, orb, branch%ix_branch, track_state, err_flag)
     if (err_flag .or. track_state /= moving_forward$) then
