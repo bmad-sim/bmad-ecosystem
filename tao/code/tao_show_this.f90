@@ -745,7 +745,7 @@ case ('branch')
 
     nl=nl+1; write(lines(nl), fmt) i, ': ', branch%name, branch%n_ele_track, branch%n_ele_max, &
               trim(species_name(branch%param%particle)), trim(species_name(branch%param%default_tracking_species)), &
-              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name, branch%ele(branch%ix_fixer)%name
+              trim(geometry_name(branch%param%geometry)), branch%param%live_branch, ele_name, ele_full_name(branch%ele(branch%ix_fixer))
   enddo
 
   nl=nl+1; lines(nl) = ''

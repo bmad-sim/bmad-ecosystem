@@ -10,9 +10,9 @@ type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct), allocatable :: orbit(:), orbit2(:)
 
 real(rp) :: chrom_a, chrom_b, delta_e = 0
-integer n_loc
-logical ok
-character(2) :: run_str(3) = ['R1', 'R2', 'R3']
+integer ix, n_loc
+logical ok, err
+character(2) :: run_str(4) = ['R1', 'R2', 'R3', 'Sl']
 
 !
 
@@ -29,15 +29,31 @@ lat = lat2
 
 call lat_ele_locator('fixer::*', lat, eles, n_loc)
 
-call this_fixer_test(1, eles(1)%ele)
-call this_fixer_test(2, eles(2)%ele)
-call this_fixer_test(3, lat%ele(0))
+call this_fixer_test(1, eles(1)%ele, orbit)
+call this_fixer_test(2, eles(2)%ele, orbit)
+call this_fixer_test(3, lat%ele(0), orbit)
 
+!----------
+
+bmad_com%radiation_damping_on = .false.
+call twiss_and_track(lat, orbit, calc_chrom = .true., use_particle_start = .true.)
+lat2 = lat
+ix = eles(2)%ele%ix_ele
+ok = transfer_fixer_params(eles(2)%ele, .true., orbit2(ix))
+call slice_lattice(lat2, '3:8', err, set_phase_zero = .false.)
+call twiss_and_track(lat2, orbit2, calc_chrom = .true., use_particle_start = .true.)
+
+call orbit_delta_write(4, 1, orbit(8), orbit2(6))
+call twiss_delta_write(4, 1, 'A', lat%ele(8)%a, lat2%ele(6)%a)
+call twiss_delta_write(4, 1, 'B', lat%ele(8)%b, lat2%ele(6)%b)
+call twiss_delta_write(4, 1, 'Z', lat%ele(8)%z, lat2%ele(6)%z)
+call disp_delta_write(4, 1, 'X', lat%ele(8)%x, lat2%ele(6)%x)
+call disp_delta_write(4, 1, 'Y', lat%ele(8)%y, lat2%ele(6)%y)
 
 !------------------------------------------------------------------------------------------
 contains
 
-subroutine this_fixer_test(indx, fixer)
+subroutine this_fixer_test(indx, fixer, orbit)
 
 type (ele_struct) fixer, ele0, eleN
 type (coord_struct), allocatable :: orbit(:)
@@ -54,7 +70,7 @@ call set_active_fixer(fixer, .true., fix_orb)
 
 if (fixer%ix_ele /= 0) call init_this_ele(lat%ele(0))
 call init_this_ele(lat%ele(nn))
-
+if (allocated(orbit)) deallocate(orbit)
 call twiss_and_track(lat, orbit, orb_start = orbit2(fixer%ix_ele))
 call chrom_calc(lat, delta_e, chrom_a, chrom_b, orb0 = orbit2(fixer%ix_ele))
 
@@ -72,8 +88,6 @@ call twiss_delta_write(indx, nn, 'B', lat%ele(nn)%b, lat2%ele(nn)%b)
 call twiss_delta_write(indx, nn, 'Z', lat%ele(nn)%z, lat2%ele(nn)%z)
 call disp_delta_write(indx, nn, 'X', lat%ele(nn)%x, lat2%ele(nn)%x)
 call disp_delta_write(indx, nn, 'Y', lat%ele(nn)%y, lat2%ele(nn)%y)
-
-deallocate(orbit)
 
 end subroutine this_fixer_test
 
