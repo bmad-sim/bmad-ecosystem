@@ -1127,7 +1127,9 @@ if (ix1 == 0) then
     if (bp_com%undefined_vars_evaluate_to_zero) then
       call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, 'WILL TREAT AS ZERO.', level = s_warn$)
     else
-      call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word)
+      call parser_error ('VARIABLE USED BUT NOT YET DEFINED: ' // word, &
+                         'NOTE: IF YOU WANT UNDEFINED VARS TO BE TREATED AS ZERO,', &
+                         'SET "UNDEFINED_VARS_EVALUATE_TO_ZERO" IN THE LATTICE FILE (BUT THIS IS *NOT* RECOMMENDED).')
       return
     endif
     value = 0
