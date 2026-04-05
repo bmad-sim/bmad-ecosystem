@@ -278,6 +278,15 @@ parsing_loop: do
   endif
 
   !-------------------------------------------
+  ! UNDEFINED_VARS_EVALUATE_TO_ZERO
+
+  if (word_1(:ix_word) == 'UNDEFINED_VARS_EVALUATE_TO_ZERO') then
+    bp_com%undefined_vars_evaluate_to_zero = .true.
+    call parser_error('Note: Found "UNDEFINED_VARS_EVALUATE_TO_ZERO" statement.', level = s_warn$)
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
   ! USE_LOCAL_LAT_FILE
 
   if (word_1(:ix_word) == 'USE_LOCAL_LAT_FILE') then

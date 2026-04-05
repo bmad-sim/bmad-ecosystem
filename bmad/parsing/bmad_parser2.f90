@@ -85,6 +85,7 @@ debug_line = ''
 
 if (lat_file /= 'FROM: BMAD_PARSER') then
   bp_com%do_superimpose = .true.
+  bp_com%undefined_vars_evaluate_to_zero = .false.
   call parser_file_stack('init')
   call parser_file_stack('push', lat_file, finished, err)   ! open file on stack
   if (err) return
@@ -324,6 +325,23 @@ parsing_loop: do
 
   if (word_1(:ix_word) == 'PRINT') then
     call parser_print_line(lat, end_of_file)
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! UNDEFINED_VARS_EVALUATE_TO_ZERO
+
+  if (word_1(:ix_word) == 'UNDEFINED_VARS_EVALUATE_TO_ZERO') then
+    bp_com%undefined_vars_evaluate_to_zero = .true.
+    call parser_error('Note: Found "UNDEFINED_VARS_EVALUATE_TO_ZERO" statement.', level = s_warn$)
+    cycle parsing_loop
+  endif
+
+  !-------------------------------------------
+  ! USE_LOCAL_LAT_FILE
+
+  if (word_1(:ix_word) == 'USE_LOCAL_LAT_FILE') then
+    bp_com%use_local_lat_file = .true.
     cycle parsing_loop
   endif
 

@@ -224,7 +224,7 @@ be abbreviated when using inheritance). For example:
 A valid element name may be up to 40 characters in length. The first character of the name must be a
 letter [A-Z]. After that, the rest of the name can contain only letters, digits [0-9], underscore
 ``_'', period ``.'', backslash ``\B'', or a hash mark ``\#''. A double hash mark ``\#\#'' is not
-permitted since this interfers with the notation for finding the $N$\Th element with a given name
+permitted since this interferes with the notation for finding the $N$\Th element with a given name
 (\sref{s:ele.match}). It is best to avoid these last three symbols since \bmad uses them to denote
 ``relationships''. Periods are used for tagging (\sref{s:tag}), and backslash and hash marks are
 used for to compose names for superposition (\sref{c:super}) and multipass (\sref{c:multipass})
@@ -248,9 +248,10 @@ There is a short list of names that cannot be used as an element, line or list n
   calc_reference_orbit             parser_debug                 start_branch_at
   combine_consecutive_elements     particle_start               superimpose
   debug_marker                     print                        title
-  end_file                         redef                        use
-  expand_lattice                   remove_elements              use_local_lat_file
-  merge_elements                   return                       write_digested
+  end_file                         redef                        undefined_vars_evaluate_to_zero 
+  expand_lattice                   remove_elements              use
+  merge_elements                   return                       use_local_lat_file
+                                                                write_digested
 \end{example}
 Note: The one exception is if \vn{end} is used to define a \vn{marker}. This exception is allowed
 since \bmad uses the \vn{end} name to define a marker in any case.
@@ -679,7 +680,7 @@ Wall for vacuum chambers and masks (\sref{s:wall}):
 \index{element attributes!defining custom attributes}
 
 Real scalar and vector custom element attributes may be defined for any class of element and real
-scaler parameters can be defined for the lattice as a whole.  Custom element attributes are useful
+scalar parameters can be defined for the lattice as a whole.  Custom element attributes are useful
 with programs that need to associate ``extra'' information with particular lattice elements or the
 lattice itself and it is desired that this extra information be settable from within a lattice
 file. For example, a program might need an error tolerance for the strength of quadrupoles.
@@ -845,7 +846,7 @@ mass shifts due to finite electron binding energies. This shift is small typical
 than 1\% of the mass of the electron.
 
 Anti-atoms made with antimatter have names using the prefix \vn{``anti''}. For example, a bare
-gold anti-atom nucleous would be designated \vn{antiAu-79}.
+gold anti-atom nucleus would be designated \vn{antiAu-79}.
 
 Note: When setting the reference momentum \vn{parameter[p0c]}, or reference total energy
 \vn{parameter[E_tot]}, the total for the whole particle is used. {\em Not} the value per nucleon.
@@ -1283,7 +1284,7 @@ is parsed. However, environment variables that have defined will be retained eve
 lattice file is parsed.
 
 Environment variables that are set are local to the execution of the program that calls the lattice
-parser and do not persist after the progam terminates.
+parser and do not persist after the program terminates.
 
 %-----------------------------------------------------------------------------
 \section{Print Statement}
@@ -1399,6 +1400,20 @@ the HDF5 file, which must have a \vn{.h5} or \vn{.hdf5} suffix, can be read in w
 To create hdf5 files, first create a lattice with the grid_field defined with plain text. Next read
 the lattice into any program that can create \bmad lattice files (for example, the \tao program
 (\sref{s:tao.intro}) can do this) and have the program then generate a lattice file.
+
+%--------------------------------------------------------------------------
+\section{Undefined_vars_evaluate_to_zero Statement}
+\index{undefined_vars_evaluate_to_zero|hyperbf}
+
+Normally, using an undefined variable in an expression is treated as an error. This helps
+prevent spelling bugs. This is in contrast to \mad where undefined variables are treated
+as zero. Occasionally, it is convenient to follow the \mad convention for lattice files
+translated from \mad. To do this, put at the top of the lattice file the command:
+\begin{example}
+  undefined_vars_evaluate_to_zero 
+\end{example}
+Note that use of this command is discouraged. The superior fix is just to define the variables
+to be zero before any use.
 
 %--------------------------------------------------------------------------
 \section{Use_local_lat_file Statement}
