@@ -73,14 +73,6 @@ ELSE ()
   set (PACKAGES_DIR ${RELEASE_DIR})
 ENDIF ()
 
-# Explicitly remove 32-bit Libraries from Linux build PATH for 64-bit builds - RT#43178
-# Added /lib to further restict 32-bit Linux build PATH - RT#56203
-IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT "$ENV{ACC_FORCE_32_BIT}" MATCHES "Y")
-  SET (CMAKE_IGNORE_PATH /lib /usr/lib)
-  SET (CMAKE_SYSTEM_IGNORE_PATH /lib /usr/lib)
-ENDIF ()
-
-  
 IF (FORTRAN_COMPILER MATCHES "gfortran")
 
   SET (RELEASE_NAME $ENV{DIST_BASE_DIR})
