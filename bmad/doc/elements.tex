@@ -1802,7 +1802,7 @@ In this example the field of an e_gun is given by a grid of field
 values (\sref{s:grid.field}):
 \begin{example}
   apex: e_gun, l = 0.23, field_calc = fieldmap, rf_frequency = 187e6, 
-                grid_field = call::apex_gun_grid.bmad
+                grid_field = call::apex_gun_grid.bmad, delta_E_ref = 1000
 \end{example}
 with the file \vn{apex_gun_grid.bmad} being:
 \begin{example}
@@ -1816,6 +1816,9 @@ with the file \vn{apex_gun_grid.bmad} being:
     pt(0,1) = ( (0, 0), (0, 0), (0.99, 0),  (0, 0), (0, 0), (0, 0)),
     ... \}
 \end{example}
+
+
+Note: Before the parameter \vn{delta_E_ref} was \etcetc
 
 \newpage
 

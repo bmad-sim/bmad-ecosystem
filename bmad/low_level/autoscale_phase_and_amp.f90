@@ -185,10 +185,8 @@ phi_tol = bmad_com%autoscale_phase_tol
 if (ele%key == e_gun$ .and. ele%value(rf_frequency$) == 0) then
   tracking_method_saved = ele%tracking_method
   if (ele%tracking_method == taylor$) ele%tracking_method = symp_lie_ptc$
-  value_saved = ele%value
-
   if (ele%tracking_method == bmad_standard$) ele%tracking_method = time_runge_kutta$
-  ele%value(gradient_err$) = 0
+  value_saved = ele%value
 
   pz_max = pz_calc(0.0_rp, err_flag)
   if (err_flag) return
@@ -222,8 +220,10 @@ endif
 value_saved = ele%value
 ele%value(phi0$) = 0
 ele%value(phi0_multipass$) = 0
-ele%value(phi0_err$) = 0
-if (ele%key == lcavity$ .or. ele%key == e_gun$) ele%value(gradient_err$) = 0
+if (ele%key == lcavity$) then
+  ele%value(gradient_err$) = 0
+  ele%value(phi0_err$) = 0
+endif
 
 tracking_method_saved = ele%tracking_method
 

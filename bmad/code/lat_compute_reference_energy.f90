@@ -27,11 +27,11 @@ type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, 
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
-real(rp) pc, abs_tol(3)
+real(rp) pc, abs_tol(3), dE_ref
 real(rp), parameter :: zero6(6) = 0
 
 integer j, k, n, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
-integer ix_super_end, ix_e_gun, it
+integer ix_super_end, ix_e_gun, it, species
 
 logical stale, err, lord_compute, stale_gun
 logical :: err_flag
@@ -196,8 +196,6 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   ! If there is an e_gun then compute the energy at the exit. 
-  ! This must be done by tracking since with autoscale off or if the field is not DC, the 
-  ! voltage is not a reliable number.
 
   if (ix_e_gun /= 0 .and. stale_gun) then ! Have found an e_gun...
     do j = 1, ix_e_gun  ! Also mark marker elements before gun
@@ -208,69 +206,58 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(p0c_ref_init$) = begin_ele%value(p0c_start$)
     gun_ele%ref_species = begin_ele%ref_species
 
-    if (gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$) < mass_of(default_tracking_species(branch%param)) .and. &
-        (is_true(gun_ele%value(autoscale_amplitude$)) .or. gun_ele%tracking_method == bmad_standard$)) then
-      call out_io (s_fatal$, r_name, '(INITIAL ENERGY) + (E_GUN VOLTAGE) MUST BE NON-NEGATIVE! ' // gun_ele%name, &
+    dE_ref = gun_ele%value(delta_E_ref$) 
+    if (dE_ref == 0) then
+      if (ele%value(rf_frequency$) == 0) then
+        dE_ref = gun_ele%value(voltage$)
+      else
+        dE_ref = gun_ele%value(voltage$) * cos(twopi * ele%value(phi0$))
+      endif
+    endif
+
+    if (gun_ele%value(e_tot_ref_init$) + dE_ref < mass_of(begin_ele%ref_species)) then
+      call out_io (s_fatal$, r_name, 'INITIAL-ENERGY + dE_ref MUST BE NON-NEGATIVE! ' // gun_ele%name, &
                                      'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
       err_flag = .true.
       if (global_com%exit_on_error) call err_exit
       return
     endif
 
-    ! p0c_start and p0c, need to be set for tracking and they need to be nonzero.
-    ! Since p0c_ref_init and the voltage may both be zero, just use a dummy number in this case.
-    if (gun_ele%value(p0c$) == 0) then
-      gun_ele%value(p0c$) = 1d3 + abs(gun_ele%value(voltage$))
+    begin_ele%value(E_tot$) = begin_ele%value(E_tot_start$) + dE_ref
+    begin_ele%value(p0c$) = begin_ele%value(p0c_start$) + dpc_given_dE(begin_ele%value(p0c_start$), mass_of(begin_ele%ref_species), dE_ref)
+
+    gun_ele%value(p0c_start$)      = begin_ele%value(p0c$)
+    gun_ele%value(e_tot_start$)    = begin_ele%value(e_tot$)
+    gun_ele%value(p0c$)            = begin_ele%value(p0c$)
+    gun_ele%value(e_tot$)          = begin_ele%value(e_tot$)
+
+    call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.)
+    if (err) then
+      call out_io (s_fatal$, r_name, 'AUTOSCALE FAILED FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      err_flag = .true.
+      return
     endif
-    call convert_pc_to (gun_ele%value(p0c$), branch%param%particle, E_tot= gun_ele%value(E_tot$))
-    gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
-    gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
-    do it = 1, 3
-      call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.)
-      if (err) then
-        call out_io (s_fatal$, r_name, 'AUTOSCALE FAILED FOR ELEMENT: ' // ele%name)
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
-        return
-      endif
+    call init_coord (start_orb, zero6, gun_ele, upstream_end$)
+    call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
+    if (.not. particle_is_moving_forward(end_orb)) then
+      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
+                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
 
-      call init_coord (start_orb, zero6, gun_ele, upstream_end$)
-      call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
-      if (.not. particle_is_moving_forward(end_orb)) then
-        call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
-                                       'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-        if (global_com%exit_on_error) call err_exit
-        return
-      endif
+    gun_ele%time_ref_orb_in        = start_orb
+    gun_ele%value(delta_ref_time$) = end_orb%t - start_orb%t
 
-      ! e_gun exit energy gets put into begin_ele exit energy
-      pc = (1.0_rp + end_orb%vec(6)) * gun_ele%value(p0c$)
-      if (begin_ele%value(p0c$) /= pc) stale = .true.
-      begin_ele%value(p0c$) = pc
-      call convert_pc_to (begin_ele%value(p0c$), branch%param%particle, e_tot = begin_ele%value(e_tot$))
-
-      ! Now propagate this energy to the e_gun, and any markers in between.
-      start_orb%vec(6) = start_orb%p0c * (1.0_rp + start_orb%vec(6)) / begin_ele%value(p0c$) - 1.0_rp
-      start_orb%p0c = begin_ele%value(p0c$)
-
-      gun_ele%value(p0c_start$)      = begin_ele%value(p0c$)
-      gun_ele%value(e_tot_start$)    = begin_ele%value(e_tot$)
-      gun_ele%value(p0c$)            = begin_ele%value(p0c$)
-      gun_ele%value(e_tot$)          = begin_ele%value(e_tot$)
-      gun_ele%time_ref_orb_in        = start_orb
-      gun_ele%value(delta_ref_time$) = end_orb%t - start_orb%t
-
-      do ie = 1, ix_e_gun
-        ele => branch%ele(ie)
-        ele%value(p0c_start$)     = begin_ele%value(p0c$)
-        ele%value(e_tot_start$)   = begin_ele%value(e_tot$)
-        ele%value(p0c$)           = begin_ele%value(p0c$)
-        ele%value(e_tot$)         = begin_ele%value(e_tot$)
-        ele%time_ref_orb_in       = start_orb
-      enddo
-
-      if (abs(end_orb%vec(6)) <= bmad_com%rel_tol_tracking) exit
+    do ie = 1, ix_e_gun
+      ele => branch%ele(ie)
+      ele%value(p0c_start$)     = begin_ele%value(p0c$)
+      ele%value(e_tot_start$)   = begin_ele%value(e_tot$)
+      ele%value(p0c$)           = begin_ele%value(p0c$)
+      ele%value(e_tot$)         = begin_ele%value(e_tot$)
+      ele%time_ref_orb_in       = start_orb
     enddo
   endif
 
@@ -898,20 +885,6 @@ endif
 
 select case (ele%key)
 case (lcavity$)
-  if (ele%value(phi0_err$) /= 0) then
-    ele%value(phi0_err$) = 0
-    has_changed = .true.
-  endif
-
-  if (ele%value(gradient_err$) /= 0 .or. ele%value(voltage_err$) /= 0) then
-    ele%value(gradient_err$) = 0
-    ele%value(voltage_err$)  = 0
-    ele%value(gradient_tot$) = ele%value(gradient$)
-    ele%value(voltage_tot$)  = ele%value(voltage$)
-    has_changed = .true.
-  endif
-
-case (e_gun$)
   if (ele%value(phi0_err$) /= 0) then
     ele%value(phi0_err$) = 0
     has_changed = .true.
