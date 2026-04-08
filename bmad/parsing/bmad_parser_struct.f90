@@ -163,7 +163,7 @@ type bp_common_struct
   logical :: print_err = .true.                   ! Print error messages?
   ! For compatibility with translated MAD files, treat undefined vars as having zero value.
   ! Note: When using the parser code for local evaluations (done by Tao), do not wnat this.
-  logical :: undefined_vars_evaluate_to_zero = .true.
+  logical :: undefined_vars_evaluate_to_zero = .false.
   logical :: use_local_lat_file = .false.
   logical :: used_line_set_by_calling_routine = .false.
   logical :: calc_reference_orbit = .false.
