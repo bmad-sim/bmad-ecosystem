@@ -642,22 +642,31 @@ case (lcavity$, e_gun$)
   endif
 
   if (dep_set .and. ele%value(l$) /= 0) then
-    if (associated(a_ptr, ele%value(voltage$))) then
-      ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
-      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
-      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
-    elseif (associated(a_ptr, ele%value(voltage_err$))) then
-      ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
-      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
-      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
-    elseif (associated(a_ptr, ele%value(gradient$))) then
-      ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
-      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
-      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
-    elseif (associated(a_ptr, ele%value(gradient_err$))) then
-      ele%value(voltage_err$) = ele%value(gradient_err$) * ele%value(l$)
-      ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
-      ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
+    if (ele%key == lcavity$) then
+      if (associated(a_ptr, ele%value(voltage$))) then
+        ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+        ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+        ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
+      elseif (associated(a_ptr, ele%value(voltage_err$))) then
+        ele%value(gradient_err$) = ele%value(voltage_err$) / ele%value(l$)
+        ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+        ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
+      elseif (associated(a_ptr, ele%value(gradient$))) then
+        ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+        ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+        ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
+      elseif (associated(a_ptr, ele%value(gradient_err$))) then
+        ele%value(voltage_err$) = ele%value(gradient_err$) * ele%value(l$)
+        ele%value(voltage_tot$) = ele%value(voltage$) + ele%value(voltage_err$)
+        ele%value(gradient_tot$) = ele%value(gradient$) + ele%value(gradient_err$)
+      endif
+
+    else ! ele%key == e_gun$
+      if (associated(a_ptr, ele%value(voltage$))) then
+        ele%value(gradient$) = ele%value(voltage$) / ele%value(l$)
+      elseif (associated(a_ptr, ele%value(gradient$))) then
+        ele%value(voltage$) = ele%value(gradient$) * ele%value(l$)
+      endif
     endif
   endif
 

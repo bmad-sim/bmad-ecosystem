@@ -18,7 +18,7 @@ space_charge_com[debug] = F
 apex_gun: e_gun, 
    L = 0.175,
    tracking_method = time_runge_kutta,  mat6_calc_method = tracking, space_charge_method = cathode_fft_3d,
-   rf_frequency = 1300e6/7,
+   rf_frequency = 1300e6/7, phi0 = 1/6,
    field_calc = fieldmap, 
    grid_field = call::APEX_gun_fieldmesh.h5,
    aperture_at = continuous, aperture_type=wall3d,
