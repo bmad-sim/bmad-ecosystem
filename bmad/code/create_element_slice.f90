@@ -53,6 +53,7 @@ character(*), parameter :: r_name = 'create_element_slice'
 
 err_flag = .true.
 in_len = ele_in%value(l$)
+sliced_ele%ref_species = ele_in%ref_species
 
 ! Save values from old_slice if present in case the old_slice actual arg is same as sliced_ele.
 
