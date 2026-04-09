@@ -384,6 +384,14 @@ if (key == sbend$ .or. key == rbend$) then
   if (word == 'B_FIELD_ERR') word = 'DB_FIELD'
 endif
 
+if (key == e_gun$) then
+  select case(word)
+  case ('GRADIENT_ERR', 'VOLTAGE_ERR', 'PHI0_ERR')
+    call parser_error ('E_GUN NO LONGER HAS "ERR" PARAMETER: ' // word, &
+                       'SEE THE BMAD MANUAL ON E_GUN PARAMETERS FOR DETAILS.')
+  end select
+endif
+
 if ((word == 'HARM' .or. word == 'HARMO') .and. has_attribute(ele, 'HARMON')) word = 'HARMON'
 
 if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_charge_com$ .or. key == def_ptc_com$) then

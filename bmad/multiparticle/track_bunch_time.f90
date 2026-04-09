@@ -51,6 +51,7 @@ n = branch%n_ele_track
 call init_ele (drift_ele, drift$, ix_ele = n + 1, branch = branch)
 drift_ele%value(l$) = 100
 drift_ele%name = 'end_drift'
+drift_ele%ref_species = branch%ele(n)%ref_species
 call ele_compute_ref_energy_and_time(branch%ele(n), drift_ele, branch%param, err)
 
 !$OMP parallel do default(shared) private(dt, orbit, ele_here, err)

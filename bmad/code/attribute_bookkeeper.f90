@@ -587,12 +587,8 @@ case (e_gun$)
     if (val(gradient$) /= ele%old_value(gradient$) .or. val(l$) /= ele%old_value(l$)) then
       call set_ele_status_stale (ele, ref_energy_group$)
       val(voltage$) = val(gradient$) * val(l$)
-      val(voltage_err$) = val(gradient_err$) * val(l$)
     endif
   endif
-
-  val(voltage_tot$)  = val(voltage$)  + val(voltage_err$)
-  val(gradient_tot$) = val(gradient$) + val(gradient_err$)
 
 case (multipole$)
   if (associated(ele%a_pole)) then

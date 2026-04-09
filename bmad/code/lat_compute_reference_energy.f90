@@ -23,28 +23,28 @@ use bmad_interface, dummy => lat_compute_ref_energy_and_time
 implicit none
 
 type (lat_struct), target :: lat
-type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, begin_ele, ele2
+type (ele_struct), pointer :: ele, lord, lord2, slave, fork_ele, ele0, gun_ele, begin_ele, ele2, slave0
 type (branch_struct), pointer :: branch
 type (coord_struct) start_orb, end_orb
 
-real(rp) pc, abs_tol(3)
+real(rp) pc, abs_tol(3), dE_ref
 real(rp), parameter :: zero6(6) = 0
 
 integer j, k, n, ie, ib, ix, ixs, ibb, ix_slave, ixl, ix_pass, n_links
-integer ix_super_end, ix_e_gun, it
+integer ix_super_end, ix_e_gun, it, species
 
 logical stale, err, lord_compute, stale_gun
 logical :: err_flag
 
 character(*), parameter :: r_name = 'lat_compute_ref_energy_and_time'
 
-! propagate the energy through the tracking part of the lattice
+! Compute reference species
 
 err_flag = .false.
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  branch%param%unstable_factor = 0   ! Set to positive number if there is a problem.
+
   begin_ele => branch%ele(0)
   nullify(fork_ele)
 
@@ -62,9 +62,6 @@ do ib = 0, ubound(lat%branch, 1)
   if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
   stale = (begin_ele%bookkeeping_state%ref_energy == stale$)
 
-  ! Init energy at beginning of branch if needed.
-  ! If there is a fork into this branch at element 0, the reference energy is may be inherited from the branch forked from.
-
   if (stale) then
     if (begin_ele%value(inherit_from_fork$) == real_garbage$) then  ! Happens first time this routine is called from bmad_parser. 
       begin_ele%value(inherit_from_fork$) = false$
@@ -76,18 +73,9 @@ do ib = 0, ubound(lat%branch, 1)
       endif
     endif
 
-    ! If inherit from fork.
     if (is_true(begin_ele%value(inherit_from_fork$))) then
-      begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
-      begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
-      begin_ele%value(E_tot$) = fork_ele%value(E_tot$)
-      begin_ele%value(p0c$) = fork_ele%value(p0c$)
       begin_ele%ref_species = fork_ele%ref_species
       branch%param%particle = begin_ele%ref_species
-      call init_coord (begin_ele%time_ref_orb_in, zero6, begin_ele, upstream_end$)
-      call init_coord (begin_ele%time_ref_orb_out, zero6, begin_ele, downstream_end$)
-
-    ! Else no inherit from fork.
     else
       if (begin_ele%ref_species == not_set$) then
         if (associated(fork_ele)) then
@@ -101,7 +89,71 @@ do ib = 0, ubound(lat%branch, 1)
           branch%param%particle = lat%param%particle
         endif
       endif
+    endif
+  endif   ! if stale
 
+  do ie = 1, branch%n_ele_track
+    ele0 => branch%ele(ie-1)
+    ele => branch%ele(ie)
+
+    if (ele%key == converter$) then
+      ele%ref_species = ele%converter%species_out
+    elseif (ele%key == foil$) then
+      if (ele%value(final_charge$) == real_garbage$) ele%value(final_charge$) = atomic_number(ele0%ref_species)
+      n = nint(ele%value(final_charge$))
+      ele%ref_species = set_species_charge(ele0%ref_species, n)
+    else
+      ele%ref_species = ele0%ref_species
+    endif
+
+    if (ele%slave_status == super_slave$) then
+      do j = 1, ele%n_lord
+        lord => pointer_to_lord(ele, j)
+        if (lord%lord_status /= super_lord$) cycle
+        lord%ref_species = ele%ref_species
+      enddo
+      if (lord%slave_status == multipass_slave$) then
+        lord2 => pointer_to_lord(lord, 1)
+        lord2%ref_species = lord%ref_species
+      endif
+    endif
+
+    if (ele%slave_status == multipass_slave$) then
+      lord => pointer_to_lord(ele, 1)
+      lord%ref_species = ele%ref_species
+    endif
+  enddo
+enddo
+
+!------------------
+! propagate the energy through the tracking part of the lattice
+
+err_flag = .false.
+
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  branch%param%unstable_factor = 0   ! Set to positive number if there is a problem.
+  begin_ele => branch%ele(0)
+
+  if (branch%param%bookkeeping_state%ref_energy /= stale$) cycle
+  stale = (begin_ele%bookkeeping_state%ref_energy == stale$)
+
+  ! Init energy at beginning of branch if needed.
+  ! If there is a fork into this branch at element 0, the reference energy is may be inherited from the branch forked from.
+
+  if (stale) then
+    ! If inherit from fork.
+    if (is_true(begin_ele%value(inherit_from_fork$))) then
+      fork_ele => lat%branch(branch%ix_from_branch)%ele(branch%ix_from_ele)
+      begin_ele%value(E_tot_start$) = fork_ele%value(E_tot$)
+      begin_ele%value(p0c_start$) = fork_ele%value(p0c$)
+      begin_ele%value(E_tot$) = fork_ele%value(E_tot$)
+      begin_ele%value(p0c$) = fork_ele%value(p0c$)
+      call init_coord (begin_ele%time_ref_orb_in, zero6, begin_ele, upstream_end$)
+      call init_coord (begin_ele%time_ref_orb_out, zero6, begin_ele, downstream_end$)
+
+    ! Else no inherit from fork.
+    else
       if (begin_ele%value(p0c$) >= 0) then
         call convert_pc_to (begin_ele%value(p0c$), begin_ele%ref_species, e_tot = begin_ele%value(e_tot$))
       elseif (begin_ele%value(e_tot$) >= mass_of(begin_ele%ref_species)) then
@@ -196,8 +248,6 @@ do ib = 0, ubound(lat%branch, 1)
   enddo
 
   ! If there is an e_gun then compute the energy at the exit. 
-  ! This must be done by tracking since with autoscale off or if the field is not DC, the 
-  ! voltage is not a reliable number.
 
   if (ix_e_gun /= 0 .and. stale_gun) then ! Have found an e_gun...
     do j = 1, ix_e_gun  ! Also mark marker elements before gun
@@ -206,71 +256,59 @@ do ib = 0, ubound(lat%branch, 1)
     enddo
     gun_ele%value(e_tot_ref_init$) = begin_ele%value(e_tot_start$) ! In case gun is a super_lord.
     gun_ele%value(p0c_ref_init$) = begin_ele%value(p0c_start$)
-    gun_ele%ref_species = begin_ele%ref_species
 
-    if (gun_ele%value(e_tot_ref_init$) + gun_ele%value(voltage$) < mass_of(default_tracking_species(branch%param)) .and. &
-        (is_true(gun_ele%value(autoscale_amplitude$)) .or. gun_ele%tracking_method == bmad_standard$)) then
-      call out_io (s_fatal$, r_name, '(INITIAL ENERGY) + (E_GUN VOLTAGE) MUST BE NON-NEGATIVE! ' // gun_ele%name, &
+    dE_ref = gun_ele%value(delta_E_ref$) 
+    if (dE_ref == 0) then
+      if (ele%value(rf_frequency$) == 0) then
+        dE_ref = gun_ele%value(voltage$)
+      else
+        dE_ref = gun_ele%value(voltage$) * cos(twopi * ele%value(phi0$))
+      endif
+    endif
+
+    if (gun_ele%value(e_tot_ref_init$) + dE_ref < mass_of(begin_ele%ref_species)) then
+      call out_io (s_fatal$, r_name, 'INITIAL-ENERGY + dE_ref MUST BE NON-NEGATIVE! ' // gun_ele%name, &
                                      'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
       err_flag = .true.
       if (global_com%exit_on_error) call err_exit
       return
     endif
 
-    ! p0c_start and p0c, need to be set for tracking and they need to be nonzero.
-    ! Since p0c_ref_init and the voltage may both be zero, just use a dummy number in this case.
-    if (gun_ele%value(p0c$) == 0) then
-      gun_ele%value(p0c$) = 1d3 + abs(gun_ele%value(voltage$))
+    begin_ele%value(E_tot$) = begin_ele%value(E_tot_start$) + dE_ref
+    begin_ele%value(p0c$) = begin_ele%value(p0c_start$) + dpc_given_dE(begin_ele%value(p0c_start$), mass_of(begin_ele%ref_species), dE_ref)
+
+    gun_ele%value(p0c_start$)      = begin_ele%value(p0c$)
+    gun_ele%value(e_tot_start$)    = begin_ele%value(e_tot$)
+    gun_ele%value(p0c$)            = begin_ele%value(p0c$)
+    gun_ele%value(e_tot$)          = begin_ele%value(e_tot$)
+
+    call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.)
+    if (err) then
+      call out_io (s_fatal$, r_name, 'AUTOSCALE FAILED FOR ELEMENT: ' // ele%name)
+      if (global_com%exit_on_error) call err_exit
+      err_flag = .true.
+      return
     endif
-    call convert_pc_to (gun_ele%value(p0c$), branch%param%particle, E_tot= gun_ele%value(E_tot$))
-    gun_ele%value(e_tot_start$) = gun_ele%value(e_tot$)
-    gun_ele%value(p0c_start$)   = gun_ele%value(p0c$)
 
-    do it = 1, 3
-      call autoscale_phase_and_amp (gun_ele, branch%param, err, call_bookkeeper = .false.)
-      if (err) then
-        call out_io (s_fatal$, r_name, 'AUTOSCALE FAILED FOR ELEMENT: ' // ele%name)
-        if (global_com%exit_on_error) call err_exit
-        err_flag = .true.
-        return
-      endif
+    call init_coord (start_orb, zero6, gun_ele, upstream_end$)
+    call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
+    if (.not. particle_is_moving_forward(end_orb)) then
+      call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
+                                     'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
+      if (global_com%exit_on_error) call err_exit
+      return
+    endif
 
-      call init_coord (start_orb, zero6, gun_ele, upstream_end$)
-      call track1 (start_orb, gun_ele, branch%param, end_orb, ignore_radiation = .true.)
-      if (.not. particle_is_moving_forward(end_orb)) then
-        call out_io (s_fatal$, r_name, 'PARTICLE LOST IN TRACKING E_GUN: ' // gun_ele%name, &
-                                       'CANNOT COMPUTE REFERENCE TIME & ENERGY.')
-        if (global_com%exit_on_error) call err_exit
-        return
-      endif
+    gun_ele%time_ref_orb_in        = start_orb
+    gun_ele%value(delta_ref_time$) = end_orb%t - start_orb%t
 
-      ! e_gun exit energy gets put into begin_ele exit energy
-      pc = (1.0_rp + end_orb%vec(6)) * gun_ele%value(p0c$)
-      if (begin_ele%value(p0c$) /= pc) stale = .true.
-      begin_ele%value(p0c$) = pc
-      call convert_pc_to (begin_ele%value(p0c$), branch%param%particle, e_tot = begin_ele%value(e_tot$))
-
-      ! Now propagate this energy to the e_gun, and any markers in between.
-      start_orb%vec(6) = start_orb%p0c * (1.0_rp + start_orb%vec(6)) / begin_ele%value(p0c$) - 1.0_rp
-      start_orb%p0c = begin_ele%value(p0c$)
-
-      gun_ele%value(p0c_start$)      = begin_ele%value(p0c$)
-      gun_ele%value(e_tot_start$)    = begin_ele%value(e_tot$)
-      gun_ele%value(p0c$)            = begin_ele%value(p0c$)
-      gun_ele%value(e_tot$)          = begin_ele%value(e_tot$)
-      gun_ele%time_ref_orb_in        = start_orb
-      gun_ele%value(delta_ref_time$) = end_orb%t - start_orb%t
-
-      do ie = 1, ix_e_gun
-        ele => branch%ele(ie)
-        ele%value(p0c_start$)     = begin_ele%value(p0c$)
-        ele%value(e_tot_start$)   = begin_ele%value(e_tot$)
-        ele%value(p0c$)           = begin_ele%value(p0c$)
-        ele%value(e_tot$)         = begin_ele%value(e_tot$)
-        ele%time_ref_orb_in       = start_orb
-      enddo
-
-      if (abs(end_orb%vec(6)) <= bmad_com%rel_tol_tracking) exit
+    do ie = 1, ix_e_gun
+      ele => branch%ele(ie)
+      ele%value(p0c_start$)     = begin_ele%value(p0c$)
+      ele%value(e_tot_start$)   = begin_ele%value(e_tot$)
+      ele%value(p0c$)           = begin_ele%value(p0c$)
+      ele%value(e_tot$)         = begin_ele%value(e_tot$)
+      ele%time_ref_orb_in       = start_orb
     enddo
   endif
 
@@ -352,6 +390,10 @@ do ib = 0, ubound(lat%branch, 1)
         lord => pointer_to_lord (ele, ixl, ix_slave_back = ix_slave)
         if (ix_slave /= 1) cycle
         if (lord%lord_status /= super_lord$ .and. lord%lord_status /= multipass_lord$) cycle
+        if (lord%key /= lcavity$ .and. lord%key /= e_gun$) then
+          call ele_compute_ref_energy_and_time (ele0, lord, branch%param, err)
+          cycle
+        endif
 
         nullify(lord2)
         if (lord%slave_status == multipass_slave$) then
@@ -430,12 +472,9 @@ enddo ! Branch loop
 ! Put the appropriate energy values in the lord elements...
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
-
   lord => lat%ele(ie)
-
   if (lord%bookkeeping_state%ref_energy /= stale$) cycle
   lord%bookkeeping_state%ref_energy = ok$
-
   if (lord%n_slave == 0) cycle   ! Can happen with null_ele$ elements for example.
 
   ! Multipass lords have their enegy computed above.
@@ -456,17 +495,18 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   ! Now transfer the information to the lord.
 
-  lord%value(p0c$)   = slave%value(p0c$)
-  lord%value(E_tot$) = slave%value(E_tot$)
-  lord%ref_time      = slave%ref_time
-  lord%ref_species   = slave%ref_species
+  lord%value(p0c$)            = slave%value(p0c$)
+  lord%value(E_tot$)          = slave%value(E_tot$)
+  lord%ref_time               = slave%ref_time
 
   ! Transfer the starting energy.
 
   if (lord%lord_status == super_lord$) then
-    slave => pointer_to_slave(lord, 1)
-    lord%value(E_tot_start$) = slave%value(E_tot_start$)
-    lord%value(p0c_start$)   = slave%value(p0c_start$)
+    slave0 => pointer_to_slave(lord, 1)
+    lord%value(E_tot_start$)    = slave0%value(E_tot_start$)
+    lord%value(p0c_start$)      = slave0%value(p0c_start$)
+    lord%value(ref_time_start$) = slave0%value(ref_time_start$)
+    lord%value(delta_ref_time$) = slave%ref_time - slave0%value(ref_time_start$)
   endif
 
   abs_tol(1:2) = 1d-3 + bmad_com%rel_tol_adaptive_tracking * lord%value(p0c_start$)
@@ -550,16 +590,6 @@ ele%time_ref_orb_out%s = ele%s
 
 key = ele%key
 if (key == em_field$ .and. is_false(ele%value(constant_ref_energy$))) key = nonconst_ref_energy$
-
-if (key == converter$) then
-  ele%ref_species = ele%converter%species_out
-elseif (key == foil$) then
-  if (ele%value(final_charge$) == real_garbage$) ele%value(final_charge$) = atomic_number(ele0%ref_species)
-  n = nint(ele%value(final_charge$))
-  ele%ref_species = set_species_charge(ele0%ref_species, n)
-else
-  ele%ref_species = ele0%ref_species
-endif
 
 !
 
@@ -724,7 +754,7 @@ case (marker$, fork$, fixer$, photon_fork$)
 case default
   changed = significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)
   ! Need to always do this set in case E_tot_start shifted by non-zero but insignifcant.
-  ! Some code relies on E_tot_start == E_tot or p0c_start = p0c exactly.
+  ! Some Bmad code relies on E_tot_start == E_tot or p0c_start = p0c exactly.
   ele%value(E_tot$) = E_tot_start  
   ele%value(p0c$) = p0c_start
   ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.
@@ -911,20 +941,6 @@ case (lcavity$)
     has_changed = .true.
   endif
 
-case (e_gun$)
-  if (ele%value(phi0_err$) /= 0) then
-    ele%value(phi0_err$) = 0
-    has_changed = .true.
-  endif
-
-  if (ele%value(gradient_err$) /= 0 .or. ele%value(voltage_err$) /= 0) then
-    ele%value(gradient_err$) = 0
-    ele%value(voltage_err$)  = 0
-    ele%value(gradient_tot$) = ele%value(gradient$)
-    ele%value(voltage_tot$)  = ele%value(voltage$)
-    has_changed = .true.
-  endif
-
 case (rfcavity$)
   if (ele%value(phi0$) /= 0) then
     ele%value(phi0$) = 0
@@ -994,7 +1010,7 @@ endif
 
 if (ele%key == lcavity$ .and. ele%tracking_method == bmad_standard$) then
   ele%time_ref_orb_out%vec(5) = 0
-elseif (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
+elseif (ele%slave_status == slice_slave$) then
   do ii = 1, ele%n_lord
     lord => pointer_to_lord(ele, ii)
     if (lord%key /= pipe$) exit
@@ -1006,8 +1022,6 @@ else
   ele%time_ref_orb_out%vec(5) = c_light * orb_end%beta * (ele%ref_time - orb_end%t)
 endif
 
-!ele%time_ref_orb_out%vec(5) = ele%time_ref_orb_out%vec(5) + &
-!            (orb_end%t - orb_start%t - ele%value(delta_ref_time$)) * orb_end%beta * c_light
 ele%time_ref_orb_out%vec(6) = ((1 + orb_end%vec(6)) * orb_end%p0c - ele%value(p0c$)) / ele%value(p0c$)
 
 end subroutine
