@@ -1799,7 +1799,11 @@ case (is_logical$)
 case (is_integer$)
   write (line, '(a, 2x, 2a, i0)')  str_ix, attrib%name(1:n_name_width), '= ', nint(attrib%value)
 case (is_real$)
-  write (line, '(a, 2x, 2a, es15.7, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', attrib%value, attrib%units
+  if (attrib%value == real_garbage$) then
+    write (line, '(a, 2x, 2a, a, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', ' Not-Set', attrib%units
+  else
+    write (line, '(a, 2x, 2a, es15.7, 1x, a8)')  str_ix, attrib%name(1:n_name_width), '=', attrib%value, attrib%units
+  endif
 case (is_switch$, is_species$)
   if (attrib%name == 'SPECIES_STRONG' .and. attrib%value == real_garbage$) then
     name = 'Not_Set'
