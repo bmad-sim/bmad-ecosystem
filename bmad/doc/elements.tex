@@ -1742,22 +1742,33 @@ The attributes specific to an \vn{e_gun} are
 \index{gradient}\index{gradient_err}
 \begin{example}
   gradient     = <Real>    ! Gradient.
-  gradient_tot             ! Net gradient = gradient + gradient_err. Dependent param (\sref{s:depend}).
   phi0         = <Real>    ! Phase (rad/2\(\pi\)) of the reference particle with 
                            !   respect to the RF. phi0 = 0 is on crest.
   rf_frequency = <Real>    ! Frequency of the RF field.
   voltage      = <Real>    ! Voltage. Dependent attribute (\sref{s:depend}). 
-  voltage_tot              ! Net voltage = voltage + voltage_err. Dependent param (\sref{s:depend}).
-  delta_E_tot  = <Real>    ! Change in 
+  delta_E_ref  = <Real>    ! Change in reference energy.
 \end{example}
 
-The \vn{voltage} is simply related to the \vn{gradient} via the element length \vn{l}:
+The \vn{voltage} is simply related to the \vn{gradient} via the element length \vn{L}:
 \begin{example}
-  voltage = gradient * l
+  voltage = gradient * L
 \end{example}
-If the \vn{voltage} is set to a non-zero value, the length \vn{l} must also be non-zero to keep the
+If the \vn{voltage} is set to a non-zero value, the length \vn{L} must also be non-zero to keep the
 gradient finite.  A particle with the charge as the reference particle will have a positive energy
 gain if the \vn{voltage} and \vn{gradient} are positive and vice versa.
+
+The reference energy change from the entrance to the exit end of the element is set by \vn{delta_E_ref}. 
+The exception is if this change would make the total energy negative at the exit end. In this case,
+the change in reference energy is calculated via:
+\begin{example}
+  dE_ref = Voltage              ! For DC (rf_frequency = 0) guns.
+         = Voltage * cos(phi0)  ! For AC guns.
+\end{example}
+In the first instance, the change in reference energy is set by \vn{delta_E_ref} independent of the
+gun \vn{voltage}. This is generally what is wanted since the reference energy can set the strengths
+of elements downstream from the gun and typically having the gun voltage affect downstream element
+strengths not desireable. {\em It is thus recommended that, unless there is a good reason not to, to
+set \vn{delta_E_ref} appropriately.}
 
 \index{phi0_autoscale}\vn{field_autoscale}
 The \vn{voltage} and \vn{gradient} are scaled by \vn{field_autoscale} and, if there is a
@@ -1769,7 +1780,7 @@ An \vn{e_gun} may either be DC if the \vn{rf_frequency} component is zero of AC 
 not. For an AC \vn{e_gun}, the phase of the \vn{e_gun}, The phase $\phi_\REF$
 is 
 \begin{example} 
-  \(\phi_\REF\) = phi0 + phi0_err + phi0_autoscale 
+  \(\phi_\REF\) = phi0 + phi0_autoscale 
 \end{example}
 
 \index{marker}\index{null_ele}
@@ -1815,8 +1826,14 @@ with the file \vn{apex_gun_grid.bmad} being:
     ... \}
 \end{example}
 
-
-Note: Before the parameter \vn{delta_E_ref} was \etcetc
+Note: Before the parameter \vn{delta_E_ref} was introduced as an \vn{e_gun} parameter, the following \vn{e_gun}
+parameters were defined:
+\begin{example}
+  gradient_err, gradient_tot
+  voltage_err, voltage_tot
+  phi0_err
+\end{example}
+If the \bmad parser encounters these parameters in a lattice file, an error will be thrown.
 
 \newpage
 

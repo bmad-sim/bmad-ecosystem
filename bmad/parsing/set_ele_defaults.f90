@@ -17,6 +17,7 @@
 subroutine set_ele_defaults (ele, do_allocate)
 
 use bmad_interface, dummy => set_ele_defaults
+use, intrinsic :: ieee_arithmetic
 
 implicit none
 
@@ -150,6 +151,7 @@ case (e_gun$)
   ele%value(fringe_type$) = full$
   ele%value(autoscale_amplitude$) = true$
   ele%value(autoscale_phase$) = true$
+  ele%value(delta_E_ref$) = -1d99
 
 case (ecollimator$)
   ele%aperture_type = elliptical$

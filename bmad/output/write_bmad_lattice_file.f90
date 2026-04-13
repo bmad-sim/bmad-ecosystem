@@ -814,7 +814,6 @@ do ib = 0, ubound(lat%branch, 1)
     !----------------------------------------------------------------------------
     ! Write the element attributes.
 
-    fid = nint(ele%value(fiducial_pt$))
     attribute_loop: do j = 1, num_ele_attrib$
       attrib = attribute_info(ele, j)
       val = ele%value(j)
@@ -823,6 +822,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (j == fintx$ .and. ele%value(fintx$) == ele%value(fint$)) cycle
         if (j == hgapx$ .and. ele%value(hgapx$) == ele%value(hgap$)) cycle
 
+        fid = nint(ele%value(fiducial_pt$))
         if (j == l$ .and. (fid == entrance_end$ .or. fid == entrance_end$)) cycle
         if (j == l_rectangle$ .and. (fid == none_pt$ .or. fid == center_pt$)) cycle
         if (j == angle$) cycle
