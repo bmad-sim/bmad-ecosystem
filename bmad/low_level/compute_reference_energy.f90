@@ -257,13 +257,14 @@ do ib = 0, ubound(lat%branch, 1)
     gun_ele%value(e_tot_ref_init$) = begin_ele%value(e_tot_start$) ! In case gun is a super_lord.
     gun_ele%value(p0c_ref_init$) = begin_ele%value(p0c_start$)
 
-    dE_ref = gun_ele%value(delta_E_ref$) 
-    if (dE_ref == 0) then
+    if (gun_ele%value(delta_E_ref$) < -begin_ele%value(E_tot_start$)) then
       if (ele%value(rf_frequency$) == 0) then
         dE_ref = gun_ele%value(voltage$)
       else
         dE_ref = gun_ele%value(voltage$) * cos(twopi * ele%value(phi0$))
       endif
+    else
+      dE_ref = gun_ele%value(delta_E_ref$) 
     endif
 
     if (gun_ele%value(e_tot_ref_init$) + dE_ref < mass_of(begin_ele%ref_species)) then

@@ -1229,8 +1229,6 @@ call init_attribute_name1 (is_ok, e_gun$, phi0$,                           'PHI0
 ! e_gun attribute phi0_multipass should always be 0 and is used to make lcavity and e_gun equations similar
 call init_attribute_name1 (is_ok, e_gun$, phi0_multipass$,                 'phi0_multipass', private$) 
 call init_attribute_name1 (is_ok, e_gun$, phi0_autoscale$,                 'PHI0_AUTOSCALE', quasi_free$)
-call init_attribute_name1 (is_ok, e_gun$, voltage_tot$,                    'VOLTAGE_TOT', dependent$)
-call init_attribute_name1 (is_ok, e_gun$, gradient_tot$,                   'GRADIENT_TOT', dependent$)
 
 call init_attribute_name1 (is_ok, ecollimator$, px_aperture_width2$,       'PX_APERTURE_WIDTH2')
 call init_attribute_name1 (is_ok, ecollimator$, px_aperture_center$,       'PX_APERTURE_CENTER')
@@ -1960,9 +1958,9 @@ if (.not. logic_option(.false., override) .and. attrib_array(ix_key, ix_attrib)%
   is_ok = .false.
 endif
 
-attrib_array(ix_key, ix_attrib)%name      = name
-attrib_array(ix_key, ix_attrib)%state     = integer_option(is_free$, attrib_state)
-attrib_array(ix_key, ix_attrib)%ix_attrib = ix_attrib
+attrib_array(ix_key, ix_attrib)%name        = name
+attrib_array(ix_key, ix_attrib)%state       = integer_option(is_free$, attrib_state)
+attrib_array(ix_key, ix_attrib)%ix_attrib   = ix_attrib
 
 ! If things are done after the attribute array has been inited then the short table has
 ! to be reinited.

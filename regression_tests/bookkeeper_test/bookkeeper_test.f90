@@ -185,6 +185,12 @@ call bmad_parser (lat_file, lat, make_mats6 = .false., err_flag = err);  if (err
 
 !
 
+ele => lat%branch(1)%ele(0)
+write(1, '(a, 2es20.12)') '"EG1" REL 1E-10', ele%value(E_tot_start$), ele%value(E_tot$)-ele%value(E_tot_start$)
+
+ele => lat%branch(2)%ele(0)
+write(1, '(a, 2es20.12)') '"EG2" REL 1E-10', ele%value(E_tot_start$), ele%value(E_tot$)-ele%value(E_tot_start$)
+
 call set_on_off (quadrupole$, lat, off_and_save$, saved_values = save, attribute = 'a11')
 write (1, '(a, 6f10.3)') '"ON_OFF_SAVE"  ABS 0', save(1:4)
 
