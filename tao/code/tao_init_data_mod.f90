@@ -648,7 +648,12 @@ end subroutine d1_data_stuffit
 ! contains
 !
 ! Subroutine to substitute symbolic number names with their numeric values in a text line.
-! Only substitutes outside of quoted strings to avoid modifying expression strings.
+! Only substitutes in contexts where a real value is expected (not namelist variable names,
+! component accessors, or quoted strings). Specifically, a match is skipped if:
+!   - It is inside a quoted string
+!   - It is preceded by '%' (component access like datum%meas)
+!   - It is followed by '=' (namelist variable assignment like default_meas = ...)
+!   - It is followed by '(' (array/function name like datum(...))
 
 subroutine sub_symbolic_nums_in_line(line_str)
 
@@ -656,7 +661,7 @@ character(*), intent(inout) :: line_str
 character(len(line_str)) :: line_out
 character(40) :: sym_name_up, num_str, test_str
 character(1) :: ch, quote_ch
-integer :: i_sym, i_in, i_out, name_len, num_len, line_len, end_pos
+integer :: i_sym, i_in, i_out, name_len, num_len, line_len, end_pos, k
 logical :: in_quote, matched
 
 if (.not. allocated(s%com%symbolic_num)) return
@@ -714,6 +719,19 @@ do i_sym = 1, size(s%com%symbolic_num)
         if (i_in == 1 .or. .not. is_word_char(line_str(i_in-1:i_in-1))) then
           ! Character after must not be alphanumeric or underscore
           if (end_pos == line_len .or. .not. is_word_char(line_str(end_pos+1:end_pos+1))) then
+
+            ! Context check: skip if preceded by '%' (component access like datum%meas)
+            if (i_in > 1 .and. line_str(i_in-1:i_in-1) == '%') goto 100
+
+            ! Context check: skip if followed by '=' or '(' after optional whitespace
+            ! (namelist variable assignment or array subscript)
+            k = end_pos + 1
+            do while (k <= line_len .and. line_str(k:k) == ' ')
+              k = k + 1
+            enddo
+            if (k <= line_len .and. (line_str(k:k) == '=' .or. line_str(k:k) == '(')) goto 100
+
+            ! All checks passed: substitute
             line_out(i_out:i_out+num_len-1) = num_str(1:num_len)
             i_out = i_out + num_len
             i_in = end_pos + 1
@@ -723,6 +741,7 @@ do i_sym = 1, size(s%com%symbolic_num)
       endif
     endif
 
+100 continue
     if (.not. matched) then
       line_out(i_out:i_out) = ch
       i_out = i_out + 1
