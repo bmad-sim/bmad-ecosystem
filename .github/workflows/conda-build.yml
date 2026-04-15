@@ -30,7 +30,7 @@ jobs:
             openmp_mpi: Y
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Include Linux-only requirements
         if: ${{ matrix.os == 'ubuntu-latest' }}

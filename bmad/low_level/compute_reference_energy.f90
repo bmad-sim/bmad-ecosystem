@@ -753,9 +753,14 @@ case (marker$, fork$, fixer$, photon_fork$)
   ele%ref_time = ref_time_start
 
 case default
-  changed = significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)
+  ! A super_lord element can be tricky. For example, a solenoid super_lord overlayed by a lcavity
+  ! will not have a constant ref energy. Such elements are handled by lat_compute_ref_energy.
+  ! Here only do a calculation if the reference energy has not been set
+  if (ele%lord_status == super_lord$ .and. ele%value(e_tot$) > 0) return
+  
   ! Need to always do this set in case E_tot_start shifted by non-zero but insignifcant.
   ! Some Bmad code relies on E_tot_start == E_tot or p0c_start = p0c exactly.
+  changed = significant_difference(ele%value(p0c$), p0c_start, rel_tol = small_rel_change$)
   ele%value(E_tot$) = E_tot_start  
   ele%value(p0c$) = p0c_start
   ! Need to call attribute_bookkeeper since num_steps is not set until the energy is set.

@@ -20,7 +20,7 @@ jobs:
         shared: ["Y"]
         openmp_mpi: ["N"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - uses: ./.github/actions/setup-dependencies
         with:
@@ -32,7 +32,7 @@ jobs:
           SHARED: ${{ matrix.shared }}
         run: .github/scripts/install_bmad.sh
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: "bmad-sim/pytao"
           ref: "master"

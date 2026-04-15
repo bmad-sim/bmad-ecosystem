@@ -37,16 +37,15 @@ if (ele%lord_status == multipass_lord$) then
 endif
 
 ! A super_lord element that normally has a const ds/dt (say, a solenoid), if superimposed with 
-! a non-const ds/dt element (say, a lcavity), will have a non-cost ds/dt.
+! a non-const ds/dt element (say, an lcavity), will have a non-cost ds/dt.
 
 if (ele%lord_status == super_lord$) then
-
   is_const = .true.
   do ie = 1, ele%n_slave
     slave => pointer_to_slave(ele, 1)
 
     select case (slave%key)
-    case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$, e_gun$)
+    case (lcavity$, custom$, hybrid$, wiggler$, undulator$, e_gun$)
       is_const = .false.
 
     case (em_field$)
@@ -62,7 +61,7 @@ endif
 ! has a varying ds/dt(ref).
 
 select case (ele%key)
-case (lcavity$, custom$, hybrid$, wiggler$, undulator$, rfcavity$, e_gun$)
+case (lcavity$, custom$, hybrid$, wiggler$, undulator$, e_gun$)
   is_const = .false.
 
 case (em_field$)
@@ -70,11 +69,15 @@ case (em_field$)
     is_const = ele_has_constant_ds_dt_ref(ele%lord)
 
   elseif (ele%slave_status == super_slave$) then
+    is_const = .false.
     do ie = 1, ele%n_lord
       lord => pointer_to_lord(ele, ie)
-      is_const = ele_has_constant_ds_dt_ref(lord)
-      if (.not. is_const) return
+      select case(lord%key)
+      case (lcavity$, custom$, hybrid$, wiggler$, undulator$, e_gun$)
+        return
+      end select
     enddo
+    is_const = .true.
 
   else
     is_const = is_true(ele%value(constant_ref_energy$))
