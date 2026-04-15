@@ -86,50 +86,27 @@ def _eval_value(expr_text, known_symbols):
 def _strip_comments(text):
     """Strip Fortran !-comments (outside quoted strings) from text.
 
-    Returns a new string with the same line structure but with comment
-    portions replaced by spaces (to preserve column positions).
+    Processes line-by-line; an unquoted '!' truncates the rest of the line.
+    Line structure is preserved so positions of other content are stable.
     """
-    out = []
-    in_quote = False
-    quote_ch = ''
-    for ch in text:
-        if not in_quote and ch in ("'", '"'):
-            in_quote = True
-            quote_ch = ch
-            out.append(ch)
-        elif in_quote and ch == quote_ch:
-            in_quote = False
-            out.append(ch)
-        elif not in_quote and ch == '!':
-            # Replace rest of line with spaces up to the newline.
-            out.append(' ')  # replace the '!' itself
-            # We'll handle the rest via a different approach below.
-            # Actually, let's do this line-by-line instead.
-            pass
-        else:
-            out.append(ch)
-    # The char-by-char approach above doesn't handle "rest of line" well.
-    # Redo with a line-by-line approach.
-    lines = text.split('\n')
     result = []
-    for line in lines:
-        new_line = []
-        in_q = False
-        q_ch = ''
-        for c in line:
-            if not in_q and c in ("'", '"'):
-                in_q = True
-                q_ch = c
-                new_line.append(c)
-            elif in_q and c == q_ch:
-                in_q = False
-                new_line.append(c)
-            elif not in_q and c == '!':
-                # Rest of line is comment; stop
-                break
+    for line in text.split('\n'):
+        stripped = []
+        in_quote = False
+        quote_ch = ''
+        for ch in line:
+            if not in_quote and ch in ("'", '"'):
+                in_quote = True
+                quote_ch = ch
+                stripped.append(ch)
+            elif in_quote and ch == quote_ch:
+                in_quote = False
+                stripped.append(ch)
+            elif not in_quote and ch == '!':
+                break  # rest of line is a comment
             else:
-                new_line.append(c)
-        result.append(''.join(new_line))
+                stripped.append(ch)
+        result.append(''.join(stripped))
     return '\n'.join(result)
 
 

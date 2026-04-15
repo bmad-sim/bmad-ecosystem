@@ -26,6 +26,8 @@
 
 module tao_preprocess_mod
 
+use, intrinsic :: iso_c_binding, only: c_int
+use, intrinsic :: iso_fortran_env, only: int64
 use tao_interface
 
 implicit none
@@ -77,9 +79,9 @@ character(*), intent(out) :: path_out
 
 character(3000) :: cmd
 character(400)  :: base_name
-character(200)  :: line
+character(2000) :: line
 integer :: exit_stat, cmd_stat, ix, iu, ios
-integer(8) :: sym_size
+integer(int64) :: sym_size
 logical :: exists, need_python, has_symbolic
 
 path_out = path_in
@@ -161,8 +163,12 @@ end subroutine tao_preprocess_file
 ! Subroutine session_init ()
 !
 ! One-time setup: locate util/tao_preprocess.py and create a PID-keyed
-! temp directory (/tmp/tao_preprocess_<pid>). Sets init_ok = .true. on
-! success; prints a one-time informational message on failure.
+! temp directory (/tmp/tao_preprocess_<pid>). Prints a one-time
+! informational message via out_io if setup fails.
+!
+! Input:  None.
+! Output: None. Side effects: sets module save variables (script_path,
+!         tmp_dir, symbols_file, init_attempted, init_ok).
 !-
 
 subroutine session_init ()
@@ -213,6 +219,10 @@ end subroutine session_init
 ! Remove the session temp directory created by session_init.
 ! Safe to call even if init was never attempted or failed.
 ! Should be called at tao exit (e.g. from deallocate_everything).
+!
+! Input:  None.
+! Output: None. Side effects: removes the session temp directory and
+!         resets module save variables so a later call can re-init.
 !-
 
 subroutine tao_preprocess_cleanup ()
