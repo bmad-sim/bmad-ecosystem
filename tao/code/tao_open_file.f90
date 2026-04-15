@@ -26,12 +26,11 @@ subroutine tao_open_file (file_name, iunit, full_file_name, error_severity, bina
   implicit none
 
   character(*) file_name, full_file_name
-  character(400) :: preprocessed_name
+  character(800) :: preprocessed_name
   character(20) :: r_name = 'tao_open_file'
 
   integer iunit, ios, error_severity
   logical, optional :: binary
-  logical valid
 
   ! A blank file name is always considered an error.
 

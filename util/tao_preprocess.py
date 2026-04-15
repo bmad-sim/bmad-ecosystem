@@ -19,6 +19,16 @@ Usage:
 - --symbols-file SYMBOLS: optional path to a JSON file holding symbols
                 from previous invocations. Updated on each run so
                 subsequent invocations inherit earlier definitions.
+- --verbose:    print a one-line substitution summary to stderr
+
+Parsing details:
+  - Fortran `!` comments (outside quoted strings) are stripped before
+    scanning for `&symbolic_number` namelists, so commented-out
+    definitions are correctly ignored.
+  - The namelist terminator `/` is distinguished from the division
+    operator by context: a `/` that is immediately adjacent to a digit,
+    identifier character, or `)` on both sides is treated as division.
+    The terminator is the first `/` that does NOT look like division.
 
 Substitution rules (applied only when a symbolic value was successfully
 evaluated by this preprocessor):
@@ -73,24 +83,141 @@ def _eval_value(expr_text, known_symbols):
         return None
 
 
-# Matches a full &symbolic_number NAME = VALUE / block (may span lines).
-_SYMBOLIC_NUMBER_RE = re.compile(
-    r'&symbolic_number\s+(\w+)\s*=\s*([^/]*?)\s*/',
-    re.IGNORECASE | re.DOTALL,
-)
+def _strip_comments(text):
+    """Strip Fortran !-comments (outside quoted strings) from text.
+
+    Returns a new string with the same line structure but with comment
+    portions replaced by spaces (to preserve column positions).
+    """
+    out = []
+    in_quote = False
+    quote_ch = ''
+    for ch in text:
+        if not in_quote and ch in ("'", '"'):
+            in_quote = True
+            quote_ch = ch
+            out.append(ch)
+        elif in_quote and ch == quote_ch:
+            in_quote = False
+            out.append(ch)
+        elif not in_quote and ch == '!':
+            # Replace rest of line with spaces up to the newline.
+            out.append(' ')  # replace the '!' itself
+            # We'll handle the rest via a different approach below.
+            # Actually, let's do this line-by-line instead.
+            pass
+        else:
+            out.append(ch)
+    # The char-by-char approach above doesn't handle "rest of line" well.
+    # Redo with a line-by-line approach.
+    lines = text.split('\n')
+    result = []
+    for line in lines:
+        new_line = []
+        in_q = False
+        q_ch = ''
+        for c in line:
+            if not in_q and c in ("'", '"'):
+                in_q = True
+                q_ch = c
+                new_line.append(c)
+            elif in_q and c == q_ch:
+                in_q = False
+                new_line.append(c)
+            elif not in_q and c == '!':
+                # Rest of line is comment; stop
+                break
+            else:
+                new_line.append(c)
+        result.append(''.join(new_line))
+    return '\n'.join(result)
+
+
+def _is_expr_char(ch):
+    """Return True if ch could be part of an expression operand (digit,
+    letter, underscore, closing paren, or dot)."""
+    return ch.isalnum() or ch in ('_', ')', '.')
+
+
+def _find_namelist_terminator(text, start):
+    """Find the terminator `/` for a namelist starting at `start`.
+
+    The terminator is the first `/` (outside quotes) that is NOT a division
+    operator. A `/` is considered division if it has expression characters
+    on both sides (ignoring whitespace).
+
+    Returns the index of the terminator `/`, or -1 if not found.
+    """
+    i = start
+    n = len(text)
+    in_quote = False
+    quote_ch = ''
+    while i < n:
+        ch = text[i]
+        if not in_quote and ch in ("'", '"'):
+            in_quote = True
+            quote_ch = ch
+            i += 1
+            continue
+        if in_quote:
+            if ch == quote_ch:
+                in_quote = False
+            i += 1
+            continue
+        if ch == '/':
+            # Check if this looks like division: expr_char on left AND right
+            # (skipping whitespace).
+            left_ok = False
+            j = i - 1
+            while j >= start and text[j] in (' ', '\t'):
+                j -= 1
+            if j >= start and _is_expr_char(text[j]):
+                left_ok = True
+
+            right_ok = False
+            k = i + 1
+            while k < n and text[k] in (' ', '\t'):
+                k += 1
+            if k < n and (text[k].isalnum() or text[k] in ('_', '(', '+', '-', '.')):
+                right_ok = True
+
+            if left_ok and right_ok:
+                # This is division, skip it.
+                i += 1
+                continue
+            else:
+                return i
+        i += 1
+    return -1
 
 
 def collect_symbols(text, known_symbols):
     """Parse &symbolic_number blocks and return newly resolved symbols.
 
-    Updates known_symbols in place and returns it.
+    Strips Fortran comments before scanning so that commented-out
+    definitions are ignored. Updates known_symbols in place and returns it.
     """
-    for match in _SYMBOLIC_NUMBER_RE.finditer(text):
-        name = match.group(1).upper()
-        value_expr = match.group(2).strip()
+    stripped = _strip_comments(text)
+    # Find each &symbolic_number header
+    header_re = re.compile(r'&symbolic_number\s+(\w+)\s*=\s*', re.IGNORECASE)
+    pos = 0
+    while True:
+        m = header_re.search(stripped, pos)
+        if not m:
+            break
+        value_start = m.end()
+        # Find the terminator `/` starting from after `&symbolic_number`
+        term_idx = _find_namelist_terminator(stripped, m.start())
+        if term_idx < 0:
+            # No terminator found; skip
+            pos = value_start
+            continue
+        value_expr = stripped[value_start:term_idx].strip()
+        name = m.group(1).upper()
         value = _eval_value(value_expr, known_symbols)
         if value is not None:
             known_symbols[name] = value
+        pos = term_idx + 1
     return known_symbols
 
 
@@ -101,76 +228,71 @@ def _is_word_char(ch):
 def substitute_symbols(text, symbols):
     """Substitute symbolic names with their numeric values in `text`.
 
-    Respects quote boundaries and avoids substituting in contexts where
-    a numeric value is not expected. See module docstring for rules.
+    Uses a single compiled regex alternation for O(n) scanning instead of
+    O(n * num_symbols). Respects quote boundaries and avoids substituting
+    in contexts where a numeric value is not expected. See module docstring
+    for rules.
     """
     if not symbols:
-        return text
+        return text, 0
 
-    # Sort names longest-first so a longer name matches before a shorter
-    # prefix of it (e.g. 'TARGET_BETA_A' before 'TARGET_BETA').
+    # Build a single regex alternation of all symbol names (case-insensitive,
+    # word-boundary delimited).
     names_upper = sorted(symbols.keys(), key=len, reverse=True)
     values_str = {name: _format_value(symbols[name]) for name in names_upper}
+    # Escape names for regex safety (they should be \w+ but be safe).
+    pattern = r'\b(' + '|'.join(re.escape(n) for n in names_upper) + r')\b'
+    symbol_re = re.compile(pattern, re.IGNORECASE)
 
-    out = []
-    i = 0
-    n = len(text)
+    # Pre-compute quote regions to skip.
+    quote_ranges = []
     in_quote = False
     quote_ch = ''
-
-    while i < n:
-        ch = text[i]
-
-        # Track quote state.
+    qstart = 0
+    for i, ch in enumerate(text):
         if not in_quote and ch in ("'", '"'):
             in_quote = True
             quote_ch = ch
-            out.append(ch)
-            i += 1
-            continue
-        if in_quote and ch == quote_ch:
+            qstart = i
+        elif in_quote and ch == quote_ch:
             in_quote = False
-            out.append(ch)
-            i += 1
-            continue
-        if in_quote:
-            out.append(ch)
-            i += 1
-            continue
+            quote_ranges.append((qstart, i))
 
-        # Try to match a known symbol at this position.
-        matched = False
-        for name in names_upper:
-            name_len = len(name)
-            if i + name_len > n:
-                continue
-            if text[i:i + name_len].upper() != name:
-                continue
-            # Word boundaries.
-            if i > 0 and _is_word_char(text[i - 1]):
-                continue
-            end = i + name_len
-            if end < n and _is_word_char(text[end]):
-                continue
-            # Context: skip component access (preceded by '%').
-            if i > 0 and text[i - 1] == '%':
-                continue
-            # Context: skip namelist-var assignments and calls/arrays.
-            j = end
-            while j < n and text[j] == ' ':
-                j += 1
-            if j < n and text[j] in ('=', '('):
-                continue
-            out.append(values_str[name])
-            i = end
-            matched = True
-            break
+    def _in_quotes(pos, end):
+        for qs, qe in quote_ranges:
+            if pos >= qs and end <= qe + 1:
+                return True
+            if qs > end:
+                break
+        return False
 
-        if not matched:
-            out.append(ch)
-            i += 1
+    sub_count = 0
 
-    return ''.join(out)
+    def _replacer(m):
+        nonlocal sub_count
+        start = m.start()
+        end = m.end()
+        name = m.group(1).upper()
+
+        # Skip if inside quotes.
+        if _in_quotes(start, end):
+            return m.group(0)
+        # Skip if preceded by '%'.
+        if start > 0 and text[start - 1] == '%':
+            return m.group(0)
+        # Skip if followed by '=' or '(' (after optional spaces).
+        j = end
+        n = len(text)
+        while j < n and text[j] == ' ':
+            j += 1
+        if j < n and text[j] in ('=', '('):
+            return m.group(0)
+
+        sub_count += 1
+        return values_str[name]
+
+    result = symbol_re.sub(_replacer, text)
+    return result, sub_count
 
 
 def _format_value(v):
@@ -185,6 +307,8 @@ def main():
     ap.add_argument('--symbols-file', default=None,
                     help='JSON file with symbols from prior invocations '
                          '(read and updated)')
+    ap.add_argument('--verbose', action='store_true', default=False,
+                    help='print substitution summary to stderr')
     args = ap.parse_args()
 
     known_symbols = {}
@@ -203,8 +327,15 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
+    symbols_before = len(known_symbols)
     collect_symbols(text, known_symbols)
-    new_text = substitute_symbols(text, known_symbols)
+    new_text, sub_count = substitute_symbols(text, known_symbols)
+
+    if args.verbose:
+        new_syms = len(known_symbols) - symbols_before
+        print(f'tao_preprocess: {len(known_symbols)} symbols '
+              f'({new_syms} new), {sub_count} substitutions',
+              file=sys.stderr)
 
     with open(args.output, 'w') as f:
         f.write(new_text)

@@ -459,6 +459,7 @@ contains
 subroutine deallocate_everything ()
 
 use radiation_mod, only: release_rad_int_cache
+use tao_preprocess_mod, only: tao_preprocess_cleanup
 
 implicit none
 
@@ -550,7 +551,10 @@ if (allocated (s%u)) then
   deallocate (s%u)
 
 endif
-    
+
+! Clean up preprocessor temp directory.
+call tao_preprocess_cleanup()
+
 end subroutine deallocate_everything
     
 !------------------------------------------------------------------------------
