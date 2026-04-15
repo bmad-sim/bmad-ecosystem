@@ -25,19 +25,21 @@ logical err_flag
 
 character(*), parameter :: r_name = 'lcavity_rf_step_setup'
 
-!
+! Note: ele could be an em_field element which does not have an n_rf_steps parameter.
 
 ele2 => ele   ! To get around ifort debug problem.
 
-nn = nint(ele%value(n_rf_steps$))
-if (nn < 1) return
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   lord => pointer_to_super_lord(ele, ix_slave_back = ix_slave)
+  if (lord%key /= lcavity$ .or. nint(ele%value(n_rf_steps$)) < 1) return
   call this_super_slave_rf_setup(ele, lord, ix_slave)
   return
 endif
 
 !
+
+nn = nint(ele%value(n_rf_steps$))
+if (nn < 1) return
 
 if (.not. associated(ele%rf)) allocate(ele%rf)
 if (allocated(ele%rf%steps)) then

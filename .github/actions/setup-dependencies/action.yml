@@ -17,7 +17,7 @@ runs:
         sudo apt-get install gfortran g++ cmake libtool-bin libreadline-dev libpango1.0-dev libssl-dev bc libopenmpi-dev openmpi-bin openmpi-common
 
     - name: Checkout external packages
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         repository: "bmad-sim/bmad-external-packages"
         ref: ${{ inputs.external-packages-version }}
