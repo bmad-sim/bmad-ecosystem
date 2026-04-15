@@ -24,7 +24,7 @@ jobs:
         os: [ubuntu-latest]
     steps:
       # Check out the code from GitHub and all history
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v6
 
 
       - name: Define Release Name
