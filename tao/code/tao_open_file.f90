@@ -21,10 +21,12 @@
 subroutine tao_open_file (file_name, iunit, full_file_name, error_severity, binary)
 
   use tao_interface, dummy => tao_open_file
+  use tao_preprocess_mod, only: tao_preprocess_file
 
   implicit none
 
   character(*) file_name, full_file_name
+  character(400) :: preprocessed_name
   character(20) :: r_name = 'tao_open_file'
 
   integer iunit, ios, error_severity
@@ -49,7 +51,11 @@ subroutine tao_open_file (file_name, iunit, full_file_name, error_severity, bina
   if (logic_option(.false., binary)) then
     open (iunit, file = full_file_name, status = 'old', action = 'READ', iostat = ios, form = 'unformatted')
   else
-    open (iunit, file = full_file_name, status = 'old', action = 'READ', iostat = ios)
+    ! Transparently preprocess the file through util/tao_preprocess.py to
+    ! expand &symbolic_number references. On any failure, the preprocessor
+    ! returns the original path unchanged.
+    call tao_preprocess_file(full_file_name, preprocessed_name)
+    open (iunit, file = preprocessed_name, status = 'old', action = 'READ', iostat = ios)
   endif
 
   if (ios /= 0) then

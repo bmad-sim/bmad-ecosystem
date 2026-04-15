@@ -34,7 +34,7 @@ type (lat_struct), pointer :: lat
 
 real(rp) default_weight, def_weight, default_meas, def_meas        ! default merit function weight
 
-integer ios, iu, iu_sub, i, j, j1, k, ix, n_uni, num
+integer ios, iu, i, j, j1, k, ix, n_uni, num
 integer n, iostat, n_loc, n_nml
 integer n_d1_data, ix_ele, ix_min_data, ix_max_data, ix_d1_data
 
@@ -46,7 +46,6 @@ character(200) file_name
 character(40) name,  universe, d_typ, use_same_lat_eles_as
 character(40) default_merit_type, default_data_source, def_merit_type, def_data_source
 character(200) search_for_lat_eles
-character(2000) :: sub_line
 character(200) line, default_data_type, def_data_type
 
 logical err, free, gang, found
@@ -89,26 +88,6 @@ call tao_open_file (data_file, iu, file_name, s_fatal$)
 if (iu == 0) then
   call out_io (s_fatal$, r_name, 'CANNOT OPEN DATA INIT FILE: ' // data_file)
   return
-endif
-
-! Preprocess the data file: substitute symbolic number names with their numeric values.
-! This allows symbolic numbers (defined via &symbolic_number) to be used in real-valued
-! fields like meas and weight in datum() definitions.
-
-if (allocated(s%com%symbolic_num)) then
-  if (size(s%com%symbolic_num) > 0) then
-    iu_sub = lunget()
-    open(iu_sub, status='scratch')
-    do
-      read(iu, '(a)', iostat=ios) sub_line
-      if (ios /= 0) exit
-      call sub_symbolic_nums_in_line(sub_line)
-      write(iu_sub, '(a)') trim(sub_line)
-    enddo
-    close(iu)
-    iu = iu_sub
-    rewind(iu)
-  endif
 endif
 
 n_d2_data = 0
@@ -646,124 +625,6 @@ end subroutine d1_data_stuffit
 
 !------------------------------
 ! contains
-!
-! Subroutine to substitute symbolic number names with their numeric values in a text line.
-! Only substitutes in contexts where a real value is expected (not namelist variable names,
-! component accessors, or quoted strings). Specifically, a match is skipped if:
-!   - It is inside a quoted string
-!   - It is preceded by '%' (component access like datum%meas)
-!   - It is followed by '=' (namelist variable assignment like default_meas = ...)
-!   - It is followed by '(' (array/function name like datum(...))
-
-subroutine sub_symbolic_nums_in_line(line_str)
-
-character(*), intent(inout) :: line_str
-character(len(line_str)) :: line_out
-character(40) :: sym_name_up, num_str, test_str
-character(1) :: ch, quote_ch
-integer :: i_sym, i_in, i_out, name_len, num_len, line_len, end_pos, k
-logical :: in_quote, matched
-
-if (.not. allocated(s%com%symbolic_num)) return
-
-do i_sym = 1, size(s%com%symbolic_num)
-  sym_name_up = upcase(s%com%symbolic_num(i_sym)%name)
-  name_len = len_trim(sym_name_up)
-  if (name_len == 0) cycle
-
-  write(num_str, '(es22.15)') s%com%symbolic_num(i_sym)%value
-  num_str = adjustl(num_str)
-  num_len = len_trim(num_str)
-
-  line_out = ''
-  i_in = 1
-  i_out = 1
-  in_quote = .false.
-  quote_ch = ' '
-  line_len = len_trim(line_str)
-
-  do while (i_in <= line_len)
-    ch = line_str(i_in:i_in)
-
-    ! Track quote state
-    if (.not. in_quote .and. (ch == "'" .or. ch == '"')) then
-      in_quote = .true.
-      quote_ch = ch
-      line_out(i_out:i_out) = ch
-      i_out = i_out + 1
-      i_in = i_in + 1
-      cycle
-    elseif (in_quote .and. ch == quote_ch) then
-      in_quote = .false.
-      line_out(i_out:i_out) = ch
-      i_out = i_out + 1
-      i_in = i_in + 1
-      cycle
-    endif
-
-    ! Inside quotes: just copy
-    if (in_quote) then
-      line_out(i_out:i_out) = ch
-      i_out = i_out + 1
-      i_in = i_in + 1
-      cycle
-    endif
-
-    ! Outside quotes: try to match symbolic name (case-insensitive)
-    matched = .false.
-    end_pos = i_in + name_len - 1
-    if (end_pos <= line_len) then
-      test_str = upcase(line_str(i_in:end_pos))
-      if (test_str(1:name_len) == sym_name_up(1:name_len)) then
-        ! Check word boundaries: character before must not be alphanumeric or underscore
-        if (i_in == 1 .or. .not. is_word_char(line_str(i_in-1:i_in-1))) then
-          ! Character after must not be alphanumeric or underscore
-          if (end_pos == line_len .or. .not. is_word_char(line_str(end_pos+1:end_pos+1))) then
-
-            ! Context check: skip if preceded by '%' (component access like datum%meas)
-            if (i_in > 1 .and. line_str(i_in-1:i_in-1) == '%') goto 100
-
-            ! Context check: skip if followed by '=' or '(' after optional whitespace
-            ! (namelist variable assignment or array subscript)
-            k = end_pos + 1
-            do while (k <= line_len .and. line_str(k:k) == ' ')
-              k = k + 1
-            enddo
-            if (k <= line_len .and. (line_str(k:k) == '=' .or. line_str(k:k) == '(')) goto 100
-
-            ! All checks passed: substitute
-            line_out(i_out:i_out+num_len-1) = num_str(1:num_len)
-            i_out = i_out + num_len
-            i_in = end_pos + 1
-            matched = .true.
-          endif
-        endif
-      endif
-    endif
-
-100 continue
-    if (.not. matched) then
-      line_out(i_out:i_out) = ch
-      i_out = i_out + 1
-      i_in = i_in + 1
-    endif
-  enddo
-
-  line_str = line_out(1:max(i_out-1, 1))
-  line_len = len_trim(line_str)
-enddo
-
-end subroutine sub_symbolic_nums_in_line
-
-!------------------------------
-
-logical function is_word_char(ch)
-character(1), intent(in) :: ch
-is_word_char = (ch >= 'A' .and. ch <= 'Z') .or. (ch >= 'a' .and. ch <= 'z') .or. &
-               (ch >= '0' .and. ch <= '9') .or. ch == '_'
-end function is_word_char
-
-!------------------------------
 
 subroutine find_this_element (ele_name, who, u, datum, ix_ele, ix_branch)
 
