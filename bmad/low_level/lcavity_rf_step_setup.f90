@@ -31,7 +31,7 @@ ele2 => ele   ! To get around ifort debug problem.
 
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
   lord => pointer_to_super_lord(ele, ix_slave_back = ix_slave)
-  if (lord%key /= lcavity$ .or. nint(ele%value(n_rf_steps$))) return
+  if (lord%key /= lcavity$ .or. nint(ele%value(n_rf_steps$)) < 1) return
   call this_super_slave_rf_setup(ele, lord, ix_slave)
   return
 endif
