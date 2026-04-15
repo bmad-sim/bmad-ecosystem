@@ -5,12 +5,16 @@
 ! The regression output should be identical to tao_test (Test #1) since
 ! meas values do not affect the regression output, but parsing failure
 ! would cause tao to abort, failing the test.
+!
+! MAX_ETA uses charge_of(proton) -- a Tao-specific expression function --
+! to verify that full Tao expression semantics are preserved through
+! preprocessing (charge_of(proton) == 1, same numeric value as before).
 
 &symbolic_number TARGET_BETA = 12.5 /
 &symbolic_number TARGET_ALPHA = -1.0 /
 &symbolic_number ZERO = 0.0 /
 &symbolic_number MAX_BETA = 100 /
-&symbolic_number MAX_ETA = 1 /
+&symbolic_number MAX_ETA = charge_of(proton) /
 
 !------------------------------------------------------------------------
 

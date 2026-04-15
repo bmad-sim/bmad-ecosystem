@@ -35,6 +35,7 @@ implicit none
 private
 public :: tao_preprocess_file
 public :: tao_preprocess_cleanup
+public :: tao_preprocess_export_symbols
 
 ! C binding for getpid -- used to derive a deterministic temp-dir name.
 interface
@@ -173,6 +174,8 @@ end subroutine tao_preprocess_file
 
 subroutine session_init ()
 
+use tao_preprocess_path, only: tao_source_root
+
 character(400) :: dist_base, mkdir_cmd
 character(20)  :: pid_str
 character(*), parameter :: r_name = 'tao_preprocess'
@@ -181,19 +184,23 @@ logical :: exists
 
 init_attempted = .true.
 
+! Locate the source root: try env vars first, then compile-time fallback.
 call get_environment_variable('DIST_BASE_DIR', dist_base)
 if (len_trim(dist_base) == 0) then
   call get_environment_variable('ACC_ROOT_DIR', dist_base)
 endif
+if (len_trim(dist_base) == 0 .and. len_trim(tao_source_root) > 0) then
+  dist_base = tao_source_root
+endif
 if (len_trim(dist_base) == 0) then
-  call out_io(s_info$, r_name, 'tao preprocessor not available: DIST_BASE_DIR / ACC_ROOT_DIR not set')
+  call out_io(s_warn$, r_name, 'tao preprocessor not available: DIST_BASE_DIR / ACC_ROOT_DIR not set')
   return
 endif
 
 script_path = trim(dist_base) // '/util/tao_preprocess.py'
 inquire(file=script_path, exist=exists)
 if (.not. exists) then
-  call out_io(s_info$, r_name, 'tao preprocessor not available: script not found at ' // trim(script_path))
+  call out_io(s_warn$, r_name, 'tao preprocessor not available: script not found at ' // trim(script_path))
   return
 endif
 
@@ -204,7 +211,7 @@ tmp_dir = '/tmp/tao_preprocess_' // trim(pid_str)
 mkdir_cmd = "mkdir -p '" // trim(tmp_dir) // "' 2>/dev/null"
 call execute_command_line(mkdir_cmd, wait=.true., exitstat=exit_stat, cmdstat=cmd_stat)
 if (cmd_stat /= 0 .or. exit_stat /= 0) then
-  call out_io(s_info$, r_name, 'tao preprocessor not available: could not create temp dir ' // trim(tmp_dir))
+  call out_io(s_warn$, r_name, 'tao preprocessor not available: could not create temp dir ' // trim(tmp_dir))
   return
 endif
 
@@ -241,5 +248,71 @@ init_ok = .false.
 init_attempted = .false.
 
 end subroutine tao_preprocess_cleanup
+
+!+
+! Subroutine tao_preprocess_export_symbols ()
+!
+! Write s%com%symbolic_num to the session symbols.json file so that the
+! Python preprocessor can perform text substitution of symbolic names.
+! Values are written as %.15e floats for lossless round-tripping.
+!
+! Input:  None. Reads from s%com%symbolic_num.
+! Output: None. Side effect: writes (or overwrites) the symbols.json file
+!         in the session temp directory.
+!-
+
+subroutine tao_preprocess_export_symbols ()
+
+use tao_struct, only: s
+
+integer :: iu, ios, i, n
+character(60) :: val_str
+character(40) :: uname
+
+! Nothing to do if session was never set up.
+if (.not. init_ok) return
+
+iu = lunget()
+if (iu == 0) return
+
+open(iu, file=symbols_file, status='replace', action='write', iostat=ios)
+if (ios /= 0) return
+
+! If symbolic_num is not allocated or empty, write an empty dict.
+if (.not. allocated(s%com%symbolic_num)) then
+  write(iu, '(a)', iostat=ios) '{}'
+  close(iu, iostat=ios)
+  return
+endif
+
+n = size(s%com%symbolic_num)
+if (n == 0) then
+  write(iu, '(a)', iostat=ios) '{}'
+  close(iu, iostat=ios)
+  return
+endif
+
+! Write opening brace.
+write(iu, '(a)', advance='no', iostat=ios) '{'
+if (ios /= 0) then; close(iu, iostat=ios); return; endif
+
+do i = 1, n
+  uname = upcase(s%com%symbolic_num(i)%name)
+  write(val_str, '(es23.15e3)', iostat=ios) s%com%symbolic_num(i)%value
+  if (ios /= 0) cycle
+
+  ! Write: "NAME": value
+  if (i > 1) then
+    write(iu, '(a)', advance='no', iostat=ios) ', '
+    if (ios /= 0) exit
+  endif
+  write(iu, '(a)', advance='no', iostat=ios) '"' // trim(uname) // '": ' // trim(adjustl(val_str))
+  if (ios /= 0) exit
+end do
+
+write(iu, '(a)', iostat=ios) '}'
+close(iu, iostat=ios)
+
+end subroutine tao_preprocess_export_symbols
 
 end module tao_preprocess_mod

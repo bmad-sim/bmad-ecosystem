@@ -1,205 +1,49 @@
 #!/usr/bin/env python3
 """
-Tao init-file preprocessor.
+Tao init-file preprocessor -- pure text substitution.
 
-Expands `&symbolic_number` namelist definitions by substituting symbol
-references with their numeric values throughout the file. This enables
-symbolic numbers to be used in positions where the Fortran namelist
-reader cannot handle symbolic names (e.g., the real-valued `meas` field
-in datum definitions).
+Substitutes symbolic names with numeric values that were pre-evaluated by
+Fortran's tao_evaluate_expression. This script does NOT evaluate expressions
+itself; it only consumes symbols exported by Fortran.
 
-Invoked automatically by tao; end users do not run this script directly.
+The --symbols-file is the ONLY source of symbol definitions. It must be a
+JSON file containing a dict of ``{"NAME": number, ...}`` with uppercase
+keys. If the file is absent or empty, no substitution is performed and the
+output is identical to the input.
 
 Usage:
-    python3 tao_preprocess.py INPUT_FILE OUTPUT_FILE [--symbols-file SYMBOLS]
+    python3 tao_preprocess.py INPUT_FILE OUTPUT_FILE [--symbols-file SYMBOLS] [--verbose]
 
 - INPUT_FILE:   path to the original tao init file
 - OUTPUT_FILE:  path to write the preprocessed file (same content if no
                 substitution is needed)
-- --symbols-file SYMBOLS: optional path to a JSON file holding symbols
-                from previous invocations. Updated on each run so
-                subsequent invocations inherit earlier definitions.
+- --symbols-file SYMBOLS: path to a JSON file of symbols pre-evaluated by
+                Fortran. Read only; never written back.
 - --verbose:    print a one-line substitution summary to stderr
 
-Parsing details:
-  - Fortran `!` comments (outside quoted strings) are stripped before
-    scanning for `&symbolic_number` namelists, so commented-out
-    definitions are correctly ignored.
-  - The namelist terminator `/` is distinguished from the division
-    operator by context: a `/` that is immediately adjacent to a digit,
-    identifier character, or `)` on both sides is treated as division.
-    The terminator is the first `/` that does NOT look like division.
-
-Substitution rules (applied only when a symbolic value was successfully
-evaluated by this preprocessor):
+Substitution rules:
   - Inside single- or double-quoted strings: NOT substituted
-  - Immediately preceded by '%' (e.g. `datum%meas`): NOT substituted
-  - Followed by '=' (e.g. `foo = ...`): NOT substituted
-  - Followed by '(' (e.g. `foo(1)`): NOT substituted
+  - Immediately preceded by '%' (e.g. ``datum%meas``): NOT substituted
+  - Followed by '=' (e.g. ``foo = ...``): NOT substituted
+  - Followed by '(' (e.g. ``foo(1)``): NOT substituted
   - Whole-word matches only (not substring)
   - Matching is case-insensitive
-  - `&symbolic_number` namelist blocks are left intact in the output so
-    Fortran's expression evaluator continues to see the definitions.
 """
 
 import argparse
 import json
-import math
 import os
 import re
 import sys
 
 
-# Safe namespace for evaluating &symbolic_number values.
-_MATH_NAMES = {
-    'pi': math.pi, 'e': math.e,
-    'sqrt': math.sqrt, 'exp': math.exp, 'log': math.log, 'log10': math.log10,
-    'sin': math.sin, 'cos': math.cos, 'tan': math.tan,
-    'asin': math.asin, 'acos': math.acos, 'atan': math.atan, 'atan2': math.atan2,
-    'sinh': math.sinh, 'cosh': math.cosh, 'tanh': math.tanh,
-    'abs': abs, 'min': min, 'max': max,
-}
-
-
-def _eval_value(expr_text, known_symbols):
-    """Evaluate the RHS of a &symbolic_number. Returns float or None on failure.
-
-    Accepts literal numbers, basic arithmetic, math functions (pi, sqrt, etc.),
-    and references to previously-defined symbols. Complex tao-specific
-    expressions (e.g. ones referring to lattice data) are not handled here and
-    will be left for Fortran to evaluate via its expression evaluator.
-    """
-    namespace = dict(_MATH_NAMES)
-    for name, value in known_symbols.items():
-        namespace[name.upper()] = value
-        namespace[name.lower()] = value
-    # Convert Fortran's '**' and 'd'/'D' exponent to Python form.
-    expr_py = expr_text.strip()
-    expr_py = re.sub(r'(\d)[dD]([+\-]?\d)', r'\1e\2', expr_py)
-    try:
-        result = eval(expr_py, {'__builtins__': {}}, namespace)
-        return float(result)
-    except Exception:
-        return None
-
-
-def _strip_comments(text):
-    """Strip Fortran !-comments (outside quoted strings) from text.
-
-    Processes line-by-line; an unquoted '!' truncates the rest of the line.
-    Line structure is preserved so positions of other content are stable.
-    """
-    result = []
-    for line in text.split('\n'):
-        stripped = []
-        in_quote = False
-        quote_ch = ''
-        for ch in line:
-            if not in_quote and ch in ("'", '"'):
-                in_quote = True
-                quote_ch = ch
-                stripped.append(ch)
-            elif in_quote and ch == quote_ch:
-                in_quote = False
-                stripped.append(ch)
-            elif not in_quote and ch == '!':
-                break  # rest of line is a comment
-            else:
-                stripped.append(ch)
-        result.append(''.join(stripped))
-    return '\n'.join(result)
-
-
-def _is_expr_char(ch):
-    """Return True if ch could be part of an expression operand (digit,
-    letter, underscore, closing paren, or dot)."""
-    return ch.isalnum() or ch in ('_', ')', '.')
-
-
-def _find_namelist_terminator(text, start):
-    """Find the terminator `/` for a namelist starting at `start`.
-
-    The terminator is the first `/` (outside quotes) that is NOT a division
-    operator. A `/` is considered division if it has expression characters
-    on both sides (ignoring whitespace).
-
-    Returns the index of the terminator `/`, or -1 if not found.
-    """
-    i = start
-    n = len(text)
-    in_quote = False
-    quote_ch = ''
-    while i < n:
-        ch = text[i]
-        if not in_quote and ch in ("'", '"'):
-            in_quote = True
-            quote_ch = ch
-            i += 1
-            continue
-        if in_quote:
-            if ch == quote_ch:
-                in_quote = False
-            i += 1
-            continue
-        if ch == '/':
-            # Check if this looks like division: expr_char on left AND right
-            # (skipping whitespace).
-            left_ok = False
-            j = i - 1
-            while j >= start and text[j] in (' ', '\t'):
-                j -= 1
-            if j >= start and _is_expr_char(text[j]):
-                left_ok = True
-
-            right_ok = False
-            k = i + 1
-            while k < n and text[k] in (' ', '\t'):
-                k += 1
-            if k < n and (text[k].isalnum() or text[k] in ('_', '(', '+', '-', '.')):
-                right_ok = True
-
-            if left_ok and right_ok:
-                # This is division, skip it.
-                i += 1
-                continue
-            else:
-                return i
-        i += 1
-    return -1
-
-
-def collect_symbols(text, known_symbols):
-    """Parse &symbolic_number blocks and return newly resolved symbols.
-
-    Strips Fortran comments before scanning so that commented-out
-    definitions are ignored. Updates known_symbols in place and returns it.
-    """
-    stripped = _strip_comments(text)
-    # Find each &symbolic_number header
-    header_re = re.compile(r'&symbolic_number\s+(\w+)\s*=\s*', re.IGNORECASE)
-    pos = 0
-    while True:
-        m = header_re.search(stripped, pos)
-        if not m:
-            break
-        value_start = m.end()
-        # Find the terminator `/` starting from after `&symbolic_number`
-        term_idx = _find_namelist_terminator(stripped, m.start())
-        if term_idx < 0:
-            # No terminator found; skip
-            pos = value_start
-            continue
-        value_expr = stripped[value_start:term_idx].strip()
-        name = m.group(1).upper()
-        value = _eval_value(value_expr, known_symbols)
-        if value is not None:
-            known_symbols[name] = value
-        pos = term_idx + 1
-    return known_symbols
-
-
 def _is_word_char(ch):
     return ch.isalnum() or ch == '_'
+
+
+def _format_value(v):
+    """Format a float value as a Fortran-parseable numeric literal."""
+    return f'{v:.15e}'
 
 
 def substitute_symbols(text, symbols):
@@ -272,30 +116,27 @@ def substitute_symbols(text, symbols):
     return result, sub_count
 
 
-def _format_value(v):
-    """Format a float value as a Fortran-parseable numeric literal."""
-    return f'{v:.15e}'
-
-
 def main():
     ap = argparse.ArgumentParser(description='Preprocess a tao init file.')
     ap.add_argument('input', help='input file path')
     ap.add_argument('output', help='output file path')
     ap.add_argument('--symbols-file', default=None,
-                    help='JSON file with symbols from prior invocations '
-                         '(read and updated)')
+                    help='JSON file with symbols pre-evaluated by Fortran '
+                         '(read only; never written back)')
     ap.add_argument('--verbose', action='store_true', default=False,
                     help='print substitution summary to stderr')
     args = ap.parse_args()
 
-    known_symbols = {}
+    # Load symbols from file (if provided and parseable).
+    symbols = {}
     if args.symbols_file and os.path.exists(args.symbols_file):
         try:
             with open(args.symbols_file) as f:
-                known_symbols = json.load(f)
+                symbols = json.load(f)
         except Exception:
-            known_symbols = {}
+            symbols = {}
 
+    # Read input.
     try:
         with open(args.input, 'r') as f:
             text = f.read()
@@ -304,22 +145,16 @@ def main():
               file=sys.stderr)
         sys.exit(1)
 
-    symbols_before = len(known_symbols)
-    collect_symbols(text, known_symbols)
-    new_text, sub_count = substitute_symbols(text, known_symbols)
+    # Substitute and write output.
+    new_text, sub_count = substitute_symbols(text, symbols)
 
     if args.verbose:
-        new_syms = len(known_symbols) - symbols_before
-        print(f'tao_preprocess: {len(known_symbols)} symbols '
-              f'({new_syms} new), {sub_count} substitutions',
+        print(f'tao_preprocess: {len(symbols)} symbols, '
+              f'{sub_count} substitutions',
               file=sys.stderr)
 
     with open(args.output, 'w') as f:
         f.write(new_text)
-
-    if args.symbols_file:
-        with open(args.symbols_file, 'w') as f:
-            json.dump(known_symbols, f)
 
 
 if __name__ == '__main__':

@@ -17,6 +17,7 @@ use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots
 use tao_plot_window_mod, only: tao_destroy_plot_window
+use tao_preprocess_mod, only: tao_preprocess_export_symbols
 use random_mod
 
 !$ use omp_lib
@@ -168,7 +169,12 @@ if (iu /= 0) then
     call tao_set_symbolic_number_cmd(line(1:j-1), line(j+1:ix-1))
   enddo
 
-  rewind(iu)
+  ! Close the file, export the now-populated symbol table to symbols.json,
+  ! and reopen so that tao_preprocess_file (called inside tao_open_file) can
+  ! substitute symbolic names on this second pass.
+  close(iu)
+  call tao_preprocess_export_symbols()
+  call tao_open_file(init_tao_file, iu, file_name, s_blank$)
 
   ! Read tao_start namelist.
 
