@@ -38,7 +38,7 @@ real(rp), pointer :: ptr_attrib
 
 character(100) line, line2
 character(200) plot_file, data_file, var_file, file_name, startup_file, hook_init_file
-character(200) building_wall_file, beam_file, why_invalid, init_tao_file
+character(200) building_wall_file, beam_file, why_invalid, init_tao_file, str, files(20)
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -413,16 +413,27 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   enddo
 enddo
 
-! Look for a startup file
+! Look for a startup file(s).
+! Important: tao_call_cmd must be called in reverse order so that that the first file is called first.
 
-if (iu_log > 0) write (iu_log, '(a)') '*Init: Execute startup file.'
+if (iu_log > 0) write (iu_log, '(a)') '*Init: Execute startup file(s).'
+files = ''
+do i = 1, size(files)
+  ix = str_last_in_set(startup_file, ',')
+  if (ix == 0) then
+    str = trim(startup_file)
+    startup_file = ''
+  else
+    str = trim(startup_file(ix+1:))
+    startup_file = trim(startup_file(1:ix-1))
+  endif
 
-if (startup_file /= '' .and. s%init%nostartup_arg == '') then
-  using_default = (startup_file == 'tao.startup')
-  call tao_open_file (startup_file, iu, file_name, -1)
+  if (str == '' .or. s%init%nostartup_arg /= '') exit
+  using_default = (str == 'tao.startup' .and. i == 1)
+  call tao_open_file (str, iu, file_name, -1)
   if (iu == 0 .and. using_default) then ! If default
-    startup_file = trim(s%init%init_file_arg_path) // 'tao.startup'
-    call tao_open_file (startup_file, iu, file_name, -1)
+    str = trim(s%init%init_file_arg_path) // 'tao.startup'
+    call tao_open_file (str, iu, file_name, -1)
   endif
 
   if (iu == 0 .and. .not. using_default) then
@@ -430,12 +441,16 @@ if (startup_file /= '' .and. s%init%nostartup_arg == '') then
 
   elseif (iu /= 0) then
     close (iu)
-    call out_io (s_blank$, r_name, 'Using startup file: ' // file_name)
     s%com%cmd_from_cmd_file = .false.
-    call tao_cmd_history_record ('call ' // startup_file)
+    call tao_cmd_history_record ('call ' // str)
     call tao_call_cmd (file_name)
+    files(i) = str
   endif
-endif
+enddo
+
+do i = size(files), 1, -1
+  if (files(i) /= '')  call out_io (s_blank$, r_name, 'Using startup file: ' // files(i))
+enddo
 
 ! Bookkeeping
 
