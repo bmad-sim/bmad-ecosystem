@@ -3109,9 +3109,9 @@ if (attribute_type(upcase(attribute)) == is_real$ .or. attribute_type(upcase(att
   enddo
 
   if (n_set == 0) then
+    call out_io (s_error$, r_name, 'NOTHING SET. TYPICAL ATTRIBUTE_FREE ERROR MESSAGE IS:')
     i = size(eles)
     call set_ele_real_attribute (ele, attribute, set_val(i), err, .true.)
-    call out_io (s_error$, r_name, 'NOTHING SET.')
     return
 
   elseif (n_eles > 1 .and. n_set /= n_eles) then

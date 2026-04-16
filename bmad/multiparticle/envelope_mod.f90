@@ -838,11 +838,11 @@ call LA_SYEV(R,u,JOBZ='N')  !evals and evecs of symmetric real matrix
 u(1) = max(u(1),1.0d-20)
 u(2) = max(u(2),1.0d-20)
 u(3) = max(u(3),1.0d-20)
-if( (sqrt(u(1)/u(2)) .gt. 1.0e10) .or. \
-    (sqrt(u(2)/u(1)) .gt. 1.0e10) .or. \
-    (sqrt(u(1)/u(3)) .gt. 1.0e10) .or. \
-    (sqrt(u(3)/u(1)) .gt. 1.0e10) .or. \
-    (sqrt(u(2)/u(3)) .gt. 1.0e10) .or. \
+if( (sqrt(u(1)/u(2)) .gt. 1.0e10) .or. &
+    (sqrt(u(2)/u(1)) .gt. 1.0e10) .or. &
+    (sqrt(u(1)/u(3)) .gt. 1.0e10) .or. &
+    (sqrt(u(3)/u(1)) .gt. 1.0e10) .or. &
+    (sqrt(u(2)/u(3)) .gt. 1.0e10) .or. &
     (sqrt(u(3)/u(2)) .gt. 1.0e10) ) then
     write(*,'(a)') "Warning from beam_envelope_ibs: physical beam dimensions differ by more than 10 orders of magnitude."
     write(*,'(a)') "Something could be wrong, check emittances."

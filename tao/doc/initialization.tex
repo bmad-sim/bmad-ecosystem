@@ -186,8 +186,9 @@ This is useful, for example, in storage rings. Note A \vn{start_branch_at}
 command may also be put directly in the lattice file.
 %
 \item[-startup_file <file_name>] \Newline
-Overrides the \vn{startup_file} (\sref{s:init.begin}) specified in the
-\tao initialization file.
+Overrides the \vn{startup_file} (\sref{s:init.begin}) specified in the \tao initialization
+file. Note: Multiple startup files can be specified as a comma deliminated list. Note: Either
+have no spaces between file names or put the entire list in quotes.
 %
 \item[-symbol_import] \Newline
 Import symbolic constants defined in any lattice files? (the default is not to). Symbols are
@@ -378,9 +379,10 @@ Then, relative to the current working directory, the files used will be
 initialization files with custom versions of \tao. The other parameters specify which files to find
 the other initialization namelists. The \vn{plot_file} variable can be an array of plot files.
 
-\tao will open an execute a command file (\sref{s:command.files}) at startup if it exists.  The
+\tao can open and execute a command file or files (\sref{s:command.files}) at startup.  The
 default name is \vn{tao.startup} but this name can be changed by setting the \vn{startup_file}
-component in the \vn{tao_start} namelist.
+component in the \vn{tao_start} namelist. To specify multiple startup files, which will be executed
+in order, use a comma deliminated list.
 
 The following sections describe each of these initialization namelists and their locations are
 listed in table~\ref{t:init.files}. Note: If \vn{plot_file} specifies multiple files, the
