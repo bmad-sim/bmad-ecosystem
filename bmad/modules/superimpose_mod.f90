@@ -336,36 +336,12 @@ do
   if (i == ix2_split) exit
 enddo
 
-! If an lcavity overlaps a pipe/instrument/monitor super_slave, remove the corresponding super_lord.
-
-if (super_saved%key == lcavity$) then
-  doit = .false.
-  do i = ix1_split+1, ix2_split
-    ele => branch%ele(i)
-    if (ele%slave_status /= super_slave$) cycle
-    do n = 1, ele%n_lord
-      lord => pointer_to_lord(ele, n)
-      lord%ix_ele = -2
-      doit = .true.
-      do j = 1, lord%n_slave
-        slave => pointer_to_slave(lord, j)
-        slave%field_calc = lord%field_calc
-      enddo
-    enddo
-  enddo
-  call remove_eles_from_lat(lat, .false.)
-endif
-
 ! If element overlaps only drifts then just insert it in the tracking part of the lattice.
 
 all_drift = (ix2_split > ix1_split)
 do i = ix1_split+1, ix2_split
   ele => branch%ele(i)
-  if (super_saved%key == lcavity$) then
-    if (ele%key /= drift$ .and. ele%key /= instrument$ .and. ele%key /= monitor$ .and. ele%key /= pipe$) all_drift = .false.
-  else
-    if (ele%key /= drift$) all_drift = .false.
-  endif
+  if (ele%key /= drift$) all_drift = .false.
 enddo
 
 if (all_drift) then  
@@ -930,7 +906,7 @@ end subroutine adjust_super_slave_names
 !+
 ! Subroutine adjust_drift_names (lat, drift_ele, key_in)
 !
-! If drifts (or pipes with lcavity superposition) have been split due to superimpose then the split drifts
+! If drifts have been split due to superimpose then the split drifts
 ! can have some very convoluted names. Also multipass lord drifts. Here we do some cleanup.
 ! Collect all free elements with the same name before the '#' and renumber.
 !-
