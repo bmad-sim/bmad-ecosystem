@@ -1,0 +1,86 @@
+!------------------------------------------------------------------------
+! Test: symbolic numbers used in datum meas fields.
+! This is a copy of tao_test/tao.init with symbolic_number namelists
+! defining named constants that are then used in the meas column of datum().
+! The regression output should be identical to tao_test (Test #1) since
+! meas values do not affect the regression output, but parsing failure
+! would cause tao to abort, failing the test.
+!
+! MAX_ETA uses charge_of(proton) -- a Tao-specific expression function --
+! to verify that full Tao expression semantics are preserved through
+! preprocessing (charge_of(proton) == 1, same numeric value as before).
+
+&symbolic_number TARGET_BETA = 12.5 /
+&symbolic_number TARGET_ALPHA = -1.0 /
+&symbolic_number ZERO = 0.0 /
+&symbolic_number MAX_BETA = 100 /
+&symbolic_number MAX_ETA = charge_of(proton) /
+
+!------------------------------------------------------------------------
+
+&tao_start
+  startup_file = 'tao.startup'
+/
+
+!Beam Initialization
+!--------------------------------------------------------
+&tao_design_lattice
+  n_universes =1
+  design_lattice(1)%file = "tao_test.bmad"
+/
+
+!------------------------------------------------------------------------
+&tao_params
+  global%track_type = 'single'
+  global%beam_timer_on = T
+  global%random_engine = 'pseudo'
+  global%de_lm_step_ratio = 1500
+  global%optimizer = 'lmdif'
+  global%n_opti_cycles = 100
+
+  global%prompt_color = 'BLUE'
+  !---Bmad---
+  bmad_com%radiation_damping_on = F
+  bmad_com%radiation_fluctuations_on = F
+  /
+
+
+!------------------------Data--------------------------------------------
+!------------------------------------------------------------------------
+
+&tao_d2_data
+  d2_data%name = 'twiss'
+  n_d1_data = 2
+/
+
+&tao_d1_data
+  ix_d1_data = 1
+  d1_data%name = 'end'
+  datum( 1) =  'beta.a'     '' '' 'END'   'target'  TARGET_BETA   1e1
+  datum( 2) =  'alpha.a'    '' '' 'END'   'target'  TARGET_ALPHA   1e2
+  datum( 3) =  'beta.b'     '' '' 'END'   'target'  TARGET_BETA   1e1
+  datum( 4) =  'alpha.b'    '' '' 'END'   'target'  TARGET_ALPHA   1e2
+  datum( 5) =  'eta.x'      '' '' 'END'   'target'  ZERO    1e1
+  datum( 6) =  'etap.x'     '' '' 'END'   'target'  ZERO    1e2
+/
+
+&tao_d1_data
+  ix_d1_data = 2
+  d1_data%name = 'max'
+  datum( 1) =  'beta.a'    '' 'Q1' 'END'   'max'      MAX_BETA   1e1
+  datum( 2) =  'eta.x'     '' 'Q1' 'END'   'abs_max'  MAX_ETA     1e2
+/
+
+!------------------------Variables---------------------------------------
+!------------------------------------------------------------------------
+
+&tao_var
+  v1_var%name = 'quad'
+  default_step = 1e-4
+  default_universe = '1'
+  default_attribute = 'k1'
+  default_key_delta = 1e-2
+  ix_min_var = 1
+  search_for_lat_eles = 'Quad::*'
+  default_key_bound = T
+/
