@@ -10,7 +10,7 @@
   public alloc_pancake,init_pancake,kill_pancake,ppushGETN_pancake,mtree_pancake
   public ppushstore_pancake,dacon_pancake,dacop_pancake,dacdi_pancake,damul_pancake,davar_pancake
   public daall0_pancake,dapok_pancake,daadd_pancake,dadal1_pancake,dacmu_pancake
-  public dapri_pancake,dapri77_pancake,darea_pancake,darea77_pancake
+  public dapri_pancake,dapri77_pancake,darea_pancake,darea77_pancake,dader_pancake
  !   public ldamax, lstmax,leamax,liamax
   private daallno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dafunt,dacctt
   private dainvt,dapint,dadert,dacfuRt,dacfuIt,dacfut
@@ -3890,6 +3890,14 @@ end subroutine dapri_pancake
     endif
     return
     end subroutine dader
+
+    subroutine dader_pancake(idif,ina,inc)
+    implicit none
+    integer idif,ina,inc
+
+    call dader(idif,ina,inc)
+    end subroutine dader_pancake
+   
   subroutine dadert(idif,ina,inc)
     implicit none
     !     ******************************

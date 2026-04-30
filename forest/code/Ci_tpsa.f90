@@ -23796,8 +23796,11 @@ n%H_l=ci_phasor()*n%H_l
 !!! Reverse-Dragt-Finn order for Lie map
 N_nl=N_cut_2**(-1)*nf
  
+if(c_%no/=1) then
 n%H_nl=ln(N_nl)
-
+else
+n%H_nl=0
+endif
 n%H_l=c_phasor()*n%H_l
 n%H_nl=c_phasor()*n%H_nl
 

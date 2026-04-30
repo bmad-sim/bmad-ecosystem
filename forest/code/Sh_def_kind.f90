@@ -97,7 +97,7 @@ MODULE S_DEF_KIND
   PRIVATE POINTERS_ABELLR,POINTERS_ABELLp
   PRIVATE ZEROr_PANCAKE,ZEROP_PANCAKE
   PRIVATE rk4_pancaker,rk4_pancakeP,rk6_pancaker,rk6_pancakep
-  PRIVATE FEVAL_pancaker,FEVAL_pancakeP,rks_pancaker,rks_pancakep,rks_pancake
+  PRIVATE FEVAL_pancaker,FEVAL_pancakeP
   private feval_PANCAkE_prober,feval_PANCAkE_probep,rk4_pancake_prober,rk4_pancake_probep
   private rk6_pancake_prober
   PRIVATE INTPANCAKER,INTPANCAKEP,INTE_PANCAKE_prober,INTE_PANCAKE_probep
@@ -117,7 +117,7 @@ MODULE S_DEF_KIND
   INTEGER, PRIVATE :: TOTALPATH_FLAG
   !  private DRIFT_pancaker,DRIFT_pancakep,KICKPATH_pancaker,KICKPATH_pancakep
   ! using x and x'
-  private fxr,fxp,fx,fxr_canonical,fxp_canonical,fxc,step_symp_p_PANCAkEr,step_symp_p_PANCAkEp,step_symp_p_PANCAkE
+  private fxr,fxp,fx,fxc
 !  PRIVATE feval       !,rk4_m
   !  FOR CAV_TRAV
   PRIVATE A_TRANSR,A_TRANSP,A_TRANSL
@@ -210,6 +210,9 @@ type(work) w_bks
  private  feval_sagan_prober,feval_sagan_probep
 private rk2_sagan_prober,rk2_sagan_probep,rk4_sagan_prober,rk4_sagan_probep, rk6_sagan_prober,rk6_sagan_probep
   real(dp) myL1(2,2),myL2(2,2),mylatf(3)   ! for kobayashi
+private conv_to_xpr,conv_to_xpp,conv_to_pxr
+private conv_to_pxp, conv_to_pxpabell ,conv_to_xprabell,conv_to_xppabell,conv_to_pxrabell
+
 type(fibre), pointer :: fk_ye
 integer :: j_ye=2, first_ye=-1
 real(dp) invbest_ye
@@ -219,6 +222,7 @@ real(dp) scalee,scaleb,hhh
 !type(real_8) radcoe
 logical :: sylee_fringe = .false.
 real(dp) :: hwang_lee_scale =1.0_dp
+integer :: ntest =0
 TYPE Lie_ye
      type(c_taylor), allocatable ::  th(:,:)
      INTEGER n_ye,nres
@@ -233,6 +237,19 @@ TYPE Lie_ye
 END TYPE Lie_ye
 type(Lie_ye) y_best1
 
+  INTERFACE conv_to_xp
+     MODULE PROCEDURE conv_to_xpr
+     MODULE PROCEDURE conv_to_xpp
+     MODULE PROCEDURE conv_to_xprabell
+     MODULE PROCEDURE conv_to_xppabell
+  END INTERFACE
+
+  INTERFACE conv_to_px
+     MODULE PROCEDURE conv_to_pxr
+     MODULE PROCEDURE conv_to_pxp
+     MODULE PROCEDURE conv_to_pxrabell
+     MODULE PROCEDURE conv_to_pxpabell
+  END INTERFACE
 
  
   INTERFACE b0_cav
@@ -1091,14 +1108,10 @@ type(Lie_ye) y_best1
   END INTERFACE
 
   INTERFACE fxc
-     MODULE PROCEDURE fxr_canonical
-     MODULE PROCEDURE fxp_canonical
+     MODULE PROCEDURE fxcr
+     MODULE PROCEDURE fxcp
   END INTERFACE
 
-  INTERFACE step_symp_p_PANCAkE
-     MODULE PROCEDURE step_symp_p_PANCAkEr
-     MODULE PROCEDURE step_symp_p_PANCAkEp
-  END INTERFACE
 
 !  INTERFACE step_symp_x_PANCAkE
 !     MODULE PROCEDURE step_symp_x_PANCAkEr
@@ -1137,10 +1150,6 @@ type(Lie_ye) y_best1
   END INTERFACE
 
 
-  INTERFACE rks_pancake
-     MODULE PROCEDURE rks_pancaker
-     MODULE PROCEDURE rks_pancakep
-  END INTERFACE
 
 !!!!!!!  HELICAL
 
@@ -1550,6 +1559,7 @@ end subroutine alloc_lie_ye
     CASE DEFAULT
 
        WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       stop 1101
        ! call !write_e(357)
     END SELECT
 
@@ -1581,6 +1591,8 @@ end subroutine alloc_lie_ye
 
        WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+       stop 1102
+
     END SELECT
 
     CALL KILL(DH)
@@ -1607,6 +1619,8 @@ end subroutine alloc_lie_ye
 
        WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+       stop 1103
+
     END SELECT
 
   END SUBROUTINE INTER_superdrift
@@ -1637,6 +1651,7 @@ end subroutine alloc_lie_ye
        !w_p%fc='(1(1X,A72))'
          write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+       stop 1104
     END SELECT
 
     CALL KILL(DH)
@@ -1746,7 +1761,7 @@ end subroutine alloc_lie_ye
 
        if(J==1) then
           if(EL%P%DIR==1) THEN
-!eeeeeeeeeeeeeeeeeeeeeeeeeee
+
              CALL EDGE(EL%P,EL%BN,EL%H1,EL%H2,EL%FINT,EL%HGAP,1,X,k)
              IF(k%FRINGE.or.el%p%permfringe==1.or.el%p%permfringe==3) CALL MULTIPOLE_FRINGE(EL%P,EL%AN,EL%BN,1,X,k)
              IF(el%p%permfringe==2.or.el%p%permfringe==3) &
@@ -2254,6 +2269,7 @@ end subroutine alloc_lie_ye
 
        WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+       stop 1105
     END SELECT
 
     k%TOTALPATH=TOTALPATH_FLAG
@@ -2404,6 +2420,7 @@ call kill(NDFs);call kill(NDKs);
 
        WRITE(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+       stop 1106
     END SELECT
 
     k%TOTALPATH=TOTALPATH_FLAG
@@ -3120,6 +3137,7 @@ stop
        !w_p%fc='(1(1X,A72))'
          write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+       stop 1107
     END SELECT
 
     !    IF(k%FRINGE)
@@ -18619,10 +18637,10 @@ call  kill(del,pz,h)
 
 
 !!!!!!!!!!!!!! Pancake starts here !!!!!!!!!!!!!!!
- subroutine fxr_canonical(f,x,k,b,p,hc,g,h)
+ subroutine fxcr(f,x,k,b,p,hc,g,h)
     implicit none
 
-    real(dp)  d(3),BETA0,hc
+    real(dp)  d(4),BETA0,hc
     real(dp) ,intent(in) :: b(nbe)
     type(MAGNET_CHART), pointer:: p
     real(dp) ,intent(inout) :: x(6)
@@ -18638,14 +18656,15 @@ call  kill(del,pz,h)
 
     d(1)=1.0_dp+hc*x(1)
     d(2)=x(2)-b(4)
-    d(3)=root(1.0_dp+2*x(5)/beta0+x(5)**2-d(2)**2-x(4)**2)
+    d(4)=x(4)-b(7)
+    d(3)=root(1.0_dp+2*x(5)/beta0+x(5)**2-d(2)**2-d(4)**2)
 
 
     f(1)=d(1)*d(2)/d(3)
-    f(3)=d(1)*x(4)/d(3)
-
-    f(2)=hc*d(3)+d(1)*d(2)*b(7)/d(3)+b(5)
-    f(4)=        d(1)*d(2)*b(8)/d(3)+b(6)
+    f(3)=d(1)*d(4)/d(3)
+! 
+    f(2)=hc*d(3)+d(1)*d(2)*b(5)/d(3)+d(1)*d(4)*b(8)/d(3)+d(1)*b(11)+hc*b(10)
+    f(4)=        d(1)*d(2)*b(6)/d(3)+d(1)*d(4)*b(9)/d(3)+d(1)*b(12) 
     f(5)=0.0_dp
     f(6)=d(1)*(x(5)+1.0_dp/beta0)/d(3)
     if(present(g)) then
@@ -18660,12 +18679,12 @@ call  kill(del,pz,h)
      h(1,2)=  -(d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
      h(2,2)=  -d(1)*b(8)*(x(4)*d(2)/d(3)**3)
     endif
-  end subroutine fxr_canonical
+  end subroutine fxcr 
 
- subroutine fxp_canonical(f,x,k,b,p,hc,g,h)
+ subroutine fxcp(f,x,k,b,p,hc,g,h)
     implicit none
 
-    type(real_8)  d(3)
+    type(real_8)  d(4)
     type(real_8) ,intent(inout) :: x(6)
     type(real_8) ,intent(in) :: b(nbe)
     real(dp)   BETA0,hc
@@ -18676,6 +18695,7 @@ call  kill(del,pz,h)
 
     call alloc(d)
 
+
     if(k%time) then
        beta0=p%beta0;
     else
@@ -18684,37 +18704,37 @@ call  kill(del,pz,h)
 
     d(1)=1.0_dp+hc*x(1)
     d(2)=x(2)-b(4)
-    d(3)=sqrt(1.0_dp+2*x(5)/beta0+x(5)**2-d(2)**2-x(4)**2)
+    d(4)=x(4)-b(7)
+    d(3)=sqrt(1.0_dp+2*x(5)/beta0+x(5)**2-d(2)**2-d(4)**2)
 
 
     f(1)=d(1)*d(2)/d(3)
-    f(3)=d(1)*x(4)/d(3)
-
-    f(2)=hc*d(3)+d(1)*d(2)*b(7)/d(3)+b(5)
-    f(4)=        d(1)*d(2)*b(8)/d(3)+b(6)
+    f(3)=d(1)*d(4)/d(3)
+! 
+    f(2)=hc*d(3)+d(1)*d(2)*b(5)/d(3)+d(1)*d(4)*b(8)/d(3)+d(1)*b(11)+hc*b(10)
+    f(4)=        d(1)*d(2)*b(6)/d(3)+d(1)*d(4)*b(9)/d(3)+d(1)*b(12) 
     f(5)=0.0_dp
     f(6)=d(1)*(x(5)+1.0_dp/beta0)/d(3)
-
     if(present(g)) then
      g(1,1)= (-hc*d(2)/d(3)+d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
      g(1,2)= (-hc*x(4)/d(3)+d(1)*b(7)*(x(4)*d(2)/d(3)**3))
      g(2,1)= (d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
-     g(2,2)= d(1)*b(8)*(x(4)*d(2)/d(3)**3)
+     g(2,2)=  d(1)*b(8)*(x(4)*d(2)/d(3)**3)
     endif
     if(present(h)) then
-     h(1,1)=  -(-hc*d(2)/d(3)+d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
+     h(1,1)=  (hc*d(2)/d(3)-d(1)*b(7)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
      h(2,1)=  -(-hc*x(4)/d(3)+d(1)*b(7)*(x(4)*d(2)/d(3)**3))
      h(1,2)=  -(d(1)*b(8)*(1.0_dp/d(3)+d(2)**2/d(3)**3))
      h(2,2)=  -d(1)*b(8)*(x(4)*d(2)/d(3)**3)
     endif
     call kill(d)
 
-  end subroutine fxp_canonical
+  end subroutine fxcp
 !  Ma Ande
   subroutine fxr(f,x,k,b,p,hcurv)   ! CAN BE USED BY ANY ELEMENT INCLUDING ABELL
     implicit none
 
-    real(dp)  d(3),c(6),BETA0,GAMMA0I,hcurv
+    real(dp)  d(4),c(6),BETA0,GAMMA0I,hcurv
     real(dp) ,intent(in) :: b(3)
     type(MAGNET_CHART), pointer:: p
     real(dp) ,intent(inout) :: x(6)
@@ -18728,52 +18748,10 @@ call  kill(del,pz,h)
     endif
 !!! B(1:3) is real b-field/ brho
     d(1)=root(x(2)**2+x(4)**2+(1.0_dp+hcurv*x(1))**2)
-    d(2)=(d(1)**3)/root(1.0_dp+2*x(5)/beta0+x(5)**2)  ! Ma =sqrt( (1+delta_p/p0))**2)  x(5)=D_E/p0c
+    d(4)=root(1.0_dp+2*x(5)/beta0+x(5)**2)
+    d(2)=(d(1)**3)/d(4)
     d(3)=1.0_dp+hcurv*x(1)
 
-    c(1)=d(1)**2-x(2)**2
-    c(2)=-x(2)*x(4)
-    c(3)= x(2)*x(4)
-    c(4)=-d(1)**2+x(4)**2
-    c(5)=d(2)*(x(4)*b(3)-d(3)*b(2)) +hcurv*d(3)*(d(1)**2+x(2)**2)
-    c(6)=d(2)*(x(2)*b(3)-d(3)*b(1)) -hcurv*d(3)*c(3)
-
-    d(3)=c(1)*c(4)-c(2)*c(3)
-    f(1)=x(2)
-    f(2)=(c(4)*c(5)-c(2)*c(6))/d(3)
-    f(3)=x(4)
-    f(4)=(c(1)*c(6)-c(3)*c(5))/d(3)
-    d(2)=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
-    d(2)=gamma0I/beta0/d(2)
-    f(6)=root((1+d(2)**2))*d(1)  ! (time)-prime = dt/dz
-
-    f(5)=0.0_dp
-
-  end subroutine fxr
-
-  subroutine fxp(f,x,k,b,p,hcurv)
-    implicit none
-
-    type(real_8)  d(3),c(6)
-    type(real_8) ,intent(inout) :: x(6)
-    type(real_8) ,intent(in) :: b(3)
-    real(dp)   BETA0,GAMMA0I,hcurv
-    type(real_8), intent(out):: f(6)
-    type(MAGNET_CHART), pointer:: p
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
-    call alloc(d,3)
-    call alloc(c,6)
-
-    if(k%time) then
-       beta0=p%beta0;GAMMA0I=p%GAMMA0I;
-    else
-       beta0=1.0_dp;GAMMA0I=0.0_dp;
-    endif
-
-    d(1)=SQRT(x(2)**2+x(4)**2+(1.0_dp+hcurv*x(1))**2)
-    d(2)=(d(1)**3)/SQRT(1.0_dp+2*x(5)/beta0+x(5)**2)
-    d(3)=1.0_dp+hcurv*x(1)
 
     c(1)=d(1)**2-x(2)**2
     c(2)=-x(2)*x(4)
@@ -18793,11 +18771,63 @@ call  kill(del,pz,h)
     !   f(6)=d(2)*d(1)
 
     d(2)=gamma0I/beta0/d(2)
-    f(6)=SQRT((1+d(2)**2))*d(1)  ! (time)-prime = dt/dz
+    f(6)=d(1)*(1.0_dp/beta0+x(5))/d(4)  ! (time)-prime = dt/dz
 
     f(5)=0.0_dp
 
-    call kill(d,3)
+  end subroutine fxr 
+
+ 
+
+  subroutine fxp(f,x,k,b,p,hcurv)
+    implicit none
+
+    type(real_8)  d(4),c(6)
+    type(real_8) ,intent(inout) :: x(6)
+    type(real_8) ,intent(in) :: b(3)
+    real(dp)   BETA0,GAMMA0I,hcurv
+    type(real_8), intent(out):: f(6)
+    type(MAGNET_CHART), pointer:: p
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+    call alloc(d,4)
+    call alloc(c,6)
+
+    if(k%time) then
+       beta0=p%beta0;GAMMA0I=p%GAMMA0I;
+    else
+       beta0=1.0_dp;GAMMA0I=0.0_dp;
+    endif
+
+    d(1)=SQRT(x(2)**2+x(4)**2+(1.0_dp+hcurv*x(1))**2)
+    d(4)=SQRT(1.0_dp+2*x(5)/beta0+x(5)**2)
+    d(2)=(d(1)**3)/d(4)
+    d(3)=1.0_dp+hcurv*x(1)
+
+
+    c(1)=d(1)**2-x(2)**2
+    c(2)=-x(2)*x(4)
+    c(3)= x(2)*x(4)
+    c(4)=-d(1)**2+x(4)**2
+    c(5)=d(2)*(x(4)*b(3)-d(3)*b(2)) +hcurv*d(3)*(d(1)**2+x(2)**2)
+    c(6)=d(2)*(x(2)*b(3)-d(3)*b(1)) -hcurv*d(3)*c(3)
+
+    d(3)=c(1)*c(4)-c(2)*c(3)
+    f(1)=x(2)
+    f(2)=(c(4)*c(5)-c(2)*c(6))/d(3)
+    f(3)=x(4)
+    f(4)=(c(1)*c(6)-c(3)*c(5))/d(3)
+    f(5)=0.0_dp
+    d(2)=1.0_dp+2.0_dp*x(5)/beta0+x(5)**2
+    !   d(2)=SQRT((one+d(2)*gambet)/d(2)/gambet)
+    !   f(6)=d(2)*d(1)
+
+    d(2)=gamma0I/beta0/d(2)
+    f(6)=d(1)*(1.0_dp/beta0+x(5))/d(4)  ! (time)-prime = dt/dz
+
+    f(5)=0.0_dp
+
+    call kill(d,4)
     call kill(c,6)
   end subroutine fxp
 
@@ -18816,7 +18846,7 @@ call  kill(del,pz,h)
           !          deallocate(EL%Ax)
           !          deallocate(EL%Ay)
 
-          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
+          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime,el%symplectic)
           !          deallocate(EL%D_IN)
           !          deallocate(EL%D_OUT)
           !          deallocate(EL%ANG_IN)
@@ -18826,7 +18856,7 @@ call  kill(del,pz,h)
     elseif(i==0)       then          ! nullifies
 
        NULLIFY(EL%B)
-       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
+       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime,el%symplectic)
        !       NULLIFY(EL%Ax)
        !       NULLIFY(EL%Ay)
        !       NULLIFY(EL%D_IN)
@@ -18852,7 +18882,7 @@ call  kill(del,pz,h)
           !          deallocate(EL%Ax)
           !          deallocate(EL%Ay)
           deallocate(EL%B)
-          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
+          deallocate(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime,el%symplectic)
           !          deallocate(EL%D_IN)
           !          deallocate(EL%D_OUT)
           !          deallocate(EL%ANG_IN)
@@ -18864,7 +18894,7 @@ call  kill(del,pz,h)
        NULLIFY(EL%B)
        !       NULLIFY(EL%Ax)
        !       NULLIFY(EL%Ay)
-       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime)
+       NULLIFY(EL%SCALE,el%angc,el%hc,el%dc,el%xc,el%vc,el%xprime,el%symplectic)
        !       NULLIFY(EL%D_IN)
        !       NULLIFY(EL%D_OUT)
        !       NULLIFY(EL%ANG_IN)
@@ -18878,19 +18908,18 @@ call  kill(del,pz,h)
     TYPE(PANCAKE), INTENT(INOUT)::EL
     TYPE(TREE_ELEMENT), INTENT(IN)::T(:) !,T_ax(:) ,T_ay(:)  ! DATA PASSED HERE SPECIAL
     INTEGER I,n 
-    if(el%p%method==4.or.el%p%method==2) then
-      n=2*el%p%NST+1
-    else
-      n=7*el%p%NST+1
-    endif
-
+    
+   ! if(el%p%method==2) n=el%p%NST
+    !if(el%p%method==4) n=2*el%p%NST+1
+    !if(el%p%method==6) n=7*el%p%NST+1
+    n=size(t)
 !write(6,*)"POINTERS_PANCAKER", el%p%NST,el%p%method,n
 
      ALLOCATE(EL%B(n))
 
     !    ALLOCATE(EL%Ax(el%p%NST))
     !    ALLOCATE(EL%Ay(el%p%NST))
-    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc ,el%xc,el%vc,el%xprime)
+    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc ,el%xc,el%vc,el%xprime,el%symplectic)
     !    ALLOCATE(  EL%D_IN(3) )
     !    ALLOCATE(  EL%D_OUT(3) )
     !    ALLOCATE(  EL%ANG_IN(3) )
@@ -18914,6 +18943,7 @@ call  kill(del,pz,h)
     EL%SCALE=1.0_dp
     el%angc=0.0_dp; el%dc=0.0_dp; el%hc=0.0_dp; el%xc=0.0_dp;el%vc=0.0_dp;
     el%xprime=.true.
+    el%symplectic=.false.
     !    EL%D_IN=ZERO
     !    EL%D_OUT=ZERO
     !    EL%ANG_IN=ZERO
@@ -18927,15 +18957,15 @@ call  kill(del,pz,h)
     TYPE(TREE_ELEMENT), INTENT(IN)::T(:) !,t_ax(:),t_ay(:) ! DATA PASSED HERE SPECIAL
     INTEGER I,n
 
-    if(el%p%method==4.or.el%p%method==2) then
-      n=2*el%p%NST+1
-    else
-      n=7*el%p%NST+1
-    endif
+  !  if(el%p%method==2) n=el%p%NST
+  !  if(el%p%method==4) n=2*el%p%NST+1
+  !  if(el%p%method==6) n=7*el%p%NST+1
+    n=size(t)
+
      ALLOCATE(EL%B(n))
 
 
-    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc,el%xc,el%vc,el%xprime )
+    ALLOCATE(  EL%SCALE,el%angc,el%dc,el%hc,el%xc,el%vc,el%xprime,el%symplectic )
     call alloc(EL%SCALE)
     DO I=1,n
        CALL ALLOC_TREE(EL%B(I),T(I)%N,3)
@@ -18955,6 +18985,8 @@ call  kill(del,pz,h)
     el%xc=0.0_dp;
     el%vc=0.0_dp
     el%xprime=.true.
+    el%symplectic=.false.
+
   END SUBROUTINE POINTERS_PANCAKEP
 
   SUBROUTINE POINTERS_ABELLR(EL) !,t_ax,t_ay)
@@ -19075,6 +19107,7 @@ call  kill(del,pz,h)
     ELP%hc  = EL%hc
     elp%vc=el%vc
     elp%xprime=el%xprime
+    elp%symplectic=el%symplectic
   END SUBROUTINE copyPANCAKE_el_elp
 
   SUBROUTINE copyPANCAKE_el_el(EL,ELP)
@@ -19091,6 +19124,8 @@ call  kill(del,pz,h)
     ELP%hc  = EL%hc
     elp%vc=el%vc
     elp%xprime=el%xprime
+    elp%symplectic=el%symplectic
+
   END SUBROUTINE copyPANCAKE_el_el
 
   SUBROUTINE copyPANCAKE_elP_el(EL,ELP)
@@ -19107,6 +19142,8 @@ call  kill(del,pz,h)
     ELP%hc  = EL%hc
     elp%vc=el%vc
     elp%xprime=el%xprime
+    elp%symplectic=el%symplectic
+
   END SUBROUTINE copyPANCAKE_elP_el
 
   SUBROUTINE reset_pa(EL)
@@ -19129,162 +19166,390 @@ call  kill(del,pz,h)
 
 
 
-
-  subroutine step_symp_p_PANCAkEr(ds,POS,X,k,EL)
+subroutine track_map_pancake1str(ti,c,xs,fac,K)   !electric teapot s
     IMPLICIT NONE
-    real(dp), INTENT(INout) :: X(6)
-    INTEGER, INTENT(INOUT) :: POS
-    real(dp)  F(6)
-    TYPE(PANCAKE),  INTENT(INOUT) :: EL
-    real(dp) be(nbe),g(2,2),ds,xt(6),e(2),det,v(2),normb,norma
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    integer i,n,ns
-     n=1000
-     ns=5
-    Be(1)=X(1);
-    Be(2)=X(3);
-    Be(3)=0.0_dp;
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer ti
+    real(dp) fac,d
+    if(k%radiation.or.k%spin.or.k%envelope) then
+       d=fac*c%parent_fibre%mag%L/c%parent_fibre%mag%p%nst 
+       call RAD_SPIN_qua_PROBE(c,xs,k,d)
+    endif
+    call track_map_pancaker1(ti,C,XS,fac,1,K)
+ 
+
+
+     ! call track_map_pancaker1(C,XS,fac*1.0_dp,1,K)
+  end subroutine track_map_pancake1str
+
+  subroutine track_map_pancake1stp(ti,c,xs,fac,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer ti
+    real(dp) fac
+    type(real_8) d
+    if(k%radiation.or.k%spin.or.k%envelope) then
+       call alloc(d)
+       d=fac*c%parent_fibre%mag%L/c%parent_fibre%mag%p%nst 
+       call RAD_SPIN_qua_PROBE(c,xs,k,d,iw=ti)
+       call kill(d)
+
+    endif
+
+     call track_map_pancakep1(ti,C,XS,fac  ,1,K)
+ 
+
+  end subroutine track_map_pancake1stp
+
+  
+
+  subroutine track_map_pancake2ndr(ti,c,xs,fac,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer ti
+    real(dp) fac,d
+ 
+    if(k%radiation.or.k%spin.or.k%envelope) then
+       d=fac*c%parent_fibre%mag%L/c%parent_fibre%mag%p%nst/2
+       call RAD_SPIN_qua_PROBE(c,xs,k,d,iw=ti)
+    endif
+     call track_map_pancaker1(ti,C,XS,fac*0.5_dp,1,K)
+     call track_map_pancaker1(ti,C,XS,fac*0.5_dp,2,K)
+    if(k%radiation.or.k%spin.or.k%envelope) then
+       call RAD_SPIN_qua_PROBE(c,xs,k,d,iw=ti)
+    endif
+  end subroutine track_map_pancake2ndr
+
+  subroutine track_map_pancake2ndp(ti,c,xs,fac,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer ti
+    real(dp) fac 
+     type(real_8) d
+
+    if(k%radiation.or.k%spin.or.k%envelope) then
+       call alloc(d)
+       d=fac*c%parent_fibre%mag%L/c%parent_fibre%mag%p%nst/2
+       call RAD_SPIN_qua_PROBE(c,xs,k,d,iw=ti)
+    endif
+     call track_map_pancakep1(ti,C,XS,fac*0.5_dp  ,1,K)
+     call track_map_pancakep1(ti,C,XS,fac*0.5_dp  ,2,K)
+     if(k%radiation.or.k%spin.or.k%envelope) then
+       call RAD_SPIN_qua_PROBE(c,xs,k,d,iw=ti)
+       call kill(d)
+
+    endif
+
+  end subroutine track_map_pancake2ndp
+
+  subroutine track_map_pancake4thr(ti,c,xs,fac,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer ti,pos
+    real(dp) fac
+
+    pos=3*ti-2
+      call track_map_pancake2ndr(pos,c,xs,yx0*fac,K)
+    pos=pos+1
+      call track_map_pancake2ndr(pos,c,xs,yx1*fac,K)
+    pos=pos+1
+      call track_map_pancake2ndr(pos,c,xs,yx0*fac,K)
+
+  
+    ! call track_map_pancaker1(C,XS,fac*1.0_dp,1,K)
+  end subroutine track_map_pancake4thr
+
+
+  subroutine track_map_pancake4thp(ti,c,xs,fac,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer ti,pos
+    real(dp) fac
+ 
+     pos=3*ti-2
+write(6,*) pos, size(c%parent_fibre%mag%pa%b)
+
+      call track_map_pancake2ndp(pos,c,xs,yx0*fac,K)
+    pos=pos+1
+write(6,*) pos 
+
+      call track_map_pancake2ndp(pos,c,xs,yx1*fac,K)
+    pos=pos+1
+write(6,*) pos 
+
+      call track_map_pancake2ndp(pos,c,xs,yx0*fac,K)
+
+
+  end subroutine track_map_pancake4thp
+
+  
+  subroutine track_map_pancaker1(ti,c,xs,fac,pos,K)   ! 
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    integer i,n ,nz,e(2),pos,ti
+    real(dp) x(6),dl,q0(3),qf(3),pf0(3),pf(3),pfi(3),dpfi(3),fac
+    real(dp) :: eps=1.d-7, norm,normold
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+e=0
+e(pos)=1
+
+    q0(1)=xs%x(1)
+    q0(2)=xs%x(3)
+    q0(3)=xs%x(5)
+    pf0(1)=xs%x(2)  ! initial guess pf=pi
+    pf0(2)=xs%x(4)
+    pf0(3)=xs%x(6)
+    
+ 
+
+   n=c%parent_fibre%mag%p%nst
+   dl=fac*c%parent_fibre%mag%l/n
+
+!  below is a call to an
+   pf=pf0
+   qf=q0
+   pfi=1.d38
+   normold=1.d38
+   do i=1,1000
+    call newton_search_pancaker(ti,c,q0,qf,pf0,pf,xs%q,e,dl,k)
+  !  call newton_searchr(c,q0,qf,pf0,pf,dl,k)
+    dpfi=e(2)*(pf-pfi)+e(1)*(qf-pfi)
+    norm=abs(dpfi(1))+abs(dpfi(2))+abs(dpfi(3))
+    if(norm>eps) then 
+     normold=norm
+    else
+     if(norm>=normold) then
+      exit
+       else
+      normold=norm
+     endif
+    endif
+     pfi=e(2)*pf+e(1)*qf
+   enddo
+   if(i>999) then
+    check_stable=.false.
+    return
+   endif 
+ 
+    xs%x(1)=qf(1)
+    xs%x(3)=qf(2)
+    xs%x(5)=qf(3)
+    xs%x(2)=pf(1)  ! initial guess pf=pi
+    xs%x(4)=pf(2)
+    xs%x(6)=pf(3)
+ 
+  end subroutine track_map_pancaker1
+
+
+subroutine newton_search_pancaker(ti,c,q0,qf,p0,pf,q,e,dl,k)
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    TYPE(INTERNAL_STATE) K 
+    type(quaternion), INTENT(INout) ::q
+    real(dp), INTENT(INout) :: q0(3),p0(3),qf(3),pf(3),dl
+    real(dp)   xft(6),fm(6),fp(6),mat(3,3),dv(3)
+    real(dp):: eps =1d-4
+    integer i ,j,nmat,ier,e(2),ti
+    nmat=3
+
+    do i=1,3
+      do j=1,3
+       xft(2*j-1)=e(2)*q0(j)+e(1)*qf(j)
+       xft(2*j)=e(1)*p0(j)+e(2)*pf(j)
+      enddo
+       xft(2*i-1)= e(2)*q0(i)+e(1)*qf(i)+e(1)*eps  
+       xft(2*i)= e(1)*p0(i)+e(2)*pf(i)+e(2)*eps  
+
+ 
+    call newton_eval_pancaker(ti,c,xft,fp,dl,k)    
+
+       
+       xft(2*i-1)= e(2)*q0(i)+e(1)*qf(i)-e(1)*eps  
+       xft(2*i)= e(1)*p0(i)+e(2)*pf(i)-e(2)*eps  
+      
+    call newton_eval_pancaker(ti,c,xft,fm,dl,k)  
+
+
+dv=0
+  do j=1,3  
+   dv(j)=e(1)*(fp(2*j-1)-fm(2*j-1))/2.0_dp/eps
+   dv(j)=dv(j)+e(2)*(fp(2*j)-fm(2*j))/2.0_dp/eps
+ enddo
+   ! do j=1,3  
+
+         mat(1:3,i)=dv
+
+  !  enddo
+
+
+enddo
+
+    do i=1,3
+     mat(i,i)=mat(i,i)-1.0_dp
+    enddo
+!stop
+      do i=1,3
+       xft(2*i-1)= e(2)*q0(i)+e(1)*qf(i) 
+       xft(2*i)  = e(1)*p0(i)+e(2)*pf(i)  
+      enddo
+
+    call newton_eval_pancaker(ti,c,xft,fp,dl,k) 
+       do i=1,3
+       xft(2*i-1)=  q0(i)+ fp(2*i-1)
+       xft(2*i)  =  p0(i)  + fp(2*i)  
+      enddo
+
+   dv=0
+      do j=1,3
+       dv(j)=(qf(j)-xft(2*j-1))*e(1)
+       dv(j)=(pf(j)-xft(2*j))*e(2)+dv(j)
+      enddo
+
+         nmat=3
+   call matinv(mat,mat,nmat,nmat,ier)
+    dv=matmul(mat,dv)
+
+
+if(ier/=0) then
+ check_stable=.false.
+ write(6,*) "Unstable "
+ return
+ endif
+
+       qf=qf+e(1)*dv
+       pf=pf+e(2)*dv 
+       
+       do j=1,3
+         qf(j)=q0(j)+ fp(2*j-1)
+         pf(j)=p0(j)+ fp(2*j)
+      enddo
+ 
+!pause 1111
+ end subroutine newton_search_pancaker
+
+ subroutine newton_eval_pancaker(pos,c,x,f,dl,k)  
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp), INTENT(INout) :: f(6),x(6)
+    TYPE(INTERNAL_STATE) K  
+    real(dp) dir  
+    TYPE(pancake),pointer :: EL
+    real(dp) b(3) ,be(nbe),dl
+    integer i,pos
+
+    el=>c%parent_fibre%mag%pa
+   ! POS=C%POS_IN_FIBRE-2
+
+    be=0.0_dp
+    Be(1)= X(1);
+    Be(2)= X(3);
+ 
     CALL trackg(EL%B(POS),Be)
-       be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
-       be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
+ 
+ 
+    DIR=EL%P%DIR*EL%P%CHARGE
+       be(1)=EL%SCALE*dir*be(1)
+       be(2)=EL%SCALE*dir*be(2)
        be(3)=EL%SCALE*el%p%charge*be(3)
-       be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
-       be(5)=EL%SCALE*el%p%charge*be(5)
-       be(6)=EL%SCALE*el%p%charge*be(6)
-       be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
-       be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       be(4)=EL%SCALE*dir*be(4)
+       be(5)=EL%SCALE*dir*be(5)
+       be(6)=EL%SCALE*dir*be(6)
+       be(7)=EL%SCALE*dir*be(7)
+       be(8)=EL%SCALE*dir*be(8)
+       be(9)=EL%SCALE*dir*be(9)
+       be(10)=EL%SCALE*el%p%charge*be(10)
+       be(11)=EL%SCALE*el%p%charge*be(11)   
+       be(12)=EL%SCALE*el%p%charge*be(12)
+
+ 
+       CALL fxc(f,X,k,be,EL%p,el%hc)
+
+!if(k%radiation.or.k%spin) call RAD_SPIN_force_PROBE(c,X,q%x(1:3),k,f,pos)  !,z)
+ 
+
+      do i=1,6
+       f(i)=dl*f(i) 
+      enddo
+if(.not.check_stable) return
+
+!!! Evaluation of the map of the generating function
+
+ 
+  end subroutine newton_eval_pancaker
+
+subroutine newton_eval_pancakep(pos,c,x,f,dl,k)  
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(real_8), INTENT(INout) :: f(6),x(6),dl
+    TYPE(INTERNAL_STATE) K  
+    real(dp) dir  
+    TYPE(pancakep),pointer :: EL
+    type(real_8) b(3) ,be(nbe) 
+    integer i,pos
+
+    el=>c%parent_fibre%magp%pa
+   ! POS=C%POS_IN_FIBRE-2
+    call alloc(be)
+    call alloc(b)
+ 
+ !  be=0.0_dp
+    Be(1)= X(1);
+    Be(2)= X(3);
+ 
+    CALL trackg(EL%B(POS),Be)
+ 
+ 
+    DIR=EL%P%DIR*EL%P%CHARGE
+       be(1)=EL%SCALE*dir*be(1)
+       be(2)=EL%SCALE*dir*be(2)
+       be(3)=EL%SCALE*el%p%charge*be(3)
+       be(4)=EL%SCALE*dir*be(4)
+       be(5)=EL%SCALE*dir*be(5)
+       be(6)=EL%SCALE*dir*be(6)
+       be(7)=EL%SCALE*dir*be(7)
+       be(8)=EL%SCALE*dir*be(8)
+       be(9)=EL%SCALE*dir*be(9)
+       be(10)=EL%SCALE*el%p%charge*be(10)
+       be(11)=EL%SCALE*el%p%charge*be(11)   
+       be(12)=EL%SCALE*el%p%charge*be(12)
+
+ 
+ 
+       CALL fxc(f,X,k,be,EL%p,el%hc)
 
 
+      do i=1,6
+       f(i)=dl*f(i) 
+      enddo
 
-       xt=x
-
-       normb=1.d38
-
-       do i=1,n
-
-       CALL fxc(f,xt,k,be,EL%p,el%hc,g=G)
-       g(1,1)=ds*g(1,1)-1.0_dp
-       g(2,2)=ds*g(2,2)-1.0_dp
-
-       det=g(1,1)*g(2,2)-g(1,2)*g(2,1)
-
-       v(1)=(xt(2)-x(2)-ds*f(2))
-       v(2)=(xt(4)-x(4)-ds*f(4))
-
-       e(1)= (g(2,2)*v(1)-g(1,2)*v(2))/det
-       e(2)=(-g(2,1)*v(1)+g(1,1)*v(2))/det
-
-       xt(2)=xt(2)+e(1)
-       xt(4)=xt(4)+e(2)
-       norma=abs(e(1)+e(2))
-
-       if(i>ns) then
-        if(norma>=normb) exit
-        normb=norma
-       endif
-
-!        write(6,*) i,norma
-
-        enddo
-        if(i>n-10) then
-        check_stable = .false.
-        ! write(6,*) " convergence not reached in step_symp_p_PANCAkEr "
-        endif
-        x(1)=xt(1)+ds*f(1)
-        x(2)=xt(2)
-        x(3)=xt(3)+ds*f(3)
-        x(4)=xt(4)
-        x(5)=xt(5)+ds*f(5)
-        x(6)=xt(6)+ds*f(6)   ! because no dependence on 6
-
-  END subroutine step_symp_p_PANCAkEr
-
- subroutine step_symp_p_PANCAkEp(ds,POS,X,k,ELP)
-    IMPLICIT NONE
-    type(real_8), INTENT(INout) :: X(6),ds
-    INTEGER, INTENT(INOUT) :: POS
-    TYPE(PANCAKEP),  INTENT(INOUT) :: ELP
-    type(real_8) be(nbe),g(2,2),xt(6),e(2),det,v(2),F(6)
-    real(dp) normb,norma,x0(6)
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    integer i,n,ns,j
-     n=1000
-     ns=5
-    call alloc(be);call alloc(xt); call alloc(e); call alloc(v);call alloc(det);call alloc(f);
-    do i=1,2
-    do j=1,2
-     call alloc(g(i,j))
-    enddo
-    enddo
-    Be(1)=X(1);
-    Be(2)=X(3);
-    Be(3)=0.0_dp;
-    CALL trackg(ELP%B(POS),Be)
-       be(1)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(1)
-       be(2)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(2)
-       be(3)=ELP%SCALE*ELP%p%charge*be(3)
-       be(4)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(4)
-       be(5)=ELP%SCALE*ELP%p%charge*be(5)
-       be(6)=ELP%SCALE*ELP%p%charge*be(6)
-       be(7)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(7)
-       be(8)=ELP%SCALE*ELP%p%charge*ELP%p%dir*be(8)
+    call kill(be)
+    call kill(b)
 
 
-        xt=x
+if(.not.check_stable) return
 
+!!! Evaluation of the map of the generating function
 
-       normb=1.d38
-
-       do i=1,n
-
-       CALL fxc(f,xt,k,be,ELP%p,ELP%hc,g=G)
-       g(1,1)=ds*g(1,1)-1.0_dp
-       g(2,2)=ds*g(2,2)-1.0_dp
-
-       det=g(1,1)*g(2,2)-g(1,2)*g(2,1)
-
-       v(1)=(xt(2)-x(2)-ds*f(2))
-       v(2)=(xt(4)-x(4)-ds*f(4))
-
-       e(1)= (g(2,2)*v(1)-g(1,2)*v(2))/det
-       e(2)=(-g(2,1)*v(1)+g(1,1)*v(2))/det
-
-       xt(2)=xt(2)+e(1)
-       xt(4)=xt(4)+e(2)
-        e(1)=e(1)+e(2)
-       norma=full_abs(e(1))
-
-       if(i>ns) then
-        if(norma>=normb) exit
-        normb=norma
-       endif
-
- !       write(6,*) i,norma
-
-        enddo
-
-        if(i>n-10) then
-        check_stable = .false.
-         write(6,*) " convergence not reached in step_symp_p_PANCAkEp "
-        endif
-
-        x(1)=xt(1)+ds*f(1)
-        x(2)=xt(2)
-        x(3)=xt(3)+ds*f(3)
-        x(4)=xt(4)
-        x(5)=xt(5)+ds*f(5)
-        x(6)=xt(6)+ds*f(6)   ! because no dependence on 6
-
-    call kill(be);call kill(xt); call kill(e); call kill(v);call kill(det);call kill(f);
-    do i=1,2
-    do j=1,2
-     call kill(g(i,j))
-    enddo
-    enddo
-
-
-  END subroutine step_symp_p_PANCAkEp
-
+ 
+  end subroutine newton_eval_pancakep
 
   subroutine feval_PANCAkEr(POS,X,k,f,EL)
     IMPLICIT NONE
@@ -19292,29 +19557,34 @@ call  kill(del,pz,h)
     INTEGER, INTENT(INOUT) :: POS
     real(dp), INTENT(OUT) :: F(6)
     TYPE(PANCAKE),  INTENT(INOUT) :: EL
-    real(dp) B(3),be(nbe)
+    real(dp) b(3),be(nbe)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
 
+    B=0.0_dp;
     Be(1)=X(1);
     Be(2)=X(3);
-    Be(3)=0.0_dp;
 
     CALL trackg(EL%B(POS),Be)
+ 
     if(el%xprime) then
        b(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
        b(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
        b(3)=EL%SCALE*el%p%charge*be(3)
-
+ 
        CALL fx(f,x,k,b,EL%p,el%hc)
     else
        be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
        be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
        be(3)=EL%SCALE*el%p%charge*be(3)
        be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
-       be(5)=EL%SCALE*el%p%charge*be(5)
-       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(5)=EL%SCALE*el%p%charge*el%p%dir*be(5)
+       be(6)=EL%SCALE*el%p%charge*el%p%dir*be(6)
        be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
        be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       be(9)=EL%SCALE*el%p%charge*el%p%dir*be(9)
+       be(10)=EL%SCALE*el%p%charge*be(10)
+       be(11)=EL%SCALE*el%p%charge*be(11)   
+       be(12)=EL%SCALE*el%p%charge*be(12)
        CALL fxc(f,x,k,be,EL%p,el%hc)
     endif
  
@@ -19355,12 +19625,17 @@ call  kill(del,pz,h)
        be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
        be(3)=EL%SCALE*el%p%charge*be(3)
        be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
-       be(5)=EL%SCALE*el%p%charge*be(5)
-       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(5)=EL%SCALE*el%p%charge*el%p%dir*be(5)
+       be(6)=EL%SCALE*el%p%charge*el%p%dir*be(6)
        be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
        be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
-       CALL fxc(f,x,k,be,EL%p,el%hc)
+       be(9)=EL%SCALE*el%p%charge*el%p%dir*be(9)
+       be(10)=EL%SCALE*el%p%charge*be(10)
+       be(11)=EL%SCALE*el%p%charge*be(11)   
+       be(12)=EL%SCALE*el%p%charge*be(12)
+       CALL fxc(f,x,k,b,EL%p,el%hc)
     endif
+
   !      if(k%TIME) then
   !        F(6)=f(6)+(k%TOTALPATH-1.0_dp)/EL%P%BETA0
   !          else
@@ -19370,71 +19645,7 @@ call  kill(del,pz,h)
 
   END subroutine feval_PANCAkEP
 
-subroutine rks_pancaker(ti,h,GR,y,k)
-    IMPLICIT none
 
-    integer ne
-    parameter (ne=6)
-    real(dp), INTENT(INOUT)::  y(ne)
-    type (pancake) ,INTENT(INOUT)::  GR
-    real(dp), intent(inout) :: h
-    integer, intent(inout) :: ti
-    real(dp) HH
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
-    hh=h/2
-
-call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
-
-    tI=ti+GR%p%dir
-call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
-
-    tI=ti+GR%p%dir
-
-    if(k%TIME) then
-       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
-    else
-       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
-    endif
-
-  end  subroutine rks_pancaker
-
-
-subroutine rks_pancakep(ti,h,GR,y,k)
-    IMPLICIT none
-
-    integer ne
-    parameter (ne=6)
-    TYPE(REAL_8), INTENT(INOUT)::  y(ne)
-    TYPE(REAL_8)  hh
-    type (pancakeP) ,INTENT(INOUT)::  GR
-    TYPE(REAL_8), intent(inout) :: h
-    integer, intent(inout) :: ti
-    INTEGER TT
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-
-    call alloc(hh)
-
-
-    hh=h/2
-
-call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
-
-    tI=ti+GR%p%dir
-call  step_symp_p_PANCAkE(hh,tI,y,k,GR)
-
-    tI=ti+GR%p%dir
-
-    if(k%TIME) then
-       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%beta0/GR%P%nst
-    else
-       Y(6)=Y(6)-(1-k%TOTALPATH)*GR%P%LD/GR%P%nst
-    endif
-
-    call kill(hh)
-
-  end  subroutine rks_pancakep
-  ! 4 order Runge
 ! Ma Ande
   subroutine rk4_pancaker(ti,h,GR,y,k)
     IMPLICIT none
@@ -19965,6 +20176,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     real(dp), INTENT(INOUT) :: X(6)
     TYPE(PANCAKE),INTENT(INOUT):: EL
     real(dp) d(3)
+    real(dp) be(nbe)
     INTEGER, INTENT(IN) :: J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     d=0
@@ -19975,22 +20187,54 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       IF(EL%P%DIR==1) THEN
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-         if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)   ! conversion from px to x'
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
       ELSE
-         if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
     else
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k) ! conversion from x' to p
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
       ENDIF
     endif
     else  !<------ Sector geometry
@@ -19999,10 +20243,26 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       IF(EL%P%DIR==1) THEN
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
       ELSE
-        if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
-        CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif 
+       CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
     ELSE
@@ -20010,14 +20270,30 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
          CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
-      ENDIF
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif 
+     ENDIF
     endif
     endif
   END SUBROUTINE ADJUST_PANCAKER
@@ -20027,8 +20303,11 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     TYPE(REAL_8), INTENT(INOUT) :: X(6)
     TYPE(PANCAKEP),INTENT(INOUT):: EL
     real(dp) d(3)
+    TYPE(REAL_8) be(nbe)
     INTEGER, INTENT(IN) :: J
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+
+call alloc(be)
     d=0
     if(el%hc==0.0_dp) then  !<------ Rectangular geometry
 
@@ -20037,22 +20316,54 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       IF(EL%P%DIR==1) THEN
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-         if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
       ELSE
-         if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
     else
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
       ENDIF
     endif
     else  !<------ Sector geometry
@@ -20061,10 +20372,26 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
       IF(EL%P%DIR==1) THEN
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
       ELSE
-        if(el%xprime.and.EL%p%method/=1) call conv_to_xp(el,x,k)
-        CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_xp(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif 
+       CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ENDIF
     ELSE
@@ -20072,16 +20399,35 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
 
     d(1)=-EL%P%DIR*el%xc ;d(3)=el%dc;d(2)=-EL%P%DIR*el%vc;
       IF(EL%P%DIR==1) THEN
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(size(EL%B)),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
         CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
       ELSE
          CALL TRANS(d,x,el%p%BETA0,el%p%exact,k%time)
         CALL ROT_XZ(el%angc,x,el%p%BETA0,el%p%exact,k%time)
-        if(el%xprime.and.EL%p%method/=1)  call conv_to_px(el,x,k)
-      ENDIF
+         if(el%xprime)  then
+             be=0
+             be(1)=x(1)
+             be(2)=x(3)  
+                 CALL trackg(EL%B(1),BE)
+                be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
+                be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
+                call conv_to_px(el,x,k,be(4),be(7))   ! conversion from px to x'
+         endif 
+     ENDIF
     endif
     endif
+
+call kill(be)
+
 
   END SUBROUTINE ADJUST_PANCAKEP
 
@@ -20101,10 +20447,10 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     CASE(1)
        IF(EL%P%DIR==1) THEN
           IS=-1+2*POS    ! POS=3 BEGINNING
-          call rks_pancake(IS,h,el,X,k)
+!          call rks_pancake(IS,h,el,X,k)
        else
           IS=2*el%p%NST+3-2*pos
-          call rks_pancake(IS,h,el,X,k)
+  !        call rks_pancake(IS,h,el,X,k)
        ENDIF
 
 
@@ -20157,10 +20503,10 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
     CASE(1)
        IF(EL%P%DIR==1) THEN
           IS=-1+2*POS    ! POS=3 BEGINNING
-          call rks_pancake(IS,h,el,X,k)
+  !        call rks_pancake(IS,h,el,X,k)
        else
           IS=2*el%p%NST+3-2*pos
-          call rks_pancake(IS,h,el,X,k)
+   !       call rks_pancake(IS,h,el,X,k)
        ENDIF
 
     CASE(4)
@@ -20217,7 +20563,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
        call ADJUST_PANCAKE(EL,X,k,1)
           IS=1
           DO I=1,el%p%NST
-              call rks_pancake(IS,h,el,X,k)
+         !     call rks_pancake(IS,h,el,X,k)
              ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,2)
@@ -20225,7 +20571,7 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
        call ADJUST_PANCAKE(EL,X,k,2)
           IS=2*el%p%NST+1
           DO I=1,el%p%NST
-              call rks_pancake(IS,h,el,X,k)
+     !         call rks_pancake(IS,h,el,X,k)
              ! IF(PRESENT(MID)) CALL XMID(MID,X,I)
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,1)
@@ -20291,14 +20637,14 @@ butcher(8,5)*g(j)+butcher(8,6)*o(j)+butcher(8,7)*p(j))
        call ADJUST_PANCAKE(EL,X,k,1)
           IS=1
           DO I=1,el%p%NST
-             Call rks_pancake(IS,h,el,X,k)
+  !           Call rks_pancake(IS,h,el,X,k)
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,2)
        else
        call ADJUST_PANCAKE(EL,X,k,2)
           IS=2*el%p%NST+1
           DO I=1,el%p%NST
-              call rks_pancake(IS,h,el,X,k)
+   !           call rks_pancake(IS,h,el,X,k)
           ENDDO
        call ADJUST_PANCAKE(EL,X,k,1)
        ENDIF
@@ -23556,10 +23902,10 @@ call kill(vm,phi,z)
     TYPE(ELEMENT),  pointer :: EL
     TYPE(MAGNET_CHART),  pointer :: P
     REAL(DP),  INTENT(INOUT) ::E(3)
-    REAL(DP) N,H,DP1,A,AP,B,BP,z,ve,AV(3),ad(3)
+    REAL(DP) N,H,DP1,A,AP,B,BP,z,ve,AV(3),ad(3),be(nbe)
     integer, optional,intent(in) :: pos
     type(internal_state) k
-
+ 
     P=>EL%P
 
     !    CALL COMPX(EL,Z,X,A,AP)
@@ -23660,8 +24006,8 @@ call kill(vm,phi,z)
               CALL get_z_ab(EL%ab,POS,z)
               call B_E_FIELD(EL%ab,X,Z,psie_in=ve,A_in=av)
 
-            IF(k%TIME) THEN
-               DP1=root(1.0_dp+2.0_dp*(X(5)+EL%P%CHARGE*ve)/P%BETA0+(X(5)+ve)**2)
+            IF(k%TIME) THEN                                               ! ve -> EL%P%CHARGE*ve
+               DP1=root(1.0_dp+2.0_dp*(X(5)+EL%P%CHARGE*ve)/P%BETA0+(X(5)+EL%P%CHARGE*ve)**2)
             ELSE
                DP1=1.0_dp+(X(5)+EL%P%CHARGE*ve)
             ENDIF
@@ -23692,6 +24038,7 @@ call kill(vm,phi,z)
        ENDIF
 
     ELSE    ! NON CANONICAL VARIABLES
+      if(el%pa%xprime) then
        H=1.0_dp+el%pa%hc*X(1)
        N=root(H**2+X(2)**2+X(4)**2)
        E(1)=X(2)/N
@@ -23701,6 +24048,31 @@ call kill(vm,phi,z)
        XPA(2)=X(4)
        XP(1)=X(2)
        XP(2)=X(4)
+      else
+       H=1.0_dp+el%pa%hc*X(1)
+             
+       Be(1)=X(1);
+       Be(2)=X(3);
+       Be(3)=0.0_dp;
+
+       CALL trackg(el%pa%B(POS),Be)
+            IF(k%TIME) THEN
+               DP1=root(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2)
+            ELSE
+               DP1=1.0_dp+X(5)
+            ENDIF
+
+             Xpa(1)=X(2)-be(4)
+             Xpa(2)=X(4)-be(7)
+             N=root(DP1**2-Xpa(1)**2-Xpa(2)**2)
+
+             E(1)=Xpa(1)/DP1
+             E(2)=Xpa(2)/DP1
+             E(3)=N/DP1
+             XP(1)=XPA(1)/N
+             XP(2)=XPA(2)/N
+ 
+      endif
 
     ENDIF
 
@@ -23708,7 +24080,7 @@ call kill(vm,phi,z)
 !    E(2)=EL%P%dir*E(2)    etienne 2016_5_9
     E(3)=EL%P%dir*E(3)
 
-
+ 
 
   END subroutine DIRECTION_VR
 
@@ -23718,7 +24090,7 @@ call kill(vm,phi,z)
     TYPE(ELEMENTP),  pointer :: EL
     TYPE(MAGNET_CHART),  pointer :: P
     type(real_8), INTENT(INOUT) ::E(3)
-    type(real_8) N,H,DP1,A,AP,B,BP,z,AV(3),ve,ad(3)
+    type(real_8) N,H,DP1,A,AP,B,BP,z,AV(3),ve,ad(3),be(nbe)
     TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
     integer, optional,intent(in) :: pos
 
@@ -23727,6 +24099,7 @@ call kill(vm,phi,z)
     CALL ALLOC(N,H,DP1,A,AP,B,BP,z,ve )
     CALL ALLOC(AV )
     CALL ALLOC(AD )
+    CALL ALLOC(be )
 
     IF(k%TIME) THEN
        DP1=SQRT(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2)
@@ -23734,13 +24107,15 @@ call kill(vm,phi,z)
        DP1=1.0_dp+X(5)
     ENDIF
 
+
+
     IF(EL%KIND/=KINDPA) THEN
 
        IF(ASSOCIATED(EL%B_SOL)) THEN  !SOLENOID
 
           XPA(1)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)
           XPA(2)=(X(4)-EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp)
-          N=SQRT(DP1**2-Xpa(1)**2-Xpa(2)**2)
+          N=sqrt(DP1**2-Xpa(1)**2-Xpa(2)**2)
 
           E(1)=Xpa(1)/DP1
           E(2)=Xpa(2)/DP1
@@ -23748,6 +24123,7 @@ call kill(vm,phi,z)
           XP(1)=XPA(1)/N
           XP(2)=XPA(2)/N
        ELSEif(el%kind==kindwiggler) then
+
           if(el%wi%xprime) then
            Xpa(1)=X(2)
            Xpa(2)=X(4)
@@ -23758,13 +24134,14 @@ call kill(vm,phi,z)
            Xpa(1)=X(2)-A
            Xpa(2)=X(4)-B
           endif
-          N=SQRT(DP1**2-Xpa(1)**2-Xpa(2)**2)
+          N=sqrt(DP1**2-Xpa(1)**2-Xpa(2)**2)
 
           E(1)=Xpa(1)/DP1
           E(2)=Xpa(2)/DP1
           E(3)=N/DP1
           XP(1)=XPA(1)/N
           XP(2)=XPA(2)/N
+
        ELSEif(el%kind==kind21) then
 
         call get_z_cav(EL%cav21,pos,z)
@@ -23792,7 +24169,7 @@ call kill(vm,phi,z)
           CALL compute_f4(EL%he22,X,Z,A=AV)
           Xpa(1)=X(2)-EL%P%CHARGE*AV(1)
           Xpa(2)=X(4)-EL%P%CHARGE*AV(2)
-          N=SQRT(DP1**2-Xpa(1)**2-Xpa(2)**2)
+          N=sqrt(DP1**2-Xpa(1)**2-Xpa(2)**2)
 
           E(1)=Xpa(1)/DP1
           E(2)=Xpa(2)/DP1
@@ -23805,7 +24182,7 @@ call kill(vm,phi,z)
 
           if(el%ab%xprime) then
                H=1.0_dp+el%ab%hc*X(1)
-               N=SQRT(H**2+X(2)**2+X(4)**2)
+               N=sqrt(H**2+X(2)**2+X(4)**2)
                E(1)=X(2)/N
                E(2)=X(4)/N
                E(3)=H/N
@@ -23817,15 +24194,15 @@ call kill(vm,phi,z)
               CALL get_z_ab(EL%ab,POS,z)
               call B_E_FIELD(EL%ab,X,Z,psie_in=ve,A_in=av)
 
-            IF(k%TIME) THEN
-               DP1=SQRT(1.0_dp+2.0_dp*(X(5)+EL%P%CHARGE*ve)/P%BETA0+(X(5)+ve)**2)
+            IF(k%TIME) THEN                                               ! ve -> EL%P%CHARGE*ve
+               DP1=sqrt(1.0_dp+2.0_dp*(X(5)+EL%P%CHARGE*ve)/P%BETA0+(X(5)+EL%P%CHARGE*ve)**2)
             ELSE
                DP1=1.0_dp+(X(5)+EL%P%CHARGE*ve)
             ENDIF
 
              Xpa(1)=X(2)-EL%P%CHARGE*AV(1)
              Xpa(2)=X(4)-EL%P%CHARGE*AV(2)
-             N=SQRT(DP1**2-Xpa(1)**2-Xpa(2)**2)
+             N=sqrt(DP1**2-Xpa(1)**2-Xpa(2)**2)
 
              E(1)=Xpa(1)/DP1
              E(2)=Xpa(2)/DP1
@@ -23849,8 +24226,9 @@ call kill(vm,phi,z)
        ENDIF
 
     ELSE    ! NON CANONICAL VARIABLES
+      if(el%pa%xprime) then
        H=1.0_dp+el%pa%hc*X(1)
-       N=SQRT(H**2+X(2)**2+X(4)**2)
+       N=sqrt(H**2+X(2)**2+X(4)**2)
        E(1)=X(2)/N
        E(2)=X(4)/N
        E(3)=H/N
@@ -23858,18 +24236,44 @@ call kill(vm,phi,z)
        XPA(2)=X(4)
        XP(1)=X(2)
        XP(2)=X(4)
+      else
+       H=1.0_dp+el%pa%hc*X(1)
+             
+       Be(1)=X(1);
+       Be(2)=X(3);
+       Be(3)=0.0_dp;
+
+       CALL trackg(el%pa%B(POS),Be)
+            IF(k%TIME) THEN
+               DP1=sqrt(1.0_dp+2.0_dp*X(5)/P%BETA0+X(5)**2)
+            ELSE
+               DP1=1.0_dp+X(5)
+            ENDIF
+
+             Xpa(1)=X(2)-be(4)
+             Xpa(2)=X(4)-be(7)
+             N=sqrt(DP1**2-Xpa(1)**2-Xpa(2)**2)
+
+             E(1)=Xpa(1)/DP1
+             E(2)=Xpa(2)/DP1
+             E(3)=N/DP1
+             XP(1)=XPA(1)/N
+             XP(2)=XPA(2)/N
+ 
+      endif
 
     ENDIF
-
 
 !    E(1)=EL%P%dir*E(1)
 !    E(2)=EL%P%dir*E(2)    etienne 2016_5_9
     E(3)=EL%P%dir*E(3)
 
 
+
      CALL kill(N,H,DP1,A,AP,B,BP,z,ve )
      CALL kill(AV )
      CALL kill(AD )
+     CALL kill(be )
 
   END subroutine DIRECTION_VP
 
@@ -23912,9 +24316,10 @@ call kill(vm,phi,z)
     xp(2)=x(4)   !  to prevent a crash in monitors, etc... CERN june 2010
     dlds=0.0_dp
     del=x(5)
-
+ 
     CALL get_field(c,B,E,phi,X,k,POS,zw,before)
-!eeeeeeeeeeeeeeeee
+ 
+! 
 !write(6,*) " pos",pos
 !write(6,*)  b(1:3)
 !pause 123
@@ -23935,7 +24340,10 @@ call kill(vm,phi,z)
           DLDS=1.0_dp/root((1.0_dp+del)**2-X(2)**2-X(4)**2)*(1.0_dp+P%b0*X(1))
        ENDIF
     case(KIND16:kind17,KIND20)
+ 
+
        CALL B_PARA_PERP(k,el,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
+ 
        IF(k%TIME) THEN
           DLDS=1.0_dp/root(1.0_dp+2.0_dp*del/P%BETA0+del**2-XPA(2)**2-XPA(1)**2)
        ELSE
@@ -23966,17 +24374,28 @@ call kill(vm,phi,z)
        ENDIF
        if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KINDPA)     ! fitted field for real magnet
+ 
        CALL B_PARA_PERP(k,EL,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
 
+ 
        if(k%time) then
           beta0=p%beta0;GAMMA0I=p%GAMMA0I;
        else
           beta0=1.0_dp;GAMMA0I=0.0_dp;
        endif
-       d1=root(x(2)**2+x(4)**2+(1.0_dp+el%pa%hc*x(1))**2)
+       if(el%pa%xprime) then
+       d1=root(xpa(1)**2+xpa(2)**2+(1.0_dp+el%pa%hc*x(1))**2)   ! 2026 new pancake
        d2=1.0_dp+2.0_dp*del/beta0+del**2
        d2=gamma0I/beta0/d2
        DLDS=root((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+del)
+       else
+        d1= (1.0_dp+el%pa%hc*x(1)) 
+       IF(k%TIME) THEN
+          DLDS=1.0_dp/root(1.0_dp+2.0_dp*x(5)/P%BETA0+x(5)**2-XPA(2)**2-XPA(1)**2)*d1
+       ELSE
+          DLDS=1.0_dp/root((1.0_dp+x(5))**2-XPA(2)**2-XPA(1)**2)*d1
+       ENDIF
+        endif
        OM(2)=p%dir*el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        CALL B_PARA_PERP(k,EL,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
@@ -24096,9 +24515,9 @@ call kill(vm,phi,z)
     xp(2)=x(4)   !  to prevent a crash in monitors, etc... CERN june 2010
     dlds=0.0_dp
     del=x(5)
-
+ 
     CALL get_field(c,B,E,phi,X,k,POS,zw,before)
-
+ 
     SELECT CASE(EL%KIND) 
     case(KIND2,kind3,kind5:kind7,kindwiggler) ! Straight for all practical purposes
        CALL B_PARA_PERP(k,EL,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
@@ -24136,15 +24555,25 @@ call kill(vm,phi,z)
        if(pos>=0) OM(2)=p%dir*P%b0   ! not fake fringe
     case(KINDPA)     ! fitted field for real magnet
        CALL B_PARA_PERP(k,EL,X,B,BPA,BPE,XP,XPA,ed,pos=POS)
+ 
        if(k%time) then
           beta0=p%beta0;GAMMA0I=p%GAMMA0I;
        else
           beta0=1.0_dp;GAMMA0I=0.0_dp;
        endif
-       d1=sqrt(x(2)**2+x(4)**2+(1.0_dp+el%pa%hc*x(1))**2)
+       if(el%pa%xprime) then
+       d1=sqrt(xpa(1)**2+xpa(2)**2+(1.0_dp+el%pa%hc*x(1))**2)   ! 2026 new pancake
        d2=1.0_dp+2.0_dp*del/beta0+del**2
        d2=gamma0I/beta0/d2
        DLDS=sqrt((1.0_dp+d2**2))*d1/(1.0_dp/BETA0+del)
+       else
+        d1= (1.0_dp+el%pa%hc*x(1)) 
+       IF(k%TIME) THEN
+          DLDS=1.0_dp/sqrt(1.0_dp+2.0_dp*x(5)/P%BETA0+x(5)**2-XPA(2)**2-XPA(1)**2)*d1
+       ELSE
+          DLDS=1.0_dp/sqrt((1.0_dp+x(5))**2-XPA(2)**2-XPA(1)**2)*d1
+       ENDIF
+        endif
        OM(2)=p%dir*el%pa%hc
     CASE(KIND21)     ! travelling wave cavity
        CALL B_PARA_PERP(k,EL,X,B,BPA,BPE,XP,XPA,ed,E,EB,EFD,pos=POS)
@@ -24246,11 +24675,12 @@ call kill(vm,phi,z)
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENT), POINTER::EL
     INTEGER,OPTIONAL,INTENT(IN) ::POS
-    real(dp),INTENT(INOUT) :: x(6) !,XP(2)
+    real(dp),INTENT(INOUT) :: x(6) !
     real(dp), intent(in):: B2,dlds
     real(dp), intent(inout):: f(6)
-    real(dp)  st,z,av(3),t 
+    real(dp)  st,z,av(3),t,XP(2),be(nbe),df5,sqrtprime 
     type(internal_state) k
+    logical xcanonical
 
     IF(.NOT.CHECK_STABLE) return
  
@@ -24260,13 +24690,36 @@ call kill(vm,phi,z)
     else
        ST=X(5)
     endif
+   xcanonical=.true.
+!!!! ax and ay missing.
+           av=0
+ 
+if(el%kind==kindpa) then
+    el=>c%parent_fibre%mag 
+   xcanonical=xcanonical.and.(.not.c%parent_fibre%mag%pa%xprime)
+   if(xcanonical) then
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
 
+    CALL trackg(EL%pa%B(POS),Be)
+    av(1)=be(4)
+    av(2)=be(7)
+   endif
+endif
+      xp(1)=(x(2)-av(1))/ root((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
+      xp(2)=(x(4)-av(2))/ root((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
+sqrtprime=root( (1.0_dp+EL%P%b0*x(1))**2+xp(1)**2+xp(2)**2)
+ 
   f=0
 !   f(5)=f(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
-   f(5)=f(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
+df5=-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
  
+   f(5)=f(5)+df5
+ !!do not understand here
+! eeeerrrrr
+    if(el%kind/=kindpa.or.xcanonical) then
 
-    if(el%kind/=kindpa) then
        IF(ASSOCIATED(EL%B_SOL)) THEN
           if(k%TIME) then
              f(2)=f(2)+(X(2) + EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*f(5)/(1.0_dp+ST)
@@ -24294,13 +24747,10 @@ call kill(vm,phi,z)
 
 
        ELSE
-          if(k%TIME) then
-             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
-             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
-          else
-             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
-             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
-          endif
+
+             f(2)=f(2)+Xp(1)*df5/sqrtprime
+             f(4)=f(4)+Xp(2)*df5/sqrtprime
+ 
        ENDIF
     endif
 
@@ -24317,17 +24767,20 @@ call kill(vm,phi,z)
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENTP), POINTER::EL
     INTEGER,OPTIONAL,INTENT(IN) ::POS
-    type(real_8),INTENT(INOUT) :: x(6) !,XP(2)
+    type(real_8),INTENT(INOUT) :: x(6) !
     TYPE(REAL_8), intent(in):: B2,dlds
     type(real_8), intent(inout):: f(6)
-    TYPE(REAL_8) st,av(3),z
+    TYPE(REAL_8) st,av(3),z,XP(2),df5,be(nbe),sqrtprime
     type(internal_state) k
     integer i
+    logical xcanonical
 
     IF(.NOT.CHECK_STABLE) return
     call alloc(st,z)
     call alloc(av)
-
+    call alloc(sqrtprime)
+    call alloc(xp)
+    call alloc(df5)
 
     el=>c%parent_fibre%magp
     if(k%TIME) then
@@ -24336,14 +24789,42 @@ call kill(vm,phi,z)
        ST=X(5)
     endif
 
+ 
+
+   xcanonical=.true.
+!!!! ax and ay missing.
+           av(1)=0;av(2)=0;av(3)=0;
+ 
+if(el%kind==kindpa) then
+    el=>c%parent_fibre%magp
+   xcanonical=xcanonical.and.(.not.c%parent_fibre%mag%pa%xprime)
+   if(xcanonical) then
+ call alloc(be)
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+
+    CALL trackg(EL%pa%B(POS),Be)
+    av(1)=be(4)
+    av(2)=be(7)
+ call kill(be)
+
+   endif
+endif
+      xp(1)=(x(2)-av(1))/ sqrt((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
+      xp(2)=(x(4)-av(2))/ sqrt((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
+sqrtprime=sqrt( (1.0_dp+EL%P%b0*x(1))**2+xp(1)**2+xp(2)**2)
+ 
     do i=1,6
      f(i)=0
     enddo
-   f(5)=f(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
-!   f(5)=f(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS!
  
+!   f(5)=f(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
+df5=-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*DLDS
+   f(5)=f(5)+df5 
+ 
+    if(el%kind/=kindpa.or.xcanonical) then
 
-    if(el%kind/=kindpa) then
        IF(ASSOCIATED(EL%B_SOL)) THEN
           if(k%TIME) then
              f(2)=f(2)+(X(2) + EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*f(5)/(1.0_dp+ST)
@@ -24371,18 +24852,19 @@ call kill(vm,phi,z)
 
 
        ELSE
-          if(k%TIME) then
-             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
-             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
-          else
-             f(2)=f(2)+X(2)*f(5)/(1.0_dp+ST)
-             f(4)=f(4)+X(4)*f(5)/(1.0_dp+ST)
-          endif
+
+             f(2)=f(2)+Xp(1)*df5/sqrtprime
+             f(4)=f(4)+Xp(2)*df5/sqrtprime
+ 
        ENDIF
     endif
 
+ 
     call kill(st,z)
     call kill(av)
+    call kill(sqrtprime)
+    call kill(xp)
+    call kill(df5)
 
   end subroutine radiate_2_forcep
 
@@ -24392,13 +24874,14 @@ call kill(vm,phi,z)
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENT), POINTER::EL
     INTEGER,OPTIONAL,INTENT(IN) ::POS
-    type(probe),INTENT(INOUT) :: p !,XP(2)
+    type(probe),INTENT(INOUT) :: p !
     real(dp), INTENT(IN) :: DS
     REAL(DP), INTENT(IN) :: FAC
     real(dp), intent(in):: B2,dlds
-    real(dp)  st,z,av(3),t ,x(6)
+    real(dp)  st,z,av(3),t ,x(6),XP(2),hc
     type(internal_state) k
-
+    real(dp) B(3),be(nbe)
+    logical xcanonical
     IF(.NOT.CHECK_STABLE) return
     x=p%x
     el=>c%parent_fibre%mag
@@ -24408,13 +24891,34 @@ call kill(vm,phi,z)
     else
        ST=X(5)
     endif
+   xcanonical=.true.
+!!!! ax and ay missing.
+           av=0
+ 
+if(el%kind==kindpa) then
+    el=>c%parent_fibre%mag 
+   xcanonical=xcanonical.and.(.not.c%parent_fibre%mag%pa%xprime)
+   if(xcanonical) then
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+
+    CALL trackg(EL%pa%B(POS),Be)
+    av(1)=be(4)
+    av(2)=be(7)
+   endif
+endif
+      xp(1)=(x(2)-av(1))/ root((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
+      xp(2)=(x(4)-av(2))/ root((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
 
   
 !    if(K%radiation) X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
     if(K%radiation) X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
+!write(6,*) x(5),CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
+! do not understand
 
 
-    if(el%kind/=kindpa) then
+    if(el%kind/=kindpa.or.xcanonical) then
        IF(ASSOCIATED(EL%B_SOL)) THEN
           if(k%TIME) then
              X(2)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
@@ -24449,13 +24953,23 @@ call kill(vm,phi,z)
 
 
        ELSE
-          if(k%TIME) then
-             X(2)=X(2)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
-             X(4)=X(4)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
-          else
-             X(2)=X(2)*(1.0_dp+X(5))/(1.0_dp+ST)
-             X(4)=X(4)*(1.0_dp+X(5))/(1.0_dp+ST)
-          endif
+ 
+ if(k%TIME) then
+  ! x(2)=xp(1)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/root((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(1)!!!! ax and ay missing.
+  ! x(4)=xp(2)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/root((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(2)!!!! ax and ay missing.
+ else
+ !  x(2)=xp(1)*(1.0_dp+X(5))/root((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(1)!!!! ax and ay missing.
+ !  x(4)=xp(2)*(1.0_dp+X(5))/root((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(2)!!!! ax and ay missing.
+ endif
+
+
+  !        if(k%TIME) then
+  !           X(2)=X(2)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+  !           X(4)=X(4)*root(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+  !        else
+  !           X(2)=X(2)*(1.0_dp+X(5))/(1.0_dp+ST)
+  !           X(4)=X(4)*(1.0_dp+X(5))/(1.0_dp+ST)
+  !        endif
        ENDIF
     endif
 
@@ -24474,13 +24988,14 @@ call kill(vm,phi,z)
     REAL(DP), INTENT(IN) :: FAC
     TYPE(REAL_8), intent(in):: B2,dlds
     TYPE(REAL_8) st,z,x(6),av(3)
-    logical stoch
+    logical stoch,xcanonical
     real(dp) b30,x1,x3,denf,denf0,denv
     type(damap) xpmap
  
     integer i,j   !,ja,ia
     type(internal_state) k
- 
+     TYPE(REAL_8) be(nbe)
+
  
     IF(.NOT.CHECK_STABLE) return
  
@@ -24551,12 +25066,34 @@ endif
     else
        ST=X(5)
     endif
+   xcanonical=.true.
+!!!! ax and ay missing.
+          call alloc(av,3)
+           av=0
+ 
+if(el%kind==kindpa) then
+    el=>c%parent_fibre%magp 
+   xcanonical=xcanonical.and.(.not.c%parent_fibre%mag%pa%xprime)
+   if(xcanonical) then
+call alloc(be)
+    Be(1)=X(1);
+    Be(2)=X(3);
+    Be(3)=0.0_dp;
+
+    CALL trackg(EL%pa%B(POS),Be)
+    av(1)=be(4)
+    av(2)=be(7)
+call kill(be)
+   endif
+endif
+      xp(1)=(x(2)-av(1))/ sqrt((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
+      xp(2)=(x(4)-av(2))/ sqrt((1.0_dp+st)**2-(x(2)-av(1))**2-(x(4)-av(2))**2)
 
    if(K%radiation)  X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
 !   if(K%radiation)  X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
 
 
-    if(el%kind/=kindpa) then
+    if(el%kind/=kindpa.or.xcanonical) then
        IF(ASSOCIATED(EL%B_SOL)) THEN
           if(k%TIME) then
              X(2)=(X(2)+EL%B_SOL*EL%P%CHARGE*X(3)/2.0_dp)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
@@ -24570,7 +25107,7 @@ endif
              X(4)=X(4)+EL%B_SOL*EL%P%CHARGE*X(1)/2.0_dp
           endif
        ELSEif(el%kind==kind22) then
-          call alloc(av,3)
+
           call alloc(z)
 
           IF(EL%HE22%P%DIR==1) THEN
@@ -24591,15 +25128,22 @@ endif
              X(4)=X(4)+EL%P%CHARGE*AV(2)
           endif
           call kill(av,3)
-          call kill(z)
+
        ELSE
-          if(k%TIME) then
-             X(2)=X(2)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
-             X(4)=X(4)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
-          else
-             X(2)=X(2)*(1.0_dp+X(5))/(1.0_dp+ST)
-             X(4)=X(4)*(1.0_dp+X(5))/(1.0_dp+ST)
-          endif
+ if(k%TIME) then
+   x(2)=xp(1)*sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/sqrt((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(1)!!!! ax and ay missing.
+   x(4)=xp(2)*sqrt(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/sqrt((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(2)!!!! ax and ay missing.
+ else
+   x(2)=xp(1)*(1.0_dp+X(5))/sqrt((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(1)!!!! ax and ay missing.
+   x(4)=xp(2)*(1.0_dp+X(5))/sqrt((1.0_dp+el%p%b0*x(1))**2+xp(1)**2+xp(2)**2)   + av(2)!!!! ax and ay missing.
+ endif
+       !   if(k%TIME) then
+       !      X(2)=X(2)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+       !      X(4)=X(4)*SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)/(1.0_dp+ST)
+       !   else
+       !      X(2)=X(2)*(1.0_dp+X(5))/(1.0_dp+ST)
+       !      X(4)=X(4)*(1.0_dp+X(5))/(1.0_dp+ST)
+       !   endif
        ENDIF
     endif
 
@@ -24609,7 +25153,7 @@ endif
 
     p%x=x
     call kill(x)
- 
+           call kill(z)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   end subroutine radiate_2_probep
@@ -24622,12 +25166,12 @@ endif
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENT), POINTER::EL
     INTEGER,OPTIONAL,INTENT(IN) ::POS
-    type(probe),INTENT(INOUT) :: p !,XP(2)
+    type(probe),INTENT(INOUT) :: p !
     real(dp), INTENT(IN) :: DS
     REAL(DP), INTENT(IN) :: FAC
     real(dp), intent(in):: B2,dlds
     LOGICAL(LP),intent(in) :: BEFORE
-    real(dp)  st,z,av(3),t ,x(6)
+    real(dp)  st,z,av(3),t ,x(6),XP(2)
     type(internal_state) k
 
     IF(.NOT.CHECK_STABLE) return
@@ -24639,8 +25183,10 @@ endif
     else
        ST=X(5)
     endif
+!!!! ax and ay missing.
+      xp(1)=x(2)/ ((1.0_dp+st)**2-x(2)**2-x(4)**2)
+      xp(2)=x(4)/ ((1.0_dp+st)**2-x(2)**2-x(4)**2)
 
-  
     if(K%radiation) X(5)=X(5)-CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
 !    if(K%radiation) X(5)=X(5)-radcoe*CRADF(EL%P)*(1.0_dp+X(5))**3*B2*FAC*DS*DLDS
     if(k%stochastic) then
@@ -24663,7 +25209,7 @@ endif
           x(5)=x(5)+t*c%delta_rad_out
        endif
     endif
-
+! not understand
     if(el%kind/=kindpa) then
        IF(ASSOCIATED(EL%B_SOL)) THEN
           if(k%TIME) then
@@ -25089,7 +25635,7 @@ endif
 
    END subroutine feval_sagan_probep
  
-!eeeeeeeeeeee
+ 
 
  subroutine rk2_sagan_prober(ti,p,k,c,h)
     IMPLICIT none
@@ -25978,7 +26524,7 @@ subroutine rk6_sagan_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
  
 
 !write(n_wedge,"(11(1x,g16.9,1x))") z0+hhh, b,scaleb*b,qi%x(0:3)
-!eeeeeeeeeeeeeeeeeeeeeeeee
+ 
     X(2)=X(2)-A(1)
     X(4)=X(4)-A(2)
   
@@ -27588,7 +28134,7 @@ endif
 
     return
   end  subroutine rk4bmad_cav_prober
-!eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee
+ 
 subroutine rk4bmad_cav_probep(ti,p,k,ct,h)   ! (ti,h,GR,y,k)
     IMPLICIT none
 
@@ -29158,16 +29704,78 @@ enddo
 
 
 
-
-
+  if(el%symplectic) then
+       if(k%TIME) then
+       p%x(6)=p%x(6)-(1-k%TOTALPATH)*el%P%LD/el%P%beta0/el%P%nst
+    else
+       p%x(6)=p%x(6)-(1-k%TOTALPATH)*el%P%LD/el%P%nst
+    endif
     SELECT CASE(EL%P%METHOD)
 
+! etienne1
+    CASE(1)
+       IF(EL%P%DIR==1) THEN
+           IS=pos
+      !    IS=-1+2*POS    ! POS=3 BEGINNING
+          call track_map_pancake1str(is,ct,p,1.0_dp,K)
+
+       else
+
+          IS=2*el%p%NST+3-2*pos
+     !     call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+       ENDIF
+
+    CASE(2)
+       IF(EL%P%DIR==1) THEN
+           IS= POS
+      !    IS=-1+2*POS    ! POS=3 BEGINNING
+          call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+
+       else
+
+          IS=2*el%p%NST+3-2*pos
+       !   call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+       ENDIF
+
+    CASE(4)
+       IF(EL%P%DIR==1) THEN
+           IS= pos
+      !    IS=-1+2*POS    ! POS=3 BEGINNING
+          call track_map_pancake4thr(is,ct,p,1.0_dp,K)
+
+       else
+
+          IS=2*el%p%NST+3-2*pos
+       !   call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+       ENDIF
 
 
-    CASE(2,4)
+
+ 
+
+ 
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+        stop 1200
+
+    END SELECT
+  else
+    SELECT CASE(EL%P%METHOD)
+
+! etienne1
+ 
+
+
+    CASE(4)
        IF(EL%P%DIR==1) THEN
  
           IS=-1+2*POS    ! POS=3 BEGINNING
+ 
           call rk4_pancake_probe(IS,p,k,ct,h)
 
        else
@@ -29191,8 +29799,10 @@ enddo
        !w_p%fc='(1(1X,A72))'
          write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
-    END SELECT
+        stop 1201
 
+    END SELECT
+endif
 
   END SUBROUTINE INTE_PANCAKE_prober
 
@@ -29205,7 +29815,7 @@ enddo
     INTEGER IS,pos
     type(real_8)  h
     TYPE(INTERNAL_STATE) k  
- 
+    real(dp) e_ij(6,6)
     if(.not.check_stable) return
 
      call alloc(h)
@@ -29216,9 +29826,67 @@ enddo
     H=el%L/el%p%NST
 
 
+  if(el%symplectic) then
+       if(k%TIME) then
+       p%x(6)=p%x(6)-(1-k%TOTALPATH)*el%P%LD/el%P%beta0/el%P%nst
+    else
+       p%x(6)=p%x(6)-(1-k%TOTALPATH)*el%P%LD/el%P%nst
+    endif
+
+    SELECT CASE(EL%P%METHOD)
+
+! etienne1
+    CASE(1)
+       IF(EL%P%DIR==1) THEN
+           IS=pos
+      !    IS=-1+2*POS    ! POS=3 BEGINNING
+          call track_map_pancake1stp(is,ct,p,1.0_dp,K)
+
+       else
+
+          IS=2*el%p%NST+3-2*pos
+     !     call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+       ENDIF
+
+    CASE(2)
+       IF(EL%P%DIR==1) THEN
+           IS= POS
+      !    IS=-1+2*POS    ! POS=3 BEGINNING
+          call track_map_pancake2ndp(is,ct,p,1.0_dp,K)
+
+       else
+
+          IS=2*el%p%NST+3-2*pos
+       !   call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+       ENDIF
+
+    CASE(4)
+       IF(EL%P%DIR==1) THEN
+           IS= pos
+      !    IS=-1+2*POS    ! POS=3 BEGINNING
+       call   track_map_pancake4thp(is,ct,p,1.0_dp,K)
+
+       else
+
+          IS=2*el%p%NST+3-2*pos
+       !   call track_map_pancake2ndr(is,ct,p,1.0_dp,K)
+       ENDIF
 
 
 
+ 
+
+ 
+
+    CASE DEFAULT
+       !w_p=0
+       !w_p%nc=1
+       !w_p%fc='(1(1X,A72))'
+         write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
+       ! call !write_e(357)
+        stop 1202
+    END SELECT
+  else
     SELECT CASE(EL%P%METHOD)
 
 
@@ -29250,7 +29918,12 @@ enddo
        !w_p%fc='(1(1X,A72))'
          write(6,'(a12,1x,i4,1x,a17)') " THE METHOD ",EL%P%METHOD," IS NOT SUPPORTED"
        ! call !write_e(357)
+        stop 1203
     END SELECT
+
+endif
+
+
      call kill(h)
 
 
@@ -29405,7 +30078,7 @@ enddo
     call alloc(d)
 
     call alloc(qa,qb,qyt,qy,qc,qd,q)
-!eeeeeeeeeee
+ 
     gr=>ct%parent_fibre%magp%pa
     qy=p%q
     y=p%x
@@ -30036,6 +30709,7 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
     Be(3)=0.0_dp;
 
     CALL trackg(EL%B(POS),Be)
+ 
     if(el%xprime) then
        b(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
        b(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
@@ -30043,14 +30717,20 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
 
        CALL fx(f,x,k,b,EL%p,el%hc)
     else
+! etiennecanonical
        be(1)=EL%SCALE*el%p%charge*el%p%dir*be(1)
        be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
        be(3)=EL%SCALE*el%p%charge*be(3)
        be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
-       be(5)=EL%SCALE*el%p%charge*be(5)
-       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(5)=EL%SCALE*el%p%charge*el%p%dir*be(5)
+       be(6)=EL%SCALE*el%p%charge*el%p%dir*be(6)
        be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
        be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       be(9)=EL%SCALE*el%p%charge*el%p%dir*be(9)
+       be(10)=EL%SCALE*el%p%charge*be(10)
+       be(11)=EL%SCALE*el%p%charge*be(11)   
+       be(12)=EL%SCALE*el%p%charge*be(12)
+ 
        CALL fxc(f,x,k,be,EL%p,el%hc)
     endif
  
@@ -30100,10 +30780,14 @@ butcher(8,6)*o(j)+butcher(8,7)*pt(j))
        be(2)=EL%SCALE*el%p%charge*el%p%dir*be(2)
        be(3)=EL%SCALE*el%p%charge*be(3)
        be(4)=EL%SCALE*el%p%charge*el%p%dir*be(4)
-       be(5)=EL%SCALE*el%p%charge*be(5)
-       be(6)=EL%SCALE*el%p%charge*be(6)
+       be(5)=EL%SCALE*el%p%charge*el%p%dir*be(5)
+       be(6)=EL%SCALE*el%p%charge*el%p%dir*be(6)
        be(7)=EL%SCALE*el%p%charge*el%p%dir*be(7)
        be(8)=EL%SCALE*el%p%charge*el%p%dir*be(8)
+       be(9)=EL%SCALE*el%p%charge*el%p%dir*be(9)
+       be(10)=EL%SCALE*el%p%charge*be(10)
+       be(11)=EL%SCALE*el%p%charge*be(11)   
+       be(12)=EL%SCALE*el%p%charge*be(12)
        CALL fxc(f,x,k,be,EL%p,el%hc)
     endif
  
@@ -32070,8 +32754,13 @@ call kill(NDKHs);
 
           CALL DRIFT(DH,DD,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,p%X)
        if(k%spin.or.k%radiation) then
+write(6,format6) p%x
          CALL KICKEX(EL,Dh,p%X,k,pos)
+write(6,format6) p%x
+
         call RAD_SPIN_qua_PROBE(c,p,k,d)
+write(6,format6) p%x
+
          CALL KICKEX(EL,Dh,p%X,k,pos)
          else
         CALL KICKEX(EL,D,p%X,k,pos)
@@ -33341,7 +34030,7 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
   !   pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
      CALL get_omega_spin(c,OM,B2,dlds,XP,X,pos,k,Ed,B,zw)
 
-
+ 
    do i=1,3
      om(i)=om(i)/2.0_dp
     enddo
@@ -33384,12 +34073,13 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
 
     if(k%radiation) then
      call radiate_2_force(c,x,b2,dlds,k,POS,ff)
-     do i=1,6
+     do i=1,6  
       fo(i)=fo(i)+ff(i)
      enddo
     endif
     if(k%envelope) then
     call radiate_envelope(c,x,b2,dlds,XP,k, e_ij,denf,cr,hr)
+       e_ij=e_ij/2   !!!!!  testing error envelope
     endif
      call kill(b2,dlds)
      call kill(ff)
@@ -33400,15 +34090,15 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
  end SUBROUTINE RAD_SPIN_force_PROBEp
 
 
-  subroutine radiate_envelope(c,xx,b2,dlds,XP,k, e_ij,denf,fac,ds)
+  subroutine radiate_envelope(c,x,b2,dlds,XP,k, e_ij,denf,fac,ds)
     implicit none
     TYPE(integration_node), POINTER::c
     TYPE(ELEMENTP), POINTER::EL
     TYPE(REAL_8),INTENT(INOUT) ::XP(2) 
-    TYPE(REAL_8),INTENT(INOUT) :: xx(6)
+    TYPE(REAL_8),INTENT(INOUT) :: x(6)
     real(dp),INTENT(INOUT) :: e_ij(6,6)
     TYPE(REAL_8), intent(in):: B2,dlds
-    TYPE(REAL_8)  x(6)
+ !   TYPE(REAL_8)  x(6)
 !    TYPE(REAL_8) st,av(3),z,x(6)
     real(dp),intent(in) ::fac,ds
     type(quaternion) q
@@ -33420,8 +34110,8 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
  
     e_ij=0
 
-     call alloc(x)
-     x=xx
+   !  call alloc(x)
+   !  x=xx
 
     el=>c%parent_fibre%magp
  
@@ -33472,8 +34162,6 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
              E_IJ(i,j)=E_IJ(i,j)+denv*x1*x3 ! In a code internally using BMAD units '000001' is needed!!!
           enddo
        enddo    
-       call kill(xpmap)
-      call kill(x)
 
    denf=denf*FAC*DS*0.5e0_dp
    !    if(compute_stoch_kick) then 
@@ -33481,18 +34169,248 @@ SUBROUTINE RAD_SPIN_force_PROBER(c,x,om,k,fo,pos,zw)
    !     c%delta_rad_out=(denf)+c%delta_rad_out
    !    endif
 
+       call kill(xpmap)
+ 
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   end subroutine radiate_envelope
 
 
-SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
+  subroutine track_map_pancakep1(ti,c,xs,fac,pos,K)   !electric teapot s
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    type(probe)  xs0,xs1
+    type(elementp), pointer :: mag   
+
+    TYPE(INTERNAL_STATE) K
+    integer i,j(6),dir,pos ,ti
+    type(real_8)  x(6),dl,q0(3),qf(3),p0(3),pf(3),pz,divr(3) 
+    type(c_damap) id
+    type(damap) idp,id0
+!    real(dp) x0(6)
+    type(real_8) b(3),VM,e(3),phi ,onedelta,f(6)
+    TYPE(pancakep),pointer :: EL
+    logical(lp) CHECK_KNOB
+    integer(2), pointer,dimension(:)::AN,BN
+    real(dp) fac
+
+
+    mag=>c%parent_fibre%magp
+    el=>c%parent_fibre%magp%pa
+ 
+ 
+    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGp%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+    DIR=EL%P%DIR*EL%P%CHARGE
+ 
+
+if(c_%no>0) then
+    call alloc(dl)
+    call alloc(x)
+    call alloc(q0)
+    call alloc(qf)
+    call alloc(p0)
+    call alloc(pf)
+    call alloc(id)
+    call alloc(idp,id0)
+    call alloc(pz)
+    call alloc(onedelta)
+    call alloc(b);call alloc(vm);call alloc(e);call alloc(phi);
+    call alloc(divr)
+    call alloc(f)
+endif
+     xs0=xs
+     xs1=xs
+
+     call track_map_pancaker1(ti,C,XS1,fac,pos,K)   ! pos =1,2
+
+     ! call track_mapr1(C,XS1,fac,pos,K)
+ ! here I protect against the polymorph not being TPSA
+ ! this is not sufficient.... 
+ ! maybe the correct Julia implementation will be easier with Deniau's package
+!  we should be able to get polymorphs which are not bona fide maps, ie, taylor series
+! as function of parameters (multipole strength) without dependence on x,px, etc....
+if(c_%no==0) then    
+     xs=xs1
+     KNOB=.false.
+     return
+endif 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+! compute the inverted map around the known solution
+!  for real numbers computed by track_mapr
+
+     do i=1,C_%ND2
+      id0%v(i)=xs%x(i)-(xs%x(i).sub.'0')  ! removed the closed orbit
+     enddo
+     if(pos==2) then
+       if(c_%nd>0) then
+         x(1)=xs0%x(1)+dz_8(1)
+         x(2)=xs1%x(2)+dz_8(2)
+      endif
+       if(c_%nd>1) then
+         x(3)=xs0%x(3)+dz_8(3)
+         x(4)=xs1%x(4)+dz_8(4)
+       endif
+       if(c_%nd>2) then
+         x(5)=xs0%x(5)+dz_8(5)
+         x(6)=xs1%x(6)+dz_8(6)
+       endif
+      
+         q0(1)=x(1)
+         q0(2)=x(3)
+         q0(3)=x(5)
+         pf(1)=x(2)
+         pf(2)=x(4)
+         pf(3)=x(6)
+      else
+       if(c_%nd>0) then
+         x(1)=xs1%x(1)+dz_8(1)
+         x(2)=xs0%x(2)+dz_8(2)
+      endif
+       if(c_%nd>1) then
+         x(3)=xs1%x(3)+dz_8(3)
+         x(4)=xs0%x(4)+dz_8(4)
+       endif
+       if(c_%nd>2) then
+         x(5)=xs1%x(5)+dz_8(5)
+         x(6)=xs0%x(6)+dz_8(6)
+       endif
+      
+         qf(1)=x(1)
+         qf(2)=x(3)
+         qf(3)=x(5)
+         p0(1)=x(2)
+         p0(2)=x(4)
+         p0(3)=x(6)
+     endif
+!   evaluated the generating function as before
+!   by for polymorph
+
+ 
+   dl=fac*c%parent_fibre%magp%l/c%parent_fibre%magp%p%nst
+ 
+
+    if(pos==2) then
+  
+       call newton_eval_pancakep(ti,c,x,f,dl,k)  
+
+ 
+    divr(1)=-f(2)+pf(1)
+    divr(2)=-f(4)+pf(2)
+    divr(3)=-f(6)+pf(3)
+    qf(1)=q0(1)+f(1)
+    qf(2)=q0(2)+f(3)
+    qf(3)=q0(3)+f(5) 
+ else
+ 
+        call newton_eval_pancakep(ti,c,x,f,dl,k)  
+
+    divr(1)=-f(1)+qf(1)
+    divr(2)=-f(3)+qf(2)
+    divr(3)=-f(5)+qf(3)
+
+    pf(1)=f(2)+p0(1)
+    pf(2)=f(4)+p0(2)
+    pf(3)=f(6)+p0(3)
+endif
+
+ 
+
+!    Create a map around the closed orbit (Qf,P) as a function of (Q,PF)
+if(pos==2) then
+ if(c_%nd>0) then
+    idp%v(1)=qf(1)-(qf(1).sub.'0')
+    idp%v(2)=divr(1)-(divr(1).sub.'0')
+ endif
+ if(c_%nd>1) then
+    idp%v(3)=qf(2)-(qf(2).sub.'0')
+    idp%v(4)=divr(2)-(divr(2).sub.'0')
+ endif
+ if(c_%nd>2) then
+    idp%v(5)=qf(3)-(qf(3).sub.'0')
+    idp%v(6)=divr(3)-(divr(3).sub.'0')
+ endif
+else
+if(c_%nd>0) then
+    idp%v(1)=divr(1)-(divr(1).sub.'0')
+    idp%v(2)=pf(1)-(pf(1).sub.'0')
+ endif
+ if(c_%nd>1) then
+    idp%v(3)=divr(2)-(divr(2).sub.'0')
+    idp%v(4)=pf(2)-(pf(2).sub.'0')
+ endif
+ if(c_%nd>2) then
+    idp%v(5)=divr(3)-(divr(3).sub.'0')
+    idp%v(6)=pf(3)-(pf(3).sub.'0')
+ endif
+endif
+if(pos==2) then
+    j=0
+ DO I=1,C_%ND
+    j(2*I)=1
+ ENDDO
+else
+    j=0
+ DO I=1,C_%ND
+    j(2*I-1)=1
+ ENDDO
+
+endif
+!   Partially invert IDP around the closed orbit
+!   This operation is available in Matt's package  
+!   (QF,PF) as a function of (Q,P) but only the "DA" part
+!   This bypasses the Newton Search on a Taylor series
+    idp=idp**j(1:C_%ND2)
+
+!   Multiply  the magnet map times the original map around the orbit
+    id0=idp*id0
+ 
+!   Add the orbit back. We are done.
+
+    do i=1,C_%ND2
+     xs%x(i)=id0%v(i)+xs1%x(i)
+    enddo
+    do i=C_%ND2+1,6
+     xs%x(i)=xs1%x(i)
+    enddo
+
+
+    call kill(dl)
+    call kill(x)
+    call kill(q0)
+    call kill(qf)
+    call kill(p0)
+    call kill(pf)
+    call kill(id)
+    call kill(idp,id0)
+    call kill(pz)
+    call kill(onedelta)
+    call kill(b);call kill(vm);call kill(e);call kill(phi);
+    call kill(divr)
+    call kill(f)
+ 
+
+     KNOB=.false.
+
+ if(.not.check_stable) stop 100
+  end subroutine track_map_pancakep1
+
+
+SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw,iw)
     type(probe), INTENT(INOUT) :: p
     TYPE(fibre),pointer ::  f
     TYPE(integration_node),pointer :: c
     real(dp), intent(inout) ::ds
     real(dp), optional , intent(in) ::zw
+    integer, optional , intent(in) :: iw
     REAL(DP)  B(3),XP(2),XPA(2),ed(3)
     REAL(DP) om(3),b2,dlds,FAC
      TYPE(INTERNAL_STATE) k 
@@ -33502,7 +34420,7 @@ SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
      f=> c%parent_fibre
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
      before=.true.
-
+     if(present(iw)) pos=iw
     if((k%radiation.or.k%envelope)) then
     CALL get_omega_spin(c,OM,B2,dlds,XP,P%X,pos,k,Ed,B,zw)
 
@@ -33530,7 +34448,7 @@ SUBROUTINE RAD_SPIN_qua_PROBER(c,p,k,ds,zw)
 
 
 
-SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds,zw)
+SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds,zw,iw)
     type(probe_8), INTENT(INOUT) :: p
     TYPE(fibre),pointer ::  f
     TYPE(integration_node),pointer :: c
@@ -33541,7 +34459,9 @@ SUBROUTINE RAD_SPIN_qua_PROBEP(c,p,k,ds,zw)
    !   logical before
      integer i,pos
     real(dp), optional , intent(in) ::zw
+    integer, optional , intent(in) :: iw
      pos=C%POS_IN_FIBRE-2     !  unknown.... to be checked later
+     if(present(iw)) pos=iw
 
      FAC=0.5_dp
      f=> c%parent_fibre
@@ -34292,5 +35212,210 @@ end SUBROUTINE push_quaternionP
 
 
   END SUBROUTINE INT_SAGAN_probep
+
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!   abell conversion  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  SUBROUTINE conv_to_xprABELL(EL,X,k,ent)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(ABELL),INTENT(INOUT):: EL
+    real(dp) ti,ve,z,a(3),beta0
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer ent
+    z=ent*el%l
+    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
+
+      if(k%TIME) then
+       beta0=el%p%beta0
+      else
+       beta0=1.0_dp
+      endif
+      call gen_conv_to_xp(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   if(k%TIME) then
+ !      ti=ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   else
+ !      ti=ROOT((1.0_dp+x(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   endif
+
+  end SUBROUTINE conv_to_xprabell
+
+  SUBROUTINE conv_to_xppABELL(EL,X,k,ent)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(ABELLp),INTENT(INOUT):: EL
+    type(real_8) ti,ve,z,a(3)
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer ent
+    real(dp) beta0
+
+    call alloc(ti,ve,z)
+    call alloc(a)
+    z=ent*el%l
+
+    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
+
+      if(k%TIME) then
+       beta0=el%p%beta0
+      else
+       beta0=1.0_dp
+      endif
+      call gen_conv_to_xp(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   if(k%TIME) then
+ !      ti=sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   else
+ !      ti=sqrt((1.0_dp+x(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
+ !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
+ !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
+ !   endif
+
+   call kill(ti,ve,z)
+    call kill(a)
+
+  end SUBROUTINE conv_to_xppabell
+
+  SUBROUTINE conv_to_pxrABELL(EL,X,k,ent)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(ABELL),INTENT(INOUT):: EL
+    real(dp) ti,ve,z,a(3),beta0
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer ent
+    z=ent*el%l
+    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
+
+  if(k%TIME) then
+   beta0=el%p%beta0
+  else
+   beta0=1.0_dp
+  endif
+    call gen_conv_to_px(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   ti=ROOT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
+ !   if(k%TIME) then
+ !      x(2)=x(2)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
+ !   else
+ !      x(2)=x(2)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(2)
+ !   endif
+
+  end SUBROUTINE conv_to_pxrabell
+
+  SUBROUTINE conv_to_pxpABELL(EL,X,k,ent)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(ABELLp),INTENT(INOUT):: EL
+    type(real_8) ti,ve,z,a(3)
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    integer ent
+    real(dp) beta0
+    call alloc(ti,ve,z)
+    call alloc(a)
+    z=ent*el%l
+    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
+
+  if(k%TIME) then
+   beta0=el%p%beta0
+  else
+   beta0=1.0_dp
+  endif
+    call gen_conv_to_px(X,a,ve,el%p%exact,beta0,el%hc)
+
+ !   ti=sqrt((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
+ !   if(k%TIME) then
+ !      x(2)=x(2)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
+ !   else
+ !      x(2)=x(2)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(1)
+ !      x(4)=x(4)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(2)
+ !   endif
+
+    call kill(ti,ve,z)
+    call kill(a)
+  end SUBROUTINE conv_to_pxpabell
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+  SUBROUTINE conv_to_xpr(EL,X,k,ax,ay)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(PANCAKE),INTENT(INOUT):: EL
+    real(dp) ti,ax,ay
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+    if(k%TIME) then
+       ti=ROOT(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2-(X(2)-ax)**2-(X(4)-ay)**2)
+    else
+       ti=ROOT((1.0_dp+x(5))**2-X(2)**2-X(4)**2)
+    endif
+       x(2)=(1.0_dp+el%hc*X(1))*(X(2)-ax)/ti
+       x(4)=(1.0_dp+el%hc*X(1))*(X(4)-ay)/ti
+
+ 
+
+  end SUBROUTINE conv_to_xpr
+
+  SUBROUTINE conv_to_xpp(EL,X,k,ax,ay)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(PANCAKEp),INTENT(INOUT):: EL
+    type(real_8) ti,ax,ay
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    call alloc(ti)
+    if(k%TIME) then
+       ti=sqrt(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2-(X(2)-ax)**2-(X(4)-ay)**2)
+    else
+       ti=sqrt((1.0_dp+x(5))**2-X(2)**2-X(4)**2)
+    endif
+       x(2)=(1.0_dp+el%hc*X(1))*(X(2)-ax)/ti
+       x(4)=(1.0_dp+el%hc*X(1))*(X(4)-ay)/ti
+
+    call kill(ti)
+
+  end SUBROUTINE conv_to_xpp
+
+  SUBROUTINE conv_to_pxr(EL,X,k,ax,ay)
+    IMPLICIT NONE
+    real(dp),INTENT(INOUT):: X(6)
+    TYPE(PANCAKE),INTENT(INOUT):: EL
+    real(dp) ti,ax,ay
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    ti=ROOT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
+    if(k%TIME) then
+       x(2)=x(2)*ROOT(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti+ax
+       x(4)=x(4)*ROOT(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti+ay
+    else
+       x(2)=x(2)*(1.0_dp+x(5))/ti+ax
+       x(4)=x(4)*(1.0_dp+x(5))/ti+ay
+    endif
+  end SUBROUTINE conv_to_pxr
+
+  SUBROUTINE conv_to_pxp(EL,X,k,ax,ay)
+    IMPLICIT NONE
+    type(real_8),INTENT(INOUT):: X(6)
+    TYPE(PANCAKEp),INTENT(INOUT):: EL
+    type(real_8) ti,ax,ay
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+    call alloc(ti)
+    ti=SQRT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
+    if(k%TIME) then
+       x(2)=x(2)*sqrt(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti+ax
+       x(4)=x(4)*sqrt(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti+ay
+    else
+       x(2)=x(2)*(1.0_dp+x(5))/ti+ax
+       x(4)=x(4)*(1.0_dp+x(5))/ti+ay
+    endif
+    call kill(ti)
+
+  end SUBROUTINE conv_to_pxp
+
 
 END MODULE S_DEF_KIND

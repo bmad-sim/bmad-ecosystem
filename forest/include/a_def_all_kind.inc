@@ -440,7 +440,7 @@ TYPE PANCAKE
    real(dp),  POINTER ::L => null()
    type(tree_element),  POINTER :: B(:) => null()
    REAL(DP), POINTER :: SCALE=> null(),angc=> null(),dc=> null(),hc=> null(),xc => null(),vc => null()
-   logical,pointer :: xprime => null()
+   logical,pointer :: xprime => null(),symplectic => null()
 !   type(gen_grad_field_coeff),pointer :: gf => null()
 END  TYPE PANCAKE
 
@@ -450,7 +450,7 @@ TYPE PANCAKEP
    type(tree_element),  POINTER :: B(:) => null()
    TYPE(REAL_8), POINTER :: SCALE => null()
    real(dp),pointer :: angc=> null(),dc=> null(),hc=> null(),xc => null(),vc => null()
-   logical,pointer :: xprime=> null()
+   logical,pointer :: xprime => null(),symplectic => null()
 !   type(gen_grad_field_coeff),pointer :: gf => null()
 END  TYPE PANCAKEP
 

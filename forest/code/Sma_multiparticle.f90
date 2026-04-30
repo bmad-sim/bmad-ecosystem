@@ -1248,7 +1248,9 @@ endif
            CALL TRACK_SLICE_sagan(p,k,t,t%POS_IN_FIBRE-2)
        global_e= p%x(5)*el%p%p0c
        case(KINDPA)
+ 
           call TRACK_SLICE_PANCAKE(p,k,T)
+
        !   CALL TRACK_SLICE(EL%PA,p%x,k,T%POS_IN_FIBRE-2)
        global_e= p%x(5)*el%p%p0c
        case(KINDabell)

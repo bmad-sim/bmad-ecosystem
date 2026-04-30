@@ -68,7 +68,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map, n_mult
-integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(8)
+integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12)
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
@@ -588,7 +588,7 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
   call str_substitute(pancake_name, ':', '-')  ! Make valid file name
 
   ! Note: True => Not canonical tracking.
-  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., pancake_name)
+  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., .true., pancake_name)
 
   max_order = 0
   do i = 1, size(gg_map%gg)
@@ -746,6 +746,8 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
       enddo
       !! call dapri_pancake(field(j), 6)  ! Taylor print
     enddo
+
+    ! Field: Bx, By, Bz, Ax, dAx_dx, dAx_dy, Ay, dAy_dx, dAy_dy, Az, dAz_dx, dAz_dy 
 
     call set_tree_g_pancake(ptc_fibre%mag%pa%b(i+1), field)
     call set_tree_g_pancake(ptc_fibre%magp%pa%b(i+1), field)

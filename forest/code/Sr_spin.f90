@@ -2523,7 +2523,10 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
      xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
 
-    xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+   ! xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+    xs%x(2)=xs%x(2)-b4*sin(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+
+
     xs%x(1)=xs%x(1)-C%PARENT_FIBRE%MAG%bn(1)*b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
 
 !call add(m1,2,0,beta)
@@ -2533,7 +2536,7 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
 !call add(m1,-3,0,0.d0 )   ! delta stochastic
 !call add(m1,-2,0,alf ) 
 !call add(m1,3,0,power )  ! multipole order
- call GRNF(b4,10.d0)
+ call GRNF(b4,10.0_dp)
     xs%x(2)=xs%x(2)+C%PARENT_FIBRE%MAG%an(3)*b4 
 
 mu=1.5_dp*mu
@@ -2630,7 +2633,9 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
      xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
 
-    xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+   ! xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+    xs%x(2)=xs%x(2)-b4*sin(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+
     xs%x(1)=xs%x(1)-C%PARENT_FIBRE%MAGp%bn(1)*b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
 
     xs%E_ij(2,2)=C%PARENT_FIBRE%MAG%an(3)**2
@@ -2711,7 +2716,7 @@ e(pos)=1
 
   end subroutine track_mapr1
 
-
+!eeeeeeeeeeeeeeeeeeeeeeeee
 !(c,q0,qf,pf0,pf,e,dl,k)
 subroutine newtow_searchr2(c,q0,qf,p0,pf,e,dl,k)
     TYPE(integration_node),pointer, INTENT(IN):: c
@@ -2836,7 +2841,8 @@ if(.not.check_stable) return
  
   end subroutine newtow_eval
 
- 
+
+
   subroutine track_mapp1(c,xs,fac,pos,K)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
@@ -3177,7 +3183,7 @@ if(c%parent_fibre%magp%bn(3)>=0) then
    z=z+dl
      xs%x(1)=xs%x(1)+dl*xs%x(2)
      xs%x(3)=xs%x(3)+dl*xs%x(4)
-xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0_dp)
 xs%x(4)=xs%x(4)-dl*k*xs%x(2)*xs%x(4)*rhoi*cosh(k*xs%x(3))
 
 
@@ -3187,10 +3193,10 @@ xs%x(4)=xs%x(4)-dl*k*xs%x(2)*xs%x(4)*rhoi*cosh(k*xs%x(3))
 
 call alloc(x(1))
 x(1)=xs%x(2)*xs%x(1)*dl*rhoi
- xs%x(1)=xs%x(1)*(1.d0+x(1))
- xs%x(2)=xs%x(2)*(1.d0-x(1))
+ xs%x(1)=xs%x(1)*(1.0_dp+x(1))
+ xs%x(2)=xs%x(2)*(1.0_dp-x(1))
  xs%x(1)=xs%x(1)+c%parent_fibre%magp%bn(2)*dl*rhoi*xs%x(1)**2
- xs%x(2)=xs%x(2) +c%parent_fibre%magp%bn(2)*2.d0*dl*rhoi*xs%x(1)*xs%x(2) 
+ xs%x(2)=xs%x(2) +c%parent_fibre%magp%bn(2)*2.0_dp*dl*rhoi*xs%x(1)*xs%x(2) 
 
 call kill(x(1))
 
@@ -3201,7 +3207,7 @@ else
    z=z+dl
      xs%x(1)=xs%x(1)+dl*xs%x(2)
      xs%x(3)=xs%x(3)+dl*xs%x(4)
-xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0_dp)
 
 xs%x(4)=xs%x(4)/(1.0_dp+dl*k*xs%x(2)*rhoi*cosh(k*xs%x(3)))
 
@@ -3212,7 +3218,7 @@ call alloc(x(1))
 x(1)=xs%x(2)*xs%x(1)*dl*rhoi
  xs%x(1)=xs%x(1)*exp(x(1))
  xs%x(2)=xs%x(2)*exp(-x(1))
- xs%x(2)=xs%x(2)/(1.d0+c%parent_fibre%magp%bn(2)*2.d0*dl*rhoi*xs%x(1))
+ xs%x(2)=xs%x(2)/(1.0_dp+c%parent_fibre%magp%bn(2)*2.0_dp*dl*rhoi*xs%x(1))
  xs%x(1)=xs%x(1)+c%parent_fibre%magp%bn(2)*dl*rhoi*xs%x(1)**2
 
 call kill(x(1))

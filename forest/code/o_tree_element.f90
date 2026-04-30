@@ -46,7 +46,7 @@ module tree_element_MODULE
   logical :: firstfac=.true.
   integer, private, parameter :: nfac=20
   real(dp), private :: fac(0:nfac)
-  integer :: nbe=8
+  integer :: nbe=12
  
   integer :: n_rf=0  !number of modulation clocks in the simulation
   integer :: modulationtype=0 ! 0 is the full blown and internal anf externa field, 1 is simple one on external field only without cos(theta)

@@ -31,8 +31,8 @@ integer, parameter :: hyper_y_family_qu = 7, hyper_xy_family_qu = 8, hyper_x_fam
 integer, parameter :: hyper_y_family_sq = 10, hyper_xy_family_sq = 11, hyper_x_family_sq = 12 
 private conv_to_xprsagan,conv_to_xppsagan,conv_to_pxrsagan,conv_to_pxpsagan
 private gen_conv_to_pxp,gen_conv_to_pxr,gen_conv_to_xpp,gen_conv_to_xpr
-private conv_to_xpr,conv_to_xpp,conv_to_pxr
-private conv_to_pxp, conv_to_pxpabell ,conv_to_xprabell,conv_to_xppabell,conv_to_pxrabell
+!private conv_to_xpr,conv_to_xpp,conv_to_pxr
+!private conv_to_pxp, conv_to_pxpabell ,conv_to_xprabell,conv_to_xppabell,conv_to_pxrabell
 private B_E_FIELDR,B_E_FIELDP,adjust_px_exir,adjust_px_exip,adjust_px_entr,adjust_px_entp
 private fx_newr,fx_newp
 integer :: put_a_abell = 1
@@ -228,19 +228,19 @@ logical :: Lu_wiggler_px_continous=.false.
   END INTERFACE
 
 ! Ma Ande
-  INTERFACE conv_to_xp
-     MODULE PROCEDURE conv_to_xpr
-     MODULE PROCEDURE conv_to_xpp
-     MODULE PROCEDURE conv_to_xprabell
-     MODULE PROCEDURE conv_to_xppabell
-  END INTERFACE
+!  INTERFACE conv_to_xp
+!     MODULE PROCEDURE conv_to_xpr
+!     MODULE PROCEDURE conv_to_xpp
+!     MODULE PROCEDURE conv_to_xprabell
+!     MODULE PROCEDURE conv_to_xppabell
+!  END INTERFACE
 
-  INTERFACE conv_to_px
-     MODULE PROCEDURE conv_to_pxr
-     MODULE PROCEDURE conv_to_pxp
-     MODULE PROCEDURE conv_to_pxrabell
-     MODULE PROCEDURE conv_to_pxpabell
-  END INTERFACE
+!  INTERFACE conv_to_px
+!     MODULE PROCEDURE conv_to_pxr
+!     MODULE PROCEDURE conv_to_pxp
+!     MODULE PROCEDURE conv_to_pxrabell
+!     MODULE PROCEDURE conv_to_pxpabell
+!  END INTERFACE
 
   INTERFACE B_E_FIELD
      MODULE PROCEDURE B_E_FIELDR
@@ -4079,210 +4079,7 @@ subroutine feval_saganp(Z,X,k,f,EL)   !electric teapot s
 
   end SUBROUTINE gen_conv_to_pxp
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!   abell conversion  !!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  SUBROUTINE conv_to_xprABELL(EL,X,k,ent)
-    IMPLICIT NONE
-    real(dp),INTENT(INOUT):: X(6)
-    TYPE(ABELL),INTENT(INOUT):: EL
-    real(dp) ti,ve,z,a(3),beta0
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    integer ent
-    z=ent*el%l
-    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
-
-      if(k%TIME) then
-       beta0=el%p%beta0
-      else
-       beta0=1.0_dp
-      endif
-      call gen_conv_to_xp(X,a,ve,el%p%exact,beta0,el%hc)
-
- !   if(k%TIME) then
- !      ti=ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
- !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
- !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
- !   else
- !      ti=ROOT((1.0_dp+x(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
- !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
- !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
- !   endif
-
-  end SUBROUTINE conv_to_xprabell
-
-  SUBROUTINE conv_to_xppABELL(EL,X,k,ent)
-    IMPLICIT NONE
-    type(real_8),INTENT(INOUT):: X(6)
-    TYPE(ABELLp),INTENT(INOUT):: EL
-    type(real_8) ti,ve,z,a(3)
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    integer ent
-    real(dp) beta0
-
-    call alloc(ti,ve,z)
-    call alloc(a)
-    z=ent*el%l
-
-    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
-
-      if(k%TIME) then
-       beta0=el%p%beta0
-      else
-       beta0=1.0_dp
-      endif
-      call gen_conv_to_xp(X,a,ve,el%p%exact,beta0,el%hc)
-
- !   if(k%TIME) then
- !      ti=sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
- !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
- !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
- !   else
- !      ti=sqrt((1.0_dp+x(5)-ve)**2-(X(2)-put_a_abell*a(1))**2-(X(4)-put_a_abell*a(2))**2)
- !      x(2)=(1.0_dp+el%hc*X(1))*(X(2)-put_a_abell*a(1))/ti
- !      x(4)=(1.0_dp+el%hc*X(1))*(X(4)-put_a_abell*a(2))/ti
- !   endif
-
-   call kill(ti,ve,z)
-    call kill(a)
-
-  end SUBROUTINE conv_to_xppabell
-
-  SUBROUTINE conv_to_pxrABELL(EL,X,k,ent)
-    IMPLICIT NONE
-    real(dp),INTENT(INOUT):: X(6)
-    TYPE(ABELL),INTENT(INOUT):: EL
-    real(dp) ti,ve,z,a(3),beta0
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    integer ent
-    z=ent*el%l
-    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
-
-  if(k%TIME) then
-   beta0=el%p%beta0
-  else
-   beta0=1.0_dp
-  endif
-    call gen_conv_to_px(X,a,ve,el%p%exact,beta0,el%hc)
-
- !   ti=ROOT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
- !   if(k%TIME) then
- !      x(2)=x(2)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
- !      x(4)=x(4)*ROOT(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
- !   else
- !      x(2)=x(2)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(1)
- !      x(4)=x(4)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(2)
- !   endif
-
-  end SUBROUTINE conv_to_pxrabell
-
-  SUBROUTINE conv_to_pxpABELL(EL,X,k,ent)
-    IMPLICIT NONE
-    type(real_8),INTENT(INOUT):: X(6)
-    TYPE(ABELLp),INTENT(INOUT):: EL
-    type(real_8) ti,ve,z,a(3)
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    integer ent
-    real(dp) beta0
-    call alloc(ti,ve,z)
-    call alloc(a)
-    z=ent*el%l
-    call B_E_FIELD(EL,X,Z,PSIE_IN=VE,A_in=a,kick=.true.)
-
-  if(k%TIME) then
-   beta0=el%p%beta0
-  else
-   beta0=1.0_dp
-  endif
-    call gen_conv_to_px(X,a,ve,el%p%exact,beta0,el%hc)
-
- !   ti=sqrt((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
- !   if(k%TIME) then
- !      x(2)=x(2)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(1)
- !      x(4)=x(4)*sqrt(1.0_dp+2.0_dp*(X(5)-ve)/el%p%beta0+(X(5)-ve)**2)/ti + put_a_abell*a(2)
- !   else
- !      x(2)=x(2)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(1)
- !      x(4)=x(4)*(1.0_dp+(X(5)-ve))/ti + put_a_abell*a(2)
- !   endif
-
-    call kill(ti,ve,z)
-    call kill(a)
-  end SUBROUTINE conv_to_pxpabell
-
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-  SUBROUTINE conv_to_xpr(EL,X,k)
-    IMPLICIT NONE
-    real(dp),INTENT(INOUT):: X(6)
-    TYPE(PANCAKE),INTENT(INOUT):: EL
-    real(dp) ti
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    if(k%TIME) then
-       ti=ROOT(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2-X(2)**2-X(4)**2)
-       x(2)=(1.0_dp+el%hc*X(1))*x(2)/ti
-       x(4)=(1.0_dp+el%hc*X(1))*x(4)/ti
-    else
-       ti=ROOT((1.0_dp+x(5))**2-X(2)**2-X(4)**2)
-       x(2)=(1.0_dp+el%hc*X(1))*x(2)/ti
-       x(4)=(1.0_dp+el%hc*X(1))*x(4)/ti
-    endif
-
-  end SUBROUTINE conv_to_xpr
-
-  SUBROUTINE conv_to_xpp(EL,X,k)
-    IMPLICIT NONE
-    type(real_8),INTENT(INOUT):: X(6)
-    TYPE(PANCAKEp),INTENT(INOUT):: EL
-    type(real_8) ti
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    call alloc(ti)
-    if(k%TIME) then
-       ti=sqrt(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2-X(2)**2-X(4)**2)
-       x(2)=(1.0_dp+el%hc*X(1))*x(2)/ti
-       x(4)=(1.0_dp+el%hc*X(1))*x(4)/ti
-    else
-       ti=sqrt((1.0_dp+x(5))**2-X(2)**2-X(4)**2)
-       x(2)=(1.0_dp+el%hc*X(1))*x(2)/ti
-       x(4)=(1.0_dp+el%hc*X(1))*x(4)/ti
-    endif
-    call kill(ti)
-
-  end SUBROUTINE conv_to_xpp
-
-  SUBROUTINE conv_to_pxr(EL,X,k)
-    IMPLICIT NONE
-    real(dp),INTENT(INOUT):: X(6)
-    TYPE(PANCAKE),INTENT(INOUT):: EL
-    real(dp) ti
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    ti=ROOT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
-    if(k%TIME) then
-       x(2)=x(2)*ROOT(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti
-       x(4)=x(4)*ROOT(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti
-    else
-       x(2)=x(2)*(1.0_dp+x(5))/ti
-       x(4)=x(4)*(1.0_dp+x(5))/ti
-    endif
-  end SUBROUTINE conv_to_pxr
-
-  SUBROUTINE conv_to_pxp(EL,X,k)
-    IMPLICIT NONE
-    type(real_8),INTENT(INOUT):: X(6)
-    TYPE(PANCAKEp),INTENT(INOUT):: EL
-    type(real_8) ti
-    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
-    call alloc(ti)
-    ti=SQRT((1.0_dp+el%hc*X(1))**2+X(2)**2+X(4)**2)
-    if(k%TIME) then
-       x(2)=x(2)*sqrt(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti
-       x(4)=x(4)*sqrt(1.0_dp+2.0_dp*X(5)/el%p%beta0+x(5)**2)/ti
-    else
-       x(2)=x(2)*(1.0_dp+x(5))/ti
-       x(4)=x(4)*(1.0_dp+x(5))/ti
-    endif
-    call kill(ti)
-
-  end SUBROUTINE conv_to_pxp
-
+!!!! old conv
 
   SUBROUTINE B_E_FIELDR(EL,X,Z,PSIE_in,E_in,PSIM_in,B_in,A_in,DA_in,kick)
     IMPLICIT NONE
