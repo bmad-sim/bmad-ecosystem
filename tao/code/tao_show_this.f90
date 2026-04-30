@@ -6398,7 +6398,7 @@ case ('variables')
 
 case ('version')
 
-  nl=nl+1; lines(nl) = 'Date: ' // tao_version_date
+  nl=nl+1; lines(nl) = 'Version Date: ' // tao_version_date
 
 !----------------------------------------------------------------------
 ! wake_elements
