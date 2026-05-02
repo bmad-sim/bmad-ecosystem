@@ -11,6 +11,7 @@ type (ele_struct), pointer :: ele, ele2, nele, slave
 type (ele_struct) a_ele
 type (ele_pointer_struct), allocatable :: eles(:)
 type (coord_struct) orb
+type (coord_struct), allocatable :: orbit(:)
 type (control_struct), pointer :: ctl
 type (control_ramp1_struct), pointer :: ramp(:)
 type (nametable_struct) ntab
@@ -74,6 +75,19 @@ endif
 ! endif
 
 open (1, file = 'output.now', recl = 200)
+
+!-----------------------------------------
+! Field overlap bookkeeping
+
+call bmad_parser('overlap.bmad', lat)
+call twiss_and_track(lat, orbit)
+call transfer_matrix_calc(lat, m1, vec1)
+write (1, '(a, 2es16.8)') '"Overlap-before" ABS 1e-12', m1(2,1), m1(4,3)
+call set_ele_real_attribute(lat%ele(2), 'grid_field(1)%field_scale', 0.0_rp, err)
+call lattice_bookkeeper(lat)
+call twiss_and_track(lat, orbit)
+call transfer_matrix_calc(lat, m1, vec1)
+write (1, '(a, 2es16.8)') '"Overlap-before" ABS 1e-12', m1(2,1), m1(4,3)
 
 !-----------------------------------------
 

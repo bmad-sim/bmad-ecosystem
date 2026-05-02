@@ -1,0 +1,27 @@
+no_digested
+
+d: drift, L=1
+
+q: quad, L=0.2, k1=5, field_calc=fieldmap, field_overlaps=d,
+    grid_field = {
+        geometry = xyz,
+        field_type = magnetic,
+        field_scale = 0,
+        dr = (1, 1, 1),
+        pt(0,0,0) = (0, 0, 0),
+        pt(1,0,0) = (0, 1, 0),
+        pt(0,1,0) = (1, 0, 0),
+        pt(1,1,0) = (1, 1, 0)
+    }
+
+l: line = (d, q)
+
+*[tracking_method] = runge_kutta
+*[geometry] = open
+*[beta_a] = 1
+*[beta_b] = 1
+*[p0c] = 1e9
+
+use, l
+
+q[grid_field(1)%field_scale] = 1.0

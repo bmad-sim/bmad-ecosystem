@@ -1,5 +1,5 @@
 !+
-! Subroutine set_ele_status_stale (ele, status_group, set_slaves)
+! Subroutine set_ele_status_stale (ele, status_group, set_slaves, old_eles)
 !
 ! Routine to set a status flags to stale in an element and the corresponding 
 ! ones for any slaves the element has.
@@ -12,17 +12,22 @@
 !   ele%bookkeeping_state%mat6
 ! See the code for more details.
 ! 
+! Input:
+!   ele           -- ele_struct: Element to set.
+!   status_group  -- integer: Which flag groups to set. Possibilities are:
+!                      attribute_group$, control_group$, floor_position_group$, s_position_group$, 
+!                      s_and_floor_position_group$, ref_energy_group$, or mat6_group$, all_groups$
+!   set_slaves    -- logical, optional: If present and False then do not set
+!                      the status for any slaves. Default is True.
+!   old_eles(:)   -- ele_pointer_struct, allocatable, optional: List of elements already set.
+!                      This argument is only used when this routine is called recursively.
+!
 ! Output:
 !   ele           -- ele_struct: Element.
 !     %bookkeeping_state   -- Status block to set.
-!   status_group  -- Integer: Which flag groups to set. Possibilities are:
-!                      attribute_group$, control_group$, floor_position_group$, s_position_group$, 
-!                      s_and_floor_position_group$, ref_energy_group$, or mat6_group$, all_groups$
-!   set_slaves    -- Logical, optional: If present and False then do not set
-!                      the status for any slaves. Default is True.
 !-
 
-recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
+recursive subroutine set_ele_status_stale (ele, status_group, set_slaves, old_eles)
 
 use bmad_routine_interface, dummy => set_ele_status_stale
 
@@ -31,7 +36,10 @@ implicit none
 type (bookkeeping_state_struct), pointer :: state
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: slave, ele2
-integer status_group, i
+type (ele_pointer_struct), allocatable, optional :: old_eles(:)
+type (ele_pointer_struct), allocatable :: old_e(:)
+
+integer status_group, i, j
 logical, optional :: set_slaves
 
 ! Only set overall lattice status flags if the element is part of a lattice.
@@ -110,6 +118,26 @@ if (logic_option(.true., set_slaves)) then
     call set_ele_status_stale (slave, status_group)
   enddo
 endif
+
+
+! Set elements that this element overlaps.
+
+if (present(old_eles)) old_eles = [old_eles, ele_pointer_struct(ele, lat_ele_loc_struct(), -1)]
+
+field_loop: do i = 1, ele%n_slave_field
+  ele2 => pointer_to_slave(ele, i, slave_type = field_slave$)
+  ! If element is already set, do not set again
+  if (present(old_eles)) then
+    do j = 1, size(old_eles)
+      if (.not. associated(old_eles(j)%ele)) exit
+      if (associated(old_eles(j)%ele, ele2)) cycle field_loop
+    enddo
+    call set_ele_status_stale(ele2, status_group, set_slaves, old_eles)
+  else
+    old_e = [ele_pointer_struct(ele, lat_ele_loc_struct(), -1)]
+    call set_ele_status_stale(ele2, status_group, set_slaves, old_e)
+  endif
+enddo field_loop
 
 !----------------------------------------------------------------------------
 contains
