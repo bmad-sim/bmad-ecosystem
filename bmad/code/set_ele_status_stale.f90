@@ -39,7 +39,7 @@ type (ele_struct), pointer :: slave, ele2
 type (ele_pointer_struct), allocatable, optional :: old_eles(:)
 type (ele_pointer_struct), allocatable :: old_e(:)
 
-integer status_group, i, j, n
+integer status_group, i, j
 logical, optional :: set_slaves
 
 ! Only set overall lattice status flags if the element is part of a lattice.
@@ -128,7 +128,7 @@ field_loop: do i = 1, ele%n_slave_field
   ele2 => pointer_to_slave(ele, i, slave_type = field_slave$)
   ! If element is already set, do not set again
   if (present(old_eles)) then
-    do j = 1, n
+    do j = 1, size(old_eles)
       if (.not. associated(old_eles(j)%ele)) exit
       if (associated(old_eles(j)%ele, ele2)) cycle field_loop
     enddo
