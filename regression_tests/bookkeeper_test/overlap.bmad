@@ -1,0 +1,3 @@
+call, file = lat1.bmad
+
+q[grid_field(1)%field_scale] = 1.0

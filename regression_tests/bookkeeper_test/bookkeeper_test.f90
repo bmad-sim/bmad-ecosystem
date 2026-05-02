@@ -76,6 +76,13 @@ endif
 open (1, file = 'output.now', recl = 200)
 
 !-----------------------------------------
+! Field overlap bookkeeping
+
+call bmad_parser('overlap.bmad', lat)
+!call twiss_and_track(lat,
+
+
+!-----------------------------------------
 
 do i = 1, size(tree_str)
   call expression_string_to_tree(tree_str(i), tree, err, err_str)
