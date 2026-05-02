@@ -219,11 +219,11 @@ do
   case ('-var_file')
     call get_next_arg (arg0, s%init%var_file_arg, i_arg, n_arg)
 
-  case ('-vebose')
+  case ('-verbose')
     s%global%verbose_on = .true.
 
   case ('-version', '--version')
-    call out_io(s_blank$, r_name, 'Version Date: ' // tao_version_date)
+    call out_io(s_blank$, r_name, 'Date: ' // tao_version_date)
     stop
 
   case default
