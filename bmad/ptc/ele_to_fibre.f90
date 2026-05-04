@@ -724,6 +724,7 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   enddo
 
   z0 = ele%s_start - ele2%s_start
+  ff = rel_charge * charge_of(ele%ref_species) * c_light / ele2%value(p0c$)
 
   do i = 0, n_pan-1
     if (nint(ele2%value(integrator_order$)) == 4) then
@@ -739,7 +740,7 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
       call dacon_pancake(field(j), 0.0_rp)
       do k = 1, size(gg_taylor(j)%term)
         tm => gg_taylor(j)%term(k)
-        coef = tm%coef * c_light / ele2%value(p0c$)
+        coef = ff * tm%coef 
         call dacon_pancake(icoef, 0.0_rp)
         call dapok_pancake(icoef, tm%expn, coef)
         call daadd_pancake(field(j), icoef, field(j))
