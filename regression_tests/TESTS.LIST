@@ -43,6 +43,7 @@ spin_general_test
 superimpose_test
 synrad3d_test
 tao_test
+tao_symbolic_meas_test
 taylor_test
 time_runge_kutta_test
 tracking_method_test
