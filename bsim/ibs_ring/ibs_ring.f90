@@ -329,7 +329,7 @@ write(emitlun,'(94X,A)') "-------------Values from sigma matrix-------------"
 write(emitlun,'(A14,7A18)') "# current", "emit_a", "emit_b", "sigE/E", "sig z", "sigma_x", "sigma_y", "sigmz_z"
 write(emitlun,'(A14,7A18)') "#     (A)", "(m*rad)", "(m*rad)", "(rel.)", "(m)", "(m)", "(m)", "(m)"
 do i=1,n_steps
-  write(emitlun,"(es18.8,'   ',es15.8,'   ',es15.8,'   ',es15.8,'   'es15.8,'   ',es15.8,'   ',es15.8,'   ',es15.8)") ibs_data(i)
+  write(emitlun,"(es18.8,'   ',es15.8,'   ',es15.8,'   ',es15.8,'   ',es15.8,'   ',es15.8,'   ',es15.8,'   ',es15.8)") ibs_data(i)
 enddo
 close(emitlun)
 deallocate(ibs_data)
