@@ -351,7 +351,7 @@ SUBROUTINE mympi_receive_results(from_address, n_slices, JobResults, orbit_data_
 
   CALL mpi_recv(JobResults%result(1:package_size), package_size, TrackResult_type, from_address, MPI_ANY_TAG, MPI_COMM_WORLD, mpistatus, mpierr)
 
-  CALL mpi_recv(orbit_data_packed(1:(package_size*6*n_slices)), package_size*6*n_slices, \
+  CALL mpi_recv(orbit_data_packed(1:(package_size*6*n_slices)), package_size*6*n_slices, &
                 MPI_DOUBLE_PRECISION, from_address, MPI_ANY_TAG, MPI_COMM_WORLD, mpistatus, mpierr)
 
 END SUBROUTINE mympi_receive_results
