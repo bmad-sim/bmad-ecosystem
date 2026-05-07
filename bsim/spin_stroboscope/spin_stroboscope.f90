@@ -725,7 +725,7 @@ do ix6 = 1, n_points(6)
     j_amp(i) = (ele0%value(e_tot$)/mass_of(branch%param%particle)) * delta(i)**2 / ele0%b%beta
   enddo
 
-  write (2, '(6i4, i8, 2x, 6f13.8, 4x, 3es14.6, 5x f11.6, f11.6, 2(5x, 3f11.7))') ix_xyz, i_turn, &
+  write (2, '(6i4, i8, 2x, 6f13.8, 4x, 3es14.6, 5x, f11.6, f11.6, 2(5x, 3f11.7))') ix_xyz, i_turn, &
                             delta, j_amp, spin_tune,  p_lim, ave_invar_spin, s(0)%invar_spin
 
 
