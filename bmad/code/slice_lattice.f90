@@ -45,7 +45,7 @@ type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele, ele0, ele1, ele2
 type (ele_pointer_struct), allocatable :: eles(:)
 
-integer i, j, ie, ib, n_loc, n_links, ix_pass, status
+integer i, j, ie, ib, n_loc, ix_ele, n_links, ix_pass, status
 logical, optional :: do_bookkeeping, set_phase_zero
 logical error, err, is_ok
 
@@ -80,9 +80,12 @@ enddo
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
+  ix_ele = 0   ! Index in sliced lattice
   do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
     if (ele%izz == -1) cycle
+    ix_ele = ix_ele + 1
+    ele%ix_ele = ix_ele
     call add_back_controllers(ele)
     ele%iyy = 0
     if (ele%lord_status /= multipass_lord$) cycle
@@ -161,11 +164,15 @@ do ib = 0, ubound(lat%branch, 1)
     if (branch%ele(ie)%izz == -1) branch%ele(ie)%ix_ele = -1   ! Mark for deletion
   enddo
 
-  if (branch%ix_fixer > 0 .and. branch%ele(branch%ix_fixer)%ix_ele == -1) then
-    branch%ix_fixer = 0
-    branch%ele(0)%is_on = .true.
-    is_ok = transfer_fixer_params(ele0, .true., branch%particle_start, 'all')
-    if (.not. is_ok) status = unstable$
+  if (branch%ix_fixer > 0) then
+    if (branch%ele(branch%ix_fixer)%ix_ele == -1) then
+      branch%ix_fixer = 0
+      branch%ele(0)%is_on = .true.
+      is_ok = transfer_fixer_params(ele0, .true., branch%particle_start, 'all')
+      if (.not. is_ok) status = unstable$
+    else
+      branch%ix_fixer = branch%ele(branch%ix_fixer)%ix_ele
+    endif
   endif
 enddo
 
