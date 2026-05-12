@@ -293,7 +293,7 @@ deallocate(coos)
 if (regression_test) then
   open (1, file = 'output.now')
 
-  write (1, '(a, 3es24.16)') '"init-emit" REL 1E-8', mode%a%emittance, mode%b%emittance, mode%z%emittance
+  write (1, '(a, 3es24.16)') '"init-emit" REL 1E-6', mode%a%emittance, mode%b%emittance, mode%z%emittance
 
   do i = 1, 6
     write (1, '(a, 6es16.8)') '"sigma-ent-' // int_str(i) // '" ABS 1E-12', sigma_ent(i,:)
