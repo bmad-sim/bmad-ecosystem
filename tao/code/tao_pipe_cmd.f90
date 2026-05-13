@@ -4792,7 +4792,7 @@ case ('inum')
   select case (line)
   case ('ix_branch')
     u => point_to_uni(head, .false., err);  if (err) return
-    do i = 0, size(u%design%lat%branch)
+    do i = lbound(u%design%lat%branch, 1), ubound(u%design%lat%branch, 1)
       nl=incr(nl); write (li(nl), '(i0)') i
     enddo
 
