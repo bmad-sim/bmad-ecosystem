@@ -65,7 +65,7 @@ SUBROUTINE track_s_to_s(lat, slices, slix_start, slix_stop, slorbit, slix_lost, 
   IF(PRESENT(lost_to_col)) THEN
     lost_to_col = -1
     IF(track_state .ne. moving_forward$) THEN
-      IF( (lat%ele(track_state)%key .eq. ecollimator$) .or. \
+      IF( (lat%ele(track_state)%key .eq. ecollimator$) .or. &
           (lat%ele(track_state)%key .eq. rcollimator$) ) THEN
         lost_to_col = track_state
       ENDIF

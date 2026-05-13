@@ -2554,12 +2554,13 @@ subroutine set_ele_real_attribute (ele, attrib_name, value, err_flag, err_print_
   character(*) attrib_name
 end subroutine
 
-recursive subroutine set_ele_status_stale (ele, status_group, set_slaves)
+recursive subroutine set_ele_status_stale (ele, status_group, set_slaves, old_eles)
   import
   implicit none
   type (ele_struct), target :: ele
   integer status_group
   logical, optional :: set_slaves
+  type (ele_pointer_struct), allocatable, optional :: old_eles(:)
 end subroutine
 
 subroutine set_fringe_on_off (fringe_at, ele_end, on_or_off) 

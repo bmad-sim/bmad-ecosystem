@@ -40,15 +40,16 @@ call out_io (s_blank$, r_name, [ &
         '  -no_rad_int                          # Do not do any radiation integrals calculations.        ', &
         '  -plot_file <file_name>               # Plotting initialization file                           ', &
         '  -prompt_color <color>                # Set color of prompt string. Default is blue.           ', &
-        '  -reverse                             # Reverse lattice element order?                         ', &
-        '  -rf_on                               # Use "--rf_on" to turn off RF (default is now RF on)    ', &
         '  -quiet <level>                       # Suppress terminal output when running a command file?  ', &
         '                                       #  Levels: "all" (default), "warnings".                  ', &
+        '  -reverse                             # Reverse lattice element order?                         ', &
+        '  -rf_on                               # Use "--rf_on" to turn off RF (default is now RF on)    ', &
         '  -slice_lattice <ele_list>            # Discards elements from lattice that are not in the list', &
         '  -start_branch_at <ele_name>          # Start lattice branch at element.                       ', &
         '  -startup_file <file_name>            # Commands to run after parsing Tao init file            ', &
         '  -symbol_import                       # Import symbols defined in lattice files(s)?            ', &
         '  -var_file <file_name>                # Define variables for plotting and optimization         ', &
+        '  -version                             # Print Tao version date and stop.                       ', &
         'Note: Use "--" instead of "-" prefix to negate an option. See the Tao manual for details.       '])
 
 end subroutine tao_print_command_line_info

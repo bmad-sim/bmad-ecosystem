@@ -84,6 +84,9 @@ to setting \vn{plot_page%size} in the \vn{tao_plot_page} namelist \sref{s:init.p
 environmental variable \vn{ACC_DPI_RESOLUTION} (\sref{s:plot.page.def}) can be used to vary the
 window size.
 %
+\item[-help] \Newline
+Print a list of possible startup command line parameters.
+%
 \item[-hook_init_file] \Newline
 Specifies an input file for customized versions of Tao. Default file
 name is \vn{tao_hook.init}.
@@ -124,7 +127,6 @@ or the normal ASCII lattice file. The syntax for \vn{<file_name>} is
   \{<parser>::\}<lattice_file>\{@<use_line1>@<use_line2>...@<use_lineN>\}
 \end{example}
 See section \sref{s:init.lat} for details.
-
 %
 \item[-log_startup] \Newline
 If there is a problem with starting \tao, \vn{-log_startup} can be used to create a log file of the
@@ -198,6 +200,9 @@ details.
 \item[-var_file <file_name>] \Newline
 Overrides the \vn{var_file} (\sref{s:init.begin}) specified in the
 \tao initialization file.
+
+\item[-version] \Newline
+Print \tao version date and stop.
 
 \end{description}
 

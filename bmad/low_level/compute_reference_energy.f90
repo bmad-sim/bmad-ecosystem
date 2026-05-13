@@ -480,7 +480,6 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
 
   ! Multipass lords have their enegy computed above.
 
-  if (lord%lord_status == multipass_lord$) cycle
   if (lord%lord_status == ramper_lord$) cycle
   if (lord%lord_status == control_lord$) cycle
 
@@ -489,10 +488,15 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   ! First find this slave.
 
   slave => lord
-  do
-    if (slave%n_slave == 0) exit
-    slave => pointer_to_slave(slave, slave%n_slave)
-  enddo
+  if (lord%lord_status == multipass_lord$) then
+    slave => pointer_to_slave(slave, 1)
+    if (slave%lord_status == super_lord$) slave => pointer_to_slave(slave, 1)
+  else
+    do
+      if (slave%n_slave == 0) exit
+      slave => pointer_to_slave(slave, slave%n_slave)
+    enddo
+  endif
 
   ! Now transfer the information to the lord.
 

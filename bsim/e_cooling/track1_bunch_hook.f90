@@ -268,9 +268,9 @@ elseif (associated(ec_com%output_ele, ele)) then
     D_e22 = D_e22*local_density_e_rel**2*(sin(ec%wd%phi_avg*sqrt(local_density_e_rel))/sin(ec%wd%phi_avg))**4
 
     ! Correct for off-momentum proton slipping relative to electrons in modulator and kicker.
-    A = A*(sin(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%input_ele%value(l$)/2./gamma_rel**2.)\
-         /(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%input_ele%value(l$)/2./gamma_rel**2.))\
-         *(sin(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%output_ele%value(l$)/2./gamma_rel**2.)\
+    A = A*(sin(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%input_ele%value(l$)/2./gamma_rel**2.)&
+         /(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%input_ele%value(l$)/2./gamma_rel**2.))&
+         *(sin(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%output_ele%value(l$)/2./gamma_rel**2.)&
          /(ec%wd%off_E_reduction*p_final%vec(6)*ec_com%output_ele%value(l$)/2./gamma_rel**2.))
 
     ! Analytic diffusion rate.
@@ -340,8 +340,8 @@ elseif (associated(ec_com%output_ele, ele)) then
   ! Print fractional change in emittance for one turn.
   ! Assumes longitudinal emittance is 2x squared energy spread, to account for half of the emittance in z^2 term.
   print *, "Fractional effective cooling per turn in x, y, z:"
-  print '(3es12.4)', (emit_x_final - emit_x_init)/emit_x_init/ec%wd%turns_per_step,\
-      (emit_y_final -  emit_y_init)/emit_y_init/ec%wd%turns_per_step,\
+  print '(3es12.4)', (emit_x_final - emit_x_init)/emit_x_init/ec%wd%turns_per_step,&
+      (emit_y_final -  emit_y_init)/emit_y_init/ec%wd%turns_per_step,&
       (sigma_delta_final**2. - sigma_delta_init**2.)/sigma_delta_init**2/2./ec%wd%turns_per_step
 
   print *

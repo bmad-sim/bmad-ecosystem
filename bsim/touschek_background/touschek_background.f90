@@ -808,8 +808,8 @@ IF(master) THEN
   WRITE(59,'(A61)') "#       ele     location     aperture   element name         "
   WRITE(59,'(A61)') "#     index          (s)       radius                        "
   DO i=1, lat%n_ele_track
-    IF( (lat%ele(i)%value(l$) .gt. 0.0) .or. \
-        (lat%ele(i)%key .eq. ecollimator$) .or. \
+    IF( (lat%ele(i)%value(l$) .gt. 0.0) .or. &
+        (lat%ele(i)%key .eq. ecollimator$) .or. &
         (lat%ele(i)%key .eq. rcollimator$) ) THEN
       WRITE(59,'(I11,F13.5,F13.5,"   ",A)') i, lat%ele(i)%s, lat%ele(i)%value(x1_limit$), lat%ele(i)%name
     ENDIF
@@ -959,7 +959,7 @@ IF(master) THEN
         deltaX = distXmax/(N_data_points-1)
         DO i=1,N_data_points
           distX = deltaX*(i-1)
-          data_points(N_data_points-i+1,1) = \
+          data_points(N_data_points-i+1,1) = &
             pz_min+(pz_max-pz_min)*(1.0_rp+1.0_rp/distParam*(EXP(distParam*distX)-1.0_rp))
         ENDDO
         !- data_points(1,1) is pz_min  (closest to aperture)
@@ -1130,7 +1130,7 @@ IF(master) THEN
                 slix_b = MIN(snapshot_stop_slix,last_good_traj)
                 DO i=slix_a,slix_b
                   ntp(i-snapshot_start_slix+1) = ntp(i-snapshot_start_slix+1) + 1
-                  WRITE(101+lat%n_ele_track+i,'(6ES14.5,ES14.4,I7,4F4.0)') \
+                  WRITE(101+lat%n_ele_track+i,'(6ES14.5,ES14.4,I7,4F4.0)') &
                         orbit_data(outer_i)%orb(i)%vec(1:6), cur_ne*e_charge, cur_slixlost, 0.,0.,0.,0.
                 ENDDO
               ENDIF
@@ -1144,7 +1144,7 @@ IF(master) THEN
             DO i=1, number_of_collimators
               IF(lat%ele(col_hash(i)%ele_ix)%s .gt. slices(slix)) THEN
                 IF( (lat%ele(col_hash(i)%ele_ix)%s-lat%ele(col_hash(i)%ele_ix)%value(l$)) .le. slices(last_good_traj)) THEN
-                  WRITE(col_funits(i),'(6ES14.4,ES14.4,I10)') \
+                  WRITE(col_funits(i),'(6ES14.4,ES14.4,I10)') &
                           orbit_data(outer_i)%orb(col_hash(i)%slice_ix)%vec(1:6), cur_ne*e_charge, cur_lost_to_col
                 ENDIF
               ENDIF
@@ -1216,7 +1216,7 @@ IF(master) THEN
                         cur_upper_bnd = hist_min + bin_size*j
                         IF(orbit_data(outer_i)%orb(i)%vec(1) .lt. cur_upper_bnd) THEN
                           orbit_hist(i,j,1) = orbit_hist(i,j,1) + cur_ne
-                          orbit_hist(i,j,2) = orbit_hist(i,j,2) + \
+                          orbit_hist(i,j,2) = orbit_hist(i,j,2) + &
                                               (test_particles(cur_partnum)%delta_eV+eV_at_slice(i))*cur_ne
                           EXIT
                         ENDIF
@@ -1252,29 +1252,29 @@ IF(master) THEN
 
           IF(test_particles(i)%lost .eq. 1) THEN
             !- total losses
-            Ndeposited_at_slice(test_particles(i)%slix_lost,0) = \
-                 Ndeposited_at_slice(test_particles(i)%slix_lost,0) + \
+            Ndeposited_at_slice(test_particles(i)%slix_lost,0) = &
+                 Ndeposited_at_slice(test_particles(i)%slix_lost,0) + &
                  delta_r*slice_len/c_light
 
             IF(test_particles(i)%plane_lost_at .eq. z_plane$) THEN
               bmad_zero_energy_count = bmad_zero_energy_count + 1
 
               !- particle stopped during deceleration
-              Ndeposited_at_slice(test_particles(i)%slix_lost,2) = \
-                   Ndeposited_at_slice(test_particles(i)%slix_lost,2) + \
+              Ndeposited_at_slice(test_particles(i)%slix_lost,2) = &
+                   Ndeposited_at_slice(test_particles(i)%slix_lost,2) + &
                    delta_r*slice_len/c_light
             ELSE  !- must be x_plane$ or y_plane$
               beam_pipe_loss_count = beam_pipe_loss_count + 1
 
               !- beampipe collision
-              Ndeposited_at_slice(test_particles(i)%slix_lost,1) = \
-                   Ndeposited_at_slice(test_particles(i)%slix_lost,1) + \
+              Ndeposited_at_slice(test_particles(i)%slix_lost,1) = &
+                   Ndeposited_at_slice(test_particles(i)%slix_lost,1) + &
                    delta_r*slice_len/c_light
 
               !- also record energy deposited into beampipe from energy of particle at time of collision
-              energy_deposited_at_slice(test_particles(i)%slix_lost) = \
-                  energy_deposited_at_slice(test_particles(i)%slix_lost) + \
-                  (test_particles(i)%delta_eV + eV_at_slice(test_particles(i)%slix_lost))*delta_r * \
+              energy_deposited_at_slice(test_particles(i)%slix_lost) = &
+                  energy_deposited_at_slice(test_particles(i)%slix_lost) + &
+                  (test_particles(i)%delta_eV + eV_at_slice(test_particles(i)%slix_lost))*delta_r * &
                   slice_len/c_light
             ENDIF
           ENDIF
@@ -1301,9 +1301,9 @@ IF(master) THEN
   generation_at_slice(slix_prod_start)%pipe_cumulative = generation_at_slice(slix_prod_start)%pipe_this_slice
   generation_at_slice(slix_prod_start)%stop_cumulative = generation_at_slice(slix_prod_start)%stop_this_slice
   DO i=slix_prod_start+1, slix_prod_end
-    generation_at_slice(i)%pipe_cumulative = generation_at_slice(i-1)%pipe_cumulative \
+    generation_at_slice(i)%pipe_cumulative = generation_at_slice(i-1)%pipe_cumulative &
                                            + generation_at_slice(i)%pipe_this_slice
-    generation_at_slice(i)%stop_cumulative = generation_at_slice(i-1)%stop_cumulative \
+    generation_at_slice(i)%stop_cumulative = generation_at_slice(i-1)%stop_cumulative &
                                            + generation_at_slice(i)%stop_this_slice
   ENDDO
 
@@ -1319,11 +1319,11 @@ IF(master) THEN
   ! Calculate the sigma matrix of the Touschek particles traveling through each element
   !-----------------------------------------------------------------------------------------------------------------------------
   OPEN(80, FILE="sigma_matrix.out")
-  WRITE(80,'(A9,A11,21A16)') "# Slice  ","Location","Cov(x,x)","Cov(x,px)","Cov(x,y)","Cov(x,py)","Cov(x,z)","Cov(x,pz)", \
-                                                   "Cov(px,px)","Cov(px,y)","Cov(px,py)","Cov(px,z)","Cov(px,pz)", \
-                                                   "Cov(y,y)","Cov(y,py)","Cov(y,z)","Cov(y,pz)", \
-                                                   "Cov(py,py)","Cov(py,z)","Cov(py,pz)", \
-                                                   "Cov(z,z)","Cov(z,pz)", \
+  WRITE(80,'(A9,A11,21A16)') "# Slice  ","Location","Cov(x,x)","Cov(x,px)","Cov(x,y)","Cov(x,py)","Cov(x,z)","Cov(x,pz)", &
+                                                   "Cov(px,px)","Cov(px,y)","Cov(px,py)","Cov(px,z)","Cov(px,pz)", &
+                                                   "Cov(y,y)","Cov(y,py)","Cov(y,z)","Cov(y,pz)", &
+                                                   "Cov(py,py)","Cov(py,z)","Cov(py,pz)", &
+                                                   "Cov(z,z)","Cov(z,pz)", &
                                                    "Cov(pz,pz)"
   WRITE(80,'(A9,A11,21A16)') "# index  ","m","m^2","m","m^2","m","m^2","m","1","m","1","m","1","m^2","m","m^2","m","1","m","1","m^2","m","1"
   WRITE(80,'(A20,21A16)') "#    row number:    ","1","1","1","1","1","1","2","2","2","2","2","3","3","3","3","4","4","4","5","5","6"

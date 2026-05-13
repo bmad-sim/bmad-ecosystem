@@ -263,10 +263,10 @@ IF(master) THEN
   WRITE(templun,'(A71)') "#       ele     location     aperture   element   element name         "
   WRITE(templun,'(A71)') "#     index          (s)       radius       key                        "
   DO i=1, lat%n_ele_track
-    IF( (lat%ele(i)%value(l$) .gt. 0.0) .or. \
-        (lat%ele(i)%key .eq. ecollimator$) .or. \
+    IF( (lat%ele(i)%value(l$) .gt. 0.0) .or. &
+        (lat%ele(i)%key .eq. ecollimator$) .or. &
         (lat%ele(i)%key .eq. rcollimator$) ) THEN
-      WRITE(templun,'(I11,F13.5,F13.5,"  ",A,"  ",A)') i, lat%ele(i)%s, lat%ele(i)%value(x1_limit$), \
+      WRITE(templun,'(I11,F13.5,F13.5,"  ",A,"  ",A)') i, lat%ele(i)%s, lat%ele(i)%value(x1_limit$), &
                                                      key_name(lat%ele(i)%key), lat%ele(i)%name
     ENDIF
   ENDDO
