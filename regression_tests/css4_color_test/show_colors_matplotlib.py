@@ -24,23 +24,25 @@ import numpy as np
 
 # Add parent path for module import
 sys.path.insert(0, os.path.dirname(__file__))
-from css4_color_reference import QP_CSS4_NAMES, QP_ORIGINAL_NAMES, QP_ORIGINAL_RGB, CSS4_HEX
+from generate_css4_module import ORIGINAL_COLORS, CSS4_COLORS
+from css4_color_reference import get_ordered_palette
+
+# Derive name lists from the canonical source
+_palette = get_ordered_palette()
+QP_ORIGINAL_NAMES = [name for (name, r, g, b) in _palette[:16]]
+QP_CSS4_NAMES = [name for (name, r, g, b) in _palette[17:]]
 
 
 def get_qp_module_rgb():
-    """Read RGB values from the Fortran module.
+    """Get RGB values from the reference palette.
 
     Returns
     -------
     list of tuple
         RGB values for indices 0-154, each as (r, g, b) with values 0-255.
     """
-    from css4_color_reference import parse_fortran_module
-    module_path = os.path.join(os.path.dirname(__file__),
-                               '..', '..', 'sim_utils', 'plot',
-                               'qp_css4_colors_mod.f90')
-    red, green, blue = parse_fortran_module(module_path)
-    return [(red[i], green[i], blue[i]) for i in range(len(red))]
+    palette = get_ordered_palette()
+    return [(r, g, b) for (name, r, g, b) in palette]
 
 
 def nearest_color_index(ix_color, all_rgb, device_limit):
