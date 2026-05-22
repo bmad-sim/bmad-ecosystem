@@ -7,7 +7,6 @@ import pathlib
 import shlex
 import sys
 from typing import NamedTuple
-
 import pytest
 
 from conftest import TESTS_ROOT
