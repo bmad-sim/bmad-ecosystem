@@ -3802,7 +3802,7 @@ case ('label_color')
   if (error) then
     call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
   else
-    qp_axis%label_color = component
+    qp_axis%label_color = value
   endif
 
 case ('major_div')
