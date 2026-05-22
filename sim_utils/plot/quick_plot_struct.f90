@@ -231,8 +231,8 @@ case ('color')
     return
   endif
 
-  ! RGB(r,g,b) format
-  if (len_trim(enum_str) >= 8 .and. (enum_str(1:4) == 'RGB(' .or. enum_str(1:4) == 'rgb(')) then
+  ! RGB(r,g,b) format (case-insensitive prefix)
+  if (len_trim(enum_str) >= 8 .and. downcase(enum_str(1:4)) == 'rgb(') then
     ix_enum = qp_parse_rgb_color(enum_str)
     if (ix_enum == qp_custom_color$) then
       if (present(error)) error = .false.
@@ -457,7 +457,7 @@ function qp_parse_rgb_color (rgb_str) result (ix_color)
 implicit none
 
 character(*), intent(in) :: rgb_str
-integer :: ix_color, r, g, b, ios, n
+integer :: ix_color, r, g, b, ios, n, i, n_commas
 character(40) :: inner
 
 ix_color = -1
@@ -472,9 +472,73 @@ read(inner, *, iostat=ios) r, g, b
 if (ios /= 0) return
 if (r < 0 .or. r > 255 .or. g < 0 .or. g > 255 .or. b < 0 .or. b > 255) return
 
+! Reject trailing content (e.g. "RGB(1,2,3,4)") by counting commas
+n_commas = 0
+do i = 1, len_trim(inner)
+  if (inner(i:i) == ',') n_commas = n_commas + 1
+enddo
+if (n_commas /= 2) return
+
 qp_custom_rgb = [r, g, b]
 ix_color = qp_custom_color$
 
 end function qp_parse_rgb_color
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_normalize_color_string (color_str) result (norm_str)
+!
+! Normalize a color string to canonical form for storage.
+! Named colors -> lowercase. Hex -> uppercase digits. RGB -> strip spaces.
+!
+! Input:
+!   color_str  -- character(*): Raw color string.
+!
+! Output:
+!   norm_str   -- character(24): Normalized color string.
+!-
+
+function qp_normalize_color_string (color_str) result (norm_str)
+
+implicit none
+
+character(*), intent(in) :: color_str
+character(24) :: norm_str
+integer :: n, r, g, b, ios
+character(40) :: inner
+
+n = len_trim(color_str)
+norm_str = ''
+
+if (n == 0) return
+
+! Hex color: uppercase the hex digits
+if (color_str(1:1) == '#') then
+  norm_str = upcase(color_str(1:n))
+  return
+endif
+
+! RGB format: normalize to RGB(r,g,b) with no spaces
+if (n >= 8 .and. downcase(color_str(1:4)) == 'rgb(') then
+  if (color_str(n:n) /= ')') then
+    norm_str = color_str(1:n)
+    return
+  endif
+  inner = color_str(5:n-1)
+  read(inner, *, iostat=ios) r, g, b
+  if (ios /= 0) then
+    norm_str = color_str(1:n)
+    return
+  endif
+  write(norm_str, '(a,i0,a,i0,a,i0,a)') 'RGB(', r, ',', g, ',', b, ')'
+  return
+endif
+
+! Named color: downcase
+norm_str = downcase(color_str(1:n))
+
+end function qp_normalize_color_string
 
 end module

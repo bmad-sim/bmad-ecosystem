@@ -1584,7 +1584,7 @@ case ('symbol_size')
 case ('symbol_color', 'symbol%color')
   ix = qp_string_to_enum(value_str, 'color', -1, err)
   if (.not. err) then
-    this_curve%symbol%color = value_str
+    this_curve%symbol%color = qp_normalize_color_string(value_str)
   else
     call out_io (s_error$, r_name, trim(component) // ' COLOR VALUE IS UNKNOWN: ' // trim(value_str))
   endif
@@ -1608,7 +1608,7 @@ case ('smooth_line_calc')
 case ('line_color', 'line%color')
   ix = qp_string_to_enum(value_str, 'color', -1, err)
   if (.not. err) then
-    this_curve%line%color = value_str
+    this_curve%line%color = qp_normalize_color_string(value_str)
   else
     call out_io (s_error$, r_name, trim(component) // ' COLOR VALUE IS UNKNOWN: ' // trim(value_str))
   endif
@@ -3759,6 +3759,7 @@ end subroutine tao_set_qp_rect_struct
 subroutine tao_set_qp_axis_struct (qp_axis_name, component, qp_axis, value, error, ix_uni)
 
 use quick_plot, only: qp_string_to_enum
+use quick_plot_struct, only: qp_normalize_color_string
 
 type (qp_axis_struct) qp_axis
 character(*) component, value, qp_axis_name
@@ -3802,7 +3803,7 @@ case ('label_color')
   if (error) then
     call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
   else
-    qp_axis%label_color = value
+    qp_axis%label_color = qp_normalize_color_string(value)
   endif
 
 case ('major_div')
