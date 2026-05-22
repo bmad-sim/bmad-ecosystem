@@ -67,6 +67,7 @@ fortran_tests = pytest.mark.parametrize(
         pytest.param("spin_general_test"),
         pytest.param("superimpose_test"),
         pytest.param("synrad3d_test"),
+        pytest.param("tao_color_test"),
         pytest.param("tao_test"),
         pytest.param("taylor_test"),
         pytest.param("time_runge_kutta_test"),

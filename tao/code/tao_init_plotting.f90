@@ -24,7 +24,7 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   character(40) key_name     ! Element key name
   character(40) ele_name     ! element name
   character(16) shape        ! plot shape
-  character(16) color        ! plot color
+  character(24) color        ! plot color
   real(rp) size              ! plot vertical height 
   Logical :: draw_name  = .true.
   integer key                ! Element key index to match to
@@ -58,10 +58,10 @@ character(200) plot_file, full_file_name
 character(100) graph_name
 character(80) label
 character(40) str, old_name
-character(16) color
+character(24) color
 character(16), parameter :: symbol_type(8) = [character(16):: 'circle_dot', 'times', 'square', 'plus', &
                                                   'triangle', 'x_symbol', 'diamond', 'diamond']
-character(16), parameter :: draw_color(8) = [character(16):: 'black', 'blue', 'red', 'green', 'cyan', &
+character(24), parameter :: draw_color(8) = [character(24):: 'black', 'blue', 'red', 'green', 'cyan', &
                                                    'magenta', 'yellow', 'black']
 character(*), parameter :: r_name = 'tao_init_plotting'
 

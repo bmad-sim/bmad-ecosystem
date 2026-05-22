@@ -117,7 +117,7 @@ type tao_graph_input
   character(60) :: component = ''
   character(100) :: text_legend(10) = ''
   character(2) :: floor_plan_view = ''                 ! deprecated. Use g%floor_plan%...
-  character(16) :: floor_plan_orbit_color = ''         ! deprecated. Use g%floor_plan%...
+  character(24) :: floor_plan_orbit_color = ''         ! deprecated. Use g%floor_plan%...
   integer :: box(4) = [1, 1, 1, 1]
   integer :: ix_universe = -1
   integer :: ix_branch = 0
@@ -218,7 +218,7 @@ end type
 type tao_ele_shape_input
   character(60) :: ele_id = ''       ! element "key::name" to match to.
   character(40) :: shape = ''        ! Shape to draw
-  character(16) :: color = 'black'   ! Color of shape
+  character(24) :: color = 'black'   ! Color of shape
   real(rp) :: size = 0               ! plot vertical height 
   character(16) :: label = 'name'    ! Can be: 'name', 's', 'none' 
   logical :: draw = .true.           ! Draw the shape?

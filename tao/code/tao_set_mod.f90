@@ -1582,7 +1582,12 @@ case ('symbol_size')
   call tao_set_real_value (this_curve%symbol%height, component, value_str, err)
 
 case ('symbol_color', 'symbol%color')
-  call tao_set_switch_value (ix, component, value_str, qp_color_name, lbound(qp_color_name,1), err, this_curve%symbol%color)
+  ix = qp_string_to_enum(value_str, 'color', -1, err)
+  if (.not. err) then
+    this_curve%symbol%color = value_str
+  else
+    call out_io (s_error$, r_name, trim(component) // ' COLOR VALUE IS UNKNOWN: ' // trim(value_str))
+  endif
 
 case ('symbol_type', 'symbol%type')
   call tao_set_switch_value (ix, component, value_str, qp_symbol_type_name, lbound(qp_symbol_type_name,1), err, this_curve%symbol%type)
@@ -1601,7 +1606,12 @@ case ('smooth_line_calc')
   call tao_set_logical_value (this_curve%smooth_line_calc, component, value_str, err)
 
 case ('line_color', 'line%color')
-  call tao_set_switch_value (ix, component, value_str, qp_color_name, lbound(qp_color_name,1), err, this_curve%line%color)
+  ix = qp_string_to_enum(value_str, 'color', -1, err)
+  if (.not. err) then
+    this_curve%line%color = value_str
+  else
+    call out_io (s_error$, r_name, trim(component) // ' COLOR VALUE IS UNKNOWN: ' // trim(value_str))
+  endif
 
 case ('line_width', 'line%width')
   call tao_set_integer_value (this_curve%line%width, component, value_str, err)
@@ -3788,13 +3798,11 @@ case ('minor_tick_len')
   call tao_set_real_value (qp_axis%minor_tick_len, qp_axis_name, value, error, dflt_uni = ix_uni)
 
 case ('label_color')
-  indx = qp_string_to_enum(value, 'color', -1)
-  if (indx < 1) then
+  indx = qp_string_to_enum(value, 'color', -1, error)
+  if (error) then
     call out_io (s_error$, r_name, 'BAD COLOR NAME: ' // value)
-    error = .true.
   else
     qp_axis%label_color = component
-    error = .false.
   endif
 
 case ('major_div')

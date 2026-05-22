@@ -5484,7 +5484,7 @@ if (real_color > 1.0_rp) then
 else if (real_color < 0.0_rp) then
   integer_color = 0
 else
-  integer_color = nint(real_color*(huge(integer_color)-17) + 17)
+  integer_color = nint(real_color*(huge(integer_color)-qp_continuous_color_start$) + qp_continuous_color_start$)
 endif
 
 end function qp_continuous_color
@@ -5505,10 +5505,10 @@ implicit none
 real(rp) :: real_color
 integer :: integer_color
 
-if (integer_color < 17) then
+if (integer_color < qp_continuous_color_start$) then
   real_color = 0.0_rp
 else
-  real_color = (integer_color - 17)/ (1.0_rp*(huge(integer_color) - 17) )
+  real_color = (integer_color - qp_continuous_color_start$)/ (1.0_rp*(huge(integer_color) - qp_continuous_color_start$) )
 endif
 
 end function qp_continuous_color_inverse

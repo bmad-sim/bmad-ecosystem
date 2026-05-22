@@ -386,7 +386,7 @@ integer i, n, ix, iw, i_chan, ios, ix_branch
 integer n_phot1, n_phot2, n_hit1, n_hit2
 
 character(*) plane
-character(16) plane_str, color, line_pattern
+character(24) plane_str, color, line_pattern
 character(40) :: ans
 
 logical xy_user_good, s_user_good, no_wall_here, found_wall, good_wall_hit, good_photon_track
