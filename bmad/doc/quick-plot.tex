@@ -402,11 +402,13 @@ The color styles in \quickplot are:
 
 In addition, all 138 CSS4 (CSS Color Level 4) named colors are available. These occupy color indices
 17 through 154 and can be specified by name (e.g., \vn{"salmon"}, \vn{"darkslategray"},
-\vn{"mediumspringgreen"}). Ten CSS4 names that share both name and RGB value with original \quickplot
-colors are excluded: \vn{black}, \vn{blue}, \vn{cyan}, \vn{green}, \vn{magenta}, \vn{orange},
-\vn{purple}, \vn{red}, \vn{white}, and \vn{yellow}. The CSS4 colors are ordered by visual
-distinctiveness so that devices with limited color index support still get the most distinguishable
-colors at lower indices.
+\vn{"mediumspringgreen"}). The CSS4 specification defines 148 named colors; 10 of these share a name
+with an original \quickplot color and are not duplicated in the CSS4 range since they are already
+accessible at their original indices: \vn{black}, \vn{blue}, \vn{cyan}, \vn{green}, \vn{magenta},
+\vn{orange}, \vn{purple}, \vn{red}, \vn{white}, and \vn{yellow}. Note that CSS4 aliases with
+different names but the same RGB value (e.g., \vn{aqua} = \vn{cyan}, \vn{fuchsia} = \vn{magenta})
+are included. The CSS4 colors are ordered by visual distinctiveness so that devices with limited
+color index support still get the most distinguishable colors at lower indices.
 
 Note: The RGB values of \vn{Green}, \vn{Orange}, and \vn{Purple} now match the CSS4 specification.
 Users of the previous values can use these CSS4 equivalents:
