@@ -227,8 +227,8 @@ character(24), parameter :: qp_css4_color_name(17:154) = [ character(24) :: &
   'springgreen' ]
 
 ! Integer constants for CSS4 color indices.
-! Note: "tan$" is omitted because it conflicts with the tangent operator (tan$)
-! defined in bmad_struct.f90. Use the string "tan" with qp_string_to_enum instead.
+! Note: The color "tan" uses the constant css_tan$ (not tan$) to avoid conflict
+! with the tangent operator (tan$) defined in bmad_struct.f90.
 
 integer, parameter :: lime$ = 17, maroon$ = 18, navy$ = 19, darkcyan$ = 20
 integer, parameter :: indianred$ = 21, slateblue$ = 22, olive$ = 23, violet$ = 24
@@ -259,7 +259,7 @@ integer, parameter :: brown$ = 108, palegreen$ = 109, lightcoral$ = 110, alicebl
 integer, parameter :: lightgray$ = 112, darkmagenta$ = 113, teal$ = 114
 integer, parameter :: palegoldenrod$ = 115, ivory$ = 116, skyblue$ = 117, beige$ = 118
 integer, parameter :: lightpink$ = 119, slategray$ = 120, papayawhip$ = 121
-! tan$ omitted (conflict with tangent operator)
+integer, parameter :: css_tan$ = 122
 integer, parameter :: peachpuff$ = 123, linen$ = 124, navajowhite$ = 125
 integer, parameter :: whitesmoke$ = 126, darkblue$ = 127, darkred$ = 128, moccasin$ = 129
 integer, parameter :: mintcream$ = 130, blanchedalmond$ = 131, seashell$ = 132

@@ -203,6 +203,25 @@ def generate_fortran_module(ordered_css4):
         else:
             lines.append(f"  '{name}', &")
     lines.append("")
+
+    # Generate integer parameter constants for each CSS4 color
+    lines.append("! Integer constants for CSS4 color indices.")
+    lines.append('! Note: The color "tan" uses the constant css_tan$ (not tan$) to avoid conflict')
+    lines.append("! with the tangent operator (tan$) defined in bmad_struct.f90.")
+    lines.append("")
+
+    # Group constants 3 per line for readability
+    const_entries = []
+    for i, (name, r, g, b) in enumerate(ordered_css4):
+        idx = 17 + i
+        const_name = "css_tan" if name == "tan" else name
+        const_entries.append(f"{const_name}$ = {idx}")
+
+    for i in range(0, len(const_entries), 3):
+        chunk = const_entries[i:i+3]
+        lines.append(f"integer, parameter :: {', '.join(chunk)}")
+
+    lines.append("")
     lines.append("end module qp_css4_colors_mod")
     lines.append("")
 
