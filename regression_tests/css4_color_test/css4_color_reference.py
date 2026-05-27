@@ -1,9 +1,9 @@
 """
 Verify quick_plot CSS4 color module data against the reference source.
 
-Uses generate_css4_module.py as the single source of truth for color definitions.
-Verifies that the compiled Fortran module's RGB arrays match expected values by
-running a small Fortran program that dumps the palette.
+Contains the canonical color definitions and ordering algorithm used to
+generate qp_css4_colors_mod.f90. Also verifies that the compiled Fortran
+module's RGB arrays match expected values.
 
 Usage:
     python3 css4_color_reference.py [--swatch output.png]
@@ -14,10 +14,93 @@ import subprocess
 import sys
 
 from PIL import Image
+from PIL.ImageColor import colormap as _pil_colormap
 
-# Import canonical color data from the generator (single source of truth)
-sys.path.insert(0, os.path.dirname(__file__))
-from generate_css4_module import ORIGINAL_COLORS, CSS4_COLORS, farthest_point_first
+# Original quick_plot colors (indices 0-16)
+# Indices 3, 8, 12 updated to match CSS4 spec values.
+# Old values: green=(0,255,0) [now "lime"], orange=(255,127,0), purple=(127,0,255)
+ORIGINAL_COLORS = {
+    0: ("white", 255, 255, 255),
+    1: ("black", 0, 0, 0),
+    2: ("red", 255, 0, 0),
+    3: ("green", 0, 128, 0),
+    4: ("blue", 0, 0, 255),
+    5: ("cyan", 0, 255, 255),
+    6: ("magenta", 255, 0, 255),
+    7: ("yellow", 255, 255, 0),
+    8: ("orange", 255, 165, 0),
+    9: ("yellow_green", 127, 255, 0),
+    10: ("light_green", 0, 255, 127),
+    11: ("navy_blue", 0, 127, 255),
+    12: ("purple", 128, 0, 128),
+    13: ("reddish_purple", 255, 0, 127),
+    14: ("dark_grey", 85, 85, 85),
+    15: ("light_grey", 170, 170, 170),
+    16: ("transparent", 0, 0, 0),
+}
+
+# CSS4 named colors from PIL (the authoritative source).
+CSS4_COLORS = {
+    name: (int(hexval[1:3], 16), int(hexval[3:5], 16), int(hexval[5:7], 16))
+    for name, hexval in _pil_colormap.items()
+}
+
+
+def color_distance_sq(c1, c2):
+    """Compute squared Euclidean distance in RGB space.
+
+    Parameters
+    ----------
+    c1 : tuple
+        RGB tuple (r, g, b).
+    c2 : tuple
+        RGB tuple (r, g, b).
+
+    Returns
+    -------
+    int
+        Squared distance.
+    """
+    return (c1[0] - c2[0])**2 + (c1[1] - c2[1])**2 + (c1[2] - c2[2])**2
+
+
+def farthest_point_first(seed_colors, candidate_colors):
+    """Order candidate colors by maximum distinctiveness from already-selected set.
+
+    Uses the farthest-point-first (greedy) algorithm: at each step, select the
+    candidate that maximizes its minimum distance to all previously selected colors.
+
+    Parameters
+    ----------
+    seed_colors : list of tuple
+        Initial set of (r, g, b) tuples already "selected" (the original 17 colors).
+    candidate_colors : list of tuple
+        List of (name, r, g, b) tuples to order.
+
+    Returns
+    -------
+    list of tuple
+        Ordered list of (name, r, g, b) tuples.
+    """
+    selected_rgb = list(seed_colors)
+    remaining = list(candidate_colors)
+    ordered = []
+
+    while remaining:
+        best_idx = -1
+        best_min_dist = -1
+
+        for i, (name, r, g, b) in enumerate(remaining):
+            min_dist = min(color_distance_sq((r, g, b), s) for s in selected_rgb)
+            if min_dist > best_min_dist:
+                best_min_dist = min_dist
+                best_idx = i
+
+        chosen = remaining.pop(best_idx)
+        ordered.append(chosen)
+        selected_rgb.append((chosen[1], chosen[2], chosen[3]))
+
+    return ordered
 
 
 def get_ordered_palette():

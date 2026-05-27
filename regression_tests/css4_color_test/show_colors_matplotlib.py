@@ -24,8 +24,7 @@ import numpy as np
 
 # Add parent path for module import
 sys.path.insert(0, os.path.dirname(__file__))
-from generate_css4_module import ORIGINAL_COLORS, CSS4_COLORS
-from css4_color_reference import get_ordered_palette
+from css4_color_reference import ORIGINAL_COLORS, CSS4_COLORS, get_ordered_palette
 
 # Derive name lists from the canonical source
 _palette = get_ordered_palette()
