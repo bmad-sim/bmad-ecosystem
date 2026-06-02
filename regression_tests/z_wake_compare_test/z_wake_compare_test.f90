@@ -22,7 +22,7 @@ type (ele_struct), pointer :: ele_mode, ele_tab, ele_tab_ss
 type (bunch_struct), target :: bunch_mode, bunch_tab, bunch_tab_ss
 type (coord_struct), pointer :: p
 
-real(rp) :: zlist(5), p0c, q
+real(rp) :: zlist(5), q
 real(rp) :: dpz_mode(5), dpz_tab(5), dpz_tab_ss(5)
 real(rp) :: diff(5), diff_ss(5)
 integer :: i, n, nargs
@@ -41,7 +41,6 @@ ele_mode   => lat%ele(1)
 ele_tab    => lat%ele(2)
 ele_tab_ss => lat%ele(3)
 
-p0c = lat%ele(0)%value(p0c$)
 q = 1.0e-12_rp
 
 ! Bunch ------------------------------------------------------------------
