@@ -1,0 +1,50 @@
+! Test lattice comparing pseudomode wake vs z_long table wake.
+!
+! Pseudomode: W(z) = A*sin(2pi*phi + k*z)*exp(damp*z)  for z <= 0
+!
+! Table version is constructed to be the analytic W(z) sampled at uniform z.
+! Both wake elements use scale_with_length = F and unit amp_scale so that
+! the kick is purely A*W_norm*q/p0c.
+!
+! With k=0, damp=0, phi=0.25:  W(z) = A   for all z <= 0   (constant wake).
+
+no_digested
+parameter[lattice]  = z_wake_compare
+parameter[e_tot]    = 1e9
+parameter[particle] = electron
+parameter[geometry] = open
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+p_mode: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  longitudinal = {1e15, 0.0, 0.0, 0.25, none}
+}
+
+p_tab: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 0,
+    position_dependence = none,
+    w = {
+      -100e-6 1e15,
+       -90e-6 1e15,
+       -80e-6 1e15,
+       -70e-6 1e15,
+       -60e-6 1e15,
+       -50e-6 1e15,
+       -40e-6 1e15,
+       -30e-6 1e15,
+       -20e-6 1e15,
+       -10e-6 1e15,
+         0e-6 1e15,
+    }
+  }
+}
+
+lat: line = (p_mode, p_tab)
+use, lat
