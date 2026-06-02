@@ -1642,6 +1642,15 @@ if (allocated(srz%w)) then
     srz%fw = srz%w
   endif
 
+  ! Fundamental theorem of beam loading: a particle samples only half of the
+  ! wake value at zero displacement (W(0) = W(0+)/2 when treated as a one-sided
+  ! step). Halving the z=0 entry of the convolution kernel ensures that the
+  ! self-bin contribution from the FFT convolution matches the pseudomode
+  ! sr longitudinal wake. With nonzero smoothing_sigma the Gaussian average
+  ! already produces W(0)/2 at the discontinuity, so no further correction
+  ! is needed in that case.
+  if (srz%smoothing_sigma == 0) srz%fw(nn+1) = 0.5_rp * srz%fw(nn+1)
+
   call fft_1d(srz%fw, -1)
 
 else
