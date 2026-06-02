@@ -46,5 +46,33 @@ p_tab: pipe, L = 1, sr_wake = {
   }
 }
 
-lat: line = (p_mode, p_tab)
+! Same as p_tab but with a tiny smoothing_sigma so that
+! ns = nint(3*smoothing_sigma/dz) = nint(0.03) = 0. The smoothing
+! window collapses to a single bin (no actual smoothing) and the
+! ns == 0 self-bin correction must still trigger. This exercises
+! the edge case where smoothing_sigma /= 0 but rounds to ns = 0.
+p_tab_small_sig: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 1e-7,
+    position_dependence = none,
+    w = {
+      -100e-6 1e15,
+       -90e-6 1e15,
+       -80e-6 1e15,
+       -70e-6 1e15,
+       -60e-6 1e15,
+       -50e-6 1e15,
+       -40e-6 1e15,
+       -30e-6 1e15,
+       -20e-6 1e15,
+       -10e-6 1e15,
+         0e-6 1e15,
+    }
+  }
+}
+
+lat: line = (p_mode, p_tab, p_tab_small_sig)
 use, lat
