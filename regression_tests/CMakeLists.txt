@@ -61,6 +61,7 @@ set (EXE_SPECS
   cmake_files/cmake.tracking_method_test
   cmake_files/cmake.twiss_test
   cmake_files/cmake.wake_test
+  cmake_files/cmake.z_wake_compare_test
   cmake_files/cmake.wall3d_test
   cmake_files/cmake.write_bmad_test
   cmake_files/cmake.write_foreign_test

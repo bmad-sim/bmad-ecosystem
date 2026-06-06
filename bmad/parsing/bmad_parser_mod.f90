@@ -1623,7 +1623,7 @@ if (allocated(srz%w)) then
   endif
 
   if (srz%smoothing_sigma /= 0) then
-    ns = nint(3*srz%smoothing_sigma / srz%dz)
+    ns = max(1, nint(3*srz%smoothing_sigma / srz%dz))
     allocate (gauss(-ns:ns))
     do i = -ns, ns
       gauss(i) = exp(-0.5 * i * (srz%dz / srz%smoothing_sigma)**2)
@@ -1638,8 +1638,22 @@ if (allocated(srz%w)) then
       enddo
       srz%fw(i) = srz%fw(i) / esum
     enddo
+    
   else
+    ! Fundamental theorem of beam loading: for a causal wake (W(z) = 0 for z > 0,
+    ! W(z) finite for z <= 0), a source particle samples only half of its own
+    ! induced wake at z = 0. Treating the step at z = 0 symmetrically gives
+    ! W(0) = (W(0-) + W(0+))/2 = W(0-)/2,  since W(0+) = 0.
+    ! Halving the z=0 entry of the convolution kernel ensures that the self-bin
+    ! contribution from the FFT convolution matches the pseudomode sr
+    ! longitudinal wake. With a Gaussian smoothing window of half-width ns >= 1
+    ! the average across the step already produces W(0-)/2, so the correction
+    ! is only applied when no actual smoothing occurs (ns == 0). This includes
+    ! both smoothing_sigma == 0 and small nonzero smoothing_sigma for which
+    ! nint(3*smoothing_sigma/dz) rounds to zero.
+
     srz%fw = srz%w
+    srz%fw(nn+1) = 0.5_rp * srz%fw(nn+1)
   endif
 
   call fft_1d(srz%fw, -1)
