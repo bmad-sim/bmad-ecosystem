@@ -116,7 +116,7 @@ end type
 type tao_ele_shape_struct    ! for the element layout plot
   character(60) :: ele_id = ''       ! element "key::name" to match to.
   character(40) :: shape = ''        ! Shape to draw
-  character(16) :: color = 'black'   ! Color of shape
+  character(24) :: color = 'black'   ! Color of shape
   real(rp) :: size = 0               ! plot vertical height 
   character(16) :: label = 'name'    ! Can be: 'name', 's', 'none' 
   logical :: draw = .true.           ! Draw the shape?
@@ -243,7 +243,7 @@ type tao_floor_plan_struct
   logical :: draw_only_first_pass = .false.  ! Draw only first pass with multipass elements?
   logical :: draw_building_wall = .true.     ! Draw the building wall?
   real(rp) :: orbit_scale = 0                ! Scale factor for drawing orbits. 0 -> Do not draw.
-  character(16) :: orbit_color = 'red'
+  character(24) :: orbit_color = 'red'
   character(16) :: orbit_pattern = 'solid'
   character(16) :: orbit_lattice = 'model'   ! Or 'design' or 'base'
   integer :: orbit_width = 1

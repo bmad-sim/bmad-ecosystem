@@ -1426,7 +1426,7 @@ real(rp) :: s_pos, y_off, r_dum = 0, x1, x2, y1, y2, r0(2), r1(2)
 integer ix, iwidth
 
 character(*) label_name
-character(16) color, prefix
+character(24) color, prefix
 character(40) shape
 
 !
@@ -1617,7 +1617,7 @@ type (ele_struct) ele
 
 real(rp) y1_plus, y1_minus, y2_plus, y2_minus, x1, x2, y1, y2
 integer section_id, n_curve_pts
-character(16) color
+character(24) color
 
 ! Draw beam chamber wall. 
 
@@ -1796,7 +1796,7 @@ call qp_use_axis (y = 'Y')  ! reset
 contains
 
 function z_color() result (color)
-character(16) color
+character(24) color
 real(rp) :: z
 if (dz==0) then
   color = 'black'

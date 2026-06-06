@@ -45,6 +45,7 @@ end type
 type (pg_interface_struct), pointer, save, private :: pg_com
 type (pg_interface_struct), save, target, private :: pg_interface_save_com(0:20)
 integer, save, private :: i_save = 0
+integer, save, private :: pg_max_color_index = 1000  ! Max color index from pgqcol, initialized high
 logical, save, private :: pg_allow_flush = .true.
 
 contains
@@ -453,12 +454,9 @@ end subroutine qp_wait_to_flush_basic
 subroutine qp_set_color_basic (ix_color, set_background)
 
 implicit none
-real(rp) :: real_color
+real(rp) :: real_color, hue, chroma, x, m, r1, g1, b1, rr, gg, bb
 integer ix_color
-!integer, parameter :: inverse_color(0:15) = &
-!        [1, 0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 ]
-integer, parameter :: clist1(0:15) = &
-        [5, 10, 3, 9, 7, 8, 6, 13, 2, 11,  4, 12, 12, 15, 14, 1]
+integer ix_use, h_sector
 logical, optional :: set_background
 logical :: set_bg
 
@@ -469,22 +467,62 @@ if (present(set_background)) set_bg = set_background
 
 ! Error check
 
-if (ix_color < 0) then
+if (ix_color < 0 .and. ix_color /= qp_custom_color$) then
   print *, 'ERROR IN QP_SET_PGPLOT: IX_COLOR ARGUMENT OUT OF RANGE:', &
                                                                     ix_color
   if (global_com%exit_on_error) call err_exit
 endif  
 
-if (ix_color > 15) then 
-  real_color = (ix_color - 17)/ (1.0_rp*(huge(ix_color) - 17) )
-  ix_color=  floor( 12*real_color)
-  ix_color = clist1(ix_color)
+if (ix_color == qp_custom_color$) then
+  ! Arbitrary RGB color from hex or RGB() string
+  call pgscr(16, qp_custom_rgb(1)/255.0, qp_custom_rgb(2)/255.0, qp_custom_rgb(3)/255.0)
+  ix_use = 16
+
+elseif (ix_color >= qp_continuous_color_start$) then 
+  ! Continuous color: compute HLS->RGB matching PLPLOT's cmap1
+  ! PLPLOT uses: hue 240->0, saturation=0.8, lightness=0.6
+  real_color = (ix_color - qp_continuous_color_start$) / (1.0_rp*(huge(ix_color) - qp_continuous_color_start$))
+  hue = 240.0_rp * (1.0_rp - real_color)  ! 240 at t=0, 0 at t=1
+
+  ! HLS to RGB conversion (L=0.6, S=0.8)
+  chroma = 0.64_rp    ! (1 - |2*0.6 - 1|) * 0.8
+  m = 0.28_rp         ! 0.6 - chroma/2
+  x = chroma * (1.0_rp - abs(mod(hue / 60.0_rp, 2.0_rp) - 1.0_rp))
+
+  h_sector = int(hue / 60.0_rp)
+  select case (h_sector)
+  case (0)
+    r1 = chroma; g1 = x;      b1 = 0.0_rp
+  case (1)
+    r1 = x;      g1 = chroma; b1 = 0.0_rp
+  case (2)
+    r1 = 0.0_rp; g1 = chroma; b1 = x
+  case (3)
+    r1 = 0.0_rp; g1 = x;      b1 = chroma
+  case default
+    r1 = 0.0_rp; g1 = 0.0_rp; b1 = chroma
+  end select
+
+  rr = r1 + m
+  gg = g1 + m
+  bb = b1 + m
+
+  ! Define on scratch slot (16 = transparent, never used directly) and select it
+  call pgscr(16, real(rr), real(gg), real(bb))
+  ix_use = 16
+
+elseif (ix_color > pg_max_color_index .and. ix_color <= qp_max_color_index$) then
+  ! CSS4 color exceeds device limit: define exact color on scratch slot
+  call pgscr(16, qp_color_red(ix_color)/255.0, qp_color_green(ix_color)/255.0, qp_color_blue(ix_color)/255.0)
+  ix_use = 16
+else
+  ix_use = ix_color
 endif
 
 if (set_bg) then
-  call pgstbg(ix_color)
+  call pgstbg(ix_use)
 else
-  call pgsci (ix_color)
+  call pgsci (ix_use)
 endif
 
 end subroutine qp_set_color_basic
@@ -635,6 +673,7 @@ real x1i, x2i, y1i, y2i, h, xi, yi
 
 integer, optional :: i_chan
 integer pgopen, iw, ix
+integer ci1, ci2
 
 character(*) page_type, plot_file
 character(16) :: r_name = 'qp_open_page_basic'
@@ -672,6 +711,14 @@ if (iw <= 0) then
   print *, 'ERROR IN QP_OPEN_PAGE: CANNONT OPEN OUTPUT DEVICE!'
   stop
 endif
+
+! Set all discrete color representations (original 16 + CSS4)
+! Colors beyond device limit are handled on-the-fly via pgscr in qp_set_color_basic.
+call pgqcol(ci1, ci2)
+pg_max_color_index = ci2
+do ix = 0, min(ci2, qp_max_color_index$)
+  call pgscr (ix, qp_color_red(ix)/255.0, qp_color_green(ix)/255.0, qp_color_blue(ix)/255.0)
+enddo
 
 ! set page size. 
 ! pgplot assumes 72 pixels / inch for X-windows so there needs to be a correction

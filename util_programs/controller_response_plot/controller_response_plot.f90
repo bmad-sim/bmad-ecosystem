@@ -257,7 +257,7 @@ type (qp_line_struct), allocatable :: line(:)
 type (qp_symbol_struct), allocatable :: symbol(:)
 
 character(*) who
-character(16) :: color(6) = [character(16):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
+character(24) :: color(6) = [character(24):: 'blue', 'red', 'green', 'cyan', 'magenta', 'yellow']
 integer j, k, n
 
 !

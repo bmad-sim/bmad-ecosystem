@@ -2,6 +2,7 @@ module quick_plot_struct
 
 use utilities_mod
 use sim_utils_interface
+use qp_css4_colors_mod
 
 integer, parameter :: white$ = 0, black$ = 1, red$ = 2, green$ = 3
 integer, parameter :: blue$ = 4, cyan$ = 5, magenta$ = 6, yellow$ = 7
@@ -9,7 +10,7 @@ integer, parameter :: orange$ = 8, yellow_green$ = 9, light_green$ = 10
 integer, parameter :: navy_blue$ = 11, purple$ = 12, reddish_purple$ = 13
 integer, parameter :: dark_grey$ = 14, light_grey$ = 15, transparent$ = 16
 
-character(16), parameter :: qp_color_name(-1:16) =   [ &
+character(24), parameter :: qp_color_name(-1:16) =   [ character(24) :: &
   'Not_Set       ', 'White         ', &
   'Black         ', 'Red           ', 'Green         ', 'Blue          ', &
   'Cyan          ', 'Magenta       ', 'Yellow        ', 'Orange        ', &
@@ -65,7 +66,7 @@ type qp_axis_struct
   real(rp) :: label_offset = 0.05        ! Offset from numbers in inches.
   real(rp) :: major_tick_len = 0.10      ! In inches.
   real(rp) :: minor_tick_len = 0.06      ! In inches.
-  character(16) :: label_color = 'black' ! Color of the label.
+  character(24) :: label_color = 'black' ! Color of the label.
   integer :: major_div = 5               ! Actual numbrer of major divisions
   integer :: major_div_nominal = 5       ! Nominal value.
   integer :: minor_div = 0               ! 0 = auto choose.
@@ -108,20 +109,20 @@ end type
 
 type qp_text_struct
   real(rp) :: height         = 12   ! in points
-  character(16) :: color     = 'black'
+  character(24) :: color     = 'black'
   logical :: uniform_spacing = .false.
 end type
 
 type qp_line_struct
   integer :: width         = 3
-  character(16) :: color   = 'black'
+  character(24) :: color   = 'black'
   character(16) :: pattern = 'solid'
 end type
 
 type qp_symbol_struct
   character(16) :: type         = 'circle_dot'
   real(rp) :: height            = 10d0  ! in points (same as text height)
-  character(16) :: color        = 'black'
+  character(24) :: color        = 'black'
   character(16) :: fill_pattern = 'solid_fill'
   integer :: line_width         = 3
 end type
@@ -131,7 +132,7 @@ type qp_arrow_struct
   real(rp) :: head_barb  = 0.4     ! Fraction of triangular arrow head that is cut away from the back.
   real(rp) :: head_size  = 1.0
   character(16) :: head_type   = 'filled_arrow_head'    ! Or 'outline_arrow_head'
-  character(16) :: color       = 'black'
+  character(24) :: color       = 'black'
 end type
 
 type qp_legend_struct
@@ -167,7 +168,7 @@ type qp_state_struct
   real(rp) :: text_scale = 1
   real(rp) :: text_spacing_factor = 0.6
   real(rp) :: dflt_axis_slop_factor = 1d-3
-  character(16) :: text_background = 'not_set'
+  character(24) :: text_background = 'not_set'
   integer :: max_axis_zero_digits = 3
   integer :: dflt_units = dflt_draw$
   integer :: max_digits = 8
@@ -219,16 +220,47 @@ if (present(error)) error = .true.
 
 select case (enum_type)
 case ('color')
+  ! Hex color: #RRGGBB or #RGB
+  if (enum_str(1:1) == '#') then
+    ix_enum = qp_parse_hex_color(enum_str)
+    if (ix_enum == qp_custom_color$) then
+      if (present(error)) error = .false.
+    else
+      ix_enum = integer_option(black$, ix_dflt)
+    endif
+    return
+  endif
+
+  ! RGB(r,g,b) format (case-insensitive prefix)
+  if (len_trim(enum_str) >= 8 .and. downcase(enum_str(1:4)) == 'rgb(') then
+    ix_enum = qp_parse_rgb_color(enum_str)
+    if (ix_enum == qp_custom_color$) then
+      if (present(error)) error = .false.
+    else
+      ix_enum = integer_option(black$, ix_dflt)
+    endif
+    return
+  endif
+
   if (enum_str(1:1) == 'Z') then    ! Continuous color mapping.
     if (.not. is_real(enum_str(2:), real_num = cnum)) then
       ix_enum = integer_option(-1 + lbound(qp_color_name, 1), ix_dflt)
     else
-      ix_enum  = nint(17 + cnum * (huge(ix) - 17))
+      ix_enum  = nint(qp_continuous_color_start$ + cnum * (huge(ix) - qp_continuous_color_start$))
       if (present(error)) error = .false.
     endif
     return
   else
     call match_word (enum_str, qp_color_name, ix, .false., .false.)
+    if (ix == 0) then
+      ! Try CSS4 color names
+      call match_word (enum_str, qp_css4_color_name, ix, .false., .false.)
+      if (ix > 0) then
+        ix_enum = ix + 16   ! qp_css4_color_name starts at index 17, match_word returns 1-based
+        if (present(error)) error = .false.
+        return
+      endif
+    endif
     ixd = integer_option(black$, ix_dflt)
     lb = lbound(qp_color_name, 1)
   endif
@@ -289,7 +321,7 @@ implicit none
 integer ix_enum, ix
 character(*) enum_type
 character(*), optional :: str_dflt
-character(16) enum_str
+character(24) enum_str
 logical, optional :: error
 
 !
@@ -298,9 +330,16 @@ if (present(error)) error = .true.
 
 select case (enum_type)
 case ('color')
-  if (ix_enum > 16) then
+  if (ix_enum == qp_custom_color$) then
+    write (enum_str, '(a,3(z2.2))') '#', qp_custom_rgb(1), qp_custom_rgb(2), qp_custom_rgb(3)
+    if (present(error)) error = .false.
+  elseif (ix_enum >= qp_continuous_color_start$) then
     enum_str(1:1) = 'Z'
-    write (enum_str(2:), '(f15.13)') (ix_enum - 17) / (1.0_rp * (huge(ix) - 17))
+    write (enum_str(2:), '(f15.13)') (ix_enum - qp_continuous_color_start$) / &
+                                     (1.0_rp * (huge(ix) - qp_continuous_color_start$))
+    if (present(error)) error = .false.
+  elseif (ix_enum >= 17 .and. ix_enum <= qp_max_color_index$) then
+    enum_str = downcase(qp_css4_color_name(ix_enum))
     if (present(error)) error = .false.
   elseif (ix_enum < lbound(qp_color_name, 1) .or. ix_enum > ubound(qp_color_name, 1)) then
     enum_str = string_option('black', str_dflt)
@@ -346,5 +385,160 @@ case default
 end select
 
 end function qp_enum_to_string
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_parse_hex_color (hex_str) result (ix_color)
+!
+! Parse a hex color string (#RRGGBB or #RGB) and store in qp_custom_rgb.
+!
+! Input:
+!   hex_str   -- character(*): Hex color string.
+!
+! Output:
+!   ix_color  -- integer: qp_custom_color$ if valid, -1 if invalid.
+!-
+
+function qp_parse_hex_color (hex_str) result (ix_color)
+
+implicit none
+
+character(*), intent(in) :: hex_str
+integer :: ix_color, n, r, g, b, ios
+
+n = len_trim(hex_str)
+ix_color = -1
+
+if (n == 7) then
+  ! #RRGGBB
+  read(hex_str(2:3), '(Z2)', iostat=ios) r
+  if (ios /= 0) return
+  read(hex_str(4:5), '(Z2)', iostat=ios) g
+  if (ios /= 0) return
+  read(hex_str(6:7), '(Z2)', iostat=ios) b
+  if (ios /= 0) return
+  qp_custom_rgb = [r, g, b]
+  ix_color = qp_custom_color$
+
+elseif (n == 4) then
+  ! #RGB (expand each digit: F -> FF)
+  read(hex_str(2:2), '(Z1)', iostat=ios) r
+  if (ios /= 0) return
+  read(hex_str(3:3), '(Z1)', iostat=ios) g
+  if (ios /= 0) return
+  read(hex_str(4:4), '(Z1)', iostat=ios) b
+  if (ios /= 0) return
+  qp_custom_rgb = [r*16 + r, g*16 + g, b*16 + b]
+  ix_color = qp_custom_color$
+endif
+
+end function qp_parse_hex_color
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_parse_rgb_color (rgb_str) result (ix_color)
+!
+! Parse an RGB(r,g,b) color string and store in qp_custom_rgb.
+! Values are integers 0-255.
+!
+! Input:
+!   rgb_str   -- character(*): RGB color string, e.g. "RGB(255,128,0)".
+!
+! Output:
+!   ix_color  -- integer: qp_custom_color$ if valid, -1 if invalid.
+!-
+
+function qp_parse_rgb_color (rgb_str) result (ix_color)
+
+implicit none
+
+character(*), intent(in) :: rgb_str
+integer :: ix_color, r, g, b, ios, n, i, n_commas
+character(40) :: inner
+
+ix_color = -1
+n = len_trim(rgb_str)
+
+! Strip "RGB(" prefix and ")" suffix
+if (n < 8) return
+if (rgb_str(n:n) /= ')') return
+inner = rgb_str(5:n-1)
+
+read(inner, *, iostat=ios) r, g, b
+if (ios /= 0) return
+if (r < 0 .or. r > 255 .or. g < 0 .or. g > 255 .or. b < 0 .or. b > 255) return
+
+! Reject trailing content (e.g. "RGB(1,2,3,4)") by counting commas
+n_commas = 0
+do i = 1, len_trim(inner)
+  if (inner(i:i) == ',') n_commas = n_commas + 1
+enddo
+if (n_commas /= 2) return
+
+qp_custom_rgb = [r, g, b]
+ix_color = qp_custom_color$
+
+end function qp_parse_rgb_color
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!+
+! Function qp_normalize_color_string (color_str) result (norm_str)
+!
+! Normalize a color string to canonical form for storage.
+! Named colors -> lowercase. Hex -> uppercase digits. RGB -> strip spaces.
+!
+! Input:
+!   color_str  -- character(*): Raw color string.
+!
+! Output:
+!   norm_str   -- character(24): Normalized color string.
+!-
+
+function qp_normalize_color_string (color_str) result (norm_str)
+
+implicit none
+
+character(*), intent(in) :: color_str
+character(24) :: norm_str
+integer :: n, r, g, b, ios
+character(40) :: inner
+
+n = len_trim(color_str)
+norm_str = ''
+
+if (n == 0) return
+
+! Hex color: uppercase the hex digits
+if (color_str(1:1) == '#') then
+  norm_str = upcase(color_str(1:n))
+  return
+endif
+
+! RGB format: normalize to RGB(r,g,b) with no spaces
+if (n >= 8 .and. downcase(color_str(1:4)) == 'rgb(') then
+  if (color_str(n:n) /= ')') then
+    norm_str = color_str(1:n)
+    return
+  endif
+  inner = color_str(5:n-1)
+  read(inner, *, iostat=ios) r, g, b
+  if (ios /= 0) then
+    norm_str = color_str(1:n)
+    return
+  endif
+  write(norm_str, '(a,i0,a,i0,a,i0,a)') 'RGB(', r, ',', g, ',', b, ')'
+  return
+endif
+
+! Named color: downcase
+norm_str = downcase(color_str(1:n))
+
+end function qp_normalize_color_string
 
 end module

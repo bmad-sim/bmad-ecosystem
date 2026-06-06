@@ -397,14 +397,37 @@ The color styles in \quickplot are:
    13 -- Reddish_Purple\$
    14 -- Dark_Grey\$
    15 -- Light_Grey\$
+   16 -- Transparent\$ (not drawn)
 \end{example}
-   
-Integers from [17, (largest integer)] represent continuous colors. The function \vn{pq_continuous_color} maps [0.0, 1.0] to these integers. See Fig.~\ref{f:plot-continuous-color}.
+
+In addition, all 138 CSS4 (CSS Color Level 4) named colors are available. These occupy color indices
+17 through 154 and can be specified by name (e.g., \vn{"salmon"}, \vn{"darkslategray"},
+\vn{"mediumspringgreen"}). The CSS4 specification defines 148 named colors; 10 of these share a name
+with an original \quickplot color and are not duplicated in the CSS4 range since they are already
+accessible at their original indices: \vn{black}, \vn{blue}, \vn{cyan}, \vn{green}, \vn{magenta},
+\vn{orange}, \vn{purple}, \vn{red}, \vn{white}, and \vn{yellow}. Note that CSS4 aliases with
+different names but the same RGB value (e.g., \vn{aqua} = \vn{cyan}, \vn{fuchsia} = \vn{magenta})
+are included. The CSS4 colors are ordered by visual distinctiveness so that devices with limited
+color index support still get the most distinguishable colors at lower indices.
+
+Note: The RGB values of \vn{Green}, \vn{Orange}, and \vn{Purple} now match the CSS4 specification.
+Users of the previous values can use these CSS4 equivalents:
+\begin{example}
+  Old Green  (0, 255, 0)   -> "lime"
+  Old Orange (255, 127, 0) -> (no exact match; nearest is "darkorange")
+  Old Purple (127, 0, 255) -> (no exact match; nearest is "blueviolet")
+\end{example}
+
+Integers from 155 onward represent continuous colors. The function \vn{qp_continuous_color} maps a
+real value in [0.0, 1.0] to these integers. The colormap uses HLS interpolation with hue going from
+240\Deg (blue) to 0\Deg (red), saturation = 0.8, and lightness = 0.6. See
+Fig.~\ref{f:plot-continuous-color}. The inverse function \vn{qp_continuous_color_inverse} maps from
+integer back to a real in [0, 1].
 
 \begin{figure}
 \centering
 \includegraphics[width=0.8\textwidth]{plot-continuous-color.pdf}
-\caption{Continuous colors using the function \vn{pg_continuous_color} in PGPlot and PLPlot. Typical usage: \vn{call qp_routine(..., color = pg_continuous_color(0.25_rp), ...)}}
+\caption{Continuous colormap used by \vn{qp_continuous_color}. Typical usage: \vn{call qp_routine(..., color = qp_continuous_color(0.25_rp), ...)}}
 \label{f:plot-continuous-color}
 \end{figure}
 
@@ -518,7 +541,7 @@ defines a line is a \vn{qp_line_struct}
 \begin{example}
   type qp_line_struct
     integer width         ! Line width.   Default = 1
-    character(16) color   ! Line color.   Default = "black"
+    character(24) color   ! Line color.   Default = "black"
     character(16) pattern ! line pattern. Default = "solid"
   end type
 \end{example}
@@ -529,7 +552,7 @@ The \vn{qp_symbol_struct} defines how symbols are drawn
   type qp_symbol_struct
     character(16)  type        ! Default = "circle_dot"
     real(rp) height            ! Default = 6.0 (points)
-    character(16)  color       ! Default = "black"
+    character(24)  color       ! Default = "black"
     character(16)  fill        ! Default = "solid_fill"
     integer  line_width        ! Default = 1
   end type
@@ -546,7 +569,7 @@ The \vn{qp_axis_struct} defines how axes are drawn
                               !  Default = 0.05
     real(rp) label_offset     ! Offset in inches of the label from the numbering.
                               !  Default = 0.05
-    character(16) label_color ! Default = "black"
+    character(24) label_color ! Default = "black"
     real(rp) major_tick_len   ! Length of the major ticks in inches. Def = 0.10
     real(rp) minor_tick_len   ! Length of the minor ticks in inches. Def = 0.06
     integer major_div         ! Number of major divisions. Default = 5

@@ -675,7 +675,7 @@ integer ix_color
 
 ! Error check
 
-if (ix_color < 0) then
+if (ix_color < 0 .and. ix_color /= qp_custom_color$) then
   print *, 'ERROR IN QP_SET_COLOR_BASIC: IX_COLOR ARGUMENT OUT OF RANGE:', &
                                                                     ix_color
   if (global_com%exit_on_error) call err_exit
@@ -683,9 +683,13 @@ endif
 
 ! Set plplot color
 
-if (ix_color >16) then
+if (ix_color == qp_custom_color$) then
+  ! Arbitrary RGB color from hex or RGB() string: define on scratch slot 16
+  call plscol0(16, qp_custom_rgb(1), qp_custom_rgb(2), qp_custom_rgb(3))
+  call plcol0(16)
+elseif (ix_color >= qp_continuous_color_start$) then
   ! Set continuous color
-   call plcol1 ( (ix_color - 17)/ (1.0_rp*(huge(ix_color) - 17)) )
+   call plcol1 ( (ix_color - qp_continuous_color_start$)/ (1.0_rp*(huge(ix_color) - qp_continuous_color_start$)) )
 else
   ! set discrete color
   call plcol0 (ix_color)
@@ -835,10 +839,6 @@ character(*) page_type, plot_file
 character(40) geom
 character(16) :: r_name = 'qp_open_page_basic'
 
-integer, parameter :: red(0:15) = [255, 0, 255, 0, 0, 0, 255, 255, 255, 127, 0, 0, 127, 255, 85, 170]
-integer, parameter :: green(0:15) = [255, 0, 0, 255, 0, 255, 0, 255, 127, 255, 255, 127, 0, 0, 85, 170]
-integer, parameter :: blue(0:15) = [255, 0, 0, 0, 255, 255, 255, 0, 0, 0, 127, 255, 255, 127, 85, 170]
-
 ! set plot type
 
 if (i_save == 0) then
@@ -879,8 +879,10 @@ if (page_type /= 'X') then
    call plsfnam (trim(plot_file))
 endif
 
-! Set color map
-call plscmap0(red, green, blue)
+! Set color map (all discrete colors: original 16 + CSS4)
+call plscmap0n(qp_max_color_index$ + 1)
+call plscmap0(qp_color_red(0:qp_max_color_index$), qp_color_green(0:qp_max_color_index$), &
+              qp_color_blue(0:qp_max_color_index$))
 
 ! Set continuous color map (cmap1)
 call plscmap1n(1048576)

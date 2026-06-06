@@ -42,6 +42,7 @@ space_charge_test
 spin_general_test
 superimpose_test
 synrad3d_test
+tao_color_test
 tao_test
 taylor_test
 time_runge_kutta_test
