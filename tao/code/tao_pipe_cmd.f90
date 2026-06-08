@@ -9531,7 +9531,7 @@ end subroutine write_this_floor
 recursive subroutine write_this_ele_floor(ele, loc, can_vary, suffix)
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0
+type (ele_struct), pointer :: ele0, slave_ele
 
 integer n, ie, loc
 logical can_vary
@@ -9545,6 +9545,31 @@ if (ele%lord_status /= super_lord$ .and. ele%lord_status /= girder_lord$ .and. e
     ele0 => pointer_to_slave(ele, ie)
     call write_this_ele_floor(ele0, loc, can_vary, '-Slave' // int_str(ie))
   enddo
+  return
+endif
+
+! A girder_lord has no place on the s-axis, so beginning/end refer to the
+! upstream end of the first slave and the downstream end of the last slave.
+
+if (ele%lord_status == girder_lord$) then
+  select case (loc)
+  case (1)
+    slave_ele => pointer_to_slave(ele, 1)
+    if (slave_ele%ix_ele == 0) then
+      ele0 => slave_ele
+    else
+      ele0 => pointer_to_next_ele(slave_ele, -1)
+    endif
+    call write_this_floor(ele0%floor, 'Reference' // suffix, can_vary)
+    call write_this_floor(ele_geometry_with_misalignments (slave_ele, 0.0_rp), 'Actual' // suffix, .false.)
+  case (2)
+    call write_this_floor(ele%floor, 'Reference' // suffix, can_vary)
+    call write_this_floor(ele_geometry_with_misalignments (ele), 'Actual' // suffix, .false.)
+  case (3)
+    slave_ele => pointer_to_slave(ele, ele%n_slave)
+    call write_this_floor(slave_ele%floor, 'Reference' // suffix, can_vary)
+    call write_this_floor(ele_geometry_with_misalignments (slave_ele), 'Actual' // suffix, .false.)
+  end select
   return
 endif
 
