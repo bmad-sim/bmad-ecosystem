@@ -1,0 +1,18 @@
+! Regression test lattice for "pipe ele:floor" on a girder_lord.
+!
+! Original error: `pipe ele:floor g1 beginning` crashed Tao with SIGSEGV
+! because tao_pipe_cmd dereferenced a null pointer when the element was a
+! girder_lord (pointer_to_next_ele returns null for non-super_lord lords).
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 100e6
+parameter[geometry] = open
+
+p1: pipe, L = 1
+p2: pipe, L = 2
+g1: girder = {p1, p2}
+
+lat: line = (p1, p2)
+
+use, lat
