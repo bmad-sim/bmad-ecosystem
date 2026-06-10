@@ -1,0 +1,23 @@
+! Regression test lattice for "pipe ele:floor" on a girder_lord whose slaves
+! are multipass_lords. The original crash for this configuration was a
+! follow-on to issue #2049: pointer_to_slave(girder, 1) returns the
+! multipass_lord (which lives outside the tracking part of the lattice),
+! and pointer_to_next_ele on a lord returns null. The fix uses
+! find_element_ends to walk through nested lord chains.
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 100e6
+parameter[geometry] = open
+
+p1: pipe, L = 1
+p2: pipe, L = 2
+
+! Multipass line: p1 and p2 are turned into multipass_lord elements.
+mp_line: line[multipass] = (p1, p2)
+
+g1: girder = {p1, p2}
+
+lat: line = (mp_line, mp_line)
+
+use, lat

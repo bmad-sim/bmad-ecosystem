@@ -9531,7 +9531,7 @@ end subroutine write_this_floor
 recursive subroutine write_this_ele_floor(ele, loc, can_vary, suffix)
 
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: ele0, slave_ele
+type (ele_struct), pointer :: ele0, ele1, ele2
 
 integer n, ie, loc
 logical can_vary
@@ -9549,26 +9549,29 @@ if (ele%lord_status /= super_lord$ .and. ele%lord_status /= girder_lord$ .and. e
 endif
 
 ! A girder_lord has no place on the s-axis, so beginning/end refer to the
-! upstream end of the first slave and the downstream end of the last slave.
+! upstream end of the first tracking slave and the downstream end of the last
+! tracking slave. find_element_ends walks through nested lord chains
+! (multipass_lord, super_lord, nested girders) to reach a tracking element.
 
 if (ele%lord_status == girder_lord$) then
+  call find_element_ends(ele, ele1, ele2)
+  if (.not. associated(ele1) .or. .not. associated(ele2)) then
+    call invalid ('UNABLE TO FIND ENDS OF GIRDER: ' // ele%name)
+    return
+  endif
   select case (loc)
-  case (1)
-    slave_ele => pointer_to_slave(ele, 1)
-    if (slave_ele%ix_ele == 0) then
-      ele0 => slave_ele
-    else
-      ele0 => pointer_to_next_ele(slave_ele, -1)
-    endif
-    call write_this_floor(ele0%floor, 'Reference' // suffix, can_vary)
-    call write_this_floor(ele_geometry_with_misalignments (slave_ele, 0.0_rp), 'Actual' // suffix, .false.)
-  case (2)
+  case (1)  ! beginning
+    ! ele1 is the element immediately upstream of the first tracking slave,
+    ! so ele1%floor is the upstream end of the first tracking slave.
+    call write_this_floor(ele1%floor, 'Reference' // suffix, can_vary)
+    ele0 => pointer_to_next_ele(ele1, +1)
+    call write_this_floor(ele_geometry_with_misalignments (ele0, 0.0_rp), 'Actual' // suffix, .false.)
+  case (2)  ! center
     call write_this_floor(ele%floor, 'Reference' // suffix, can_vary)
     call write_this_floor(ele_geometry_with_misalignments (ele), 'Actual' // suffix, .false.)
-  case (3)
-    slave_ele => pointer_to_slave(ele, ele%n_slave)
-    call write_this_floor(slave_ele%floor, 'Reference' // suffix, can_vary)
-    call write_this_floor(ele_geometry_with_misalignments (slave_ele), 'Actual' // suffix, .false.)
+  case (3)  ! end
+    call write_this_floor(ele2%floor, 'Reference' // suffix, can_vary)
+    call write_this_floor(ele_geometry_with_misalignments (ele2), 'Actual' // suffix, .false.)
   end select
   return
 endif
@@ -9582,14 +9585,14 @@ else
 endif
 
 select case (loc)
-case (1)
+case (1)  ! beginning
   call write_this_floor(ele0%floor, 'Reference' // suffix, can_vary)
   call write_this_floor(ele_geometry_with_misalignments (ele, 0.0_rp), 'Actual' // suffix, .false.)
-case (2)
+case (2)  ! center
   call ele_geometry(ele0%floor, ele, floor, 0.5_rp)
   call write_this_floor(floor, 'Reference' // suffix, can_vary)
   call write_this_floor(ele_geometry_with_misalignments (ele, 0.5_rp), 'Actual' // suffix, .false.)
-case (3)
+case (3)  ! end
   call write_this_floor(ele%floor, 'Reference' // suffix, can_vary)
   call write_this_floor(ele_geometry_with_misalignments (ele), 'Actual' // suffix, .false.)
 end select

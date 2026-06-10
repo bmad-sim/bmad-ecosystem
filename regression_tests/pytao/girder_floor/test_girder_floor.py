@@ -8,12 +8,20 @@ from pytao import SubprocessTao
 
 
 LAT_PATH = Path(__file__).parent / "lat.bmad"
+LAT_MULTIPASS_PATH = Path(__file__).parent / "lat_multipass.bmad"
 
 
 @pytest.fixture(scope="module")
 def tao():
     assert LAT_PATH.is_file(), f"Lattice file not found: {LAT_PATH}"
     with SubprocessTao(lattice_file=str(LAT_PATH), noplot=True) as t:
+        yield t
+
+
+@pytest.fixture(scope="module")
+def tao_multipass():
+    assert LAT_MULTIPASS_PATH.is_file(), f"Lattice file not found: {LAT_MULTIPASS_PATH}"
+    with SubprocessTao(lattice_file=str(LAT_MULTIPASS_PATH), noplot=True) as t:
         yield t
 
 
@@ -57,3 +65,18 @@ def test_girder_floor_center(tao):
     # Center of a girder is the midpoint of the slave span: z = (0 + 3) / 2 = 1.5.
     np.testing.assert_allclose(result["Reference"], [0, 0, 1.5, 0, 0, 0], atol=1e-12)
     np.testing.assert_allclose(result["Actual"], [0, 0, 1.5, 0, 0, 0], atol=1e-12)
+
+
+def test_girder_floor_multipass_does_not_crash(tao_multipass):
+    """Regression test: `pipe ele:floor <girder> beginning` used to segfault
+    when the girder's slaves are multipass_lord elements.
+
+    pointer_to_slave(girder, 1) returns the multipass_lord (which is not in
+    the tracking part of the lattice), so pointer_to_next_ele returned null.
+    The fix descends through nested lord chains via find_element_ends.
+    """
+    begin = tao_multipass.ele_floor("g1", where="beginning")
+    end = tao_multipass.ele_floor("g1", where="end")
+    # First pass of the multipass line is at z in [0, 3].
+    np.testing.assert_allclose(begin["Reference"], [0, 0, 0, 0, 0, 0], atol=1e-12)
+    np.testing.assert_allclose(end["Reference"], [0, 0, 3, 0, 0, 0], atol=1e-12)
