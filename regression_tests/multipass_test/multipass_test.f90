@@ -6,7 +6,7 @@ use bmad
 implicit none
 
 type (lat_struct), target :: lat, lat2
-type (ele_struct), pointer :: ele, ele2, lord
+type (ele_struct), pointer :: ele, ele0, ele2, lord, ele3, ele4
 type (ele_pointer_struct), allocatable :: eles(:)
 type (rf_stair_step_struct), pointer :: step
 
@@ -15,6 +15,26 @@ integer ii, ie, is, n_loc
 !
 
 open (1, file = 'output.now')
+
+! Girder and multipass
+
+call bmad_parser ('multipass_with_girder.bmad', lat)
+do ie = 1, lat%n_ele_track
+  ele => lat%ele(ie)
+  ele0 => pointer_to_next_ele(ele, -1)
+  ele2 => pointer_to_next_ele(ele, 1)
+  write (1, '(3a)') quote(ele%name), ' STR ', quote(trim(ele0%name) // ' + ' // trim(ele2%name))
+enddo
+
+do ie = lat%n_ele_track+1, lat%n_ele_max
+  ele => lat%ele(ie)
+  ele0 => pointer_to_next_ele(ele, -1)
+  ele2 => pointer_to_next_ele(ele, 1)
+  ele3 => pointer_to_next_ele(ele, -1, ix_multipass = 2)
+  ele4 => pointer_to_next_ele(ele, 1, ix_multipass = 2)
+  write (1, '(3a)') quote(ele%name), ' STR ', quote(trim(ele0%name) // ' + ' // trim(ele2%name) // &
+                                                                       ' + ' // trim(ele3%name) // ' + ' // trim(ele4%name))
+enddo
 
 ! Space_charge_method test
 
@@ -33,7 +53,6 @@ enddo
 call lat_ele_locator('CAVITY1', lat, eles, n_loc)
 lord => eles(1)%ele
 
-
 do is = 0, 2
   if (is == 0) then
     ele => lord
@@ -51,8 +70,6 @@ enddo
 call lat_ele_locator('END', lat, eles, n_loc)
 ele => eles(1)%ele
 write (1, '(a, 2es22.14)') '"END-energy" REL 1E-8', ele%value(p0c$), ele%value(E_tot$)
-
-
 
 ! Forking with a branch element
 
@@ -83,7 +100,7 @@ write (1, '(3a)') '"MS-11"  STR  "', trim(lat%ele(11)%name), '"'
 write (1, '(3a)') '"MS-12"  STR  "', trim(lat%ele(12)%name), '"'
 write (1, '(3a)') '"MS-13"  STR  "', trim(lat%ele(13)%name), '"'
 
-! fiducial and flexible patch
+! Fiducial and flexible patch
 
 call bmad_parser ('patch.bmad', lat)
 call write_bmad_lattice_file ('lat_out2.bmad', lat)

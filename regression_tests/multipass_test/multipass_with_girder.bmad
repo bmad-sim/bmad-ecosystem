@@ -1,0 +1,19 @@
+no_digested
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+beginning[e_tot] = 100e6
+parameter[geometry] = open
+
+f = 0
+p1: sbend, L = 1, angle = pi/2 * f, ref_tilt = pi/2
+p2: sbend, L = 2, angle = pi/2 * f
+g1: girder = {p1, p2}, x_offset = 0.001
+
+lat: line[multipass] = (p1, p2)
+lat2: line = (lat, lat)
+use, lat2
+
+m1: marker, superimpose, ref = p1
+
+

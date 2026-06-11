@@ -67,11 +67,11 @@ for label, color_str, expected in test_cases:
 
     if expected is None:
         # Expect rejection (error message)
-        results.append(f'"{label}" STR {has_error}')
+        results.append(f'"{label}" STR "{has_error}"')
     elif has_error:
-        results.append(f'"{label}" STR ERROR')
+        results.append(f'"{label}" STR "ERROR"')
     else:
-        results.append(f'"{label}" STR {actual}')
+        results.append(f'"{label}" STR "{actual}"')
 
 # Test that an invalid color produces an error (doesn't crash)
 cmd = f"set curve {curve} line%color = not_a_color;quit"
@@ -79,7 +79,7 @@ exe = f'{bin_dir}tao -noplot -lat {lat_file} -command "{cmd}"'
 proc = subprocess.run(exe, shell=True, capture_output=True, text=True)
 # Should get an error message but not crash (exit 0)
 has_error_msg = "ERROR" in proc.stdout
-results.append(f'"invalid_color_rejected" STR {has_error_msg}')
+results.append(f'"invalid_color_rejected" STR "{has_error_msg}"')
 
 # Test label_color via python plot_graph command
 label_color_tests = [
@@ -109,9 +109,9 @@ for label, color_str, expected in label_color_tests:
 
     has_error = "[ERROR" in proc.stdout or proc.returncode != 0
     if has_error:
-        results.append(f'"{label}" STR ERROR')
+        results.append(f'"{label}" STR "ERROR"')
     else:
-        results.append(f'"{label}" STR {actual}')
+        results.append(f'"{label}" STR "{actual}"')
 
 # Write output.now
 with open("output.now", "w") as f:
