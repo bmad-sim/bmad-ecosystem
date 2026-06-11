@@ -2189,12 +2189,12 @@ function pointer_to_multipass_lord (ele, ix_pass, super_lord) result (multi_lord
   type (ele_struct), pointer, optional :: super_lord
 end function
 
-function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
+function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork, ix_multipass) result (next_ele)
   import
   implicit none
   type (ele_struct), target :: this_ele
   type (ele_struct), pointer :: next_ele
-  integer, optional :: offset
+  integer, optional :: offset, ix_multipass
   logical, optional :: skip_beginning, follow_fork
 end function
 

@@ -1,12 +1,12 @@
 !+
-! Function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
+! Function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork, ix_multipass) result (next_ele)
 !
 ! Function to return a pointer to the next (if offset = 1) tracking element relative to this_ele.
 ! 
-! If the this_ele is a super_lord element, the appropriate element in the tracking 
+! If the this_ele is a super_lord or girder_lord, the appropriate element in the tracking 
 ! part of the lattice is returned.
 !
-! If this_ele is a lord element but not a super_lord then this is an error since
+! If this_ele is a lord element but not a super_lord nor a girder_lord then this is an error since
 ! it is not clear what to do in this case.
 !
 ! This routine will always wrap around between branch end and branch beginning
@@ -26,12 +26,15 @@
 !                       when wrapping around. Default is False.
 !   follow_fork    -- logical, optional: If True then fork at any fork element.
 !                       Default is False.
-!
+!   ix_multipass   -- integer, optional: Default = 1. Used to select the multipass branch if
+!                       this_ele is a multipass_lord.
+!                       
+! Output:
 !   next_ele -- ele_struct, pointer: Element after this_ele (if offset = 1).
 !                Nullified if there is an error. EG bad this_ele.
 !-
 
-function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork) result (next_ele)
+function pointer_to_next_ele (this_ele, offset, skip_beginning, follow_fork, ix_multipass) result (next_ele)
 
 use bmad_routine_interface, dummy => pointer_to_next_ele
 
@@ -42,7 +45,7 @@ type (ele_struct), pointer :: next_ele
 type (ele_struct), pointer :: an_ele
 type (branch_struct), pointer :: branch
 
-integer, optional :: offset
+integer, optional :: offset, ix_multipass
 integer i, ix_ele, n_off
 logical, optional :: skip_beginning, follow_fork
 
@@ -65,16 +68,26 @@ endif
 ! Initially point to the first or last slave element so that this routine
 ! will return a pointer to an element that is not a slave of this_ele.
 
-if (this_ele%ix_ele > this_ele%branch%n_ele_track) then  ! Is a lord
-  if (this_ele%lord_status /= super_lord$) return    ! Error
-  if (n_off > 0) then
-    an_ele => pointer_to_slave(this_ele, this_ele%n_slave)
-  else
-    an_ele => pointer_to_slave(this_ele, 1)
-  endif
-else
-  an_ele => this_ele
-endif
+an_ele => this_ele
+
+do
+  if (an_ele%ix_ele <= an_ele%branch%n_ele_track) exit  ! Is not a lord
+
+  select case (an_ele%lord_status)
+  case (multipass_lord$)
+    an_ele => pointer_to_slave(an_ele, integer_option(1, ix_multipass))
+
+  case (super_lord$, girder_lord$)
+    if (n_off > 0) then
+      an_ele => pointer_to_slave(an_ele, an_ele%n_slave)
+    else
+      an_ele => pointer_to_slave(an_ele, 1)
+    endif
+
+  case default
+    return    ! Error
+  end select
+enddo
 
 ! Apply offset.
 ! If follow_fork = True then must check all elements in between for a possible fork element.

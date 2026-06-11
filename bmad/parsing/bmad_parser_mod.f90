@@ -1622,11 +1622,13 @@ if (allocated(srz%w)) then
     srz%smoothing_sigma = c_light * srz%smoothing_sigma
   endif
 
-  if (srz%smoothing_sigma /= 0) then
-    ns = max(1, nint(3*srz%smoothing_sigma / srz%dz))
+  f = srz%smoothing_sigma / srz%dz
+  ns = nint(3.0_rp * f)
+
+  if (ns /= 0) then
     allocate (gauss(-ns:ns))
     do i = -ns, ns
-      gauss(i) = exp(-0.5 * i * (srz%dz / srz%smoothing_sigma)**2)
+      gauss(i) = exp(-0.5_rp * i / f**2)
     enddo
 
     srz%fw = 0
