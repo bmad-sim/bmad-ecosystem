@@ -3,7 +3,7 @@
 !
 ! Subroutine to write a Bmad lattice file using the information in a lat_struct.
 ! Optionally only part of the lattice can be generated.
-! Also see: write_lattice_in_foreign_format
+! Also see: write_lattice_foreign_format
 !
 ! Note: bmad_com parameters that are changed from their default value are
 ! saved in the lattice file.

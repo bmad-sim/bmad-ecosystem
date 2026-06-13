@@ -283,7 +283,7 @@ ele_loop: do ie = ix_start, ix_end
   ! type 
   if (ele%type /= '') write (line, '(4a)') trim(line), ', type = "', trim(ele%type), '"'
   
-  ! Alignment errors (MAD-style, also see write_lattice_in_foreign_format)
+  ! Alignment errors (MAD-style, also see write_lattice_foreign_format)
   
   if (ele%key == sbend$) then
     call value_to_line (line,  -val(ref_tilt$), 'psi', 'R')

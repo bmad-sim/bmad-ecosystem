@@ -1,0 +1,824 @@
+PALS:
+  notes:
+    - "Translated from Bmad lattice file: /nfs/acc/user/dcs16/bmad-ecosystem/regression_tests/write_foreign_test/write_foreign_test.bmad"
+
+  extension_names:
+    names:
+      Bmad
+    prefixes:
+      Bmad_
+
+
+  #---------------------------------------------------------------------------------------
+  # Constants
+
+  facility:
+
+    - beginning_b1: 
+        kind: BeginningEle
+        ReferenceP:
+          pc_ref:   8.5958E+05             
+          species_ref:: "positron"
+        TwissP:
+          beta_a:   1.0000E+01             
+          beta_b:   1.0000E+01             
+        ParticleP:
+          x:   1.0000E-03             
+          px:   2.0000E-03             
+          y:   3.0000E-03             
+          py:   4.0000E-03             
+          z:   5.0000E-03             
+          pz:   6.0000E-03             
+          spin_x:   3.0000E-01             
+          spin_y:   4.0000E-01             
+          spin_z:   5.0000E-01             
+        BmadP:
+          Bmand_key: Beginning_Ele
+
+    - ab_multipole1: 
+        kind: Multipole
+        MagneticMultipoleP:
+          Ks2L:   2.0000E+02             
+          Kn2L:   2.0000E+02             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BmadP:
+          Bmand_key: AB_multipole
+
+    - ac_kicker0123456789: 
+        kind: ACKicker
+        length:   3.0000E-01             
+        MagneticMultipoleP:
+          Kn0:  -3.3333E-02             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BmadP:
+          Bmand_key: AC_Kicker
+
+    - ac_kicker2: 
+        kind: ACKicker
+        length:   4.0000E-01             
+        MagneticMultipoleP:
+          Ks0:   2.5000E-02             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BmadP:
+          Bmand_key: AC_Kicker
+
+    - beambeam1: 
+        kind: BeamBeam
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   3.0000E-03             
+          y_offset:   3.0000E-03             
+          x_rot:  -5.0000E-02             
+        SolenoidP:
+          Ksol:   1.0000E+00             
+
+    - crab_cavity1: 
+        kind: CrabCavity
+        length:   2.0000E-01             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        RFP:
+          rf_frequency:   1.0000E+08             
+          voltage:   1.0000E+03             
+          phi0:  -2.0000E-01             
+          zero_phase: ABOVE_TRANSITION
+        BmadP:
+          Bmand_key: Crab_Cavity
+
+    - ecollimator1: 
+        kind: Drift
+        length:   4.5000E+00             
+        MagneticMultipoleP:
+          Ks0:   2.2037E-04             
+          Kn0:  -2.2555E-03             
+        ApertureP:
+          x_min:  -2.0000E-01             
+          x_max:   2.0000E-01             
+          y_min:  -1.0000E-01             
+          y_max:   1.0000E-01             
+        BodyShiftP:
+          x_offset:   2.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: ECollimator
+
+    - elseparator1: 
+        kind: ELSeparator??
+        length:   4.5000E+00             
+        ElectricMultipoleP:
+          En0:  -9.5509E+02             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: ELSeparator
+
+    - elseparator2: 
+        kind: ELSeparator??
+        length:   4.5000E+00             
+        ElectricMultipoleP:
+          Es0:   9.5509E+02             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: ELSeparator
+
+    - em_field1: 
+        kind: EMField
+        length:   1.4000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        RFP:
+          zero_phase: ABOVE_TRANSITION
+        BmadP:
+          Bmand_key: EM_Field
+
+    - em_field2: 
+        kind: EMField
+        length:   1.4000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        RFP:
+          zero_phase: ABOVE_TRANSITION
+        BmadP:
+          Bmand_key: EM_Field
+
+    - fiducial1: 
+        kind: Fiducial
+
+    - floor_shift1: 
+        kind: FloorShift
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   1.0000E-01             
+          y_offset:   2.0000E-01             
+          z_offset:   3.0000E-01             
+          x_rot:  -2.0000E-02             
+          y_rot:   1.0000E-02             
+          z_rot:   4.0000E-01             
+        BmadP:
+          Bmand_key: Floor_Shift
+
+    - gkicker1: 
+        kind: Kicker
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BmadP:
+          Bmand_key: GKicker
+
+    - hkicker1: 
+        kind: Kicker
+        length:   4.5000E+00             
+        MagneticMultipoleP:
+          Kn0:  -1.1111E-03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: HKicker
+
+    - instrument1: 
+        kind: Instrument
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+
+    - kicker1: 
+        kind: Kicker
+        length:   4.5000E+00             
+        MagneticMultipoleP:
+          Ks0:   6.6667E-04             
+          Kn0:   1.3333E-06             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+
+    - match1: 
+        kind: Match
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+
+    - monitor1: 
+        kind: Instrument
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BmadP:
+          Bmand_key: Monitor
+
+    - multipole1: 
+        kind: Multipole
+        MagneticMultipoleP:
+          Ks1L:  -1.0000E+00             
+          Kn1L:   6.1232E-17             
+          Ks3L:   3.0805E+00             
+          Kn3L:  -3.2804E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+
+    - octupole1: 
+        kind: Octupole
+        length:   4.5000E+00             
+        MagneticMultipoleP:
+          Kn3:   1.0000E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   1.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   3.9270E-01             
+
+    - patch1: 
+        kind: Patch
+        length:   4.0050E-03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        PatchP:
+          x_offset:   1.0000E-03             
+          y_offset:   2.0000E-03             
+          z_offset:   4.0000E-03             
+          x_rot:  -2.0000E-03             
+          y_rot:   1.0000E-03             
+          z_rot:   2.0000E+00             
+        ReferenceChangeP:
+          t_offset:   1.0000E-11             
+
+    - quadrupole1: 
+        kind: Quadrupole
+        length:   6.0000E-01             
+        MagneticMultipoleP:
+          Ks0:   9.8821E-03             
+          Kn0:   1.1785E-04             
+          Ks1:   1.0000E-01             
+          Kn1:   1.0000E+00             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   2.0000E+04             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   7.8540E-01             
+
+    - quadrupole2: 
+        kind: Quadrupole
+        length:   6.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.0118E-02             
+          Kn0:   1.1785E-04             
+          Ks1:  -1.0000E-01             
+          Kn1:  -1.0000E+00             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   2.0000E+04             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   7.8540E-01             
+
+    - quadrupole3: 
+        kind: Quadrupole
+        length:   6.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.1785E-04             
+          Kn0:   1.1785E-04             
+          Ks1:   1.0000E-21             
+          Kn1:   1.0000E-20             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   2.0000E+04             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   7.8540E-01             
+
+    - quadrupole4: 
+        kind: Quadrupole
+        length:   6.0000E-01             
+        MagneticMultipoleP:
+          Ks0:   9.8821E-03             
+          Kn0:   1.1785E-04             
+          Ks1:   1.0000E-01             
+          Kn1:   1.0000E+00             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   2.0000E+04             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   7.8540E-01             
+
+    - quadrupole5: 
+        kind: Quadrupole
+        length:   6.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.0118E-02             
+          Kn0:   1.1785E-04             
+          Ks1:  -1.0000E-01             
+          Kn1:  -1.0000E+00             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   2.0000E+04             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   7.8540E-01             
+
+    - rcollimator1: 
+        kind: Drift
+        length:   4.5000E+00             
+        ApertureP:
+          x_min:  -2.0000E-01             
+          x_max:   2.0000E-01             
+          y_min:  -1.0000E-01             
+          y_max:   1.0000E-01             
+        BodyShiftP:
+          x_offset:   2.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: RCollimator
+
+    - rfcavity1: 
+        kind: RFCavity
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        RFP:
+          rf_frequency:   5.0000E+08             
+          voltage:   1.0000E+05             
+          phi0:   1.0000E-01             
+          zero_phase: ABOVE_TRANSITION
+          cavity_type: STANDING_WAVE       
+
+    - rfcavity2: 
+        kind: RFCavity
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        RFP:
+          rf_frequency:   5.0000E+08             
+          voltage:   1.0000E+05             
+          phi0:   1.0000E-01             
+          zero_phase: ABOVE_TRANSITION
+          cavity_type: TRAVELING_WAVE      
+
+    - rfcavity3: 
+        kind: RFCavity
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        RFP:
+          rf_frequency:   5.0000E+08             
+          voltage:   1.0000E+05             
+          phi0:   1.0000E-01             
+          zero_phase: ABOVE_TRANSITION
+          cavity_type: STANDING_WAVE       
+
+    - sad_mult1: 
+        kind: SadMult
+        length:   1.0000E-01             
+        MagneticMultipoleP:
+          Ks1:   2.0000E-01             
+          Kn2:   8.0000E+02             
+          Ks10:   3.6288E+27             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        SolenoidP:
+          Ksol:   5.0000E-01             
+        BmadP:
+          Bmand_key: Sad_Mult
+
+    - sad_mult2: 
+        kind: SadMult
+        MagneticMultipoleP:
+          Ks1L:   2.0000E-02             
+          Kn2L:   8.0000E+01             
+          Ks10L:   3.6288E+26             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        SolenoidP:
+          Ksol:   5.0000E-01             
+        BmadP:
+          Bmand_key: Sad_Mult
+
+    - sbend1: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          tilt_ref:   1.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.6583E-04             
+          Kn0:   1.6639E-05             
+          Kn1:   3.0000E-01             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - rbend2: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          tilt_ref:   1.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.6583E-04             
+          Kn0:   1.6639E-05             
+          Kn2:   3.0000E+00             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - sbend3: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          tilt_ref:   1.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.6583E-04             
+          Kn0:   1.6639E-05             
+          Kn1:   3.0000E-01             
+          Kn2:   3.0000E+00             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - rbend4: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          g_ref:   1.0000E-02             
+          tilt_ref:   1.0000E-01             
+          e1_rect:   1.0000E-01             
+          e2_rect:   2.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.6483E-04             
+          Kn0:   1.1664E-04             
+          Ks1:   5.0000E-06             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - sbend5: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          g_ref:   1.0000E-02             
+          tilt_ref:   1.0000E-01             
+          edge_int1:   1.4000E+00             
+          edge_int2:   1.4000E+00             
+          e1:   1.0000E-01             
+          e2:   2.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -6.5834E-05             
+          Kn0:   1.0017E-02             
+          Ks1:   5.0000E-04             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - rbend6: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          g_ref:   1.0000E-02             
+          tilt_ref:   1.0000E-01             
+          e1_rect:   1.0000E-01             
+          e2_rect:   2.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -1.6583E-04             
+          Kn0:   1.6739E-05             
+          Ks1:   5.0000E-09             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - sbend7: 
+        kind: SBend
+        length:   6.0000E-01             
+        BendP:
+          g_ref:   1.0000E-02             
+          tilt_ref:   1.0000E-01             
+          e1:   1.0000E-01             
+          e2:   2.0000E-01             
+        MagneticMultipoleP:
+          Ks0:  -6.5834E-05             
+          Kn0:   1.0017E-02             
+          Ks1:   5.0000E-04             
+        ElectricMultipoleP:
+          En0:  -2.0000E+03             
+          Es1:   6.6667E+03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+
+    - sextupole1: 
+        kind: Sextupole
+        length:   6.0000E-01             
+        MagneticMultipoleP:
+          Kn2:   1.0000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   5.2360E-01             
+
+    - solenoid1: 
+        kind: Solenoid
+        length:   2.6000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        SolenoidP:
+          Ksol:   1.0000E+00             
+
+    - solenoid2: 
+        kind: Solenoid
+        length:   2.6000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        SolenoidP:
+          Ksol:   1.0000E-12             
+
+    - sol_quad1: 
+        kind: Solenoid
+        length:   2.6000E+00             
+        MagneticMultipoleP:
+          Kn1:   1.0000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        SolenoidP:
+          Ksol:   1.0000E+00             
+        BmadP:
+          Bmand_key: Sol_Quad
+
+    - sol_quad2: 
+        kind: Solenoid
+        length:   2.6000E+00             
+        MagneticMultipoleP:
+          Kn1:   1.0000E-05             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        SolenoidP:
+          Ksol:   1.0000E+00             
+        BmadP:
+          Bmand_key: Sol_Quad
+
+    - thick_multipole1: 
+        kind: ThickMultipole
+        length:   4.5000E+00             
+        MagneticMultipoleP:
+          Ks2:   4.4444E-01             
+          Kn3:   2.6667E+01             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   2.0000E-02             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: Thick_Multipole
+
+    - taylor1: 
+        kind: Taylor
+        length:   5.0000E-01             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+
+    - vkicker1: 
+        kind: Kicker
+        length:   4.5000E+00             
+        MagneticMultipoleP:
+          Ks0:   1.1111E-03             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        BmadP:
+          Bmand_key: VKicker
+
+    - lcavity1: 
+        kind: RFCavity
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        RFP:
+          rf_frequency:   5.0000E+08             
+          voltage:   5.0000E+03             
+          phi0:  -1.9000E-01             
+          num_cells:   1.0000E+01             
+          L_active:   4.4969E+00             
+          cavity_type: STANDING_WAVE       
+        BmadP:
+          Bmand_key: Lcavity
+
+    - lcavity2: 
+        kind: RFCavity
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        RFP:
+          rf_frequency:   5.0000E+08             
+          voltage:   5.0000E+00             
+          phi0:  -1.9000E-01             
+          num_cells:   1.0000E+01             
+          L_active:   4.4969E+00             
+          cavity_type: STANDING_WAVE       
+        BmadP:
+          Bmand_key: Lcavity
+
+    - lcavity3: 
+        kind: RFCavity
+        length:   4.5000E+00             
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+        BodyShiftP:
+          x_offset:   5.0000E-02             
+          x_rot:  -1.0000E-03             
+          z_rot:   1.0000E-01             
+        RFP:
+          rf_frequency:   5.0000E+08             
+          voltage:   5.0450E+03             
+          phi0:  -1.9000E-01             
+          num_cells:   1.0000E+01             
+          L_active:   4.4969E+00             
+          cavity_type: TRAVELING_WAVE      
+        BmadP:
+          Bmand_key: Lcavity
+
+    - end_b0: 
+        kind: Marker
+        ApertureP:
+          shape: RECTANGULAR     
+          location: EXIT_END        
+
+    #---------------------------------------------------------------------------------------
+    # BeamLines and Lattices
+
+    - l1: 
+        kind: BeamLine
+        line: [ beginning_b0, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2,
+               beambeam1, crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2,
+               fiducial1, floor_shift1, gkicker1, hkicker1, instrument1, kicker1, match1, monitor1,
+               multipole1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4,
+               quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3, sad_mult1, sad_mult2,
+               sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1, solenoid2,
+               sol_quad1, sol_quad2, thick_multipole1, taylor1, vkicker1, lcavity1, lcavity2, lcavity3,
+               end_b0,]
+
+    - machine: 
+        kind: Lattice
+        branches: 
+          - l1: 
+              periodic: false
+
+    #---------------------------------------------------------------------------------------
+    # Constants
+
+
+    #---------------------------------------------------------------------------------------
+    # Bmad Overlay Translation.
+    # Note: Translated overlay parameter names use a double underscore of the form <Overlay-name>__<param-name>
+
