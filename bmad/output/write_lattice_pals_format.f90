@@ -1177,8 +1177,8 @@ end subroutine write_str_list
 
 subroutine write_real_list(indnt, group_name, name, value, header_needed)
 
-real(rp) value, ind
-integer indnt
+real(rp) value
+integer indnt, ind
 logical, optional :: header_needed
 character(*) group_name, name
 character(100) :: blank = ''
