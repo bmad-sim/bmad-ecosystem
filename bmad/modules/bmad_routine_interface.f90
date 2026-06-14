@@ -3703,16 +3703,6 @@ subroutine write_beam_floor_positions (file_name, beam, ele, new_file)
   logical, optional :: new_file
 end subroutine
 
-subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
-  import
-  implicit none
-  character(*) bmad_file
-  type (lat_struct), target :: lat
-  logical, optional :: err
-  integer, optional :: output_form
-  type (coord_struct), optional :: orbit0
-end subroutine
-
 subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, extra, err_flag)
   import
   implicit none
@@ -3724,31 +3714,17 @@ subroutine write_digested_bmad_file (digested_name, lat,  n_files, file_names, e
   logical, optional :: err_flag
 end subroutine
 
-subroutine write_lattice_in_foreign_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                                           include_apertures, dr12_drift_max, ix_branch, err)
+subroutine write_bmad_lattice_file (bmad_file, lat, err, output_form, orbit0)
   import
   implicit none
+  character(*) bmad_file
   type (lat_struct), target :: lat
-  type (coord_struct), allocatable, optional :: ref_orbit(:)
-  real(rp), optional :: dr12_drift_max
-  integer, optional :: ix_branch
-  character(*) out_type, out_file_name
-  logical, optional :: use_matrix_model, include_apertures, err
+  logical, optional :: err
+  integer, optional :: output_form
+  type (coord_struct), optional :: orbit0
 end subroutine
 
-subroutine write_lattice_in_mad_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
-                                           include_apertures, dr12_drift_max, ix_branch, err)
-  import
-  implicit none
-  type (lat_struct), target :: lat
-  type (coord_struct), allocatable, optional :: ref_orbit(:)
-  real(rp), optional :: dr12_drift_max
-  integer, optional :: ix_branch
-  character(*) out_type, out_file_name
-  logical, optional :: use_matrix_model, include_apertures, err
-end subroutine
-
-subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &
+subroutine write_lattice_elegant_format (out_file_name, lat, ref_orbit, use_matrix_model, &
                                            include_apertures, dr12_drift_max, ix_branch, err)
   import
   implicit none
@@ -3760,7 +3736,31 @@ subroutine write_lattice_in_elegant_format (out_file_name, lat, ref_orbit, use_m
   logical, optional :: use_matrix_model, include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_pals (pals_file, lat, err_flag)
+subroutine write_lattice_foreign_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
+                                           include_apertures, dr12_drift_max, ix_branch, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_branch
+  character(*) out_type, out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_mad_format (out_type, out_file_name, lat, ref_orbit, use_matrix_model, &
+                                           include_apertures, dr12_drift_max, ix_branch, err)
+  import
+  implicit none
+  type (lat_struct), target :: lat
+  type (coord_struct), allocatable, optional :: ref_orbit(:)
+  real(rp), optional :: dr12_drift_max
+  integer, optional :: ix_branch
+  character(*) out_type, out_file_name
+  logical, optional :: use_matrix_model, include_apertures, err
+end subroutine
+
+subroutine write_lattice_pals_format (pals_file, lat, err_flag)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -3768,7 +3768,7 @@ subroutine write_lattice_in_pals (pals_file, lat, err_flag)
   logical, optional :: err_flag
 end subroutine
 
-subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
+subroutine write_lattice_sad_format (out_file_name, lat, include_apertures, ix_branch, err)
   import
   implicit none
   type (lat_struct), target :: lat
@@ -3777,7 +3777,7 @@ subroutine write_lattice_in_sad_format (out_file_name, lat, include_apertures, i
   logical, optional :: include_apertures, err
 end subroutine
 
-subroutine write_lattice_in_scibmad (scibmad_file, lat, err_flag)
+subroutine write_lattice_scibmad_format (scibmad_file, lat, err_flag)
   import
   implicit none
   type (lat_struct), target :: lat

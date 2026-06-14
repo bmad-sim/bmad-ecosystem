@@ -1,5 +1,6 @@
-cp mad8.now mad8.correct
-cp madx.now madx.correct
-cp sad.now sad.correct
-cp lte.now lte.correct
+cp mad8.now    mad8.correct
+cp madx.now    madx.correct
+cp sad.now     sad.correct
+cp lte.now     lte.correct
 cp scibmad.now scibmad.correct
+cp pals.now    pals.correct

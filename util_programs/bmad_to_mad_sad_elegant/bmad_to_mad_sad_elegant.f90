@@ -120,22 +120,22 @@ endif
 
 if (out_type == 'all' .or. out_type == '-mad8') then
   call file_suffixer (out_name, out_name, 'mad8', .true.)
-  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
+  call write_lattice_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-madx') then
   call file_suffixer (out_name, out_name, 'madx', .true.)
-  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
+  call write_lattice_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-sad') then
   call file_suffixer (out_name, out_name, 'sad', .true.)
-  call write_lattice_in_foreign_format ('SAD', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_foreign_format ('SAD', out_name, lat, orbit, include_apertures = aperture)
 endif
 
 if (out_type == 'all' .or. out_type == '-elegant') then
   call file_suffixer (out_name, out_name, 'lte', .true.)
-  call write_lattice_in_foreign_format ('ELEGANT', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_foreign_format ('ELEGANT', out_name, lat, orbit, include_apertures = aperture)
 endif
 
 ! Lattices without bpm markers.
@@ -159,22 +159,22 @@ out_name = file_name
 
 if (out_type == 'all' .or. out_type == '-mad8') then
   call file_suffixer (out_name, out_name, 'mad8', .true.)
-  call write_lattice_in_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
+  call write_lattice_foreign_format ('MAD-8', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-madx') then
   call file_suffixer (out_name, out_name, 'madx', .true.)
-  call write_lattice_in_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
+  call write_lattice_foreign_format ('MAD-X', out_name, lat, orbit, include_apertures = aperture, dr12_drift_max = dr_max)
 endif
 
 if (out_type == 'all' .or. out_type == '-sad') then
   call file_suffixer (out_name, out_name, 'sad', .true.)
-  call write_lattice_in_foreign_format ('SAD', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_foreign_format ('SAD', out_name, lat, orbit, include_apertures = aperture)
 endif
 
 if (out_type == 'all' .or. out_type == '-elegant') then
   call file_suffixer (out_name, out_name, 'lte', .true.)
-  call write_lattice_in_foreign_format ('ELEGANT', out_name, lat, orbit, include_apertures = aperture)
+  call write_lattice_foreign_format ('ELEGANT', out_name, lat, orbit, include_apertures = aperture)
 endif
 
 end program

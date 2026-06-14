@@ -3,7 +3,26 @@
 \index{conversion to other lattice formats}
 
 A \bmad Distribution (\sref{s:tao.intro}) contains a number of translation programs between \bmad
-and other formats.
+and other formats. Generally, conversion from \bmad is done using Fortran code to take advantage of
+the existing routines that parse \bmad lattice files. As such, conversion from \bmad is built into
+the \tao program. Conversion to \bmad is generally done using Python scripts to take advantage of
+Python's superior string handling abilities. As such, many programs to convert to \bmad are stored
+in the \vn{util_programs} directory of the \bmad repo.
+
+Conversions have been developed for:
+\begin{example}
+  Astra       GPT       PALS
+  Blender     MAD-8     SAD       
+  CSRtrack    MAD-x     SciBmad   
+  Elegant     Merlin    SlickTrack
+\end{example}
+
+%-----------------------------------------------------------------------------
+\section{Bmad to PALS Conversion}
+\label{s:bmad.pals.convert}
+
+The \bmad to PALS conversion creates a YAML file with the PALS syntax. 
+Extra information is included to aid in any back convertion. 
 
 
 %-----------------------------------------------------------------------------

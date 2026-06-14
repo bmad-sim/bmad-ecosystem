@@ -50,7 +50,7 @@ if (scibmad_name == '') then
   call file_suffixer(bmad_name, scibmad_name, '.jl', .true.)
 endif
 
-call write_lattice_in_scibmad(scibmad_name, lat, err_flag)
+call write_lattice_scibmad_format(scibmad_name, lat, err_flag)
 print *, 'SciBmad file: ' // trim(scibmad_name)
 
 end program

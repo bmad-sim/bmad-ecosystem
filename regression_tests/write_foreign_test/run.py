@@ -11,7 +11,7 @@ exe = sys.argv[1] + 'write_foreign_test'
 results = subprocess.run([exe], stdout=subprocess.PIPE).stdout.decode('utf-8')
 d = difflib.Differ()
 
-files = ['mad8', 'madx', 'sad', 'lte', 'scibmad']
+files = ['mad8', 'madx', 'sad', 'lte', 'scibmad', 'pals']
 
 for file in files:
   f1 = open(file + '.correct', 'r')
