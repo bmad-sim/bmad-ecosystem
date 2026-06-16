@@ -2973,6 +2973,7 @@ ltt_com%sec(0)%ele => ele_start
 ltt_com%sec(0)%type = ele$
 
 ele => ltt_com%sec(0)%ele
+
 ! Section setup
 n_sec = 0
 do i = 1, branch%n_ele_track+1
@@ -2995,7 +2996,7 @@ do i = 1, branch%n_ele_track+1
     ltt_com%sec(n_sec)%type = ele$
     ltt_com%sec(n_sec)%ele => ele
     in_map_section = .false.
-  elseif (ele%key /= marker$ .or. ele%key /= beginning_ele$) then
+  else
     in_map_section = .true.
   endif
 
@@ -3047,6 +3048,8 @@ if (err) then
   print '(a)', 'ERROR LOCATING LATTICE ELEMENTS SPECIFIED IN LTT%EXCULDE_FROM_MAPS: ' // lttp%exclude_from_maps
   stop
 endif
+
+! All elements in lat have default ele%ix_pointer = in_map$ = 0
 
 do ie = 1, n_loc
   eles(ie)%ele%ix_pointer = not_in_map$  ! Mark to exclude from any maps
