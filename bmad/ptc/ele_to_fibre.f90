@@ -82,6 +82,11 @@ character(*), parameter :: r_name = 'ele_to_fibre'
 err_flag = .true.
 val => ele%value
 key = ele%key
+if (ele%key == custom$) then
+  call out_io (s_warn$, r_name, 'Using drift for custom element in PTC: ' // trim(ele%name))
+  key = drift$
+endif
+
 
 if (.not. ele%is_on) then
   val => value0
