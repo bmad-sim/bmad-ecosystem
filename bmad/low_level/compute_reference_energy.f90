@@ -760,7 +760,7 @@ case default
   ! A super_lord element can be tricky. For example, a solenoid super_lord overlayed by a lcavity
   ! will not have a constant ref energy. Such elements are handled by lat_compute_ref_energy.
   ! Here only do a calculation if the reference energy has not been set
-  if (ele%lord_status == super_lord$ .and. ele%value(e_tot$) > 0) return
+  if (ele%lord_status == super_lord$ .and. ele%value(e_tot$) > 0) goto 9000
   
   ! Need to always do this set in case E_tot_start shifted by non-zero but insignifcant.
   ! Some Bmad code relies on E_tot_start == E_tot or p0c_start = p0c exactly.
