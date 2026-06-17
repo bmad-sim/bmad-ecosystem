@@ -363,7 +363,7 @@ do ib = 0, ubound(lat%branch, 1)
       line = trim(line) // ', tracking_method = SaganCavity(num_cells = ' // re_str(ele%value(n_rf_steps$)) // ', L_active = ' // re_str(ele%value(L_active$)) // ')'
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
-      if (ele%key == rfcavity$) line = trim(line) // ', zero_phase = PhaseReference.AboveTransition'
+      if (ele%key == rfcavity$) line = trim(line) // ', zero_phase = PhaseRef.AboveTransition'
       if (ele%value(voltage$) /= 0)  line = trim(line) // ', voltage = ' // re_str(ele%value(voltage$)/abs(charge_of(branch%param%particle)))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$))
     endif
