@@ -3121,6 +3121,7 @@ an = 0
 
 if (ele%key == taylor$) return
 if (ele%key == match$) return
+if (ele%key == custom$) return
 
 leng = ele%value(l$)
 
