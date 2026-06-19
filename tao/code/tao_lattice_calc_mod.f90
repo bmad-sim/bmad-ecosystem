@@ -563,10 +563,8 @@ do
         if (radiation_on) then
           call radiation_map_setup(ele, err, bunch_params%centroid)
           if (err) then
-            call out_io (s_error$, r_name, 'RADIATION MAP SETUP WHILE BEAM TRACKING ERROR THROUGH ELEMENT: ' // ele_full_name(ele), &
-                                           'STOPPING BEAM TRACKING.')
-            calc_ok = .false.
-            return
+            call stop_beam_track_on_rad_error()
+            exit
           endif
         endif
         call track_beam (lat, beam, branch%ele(ie-1), ele, err, centroid = tao_branch%orbit, bunch_tracks = bunch_params_comb)
@@ -583,6 +581,10 @@ do
         if (radiation_on) then
           call calc_bunch_params(beam%bunch(s%global%bunch_to_plot), bunch_params, err)
           call radiation_map_setup(slice_ele, err, bunch_params%centroid)
+          if (err) then
+            call stop_beam_track_on_rad_error()
+            exit
+          endif
         endif
 
         do i = 1, size(beam%bunch)
@@ -728,6 +730,23 @@ endif
 if (associated(target_ele%rad_map)) rad_map_save = target_ele%rad_map
 
 end function point_to_this_ele
+
+!-----------------------------------------------------------------------
+! contains
+
+! A radiation_map_setup failure for one element is not fatal: keep the beam tracked so far
+! and stop gracefully (like the too-many-particles-lost case) instead of discarding everything.
+
+subroutine stop_beam_track_on_rad_error ()
+
+call out_io (s_warn$, r_name, &
+        'RADIATION MAP SETUP FAILED WHILE BEAM TRACKING THROUGH ELEMENT ' // trim(ele_loc_name(ele)) // ': ' // trim(ele%name), &
+        'WILL STOP TRACKING AT THIS ELEMENT.')
+ix_track = ie
+tao_model_ele(ie)%beam = beam   ! Make sure the beam tracked so far is saved.
+calc_ok = .false.
+
+end subroutine stop_beam_track_on_rad_error
 
 end subroutine tao_beam_track
 
