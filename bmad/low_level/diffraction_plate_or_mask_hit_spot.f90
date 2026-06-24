@@ -1,7 +1,7 @@
 !+
 ! Function diffraction_plate_or_mask_hit_spot (ele, orbit) result (ix_section)
 !
-! Routine to determine where a particle hits on a diffraction_plate or mask element.
+! Routine to determine the wall section index a particle hits on a diffraction_plate or mask element.
 !
 ! Note: It is assumed that orbit is in the frame of reference of the element.
 ! That is, offset_photon/offset_particle needs to be called before this routine.
@@ -11,8 +11,8 @@
 !   orbit   -- coord_struct: particle position.
 !
 ! Output:
-!   ix_section -- integer, Set to index of clear section hit. Set to zero if
-!                   photon is outside all clear areas.
+!   ix_section -- integer, Set to index of the section where the particle is. Set to zero if
+!                   the photon is outside all clear areas.
 !-
 
 function diffraction_plate_or_mask_hit_spot (ele, orbit) result (ix_section)
@@ -23,7 +23,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (coord_struct) orbit
-type (wall3d_struct), pointer :: wall3d
+type (wall3d_struct), pointer :: wall
 
 integer :: ix_section
 integer i, ix_sec
@@ -31,7 +31,7 @@ integer i, ix_sec
 ! Logic: A particle is in a clear section if it is inside the section and outside
 ! all subsiquent opaque sections up to the next clear section.
 
-wall3d => ele%wall3d(1)
+wall => ele%wall3d(1)
 ix_section = 0
 ix_sec = 0
 
@@ -41,22 +41,25 @@ section_loop: do
 
   do
     ix_sec = ix_sec + 1
-    if (ix_sec > size(wall3d%section)) exit section_loop
-    if (wall3d%section(ix_sec)%type == clear$) exit
+    if (ix_sec > size(wall%section)) exit section_loop
+    if (wall%section(ix_sec)%type == clear$) exit
   enddo
 
   ! Section must be clear. Check if photon is within the section
 
-  if (.not. in_section(wall3d%section(ix_sec))) cycle
+  if (.not. in_section(wall%section(ix_sec))) cycle
   ix_section = ix_sec
 
   ! Now check if photon is within an opaque section
 
   do
     ix_sec = ix_sec + 1
-    if (ix_sec > size(wall3d%section)) return           ! In this clear area
-    if (wall3d%section(ix_sec)%type == clear$) return   ! In this clear area
-    if (in_section(wall3d%section(ix_sec))) cycle section_loop  ! Is opaque
+    if (ix_sec > size(wall%section)) return           ! In this clear area
+    if (wall%section(ix_sec)%type == clear$) return   ! In this clear area
+    if (in_section(wall%section(ix_sec))) then
+      ix_section = ix_sec                             ! In opaque section
+      return
+    endif
   enddo
 
 enddo section_loop
