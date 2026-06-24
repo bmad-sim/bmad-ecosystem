@@ -24,18 +24,18 @@ implicit none
 real(rp) r_num
 integer, optional :: n_signif, n_decimal
 character(:), allocatable :: str
-character(20) string
+character(22) string
 
 if (present(n_decimal)) then
   if (.not. present(n_signif)) then
-    write (string, '(f20.' // int_str(n_decimal) // ')') r_num
+    write (string, '(f22.' // int_str(n_decimal) // ')') r_num
   elseif (abs(r_num) > 10.0_rp**(n_signif - n_decimal)) then
-    write (string, '(f20.' // int_str(n_decimal) // ')') r_num
+    write (string, '(f22.' // int_str(n_decimal) // ')') r_num
   else
-    string = real_to_string(r_num, 20, n_signif = n_signif)
+    string = real_to_string(r_num, 22, n_signif = n_signif)
   endif
 else
-  string = real_to_string(r_num, 20, n_signif = n_signif)
+  string = real_to_string(r_num, 22, n_signif = n_signif)
 endif
 
 allocate (character(len_trim(adjustl(string))):: str)
