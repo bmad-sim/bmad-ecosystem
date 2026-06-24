@@ -3246,7 +3246,9 @@ end select
 ! Overlay or group lord check
 
 if (ele%key == overlay$ .or. ele%key == group$) then
-  if (attrib_name == 'IS_ON') return
+  select case (attrib_name)
+  case ('IS_ON', 'ALIAS', 'TYPE', 'DESCRIP'); return
+  end select
   if (all(attrib_name /= ele%control%var%name)) then
     call it_is_not_free (free, ele, ix_attrib, does_not_exist$, 'IS NOT A VALID CONTROL VARIABLE', skip = .true.)
   endif

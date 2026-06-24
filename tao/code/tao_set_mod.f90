@@ -3190,6 +3190,9 @@ if (index(value, 'ele::') /= 0) then
 
 else
   val_str = value
+  select case (upcase(attribute))
+  case ('ALIAS', 'TYPE', 'DESCRIP'); val_str = quote(val_str)
+  end select
 endif
 
 ! When a wild card is used so there are multiple elements involved, an error
