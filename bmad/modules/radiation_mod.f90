@@ -196,19 +196,19 @@ branch => pointer_to_branch(ele)
 
 !
 
+bmad_com_save = bmad_com
+bmad_com%radiation_damping_on = .false.
+bmad_com%spin_tracking_on = .false.
+
 if (present(ref_orbit_in)) then
   ref_orb_in = ref_orbit_in
   ! Radiation (in particular the random fluctuations) must not be applied to the deterministic
   ! reference orbit used to seed the radiation map.
-  bmad_com_save = bmad_com
-  bmad_com%radiation_damping_on = .false.
-  bmad_com%radiation_fluctuations_on = .false.
   call track1(ref_orb_in, ele, branch%param, ref_orb_out)
-  bmad_com = bmad_com_save
   if (ref_orb_out%state /= alive$) then
     err_flag = .true.
     call out_io (s_error$, r_name, 'Reference particle lost while tracking through: ' // ele_full_name(ele))
-    return
+    goto 8000
   endif
 else
   ref_orb_in  = ele%map_ref_orb_in
@@ -221,12 +221,8 @@ if (all(ref_orb_in%vec(2:4:2) == ref_orb_out%vec(2:4:2)) .and. &
         ele%key /= sbend$ .and. ele%key /= rf_bend$ .and. ele%key /= wiggler$ .and. ele%key /= undulator$) then
   ele%rad_map%rm0%ref_orb = ref_orb_in%vec
   ele%rad_map%rm1%ref_orb = ref_orb_out%vec
-  return
+  goto 8000
 endif
-
-bmad_com_save = bmad_com
-bmad_com%radiation_damping_on = .false.
-bmad_com%spin_tracking_on = .false.
 
 ! Mats for first half of element
 
