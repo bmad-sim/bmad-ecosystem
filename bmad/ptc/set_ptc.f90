@@ -41,7 +41,7 @@ use mad_like, only: make_states, pmaMUON, pmaE, PHASE0, &
               berz, init, set_madx, lp, superkill, TIME0, init_all, SPIN0, C_WATCH_USER
 use madx_ptc_module, only: ptc_ini_no_append, append_empty_layout, m_u, bmadl, use_info, &
               use_info_m, check_longitudinal, bmad_automatic, OLD_SURVEY
-use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION
+use c_tpsa, only: c_verbose, E_MUON, USE_QUATERNION, c_lda_used
 
 implicit none
 
@@ -72,6 +72,7 @@ USE_QUATERNION = .true.
 E_MUON = bmad_com%electric_dipole_moment
 CHECK_LONGITUDINAL = .false. ! MAD-X uses the True setting.
 call in_bmad_units
+c_lda_used = 3000   ! Change from default 1500
 
 ! do not call set_mad
 
