@@ -5100,6 +5100,7 @@ case ('taylor_map', 'matrix')
 
     case ('-lattice_format')
       output_type = 'BMAD_LATTICE_FORMAT'
+      style = 'BMAD'
 
     case ('-number_format')
       call tao_next_word(what2, fmt)
