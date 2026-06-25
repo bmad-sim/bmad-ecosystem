@@ -184,7 +184,7 @@ else
   elseif (sec%type == clear$) then
     material = wall%clear_material
   else
-    material = wall%clear_material
+    material = wall%opaque_material
   endif
 
   if (sec%type == opaque$ .and. material == '') then
