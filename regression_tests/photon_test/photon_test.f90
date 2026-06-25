@@ -18,7 +18,7 @@ type (vst) :: start(6) = [vst([0.0_rp, 0.0_rp]), vst([0.2_rp, 0.1_rp]), vst([0.4
 type (photon_reflect_table_struct), pointer :: rt
 
 real(rp) E_rel, prob, vec(6)
-integer i, ix_pt, iy_pt
+integer i, ix_pt, iy_pt, ix_sec
 
 !
 
@@ -67,12 +67,15 @@ write (1, '(a, 2f16.10)') '"displacement-field" ABS 2E-8', orb_end%field
 !
 
 call bmad_parser ('mask.bmad', lat)
+ele => lat%ele(1)
 do i = 1, size(start)
   vec = [0, 0, 0, 0, 0, 1]
   vec(1:3:2) = start(i)%vec
   call init_coord (orb_start, vec, lat%ele(0), downstream_end$)
-  call track1(orb_start, lat%ele(1), lat%param, orb_end)
-  write (1, '(a, i0, a, i0)') '"mask-', i, '" ABS 0  ', orb_end%state
+  orb_start%field = [1.0_rp, 2.0_rp]
+  call track1(orb_start, ele, lat%param, orb_end)
+  ix_sec = diffraction_plate_or_mask_hit_spot (ele, orb_start)
+  write (1, '(a, i0, a, 2i5, 2f10.6)') '"mask-', i, '" ABS 1e-5  ', orb_end%state, ix_sec, orb_end%field
 enddo
 
 !

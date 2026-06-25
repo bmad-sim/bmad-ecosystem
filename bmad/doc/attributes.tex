@@ -1827,8 +1827,8 @@ The geometry of a crotch is shown in \fig{f:crotch}A. Two pipes, called ``leg1''
 into one pipe called the ``trunk'' pipe.  The trunk pipe can be either upstream or downstream of the
 leg pipes.  To describe this situation, five sections are needed: One section in each leg pipe which
 need to have their \vn{type} attribute set to \vn{leg1} and \vn{leg2}, and three sections in the
-trunk with one having a a \vn{type} attribute of \vn{trunk1}, another having a \vn{type} attribute
-of \vn{trunk2} and the third having a \vn{type} attribute of \vn{trunk}. There can be no sections
+trunk with one having a \vn{type} attribute of \vn{trunk1}, another having a \vn{type} attribute
+of \vn{trunk2}, and the third having a \vn{type} attribute of \vn{trunk}. There can be no sections
 between the leg sections and the trunk sections.
 
 All three trunk sections must be associated with the same element and have the same \vn{s} value. In
@@ -1876,7 +1876,7 @@ what areas of the element will transmit or reflect particle and what areas will 
 not used with \vn{mask} and \vn{diffraction_plate} elements.
 
 The algorithm used to decide if a particle hitting a given point will be transmitted or not is as
-follows.  A \vn{wall} is comprised a a ordered list of \vn{sections} as discussed in
+follows.  A \vn{wall} is comprised of an ordered list of \vn{sections} as discussed in
 \sref{s:wall.section}.  Sections will be labeled $s_1, s_2, s_3, \ldots$ with $s_i$ being the $i$\Th
 section defined in the \vn{wall} structure. Each section of the wall must have its \vn{type}
 attribute set to one of:

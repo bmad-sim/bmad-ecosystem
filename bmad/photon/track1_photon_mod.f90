@@ -147,6 +147,7 @@ subroutine track1_diffraction_plate_or_mask (ele, param, orbit)
 type (ele_struct), target:: ele
 type (coord_struct), target:: orbit
 type (lat_param_struct) :: param
+type (wall3d_struct), pointer :: wall
 type (wall3d_section_struct), pointer :: sec
 
 real(rp) vz0
@@ -165,20 +166,33 @@ if (.not. ele%is_on) return
 ! Photon is lost if in an opaque section
 
 ix_sec = diffraction_plate_or_mask_hit_spot (ele, orbit)
+wall => ele%wall3d(1)
 
-if (ix_sec == 0) then
-  if (ele%wall3d(1)%opaque_material == '') then
+if (ix_sec == 0) then     ! Outside
+  if (wall%opaque_material == '') then
     orbit%state = lost$
     return
   endif
-  material = ele%wall3d(1)%opaque_material
-  thickness = ele%wall3d(1)%thickness
+  material = wall%opaque_material
+  thickness = wall%thickness
 
 else
-  material = ele%wall3d(1)%clear_material
-  thickness = ele%wall3d(1)%thickness
-  sec => ele%wall3d(1)%section(ix_sec)
-  if (sec%material /= '') material = sec%material
+  sec => wall%section(ix_sec)
+
+  if (sec%material /= '') then
+    material = sec%material
+  elseif (sec%type == clear$) then
+    material = wall%clear_material
+  else
+    material = wall%opaque_material
+  endif
+
+  if (sec%type == opaque$ .and. material == '') then
+    orbit%state = lost$
+    return
+  endif
+
+  thickness = wall%thickness
   if (sec%thickness >= 0) thickness = sec%thickness
 endif
 
@@ -194,17 +208,6 @@ if (material /= '') then
   orbit%field = orbit%field * exp(-absorption * thickness)
   orbit%phase = orbit%phase - phase_shift * thickness
 endif
-
-! Choose outgoing direction
-
-vz0 = orbit%vec(6)
-if (ele%key == diffraction_plate$) call point_photon_emission (ele, param, orbit, +1, twopi)
-
-! Rescale field
-
-wavelength = c_light * h_planck / orbit%p0c
-orbit%field = orbit%field * (vz0 + orbit%vec(6)) / (2 * wavelength)
-orbit%phase = orbit%phase - pi / 2
 
 if (ele%value(field_scale_factor$) /= 0) then
   orbit%field = orbit%field * ele%value(field_scale_factor$)

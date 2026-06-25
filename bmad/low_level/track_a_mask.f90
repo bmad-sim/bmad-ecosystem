@@ -40,6 +40,10 @@ temp_orb = orbit
 call offset_particle (ele, set$, temp_orb, set_hvkicks = .false.)
 
 ix_sec = diffraction_plate_or_mask_hit_spot (ele, temp_orb)
-if (ix_sec == 0) orbit%state = lost$
+if (ix_sec == 0) then
+  orbit%state = lost$
+elseif (ele%wall3d(1)%section(ix_sec)%type == opaque$) then
+  orbit%state = lost$
+endif
 
 end subroutine
