@@ -60,7 +60,7 @@
 
 \title{Lux Program}
 \author{D. Sagan, K. Finkelstein}
-\date{June 3, 2022}
+\date{June 26, 2026}
 
 %---------------------------------------------------------------------------------
 
@@ -178,9 +178,9 @@ An example is:
     lux_param%stop_num_photons = 1e8             ! Max number of photons to track.
     lux_param%mpi_run_size = 0.1                 ! Normalized num photons to track.
 
-    lux_param%intensity_min_det_pixel_cutoff = 0.1 ! det_pix_out file Cutoff
+    lux_param%intensity_min_det_pixel_cutoff = 1e-6 ! det_pix_out file cutoff
 
-    lux_param%intensity_min_photon1_cutoff = 1e-3  ! photon1_out file cutoff
+    lux_param%intensity_min_photon1_cutoff = 1e-6  ! photon1_out file cutoff
     lux_param%n_photon1_out_max = 100              ! Max photons in photon1_out_file.
     lux_param%reject_dead_at_det_photon1 = False
     lux_param%timer_print_dtime = 300
@@ -226,7 +226,7 @@ blank file name will prevent a file being generated.
 Name of the lattice detector element where the photon are absorbed.
   %
   \item[\vn{lux_param\%histogram_bin_width}] \Newline
-Bin width of histogram. See \sref{s:histo.file} for more details.
+Bin width of histogram in meters. See \sref{s:histo.file} for more details.
   %
   \item[\vn{lux_param\%histogram_variable}] \Newline
 Variable used in constructing the histogram (\sref{s:histo.file}).
@@ -246,14 +246,16 @@ If not given then no histogram file is produced.
 Sets the threshold absorbed photon intensity such that all pixels
 who's intensity is below this will not be included in the
 \vn{det_pix_out} file (\sref{s:det.pix.file}). This intensity is
-relative to the maximum pixel intensity.
+relative to the maximum pixel intensity. Default is 1e-6
   %
   \item[\vn{lux_param\%intensity_min_photon1_cutoff}] \Newline
-Cutoff intensity below which a photon will not be included in
-the photon1_out file (\sref{s:photon1.file}).
+Cutoff intensity of a photon below which the photon will not be included in
+the photon1_out file (\sref{s:photon1.file}). Note: if \vn{lux_param%scale_initial_field_to_1}
+is True (the default), the initial intensity is unity. Default is 1e-6
   %
   \item[\vn{lux_param\%intensity_normalization_coef}] \Newline
 Coefficient used to normalize the photon intensity with (\sref{s:photon.descrip}).
+Default is 1e-6.
   %
   \item[\vn{lux_param\%lattice_file}] \Newline
 Name of the input file that defines the X-ray optics setup from source
@@ -276,7 +278,7 @@ to the value of \vn{%mpi_run_size}.
   %
   \item[\vn{lux_param\%normalization_includes_pixel_area}] \Newline
 Does the factor used for computing the normalized photon intensity (\sref{s:photon.descrip}) include
-the pixel area of the detector?
+the pixel area of the detector? Default is True.
   %
   \item[\vn{lux_param\%photon_init_element}] \Newline
 Name of the lattice element that is the source of the photons (\sref{s:lat.file}).
@@ -288,14 +290,14 @@ Default is 100.
   \item[\vn{lux_param\%photon1_element}] \Newline
 The photon position values in the photon1_out file will be the
 photon position at the lattice element named by \vn{lux_param%photon1_element}. 
-If \vn{photon1_element} is blank (default), the
+If \vn{photon1_element} is blank (the default), the
 detector element used will be used (\sref{s:photon1.file}).
   %
   \item[\vn{lux_param\%photon1_out_file}] \Newline
 Name of the output data file recording the starting and ending
 positions of individual photons. See section~\sref{s:photon1.file} for
 more details. The file name may be ``numbered'' using 
-a ``\#'' character (\sref{s:number}). A blank file name will prevent a
+a ``\#'' character (\sref{s:number}). A blank file name (the default) will prevent a
 file being generated.
   %
   \item[\vn{lux_param\%random_engine}] \Newline
@@ -311,28 +313,31 @@ are always the same from run to run.
   %
   \item[\vn{lux_param\%random_seed}] \Newline
 If the \vn{random_engine} is set to \vn{pseudo}, \vn{%random_seed} is the random number seed used by
-the random number generator. If set to 0, the system clock will be used so that the output results
+the random number generator. If set to 0 (the default), 
+the system clock will be used so that the output results
 will show statistical variations from run to run. Not used if the \vn{random_engine} is set to
 \vn{quasi}.  If the seed is nonzero, the results will be the same from run to run. However, the
 results when using the MPI version of \lux will not be exactly the same at the non-MPI \lux version.
   %
   \item[\vn{lux_param\%reject_dead_at_det_photon1}] \Newline
-If \vn{reject_dead_to_det_photon1} is set to True, do not print to the photon_out file any photons
+If \vn{reject_dead_to_det_photon1} is set to True (default False), 
+do not print to the photon_out file any photons
 that do not reach the detector. This switch is only relevant when the lattice element at which the
 photon positions are being evaluated is not the detector (\sref{s:photon1.file}).
   %
   \item[\vn{lux_param\%scale_initial_field_to_1}] \Newline
-Scale the field so that $E_x^2 + E_y^2 = 1$? Default is True. Only used if at least one field
+Scale the field so that the initial photon intensity $\sqrt{E_x^2 + E_y^2}$ is unity? 
+Default is True. Only used if at least one field
 component is non-zero. See \sref{s:photon.descrip} for more details.
   %
   \item[\vn{lux_param\%stop_num_photons}] \Newline
-Maximum number of photons to track (\sref{s:det}).
+Maximum number of photons to track (\sref{s:det}). Default is zero.
   %
   \item[\vn{lux_param\%stop_total_intensity}] \Newline
 Cumulative unnormalized intensity at the detector to stop
 at (\sref{s:det}).  Note: This parameter is ignored if running the
 parallel version of \lux and only \vn{lux_param%stop_num_photons}
-is used.
+is used. Default is 10.
   %
   \item[\vn{lux_param\%timer_print_dtime}] \Newline
 The program will print a tracking status message every so often. The nominal time between status
@@ -342,6 +347,7 @@ messages is set by \vn{lux_param%timer_print_dtime} which is a number in seconds
   \item[\vn{lux_param\%track_out_file}] \Newline
 The \vn{track_out_file} records how many photons are lost at each lattice element. This is useful for
 diagnosing cases when too many photons are being lost before reaching the detector.
+Default is \vn{``track.dat''}
   \end{description}
 
 %------------------------------------------------------------------
@@ -789,7 +795,7 @@ The photon property to be histogrammed is given by
 \end{example}
 \vn{"energy"} is the default.
 
-The width of the histogram bins is set by
+The width of the histogram bins in meters is set by
 \vn{lux_param%histogram_bin_width}. The value given for a histogram
 bin is computed using the formula:
 \begin{example}
