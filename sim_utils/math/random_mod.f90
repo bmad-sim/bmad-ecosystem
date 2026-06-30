@@ -141,7 +141,8 @@ integer :: j
 
 zig_xtab(n_zig) = zig_v / exp(-0.5_rp * zig_r**2)
 zig_xtab(n_zig-1) = zig_r
-zig_ytab(n_zig) = exp(-0.5_rp * zig_r**2)
+! Keep the y-table consistent with y(j) = f(x(j)) for every layer boundary.
+zig_ytab(n_zig) = exp(-0.5_rp * zig_xtab(n_zig)**2)
 
 do j = n_zig-2, 1, -1
   zig_xtab(j) = sqrt(-2.0_rp * log(zig_v / zig_xtab(j+1) + exp(-0.5_rp * zig_xtab(j+1)**2)))
@@ -281,8 +282,8 @@ if (r_state%gauss_converter == ziggurat$) then
       cycle  ! rejected by sigma_cut, try again
     endif
 
-    ! Tail sampling (layer 0)
-    if (ix == 0) then
+    ! Tail sampling (bottom layer, which borders the tail at x = zig_r)
+    if (ix == n_zig-1) then
       do
         l_ix = ieor(l_ix, ishft(l_ix, 13))
         l_ix = ieor(l_ix, ishft(l_ix, -17))
@@ -480,8 +481,8 @@ if (r_state%gauss_converter == ziggurat$) then
         exit zig_sample
       endif
 
-      ! Tail sampling (layer 0)
-      if (ix == 0) then
+      ! Tail sampling (bottom layer, which borders the tail at x = zig_r)
+      if (ix == n_zig-1) then
         do
           l_ix = ieor(l_ix, ishft(l_ix, 13))
           l_ix = ieor(l_ix, ishft(l_ix, -17))
