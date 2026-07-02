@@ -77,6 +77,7 @@ fortran_tests = pytest.mark.parametrize(
             marks=pytest.mark.skip(reason="TODO reason here"),
         ),
         pytest.param("wake_test"),
+        pytest.param("z_taylor_wake_test"),
         pytest.param("z_wake_compare_test"),
         pytest.param("wall3d_test"),
         pytest.param("write_bmad_test"),

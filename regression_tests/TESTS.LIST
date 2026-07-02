@@ -49,6 +49,7 @@ time_runge_kutta_test
 tracking_method_test
 ! twiss_test
 wake_test
+z_taylor_wake_test
 z_wake_compare_test
 wall3d_test
 write_bmad_test

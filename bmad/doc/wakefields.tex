@@ -85,6 +85,34 @@ that initially must perform a fit to the wake potential to generate the mode par
 values.]
 
 %-----------------------------
+\section{Short--Range 3D Taylor-Expanded Wakes}
+\label{s:sr.taylor.wake.eq}
+\index{wakefields!Taylor-expanded}
+
+In addition to the pseudo mode and longitudinal table wakes, \bmad implements a full 3D
+short-range wake model (the \vn{z_taylor} substructure, \sref{s:sr.wake.z.taylor}) where the
+longitudinal point-charge wake is expanded to second order in the transverse coordinates of the
+source and witness particles following Zagorodnov, Bane, and Stupakov \cite{b:zagorodnov.taylor}:
+\begin{equation}
+  W_z(x_s, y_s, x_w, y_w, z) = \sum_{a \le b} h_{ab}(z) \, u_a \, u_b, \qquad
+  u = (1, \, x_s, \, y_s, \, x_w, \, y_w)
+\end{equation}
+with 13 independent tabulated terms $h_{ab}(z)$. The transverse wake follows from the
+Panofsky-Wenzel theorem
+\begin{equation}
+  W_{x,y}(x_s, y_s, x_w, y_w, z) = -\int_0^{|z|} \frac{\partial W_z}{\partial (x,y)_w} \, ds
+\end{equation}
+so the model produces energy kicks that depend on the transverse positions of both the source and
+witness particles as well as transverse dipole and quadrupole-like kicks. Unlike the pseudo mode
+wakes, the kicks are computed by binning the bunch charge (and the charge weighted by the source
+$x$, $y$, $x y$, and $x^2 - y^2$ moments) and convolving with the tabulated terms via FFT, with the
+Panofsky-Wenzel integrals precomputed on the term tables when the lattice is parsed. The
+fundamental theorem of beam loading self-wake factor of $1/2$ (\Eq{delvp1}) is included via the
+$z = 0$ bin of the convolution kernels. This is the same model implemented by the \vn{ocelot}
+simulation program, and the term tables are compatible with the ``Taylor'' wake tables computed by
+the \vn{ECHO} family of electromagnetic solvers.
+
+%-----------------------------
 \section{Long--Range Wakes}
 \label{s:lr.wake.eq}
 \index{wakefields!long-range}

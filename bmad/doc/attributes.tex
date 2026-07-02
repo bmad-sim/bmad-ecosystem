@@ -3114,6 +3114,52 @@ The \vn{z_scale} and \vn{amp_scale} parameters of the \vn{sr_wake} structure (\s
 are used with \vn{z_long}.
 
 %-----------------------------------------------------------------
+\subsection{Short-Range 3D Taylor-Expanded Wake}
+\label{s:sr.wake.z.taylor}
+
+The \vn{z_taylor} substructure of \vn{sr_wake} (\sref{s:sr.wake.syntax}) implements a full 3D
+short-range wake model where the longitudinal point-charge wake is expanded to second order in the
+transverse coordinates of the source (``leading'') and witness (``trailing'') particles following
+Zagorodnov, Bane, and Stupakov \cite{b:zagorodnov.taylor}:
+\begin{equation}
+  W_z(x_s, y_s, x_w, y_w, z) = \sum_{a \le b} h_{ab}(z) \, u_a \, u_b, \qquad
+  u = (1, \, x_s, \, y_s, \, x_w, \, y_w)
+\label{wztaylor}
+\end{equation}
+where $(x_s, y_s)$ is the transverse position of the source particle, $(x_w, y_w)$ the transverse
+position of the witness particle, and $z \le 0$ the longitudinal position of the witness relative
+to the source. This gives 13 independent one-dimensional wake terms $h_{ab}(z)$ (terms $h_{22}$ and
+$h_{44}$ are folded into $h_{11}$ and $h_{33}$, which multiply $x^2 - y^2$). Transverse wakes are
+computed from the longitudinal expansion using the Panofsky-Wenzel theorem, so this model produces
+longitudinal {\em and} transverse (dipole and quadrupole-like) kicks, including terms coupling the
+source and witness positions. This is the same model implemented by the \vn{ocelot} program and the
+wake tables are compatible with the ``Taylor'' tables produced by the \vn{ECHO} family of codes.
+
+The syntax for \vn{z_taylor} is
+\begin{example}
+  z_taylor = \{
+    time_based = <T/F>,
+    smoothing_sigma = <sigma>,
+    w00 = \{ <z1> <w1>, <z2> <w2>, ... \},   ! Term h_00 table.
+    w04 = \{ <z1> <w1>, <z2> <w2>, ... \},   ! Term h_04 table.
+    ...
+  \}
+\end{example}
+The 13 possible term names are \vn{w00}, \vn{w01}, \vn{w02}, \vn{w03}, \vn{w04}, \vn{w11},
+\vn{w12}, \vn{w13}, \vn{w14}, \vn{w23}, \vn{w24}, \vn{w33}, and \vn{w34}, where the two digits are
+the indexes $a$ and $b$ of \Eq{wztaylor} (0 = constant, 1 = source $x$, 2 = source $y$, 3 = witness
+$x$, 4 = witness $y$). Any subset of terms may be given but all term tables must be specified on
+the same equally spaced $z$ (or time) grid. The \vn{time_based}, \vn{smoothing_sigma}, table
+symmetrization, and bunch-width restrictions are as for \vn{z_long} (\sref{s:sr.wake.z.long}), as
+are the \vn{sr_wake} \vn{z_scale}, \vn{amp_scale}, and \vn{scale_with_length} parameters.
+
+The wake amplitude units are V/Coul/m for \vn{w00}, with an additional factor of 1/m for every
+nonzero index. For example \vn{w04} is in V/Coul/m$^2$ and \vn{w13} is in V/Coul/m$^3$. A positive
+\vn{w00} corresponds to energy loss. Like the other short-range wakes, the wake is applied to a
+bunch by binning the particle charge (weighted by the appropriate transverse moments) and
+convoluting with the term tables.
+
+%-----------------------------------------------------------------
 \subsection{Short-Range Wakes --- Old Format}
 \label{s:sr.wake.old}
 

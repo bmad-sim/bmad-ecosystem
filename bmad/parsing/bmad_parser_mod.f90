@@ -1456,11 +1456,13 @@ type (lat_struct), pointer :: lat
 type (wake_sr_mode_struct), target :: trans(100), long(100)
 type (wake_sr_mode_struct), pointer :: srm
 type (wake_sr_z_long_struct), pointer :: srz
+type (wake_sr_z_taylor_struct), pointer :: srzt
 type (wake_sr_struct), pointer :: wake_sr
 
 real(rp) f, esum, val
-real(rp), allocatable :: table(:,:), gauss(:)
-integer i, j, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt, ns
+real(rp), allocatable :: table(:,:), gauss(:), fk(:)
+integer i, j, k, it, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt, ns
+integer n0t, n1t, nnt, ntt, nzt
 
 logical delim_found, err_flag, err
 
@@ -1482,6 +1484,20 @@ long = wake_sr_mode_struct()
 err_flag = .true.
 srz => wake_sr%z_long
 srz%time_based = .false.
+
+srzt => wake_sr%z_taylor
+do k = 1, n_sr_z_taylor_term$
+  if (allocated(srzt%term(k)%w)) deallocate(srzt%term(k)%w)
+  if (allocated(srzt%term(k)%fw)) deallocate(srzt%term(k)%fw)
+  if (allocated(srzt%term(k)%fw_int)) deallocate(srzt%term(k)%fw_int)
+enddo
+if (allocated(srzt%fbunch)) deallocate(srzt%fbunch)
+if (allocated(srzt%w_out)) deallocate(srzt%w_out)
+srzt%dz = 0
+srzt%z0 = 0
+srzt%smoothing_sigma = 0
+srzt%time_based = .false.
+nzt = 0
 
 ! get data
 
@@ -1559,6 +1575,79 @@ do
         call parser_error ('UNKNOWN SR_WAKE Z COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
         return
       end select
+
+      if (delim == '}') exit
+      if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
+    enddo
+
+    if (.not. expect_one_of (',} ', .false., ele%name, delim, delim_found)) return
+    if (delim == '}' .or. delim == ' ') exit
+    cycle
+
+  !
+
+  case ('Z_TAYLOR')
+    if (.not. expect_this ('{', .false., .false., 'AFTER "Z_TAYLOR =" IN SR_WAKE DEFINITION', ele, delim, delim_found)) return
+    do
+      call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+
+      k = 0
+      do it = 1, n_sr_z_taylor_term$
+        if (attrib_name == sr_z_taylor_term_name(it)) k = it
+      enddo
+
+      if (k > 0) then
+        if (.not. expect_this ('=', .true., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z_TAYLOR DEFINITION', ele, delim, delim_found)) return
+        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z_TAYLOR ' // trim(attrib_name) // ' LIST', table, 2, .false., delim, delim_found)) return
+
+        if (allocated(srzt%term(k)%w)) then
+          call parser_error ('DUPLICATE SR_WAKE Z_TAYLOR TERM: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+          return
+        endif
+
+        ipt = size(table, 1)
+
+        if (nzt == 0) then
+          ! First term read establishes the common grid.
+          srzt%dz = (table(ipt,1) - table(1,1)) / (ipt - 1)
+          n0t = nint(table(1,1) / srzt%dz)
+          n1t = nint(table(ipt,1) / srzt%dz)
+          if (abs(table(1,1)/srzt%dz - n0t) > 0.1_rp) then
+            call parser_error('Z_TAYLOR WAKE ARRAY DOES NOT HAVE A Z = 0 POINT FOR ELEMENT: ' // ele%name)
+            return
+          endif
+
+          nnt = max(abs(n0t), abs(n1t))
+          ntt = 2 * nnt + 1
+          srzt%z0 = nnt * srzt%dz
+          nzt = ipt
+
+        else
+          if (ipt /= nzt .or. abs(table(1,1) - n0t*srzt%dz) > 0.1_rp*abs(srzt%dz) .or. &
+                              abs(table(ipt,1) - n1t*srzt%dz) > 0.1_rp*abs(srzt%dz)) then
+            call parser_error ('ALL SR_WAKE Z_TAYLOR TERM TABLES MUST BE ON THE SAME Z GRID.', &
+                               'OFFENDING TERM: ' // trim(attrib_name) // ' FOR ELEMENT: ' // ele%name)
+            return
+          endif
+        endif
+
+        call re_allocate(srzt%term(k)%w, ntt)
+        srzt%term(k)%w = 0
+        srzt%term(k)%w(nnt+1+n0t:nnt+1+n1t) = table(:,2)  ! z(i) = (i - nnt - 1) * dz
+
+        if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+
+      else
+        select case (attrib_name)
+        case ('SMOOTHING_SIGMA')
+          call parse_evaluate_value (err_str, srzt%smoothing_sigma, lat, delim, delim_found, err_flag, ',', ele);  if (err_flag) return
+        case ('TIME_BASED')
+          call parser_get_logical (attrib_name, srzt%time_based, ele%name, delim, delim_found, err_flag);  if (err_flag) return
+        case default
+          call parser_error ('UNKNOWN SR_WAKE Z_TAYLOR COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
+          return
+        end select
+      endif
 
       if (delim == '}') exit
       if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
@@ -1662,6 +1751,73 @@ if (allocated(srz%w)) then
 
 else
   allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
+endif
+
+! Z_taylor wake: build the convolution kernels.
+
+if (nzt /= 0) then
+  if (srzt%time_based) then
+    srzt%dz = c_light * srzt%dz
+    srzt%z0 = c_light * srzt%z0
+    srzt%smoothing_sigma = c_light * srzt%smoothing_sigma
+  endif
+
+  f = srzt%smoothing_sigma / srzt%dz
+  ns = nint(3.0_rp * f)
+
+  if (ns /= 0) then
+    if (allocated(gauss)) deallocate(gauss)
+    allocate (gauss(-ns:ns))
+    do i = -ns, ns
+      gauss(i) = exp(-0.5_rp * i / f**2)
+    enddo
+  endif
+
+  call re_allocate(fk, ntt)
+
+  do k = 1, n_sr_z_taylor_term$
+    if (.not. allocated(srzt%term(k)%w)) cycle
+
+    if (srzt%time_based) srzt%term(k)%w = srzt%term(k)%w(ntt:1:-1)
+
+    if (ns /= 0) then
+      fk = 0
+      do i = 1, ntt
+        esum = 0
+        do j = max(1, i - ns), min(ntt, i + ns)
+          fk(i) = fk(i) + gauss(j-i) * srzt%term(k)%w(j)
+          esum = esum + gauss(j-i)
+        enddo
+        fk(i) = fk(i) / esum
+      enddo
+
+    else
+      ! Fundamental theorem of beam loading self-bin correction.
+      ! See the comment in the z_long code above.
+      fk = srzt%term(k)%w
+      fk(nnt+1) = 0.5_rp * fk(nnt+1)
+    endif
+
+    call re_allocate(srzt%term(k)%fw, ntt)
+    srzt%term(k)%fw = fk
+    call fft_1d(srzt%term(k)%fw, -1)
+
+    ! Terms involving the witness transverse position (index 3 or 4) also need
+    ! the Panofsky-Wenzel integrated kernel. The integration variable is the
+    ! distance behind the source, s = -z, so the trapezoid integral runs from
+    ! z = z0 (index ntt, where the causal kernel vanishes) downward.
+
+    if (k == sr_z_taylor_w03$ .or. k == sr_z_taylor_w04$ .or. k == sr_z_taylor_w13$ .or. &
+        k == sr_z_taylor_w14$ .or. k == sr_z_taylor_w23$ .or. k == sr_z_taylor_w24$ .or. &
+        k == sr_z_taylor_w33$ .or. k == sr_z_taylor_w34$) then
+      call re_allocate(srzt%term(k)%fw_int, ntt)
+      srzt%term(k)%fw_int(ntt) = 0
+      do i = ntt-1, 1, -1
+        srzt%term(k)%fw_int(i) = srzt%term(k)%fw_int(i+1) + 0.5_rp * (fk(i) + fk(i+1)) * srzt%dz
+      enddo
+      call fft_1d(srzt%term(k)%fw_int, -1)
+    endif
+  enddo
 endif
 
 err_flag = .false.

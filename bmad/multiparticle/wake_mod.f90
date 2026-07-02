@@ -601,6 +601,263 @@ end subroutine sr_z_long_wake
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
+!+
+! Subroutine sr_z_taylor_wake (ele, bunch, z_ave)
+!
+! Subroutine to apply the Taylor-expanded 3D short-range wake (Zagorodnov style)
+! to a bunch. The longitudinal point wake is expanded to second order in the
+! transverse coordinates of the source and witness particles (13 tabulated
+! terms h_ab, see the wake_sr_z_taylor_struct documentation). Longitudinal and
+! transverse (Panofsky-Wenzel) kicks are applied.
+!
+! The algorithm bins the bunch charge, and the charge weighted by the source
+! x, y, x*y, and x^2-y^2 moments, onto the wake grid ("generalized currents"),
+! convolves with the appropriate term kernels via FFT, and interpolates the
+! resulting wake potentials back to the particles.
+!
+! Input:
+!   ele     -- ele_struct: Element with wake.
+!   bunch   -- bunch_struct: Bunch of particles.
+!   z_ave   -- real(rp): Average z-position of the bunch particles.
+!
+! Output:
+!   bunch   -- bunch_struct: Bunch with wake kicks applied.
+!-
+
+subroutine sr_z_taylor_wake (ele, bunch, z_ave)
+
+type (ele_struct), target :: ele
+type (bunch_struct), target :: bunch
+type (wake_sr_struct), pointer :: sr
+type (wake_sr_z_taylor_struct), pointer :: srzt
+type (coord_struct), pointer :: p
+
+real(rp) z_ave, f0, rz_rel, r1, r2, x, y
+real(rp) wt_z, wt_zy, wt_y, wt_zx, wt_x, wt_zxy, wt_xy, wt_zq, wt_q
+
+integer i, j, k, ix1, ix2, n2, n_bad, nn
+logical need_cur(5), use_pot(9), present_term(13)
+
+character(*), parameter :: r_name = 'sr_z_taylor_wake'
+
+! Scratch column indices: generalized currents (fbunch) and wake potentials (w_out).
+! Potentials with "z" in the name kick vec(6) (times the witness monomial);
+! the others are Panofsky-Wenzel integrated potentials kicking vec(2)/vec(4).
+
+integer, parameter :: ic00 = 1, ic10 = 2, ic01 = 3, ic11 = 4, ic20 = 5
+integer, parameter :: iwz = 1, iwzy = 2, iwy = 3, iwzx = 4, iwx = 5, &
+                      iwzxy = 6, iwxy = 7, iwzq = 8, iwq = 9
+
+!
+
+sr => ele%wake%sr
+if (sr%amp_scale == 0) return
+
+srzt => sr%z_taylor
+if (srzt%dz == 0) return
+
+do k = 1, 13
+  present_term(k) = allocated(srzt%term(k)%fw)
+enddo
+if (.not. any(present_term)) return
+
+f0 = sr%amp_scale / ele%value(p0c$)
+if (sr%scale_with_length) f0 = f0 * ele%value(l$)
+
+! Which generalized currents and which wake potentials are needed?
+
+need_cur = .false.
+need_cur(ic00) = .true.
+need_cur(ic10) = present_term(sr_z_taylor_w01$) .or. present_term(sr_z_taylor_w13$) .or. &
+                 present_term(sr_z_taylor_w14$)
+need_cur(ic01) = present_term(sr_z_taylor_w02$) .or. present_term(sr_z_taylor_w23$) .or. &
+                 present_term(sr_z_taylor_w24$)
+need_cur(ic11) = present_term(sr_z_taylor_w12$)
+need_cur(ic20) = present_term(sr_z_taylor_w11$)
+
+use_pot = .false.
+use_pot(iwz)   = present_term(sr_z_taylor_w00$) .or. present_term(sr_z_taylor_w01$) .or. &
+                 present_term(sr_z_taylor_w02$) .or. present_term(sr_z_taylor_w11$) .or. &
+                 present_term(sr_z_taylor_w12$)
+use_pot(iwzy)  = present_term(sr_z_taylor_w04$) .or. present_term(sr_z_taylor_w14$) .or. &
+                 present_term(sr_z_taylor_w24$)
+use_pot(iwy)   = use_pot(iwzy)
+use_pot(iwzx)  = present_term(sr_z_taylor_w03$) .or. present_term(sr_z_taylor_w13$) .or. &
+                 present_term(sr_z_taylor_w23$)
+use_pot(iwx)   = use_pot(iwzx)
+use_pot(iwzxy) = present_term(sr_z_taylor_w34$)
+use_pot(iwxy)  = use_pot(iwzxy)
+use_pot(iwzq)  = present_term(sr_z_taylor_w33$)
+use_pot(iwq)   = use_pot(iwzq)
+
+! Allocate scratch space if needed.
+
+do k = 1, 13
+  if (present_term(k)) then
+    nn = size(srzt%term(k)%fw)
+    exit
+  endif
+enddo
+n2 = (nn - 1) / 2
+
+if (allocated(srzt%fbunch)) then
+  if (size(srzt%fbunch, 1) /= nn) deallocate(srzt%fbunch, srzt%w_out)
+endif
+if (.not. allocated(srzt%fbunch)) allocate(srzt%fbunch(nn,5), srzt%w_out(nn,9))
+
+! Bin the generalized currents.
+
+srzt%fbunch = 0
+n_bad = 0
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
+
+  rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srzt%dz + n2 + 1
+  ix1 = floor(rz_rel)
+  ix2 = ix1 + 1
+  if (ix1 < 1 .or. ix2 > nn) then
+    n_bad = n_bad + 1
+    cycle
+  endif
+
+  r1 = (ix2 - rz_rel) * p%charge
+  r2 = (rz_rel - ix1) * p%charge
+  x = p%vec(1)
+  y = p%vec(3)
+
+  srzt%fbunch(ix1,ic00) = srzt%fbunch(ix1,ic00) + r1
+  srzt%fbunch(ix2,ic00) = srzt%fbunch(ix2,ic00) + r2
+  if (need_cur(ic10)) then
+    srzt%fbunch(ix1,ic10) = srzt%fbunch(ix1,ic10) + r1 * x
+    srzt%fbunch(ix2,ic10) = srzt%fbunch(ix2,ic10) + r2 * x
+  endif
+  if (need_cur(ic01)) then
+    srzt%fbunch(ix1,ic01) = srzt%fbunch(ix1,ic01) + r1 * y
+    srzt%fbunch(ix2,ic01) = srzt%fbunch(ix2,ic01) + r2 * y
+  endif
+  if (need_cur(ic11)) then
+    srzt%fbunch(ix1,ic11) = srzt%fbunch(ix1,ic11) + r1 * x * y
+    srzt%fbunch(ix2,ic11) = srzt%fbunch(ix2,ic11) + r2 * x * y
+  endif
+  if (need_cur(ic20)) then
+    srzt%fbunch(ix1,ic20) = srzt%fbunch(ix1,ic20) + r1 * (x*x - y*y)
+    srzt%fbunch(ix2,ic20) = srzt%fbunch(ix2,ic20) + r2 * (x*x - y*y)
+  endif
+enddo
+
+if (n_bad > 0.01 * size(bunch%particle)) then
+  call out_io (s_error$, r_name, &
+      'The bunch is longer than the sr z_taylor wake can handle for element: ' // ele%name)
+  bunch%particle%state = lost$
+  return
+endif
+
+do k = 1, 5
+  if (need_cur(k)) call fft_1d(srzt%fbunch(:,k), -1)
+enddo
+
+! Accumulate the wake potentials in frequency space. The kernel coefficients
+! follow the second-order Taylor expansion: cross terms h_ab with a /= b
+! appear twice in the double sum, hence the factors of 2.
+
+srzt%w_out = 0
+
+associate (t => srzt%term, fb => srzt%fbunch, wo => srzt%w_out)
+  ! Witness-independent longitudinal potential.
+  if (present_term(sr_z_taylor_w00$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic00) * t(sr_z_taylor_w00$)%fw
+  if (present_term(sr_z_taylor_w01$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic10) * t(sr_z_taylor_w01$)%fw
+  if (present_term(sr_z_taylor_w02$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic01) * t(sr_z_taylor_w02$)%fw
+  if (present_term(sr_z_taylor_w11$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic20) * t(sr_z_taylor_w11$)%fw
+  if (present_term(sr_z_taylor_w12$)) wo(:,iwz) = wo(:,iwz) + 2 * fb(:,ic11) * t(sr_z_taylor_w12$)%fw
+
+  ! Terms linear in the witness y.
+  if (present_term(sr_z_taylor_w04$)) then
+    wo(:,iwzy) = wo(:,iwzy) + fb(:,ic00) * t(sr_z_taylor_w04$)%fw
+    wo(:,iwy)  = wo(:,iwy)  + fb(:,ic00) * t(sr_z_taylor_w04$)%fw_int
+  endif
+  if (present_term(sr_z_taylor_w14$)) then
+    wo(:,iwzy) = wo(:,iwzy) + 2 * fb(:,ic10) * t(sr_z_taylor_w14$)%fw
+    wo(:,iwy)  = wo(:,iwy)  + 2 * fb(:,ic10) * t(sr_z_taylor_w14$)%fw_int
+  endif
+  if (present_term(sr_z_taylor_w24$)) then
+    wo(:,iwzy) = wo(:,iwzy) + 2 * fb(:,ic01) * t(sr_z_taylor_w24$)%fw
+    wo(:,iwy)  = wo(:,iwy)  + 2 * fb(:,ic01) * t(sr_z_taylor_w24$)%fw_int
+  endif
+
+  ! Terms linear in the witness x.
+  if (present_term(sr_z_taylor_w03$)) then
+    wo(:,iwzx) = wo(:,iwzx) + fb(:,ic00) * t(sr_z_taylor_w03$)%fw
+    wo(:,iwx)  = wo(:,iwx)  + fb(:,ic00) * t(sr_z_taylor_w03$)%fw_int
+  endif
+  if (present_term(sr_z_taylor_w13$)) then
+    wo(:,iwzx) = wo(:,iwzx) + 2 * fb(:,ic10) * t(sr_z_taylor_w13$)%fw
+    wo(:,iwx)  = wo(:,iwx)  + 2 * fb(:,ic10) * t(sr_z_taylor_w13$)%fw_int
+  endif
+  if (present_term(sr_z_taylor_w23$)) then
+    wo(:,iwzx) = wo(:,iwzx) + 2 * fb(:,ic01) * t(sr_z_taylor_w23$)%fw
+    wo(:,iwx)  = wo(:,iwx)  + 2 * fb(:,ic01) * t(sr_z_taylor_w23$)%fw_int
+  endif
+
+  ! Witness x*y term.
+  if (present_term(sr_z_taylor_w34$)) then
+    wo(:,iwzxy) = 2 * fb(:,ic00) * t(sr_z_taylor_w34$)%fw
+    wo(:,iwxy)  = 2 * fb(:,ic00) * t(sr_z_taylor_w34$)%fw_int
+  endif
+
+  ! Witness x^2 - y^2 (quadrupole-like) term.
+  if (present_term(sr_z_taylor_w33$)) then
+    wo(:,iwzq) = fb(:,ic00) * t(sr_z_taylor_w33$)%fw
+    wo(:,iwq)  = 2 * fb(:,ic00) * t(sr_z_taylor_w33$)%fw_int
+  endif
+end associate
+
+do j = 1, 9
+  if (.not. use_pot(j)) cycle
+  srzt%w_out(:,j) = srzt%w_out(:,j) * f0 / nn
+  call fft_1d(srzt%w_out(:,j), 1)
+enddo
+
+! Apply the kicks. Positive tabulated h_ab corresponds to energy loss for the
+! longitudinal potentials; the integrated (Panofsky-Wenzel) potentials are
+! built so that they add directly to the transverse momenta.
+
+do i = 1, size(bunch%particle)
+  p => bunch%particle(i)
+  if (p%state /= alive$) cycle
+
+  rz_rel = sr%z_scale * (p%vec(5) - z_ave) / srzt%dz + n2 + 1
+  ix1 = MOD(floor(rz_rel) + n2 - 1, nn) + 1
+  ix2 = MOD(ix1, nn) + 1
+
+  r2 = MOD(rz_rel, 1.0_rp)
+  r1 = 1 - r2
+  x = p%vec(1)
+  y = p%vec(3)
+
+  wt_z   = 0;  wt_zy = 0;  wt_y = 0;  wt_zx = 0;  wt_x = 0
+  wt_zxy = 0;  wt_xy = 0;  wt_zq = 0; wt_q = 0
+
+  if (use_pot(iwz))   wt_z   = r1 * real(srzt%w_out(ix1,iwz))   + r2 * real(srzt%w_out(ix2,iwz))
+  if (use_pot(iwzy))  wt_zy  = r1 * real(srzt%w_out(ix1,iwzy))  + r2 * real(srzt%w_out(ix2,iwzy))
+  if (use_pot(iwy))   wt_y   = r1 * real(srzt%w_out(ix1,iwy))   + r2 * real(srzt%w_out(ix2,iwy))
+  if (use_pot(iwzx))  wt_zx  = r1 * real(srzt%w_out(ix1,iwzx))  + r2 * real(srzt%w_out(ix2,iwzx))
+  if (use_pot(iwx))   wt_x   = r1 * real(srzt%w_out(ix1,iwx))   + r2 * real(srzt%w_out(ix2,iwx))
+  if (use_pot(iwzxy)) wt_zxy = r1 * real(srzt%w_out(ix1,iwzxy)) + r2 * real(srzt%w_out(ix2,iwzxy))
+  if (use_pot(iwxy))  wt_xy  = r1 * real(srzt%w_out(ix1,iwxy))  + r2 * real(srzt%w_out(ix2,iwxy))
+  if (use_pot(iwzq))  wt_zq  = r1 * real(srzt%w_out(ix1,iwzq))  + r2 * real(srzt%w_out(ix2,iwzq))
+  if (use_pot(iwq))   wt_q   = r1 * real(srzt%w_out(ix1,iwq))   + r2 * real(srzt%w_out(ix2,iwq))
+
+  p%vec(6) = p%vec(6) - (wt_z + wt_zy * y + wt_zx * x + wt_zxy * x * y + wt_zq * (x*x - y*y))
+  p%vec(2) = p%vec(2) + wt_x + wt_xy * y + wt_q * x
+  p%vec(4) = p%vec(4) + wt_y + wt_xy * x - wt_q * y
+enddo
+
+end subroutine sr_z_taylor_wake
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
 ! Subroutine order_particles_in_z (bunch)
@@ -753,6 +1010,7 @@ ele%wake%sr%z_ref_trans = p(i1)%vec(5)
 ! Z-wake
 
 call sr_z_long_wake(ele, bunch, p((i1+i2)/2)%vec(5))
+call sr_z_taylor_wake(ele, bunch, p((i1+i2)/2)%vec(5))
 
 ! Loop over all particles in the bunch and apply the mode wakes
 

@@ -64,6 +64,9 @@ type (floor_position_struct) :: floor, f0, floor2
 type (wake_lr_mode_struct), pointer :: lr
 type (wake_sr_mode_struct), pointer :: mode
 type (wake_sr_z_long_struct), pointer :: srz
+type (wake_sr_z_taylor_struct), pointer :: srzt
+
+character(80) zt_str
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
@@ -1411,8 +1414,8 @@ endif
 
 if (associated(ele%wake)) then
 
-  if (logic_option (.true., type_wake) .and. (size(ele%wake%sr%long) /= 0 .or. &
-                                              size(ele%wake%sr%trans) /= 0 .or.size(ele%wake%sr%z_long%w) /= 0 )) then
+  if (logic_option (.true., type_wake) .and. (size(ele%wake%sr%long) /= 0 .or. size(ele%wake%sr%trans) /= 0 .or. &
+                                              size(ele%wake%sr%z_long%w) /= 0 .or. ele%wake%sr%z_taylor%dz /= 0)) then
     nl=nl+1; li(nl) = ''
     nl=nl+1; li(nl) = 'Short-Range Wake:'
     if (ele%wake%sr%file /= '') then
@@ -1472,6 +1475,26 @@ if (associated(ele%wake)) then
 
     else
      nl=nl+1; li(nl) = '  No short-range z-dependent modes.'
+    endif
+  endif
+
+  if (ele%wake%sr%z_taylor%dz /= 0) then
+    nl=nl+1; write (li(nl), *)
+    if (logic_option (.true., type_wake)) then
+      call re_allocate (li, nl+100, .false.)
+      srzt => ele%wake%sr%z_taylor
+      nl=nl+1; li(nl) = '  Short-Range 3D Taylor-Expanded wake:'
+      nl=nl+1; li(nl) = '    smoothing_sigma  = ' // to_str(srzt%smoothing_sigma)
+      nl=nl+1; li(nl) = '    dz (scaled) [m]  = ' // to_str(srzt%dz / ele%wake%sr%z_scale)
+      nl=nl+1; li(nl) = '    Wake range (scaled) [m]: +/-' // to_str(srzt%z0 / ele%wake%sr%z_scale)
+      zt_str = ''
+      do im = 1, n_sr_z_taylor_term$
+        if (.not. allocated(srzt%term(im)%w)) cycle
+        zt_str = trim(zt_str) // ' ' // sr_z_taylor_term_name(im)
+      enddo
+      nl=nl+1; li(nl) = '    Terms present:' // trim(zt_str)
+    else
+     nl=nl+1; li(nl) = '  No short-range 3D Taylor-expanded wake.'
     endif
   endif
 
