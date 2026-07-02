@@ -20,6 +20,7 @@ implicit none
 
 integer, parameter :: n_samples = 100000
 integer, parameter :: n_vec = 6
+integer, parameter :: n_tail_batch = 333000  ! n_tail_batch*n_vec ~ 2e6 tail samples
 
 real(rp) :: scalar_vals(n_samples)
 real(rp) :: vector_vals(n_samples)
@@ -29,8 +30,11 @@ real(rp) :: sig_cut_val, max_abs
 real(rp) :: sorted(n_samples)
 real(rp) :: z, phi_z, s_term
 real(rp) :: diff_max
+real(rp) :: frac_gt_r, frac_gt_4
+real(rp), parameter :: zig_r_val = 3.442619855899_rp  ! ziggurat tail boundary
 
 integer :: i, j, idx
+integer :: n_gt_r, n_gt_4, n_tail
 
 ! Output file
 open (1, file = 'output.now')
@@ -81,7 +85,7 @@ write (1, '(a, es16.8)') '"Scalar-vs-vector-diff" ABS 1e-12', diff_max
 ! Generate large sample for statistical tests using vector path
 ! ============================================================
 
-call ran_seed_put(12345)
+call ran_seed_put(1234567)
 idx = 1
 do while (idx <= n_samples)
   call ran_gauss(vec_buf)
@@ -229,6 +233,35 @@ enddo
 
 write (1, '(a, f18.12)') '"Scalar-sigcut-ok" ABS 1e-12', max(0.0_rp, max_abs - sig_cut_val)
 
+! ============================================================
+! Test 11: Tail population (regression guard for the ziggurat layer bug).
+! For N(0,1): P(|x| > zig_r = 3.4426) = 5.761e-4 and P(|x| > 4) = 6.334e-5.
+! A correct generator reproduces these. The old ziggurat implementation
+! triggered tail sampling on the peak layer (ix == 0) instead of the bottom
+! layer (ix == n_zig-1), so every layer-0 draw (~1/128) was forced into the
+! tail, over-populating |x| > zig_r by ~13x and inflating the variance ~10%.
+! The tolerances below pass for the corrected analytic rates but fail by a
+! wide margin for that bug (observed ~7.9e-3 vs reference 5.8e-4).
+! ============================================================
+
+n_tail = n_tail_batch * n_vec
+call ran_seed_put(13579)
+n_gt_r = 0
+n_gt_4 = 0
+do i = 1, n_tail_batch
+  call ran_gauss(vec_buf)
+  do j = 1, n_vec
+    if (abs(vec_buf(j)) > zig_r_val) n_gt_r = n_gt_r + 1
+    if (abs(vec_buf(j)) > 4.0_rp)    n_gt_4 = n_gt_4 + 1
+  enddo
+enddo
+
+frac_gt_r = real(n_gt_r, rp) / real(n_tail, rp)
+frac_gt_4 = real(n_gt_4, rp) / real(n_tail, rp)
+
+write (1, '(a, es18.10)') '"Tail-gt-zigr" ABS 1.5e-4', frac_gt_r
+write (1, '(a, es18.10)') '"Tail-gt-4sig" ABS 4e-5', frac_gt_4
+
 !
 
 close (1)
@@ -246,7 +279,7 @@ subroutine shell_sort(arr)
     ! arr is replaced on output by its sorted rearrangement.
     real(rp), dimension(:), intent(inout) :: arr
     integer :: i, j, inc, n
-    real :: v
+    real(rp) :: v
 
     n = size(arr)
     inc = 1
