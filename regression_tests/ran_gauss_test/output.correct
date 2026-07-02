@@ -1,16 +1,16 @@
 "Repro-scalar" ABS 1e-12   -1.011678698480   -1.130180550954   -0.354242062334   -1.635390942087
 "Repro-vector" ABS 1e-12   -1.011678698480   -1.130180550954   -0.354242062334   -1.635390942087   -1.746986221390   -0.551450559286
 "Scalar-vs-vector-diff" ABS 1e-12  0.00000000E+00
-"Vec-mean" ABS 2e-2   -0.009437055522
-"Vec-variance" ABS 3e-2   -0.005562945524
-"Vec-skewness" ABS 5e-2    0.008617997692
-"Vec-kurtosis" ABS 1e-1    0.027638121229
-"Vec-AD-stat" ABS 2.0    5.755634199071
+"Vec-mean" ABS 2e-2   -0.003545117457
+"Vec-variance" ABS 3e-2   -0.000524551843
+"Vec-skewness" ABS 5e-2   -0.015066307527
+"Vec-kurtosis" ABS 1e-1    0.023895675608
+"Vec-AD-stat" ABS 2.0    0.786418113916
 "Scalar-mean" ABS 2e-2   -0.001642667600
 "Scalar-variance" ABS 3e-2   -0.002121802845
 "Scalar-skewness" ABS 5e-2   -0.004555209847
 "Scalar-kurtosis" ABS 1e-1   -0.017808338189
-"Scalar-AD-stat" ABS 2.0    0.345983801672
+"Scalar-AD-stat" ABS 2.0    0.345983800260
 "Vec-sigcut-ok" ABS 1e-12    0.000000000000
 "Scalar-sigcut-ok" ABS 1e-12    0.000000000000
 "Tail-gt-zigr" ABS 1.5e-4  5.8208208208E-04

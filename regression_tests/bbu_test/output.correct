@@ -2,8 +2,8 @@
 "hom_voltage_gain_1A"  ABS 1E-8   3.329509888980E-001
 "growth_rate_1A"       ABS 1E-8  -1.099759980320E+000
 "lost_boolean_1mA"      STR "F"
-"hom_voltage_gain_1mA"  ABS 1E-8   3.589575149248E-001
-"growth_rate_1mA"       ABS 1E-8  -1.024551240325E+000
+"hom_voltage_gain_1mA"  ABS 1E-8   3.589575147896E-001
+"growth_rate_1mA"       ABS 1E-8  -1.024551240702E+000
 "lost_boolean_100A"      STR "F"
-"hom_voltage_gain_100A"  ABS 1E-8   2.915515566047E-001
-"growth_rate_100A"       ABS 4E-8  -1.232538422262E+000
+"hom_voltage_gain_100A"  ABS 1E-8   2.913154980994E-001
+"growth_rate_100A"       ABS 4E-8  -1.233348413207E+000

@@ -85,7 +85,7 @@ write (1, '(a, es16.8)') '"Scalar-vs-vector-diff" ABS 1e-12', diff_max
 ! Generate large sample for statistical tests using vector path
 ! ============================================================
 
-call ran_seed_put(12345)
+call ran_seed_put(1234567)
 idx = 1
 do while (idx <= n_samples)
   call ran_gauss(vec_buf)
@@ -279,7 +279,7 @@ subroutine shell_sort(arr)
     ! arr is replaced on output by its sorted rearrangement.
     real(rp), dimension(:), intent(inout) :: arr
     integer :: i, j, inc, n
-    real :: v
+    real(rp) :: v
 
     n = size(arr)
     inc = 1
