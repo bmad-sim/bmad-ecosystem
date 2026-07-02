@@ -557,7 +557,7 @@ do i = 1, size(bunch%particle)
     srz%w_out(ix1) = srz%w_out(ix1) + r1 * p%vec(1)
     srz%w_out(ix2) = srz%w_out(ix2) + r2 * p%vec(1)
   case (y_leading$)
-    srz%w_out(ix1) = srz%w_out(ix2) + r1 * p%vec(3)
+    srz%w_out(ix1) = srz%w_out(ix1) + r1 * p%vec(3)
     srz%w_out(ix2) = srz%w_out(ix2) + r2 * p%vec(3)
   end select
 enddo

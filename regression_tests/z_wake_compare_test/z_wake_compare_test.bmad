@@ -74,5 +74,67 @@ p_tab_small_sig: pipe, L = 1, sr_wake = {
   }
 }
 
-lat: line = (p_mode, p_tab, p_tab_small_sig)
+! x_leading / y_leading pairs: the same constant wake, but with the
+! deposited charge weighted by the leading-particle x or y offset.
+! The mode and table versions must agree to machine precision.
+
+p_mode_xl: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  longitudinal = {1e15, 0.0, 0.0, 0.25, x_leading}
+}
+
+p_tab_xl: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 0,
+    position_dependence = x_leading,
+    w = {
+      -100e-6 1e15,
+       -90e-6 1e15,
+       -80e-6 1e15,
+       -70e-6 1e15,
+       -60e-6 1e15,
+       -50e-6 1e15,
+       -40e-6 1e15,
+       -30e-6 1e15,
+       -20e-6 1e15,
+       -10e-6 1e15,
+         0e-6 1e15,
+    }
+  }
+}
+
+p_mode_yl: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  longitudinal = {1e15, 0.0, 0.0, 0.25, y_leading}
+}
+
+p_tab_yl: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 0,
+    position_dependence = y_leading,
+    w = {
+      -100e-6 1e15,
+       -90e-6 1e15,
+       -80e-6 1e15,
+       -70e-6 1e15,
+       -60e-6 1e15,
+       -50e-6 1e15,
+       -40e-6 1e15,
+       -30e-6 1e15,
+       -20e-6 1e15,
+       -10e-6 1e15,
+         0e-6 1e15,
+    }
+  }
+}
+
+lat: line = (p_mode, p_tab, p_tab_small_sig, p_mode_xl, p_tab_xl, p_mode_yl, p_tab_yl)
 use, lat
