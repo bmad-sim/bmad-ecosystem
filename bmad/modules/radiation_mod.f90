@@ -198,17 +198,21 @@ branch => pointer_to_branch(ele)
 
 bmad_com_save = bmad_com
 bmad_com%radiation_damping_on = .false.
+bmad_com%radiation_fluctuations_on = .false.
 bmad_com%spin_tracking_on = .false.
 
 if (present(ref_orbit_in)) then
   ref_orb_in = ref_orbit_in
   ! Radiation (in particular the random fluctuations) must not be applied to the deterministic
-  ! reference orbit used to seed the radiation map.
+  ! reference orbit used to seed the radiation map. Fluctuations are disabled above.
   call track1(ref_orb_in, ele, branch%param, ref_orb_out)
+  ! The radiation map is an auxiliary calculation. If the supplied reference orbit (e.g. a bunch
+  ! centroid) is lost here -- for example, because it is outside an aperture -- fall back to the
+  ! element's design reference orbit instead of failing. The actual particle loss is handled by
+  ! the normal beam-tracking machinery.
   if (ref_orb_out%state /= alive$) then
-    err_flag = .true.
-    call out_io (s_error$, r_name, 'Reference particle lost while tracking through: ' // ele_full_name(ele))
-    goto 8000
+    ref_orb_in  = ele%map_ref_orb_in
+    ref_orb_out = ele%map_ref_orb_out
   endif
 else
   ref_orb_in  = ele%map_ref_orb_in
