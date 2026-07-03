@@ -19,7 +19,7 @@
 !                     Only needed if lattice branch has an open geometry.
 !
 ! Output:
-!   delta_e       -- real(rp): Set to 1.0d-4 if on input DELTA_E =< 0.
+!   delta_e       -- real(rp): Value used in computation. Set to 1.0d-4 if on input delta_e =< 0.
 !   chrom_a       -- real(rp): a-mode chromaticity.
 !   chrom_b       -- real(rp): b-mode chromaticity.
 !   err_flag      -- logical, optional: Set true if there is an error. False otherwise.
@@ -81,6 +81,20 @@ dE2 = 0.5_rp * dE
 
 nt = branch%n_ele_track
 nm = branch%n_ele_max
+
+!
+
+if (branch%param%geometry /= closed$) then
+  if (fix_ele%a%beta - dE2 * abs(fix_ele%a%dbeta_dpz) <= 0 .or. &
+      fix_ele%b%beta - dE2 * abs(fix_ele%b%dbeta_dpz) <= 0) then
+    call out_io (s_warn$, r_name, &
+        'Linear extrapolation of the starting beta using a pz change of ' // real_str(delta_e), &
+        'gives a negative beta. The chromaticity will not be computed.', &
+        'Either reduce dbeta_dpz_a and/or dbeta_dpz_b values or reduce', &
+        'the value of delta_e passed to chrom_calc. [In Tao this is global%delta_e_chrom.]')
+    return
+  endif
+endif
 
 ! Low energy calc.
 
