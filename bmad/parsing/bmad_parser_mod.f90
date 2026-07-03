@@ -1459,10 +1459,17 @@ type (wake_sr_z_long_struct), pointer :: srz
 type (wake_sr_z_taylor_struct), pointer :: srzt
 type (wake_sr_struct), pointer :: wake_sr
 
-real(rp) f, esum, val
+type z_taylor_raw_struct   ! Scratch storage for z_taylor term tables while parsing.
+  real(rp), allocatable :: w(:,:), w1(:,:)
+end type
+
+type (z_taylor_raw_struct) :: zt_raw(n_sr_z_taylor_term$)
+
+real(rp) f, esum, val, dzt
 real(rp), allocatable :: table(:,:), gauss(:), fk(:)
 integer i, j, k, it, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt, ns
-integer n0t, n1t, nnt, ntt, nzt
+integer n0t, n1t, nnt, ntt
+logical zt_seen(n_sr_z_taylor_term$)
 
 logical delim_found, err_flag, err
 
@@ -1490,14 +1497,22 @@ do k = 1, n_sr_z_taylor_term$
   if (allocated(srzt%term(k)%w)) deallocate(srzt%term(k)%w)
   if (allocated(srzt%term(k)%fw)) deallocate(srzt%term(k)%fw)
   if (allocated(srzt%term(k)%fw_int)) deallocate(srzt%term(k)%fw_int)
+  if (allocated(srzt%term(k)%w1)) deallocate(srzt%term(k)%w1)
+  if (allocated(srzt%term(k)%fw1)) deallocate(srzt%term(k)%fw1)
+  if (allocated(srzt%term(k)%fw1_int)) deallocate(srzt%term(k)%fw1_int)
+  srzt%term(k)%r = 0
+  srzt%term(k)%l = 0
+  srzt%term(k)%c_inv = 0
 enddo
+if (allocated(srzt%f_step)) deallocate(srzt%f_step)
+if (allocated(srzt%f_step_int)) deallocate(srzt%f_step_int)
 if (allocated(srzt%fbunch)) deallocate(srzt%fbunch)
 if (allocated(srzt%w_out)) deallocate(srzt%w_out)
 srzt%dz = 0
 srzt%z0 = 0
 srzt%smoothing_sigma = 0
 srzt%time_based = .false.
-nzt = 0
+zt_seen = .false.
 
 ! get data
 
@@ -1597,43 +1612,43 @@ do
       enddo
 
       if (k > 0) then
-        if (.not. expect_this ('=', .true., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z_TAYLOR DEFINITION', ele, delim, delim_found)) return
-        if (.not. parse_real_matrix(lat, ele, trim(ele%name) // 'SR_WAKE Z_TAYLOR ' // trim(attrib_name) // ' LIST', table, 2, .false., delim, delim_found)) return
-
-        if (allocated(srzt%term(k)%w)) then
+        if (zt_seen(k)) then
           call parser_error ('DUPLICATE SR_WAKE Z_TAYLOR TERM: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
           return
         endif
+        zt_seen(k) = .true.
 
-        ipt = size(table, 1)
+        if (.not. expect_this ('=', .true., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z_TAYLOR DEFINITION', ele, delim, delim_found)) return
+        if (.not. expect_this ('{', .false., .false., 'AFTER "' // trim(attrib_name) // ' =" IN SR_WAKE Z_TAYLOR DEFINITION', ele, delim, delim_found)) return
 
-        if (nzt == 0) then
-          ! First term read establishes the common grid.
-          srzt%dz = (table(ipt,1) - table(1,1)) / (ipt - 1)
-          n0t = nint(table(1,1) / srzt%dz)
-          n1t = nint(table(ipt,1) / srzt%dz)
-          if (abs(table(1,1)/srzt%dz - n0t) > 0.1_rp) then
-            call parser_error('Z_TAYLOR WAKE ARRAY DOES NOT HAVE A Z = 0 POINT FOR ELEMENT: ' // ele%name)
+        do
+          call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
+
+          select case (attrib_name)
+          case ('W')
+            if (.not. expect_this ('=', .true., .false., 'AFTER "W =" IN SR_WAKE Z_TAYLOR TERM', ele, delim, delim_found)) return
+            if (.not. parse_real_matrix(lat, ele, trim(ele%name) // ' SR_WAKE Z_TAYLOR W TABLE', table, 2, .false., delim, delim_found)) return
+            zt_raw(k)%w = table
+            if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+          case ('W1')
+            if (.not. expect_this ('=', .true., .false., 'AFTER "W1 =" IN SR_WAKE Z_TAYLOR TERM', ele, delim, delim_found)) return
+            if (.not. parse_real_matrix(lat, ele, trim(ele%name) // ' SR_WAKE Z_TAYLOR W1 TABLE', table, 2, .false., delim, delim_found)) return
+            zt_raw(k)%w1 = table
+            if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
+          case ('R')
+            call parse_evaluate_value (err_str, srzt%term(k)%r, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
+          case ('L')
+            call parse_evaluate_value (err_str, srzt%term(k)%l, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
+          case ('C_INV')
+            call parse_evaluate_value (err_str, srzt%term(k)%c_inv, lat, delim, delim_found, err_flag, ',}', ele);  if (err_flag) return
+          case default
+            call parser_error ('UNKNOWN SR_WAKE Z_TAYLOR TERM COMPONENT: ' // attrib_name, 'FOR ELEMENT: ' // ele%name)
             return
-          endif
+          end select
 
-          nnt = max(abs(n0t), abs(n1t))
-          ntt = 2 * nnt + 1
-          srzt%z0 = nnt * srzt%dz
-          nzt = ipt
-
-        else
-          if (ipt /= nzt .or. abs(table(1,1) - n0t*srzt%dz) > 0.1_rp*abs(srzt%dz) .or. &
-                              abs(table(ipt,1) - n1t*srzt%dz) > 0.1_rp*abs(srzt%dz)) then
-            call parser_error ('ALL SR_WAKE Z_TAYLOR TERM TABLES MUST BE ON THE SAME Z GRID.', &
-                               'OFFENDING TERM: ' // trim(attrib_name) // ' FOR ELEMENT: ' // ele%name)
-            return
-          endif
-        endif
-
-        call re_allocate(srzt%term(k)%w, ntt)
-        srzt%term(k)%w = 0
-        srzt%term(k)%w(nnt+1+n0t:nnt+1+n1t) = table(:,2)  ! z(i) = (i - nnt - 1) * dz
+          if (delim == '}') exit
+          if (.not. expect_one_of (',', .true., ele%name, delim, delim_found)) return
+        enddo
 
         if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
@@ -1753,14 +1768,82 @@ else
   allocate (srz%w(0), srz%fw(0), srz%w_out(0), srz%fbunch(0))
 endif
 
-! Z_taylor wake: build the convolution kernels.
+! Z_taylor wake: establish the common grid, pad the tables, and build the
+! convolution kernels.
 
-if (nzt /= 0) then
+if (any(zt_seen)) then
+  ! Common grid: all w and w1 tables must share the point spacing and have
+  ! points on a grid containing z = 0. The grid extent covers all tables.
+
+  nnt = 0
+  do k = 1, n_sr_z_taylor_term$
+    do it = 1, 2
+      if (it == 1) then
+        if (.not. allocated(zt_raw(k)%w)) cycle
+        table = zt_raw(k)%w
+      else
+        if (.not. allocated(zt_raw(k)%w1)) cycle
+        table = zt_raw(k)%w1
+      endif
+
+      ipt = size(table, 1)
+      dzt = (table(ipt,1) - table(1,1)) / (ipt - 1)
+      if (srzt%dz == 0) srzt%dz = dzt
+      if (abs(dzt - srzt%dz) > 1e-6_rp * abs(srzt%dz)) then
+        call parser_error ('ALL SR_WAKE Z_TAYLOR TABLES MUST HAVE THE SAME POINT SPACING.', &
+                           'FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      n0t = nint(table(1,1) / srzt%dz)
+      n1t = nint(table(ipt,1) / srzt%dz)
+      if (abs(table(1,1)/srzt%dz - n0t) > 0.1_rp .or. n1t - n0t /= ipt - 1) then
+        call parser_error ('SR_WAKE Z_TAYLOR TABLE POINTS MUST BE ON A COMMON GRID WITH A Z = 0 POINT.', &
+                           'FOR ELEMENT: ' // ele%name)
+        return
+      endif
+      nnt = max(nnt, abs(n0t), abs(n1t))
+    enddo
+  enddo
+
+  if (srzt%dz == 0) then
+    call parser_error ('SR_WAKE Z_TAYLOR MUST HAVE AT LEAST ONE W OR W1 TABLE.', 'FOR ELEMENT: ' // ele%name)
+    return
+  endif
+
+  ntt = 2 * nnt + 1
+  srzt%z0 = nnt * srzt%dz
+
+  ! Pad the tables onto the common grid: z(i) = (i - nnt - 1) * dz
+
+  do k = 1, n_sr_z_taylor_term$
+    if (allocated(zt_raw(k)%w)) then
+      ipt = size(zt_raw(k)%w, 1)
+      n0t = nint(zt_raw(k)%w(1,1) / srzt%dz)
+      call re_allocate(srzt%term(k)%w, ntt)
+      srzt%term(k)%w = 0
+      srzt%term(k)%w(nnt+1+n0t:nnt+n0t+ipt) = zt_raw(k)%w(:,2)
+    endif
+    if (allocated(zt_raw(k)%w1)) then
+      ipt = size(zt_raw(k)%w1, 1)
+      n0t = nint(zt_raw(k)%w1(1,1) / srzt%dz)
+      call re_allocate(srzt%term(k)%w1, ntt)
+      srzt%term(k)%w1 = 0
+      srzt%term(k)%w1(nnt+1+n0t:nnt+n0t+ipt) = zt_raw(k)%w1(:,2)
+    endif
+  enddo
+
   if (srzt%time_based) then
     srzt%dz = c_light * srzt%dz
     srzt%z0 = c_light * srzt%z0
     srzt%smoothing_sigma = c_light * srzt%smoothing_sigma
+    do k = 1, n_sr_z_taylor_term$
+      if (allocated(srzt%term(k)%w))  srzt%term(k)%w  = srzt%term(k)%w(ntt:1:-1)
+      if (allocated(srzt%term(k)%w1)) srzt%term(k)%w1 = srzt%term(k)%w1(ntt:1:-1)
+    enddo
   endif
+
+  ! Convolution kernels. Smoothing and the fundamental theorem of beam loading
+  ! self-bin correction are as for the z_long wake (see comments above).
 
   f = srzt%smoothing_sigma / srzt%dz
   ns = nint(3.0_rp * f)
@@ -1776,48 +1859,91 @@ if (nzt /= 0) then
   call re_allocate(fk, ntt)
 
   do k = 1, n_sr_z_taylor_term$
-    if (.not. allocated(srzt%term(k)%w)) cycle
+    do it = 1, 2
+      if (it == 1) then
+        if (.not. allocated(srzt%term(k)%w)) cycle
+      else
+        if (.not. allocated(srzt%term(k)%w1)) cycle
+      endif
 
-    if (srzt%time_based) srzt%term(k)%w = srzt%term(k)%w(ntt:1:-1)
-
-    if (ns /= 0) then
-      fk = 0
-      do i = 1, ntt
-        esum = 0
-        do j = max(1, i - ns), min(ntt, i + ns)
-          fk(i) = fk(i) + gauss(j-i) * srzt%term(k)%w(j)
-          esum = esum + gauss(j-i)
+      if (ns /= 0) then
+        fk = 0
+        do i = 1, ntt
+          esum = 0
+          do j = max(1, i - ns), min(ntt, i + ns)
+            if (it == 1) then
+              fk(i) = fk(i) + gauss(j-i) * srzt%term(k)%w(j)
+            else
+              fk(i) = fk(i) + gauss(j-i) * srzt%term(k)%w1(j)
+            endif
+            esum = esum + gauss(j-i)
+          enddo
+          fk(i) = fk(i) / esum
         enddo
-        fk(i) = fk(i) / esum
-      enddo
 
-    else
-      ! Fundamental theorem of beam loading self-bin correction.
-      ! See the comment in the z_long code above.
-      fk = srzt%term(k)%w
-      fk(nnt+1) = 0.5_rp * fk(nnt+1)
-    endif
+      else
+        if (it == 1) then
+          fk = srzt%term(k)%w
+        else
+          fk = srzt%term(k)%w1
+        endif
+        fk(nnt+1) = 0.5_rp * fk(nnt+1)
+      endif
 
-    call re_allocate(srzt%term(k)%fw, ntt)
-    srzt%term(k)%fw = fk
-    call fft_1d(srzt%term(k)%fw, -1)
+      if (it == 1) then
+        call re_allocate(srzt%term(k)%fw, ntt)
+        srzt%term(k)%fw = fk
+        call fft_1d(srzt%term(k)%fw, -1)
+      else
+        call re_allocate(srzt%term(k)%fw1, ntt)
+        srzt%term(k)%fw1 = fk
+        call fft_1d(srzt%term(k)%fw1, -1)
+      endif
 
-    ! Terms involving the witness transverse position (index 3 or 4) also need
-    ! the Panofsky-Wenzel integrated kernel. The integration variable is the
-    ! distance behind the source, s = -z, so the trapezoid integral runs from
-    ! z = z0 (index ntt, where the causal kernel vanishes) downward.
+      ! Terms involving the witness transverse position (index 3 or 4) also need
+      ! the Panofsky-Wenzel integrated kernel. The integration variable is the
+      ! distance behind the source, s = -z, so the trapezoid integral runs from
+      ! z = z0 (index ntt, where the causal kernel vanishes) downward.
 
-    if (k == sr_z_taylor_w03$ .or. k == sr_z_taylor_w04$ .or. k == sr_z_taylor_w13$ .or. &
-        k == sr_z_taylor_w14$ .or. k == sr_z_taylor_w23$ .or. k == sr_z_taylor_w24$ .or. &
-        k == sr_z_taylor_w33$ .or. k == sr_z_taylor_w34$) then
-      call re_allocate(srzt%term(k)%fw_int, ntt)
-      srzt%term(k)%fw_int(ntt) = 0
-      do i = ntt-1, 1, -1
-        srzt%term(k)%fw_int(i) = srzt%term(k)%fw_int(i+1) + 0.5_rp * (fk(i) + fk(i+1)) * srzt%dz
-      enddo
-      call fft_1d(srzt%term(k)%fw_int, -1)
-    endif
+      if (k == sr_z_taylor_w03$ .or. k == sr_z_taylor_w04$ .or. k == sr_z_taylor_w13$ .or. &
+          k == sr_z_taylor_w14$ .or. k == sr_z_taylor_w23$ .or. k == sr_z_taylor_w24$ .or. &
+          k == sr_z_taylor_w33$ .or. k == sr_z_taylor_w34$) then
+        if (it == 1) then
+          call re_allocate(srzt%term(k)%fw_int, ntt)
+          srzt%term(k)%fw_int(ntt) = 0
+          do i = ntt-1, 1, -1
+            srzt%term(k)%fw_int(i) = srzt%term(k)%fw_int(i+1) + 0.5_rp * (fk(i) + fk(i+1)) * srzt%dz
+          enddo
+          call fft_1d(srzt%term(k)%fw_int, -1)
+        else
+          call re_allocate(srzt%term(k)%fw1_int, ntt)
+          srzt%term(k)%fw1_int(ntt) = 0
+          do i = ntt-1, 1, -1
+            srzt%term(k)%fw1_int(i) = srzt%term(k)%fw1_int(i+1) + 0.5_rp * (fk(i) + fk(i+1)) * srzt%dz
+          enddo
+          call fft_1d(srzt%term(k)%fw1_int, -1)
+        endif
+      endif
+    enddo
   enddo
+
+  ! Shared causal unit-step kernels used by the lumped r and c_inv terms:
+  ! 1 for z < 0 within the grid, 1/2 at z = 0, and 0 for z > 0.
+
+  fk = 1
+  fk(nnt+1) = 0.5_rp
+  fk(nnt+2:ntt) = 0
+
+  call re_allocate(srzt%f_step, ntt)
+  srzt%f_step = fk
+  call fft_1d(srzt%f_step, -1)
+
+  call re_allocate(srzt%f_step_int, ntt)
+  srzt%f_step_int(ntt) = 0
+  do i = ntt-1, 1, -1
+    srzt%f_step_int(i) = srzt%f_step_int(i+1) + 0.5_rp * (fk(i) + fk(i+1)) * srzt%dz
+  enddo
+  call fft_1d(srzt%f_step_int, -1)
 endif
 
 err_flag = .false.

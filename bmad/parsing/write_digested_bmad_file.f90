@@ -245,7 +245,7 @@ integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_sr_zt, ix_lr_mode, ie_max, ix_s, n_
 integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert, n_energy, n_angle, n_foil, n_rf
 
-logical write_wake, mode3, zt_present(n_sr_z_taylor_term$)
+logical write_wake, mode3, zt_present(n_sr_z_taylor_term$), zt_present1(n_sr_z_taylor_term$)
 
 !
 
@@ -293,9 +293,7 @@ if (associated(wake)) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
     if (allocated(wake%sr%z_long%w))  ix_sr_z       = size(wake%sr%z_long%w)
-    do k = 1, n_sr_z_taylor_term$
-      if (allocated(wake%sr%z_taylor%term(k)%w)) ix_sr_zt = size(wake%sr%z_taylor%term(k)%w)
-    enddo
+    if (allocated(wake%sr%z_taylor%f_step)) ix_sr_zt = size(wake%sr%z_taylor%f_step)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -692,20 +690,38 @@ if (associated(wake) .and. write_wake) then
 
   srzt => wake%sr%z_taylor
   do k = 1, n_sr_z_taylor_term$
-    zt_present(k) = allocated(srzt%term(k)%w)
+    zt_present(k)  = allocated(srzt%term(k)%w)
+    zt_present1(k) = allocated(srzt%term(k)%w1)
   enddo
-  write (d_unit) srzt%smoothing_sigma, srzt%dz, srzt%z0, srzt%time_based, zt_present
+  write (d_unit) srzt%smoothing_sigma, srzt%dz, srzt%z0, srzt%time_based, zt_present, zt_present1
   do k = 1, n_sr_z_taylor_term$
-    if (.not. zt_present(k)) cycle
-    do i = 1, size(srzt%term(k)%w)
-      write (d_unit) srzt%term(k)%w(i), srzt%term(k)%fw(i)
-    enddo
-    if (allocated(srzt%term(k)%fw_int)) then
-      do i = 1, size(srzt%term(k)%fw_int)
-        write (d_unit) srzt%term(k)%fw_int(i)
+    write (d_unit) srzt%term(k)%r, srzt%term(k)%l, srzt%term(k)%c_inv
+    if (zt_present(k)) then
+      do i = 1, size(srzt%term(k)%w)
+        write (d_unit) srzt%term(k)%w(i), srzt%term(k)%fw(i)
       enddo
+      if (allocated(srzt%term(k)%fw_int)) then
+        do i = 1, size(srzt%term(k)%fw_int)
+          write (d_unit) srzt%term(k)%fw_int(i)
+        enddo
+      endif
+    endif
+    if (zt_present1(k)) then
+      do i = 1, size(srzt%term(k)%w1)
+        write (d_unit) srzt%term(k)%w1(i), srzt%term(k)%fw1(i)
+      enddo
+      if (allocated(srzt%term(k)%fw1_int)) then
+        do i = 1, size(srzt%term(k)%fw1_int)
+          write (d_unit) srzt%term(k)%fw1_int(i)
+        enddo
+      endif
     endif
   enddo
+  if (allocated(srzt%f_step)) then
+    do i = 1, size(srzt%f_step)
+      write (d_unit) srzt%f_step(i), srzt%f_step_int(i)
+    enddo
+  endif
 
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
 

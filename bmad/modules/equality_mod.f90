@@ -523,6 +523,30 @@ if (.not. is_eq) return
 if (allocated(f1%fw_int)) is_eq = all(shape(f1%fw_int) == shape(f2%fw_int))
 if (.not. is_eq) return
 if (allocated(f1%fw_int)) is_eq = all(f1%fw_int == f2%fw_int)
+!! f_side.equality_test[real, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%w1) .eqv. allocated(f2%w1))
+if (.not. is_eq) return
+if (allocated(f1%w1)) is_eq = all(shape(f1%w1) == shape(f2%w1))
+if (.not. is_eq) return
+if (allocated(f1%w1)) is_eq = all(f1%w1 == f2%w1)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fw1) .eqv. allocated(f2%fw1))
+if (.not. is_eq) return
+if (allocated(f1%fw1)) is_eq = all(shape(f1%fw1) == shape(f2%fw1))
+if (.not. is_eq) return
+if (allocated(f1%fw1)) is_eq = all(f1%fw1 == f2%fw1)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%fw1_int) .eqv. allocated(f2%fw1_int))
+if (.not. is_eq) return
+if (allocated(f1%fw1_int)) is_eq = all(shape(f1%fw1_int) == shape(f2%fw1_int))
+if (.not. is_eq) return
+if (allocated(f1%fw1_int)) is_eq = all(f1%fw1_int == f2%fw1_int)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%r == f2%r)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%l == f2%l)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%c_inv == f2%c_inv)
 
 end function eq_wake_sr_z_taylor_term
 
@@ -541,6 +565,18 @@ logical is_eq
 is_eq = .true.
 !! f_side.equality_test[type, 1, NOT]
 is_eq = is_eq .and. all(f1%term == f2%term)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%f_step) .eqv. allocated(f2%f_step))
+if (.not. is_eq) return
+if (allocated(f1%f_step)) is_eq = all(shape(f1%f_step) == shape(f2%f_step))
+if (.not. is_eq) return
+if (allocated(f1%f_step)) is_eq = all(f1%f_step == f2%f_step)
+!! f_side.equality_test[complex, 1, ALLOC]
+is_eq = is_eq .and. (allocated(f1%f_step_int) .eqv. allocated(f2%f_step_int))
+if (.not. is_eq) return
+if (allocated(f1%f_step_int)) is_eq = all(shape(f1%f_step_int) == shape(f2%f_step_int))
+if (.not. is_eq) return
+if (allocated(f1%f_step_int)) is_eq = all(f1%f_step_int == f2%f_step_int)
 !! f_side.equality_test[complex, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%fbunch) .eqv. allocated(f2%fbunch))
 if (.not. is_eq) return

@@ -519,7 +519,7 @@ integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_sr_zt, ix_lr_mode, ix_wall3d_branch
 integer i0, i1, j0, j1, j2, ix_ptr, lb(3), ub(3), nt, n0, n1, n2, nn(7), ne, nr, ns, nc, n_foil
 
 logical error, is_alloc_disp, is_alloc_seg, is_alloc_h_mis, is_alloc_pix, is_alloc_ref_sigma, is_alloc_ref_pi, is_alloc_eprob
-logical ac_kicker_alloc, rad_map_alloc, zt_present(n_sr_z_taylor_term$)
+logical ac_kicker_alloc, rad_map_alloc, zt_present(n_sr_z_taylor_term$), zt_present1(n_sr_z_taylor_term$)
 
 !
 
@@ -957,24 +957,46 @@ if (ix_sr_long /= 0 .or. ix_sr_trans /= 0 .or. ix_sr_z /= 0 .or. ix_sr_zt /= 0 .
     enddo
 
     srzt => wake%sr%z_taylor
-    read (d_unit, err = 9800, end = 9800) srzt%smoothing_sigma, srzt%dz, srzt%z0, srzt%time_based, zt_present
+    read (d_unit, err = 9800, end = 9800) srzt%smoothing_sigma, srzt%dz, srzt%z0, srzt%time_based, zt_present, zt_present1
     do k = 1, n_sr_z_taylor_term$
-      if (.not. zt_present(k)) cycle
-      allocate (srzt%term(k)%w(ix_sr_zt), srzt%term(k)%fw(ix_sr_zt))
-      do i = 1, ix_sr_zt
-        read (d_unit, err = 9800, end = 9800) srzt%term(k)%w(i), srzt%term(k)%fw(i)
-      enddo
+      read (d_unit, err = 9800, end = 9800) srzt%term(k)%r, srzt%term(k)%l, srzt%term(k)%c_inv
       ! Terms involving the witness transverse position also carry the
-      ! Panofsky-Wenzel integrated kernel. This matches the write side.
-      if (k == sr_z_taylor_w03$ .or. k == sr_z_taylor_w04$ .or. k == sr_z_taylor_w13$ .or. &
-          k == sr_z_taylor_w14$ .or. k == sr_z_taylor_w23$ .or. k == sr_z_taylor_w24$ .or. &
-          k == sr_z_taylor_w33$ .or. k == sr_z_taylor_w34$) then
-        allocate (srzt%term(k)%fw_int(ix_sr_zt))
+      ! Panofsky-Wenzel integrated kernels. This matches the write side.
+      if (zt_present(k)) then
+        allocate (srzt%term(k)%w(ix_sr_zt), srzt%term(k)%fw(ix_sr_zt))
         do i = 1, ix_sr_zt
-          read (d_unit, err = 9800, end = 9800) srzt%term(k)%fw_int(i)
+          read (d_unit, err = 9800, end = 9800) srzt%term(k)%w(i), srzt%term(k)%fw(i)
         enddo
+        if (k == sr_z_taylor_w03$ .or. k == sr_z_taylor_w04$ .or. k == sr_z_taylor_w13$ .or. &
+            k == sr_z_taylor_w14$ .or. k == sr_z_taylor_w23$ .or. k == sr_z_taylor_w24$ .or. &
+            k == sr_z_taylor_w33$ .or. k == sr_z_taylor_w34$) then
+          allocate (srzt%term(k)%fw_int(ix_sr_zt))
+          do i = 1, ix_sr_zt
+            read (d_unit, err = 9800, end = 9800) srzt%term(k)%fw_int(i)
+          enddo
+        endif
+      endif
+      if (zt_present1(k)) then
+        allocate (srzt%term(k)%w1(ix_sr_zt), srzt%term(k)%fw1(ix_sr_zt))
+        do i = 1, ix_sr_zt
+          read (d_unit, err = 9800, end = 9800) srzt%term(k)%w1(i), srzt%term(k)%fw1(i)
+        enddo
+        if (k == sr_z_taylor_w03$ .or. k == sr_z_taylor_w04$ .or. k == sr_z_taylor_w13$ .or. &
+            k == sr_z_taylor_w14$ .or. k == sr_z_taylor_w23$ .or. k == sr_z_taylor_w24$ .or. &
+            k == sr_z_taylor_w33$ .or. k == sr_z_taylor_w34$) then
+          allocate (srzt%term(k)%fw1_int(ix_sr_zt))
+          do i = 1, ix_sr_zt
+            read (d_unit, err = 9800, end = 9800) srzt%term(k)%fw1_int(i)
+          enddo
+        endif
       endif
     enddo
+    if (ix_sr_zt /= 0) then
+      allocate (srzt%f_step(ix_sr_zt), srzt%f_step_int(ix_sr_zt))
+      do i = 1, ix_sr_zt
+        read (d_unit, err = 9800, end = 9800) srzt%f_step(i), srzt%f_step_int(i)
+      enddo
+    endif
 
     read (d_unit, err = 9800, end = 9800) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
 

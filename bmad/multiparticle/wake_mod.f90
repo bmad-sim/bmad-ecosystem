@@ -636,17 +636,23 @@ real(rp) z_ave, f0, rz_rel, r1, r2, x, y
 real(rp) wt_z, wt_zy, wt_y, wt_zx, wt_x, wt_zxy, wt_xy, wt_zq, wt_q
 
 integer i, j, k, ix1, ix2, n2, n_bad, nn
-logical need_cur(5), use_pot(9), present_term(13)
+logical need_cur(5), need_curd(5), use_pot(9), present_term(13), has_deriv(13)
 
 character(*), parameter :: r_name = 'sr_z_taylor_wake'
 
-! Scratch column indices: generalized currents (fbunch) and wake potentials (w_out).
-! Potentials with "z" in the name kick vec(6) (times the witness monomial);
-! the others are Panofsky-Wenzel integrated potentials kicking vec(2)/vec(4).
+! Scratch column indices: generalized currents (fbunch, columns 6-10 hold the
+! derivatives of columns 1-5) and wake potentials (w_out). Potentials with "z"
+! in the name kick vec(6) (times the witness monomial); the others are
+! Panofsky-Wenzel integrated potentials kicking vec(2)/vec(4).
 
 integer, parameter :: ic00 = 1, ic10 = 2, ic01 = 3, ic11 = 4, ic20 = 5
 integer, parameter :: iwz = 1, iwzy = 2, iwy = 3, iwzx = 4, iwx = 5, &
                       iwzxy = 6, iwxy = 7, iwzq = 8, iwq = 9
+
+! Generalized current used by each term (indexed like sr_z_taylor_w00$, etc.)
+
+integer, parameter :: term_cur(13) = [ic00, ic10, ic01, ic00, ic00, ic20, ic11, &
+                                      ic10, ic10, ic01, ic01, ic00, ic00]
 
 !
 
@@ -657,23 +663,22 @@ srzt => sr%z_taylor
 if (srzt%dz == 0) return
 
 do k = 1, 13
-  present_term(k) = allocated(srzt%term(k)%fw)
+  present_term(k) = allocated(srzt%term(k)%fw) .or. allocated(srzt%term(k)%fw1) .or. &
+          srzt%term(k)%r /= 0 .or. srzt%term(k)%l /= 0 .or. srzt%term(k)%c_inv /= 0
+  has_deriv(k) = allocated(srzt%term(k)%fw1) .or. srzt%term(k)%l /= 0
 enddo
 if (.not. any(present_term)) return
 
 f0 = sr%amp_scale / ele%value(p0c$)
 if (sr%scale_with_length) f0 = f0 * ele%value(l$)
 
-! Which generalized currents and which wake potentials are needed?
+! Which generalized currents (and their derivatives) are needed?
 
-need_cur = .false.
+do i = 1, 5
+  need_cur(i) = any(present_term .and. term_cur == i)
+  need_curd(i) = any(has_deriv .and. term_cur == i)
+enddo
 need_cur(ic00) = .true.
-need_cur(ic10) = present_term(sr_z_taylor_w01$) .or. present_term(sr_z_taylor_w13$) .or. &
-                 present_term(sr_z_taylor_w14$)
-need_cur(ic01) = present_term(sr_z_taylor_w02$) .or. present_term(sr_z_taylor_w23$) .or. &
-                 present_term(sr_z_taylor_w24$)
-need_cur(ic11) = present_term(sr_z_taylor_w12$)
-need_cur(ic20) = present_term(sr_z_taylor_w11$)
 
 use_pot = .false.
 use_pot(iwz)   = present_term(sr_z_taylor_w00$) .or. present_term(sr_z_taylor_w01$) .or. &
@@ -692,18 +697,13 @@ use_pot(iwq)   = use_pot(iwzq)
 
 ! Allocate scratch space if needed.
 
-do k = 1, 13
-  if (present_term(k)) then
-    nn = size(srzt%term(k)%fw)
-    exit
-  endif
-enddo
+nn = size(srzt%f_step)
 n2 = (nn - 1) / 2
 
 if (allocated(srzt%fbunch)) then
-  if (size(srzt%fbunch, 1) /= nn) deallocate(srzt%fbunch, srzt%w_out)
+  if (size(srzt%fbunch, 1) /= nn .or. size(srzt%fbunch, 2) /= 10) deallocate(srzt%fbunch, srzt%w_out)
 endif
-if (.not. allocated(srzt%fbunch)) allocate(srzt%fbunch(nn,5), srzt%w_out(nn,9))
+if (.not. allocated(srzt%fbunch)) allocate(srzt%fbunch(nn,10), srzt%w_out(nn,9))
 
 ! Bin the generalized currents.
 
@@ -754,64 +754,47 @@ if (n_bad > 0.01 * size(bunch%particle)) then
   return
 endif
 
+! Derivatives of the binned generalized currents (for the w1 and l terms).
+! Central differences with one-sided ends, mirroring the ocelot reference.
+
+do k = 1, 5
+  if (.not. need_curd(k)) cycle
+  srzt%fbunch(1,k+5)  = real(srzt%fbunch(2,k))  - real(srzt%fbunch(1,k))
+  srzt%fbunch(nn,k+5) = real(srzt%fbunch(nn,k)) - real(srzt%fbunch(nn-1,k))
+  do i = 2, nn-1
+    srzt%fbunch(i,k+5) = 0.5_rp * (real(srzt%fbunch(i+1,k)) - real(srzt%fbunch(i-1,k)))
+  enddo
+  call fft_1d(srzt%fbunch(:,k+5), -1)
+enddo
+
 do k = 1, 5
   if (need_cur(k)) call fft_1d(srzt%fbunch(:,k), -1)
 enddo
 
 ! Accumulate the wake potentials in frequency space. The kernel coefficients
-! follow the second-order Taylor expansion: cross terms h_ab with a /= b
-! appear twice in the double sum, hence the factors of 2.
+! follow the second-order Taylor expansion: cross terms h_ab with both indices
+! transverse appear twice in the double sum, hence the factors of 2. For the
+! w33 term the transverse (Panofsky-Wenzel) coefficient is twice the
+! longitudinal one since the witness monomial is x^2 - y^2.
 
 srzt%w_out = 0
 
-associate (t => srzt%term, fb => srzt%fbunch, wo => srzt%w_out)
-  ! Witness-independent longitudinal potential.
-  if (present_term(sr_z_taylor_w00$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic00) * t(sr_z_taylor_w00$)%fw
-  if (present_term(sr_z_taylor_w01$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic10) * t(sr_z_taylor_w01$)%fw
-  if (present_term(sr_z_taylor_w02$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic01) * t(sr_z_taylor_w02$)%fw
-  if (present_term(sr_z_taylor_w11$)) wo(:,iwz) = wo(:,iwz) + fb(:,ic20) * t(sr_z_taylor_w11$)%fw
-  if (present_term(sr_z_taylor_w12$)) wo(:,iwz) = wo(:,iwz) + 2 * fb(:,ic11) * t(sr_z_taylor_w12$)%fw
+call zt_add (sr_z_taylor_w00$, ic00, 1.0_rp, 1.0_rp, iwz, 0)
+call zt_add (sr_z_taylor_w01$, ic10, 1.0_rp, 1.0_rp, iwz, 0)
+call zt_add (sr_z_taylor_w02$, ic01, 1.0_rp, 1.0_rp, iwz, 0)
+call zt_add (sr_z_taylor_w11$, ic20, 1.0_rp, 1.0_rp, iwz, 0)
+call zt_add (sr_z_taylor_w12$, ic11, 2.0_rp, 2.0_rp, iwz, 0)
 
-  ! Terms linear in the witness y.
-  if (present_term(sr_z_taylor_w04$)) then
-    wo(:,iwzy) = wo(:,iwzy) + fb(:,ic00) * t(sr_z_taylor_w04$)%fw
-    wo(:,iwy)  = wo(:,iwy)  + fb(:,ic00) * t(sr_z_taylor_w04$)%fw_int
-  endif
-  if (present_term(sr_z_taylor_w14$)) then
-    wo(:,iwzy) = wo(:,iwzy) + 2 * fb(:,ic10) * t(sr_z_taylor_w14$)%fw
-    wo(:,iwy)  = wo(:,iwy)  + 2 * fb(:,ic10) * t(sr_z_taylor_w14$)%fw_int
-  endif
-  if (present_term(sr_z_taylor_w24$)) then
-    wo(:,iwzy) = wo(:,iwzy) + 2 * fb(:,ic01) * t(sr_z_taylor_w24$)%fw
-    wo(:,iwy)  = wo(:,iwy)  + 2 * fb(:,ic01) * t(sr_z_taylor_w24$)%fw_int
-  endif
+call zt_add (sr_z_taylor_w04$, ic00, 1.0_rp, 1.0_rp, iwzy, iwy)
+call zt_add (sr_z_taylor_w14$, ic10, 2.0_rp, 2.0_rp, iwzy, iwy)
+call zt_add (sr_z_taylor_w24$, ic01, 2.0_rp, 2.0_rp, iwzy, iwy)
 
-  ! Terms linear in the witness x.
-  if (present_term(sr_z_taylor_w03$)) then
-    wo(:,iwzx) = wo(:,iwzx) + fb(:,ic00) * t(sr_z_taylor_w03$)%fw
-    wo(:,iwx)  = wo(:,iwx)  + fb(:,ic00) * t(sr_z_taylor_w03$)%fw_int
-  endif
-  if (present_term(sr_z_taylor_w13$)) then
-    wo(:,iwzx) = wo(:,iwzx) + 2 * fb(:,ic10) * t(sr_z_taylor_w13$)%fw
-    wo(:,iwx)  = wo(:,iwx)  + 2 * fb(:,ic10) * t(sr_z_taylor_w13$)%fw_int
-  endif
-  if (present_term(sr_z_taylor_w23$)) then
-    wo(:,iwzx) = wo(:,iwzx) + 2 * fb(:,ic01) * t(sr_z_taylor_w23$)%fw
-    wo(:,iwx)  = wo(:,iwx)  + 2 * fb(:,ic01) * t(sr_z_taylor_w23$)%fw_int
-  endif
+call zt_add (sr_z_taylor_w03$, ic00, 1.0_rp, 1.0_rp, iwzx, iwx)
+call zt_add (sr_z_taylor_w13$, ic10, 2.0_rp, 2.0_rp, iwzx, iwx)
+call zt_add (sr_z_taylor_w23$, ic01, 2.0_rp, 2.0_rp, iwzx, iwx)
 
-  ! Witness x*y term.
-  if (present_term(sr_z_taylor_w34$)) then
-    wo(:,iwzxy) = 2 * fb(:,ic00) * t(sr_z_taylor_w34$)%fw
-    wo(:,iwxy)  = 2 * fb(:,ic00) * t(sr_z_taylor_w34$)%fw_int
-  endif
-
-  ! Witness x^2 - y^2 (quadrupole-like) term.
-  if (present_term(sr_z_taylor_w33$)) then
-    wo(:,iwzq) = fb(:,ic00) * t(sr_z_taylor_w33$)%fw
-    wo(:,iwq)  = 2 * fb(:,ic00) * t(sr_z_taylor_w33$)%fw_int
-  endif
-end associate
+call zt_add (sr_z_taylor_w34$, ic00, 2.0_rp, 2.0_rp, iwzxy, iwxy)
+call zt_add (sr_z_taylor_w33$, ic00, 1.0_rp, 2.0_rp, iwzq, iwq)
 
 do j = 1, 9
   if (.not. use_pot(j)) cycle
@@ -853,6 +836,63 @@ do i = 1, size(bunch%particle)
   p%vec(2) = p%vec(2) + wt_x + wt_xy * y + wt_q * x
   p%vec(4) = p%vec(4) + wt_y + wt_xy * x - wt_q * y
 enddo
+
+!--------------------------------------------------------------------------
+contains
+
+! Accumulate, in frequency space, all pieces of one term (tabulated w, tabulated
+! w1, and lumped r, l, c_inv) into the longitudinal potential column iwl and,
+! if iwt > 0, the Panofsky-Wenzel integrated potential column iwt.
+!
+! Sign convention: The accumulated potentials are positive for energy loss (the
+! kick applies vec(6) = vec(6) - potential). Relative to this, the w1 and l
+! pieces enter with the OPPOSITE sign of the w, r, and c_inv pieces. This
+! reproduces the ocelot reference implementation (which itself differs from
+! Eq. (B1) of Zagorodnov, Dohlus & Tomin as printed) and is required for
+! compatibility with existing wake table files. See the PR notes.
+
+subroutine zt_add (k, ic, coef_l, coef_t, iwl, iwt)
+
+type (wake_sr_z_taylor_term_struct), pointer :: tm
+real(rp) coef_l, coef_t, cdz
+integer k, ic, iwl, iwt
+
+!
+
+tm => srzt%term(k)
+cdz = c_light / srzt%dz
+
+if (allocated(tm%fw)) then
+  srzt%w_out(:,iwl) = srzt%w_out(:,iwl) + coef_l * srzt%fbunch(:,ic) * tm%fw
+  if (iwt > 0) srzt%w_out(:,iwt) = srzt%w_out(:,iwt) + coef_t * srzt%fbunch(:,ic) * tm%fw_int
+endif
+
+! Note: the derivative columns of fbunch are d(charge)/d(index) on the z grid.
+! Ocelot differentiates the current with respect to its tau grid (tau = -z),
+! which flips the sign; the '+' here reproduces ocelot (verified numerically
+! against ocelot on smooth bunches).
+
+if (allocated(tm%fw1)) then
+  srzt%w_out(:,iwl) = srzt%w_out(:,iwl) + coef_l * cdz * srzt%fbunch(:,ic+5) * tm%fw1
+  if (iwt > 0) srzt%w_out(:,iwt) = srzt%w_out(:,iwt) + coef_t * cdz * srzt%fbunch(:,ic+5) * tm%fw1_int
+endif
+
+if (tm%r /= 0) then
+  srzt%w_out(:,iwl) = srzt%w_out(:,iwl) + coef_l * tm%r * cdz * srzt%fbunch(:,ic)
+  if (iwt > 0) srzt%w_out(:,iwt) = srzt%w_out(:,iwt) + coef_t * tm%r * c_light * srzt%fbunch(:,ic) * srzt%f_step
+endif
+
+if (tm%l /= 0) then
+  srzt%w_out(:,iwl) = srzt%w_out(:,iwl) + coef_l * tm%l * cdz**2 * srzt%fbunch(:,ic+5)
+  if (iwt > 0) srzt%w_out(:,iwt) = srzt%w_out(:,iwt) + coef_t * tm%l * cdz * c_light * srzt%fbunch(:,ic+5) * srzt%f_step
+endif
+
+if (tm%c_inv /= 0) then
+  srzt%w_out(:,iwl) = srzt%w_out(:,iwl) + coef_l * tm%c_inv * srzt%fbunch(:,ic) * srzt%f_step
+  if (iwt > 0) srzt%w_out(:,iwt) = srzt%w_out(:,iwt) + coef_t * tm%c_inv * srzt%fbunch(:,ic) * srzt%f_step_int
+endif
+
+end subroutine zt_add
 
 end subroutine sr_z_taylor_wake
 

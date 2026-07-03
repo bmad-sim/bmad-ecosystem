@@ -3120,7 +3120,7 @@ are used with \vn{z_long}.
 The \vn{z_taylor} substructure of \vn{sr_wake} (\sref{s:sr.wake.syntax}) implements a full 3D
 short-range wake model where the longitudinal point-charge wake is expanded to second order in the
 transverse coordinates of the source (``leading'') and witness (``trailing'') particles following
-Zagorodnov, Bane, and Stupakov \cite{b:zagorodnov.taylor}:
+Zagorodnov, Dohlus, and Tomin \cite{b:zagorodnov.xfel} (see also \cite{b:zagorodnov.taylor}):
 \begin{equation}
   W_z(x_s, y_s, x_w, y_w, z) = \sum_{a \le b} h_{ab}(z) \, u_a \, u_b, \qquad
   u = (1, \, x_s, \, y_s, \, x_w, \, y_w)
@@ -3140,11 +3140,20 @@ The syntax for \vn{z_taylor} is
   z_taylor = \{
     time_based = <T/F>,
     smoothing_sigma = <sigma>,
-    w00 = \{ <z1> <w1>, <z2> <w2>, ... \},   ! Term h_00 table.
-    w04 = \{ <z1> <w1>, <z2> <w2>, ... \},   ! Term h_04 table.
+    w00 = \{r = <re>, l = <re>, c_inv = <re>,
+           w  = \{ <z1> <w1>, <z2> <w2>, ... \},    ! Tabulated wake.
+           w1 = \{ <z1> <w1>, <z2> <w2>, ... \}\},  ! Derivative-coupled table.
+    w04 = \{w = \{ <z1> <w1>, ... \}\},
     ...
   \}
 \end{example}
+Each term is a sub-block whose components are all optional (but at least one \vn{w} or \vn{w1}
+table must appear somewhere in \vn{z_taylor}): the tabulated wake \vn{w}, a derivative-coupled
+table \vn{w1} which is convolved with the derivative of the bunch profile, and lumped resistive
+(\vn{r}, in Ohms), inductive (\vn{l}, in Henries), and inverse-capacitance (\vn{c_inv}, in 1/Farads)
+constants, following Eq.~(B1) of \cite{b:zagorodnov.xfel}. This matches the term structure of the
+European XFEL impedance-database Taylor tables, where for example the transverse terms of the rf
+module wakes are pure \vn{w1} tables.
 The 13 possible term names are \vn{w00}, \vn{w01}, \vn{w02}, \vn{w03}, \vn{w04}, \vn{w11},
 \vn{w12}, \vn{w13}, \vn{w14}, \vn{w23}, \vn{w24}, \vn{w33}, and \vn{w34}, where the two digits are
 the indexes $a$ and $b$ of \Eq{wztaylor} (0 = constant, 1 = source $x$, 2 = source $y$, 3 = witness
