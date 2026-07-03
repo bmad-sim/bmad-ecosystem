@@ -720,6 +720,7 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   call init_pancake (max_order+1, 2)
 
   field = 0
+  icoef = 0   ! Must be zeroed: daall0_pancake treats a nonzero handle as an already-allocated vector.
   call alloc_pancake(field)
   call daall0_pancake(icoef)
 
