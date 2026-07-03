@@ -87,7 +87,6 @@ logical is_photon_fork, created_new_branch
 ! See if digested file is open and current. If so read in and return.
 ! Note: The name of the digested file depends upon the real precision.
 
-call cpu_time(bp_com%time0)
 call init_bmad()
 
 if (present(err_flag)) err_flag = .true.
@@ -95,6 +94,7 @@ bp_com = bp_common_struct()
 allocate(bp_com%lat_file_names(1))   !! To get around an ifort bug in Versions 18+
 bp_com%parser_name = 'bmad_parser'   ! Used for error messages.
 bp_com%n_fixer_set = 0               ! Used with ele%value(ix_fixer$) to indicate last fixer set on.
+call cpu_time(bp_com%time0)
 debug_line = ''
 err = .false.
 
@@ -1337,7 +1337,7 @@ if (bp_com%extra%undeterministic_ran_function_called) then
                 '      LATTICE WILL DIFFER FROM OTHER LATTICES GENERATED FROM THE SAME FILE.')
 endif
 
-call out_io (s_important$, r_name, 'Lattice parse time(min):\f5.2\ ', r_array = [(bp_com%time1 - bp_com%time0)/60.0_rp])
+call out_io (s_important$, r_name, 'Lattice parse time (min):\f5.2\ ', r_array = [(bp_com%time1 - bp_com%time0)/60.0_rp])
 
 
 !---------------------------------------------------------------------

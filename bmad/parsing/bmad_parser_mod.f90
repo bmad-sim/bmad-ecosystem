@@ -7934,7 +7934,7 @@ end subroutine get_switch
 function expect_one_of (delim_list, check_input_delim, ele_name, delim, delim_found) result (is_ok)
 
 type (ele_struct) ele
-integer ix_word
+integer ix, ix_word
 character(*) delim_list, ele_name
 character(1) delim
 character(40) word
@@ -7966,6 +7966,18 @@ else
       call parser_error ('BAD DELIMITOR', 'FOR ELEMENT: ' // ele_name)
     endif
     return
+  endif
+
+  ! Ignore extra "," in an array.
+  ! That is, ", }", ", )", and ", ]" are equivalent to "}",  ")", and "]"
+
+  if (delim == ',') then
+    call string_trim(bp_com%parse_line, bp_com%parse_line, ix)
+    select case (bp_com%parse_line)
+    case ('}', ')', ']')
+      delim = bp_com%parse_line(1:1)
+      bp_com%parse_line = bp_com%parse_line(2:)
+    end select
   endif
 endif
 
