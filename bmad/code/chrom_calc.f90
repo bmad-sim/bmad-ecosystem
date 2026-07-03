@@ -88,10 +88,9 @@ if (branch%param%geometry /= closed$) then
   if (fix_ele%a%beta - dE2 * abs(fix_ele%a%dbeta_dpz) <= 0 .or. &
       fix_ele%b%beta - dE2 * abs(fix_ele%b%dbeta_dpz) <= 0) then
     call out_io (s_warn$, r_name, &
-        'Linear extrapolation of the starting beta using a pz change of ' // real_str(delta_e), &
-        'gives a negative beta. The chromaticity will not be computed.', &
-        'Either reduce dbeta_dpz_a and/or dbeta_dpz_b values or reduce', &
-        'the value of delta_e passed to chrom_calc. [In Tao this is global%delta_e_chrom.]')
+        'Linear extrapolation of the starting beta using a pz change of ' // real_str(delta_e) // ' gives a negative beta.' , &
+        'The chromaticity will not be computed. Either reduce dbeta_dpz_a and/or dbeta_dpz_b values', &
+        'or reduce the value of delta_e passed to chrom_calc. [In Tao this is global%delta_e_chrom.]')
     return
   endif
 endif
