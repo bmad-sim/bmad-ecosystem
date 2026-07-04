@@ -1,3 +1,114 @@
+!+
+! Module closed_orbit_calc_priv
+!
+! Private module used to pass state to the co_func callback (used by closed_orbit_calc) without host
+! association, which would force a stack trampoline and an executable stack.
+!-
+
+module closed_orbit_calc_priv
+
+use bmad_interface
+
+implicit none
+
+private
+public co_func, closed_orb_com_struct
+public cof_lat_ptr, cof_coc_ptr, cof_start_orb_ptr, cof_end_orb_ptr, cof_ele_start_ptr
+public cof_closed_orb_ptr, cof_co_best_ptr, cof_track_state_ptr, cof_has_been_alive_ptr
+public cof_n_dim, cof_dir, cof_ix_branch, cof_ix_ele_start, cof_ix_ele_end, cof_rf_freq
+
+type closed_orb_com_struct   ! Common block for
+  real(rp) :: t1(6,6)
+  real(rp), allocatable :: a_vec(:)
+  real(rp) rf_wavelen, dz_step
+end type
+
+type (lat_struct), pointer :: cof_lat_ptr
+type (closed_orb_com_struct), pointer :: cof_coc_ptr
+type (coord_struct), pointer :: cof_start_orb_ptr, cof_end_orb_ptr
+type (ele_struct), pointer :: cof_ele_start_ptr
+type (coord_struct), pointer :: cof_closed_orb_ptr(:), cof_co_best_ptr(:)
+integer, pointer :: cof_track_state_ptr
+logical, pointer :: cof_has_been_alive_ptr
+integer :: cof_n_dim, cof_dir, cof_ix_branch, cof_ix_ele_start, cof_ix_ele_end
+real(rp) :: cof_rf_freq
+!$OMP THREADPRIVATE(cof_lat_ptr, cof_coc_ptr, cof_start_orb_ptr, cof_end_orb_ptr, cof_ele_start_ptr, &
+!$OMP                cof_closed_orb_ptr, cof_co_best_ptr, cof_track_state_ptr, cof_has_been_alive_ptr, &
+!$OMP                cof_n_dim, cof_dir, cof_ix_branch, cof_ix_ele_start, cof_ix_ele_end, cof_rf_freq)
+
+contains
+
+! Made a module procedure (not nested) to avoid a stack trampoline. State passed via cof_* vars.
+
+subroutine co_func (a_try, y_fit, dy_da, status)
+
+type (branch_struct), pointer :: branch
+
+real(rp), intent(in) :: a_try(:)
+real(rp), intent(out) :: y_fit(:)
+real(rp), intent(out) :: dy_da(:, :)
+real(rp) del_orb(6), dt
+
+integer status, i
+
+! For i_dim = 6, if at peak of RF then delta z may be singularly large. 
+! To avoid this, veto any step where z changes by more than lambda_rf/10.
+
+branch => cof_lat_ptr%branch(cof_ix_branch)  ! To get around ifort compiler bug
+
+if (cof_n_dim == 6) then
+  cof_coc_ptr%dz_step = abs(a_try(5)-cof_coc_ptr%a_vec(5)) / (cof_coc_ptr%rf_wavelen / 10)
+  if (cof_coc_ptr%dz_step > 1) then
+    status = 1  ! Veto step
+    return
+  endif
+endif
+
+!
+
+if (cof_n_dim == 5) then
+  cof_start_orb_ptr%vec(1:4) = a_try(1:4)
+  cof_start_orb_ptr%vec(6)   = a_try(5)
+else
+  cof_start_orb_ptr%vec(1:cof_n_dim) = a_try
+endif
+
+call init_coord (cof_start_orb_ptr, cof_start_orb_ptr, cof_ele_start_ptr, start_end$, cof_start_orb_ptr%species, cof_dir)
+call track_many (cof_lat_ptr, cof_closed_orb_ptr, cof_ix_ele_start, cof_ix_ele_end, cof_dir, branch%ix_branch, cof_track_state_ptr)
+
+!
+
+status = 0
+del_orb = cof_end_orb_ptr%vec - cof_start_orb_ptr%vec
+
+if (cof_n_dim == 6 .and. bmad_com%absolute_time_tracking) then
+  dt = (cof_end_orb_ptr%t - cof_start_orb_ptr%t) - nint((cof_end_orb_ptr%t - cof_start_orb_ptr%t) * cof_rf_freq) / cof_rf_freq
+  del_orb(5) = -cof_end_orb_ptr%beta * c_light * dt
+endif
+
+if (cof_track_state_ptr == moving_forward$) then
+  if (.not. cof_has_been_alive_ptr) cof_co_best_ptr = cof_closed_orb_ptr
+  cof_has_been_alive_ptr = .true.
+  y_fit = del_orb(1:cof_n_dim)
+else
+  y_fit = 1d10 * branch%param%unstable_factor   ! Some large number
+endif
+
+dy_da = cof_coc_ptr%t1(1:cof_n_dim,1:cof_n_dim)
+forall (i = 1:cof_n_dim) dy_da(i,i) = dy_da(i,i) - 1
+
+if (cof_n_dim == 5) then
+  dy_da(:,5) = cof_coc_ptr%t1(1:5,6)
+endif
+
+end subroutine co_func
+
+end module closed_orbit_calc_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+
 !+                           
 ! Subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
 !
@@ -81,6 +192,7 @@
 subroutine closed_orbit_calc (lat, closed_orb, i_dim, direction, ix_branch, err_flag, print_err)
 
 use bmad_interface, except_dummy => closed_orbit_calc
+use closed_orbit_calc_priv
 use super_recipes_mod
 use lmdif_mod
 
@@ -104,12 +216,7 @@ type matrix_save
 end type
 type (matrix_save), allocatable :: m(:)
 
-type closed_orb_com_struct   ! Common block for
-  real(rp) :: t1(6,6)
-  real(rp), allocatable :: a_vec(:)
-  real(rp) rf_wavelen, dz_step
-end type
-
+! closed_orb_com_struct is defined in module closed_orbit_calc_priv.
 type (closed_orb_com_struct), target :: coc
 type (closed_orb_com_struct), pointer :: cocp
 
@@ -120,13 +227,15 @@ real(rp) a_lambda, chisq, old_chisq, rf_freq, svec(3), mat3(3,3), this(5)
 real(rp), allocatable, target :: on_off_state(:), scatter_state(:), vec0(:), dvec(:), weight(:), merit_vec(:), dy_da(:,:)
 
 integer, optional :: direction, ix_branch, i_dim
-integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, track_state, n, status, j_max
+integer i, j, ie, i2, i_loop, n_dim, n_ele, i_max, dir, n, status, j_max
 integer ix_ele_start, ix_ele_end
+integer, target :: track_state
 
 logical, optional, intent(out) :: err_flag
 logical, optional, intent(in) :: print_err
-logical err, error, allocate_m_done, has_been_alive_at_end, check_for_z_stability, printit, at_end, try_lmdif
+logical err, error, allocate_m_done, check_for_z_stability, printit, at_end, try_lmdif
 logical invert_step_tried
+logical, target :: has_been_alive_at_end
 logical, allocatable :: maska(:)
 
 character(20) :: r_name = 'closed_orbit_calc'
@@ -304,6 +413,23 @@ c_best => co_best
 !
 
 i_max = 100
+
+! Set state for the co_func callback (see module closed_orbit_calc_priv).
+cof_lat_ptr => lat
+cof_coc_ptr => coc
+cof_start_orb_ptr => start_orb
+cof_end_orb_ptr => end_orb
+cof_ele_start_ptr => ele_start
+cof_closed_orb_ptr => closed_orb
+cof_co_best_ptr => co_best
+cof_track_state_ptr => track_state
+cof_has_been_alive_ptr => has_been_alive_at_end
+cof_n_dim = n_dim
+cof_dir = dir
+cof_ix_branch = integer_option(0, ix_branch)
+cof_ix_ele_start = ix_ele_start
+cof_ix_ele_end = ix_ele_end
+cof_rf_freq = rf_freq
 
 do i_loop = 1, i_max
 
@@ -638,72 +764,6 @@ call mat_eigen (t1, eigen_val, eigen_vec, error)
 z_eigen = max(abs(eigen_val(5)), abs(eigen_val(6)))
 
 end function max_z_eigen
-
-!------------------------------------------------------------------------------
-! contains
-
-subroutine co_func (a_try, y_fit, dy_da, status)
-
-type (branch_struct), pointer :: branch
-
-real(rp), intent(in) :: a_try(:)
-real(rp), intent(out) :: y_fit(:)
-real(rp), intent(out) :: dy_da(:, :)
-real(rp) del_orb(6)
-
-integer status, i
-
-! For i_dim = 6, if at peak of RF then delta z may be singularly large. 
-! To avoid this, veto any step where z changes by more than lambda_rf/10.
-
-branch => lat%branch(integer_option(0, ix_branch))  ! To get around ifort compiler bug
-
-if (n_dim == 6) then
-  coc%dz_step = abs(a_try(5)-coc%a_vec(5)) / (coc%rf_wavelen / 10)
-  if (coc%dz_step > 1) then
-    status = 1  ! Veto step
-    return
-  endif
-endif
-
-!
-
-if (n_dim == 5) then
-  start_orb%vec(1:4) = a_try(1:4)
-  start_orb%vec(6)   = a_try(5)
-else
-  start_orb%vec(1:n_dim) = a_try
-endif
-
-call init_coord (start_orb, start_orb, ele_start, start_end$, start_orb%species, dir)
-call track_many (lat, closed_orb, ix_ele_start, ix_ele_end, dir, branch%ix_branch, track_state)
-
-!
-
-status = 0
-del_orb = end_orb%vec - start_orb%vec
-
-if (n_dim == 6 .and. bmad_com%absolute_time_tracking) then
-  dt = (end_orb%t - start_orb%t) - nint((end_orb%t - start_orb%t) * rf_freq) / rf_freq
-  del_orb(5) = -end_orb%beta * c_light * dt
-endif
-
-if (track_state == moving_forward$) then
-  if (.not. has_been_alive_at_end) co_best = closed_orb
-  has_been_alive_at_end = .true.
-  y_fit = del_orb(1:n_dim)
-else
-  y_fit = 1d10 * branch%param%unstable_factor   ! Some large number
-endif
-
-dy_da = coc%t1(1:n_dim,1:n_dim)
-forall (i = 1:n_dim) dy_da(i,i) = dy_da(i,i) - 1
-
-if (n_dim == 5) then
-  dy_da(:,5) = coc%t1(1:5,6)
-endif
-
-end subroutine co_func
 
 !------------------------------------------------------------------------------
 ! contains

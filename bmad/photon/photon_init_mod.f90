@@ -36,6 +36,15 @@ integer, parameter :: gen_poly_spline$ = 1, end_spline$ = 2
 
 private photon_init_spline_eval, photon_init_spline_coef_calc
 
+! Used to pass state to the energy_func, vert_angle_func, and p_func callbacks without
+! host association (which would force a stack trampoline and an executable stack).
+real(rp), private :: pinit_E_rel_target
+real(rp), private :: pinit_va_E_rel, pinit_va_gamma, pinit_va_vert_angle
+logical, private :: pinit_va_invert
+real(rp), private :: pinit_alpha
+!$OMP THREADPRIVATE(pinit_E_rel_target, pinit_va_E_rel, pinit_va_gamma, &
+!$OMP                pinit_va_vert_angle, pinit_va_invert, pinit_alpha)
+
 contains
 
 !----------------------------------------------------------------------------------------
@@ -257,10 +266,15 @@ endif
 ! bend_photon_e_rel_init calculates photon energy given the integrated probability
 ! so invert using the NR routine zbrent.
 
+pinit_E_rel_target = E_rel_target
 integ_prob = super_zbrent(energy_func, 0.0_rp, 1.0_rp, 1e-15_rp, 1d-12, status)
 
+end function bend_photon_energy_integ_prob
+
 !----------------------------------------------------------------------------------------
-contains
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+! Used with bend_photon_energy_integ_prob. Made a module procedure (not nested) to avoid a stack trampoline.
 
 function energy_func(integ_prob, status) result (dE)
 
@@ -271,11 +285,9 @@ integer status
 !
 
 E_rel = bend_photon_e_rel_init(integ_prob)
-dE = E_rel - E_rel_target
+dE = E_rel - pinit_E_rel_target
 
 end function energy_func
-
-end function bend_photon_energy_integ_prob
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
@@ -323,11 +335,19 @@ endif
 ! Use the inverted probability in the calculation for positive angles since it is more accurate.
 
 invert = (vert_angle > 0)
+pinit_va_E_rel = E_rel
+pinit_va_gamma = gamma
+pinit_va_vert_angle = vert_angle
+pinit_va_invert = invert
 integ_prob = super_zbrent(vert_angle_func, 0.0_rp, 1.0_rp, 1d-12, 1d-20, status)
 if (invert) integ_prob = 1.0_rp - integ_prob
 
+end function bend_vert_angle_integ_prob
+
 !----------------------------------------------------------------------------------------
-contains
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+! Used with bend_vert_angle_integ_prob. Made a module procedure (not nested) to avoid a stack trampoline.
 
 function vert_angle_func(integ_prob, status) result (d_angle)
 
@@ -337,12 +357,10 @@ integer status
 
 !
 
-angle = bend_photon_vert_angle_init(E_rel, gamma, integ_prob, invert)
-d_angle = angle - vert_angle
+angle = bend_photon_vert_angle_init(pinit_va_E_rel, pinit_va_gamma, integ_prob, pinit_va_invert)
+d_angle = angle - pinit_va_vert_angle
 
 end function vert_angle_func
-
-end function bend_vert_angle_integ_prob
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------
@@ -962,19 +980,12 @@ endif
 n = ubound(spline(n_spline)%pt, 1)
 dr = (1.0_rp - spline(n_spline)%x_max)
 c0 = spline(n_spline)%pt(n)%c0 / (dr + 24.0_rp * dr**2)
-alpha = dr * sqrt(c0) * exp(c0) 
-E_rel = inverse(p_func, rr1, c0, 50.0_rp, 1e-10_rp) 
+alpha = dr * sqrt(c0) * exp(c0)
+pinit_alpha = alpha
+E_rel = inverse(p_func, rr1, c0, 50.0_rp, 1e-10_rp)
 
 !---------------------------------------------------------------------------
 contains
-
-function p_func(E_in) result(rr1)
-real(rp) :: E_in, rr1
-rr1 = alpha * exp(-E_in) / sqrt(E_in)
-end function p_func
-
-!-----------------------------------------------
-! contains
 
 subroutine init_this()
 
@@ -1046,6 +1057,16 @@ enddo
 end subroutine init_this
 
 end function bend_photon_e_rel_init
+
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------
+! Used with bend_photon_e_rel_init. Made a module procedure (not nested) to avoid a stack trampoline.
+
+function p_func(E_in) result(rr1)
+real(rp) :: E_in, rr1
+rr1 = pinit_alpha * exp(-E_in) / sqrt(E_in)
+end function p_func
 
 !----------------------------------------------------------------------------------------
 !----------------------------------------------------------------------------------------

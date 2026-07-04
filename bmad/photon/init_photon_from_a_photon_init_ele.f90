@@ -14,9 +14,46 @@
 !   orbit         -- coord_struct: Output photon coords.
 !-
 
+module init_photon_from_a_photon_init_ele_priv
+
+use spline_mod
+
+implicit none
+
+private
+public e_curve_func, ecf_spl, ecf_drr
+
+type (spline_struct) :: ecf_spl
+real(rp) :: ecf_drr
+!$OMP THREADPRIVATE(ecf_spl, ecf_drr)
+
+contains
+
+! Made a module procedure (not nested) to avoid a stack trampoline. Used by
+! init_photon_from_a_photon_init_ele.
+
+function e_curve_func(energy, status) result (dprob)
+
+real(rp), intent(in) :: energy
+real(rp) dprob
+integer status
+
+!
+
+dprob = spline1(ecf_spl, energy, -1) - ecf_drr
+
+end function e_curve_func
+
+end module init_photon_from_a_photon_init_ele_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+
 Subroutine init_photon_from_a_photon_init_ele (ele, param, orbit, random_on)
 
 use track1_photon_mod, except_dummy => init_photon_from_a_photon_init_ele
+use init_photon_from_a_photon_init_ele_priv
 use super_recipes_mod, only: super_zbrent
 
 implicit none
@@ -102,6 +139,8 @@ case (curve$)
   ix = bracket_index(rr, ph%integrated_init_energy_prob, 1)
   drr = rr - ph%integrated_init_energy_prob(ix)
   spl = ph%init_energy_prob(ix)
+  ecf_spl = spl
+  ecf_drr = drr
   orbit%p0c = super_zbrent(e_curve_func, spl%x0, spl%x1, 0.0_rp, 1.0e-14_rp*ph%init_energy_prob(n)%x1, status)
 
 case default
@@ -123,21 +162,6 @@ orbit%t = 0
 call offset_photon (ele, orbit, unset$)
 
 call track_a_drift_photon (orbit, -orbit%s, .true.)
-
-!---------------------------------------------------------------------
-contains
-
-function e_curve_func(energy, status) result (dprob)
-
-real(rp), intent(in) :: energy
-real(rp) dprob
-integer status
-
-!
-
-dprob = spline1(spl, energy, -1) - drr
-
-end function e_curve_func
 
 end subroutine init_photon_from_a_photon_init_ele
 

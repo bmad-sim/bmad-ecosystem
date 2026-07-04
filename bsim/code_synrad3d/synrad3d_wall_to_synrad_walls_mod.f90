@@ -7,6 +7,15 @@ implicit none
 
 private calc_this_side, add_this_point, calc_this_x
 
+! Used to pass state to the dwall_func and this_y callbacks without host association (which
+! would force a stack trampoline and an executable stack). See calc_this_side / calc_this_x.
+type (branch_struct), pointer, private :: sw_branch_ptr
+type (ele_struct), pointer, private :: sw_ele_ptr
+real(rp), pointer, private :: sw_position_ptr(:), sw_x_wall_ptr
+integer, private :: sw_iw0, sw_iw1, sw_dir, sw_ix_wall
+!$OMP THREADPRIVATE(sw_branch_ptr, sw_ele_ptr, sw_position_ptr, sw_x_wall_ptr, &
+!$OMP                sw_iw0, sw_iw1, sw_dir, sw_ix_wall)
+
 contains
 
 !------------------------------------------------------------------------------------------------------
@@ -157,6 +166,10 @@ do
 
   ! If both walls extend into the region find where the walls intersect and add a point there.
   else
+    sw_branch_ptr => branch
+    sw_iw0 = iw0
+    sw_iw1 = iw1
+    sw_dir = dir
     s = super_zbrent(dwall_func, wall%pt(ip)%s, wall%pt(ip+1)%s, 0.0_rp, 1e-9_rp, status)
     x = calc_this_x (branch, iw0, s, dir, no_wall_here)
     call add_this_point (wall, ip+1, s, x, '', iw0, wall%pt(ip)%phantom)
@@ -164,23 +177,6 @@ do
 
   ip = ip + 1
 enddo
-
-!----------------------------------
-contains
-
-function dwall_func (s, status) result (value)
-
-real(rp), intent(in) :: s
-real(rp) value
-integer status
-logical no_wall_here
-
-!
-
-value = calc_this_x(branch, iw1, s, dir, no_wall_here) - calc_this_x(branch, iw0, s, dir, no_wall_here)
-status = 0
-
-end function dwall_func
 
 end subroutine calc_this_side
 
@@ -236,7 +232,7 @@ type (ele_struct), pointer :: ele            ! For super_zbrent
 
 real(rp) s, x, dw_perp(3), origin(3)
 real(rp) x2, y0, y1, y2
-real(rp) position(6), x_wall                 ! For super_zbrent
+real(rp), target :: position(6), x_wall       ! For super_zbrent
 integer dir, ixs, ix_ele, ix_wall, status
 logical no_wall_here, err_flag
 
@@ -249,6 +245,11 @@ x = 0
 position = [dir * 1.0_rp, 0.0_rp, 0.0_rp, 0.0_rp, s - (ele%s - ele%value(l$)), 0.0_rp]
 x2 = wall3d_d_radius (position, ele, ix_wall, dw_perp, ixs, no_wall_here, origin)
 if (no_wall_here) return
+
+sw_ele_ptr => ele
+sw_position_ptr => position
+sw_x_wall_ptr => x_wall
+sw_ix_wall = ix_wall
 
 y1 = this_y(10.0_rp, status)
 y2 = this_y(-10.0_rp, status)
@@ -264,8 +265,32 @@ y1 = this_y(y0, status)
 
 x = x_wall
 
-!--------------------------------------------------------------------------------
-contains
+end function calc_this_x
+
+
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. Used by calc_this_side.
+
+function dwall_func (s, status) result (value)
+
+real(rp), intent(in) :: s
+real(rp) value
+integer status
+logical no_wall_here
+
+!
+
+value = calc_this_x(sw_branch_ptr, sw_iw1, s, sw_dir, no_wall_here) - calc_this_x(sw_branch_ptr, sw_iw0, s, sw_dir, no_wall_here)
+status = 0
+
+end function dwall_func
+
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. Used by calc_this_x.
 
 function this_y (y_in, status) result (y_wall)
 
@@ -276,16 +301,14 @@ logical no_wall_here
 
 !
 
-position(3) = y_in
-dr = wall3d_d_radius (position, ele, ix_wall, dw_perp, ixs, no_wall_here, origin)
-r_part = sqrt((position(1) - origin(1))**2 + (position(3) - origin(2))**2)
+sw_position_ptr(3) = y_in
+dr = wall3d_d_radius (sw_position_ptr, sw_ele_ptr, sw_ix_wall, dw_perp, ixs, no_wall_here, origin)
+r_part = sqrt((sw_position_ptr(1) - origin(1))**2 + (sw_position_ptr(3) - origin(2))**2)
 r_wall = r_part - dr
 
-x_wall = origin(1) + (position(1) - origin(1)) * r_wall / r_part
-y_wall = origin(2) + (position(3) - origin(2)) * r_wall / r_part
+sw_x_wall_ptr = origin(1) + (sw_position_ptr(1) - origin(1)) * r_wall / r_part
+y_wall = origin(2) + (sw_position_ptr(3) - origin(2)) * r_wall / r_part
 
 end function this_y
-
-end function calc_this_x
 
 end module

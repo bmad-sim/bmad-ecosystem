@@ -1,13 +1,13 @@
 !+
-! Program wake_fit
+! Module wake_fit_priv
 !
-! Program to fit a wakefield to a set of Bmad pseudo wake modes.
+! Private module used to pass state to the mrq_func callback (used by program wake_fit) without host
+! association, which would force a stack trampoline and an executable stack.
 !-
 
-program wake_fit
+module wake_fit_priv
 
 use sim_utils
-use super_recipes_mod
 
 implicit none
 
@@ -18,7 +18,98 @@ type wake_mode_struct
   real(rp) :: phi = 0    ! phase
 end type
 
-type (wake_mode_struct) mode(100)
+type (wake_mode_struct), pointer :: wf_mode_ptr(:)
+integer :: wf_n_mode, wf_n_var_in_mode, wf_n_data, wf_ix_data_start
+logical :: wf_use_phase
+!$OMP THREADPRIVATE(wf_mode_ptr, wf_n_mode, wf_n_var_in_mode, wf_n_data, wf_ix_data_start, wf_use_phase)
+
+contains
+
+! Made a module procedure (not nested) to avoid a stack trampoline. State passed via wf_* vars.
+
+subroutine mrq_func (a, y_fit, dy_da, status)
+
+real(rp), intent(in) :: a(:)
+real(rp), intent(out) :: y_fit(:)
+real(rp), intent(out) :: dy_da(:, :)
+real(rp) damp, c, s, phi
+
+integer status
+integer j, iv, id, iid, iy, iv0
+
+!
+
+status = 0
+dy_da = 0
+y_fit = 0
+
+do iv = 1, wf_n_mode
+  iv0 = wf_n_var_in_mode * (iv-1)
+  if (a(iv0+2) < 0) then   ! negative damp factor not allowed.
+    status = 1
+    return
+  endif
+enddo
+
+do iv = 1, wf_n_mode
+  iv0 = wf_n_var_in_mode * (iv-1)
+  if (wf_use_phase) then
+    wf_mode_ptr(iv) = wake_mode_struct(a(iv0+1), a(iv0+2), a(iv0+3), a(iv0+4))
+  else
+    wf_mode_ptr(iv) = wake_mode_struct(a(iv0+1), a(iv0+2), a(iv0+3), 0.0_rp)
+  endif
+  y_fit(iv) = a(iv0+1)
+  dy_da(iv,iv0+1) = 1
+enddo
+
+
+do id = 1, wf_n_data
+  iy = id + wf_n_mode
+  iid = id + wf_ix_data_start - 1
+  do iv = 1, wf_n_mode
+    if (wf_use_phase) then
+      phi = a(iv0+4)
+    else
+      phi = 0
+    endif
+    iv0 = wf_n_var_in_mode * (iv-1)
+    damp = exp(-iid * a(iv0+2)) 
+    s = sin(iid * a(iv0+3) + phi)
+    c = cos(iid * a(iv0+3) + phi)
+    y_fit(iy) = y_fit(iy) + a(iv0+1)   * damp * s
+    dy_da(iy, iv0+1) =                   damp * s
+    dy_da(iy, iv0+2) = -iid * a(iv0+1) * damp * s
+    dy_da(iy, iv0+3) =  iid * a(iv0+1) * damp * c
+    if (wf_use_phase) then
+      dy_da(iy, iv0+4) =        a(iv0+1) * damp * c
+    endif
+  enddo
+enddo
+
+end subroutine mrq_func
+
+end module wake_fit_priv
+
+!----------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------
+
+!+
+! Program wake_fit
+!
+! Program to fit a wakefield to a set of Bmad pseudo wake modes.
+!-
+
+program wake_fit
+
+use sim_utils
+use super_recipes_mod
+use wake_fit_priv
+
+implicit none
+
+
+type (wake_mode_struct), target :: mode(100)
 type (super_mrqmin_storage_struct) storage
 
 real(rp) amp_weight, chisq, a_lambda, merit_min, merit_now, negligible_merit
@@ -112,6 +203,12 @@ do i = 1, 1000000
     close (1)
   endif
 
+  wf_mode_ptr => mode
+  wf_n_mode = n_mode
+  wf_n_var_in_mode = n_var_in_mode
+  wf_n_data = n_data
+  wf_ix_data_start = ix_data_start
+  wf_use_phase = use_phase
   call super_mrqmin (y, weight, a, chisq, mrq_func, storage, a_lambda, status)
   if (status /= 0) then
     a_lambda = 2 * a_lambda
@@ -164,66 +261,6 @@ enddo
 !----------------------------------------------------------------------------------
 contains
 
-subroutine mrq_func (a, y_fit, dy_da, status)
-
-real(rp), intent(in) :: a(:)
-real(rp), intent(out) :: y_fit(:)
-real(rp), intent(out) :: dy_da(:, :)
-real(rp) damp, c, s, phi
-
-integer status
-integer j, iv, id, iid, iy, iv0
-
-!
-
-status = 0
-dy_da = 0
-y_fit = 0
-
-do iv = 1, n_mode
-  iv0 = n_var_in_mode * (iv-1)
-  if (a(iv0+2) < 0) then   ! negative damp factor not allowed.
-    status = 1
-    return
-  endif
-enddo
-
-do iv = 1, n_mode
-  iv0 = n_var_in_mode * (iv-1)
-  if (use_phase) then
-    mode(iv) = wake_mode_struct(a(iv0+1), a(iv0+2), a(iv0+3), a(iv0+4))
-  else
-    mode(iv) = wake_mode_struct(a(iv0+1), a(iv0+2), a(iv0+3), 0.0_rp)
-  endif
-  y_fit(iv) = a(iv0+1)
-  dy_da(iv,iv0+1) = 1
-enddo
-
-
-do id = 1, n_data
-  iy = id + n_mode
-  iid = id + ix_data_start - 1
-  do iv = 1, n_mode
-    if (use_phase) then
-      phi = a(iv0+4)
-    else
-      phi = 0
-    endif
-    iv0 = n_var_in_mode * (iv-1)
-    damp = exp(-iid * a(iv0+2)) 
-    s = sin(iid * a(iv0+3) + phi)
-    c = cos(iid * a(iv0+3) + phi)
-    y_fit(iy) = y_fit(iy) + a(iv0+1)   * damp * s
-    dy_da(iy, iv0+1) =                   damp * s
-    dy_da(iy, iv0+2) = -iid * a(iv0+1) * damp * s
-    dy_da(iy, iv0+3) =  iid * a(iv0+1) * damp * c
-    if (use_phase) then
-      dy_da(iy, iv0+4) =        a(iv0+1) * damp * c
-    endif
-  enddo
-enddo
-
-end subroutine mrq_func
 
 !----------------------------------------------------------------------------------
 ! contains

@@ -81,6 +81,12 @@ character(10) :: optimizer = 'lm'
 character(12) :: ele_anchor_pt = 'beginning'
 character(100) :: field_file, out_file = ''
 
+
+! Used to pass state to the merit_calc / mrqmin_func callbacks without host association
+! (which would force a stack trampoline and an executable stack). See fit_field.
+integer, private :: gg_iz0, gg_iz1, gg_iz
+!$OMP THREADPRIVATE(gg_iz0, gg_iz1, gg_iz)
+
 contains
 
 !---------------------------------------------------------------------------
@@ -546,6 +552,9 @@ do iz = iz_min, iz_max, every_n_th_plane
 
   iz0 = max(Nz_min, iz-n_planes_add)
   iz1 = min(Nz_max, iz+n_planes_add)
+  gg_iz0 = iz0
+  gg_iz1 = iz1
+  gg_iz = iz
 
   call initial_lmdif
   var_vec = vec0
@@ -622,143 +631,6 @@ do iz = iz_min, iz_max, every_n_th_plane
 enddo
 
 !-------------------------------------------------------------------
-contains
-
-function merit_calc(var_vec, iz, merit_vec, dB_dvar_vec) result (merit)
-
-type (gg1_struct), pointer :: gg
-
-real(rp) var_vec(:), merit_vec(:), merit
-real(rp), optional :: dB_dvar_vec(:,:)
-real(rp) x, y, rho, theta, Bx, By, Bz, B_rho, B_theta, f, ff, p_rho, coef
-
-integer i, iz, ix, iy, iv, m, id, nn, izz, ig, n0, n3, ix_merit
-logical :: is_even
-
-!
-
-ix_merit = 0
-n3 = size(Bx_fit)
-
-do izz = iz0, iz1
-
-  n0 = ix_merit * n3
-
-  Bx_fit = 0
-  By_fit = 0
-  Bz_fit = 0
-
-  do ig = 1, size(gg1)
-    gg => gg1(ig)
-    do id = 0, gg%n_deriv_max
-      iv = gg%ix_var(id)
-      if (iv < 1) cycle
-
-      dBx_dvar = 0
-      dBy_dvar = 0
-      dBz_dvar = 0
-
-      m = gg%m
-      is_even = (modulo(id,2) == 0)
-
-      if (is_even) then
-        nn = id / 2
-      else
-        nn = (id - 1) / 2
-      endif
-
-      coef = poly_eval(var_vec(iv:iv+gg%n_deriv_max-id), (izz-iz)*del_meters(3), .true.)
-
-      f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
-
-      do ix = Nx_min, Nx_max
-        x = ix * del_meters(1) + r0_meters(1)
-        do iy = Ny_min, Ny_max
-          y = iy * del_meters(2) + r0_meters(2)
-          rho = sqrt(x*x + y*y)
-          theta = atan2(y,x)
-
-          if (id+m-1 == 0) then  ! Covers case where rho = 0
-            p_rho = 1
-          else
-            p_rho = rho**(id+m-1)
-          endif
-
-          ff = f * p_rho 
-
-          if (is_even) then
-            if (gg%sincos == sin$) then
-              B_rho   = ff * (2*nn+m) * sin(m*theta)
-              B_theta = ff * m * cos(m*theta)
-            else
-              B_rho   = ff * (2*nn+m) * cos(m*theta)
-              B_theta = -ff * m * sin(m*theta)
-            endif
-
-            Bx = B_rho * cos(theta) - B_theta * sin(theta)
-            By = B_rho * sin(theta) + B_theta * cos(theta)
-
-            Bx_fit(ix,iy) = Bx_fit(ix,iy) + Bx * coef
-            By_fit(ix,iy) = By_fit(ix,iy) + By * coef
-
-            if (present(dB_dvar_vec)) then
-              dBx_dvar(ix,iy) = Bx
-              dBy_dvar(ix,iy) = By
-            endif
-
-          else
-            if (gg%sincos == sin$) then
-              Bz = ff * sin(m*theta)
-            else
-              Bz = ff * cos(m*theta)
-            endif
-
-            Bz_fit(ix,iy) = Bz_fit(ix,iy) + Bz * coef
-            if (present(dB_dvar_vec)) then
-              dBz_dvar(ix,iy) = Bz
-            endif
-          endif
-        enddo   ! ix = Nx_min, Nx_max
-      enddo   ! iy = Ny_min, Ny_max
-
-      if (present(dB_dvar_vec)) then
-        dB_dvar_vec(n0+1:n0+n3, iv)        = reshape(dBx_dvar(:,:), [n3])
-        dB_dvar_vec(n0+n3+1:n0+2*n3, iv)   = reshape(dBy_dvar(:,:), [n3])
-        dB_dvar_vec(n0+2*n3+1:n0+3*n3, iv) = reshape(dBz_dvar(:,:), [n3])
-      endif
-
-    enddo   ! id = 0, gg%n_deriv_max
-  enddo   ! ig = 1, size(gg1)
-
-  !
-
-  merit_vec(n0+1:n0+n3)        = reshape(Bx_fit-Bx_dat(:,:,izz), [n3])
-  merit_vec(n0+n3+1:n0+2*n3)   = reshape(By_fit-By_dat(:,:,izz), [n3])
-  merit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_fit-Bz_dat(:,:,izz), [n3])
-
-  ix_merit = ix_merit + 3
-enddo   ! izz = iz0, iz1
-
-merit = 3 * norm2(merit_vec) / (n3 * ix_merit)
-
-end function merit_calc
-
-!---------------------------------------------------------------------------
-! contains
-
-subroutine mrqmin_func (var, yfit, dy_dvar, status)
-
-real(rp), intent(in) :: var(:)
-real(rp), intent(out) :: yfit(:)
-real(rp), intent(out) :: dy_dvar(:,:)
-integer status
-
-!
-
-merit = merit_calc(var, iz, yfit, dy_dvar)
-
-end subroutine mrqmin_func
-
 end subroutine fit_field
 
 !---------------------------------------------------------------------------
@@ -1144,5 +1016,148 @@ else
 endif
 
 end subroutine read_gg
+
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. Used by fit_field.
+
+function merit_calc(var_vec, iz, merit_vec, dB_dvar_vec) result (merit)
+
+type (gg1_struct), pointer :: gg
+
+real(rp) var_vec(:), merit_vec(:), merit
+real(rp), optional :: dB_dvar_vec(:,:)
+real(rp) x, y, rho, theta, Bx, By, Bz, B_rho, B_theta, f, ff, p_rho, coef
+
+integer i, iz, ix, iy, iv, m, id, nn, izz, ig, n0, n3, ix_merit
+logical :: is_even
+
+!
+
+ix_merit = 0
+n3 = size(Bx_fit)
+
+do izz = gg_iz0, gg_iz1
+
+  n0 = ix_merit * n3
+
+  Bx_fit = 0
+  By_fit = 0
+  Bz_fit = 0
+
+  do ig = 1, size(gg1)
+    gg => gg1(ig)
+    do id = 0, gg%n_deriv_max
+      iv = gg%ix_var(id)
+      if (iv < 1) cycle
+
+      dBx_dvar = 0
+      dBy_dvar = 0
+      dBz_dvar = 0
+
+      m = gg%m
+      is_even = (modulo(id,2) == 0)
+
+      if (is_even) then
+        nn = id / 2
+      else
+        nn = (id - 1) / 2
+      endif
+
+      coef = poly_eval(var_vec(iv:iv+gg%n_deriv_max-id), (izz-iz)*del_meters(3), .true.)
+
+      f = (-0.25_rp)**nn * factorial(m) / (factorial(nn) * factorial(nn+m))
+
+      do ix = Nx_min, Nx_max
+        x = ix * del_meters(1) + r0_meters(1)
+        do iy = Ny_min, Ny_max
+          y = iy * del_meters(2) + r0_meters(2)
+          rho = sqrt(x*x + y*y)
+          theta = atan2(y,x)
+
+          if (id+m-1 == 0) then  ! Covers case where rho = 0
+            p_rho = 1
+          else
+            p_rho = rho**(id+m-1)
+          endif
+
+          ff = f * p_rho 
+
+          if (is_even) then
+            if (gg%sincos == sin$) then
+              B_rho   = ff * (2*nn+m) * sin(m*theta)
+              B_theta = ff * m * cos(m*theta)
+            else
+              B_rho   = ff * (2*nn+m) * cos(m*theta)
+              B_theta = -ff * m * sin(m*theta)
+            endif
+
+            Bx = B_rho * cos(theta) - B_theta * sin(theta)
+            By = B_rho * sin(theta) + B_theta * cos(theta)
+
+            Bx_fit(ix,iy) = Bx_fit(ix,iy) + Bx * coef
+            By_fit(ix,iy) = By_fit(ix,iy) + By * coef
+
+            if (present(dB_dvar_vec)) then
+              dBx_dvar(ix,iy) = Bx
+              dBy_dvar(ix,iy) = By
+            endif
+
+          else
+            if (gg%sincos == sin$) then
+              Bz = ff * sin(m*theta)
+            else
+              Bz = ff * cos(m*theta)
+            endif
+
+            Bz_fit(ix,iy) = Bz_fit(ix,iy) + Bz * coef
+            if (present(dB_dvar_vec)) then
+              dBz_dvar(ix,iy) = Bz
+            endif
+          endif
+        enddo   ! ix = Nx_min, Nx_max
+      enddo   ! iy = Ny_min, Ny_max
+
+      if (present(dB_dvar_vec)) then
+        dB_dvar_vec(n0+1:n0+n3, iv)        = reshape(dBx_dvar(:,:), [n3])
+        dB_dvar_vec(n0+n3+1:n0+2*n3, iv)   = reshape(dBy_dvar(:,:), [n3])
+        dB_dvar_vec(n0+2*n3+1:n0+3*n3, iv) = reshape(dBz_dvar(:,:), [n3])
+      endif
+
+    enddo   ! id = 0, gg%n_deriv_max
+  enddo   ! ig = 1, size(gg1)
+
+  !
+
+  merit_vec(n0+1:n0+n3)        = reshape(Bx_fit-Bx_dat(:,:,izz), [n3])
+  merit_vec(n0+n3+1:n0+2*n3)   = reshape(By_fit-By_dat(:,:,izz), [n3])
+  merit_vec(n0+2*n3+1:n0+3*n3) = reshape(Bz_fit-Bz_dat(:,:,izz), [n3])
+
+  ix_merit = ix_merit + 3
+enddo   ! izz = gg_iz0, gg_iz1
+
+merit = 3 * norm2(merit_vec) / (n3 * ix_merit)
+
+end function merit_calc
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. Used by fit_field.
+
+subroutine mrqmin_func (var, yfit, dy_dvar, status)
+
+real(rp), intent(in) :: var(:)
+real(rp), intent(out) :: yfit(:)
+real(rp), intent(out) :: dy_dvar(:,:)
+integer status
+
+!
+
+merit = merit_calc(var, gg_iz, yfit, dy_dvar)
+
+end subroutine mrqmin_func
 
 end module

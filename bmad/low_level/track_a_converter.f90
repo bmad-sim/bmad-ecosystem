@@ -1,4 +1,105 @@
 !+
+! Module track_a_converter_priv
+!
+! Private module used to pass state to the dxds_func / p1_norm_func / p2_norm_func callbacks
+! (used by track_a_converter) without host association, which would force a stack trampoline
+! and an executable stack.
+!-
+
+module track_a_converter_priv
+
+use bmad_interface
+use spline_mod
+
+implicit none
+
+private
+public converter_common_struct, dxds_func, p1_norm_func, p2_norm_func, tac_com_ptr, n_pt$
+
+integer, parameter :: n_pt$ = 100
+
+type converter_common_struct
+  type (converter_prob_pc_r_struct), pointer :: ppcr
+  type (converter_distribution_struct), pointer :: dist
+  type (spline_struct) dxds_spline(0:n_pt$)
+  real(rp) dxds_integ(0:n_pt$)
+  real(rp) r_ran, integ_prob_tot
+  integer ipc
+end type
+
+type (converter_common_struct), pointer :: tac_com_ptr
+!$OMP THREADPRIVATE(tac_com_ptr)
+
+contains
+
+!------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function dxds_func (x, status) result (value)
+
+real(rp), intent(in) :: x
+real(rp) value
+integer status, ix
+
+!
+
+ix = bracket_index(x, tac_com_ptr%dxds_spline%x0, 0, restrict = .true.)
+value = (tac_com_ptr%dxds_integ(ix) + spline1(tac_com_ptr%dxds_spline(ix), x, -1)) - tac_com_ptr%integ_prob_tot * tac_com_ptr%r_ran
+
+end function dxds_func
+
+!------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function p2_norm_func (x,y) result (value)
+
+real(rp) x, y, value
+real(rp) dx, dy
+integer ix, iy, nx, ny
+
+!
+
+nx = size(tac_com_ptr%ppcr%pc_out)
+ny = size(tac_com_ptr%ppcr%r)
+ix = bracket_index(x, tac_com_ptr%ppcr%pc_out, 1, dx, restrict = .true.)
+iy = bracket_index(y, tac_com_ptr%ppcr%r, 1, dy, restrict = .true.)
+
+if (x < tac_com_ptr%ppcr%pc_out_min .or. x > tac_com_ptr%ppcr%pc_out_max) then
+  value = 0
+  return
+endif
+
+value = (1-dx)*(1-dy)*tac_com_ptr%ppcr%p_norm(ix,iy) + dx*(1-dy)*tac_com_ptr%ppcr%p_norm(ix+1,iy) + &
+        (1-dx)*dy*tac_com_ptr%ppcr%p_norm(ix,iy+1) + dx*dy*tac_com_ptr%ppcr%p_norm(ix+1,iy+1) 
+
+end function p2_norm_func
+
+!------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function p1_norm_func (r) result (value)
+
+real(rp), intent(in) :: r(:)
+real(rp) :: value(size(r)), dr
+integer i, ix
+
+!
+
+do i = 1, size(r)
+  ix = bracket_index(r(i), tac_com_ptr%ppcr%r, 1, dr, restrict = .true.)
+  value(i) = (1-dr)*tac_com_ptr%ppcr%p_norm(tac_com_ptr%ipc, ix) + dr*tac_com_ptr%ppcr%p_norm(tac_com_ptr%ipc, ix+1)
+enddo
+
+
+end function p1_norm_func
+
+end module track_a_converter_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+
+!+
 ! Subroutine track_a_converter (orbit, ele, param, mat6, make_matrix)
 !
 ! Bmad_standard tracking through an converter element.
@@ -18,12 +119,12 @@ subroutine track_a_converter (orbit, ele, param, mat6, make_matrix)
 
 use bmad_interface, except_dummy => track_a_converter
 use random_mod
+use track_a_converter_priv
 use super_recipes_mod
 use spline_mod
 
 implicit none
 
-integer, parameter :: n_pt$ = 100
 
 type converter_param_storage_struct
   real(rp) pc_out, r
@@ -35,14 +136,6 @@ type converter_param_storage_struct
   real(rp) dxds_min, dxds_max, dyds_max
 end type
 
-type converter_common_struct
-  type (converter_prob_pc_r_struct), pointer :: ppcr
-  type (converter_distribution_struct), pointer :: dist
-  type (spline_struct) dxds_spline(0:n_pt$)
-  real(rp) dxds_integ(0:n_pt$)
-  real(rp) r_ran, integ_prob_tot
-  integer ipc
-end type
 
 type (converter_common_struct), target :: com
 type (converter_common_struct), pointer :: com_ptr  ! Used to get around ifort problem with debugging code.
@@ -65,6 +158,7 @@ character(*), parameter :: r_name = 'track_a_converter'
 !
 
 com_ptr => com
+tac_com_ptr => com
 conv => ele%converter
 nd = size(conv%dist)
 if (nd == 0) then
@@ -259,18 +353,6 @@ end subroutine calc_out_coords2
 !------------------------------------------------
 ! contains
 
-function dxds_func (x, status) result (value)
-
-real(rp), intent(in) :: x
-real(rp) value
-integer status, ix
-
-!
-
-ix = bracket_index(x, com%dxds_spline%x0, 0, restrict = .true.)
-value = (com%dxds_integ(ix) + spline1(com%dxds_spline(ix), x, -1)) - com%integ_prob_tot * com%r_ran
-
-end function dxds_func
 
 !------------------------------------------------
 ! contains
@@ -376,47 +458,10 @@ end subroutine probability_tables_setup
 !------------------------------------------------
 ! contains
 
-function p2_norm_func (x,y) result (value)
-
-real(rp) x, y, value
-real(rp) dx, dy
-integer ix, iy, nx, ny
-
-!
-
-nx = size(com%ppcr%pc_out)
-ny = size(com%ppcr%r)
-ix = bracket_index(x, com%ppcr%pc_out, 1, dx, restrict = .true.)
-iy = bracket_index(y, com%ppcr%r, 1, dy, restrict = .true.)
-
-if (x < com%ppcr%pc_out_min .or. x > com%ppcr%pc_out_max) then
-  value = 0
-  return
-endif
-
-value = (1-dx)*(1-dy)*com%ppcr%p_norm(ix,iy) + dx*(1-dy)*com%ppcr%p_norm(ix+1,iy) + &
-        (1-dx)*dy*com%ppcr%p_norm(ix,iy+1) + dx*dy*com%ppcr%p_norm(ix+1,iy+1) 
-
-end function p2_norm_func
 
 !------------------------------------------------
 ! contains
 
-function p1_norm_func (r) result (value)
-
-real(rp), intent(in) :: r(:)
-real(rp) :: value(size(r)), dr
-integer i, ix
-
-!
-
-do i = 1, size(r)
-  ix = bracket_index(r(i), com%ppcr%r, 1, dr, restrict = .true.)
-  value(i) = (1-dr)*com%ppcr%p_norm(com%ipc, ix) + dr*com%ppcr%p_norm(com%ipc, ix+1)
-enddo
-
-
-end function p1_norm_func
 
 !------------------------------------------------
 ! contains

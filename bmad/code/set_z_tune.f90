@@ -1,4 +1,75 @@
 !+
+! Module set_z_tune_priv
+!
+! Private module used to pass state to the dz_tune_func callback (used by set_z_tune) without host
+! association, which would force a stack trampoline and an executable stack.
+!-
+
+module set_z_tune_priv
+
+use bmad_interface
+use twiss_and_track_mod, only: twiss_and_track
+
+implicit none
+
+private
+public dz_tune_func
+public zt_branch_ptr, zt_n_rf, zt_ix_rf, zt_voltage_control, zt_volt0, zt_z_tune
+public zt_print_err, zt_has_print_err, zt_orbit
+
+type (branch_struct), pointer :: zt_branch_ptr
+type (all_pointer_struct) :: zt_voltage_control(100)
+type (coord_struct), allocatable :: zt_orbit(:)
+real(rp) :: zt_volt0(100), zt_z_tune
+integer :: zt_ix_rf(100), zt_n_rf
+logical :: zt_print_err, zt_has_print_err
+!$OMP THREADPRIVATE(zt_branch_ptr, zt_voltage_control, zt_orbit, zt_volt0, zt_z_tune, &
+!$OMP                zt_ix_rf, zt_n_rf, zt_print_err, zt_has_print_err)
+
+contains
+
+!-------------------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function dz_tune_func (coef, status) result (dz_tune)
+
+type (ele_struct), pointer :: ele
+real(rp), intent(in) :: coef
+real(rp) dz_tune
+integer status, i
+
+!
+
+do i = 1, zt_n_rf
+  ele => zt_branch_ptr%ele(zt_ix_rf(i))
+  zt_voltage_control(i)%r = zt_volt0(i) * coef
+  call set_flags_for_changed_attribute (ele, zt_voltage_control(i)%r)
+enddo
+call lattice_bookkeeper(zt_branch_ptr%lat)
+
+if (zt_has_print_err) then
+  call twiss_and_track(zt_branch_ptr%lat, zt_orbit, status, zt_branch_ptr%ix_branch, print_err = zt_print_err)
+else
+  call twiss_and_track(zt_branch_ptr%lat, zt_orbit, status, zt_branch_ptr%ix_branch)
+endif
+if (status == ok$) status = 0
+
+do i = 1, zt_n_rf
+  ele => zt_branch_ptr%ele(zt_ix_rf(i))
+  call lat_make_mat6 (zt_branch_ptr%lat, zt_ix_rf(i), zt_orbit, ix_branch = zt_branch_ptr%ix_branch)
+enddo
+
+call calc_z_tune (zt_branch_ptr)
+dz_tune = zt_branch_ptr%z%tune - zt_z_tune
+
+end function dz_tune_func
+
+end module set_z_tune_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!+
 ! Subroutine set_z_tune (branch, z_tune, ok, print_err)
 !
 ! Subroutine to set the longitudinal tune by scalling the RF voltages
@@ -27,6 +98,7 @@
 subroutine set_z_tune (branch, z_tune, ok, print_err)
 
 use bmad_interface, dummy => set_z_tune
+use set_z_tune_priv
 use expression_mod, only: linear_coef
 use super_recipes_mod, only: super_zbrent
 use twiss_and_track_mod, only: twiss_and_track
@@ -36,7 +108,6 @@ implicit none
 type (branch_struct), target :: branch
 type (ele_struct), pointer :: ele, ele2, lord
 type (control_struct), pointer :: ctl
-type (coord_struct), allocatable :: orbit(:)
 
 real(rp) Qz_rel_tol, Qz_abs_tol
 real(rp) coef_tot, volt, E0, phase, dz_tune0, coef0, dz_tune, coef
@@ -173,6 +244,16 @@ do i = 1, n_rf
   volt0(i) = voltage_control(i)%r
 enddo
 
+! Set state for the dz_tune_func callback (see module set_z_tune_priv).
+zt_branch_ptr => branch
+zt_n_rf = n_rf
+zt_ix_rf = ix_rf
+zt_voltage_control = voltage_control
+zt_volt0 = volt0
+zt_z_tune = z_tune
+zt_has_print_err = present(print_err)
+if (zt_has_print_err) zt_print_err = print_err
+
 coef = 1
 dz_tune = dz_tune_func(coef, status)
 
@@ -213,38 +294,6 @@ enddo
 coef = super_zbrent (dz_tune_func, min(coef0, coef), max(coef0, coef), Qz_rel_tol, Qz_abs_tol, status)
 dz_tune = dz_tune_func(coef, status)
 branch%z%stable = .true.
-
-!-------------------------------------------------------------------------------------
-contains
-
-function dz_tune_func (coef, status) result (dz_tune)
-
-type (ele_struct), pointer :: ele
-real(rp), intent(in) :: coef
-real(rp) dz_tune
-integer status, i
-
-!
-
-do i = 1, n_rf
-  ele => branch%ele(ix_rf(i))
-  voltage_control(i)%r = volt0(i) * coef
-  call set_flags_for_changed_attribute (ele, voltage_control(i)%r)
-enddo
-call lattice_bookkeeper(branch%lat)
-
-call twiss_and_track(branch%lat, orbit, status, branch%ix_branch, print_err = print_err)
-if (status == ok$) status = 0
-
-do i = 1, n_rf
-  ele => branch%ele(ix_rf(i))
-  call lat_make_mat6 (branch%lat, ix_rf(i), orbit, ix_branch = branch%ix_branch)
-enddo
-
-call calc_z_tune (branch)
-dz_tune = branch%z%tune - z_tune
-
-end function dz_tune_func
 
 end subroutine set_z_tune
 

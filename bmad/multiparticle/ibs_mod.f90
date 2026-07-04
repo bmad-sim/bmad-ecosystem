@@ -36,6 +36,13 @@ end type
 real(fgsl_double), parameter :: eps_7 = 1.0d-7
 integer(fgsl_size_t), parameter :: space_limit = 1000_fgsl_size_t
 
+! Used to pass state to the residual_pwd_sig_z nested function without a stack
+! trampoline (which would force an executable stack). See bl_via_mat.
+type(lat_struct), pointer, private :: bl_lat_ptr
+type(ibs_sim_param_struct), pointer, private :: bl_ibs_params_ptr
+type(normal_modes_struct), pointer, private :: bl_mode_ptr
+!$OMP THREADPRIVATE(bl_lat_ptr, bl_ibs_params_ptr, bl_mode_ptr)
+
 contains
 
 !-------------------------------------------------------------------------------------------------------------------
@@ -878,9 +885,9 @@ use super_recipes_mod, only: super_brent
 
 implicit none
 
-type(lat_struct) lat
-type(ibs_sim_param_struct) ibs_sim_params
-type(normal_modes_struct) mode
+type(lat_struct), target :: lat
+type(ibs_sim_param_struct), target :: ibs_sim_params
+type(normal_modes_struct), target :: mode
 real(rp) sig_z
 real(rp) lb, mb, ub, min_val
 integer status
@@ -891,10 +898,18 @@ lb = 0.90 * mode%sig_z
 mb = mode%sig_z
 ub = 1.50 * mode%sig_z
 
+bl_lat_ptr => lat
+bl_ibs_params_ptr => ibs_sim_params
+bl_mode_ptr => mode
+
 min_val = super_brent(lb,mb,ub, residual_pwd_sig_z, 1.0e-5_rp, 1e-18_rp*abs(lb), sig_z, status)
 
-!------------------------------------------------------------------
-contains
+end subroutine bl_via_mat
+
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------------------------------
+! Used with bl_via_mat. Made a module procedure (not nested) to avoid a stack trampoline.
 
 function residual_pwd_sig_z(zz, status)
 real(rp) residual_pwd_sig_z
@@ -906,17 +921,14 @@ logical error
 
 !
 
-mode%z%emittance = zz * mode%sigE_E
+bl_mode_ptr%z%emittance = zz * bl_mode_ptr%sigE_E
 
-call transfer_matrix_calc (lat, t6, ix1=0, one_turn=.true.)
-t6 = pwd_mat(lat, t6, ibs_sim_params%inductance, zz)
-! call transfer_matrix_calc_special (lat, t6, ix1=0, one_turn=.true., inductance=ibs_sim_params%inductance, sig_z=zz)
-call make_smat_from_abc(t6, mode, sigma_mat, error)
+call transfer_matrix_calc (bl_lat_ptr, t6, ix1=0, one_turn=.true.)
+t6 = pwd_mat(bl_lat_ptr, t6, bl_ibs_params_ptr%inductance, zz)
+call make_smat_from_abc(t6, bl_mode_ptr, sigma_mat, error)
 
 residual_pwd_sig_z = (abs(sqrt(sigma_mat(5,5)) - zz))/zz
 end function residual_pwd_sig_z
-
-end subroutine bl_via_mat
 
 end module ibs_mod
 

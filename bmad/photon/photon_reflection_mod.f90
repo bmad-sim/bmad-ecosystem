@@ -37,6 +37,15 @@ private output_specular_reflection_input_params
 private zmmax, zzfi, zzfp, hzz, zbessi
 private zbessi1, zbessi0, zzexp
 
+! Used to pass state to the d_integral and cumulr callbacks without host association (which
+! would force a stack trampoline and an executable stack). See photon_diffuse_scattering.
+type (diffuse_param_struct), pointer, private :: dr_d_param_ptr
+type (photon_reflect_surface_struct), pointer, private :: dr_surface_ptr
+real(rp), private :: dr_old_integral, dr_tot_integral, dr_ran1, dr_ran2
+integer, private :: dr_j
+!$OMP THREADPRIVATE(dr_d_param_ptr, dr_surface_ptr, dr_old_integral, dr_tot_integral, &
+!$OMP                dr_ran1, dr_ran2, dr_j)
+
 contains
 
 !---------------------------------------------------------------------------------------------
@@ -823,7 +832,7 @@ use super_recipes_mod, only: super_rtsafe
 implicit none
 
 type (photon_reflect_surface_struct), target :: surface
-type (diffuse_param_struct) d_param
+type (diffuse_param_struct), target :: d_param
 type (cheb_diffuse_struct) cheb_param
 type (diffuse_param_struct), optional :: diffuse_param
 
@@ -910,6 +919,11 @@ if (diffuse_com%use_spline_fit) then
     if (integral >= ran1 * tot_integral) exit
   enddo
 
+  dr_d_param_ptr => d_param
+  dr_old_integral = old_integral
+  dr_tot_integral = tot_integral
+  dr_ran1 = ran1
+  dr_j = j
   ctheta2 = super_rtsafe (d_integral, d_param%prob_spline(j)%x0, d_param%prob_spline(j+1)%x0, &
                                       1.0e-12_rp, 1.0e-5_rp, status)
 
@@ -933,6 +947,10 @@ d_param%x = ctheta2
 d_param%c_norm = cos_phi(sigma, T, pi, d_param)
 
 ! find the value of phi for which the cumulative probability equals ran2
+
+dr_d_param_ptr => d_param
+dr_surface_ptr => surface
+dr_ran2 = ran2
 
 call cumulr(0.0_rp, fl, df, status)
 call cumulr(pi, fh, df, status)
@@ -996,60 +1014,6 @@ integral_err(ix) = abs(a_parab - a_spline)
 
 end subroutine integral_err_calc
 
-!---------------------
-! contains
-
-!+
-! Subroutine d_integral (x, fn, df, status)
-!
-! Wrapper function passed to super_rtsafe.
-! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
-!-
-
-subroutine d_integral (x, fn, df, status)
-
-implicit none
-
-real(rp), intent(in) :: x
-real(rp), intent(out) :: fn, df
-integer status
-
-!
-
-fn = (old_integral + abs(spline1(d_param%prob_spline(j), x, -1))) / tot_integral - ran1
-df = abs(spline1(d_param%prob_spline(j), x, 0)) / tot_integral
-
-end subroutine d_integral
-
-!---------------------------------------------------------------------------------------------
-! contains
-
-!+
-! Subroutine cumulr (phi, fn, df, status)
-!
-! Wrapper function passed to super_rtsafe.
-! Contained routine to calculate integrated probability distribution in x = sin(graze_angle_out).
-!-
-
-subroutine cumulr (phi, fn, df, status)
-
-implicit none
-
-real(rp), intent(in) :: phi 
-real(rp), intent(out) :: fn, df
-real(rp) sigma, T
-integer status
-
-!
-
-sigma = surface%surface_roughness_rms
-T = surface%roughness_correlation_len
-
-fn = cos_phi(sigma, T, phi, d_param) / d_param%c_norm - ran2
-df = ptwo(sigma, T, phi, d_param) / d_param%c_norm
-
-end subroutine cumulr
-
 !---------------------------------------------------------------------------------------------
 ! contains
 
@@ -1110,6 +1074,60 @@ enddo
 end function prob_x_diffuse_vec
 
 end subroutine photon_diffuse_scattering
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Subroutine d_integral (x, fn, df, status)
+!
+! Wrapper function passed to super_rtsafe by photon_diffuse_scattering.
+! Made a module procedure (not nested) to avoid a stack trampoline.
+!-
+
+subroutine d_integral (x, fn, df, status)
+
+implicit none
+
+real(rp), intent(in) :: x
+real(rp), intent(out) :: fn, df
+integer status
+
+!
+
+fn = (dr_old_integral + abs(spline1(dr_d_param_ptr%prob_spline(dr_j), x, -1))) / dr_tot_integral - dr_ran1
+df = abs(spline1(dr_d_param_ptr%prob_spline(dr_j), x, 0)) / dr_tot_integral
+
+end subroutine d_integral
+
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!---------------------------------------------------------------------------------------------
+!+
+! Subroutine cumulr (phi, fn, df, status)
+!
+! Wrapper function passed to super_rtsafe by photon_diffuse_scattering.
+! Made a module procedure (not nested) to avoid a stack trampoline.
+!-
+
+subroutine cumulr (phi, fn, df, status)
+
+implicit none
+
+real(rp), intent(in) :: phi
+real(rp), intent(out) :: fn, df
+real(rp) sigma, T
+integer status
+
+!
+
+sigma = dr_surface_ptr%surface_roughness_rms
+T = dr_surface_ptr%roughness_correlation_len
+
+fn = cos_phi(sigma, T, phi, dr_d_param_ptr) / dr_d_param_ptr%c_norm - dr_ran2
+df = ptwo(sigma, T, phi, dr_d_param_ptr) / dr_d_param_ptr%c_norm
+
+end subroutine cumulr
 
 !---------------------------------------------------------------------------------------------
 !---------------------------------------------------------------------------------------------
