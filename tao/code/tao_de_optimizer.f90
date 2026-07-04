@@ -1,84 +1,24 @@
 !+
-! Subroutine tao_de_optimizer (abort)
+! Module tao_de_optimizer_priv
 !
-! Subrutine to minimize the merit function by varying variables until
-! the "data" as calculated from the model matches the measured data.
-! 
-! This subroutine is a wrapper for the opti_de optimizer in sim_utils.
-! 'de' stands for 'differential evolution' see opti_de routine for
-! more details.
-!
-! Output:
-!   abort -- Logical: Set True if an user stop signal detected.
+! Private module holding the merit_wrapper callback used by tao_de_optimizer. Made a module
+! procedure (not nested) so that gfortran does not generate a stack trampoline (which would force
+! an executable stack). See issue #1960.
 !-
 
-subroutine tao_de_optimizer (abort)
+module tao_de_optimizer_priv
 
-use tao_interface, dummy => tao_de_optimizer
+use tao_interface
 use tao_top10_mod, only: tao_var_write
-use opti_de_mod
-!!! use opti_de_openmp_mod  # And there is commented out code below.
-!!! use omp_lib, only: omp_get_max_threads
+use input_mod
 
 implicit none
 
-type (tao_universe_struct), pointer :: u
-
-real(rp), allocatable :: var_vec(:), var_step(:)
-real(rp) merit_start, merit_end, merit
-
-integer i, n, gen, pop, n_var, population, status
-
-character(20) :: r_name = 'tao_de_optimizer'
-character(80) line
-
-logical abort
-
-! setup
-
-abort = .false.
-
-! put the variable values into an array for the optimizer
-
-call tao_get_opt_vars (var_vec, var_step = var_step)
-var_step = var_step * s%global%de_lm_step_ratio
-n_var = size(var_vec)
-
-population=s%global%de_var_to_population_factor*n_var
-population = max(population, 20)
-merit_start = tao_merit ()
-
-! run the optimizer
-
-write (line, '(a, i0)') 'Differential evolution optimizer, population: ', population
-call out_io (s_blank$, r_name, line)
-
-!!! if (omp_get_max_threads() == 1) then
-  merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-!!! else
-!!!  merit = opti_de_openmp (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
-!!! endif
-
-print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
-
-! cleanup after the optimizer
-
-call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
-merit_end = tao_merit ()
-if (s%global%opti_write_var_file) call tao_var_write (s%global%var_out_file)
-
-write (line, '(a, es14.6)') 'Merit start:', merit_start
-call out_io (s_blank$, r_name, line)
-write (line, '(a, es14.6)') 'Merit end:  ', merit_end
-call out_io (s_blank$, r_name, line)
-
-if (status /= 0) abort = .true.
+private
+public merit_wrapper
 
 contains
 
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
-!-----------------------------------------------------------------------------
 !+
 ! Function merit_wrapper (var_vec, status, iter_count) result (this_merit)
 !
@@ -97,9 +37,6 @@ contains
 
 function merit_wrapper (var_vec, status, iter_count) result (this_merit)
 
-use tao_interface
-use tao_top10_mod, only: tao_var_write
-use input_mod
 
 implicit none
 
@@ -173,5 +110,89 @@ endif
 iter_count = mod(iter_count, 1000) + 1
 
 end function merit_wrapper
+
+end module tao_de_optimizer_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+
+!+
+! Subroutine tao_de_optimizer (abort)
+!
+! Subrutine to minimize the merit function by varying variables until
+! the "data" as calculated from the model matches the measured data.
+! 
+! This subroutine is a wrapper for the opti_de optimizer in sim_utils.
+! 'de' stands for 'differential evolution' see opti_de routine for
+! more details.
+!
+! Output:
+!   abort -- Logical: Set True if an user stop signal detected.
+!-
+
+subroutine tao_de_optimizer (abort)
+
+use tao_interface, dummy => tao_de_optimizer
+use tao_top10_mod, only: tao_var_write
+use tao_de_optimizer_priv
+use opti_de_mod
+!!! use opti_de_openmp_mod  # And there is commented out code below.
+!!! use omp_lib, only: omp_get_max_threads
+
+implicit none
+
+type (tao_universe_struct), pointer :: u
+
+real(rp), allocatable :: var_vec(:), var_step(:)
+real(rp) merit_start, merit_end, merit
+
+integer i, n, gen, pop, n_var, population, status
+
+character(20) :: r_name = 'tao_de_optimizer'
+character(80) line
+
+logical abort
+
+! setup
+
+abort = .false.
+
+! put the variable values into an array for the optimizer
+
+call tao_get_opt_vars (var_vec, var_step = var_step)
+var_step = var_step * s%global%de_lm_step_ratio
+n_var = size(var_vec)
+
+population=s%global%de_var_to_population_factor*n_var
+population = max(population, 20)
+merit_start = tao_merit ()
+
+! run the optimizer
+
+write (line, '(a, i0)') 'Differential evolution optimizer, population: ', population
+call out_io (s_blank$, r_name, line)
+
+!!! if (omp_get_max_threads() == 1) then
+  merit = opti_de (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!!! else
+!!!  merit = opti_de_openmp (var_vec, s%global%n_opti_cycles, population, merit_wrapper, var_step, status)
+!!! endif
+
+print *, 'tao_de_optimizer merit for rank ', merit, s%mpi%rank
+
+! cleanup after the optimizer
+
+call tao_set_opt_vars (var_vec, s%global%optimizer_var_limit_warn)
+merit_end = tao_merit ()
+if (s%global%opti_write_var_file) call tao_var_write (s%global%var_out_file)
+
+write (line, '(a, es14.6)') 'Merit start:', merit_start
+call out_io (s_blank$, r_name, line)
+write (line, '(a, es14.6)') 'Merit end:  ', merit_end
+call out_io (s_blank$, r_name, line)
+
+if (status /= 0) abort = .true.
+
 
 end subroutine tao_de_optimizer
