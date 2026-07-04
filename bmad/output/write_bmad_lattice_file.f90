@@ -52,6 +52,7 @@ type (wake_sr_struct), pointer :: sr
 type (wake_lr_mode_struct), pointer :: lrm
 type (wake_sr_mode_struct), pointer :: srm
 type (wake_sr_z_long_struct), pointer :: srz
+type (wake_sr_z_taylor_struct), pointer :: srzt
 type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
@@ -740,11 +741,12 @@ do ib = 0, ubound(lat%branch, 1)
       endif
 
       sr => ele%wake%sr
-      if (size(sr%long) /= 0 .or. size(sr%trans) /= 0 .or. sr%z_long%dz /= 0) then
+      if (size(sr%long) /= 0 .or. size(sr%trans) /= 0 .or. sr%z_long%dz /= 0 .or. sr%z_taylor%dz /= 0) then
         line = trim(line) // ', sr_wake = @'
         if (sr%z_max /= 0) line = trim(line) // ', z_max = ' // re_str(sr%z_max)
         if (sr%amp_scale /= 1) line = trim(line) // ', amp_scale = ' // re_str(sr%amp_scale)
         if (sr%z_scale /= 1) line = trim(line) // ', z_scale = ' // re_str(sr%z_scale)
+        if (.not. sr%scale_with_length) line = trim(line) // ', scale_with_length = F'
 
         do i = 1, size(sr%long)
           ix = index(line, '@,')
@@ -789,6 +791,65 @@ do ib = 0, ubound(lat%branch, 1)
             endif
           enddo
           close(iu2)
+          line = trim(line) // '}'
+        endif
+
+        srzt => sr%z_taylor
+        if (srzt%dz /= 0) then
+          ix = index(line, '@,')
+          if (ix /= 0) line = line(1:ix-1) // '{' //line(ix+2:)
+          f = 1
+          if (srzt%time_based) f = 1.0_rp / c_light
+          line = trim(line) // ', z_taylor = {time_based = ' // logic_str(srzt%time_based) // &
+                  ', smoothing_sigma = ' // re_str(f*srzt%smoothing_sigma)
+
+          do k = 1, n_sr_z_taylor_term$
+            if (.not. (allocated(srzt%term(k)%w) .or. allocated(srzt%term(k)%w1) .or. &
+                srzt%term(k)%r /= 0 .or. srzt%term(k)%l /= 0 .or. srzt%term(k)%c_inv /= 0)) cycle
+
+            line = trim(line) // ', ' // trim(sr_z_taylor_term_name(k)) // ' = {@'
+            if (srzt%term(k)%r /= 0) line = trim(line) // ', r = ' // re_str(srzt%term(k)%r)
+            if (srzt%term(k)%l /= 0) line = trim(line) // ', l = ' // re_str(srzt%term(k)%l)
+            if (srzt%term(k)%c_inv /= 0) line = trim(line) // ', c_inv = ' // re_str(srzt%term(k)%c_inv)
+
+            if (allocated(srzt%term(k)%w)) then
+              name = trim(ele%name) // '.sr_z_taylor.' // trim(sr_z_taylor_term_name(k)) // '.w'
+              line = trim(line) // ', w = {call::' // trim(name) // '}'
+              iu2 = lunget()
+              open (iu2, file = trim(path) // '/' // trim(name))
+              n = size(srzt%term(k)%w)
+              do i = 1, n
+                z = -srzt%z0 + (i-1) * srzt%dz
+                if (srzt%time_based) then
+                  write (iu2, '(es16.8, es20.12, a)') f*z, srzt%term(k)%w(n+1-i), ','
+                else
+                  write (iu2, '(es16.8, es20.12, a)') z, srzt%term(k)%w(i), ','
+                endif
+              enddo
+              close(iu2)
+            endif
+
+            if (allocated(srzt%term(k)%w1)) then
+              name = trim(ele%name) // '.sr_z_taylor.' // trim(sr_z_taylor_term_name(k)) // '.w1'
+              line = trim(line) // ', w1 = {call::' // trim(name) // '}'
+              iu2 = lunget()
+              open (iu2, file = trim(path) // '/' // trim(name))
+              n = size(srzt%term(k)%w1)
+              do i = 1, n
+                z = -srzt%z0 + (i-1) * srzt%dz
+                if (srzt%time_based) then
+                  write (iu2, '(es16.8, es20.12, a)') f*z, srzt%term(k)%w1(n+1-i), ','
+                else
+                  write (iu2, '(es16.8, es20.12, a)') z, srzt%term(k)%w1(i), ','
+                endif
+              enddo
+              close(iu2)
+            endif
+
+            ix = index(line, '@,')
+            if (ix /= 0) line = line(1:ix-1) // line(ix+2:)
+            line = trim(line) // '}'
+          enddo
           line = trim(line) // '}'
         endif
 

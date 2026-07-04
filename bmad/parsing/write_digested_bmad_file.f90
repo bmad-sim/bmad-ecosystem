@@ -238,18 +238,19 @@ type (converter_prob_pc_r_struct), pointer :: ppcr
 type (converter_direction_out_struct), pointer :: c_dir
 type (control_ramp1_struct), pointer ::rmp
 type (wake_sr_z_long_struct), pointer :: srz
+type (wake_sr_z_taylor_struct), pointer :: srzt
 
 integer ix_wall3d, ix_r, ix_d, ix_m, ix_e, ix_t(6), ix_st(0:3), ie, ib, ix_wall3d_branch
-integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
+integer ix_sr_long, ix_sr_trans, ix_sr_z, ix_sr_zt, ix_lr_mode, ie_max, ix_s, n_var, ix_ptr, im, n1, n2
 integer i, j, k, n, nr, n_gen, n_grid, n_cart, n_cyl, ix_ele, ix_c, ix_branch
 integer n_cus, ix_convert, n_energy, n_angle, n_foil, n_rf
 
-logical write_wake, mode3
+logical write_wake, mode3, zt_present(n_sr_z_taylor_term$), zt_present1(n_sr_z_taylor_term$)
 
 !
 
 ix_d = 0; ix_m = 0; ix_e = 0; ix_t = -1; ix_r = 0; ix_s = 0
-ix_sr_long = 0; ix_sr_trans = 0; ix_sr_z = 0; ix_lr_mode = 0; ix_st = -1
+ix_sr_long = 0; ix_sr_trans = 0; ix_sr_z = 0; ix_sr_zt = 0; ix_lr_mode = 0; ix_st = -1
 mode3 = .false.; ix_wall3d = 0; ix_convert = 0; ix_c = 0; n_rf = -1
 n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0; n_foil = 0
 
@@ -292,6 +293,7 @@ if (associated(wake)) then
     if (allocated(wake%sr%long))      ix_sr_long    = size(wake%sr%long)
     if (allocated(wake%sr%trans))     ix_sr_trans   = size(wake%sr%trans)
     if (allocated(wake%sr%z_long%w))  ix_sr_z       = size(wake%sr%z_long%w)
+    if (allocated(wake%sr%z_taylor%f_step)) ix_sr_zt = size(wake%sr%z_taylor%f_step)
     if (allocated(wake%lr%mode))      ix_lr_mode    = size(wake%lr%mode)
     n_wake = n_wake + 1
     if (n_wake > size(ix_ele_wake)) call re_allocate(ix_ele_wake, 2*size(ix_ele_wake))
@@ -329,7 +331,7 @@ endif
 ! The last zero is for future use.
 
 write (d_unit) mode3, ix_r, ix_s, ix_wall3d_branch, associated(ele%ac_kick), associated(ele%rad_map), &
-          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, ix_sr_z, n_rf, &
+          ix_convert, ix_d, ix_m, ix_t, ix_st, ix_e, ix_sr_long, ix_sr_trans, ix_sr_z, ix_sr_zt, n_rf, &
           ix_lr_mode, ix_wall3d, ix_c, n_cart, n_cyl, n_gen, n_grid, n_foil, n_cus, ix_convert
 
 write (d_unit) &
@@ -685,6 +687,41 @@ if (associated(wake) .and. write_wake) then
   do i = 1, size(srz%w)
     write (d_unit) srz%w(i), srz%fw(i)
   enddo
+
+  srzt => wake%sr%z_taylor
+  do k = 1, n_sr_z_taylor_term$
+    zt_present(k)  = allocated(srzt%term(k)%w)
+    zt_present1(k) = allocated(srzt%term(k)%w1)
+  enddo
+  write (d_unit) srzt%smoothing_sigma, srzt%dz, srzt%z0, srzt%time_based, zt_present, zt_present1
+  do k = 1, n_sr_z_taylor_term$
+    write (d_unit) srzt%term(k)%r, srzt%term(k)%l, srzt%term(k)%c_inv
+    if (zt_present(k)) then
+      do i = 1, size(srzt%term(k)%w)
+        write (d_unit) srzt%term(k)%w(i), srzt%term(k)%fw(i)
+      enddo
+      if (allocated(srzt%term(k)%fw_int)) then
+        do i = 1, size(srzt%term(k)%fw_int)
+          write (d_unit) srzt%term(k)%fw_int(i)
+        enddo
+      endif
+    endif
+    if (zt_present1(k)) then
+      do i = 1, size(srzt%term(k)%w1)
+        write (d_unit) srzt%term(k)%w1(i), srzt%term(k)%fw1(i)
+      enddo
+      if (allocated(srzt%term(k)%fw1_int)) then
+        do i = 1, size(srzt%term(k)%fw1_int)
+          write (d_unit) srzt%term(k)%fw1_int(i)
+        enddo
+      endif
+    endif
+  enddo
+  if (allocated(srzt%f_step)) then
+    do i = 1, size(srzt%f_step)
+      write (d_unit) srzt%f_step(i), srzt%f_step_int(i)
+    enddo
+  endif
 
   write (d_unit) wake%lr%t_ref, wake%lr%freq_spread, wake%lr%self_wake_on, wake%lr%amp_scale, wake%lr%time_scale
 

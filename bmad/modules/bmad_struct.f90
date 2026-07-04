@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 359
+integer, parameter :: bmad_inc_version$ = 360
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -618,7 +618,55 @@ type wake_sr_z_long_struct
   logical :: time_based = .false.                      ! Was input time based?
 end type
 
-type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
+! Taylor-expanded 3D short-range wake (I. Zagorodnov style, as used by the ocelot Wake process
+! and the ECHO "Taylor" wake tables). The longitudinal point wake is expanded to second order
+! in the transverse coordinates of the source (x_s, y_s) and witness (x_w, y_w) particles:
+!   W(x_s, y_s, x_w, y_w, z) = Sum_{a <= b} h_ab(z) * u_a * u_b,   u = (1, x_s, y_s, x_w, y_w)
+! giving 13 independent one-dimensional terms h_ab. Transverse kicks follow from the
+! Panofsky-Wenzel theorem. References: Zagorodnov, Dohlus & Tomin, PRAB 22, 024401 (2019),
+! Appendix B (the method); Zagorodnov, Bane & Stupakov, PRSTAB 18, 104401 (2015) (harmonicity).
+
+integer, parameter :: sr_z_taylor_w00$ = 1, sr_z_taylor_w01$ = 2, sr_z_taylor_w02$ = 3, &
+        sr_z_taylor_w03$ = 4, sr_z_taylor_w04$ = 5, sr_z_taylor_w11$ = 6, sr_z_taylor_w12$ = 7, &
+        sr_z_taylor_w13$ = 8, sr_z_taylor_w14$ = 9, sr_z_taylor_w23$ = 10, sr_z_taylor_w24$ = 11, &
+        sr_z_taylor_w33$ = 12, sr_z_taylor_w34$ = 13
+integer, parameter :: n_sr_z_taylor_term$ = 13
+character(4), parameter :: sr_z_taylor_term_name(13) = [character(4):: 'W00', 'W01', 'W02', 'W03', &
+        'W04', 'W11', 'W12', 'W13', 'W14', 'W23', 'W24', 'W33', 'W34']
+
+! Each term is the sum of a tabulated wake w, a tabulated derivative-coupled wake w1
+! (convolved with the derivative of the bunch profile), and lumped resistive (r),
+! inductive (l), and inverse-capacitance (c_inv) circuit contributions. See Eq. (B1) of
+! the Zagorodnov, Dohlus & Tomin reference. The w1 and l terms follow the ocelot sign
+! convention, which differs from Eq. (B1) as printed. A term is present if it has any
+! table or any nonzero lumped constant.
+
+type wake_sr_z_taylor_term_struct
+  real(rp), allocatable :: w(:)          ! Input single particle wake h_ab. Indexed from 1.
+  complex(rp), allocatable :: fw(:)      ! Fourier transform of the (smoothed) wake kernel.
+  complex(rp), allocatable :: fw_int(:)  ! Fourier transform of the Panofsky-Wenzel integrated kernel.
+                                         !   Only allocated for terms involving the witness position.
+  real(rp), allocatable :: w1(:)         ! Input derivative-coupled wake table.
+  complex(rp), allocatable :: fw1(:)     ! Fourier transform of the (smoothed) w1 kernel.
+  complex(rp), allocatable :: fw1_int(:) ! Fourier transform of the Panofsky-Wenzel integrated w1 kernel.
+  real(rp) :: r = 0                      ! Lumped resistive term [Ohm].
+  real(rp) :: l = 0                      ! Lumped inductive term [H].
+  real(rp) :: c_inv = 0                  ! Lumped inverse capacitance [1/F].
+end type
+
+type wake_sr_z_taylor_struct
+  type (wake_sr_z_taylor_term_struct) :: term(13)  ! Indexed by sr_z_taylor_w00$, etc.
+  complex(rp), allocatable :: f_step(:)            ! FFT of the causal unit-step kernel (for r, c_inv terms).
+  complex(rp), allocatable :: f_step_int(:)        ! FFT of the integrated unit-step kernel.
+  complex(rp), allocatable :: fbunch(:,:)          ! Scratch: FFTs of the generalized currents.
+  complex(rp), allocatable :: w_out(:,:)           ! Scratch: convolved wake potentials.
+  real(rp) :: dz = 0                               ! Distance between points. If zero there is no wake.
+  real(rp) :: z0 = 0                               ! Wake extent is [-z0, z0].
+  real(rp) :: smoothing_sigma = 0                  ! 0 => No smoothing.
+  logical :: time_based = .false.                  ! Was input time based?
+end type
+
+type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct
   real(rp) :: amp = 0       ! Amplitude
   real(rp) :: damp = 0      ! Dampling factor.
   real(rp) :: k = 0         ! k factor
@@ -635,6 +683,7 @@ end type
 type wake_sr_struct  ! Psudo-mode short-Range Wake struct
   character(400) :: file = ''
   type (wake_sr_z_long_struct) :: z_long
+  type (wake_sr_z_taylor_struct) :: z_taylor
   type (wake_sr_mode_struct), allocatable :: long(:)
   type (wake_sr_mode_struct), allocatable :: trans(:)
   real(rp) :: z_ref_long = 0      ! z reference value for computing the wake amplitude.
@@ -678,7 +727,7 @@ end type
 !
 
 type wake_struct
-  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_long_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
+  type (wake_sr_struct) :: sr = wake_sr_struct('', wake_sr_z_long_struct(), wake_sr_z_taylor_struct(), null(), null(), 0.0_rp, 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Short-range wake
   type (wake_lr_struct) :: lr = wake_lr_struct('', null(), 0.0_rp, 0.0_rp, 1.0_rp, 1.0_rp, .true.) ! Long-range wake
 end type
 
