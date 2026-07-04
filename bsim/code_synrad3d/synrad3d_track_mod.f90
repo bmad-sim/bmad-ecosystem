@@ -3,6 +3,16 @@ module synrad3d_track_mod
 use synrad3d_utils
 use synrad3d_output_mod
 
+! Used to pass state to the sr3d_photon_hit_func callback without host association (which would
+! force a stack trampoline and an executable stack). See sr3d_photon_hit_spot_calc.
+type (sr3d_photon_track_struct), pointer, private :: s3h_photon_ptr, s3h_photon1_ptr
+type (branch_struct), pointer, private :: s3h_branch_ptr
+real(rp), pointer, private :: s3h_path_len0_ptr, s3h_path_len1_ptr, s3h_d_rad0_ptr, s3h_d_rad1_ptr
+logical, pointer, private :: s3h_in_zbrent_ptr, s3h_no_wall_here_ptr
+!$OMP THREADPRIVATE(s3h_photon_ptr, s3h_photon1_ptr, s3h_branch_ptr, s3h_path_len0_ptr, &
+!$OMP                s3h_path_len1_ptr, s3h_d_rad0_ptr, s3h_d_rad1_ptr, s3h_in_zbrent_ptr, &
+!$OMP                s3h_no_wall_here_ptr)
+
 contains
 
 !-------------------------------------------------------------------------------------------
@@ -801,15 +811,16 @@ type (branch_struct), target :: branch
 type (sr3d_photon_track_struct), target :: photon
 type (wall3d_struct), pointer :: wall3d
 type (sr3d_photon_wall_hit_struct), allocatable :: wall_hit(:)
-type (sr3d_photon_track_struct) :: photon1
+type (sr3d_photon_track_struct), target :: photon1
 
 real(rp) path_len, dl
-real(rp) path_len0, path_len1, d_rad0, d_rad1
+real(rp), target :: path_len0, path_len1, d_rad0, d_rad1
 
 integer i, status
 
-logical err, no_wall_here
-logical :: in_zbrent
+logical err
+logical, target :: no_wall_here
+logical, target :: in_zbrent
 
 ! For debugging
 
@@ -833,6 +844,17 @@ path_len1 = photon%now%orb%dt_ref*c_light
 d_rad0 = real_garbage$
 d_rad1 = real_garbage$
 in_zbrent = .false.
+
+! Set state for the sr3d_photon_hit_func callback (see module header).
+s3h_photon_ptr => photon
+s3h_photon1_ptr => photon1
+s3h_branch_ptr => branch
+s3h_path_len0_ptr => path_len0
+s3h_path_len1_ptr => path_len1
+s3h_d_rad0_ptr => d_rad0
+s3h_d_rad1_ptr => d_rad1
+s3h_in_zbrent_ptr => in_zbrent
+s3h_no_wall_here_ptr => no_wall_here
 
 if (wall_hit(photon%n_wall_hit)%after_reflect%dt_ref == photon%old%orb%dt_ref) then
 
@@ -882,21 +904,12 @@ dl = path_len - photon%now%orb%dt_ref*c_light
 if (abs(dl) > 0.1 * sr3d_params%significant_length) call sr3d_propagate_photon_a_step (photon, branch, dl, .false.)
 call sr3d_photon_d_radius (photon%now, branch, no_wall_here)
 
-!---------------------------------------------------------------------------
-contains
+end subroutine sr3d_photon_hit_spot_calc
 
-!+
-! Function sr3d_photon_hit_func (path_len, status) result (d_radius)
-! 
-! Routine to be used as an argument in zbrent in the sr3d_photon_hit_spot_calc.
-!
-! Input:
-!   path_len -- real(rp): Place to position the photon.
-!   status   -- integer: Not used.
-!
-! Output:
-!   d_radius -- real(rp): 
-!-
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. State passed via s3h_* vars.
 
 function sr3d_photon_hit_func (path_len, status) result (d_radius)
 
@@ -907,42 +920,40 @@ real(rp) d_radius, d_track
 integer status
 
 ! Easy case at the ends of the track.
-! The reason why we are carful about reusing d_rad0 and d_rad1 is that 
+! The reason why we are carful about reusing s3h_d_rad0_ptr and s3h_d_rad1_ptr is that 
 ! roundoff can cause calculated radius at the end points to shift from positive 
 ! to negative which will case zbrent to crash.
 
-if (in_zbrent) then
-  if (path_len == path_len0 .and. d_rad0 /= real_garbage$) then
-    d_radius = d_rad0
+if (s3h_in_zbrent_ptr) then
+  if (path_len == s3h_path_len0_ptr .and. s3h_d_rad0_ptr /= real_garbage$) then
+    d_radius = s3h_d_rad0_ptr
     return
-  elseif (path_len == path_len1 .and. d_rad1 /= real_garbage$) then
-    d_radius = d_rad1
+  elseif (path_len == s3h_path_len1_ptr .and. s3h_d_rad1_ptr /= real_garbage$) then
+    d_radius = s3h_d_rad1_ptr
     return
   endif
 endif
 
 ! Determine start of tracking.
-! If path_length > photon1%now%orb%dt_ref*c_light: 
-!   Track starting from the present position (photon1%now).
+! If path_length > s3h_photon1_ptr%now%orb%dt_ref*c_light: 
+!   Track starting from the present position (s3h_photon1_ptr%now).
 ! Otherwise:
-!   Track starting from the beginning of the region (photon%old).
+!   Track starting from the beginning of the region (s3h_photon_ptr%old).
 
-if (path_len < photon1%now%orb%dt_ref*c_light) then
-  photon1 = photon
-  photon1%now = photon%old
+if (path_len < s3h_photon1_ptr%now%orb%dt_ref*c_light) then
+  s3h_photon1_ptr = s3h_photon_ptr
+  s3h_photon1_ptr%now = s3h_photon_ptr%old
 endif
 
 ! And track to path_len position.
 
-d_track = path_len - photon1%now%orb%dt_ref*c_light
-call sr3d_propagate_photon_a_step (photon1, branch, d_track, .false.)
+d_track = path_len - s3h_photon1_ptr%now%orb%dt_ref*c_light
+call sr3d_propagate_photon_a_step (s3h_photon1_ptr, s3h_branch_ptr, d_track, .false.)
 
-call sr3d_photon_d_radius (photon1%now, branch, no_wall_here)
-d_radius = photon1%now%d_radius
+call sr3d_photon_d_radius (s3h_photon1_ptr%now, s3h_branch_ptr, s3h_no_wall_here_ptr)
+d_radius = s3h_photon1_ptr%now%d_radius
 
 end function sr3d_photon_hit_func
-
-end subroutine sr3d_photon_hit_spot_calc 
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------

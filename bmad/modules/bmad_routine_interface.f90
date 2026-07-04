@@ -832,7 +832,7 @@ end subroutine
 subroutine chrom_tune (lat, delta_e, target_x, target_y, err_tol, err_flag)
   import
   implicit none
-  type (lat_struct) lat
+  type (lat_struct), target :: lat
   real(rp) delta_e
   real(rp) target_x
   real(rp) target_y
@@ -2064,8 +2064,9 @@ subroutine converter_distribution_parser (ele, delim, delim_found, err_flag)
   import
   implicit none
   type (ele_struct), target :: ele
-  character(*) delim
-  logical delim_found, err_flag
+  character(*), target :: delim
+  logical, target :: delim_found
+  logical err_flag
 end subroutine
 
 function particle_is_moving_backwards (orbit) result (is_moving_backwards)
@@ -2906,7 +2907,7 @@ subroutine to_surface_coords (lab_orbit, ele, surface_orbit)
   import
   implicit none
   type (coord_struct) lab_orbit, surface_orbit
-  type (ele_struct) ele
+  type (ele_struct), target :: ele
 end subroutine
 
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
@@ -2914,7 +2915,7 @@ subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
   implicit none
   type (coord_struct), target :: orbit
   type (ele_struct), target :: ele
-  type (lat_param_struct) param
+  type (lat_param_struct), target :: param
   type (track_struct), optional :: track
   real(rp), optional :: mat6(6,6)
   logical, optional :: make_matrix
@@ -2991,10 +2992,10 @@ end subroutine
 subroutine track_a_lcavity_old (orbit, ele, param, mat6, make_matrix)
   import
   implicit none
-  type (coord_struct) orbit
+  type (coord_struct), target :: orbit
   type (ele_struct), target :: ele
-  type (lat_param_struct) param
-  real(rp), optional :: mat6(6,6)
+  type (lat_param_struct), target :: param
+  real(rp), optional, target :: mat6(6,6)
   logical, optional :: make_matrix
 end subroutine
 
@@ -3161,8 +3162,8 @@ end subroutine
 subroutine track_to_surface (ele, orbit, param, w_surface)
   import
   implicit none
-  type (ele_struct) ele
-  type (coord_struct) orbit
+  type (ele_struct), target :: ele
+  type (coord_struct), target :: orbit
   type (lat_param_struct) param
   real(rp) :: w_surface(3,3)
 end subroutine

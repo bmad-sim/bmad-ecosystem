@@ -12,6 +12,12 @@ type photon_track_struct
   type (photon_coord_struct) old, now
 end type
 
+! Used to pass state to the photon_hit_func callback without host association (which would
+! force a stack trampoline and an executable stack). See capillary_photon_hit_spot_calc.
+type (ele_struct), pointer, private :: cap_ele_ptr
+type (photon_track_struct), pointer, private :: cap_photon_ptr, cap_photon1_ptr
+!$OMP THREADPRIVATE(cap_ele_ptr, cap_photon_ptr, cap_photon1_ptr)
+
 contains
 
 !---------------------------------------------------------------------------
@@ -252,7 +258,7 @@ implicit none
 
 type (ele_struct), target :: ele
 type (photon_track_struct), target :: photon
-type (photon_track_struct) :: photon1
+type (photon_track_struct), target :: photon1
 
 real(rp) d_rad, track_len0, track_len
 
@@ -260,9 +266,13 @@ integer status, i
 
 character(40) :: r_name = 'capillary_photon_hit_spot_calc'
 
-! Bracket the hit point. 
+! Bracket the hit point.
 ! Note: After the first reflection, the photon will start at the wall so
 ! if photon%old is at the wall we must avoid bracketing this point.
+
+cap_ele_ptr => ele
+cap_photon_ptr => photon
+cap_photon1_ptr => photon1
 
 photon1 = photon
 
@@ -286,17 +296,16 @@ track_len = super_zbrent (photon_hit_func, track_len0, photon%now%track_len, 1e-
 photon%now = photon%old
 call capillary_propagate_photon_a_step (photon, ele, track_len-photon%now%track_len, .false.)
 
-
-
-contains
+end subroutine capillary_photon_hit_spot_calc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
 !+
 ! Function photon_hit_func (track_len, status) result (d_radius)
-! 
+!
 ! Routine to be used as an argument in zbrent in the capillary_photon_hit_spot_calc.
+! Made a module procedure (not nested) to avoid a stack trampoline.
 !
 ! Input:
 !   track_len -- Real(rp): Place to position the photon.
@@ -314,28 +323,26 @@ integer status
 
 ! Easy case
 
-if (track_len == photon%now%track_len) then
-  d_radius = wall3d_d_radius (photon%now%orb%vec, ele)
+if (track_len == cap_photon_ptr%now%track_len) then
+  d_radius = wall3d_d_radius (cap_photon_ptr%now%orb%vec, cap_ele_ptr)
   return
 endif
 
 ! Track starting from the present position (photon1%now) if track_length > photon1%now%track_len.
 ! Otherwise, track starting from the beginning of the region (photon%old).
 
-if (track_len < photon1%now%track_len) then
-  photon1 = photon
-  photon1%now = photon%old
+if (track_len < cap_photon1_ptr%now%track_len) then
+  cap_photon1_ptr = cap_photon_ptr
+  cap_photon1_ptr%now = cap_photon_ptr%old
 endif
 
 ! And track
 
-d_track = track_len - photon1%now%track_len
-call capillary_propagate_photon_a_step (photon1, ele, d_track, .false.)
-d_radius = wall3d_d_radius (photon1%now%orb%vec, ele) 
+d_track = track_len - cap_photon1_ptr%now%track_len
+call capillary_propagate_photon_a_step (cap_photon1_ptr, cap_ele_ptr, d_track, .false.)
+d_radius = wall3d_d_radius (cap_photon1_ptr%now%orb%vec, cap_ele_ptr)
 
 end function photon_hit_func
-
-end subroutine capillary_photon_hit_spot_calc
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------

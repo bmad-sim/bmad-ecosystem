@@ -1,4 +1,106 @@
 !+
+! Module lcavity_rf_step_setup_priv
+!
+! Private module used to pass state to the this_dt_track / this_dE_track callbacks (used by
+! lcavity_rf_step_setup) without host association, which would force a stack trampoline and an
+! executable stack.
+!-
+
+module lcavity_rf_step_setup_priv
+
+use bmad_routine_interface
+use super_recipes_mod, only: super_zbrent, super_bracket_root
+
+implicit none
+
+private
+public this_dt_track, this_dE_track, lrf_ele_ptr, lrf_t_final_ptr
+
+type (ele_struct), pointer :: lrf_ele_ptr
+real(rp), pointer :: lrf_t_final_ptr
+!$OMP THREADPRIVATE(lrf_ele_ptr, lrf_t_final_ptr)
+
+contains
+
+!----------------------------------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function this_dt_track(delta_ref_time, status) result (dt_err)
+
+type (rf_stair_step_struct), pointer :: step, step2
+
+real(rp), intent(in) :: delta_ref_time
+real(rp) dt_err, x_range(2), field_scale, dt, dE_rel_err
+
+integer status, i, j, nn
+
+! Symetrize reference times
+
+nn = nint(lrf_ele_ptr%value(n_rf_steps$))
+lrf_ele_ptr%rf%steps(nn+1)%time = delta_ref_time
+lrf_ele_ptr%value(delta_ref_time$) = delta_ref_time
+lrf_ele_ptr%ref_time = lrf_ele_ptr%value(ref_time_start$) + delta_ref_time
+
+do i = 0, (nn+1)/2
+  j = nn - i
+  step => lrf_ele_ptr%rf%steps(i)
+  step2 => lrf_ele_ptr%rf%steps(j)
+  dt = 0.5_rp * (delta_ref_time - step%time - step2%time)
+  step%time  = step%time  + dt
+  if (j /= i) step2%time = step2%time + dt
+enddo
+
+!
+
+x_range = super_bracket_root(this_dE_track, 0.99_rp*lrf_ele_ptr%value(field_autoscale$), 1.01_rp*lrf_ele_ptr%value(field_autoscale$), status)
+field_scale = super_zbrent(this_dE_track, x_range(1), x_range(2), 1e-12_rp, 0.0_rp, status)
+dE_rel_err = this_dE_track(field_scale, status)
+dt_err = lrf_t_final_ptr - delta_ref_time
+
+end function this_dt_track
+
+!----------------------------------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function this_dE_track(field_scale, status) result (dE_rel_err)
+
+type (rf_stair_step_struct), pointer :: step
+
+real(rp), intent(in) :: field_scale
+real(rp) dE_rel_err, dE_track, E_tot, pc, beta, t, phase, dE, dt_err, dt
+integer i, nn, status
+
+! Track through lcavity to compute the difference between "actual" energy gain and wanted (reference) energy gain.
+
+lrf_ele_ptr%value(field_autoscale$) = field_scale
+nn = nint(lrf_ele_ptr%value(n_rf_steps$))
+E_tot = lrf_ele_ptr%value(E_tot_start$)
+pc = lrf_ele_ptr%value(p0c_start$)
+t = 0
+
+do i = 0, nn+1
+  step => lrf_ele_ptr%rf%steps(i)
+  beta = pc / E_tot
+  t = t + (step%s - step%s0) / (c_light * beta)
+  dt = t - step%time
+  phase = twopi * (lrf_ele_ptr%value(phi0$) + lrf_ele_ptr%value(phi0_multipass$) + lrf_ele_ptr%value(rf_frequency$) * dt)
+  dE = step%scale * lrf_ele_ptr%value(voltage$) * lrf_ele_ptr%value(field_autoscale$) * cos(phase)
+  E_tot = E_tot + dE
+  call convert_total_energy_to(E_tot, lrf_ele_ptr%ref_species, pc = pc)
+enddo
+
+lrf_t_final_ptr = t
+dE_rel_err = (E_tot - lrf_ele_ptr%value(E_tot$)) / lrf_ele_ptr%value(E_tot$)
+
+end function this_dE_track
+
+end module lcavity_rf_step_setup_priv
+
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+!----------------------------------------------------------------------------------------------------
+
+!+
 ! Subroutine lcavity_rf_step_setup(ele)
 !
 ! Routine to construct the RF step parameters in ele%rf.
@@ -13,13 +115,15 @@
 recursive subroutine lcavity_rf_step_setup(ele)
 
 use bmad_routine_interface, dummy => lcavity_rf_step_setup
+use lcavity_rf_step_setup_priv
 use super_recipes_mod, only: super_zbrent, super_bracket_root
 
 implicit none
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: lord, ele2
-real(rp) field_scale, E_tot_final, x_range(2), t_final, delta_ref_time, dt_err
+real(rp) field_scale, E_tot_final, x_range(2), delta_ref_time, dt_err
+real(rp), target :: t_final
 integer nn, status, i, ix_slave
 logical err_flag
 
@@ -74,6 +178,9 @@ elseif (ele%lord_status == multipass_lord$) then
   call this_free_ele_rf_setup(ele)
   if (abs(ele%value(E_tot$) - ele%value(E_tot_start$)) < 0.01*ele%value(voltage$)) return
 
+  lrf_ele_ptr => ele
+  lrf_t_final_ptr => t_final
+
   ! Converge to a solution
 
   x_range = super_bracket_root(this_dt_track, 0.99_rp*ele%value(delta_ref_time$), 1.01_rp*ele%value(delta_ref_time$), status)
@@ -88,74 +195,10 @@ endif
 !----------------------------------------------------------------------------------------------------
 contains
 
-function this_dt_track(delta_ref_time, status) result (dt_err)
-
-type (rf_stair_step_struct), pointer :: step, step2
-
-real(rp), intent(in) :: delta_ref_time
-real(rp) dt_err, x_range(2), field_scale, dt, dE_rel_err
-
-integer status, i, j, nn
-
-! Symetrize reference times
-
-nn = nint(ele%value(n_rf_steps$))
-ele%rf%steps(nn+1)%time = delta_ref_time
-ele%value(delta_ref_time$) = delta_ref_time
-ele%ref_time = ele%value(ref_time_start$) + delta_ref_time
-
-do i = 0, (nn+1)/2
-  j = nn - i
-  step => ele%rf%steps(i)
-  step2 => ele%rf%steps(j)
-  dt = 0.5_rp * (delta_ref_time - step%time - step2%time)
-  step%time  = step%time  + dt
-  if (j /= i) step2%time = step2%time + dt
-enddo
-
-!
-
-x_range = super_bracket_root(this_dE_track, 0.99_rp*ele%value(field_autoscale$), 1.01_rp*ele%value(field_autoscale$), status)
-field_scale = super_zbrent(this_dE_track, x_range(1), x_range(2), 1e-12_rp, 0.0_rp, status)
-dE_rel_err = this_dE_track(field_scale, status)
-dt_err = t_final - delta_ref_time
-
-end function this_dt_track
 
 !----------------------------------------------------------------------------------------------------
 ! contains
 
-function this_dE_track(field_scale, status) result (dE_rel_err)
-
-type (rf_stair_step_struct), pointer :: step
-
-real(rp), intent(in) :: field_scale
-real(rp) dE_rel_err, dE_track, E_tot, pc, beta, t, phase, dE, dt_err, dt
-integer i, nn, status
-
-! Track through lcavity to compute the difference between "actual" energy gain and wanted (reference) energy gain.
-
-ele%value(field_autoscale$) = field_scale
-nn = nint(ele%value(n_rf_steps$))
-E_tot = ele%value(E_tot_start$)
-pc = ele%value(p0c_start$)
-t = 0
-
-do i = 0, nn+1
-  step => ele%rf%steps(i)
-  beta = pc / E_tot
-  t = t + (step%s - step%s0) / (c_light * beta)
-  dt = t - step%time
-  phase = twopi * (ele%value(phi0$) + ele%value(phi0_multipass$) + ele%value(rf_frequency$) * dt)
-  dE = step%scale * ele%value(voltage$) * ele%value(field_autoscale$) * cos(phase)
-  E_tot = E_tot + dE
-  call convert_total_energy_to(E_tot, ele%ref_species, pc = pc)
-enddo
-
-t_final = t
-dE_rel_err = (E_tot - ele%value(E_tot$)) / ele%value(E_tot$)
-
-end function this_dE_track
 
 !----------------------------------------------------------------------------------------------------
 ! contains

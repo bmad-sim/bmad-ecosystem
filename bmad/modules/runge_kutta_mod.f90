@@ -11,6 +11,18 @@ type (runge_kutta_common_struct), save :: runge_kutta_com
 
 private :: rk_adaptive_step, rk_step1
 
+! Used to pass state to the wall_intersection_func callback without host association (which
+! would force a stack trampoline and an executable stack). See odeint_bmad.
+private wall_intersection_func
+type (ele_struct), pointer :: rk_ele_ptr
+type (lat_param_struct), pointer :: rk_param_ptr
+type (coord_struct), pointer :: rk_orbit_ptr, rk_old_orbit_ptr
+real(rp), pointer :: rk_s_body_ptr
+real(rp) :: rk_old_s
+logical, pointer :: rk_err_flag_ptr
+!$OMP THREADPRIVATE(rk_ele_ptr, rk_param_ptr, rk_orbit_ptr, rk_old_orbit_ptr, rk_s_body_ptr, &
+!$OMP                rk_old_s, rk_err_flag_ptr)
+
 contains
 
 !-----------------------------------------------------------
@@ -53,10 +65,10 @@ use super_recipes_mod, only: super_zbrent
 
 implicit none
 
-type (coord_struct) :: orbit
-type (coord_struct) old_orbit
-type (ele_struct) ele
-type (lat_param_struct) param
+type (coord_struct), target :: orbit
+type (coord_struct), target :: old_orbit
+type (ele_struct), target :: ele
+type (lat_param_struct), target :: param
 type (track_struct), optional :: track
 type (fringe_field_info_struct) fringe_info
 
@@ -69,7 +81,8 @@ real(rp), pointer :: s_body_ptr
 integer :: n_step, s_dir, nr_max, n_step_max, status
 
 logical, optional :: make_matrix
-logical err_flag, err, at_hard_edge, track_spin, too_large
+logical, target :: err_flag
+logical err, at_hard_edge, track_spin, too_large
 
 character(*), parameter :: r_name = 'odeint_bmad'
 
@@ -184,6 +197,13 @@ do n_step = 1, n_step_max
       if (n_step == 1) return  ! Cannot do anything if this is the first step
       ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
       ! So step a small amount to make sure that the particle is past the wall.
+      rk_ele_ptr => ele
+      rk_param_ptr => param
+      rk_orbit_ptr => orbit
+      rk_old_orbit_ptr => old_orbit
+      rk_s_body_ptr => s_body_ptr
+      rk_old_s = old_s
+      rk_err_flag_ptr => err_flag
       ds_zbrent = super_zbrent (wall_intersection_func, 0.0_rp, ds_did, 1e-15_rp, ds_tiny, status)
       dist_to_wall = wall_intersection_func(ds_zbrent+ds_tiny, status)
 
@@ -265,8 +285,13 @@ endif
 
 err_flag = .false.
 
+end subroutine odeint_bmad
+
 !-----------------------------------------------------------------
-contains
+!-----------------------------------------------------------------
+!-----------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. State is passed from
+! odeint_bmad via the rk_* module variables.
 
 function wall_intersection_func (ds, status) result (d_radius)
 
@@ -277,13 +302,15 @@ real(rp) t_new, r_err(11), dr_ds(11)
 integer :: status
 logical no_aperture_here
 
+character(*), parameter :: r_name = 'odeint_bmad'
+
 !
 
-call rk_step1 (ele, param, old_orbit, dr_ds, old_s, ds, orbit, r_err, err_flag, .true.)
+call rk_step1 (rk_ele_ptr, rk_param_ptr, rk_old_orbit_ptr, dr_ds, rk_old_s, ds, rk_orbit_ptr, r_err, rk_err_flag_ptr, .true.)
 
-s_body_ptr = old_s + ds
-orbit%s = s_body_ptr + ele%s_start
-d_radius = distance_to_aperture (orbit, in_between$, ele, no_aperture_here)
+rk_s_body_ptr = rk_old_s + ds
+rk_orbit_ptr%s = rk_s_body_ptr + rk_ele_ptr%s_start
+d_radius = distance_to_aperture (rk_orbit_ptr, in_between$, rk_ele_ptr, no_aperture_here)
 
 if (no_aperture_here) then
   call out_io (s_fatal$, r_name, 'CONFUSED APERTURE CALCULATION. PLEASE CONTACT HELP.')
@@ -292,8 +319,6 @@ if (no_aperture_here) then
 endif
 
 end function wall_intersection_func
-
-end subroutine odeint_bmad
 
 !-----------------------------------------------------------------
 !-----------------------------------------------------------------

@@ -1,4 +1,127 @@
 !+
+! Module chrom_tune_priv
+!
+! Private module used to pass state to the chrom_func callback (used by chrom_tune) without host
+! association, which would force a stack trampoline and an executable stack.
+!-
+
+module chrom_tune_priv
+
+use bmad_interface
+
+implicit none
+
+private
+public chrom_func, this_bookkeeping
+public cf_lat_ptr, cf_ix_x_sex, cf_ix_y_sex, cf_sex_x_value, cf_sex_y_value
+public cf_all_x_zero, cf_all_y_zero, cf_delta_e, cf_chrom_x0_ptr, cf_chrom_y0_ptr
+
+type (lat_struct), pointer :: cf_lat_ptr
+integer, pointer :: cf_ix_x_sex(:), cf_ix_y_sex(:)
+real(rp), pointer :: cf_sex_x_value(:), cf_sex_y_value(:)
+real(rp), pointer :: cf_chrom_x0_ptr, cf_chrom_y0_ptr
+real(rp) :: cf_delta_e
+logical :: cf_all_x_zero, cf_all_y_zero
+!$OMP THREADPRIVATE(cf_lat_ptr, cf_ix_x_sex, cf_ix_y_sex, cf_sex_x_value, cf_sex_y_value, &
+!$OMP                cf_chrom_x0_ptr, cf_chrom_y0_ptr, cf_delta_e, cf_all_x_zero, cf_all_y_zero)
+
+contains
+
+!------------------------------------------------------
+
+subroutine this_bookkeeping()
+
+type (ele_struct), pointer :: ele
+integer i
+
+do i = 1, size(cf_ix_x_sex)
+  ele => cf_lat_ptr%ele(cf_ix_x_sex(i))
+  call set_flags_for_changed_attribute(ele, ele%value(k2$))
+enddo
+
+do i = 1, size(cf_ix_y_sex)
+  ele => cf_lat_ptr%ele(cf_ix_y_sex(i))
+  call set_flags_for_changed_attribute(ele, ele%value(k2$))
+enddo
+
+end subroutine this_bookkeeping
+
+!------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+subroutine chrom_func (a_try, y_fit, dy_da, status)
+
+real(rp), intent(in) :: a_try(:)
+real(rp), intent(out) :: y_fit(:)
+real(rp), intent(out) :: dy_da(:, :)
+
+real(rp) :: delta = 0.01
+real(rp) chrom_x, chrom_y
+integer status, i
+
+!
+
+if (cf_all_x_zero) then
+  cf_lat_ptr%ele(cf_ix_x_sex(:))%value(k2$) = a_try(1)
+else
+  cf_lat_ptr%ele(cf_ix_x_sex(:))%value(k2$) = cf_sex_x_value(:) * (1 + a_try(1))
+endif
+
+if (cf_all_y_zero) then
+  cf_lat_ptr%ele(cf_ix_y_sex(:))%value(k2$) = a_try(2)
+else
+  cf_lat_ptr%ele(cf_ix_y_sex(:))%value(k2$) = cf_sex_y_value(:) * (1 + a_try(2))
+endif
+
+call this_bookkeeping()
+call chrom_calc(cf_lat_ptr, cf_delta_e, cf_chrom_x0_ptr, cf_chrom_y0_ptr)
+
+y_fit = [cf_chrom_x0_ptr, cf_chrom_y0_ptr]
+
+if (cf_all_x_zero) then
+  cf_lat_ptr%ele(cf_ix_x_sex(:))%value(k2$) = a_try(1) + delta
+else
+  cf_lat_ptr%ele(cf_ix_x_sex(:))%value(k2$) = cf_sex_x_value(:) * (1 + a_try(1) + delta)
+endif
+
+if (cf_all_y_zero) then
+  cf_lat_ptr%ele(cf_ix_y_sex(:))%value(k2$) = a_try(2)
+else
+  cf_lat_ptr%ele(cf_ix_y_sex(:))%value(k2$) = cf_sex_y_value(:) * (1 + a_try(2))
+endif
+
+call this_bookkeeping()
+call chrom_calc(cf_lat_ptr, cf_delta_e, chrom_x, chrom_y)
+
+dy_da(1,1) = (chrom_x - cf_chrom_x0_ptr) / delta
+dy_da(2,1) = (chrom_y - cf_chrom_y0_ptr) / delta
+
+if (cf_all_x_zero) then
+  cf_lat_ptr%ele(cf_ix_x_sex(:))%value(k2$) = a_try(1)
+else
+  cf_lat_ptr%ele(cf_ix_x_sex(:))%value(k2$) = cf_sex_x_value(:) * (1 + a_try(1))
+endif
+
+if (cf_all_y_zero) then
+  cf_lat_ptr%ele(cf_ix_y_sex(:))%value(k2$) = a_try(2) + delta
+else
+  cf_lat_ptr%ele(cf_ix_y_sex(:))%value(k2$) = cf_sex_y_value(:) * (1 + a_try(2) + delta)
+endif
+
+call this_bookkeeping()
+call chrom_calc(cf_lat_ptr, cf_delta_e, chrom_x, chrom_y)
+
+dy_da(1,2) = (chrom_x - cf_chrom_x0_ptr) / delta
+dy_da(2,2) = (chrom_y - cf_chrom_y0_ptr) / delta
+
+end subroutine chrom_func
+
+end module chrom_tune_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!+
 ! Subroutine chrom_tune (lat, delta_e, target_x, target_y, err_tol, err_flag)
 !
 ! Subroutine to set the sextupole strengths so that the lattice has the desired chormaticities.
@@ -29,21 +152,23 @@
 subroutine chrom_tune(lat, delta_e, target_x, target_y, err_tol, err_flag)
 
 use bmad_interface, except_dummy => chrom_tune
+use chrom_tune_priv
 use super_recipes_mod
 
 implicit none
 
-type (lat_struct) lat
+type (lat_struct), target :: lat
 type (ele_pointer_struct), allocatable, target :: ele_sex(:)
 type (ele_struct), pointer :: ele
 type (super_mrqmin_storage_struct) storage
 
 integer i, j, ix, iy, n_sex, status
-integer, allocatable :: ix_x_sex(:), ix_y_sex(:)
+integer, allocatable, target :: ix_x_sex(:), ix_y_sex(:)
 
-real(rp), allocatable :: sex_y_value(:), sex_x_value(:)
+real(rp), allocatable, target :: sex_y_value(:), sex_x_value(:)
 real(rp) target_x, target_y, chisq
-real(rp) d_chrom, chrom_x0, chrom_y0, a_lambda
+real(rp) d_chrom, a_lambda
+real(rp), target :: chrom_x0, chrom_y0
 real(rp) delta_e, err_tol, k2_vec(2), weight(2), chrom_target(2)
  
 logical err_flag, maska(2), all_x_zero, all_y_zero
@@ -105,6 +230,17 @@ weight = 1
 chrom_target = [target_x, target_y]
 a_lambda = -1
 
+cf_lat_ptr => lat
+cf_ix_x_sex => ix_x_sex
+cf_ix_y_sex => ix_y_sex
+cf_sex_x_value => sex_x_value
+cf_sex_y_value => sex_y_value
+cf_all_x_zero = all_x_zero
+cf_all_y_zero = all_y_zero
+cf_delta_e = delta_e
+cf_chrom_x0_ptr => chrom_x0
+cf_chrom_y0_ptr => chrom_y0
+
 do j = 1, 100
   call super_mrqmin (chrom_target, weight, k2_vec, chisq, chrom_func, storage, a_lambda, status)
 
@@ -135,92 +271,5 @@ enddo
 
 call out_io (s_error$, r_name, 'CANNOT ADJUST SEXTUPOLES TO GET DESIRED CHROMATICITIES!')
 err_flag = .true.
-
-!-------------------------------------------------------
-contains
-
-subroutine this_bookkeeping()
-
-do i = 1, size(ix_x_sex)
-  ele => lat%ele(ix_x_sex(i))
-  call set_flags_for_changed_attribute(ele, ele%value(k2$))
-enddo
-
-do i = 1, size(ix_y_sex)
-  ele => lat%ele(ix_y_sex(i))
-  call set_flags_for_changed_attribute(ele, ele%value(k2$))
-enddo
-
-end subroutine this_bookkeeping
-
-!------------------------------------------------------
-! contains
-
-subroutine chrom_func (a_try, y_fit, dy_da, status)
-
-real(rp), intent(in) :: a_try(:)
-real(rp), intent(out) :: y_fit(:)
-real(rp), intent(out) :: dy_da(:, :)
-
-real(rp) :: delta = 0.01
-real(rp) chrom_x, chrom_y
-integer status, i
-
-!
-
-if (all_x_zero) then
-  lat%ele(ix_x_sex(:))%value(k2$) = a_try(1)
-else
-  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1))
-endif
-
-if (all_y_zero) then
-  lat%ele(ix_y_sex(:))%value(k2$) = a_try(2)
-else
-  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
-endif
-
-call this_bookkeeping()
-call chrom_calc(lat, delta_e, chrom_x0, chrom_y0)
-
-y_fit = [chrom_x0, chrom_y0]
-
-if (all_x_zero) then
-  lat%ele(ix_x_sex(:))%value(k2$) = a_try(1) + delta
-else
-  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1) + delta)
-endif
-
-if (all_y_zero) then
-  lat%ele(ix_y_sex(:))%value(k2$) = a_try(2)
-else
-  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2))
-endif
-
-call this_bookkeeping()
-call chrom_calc(lat, delta_e, chrom_x, chrom_y)
-
-dy_da(1,1) = (chrom_x - chrom_x0) / delta
-dy_da(2,1) = (chrom_y - chrom_y0) / delta
-
-if (all_x_zero) then
-  lat%ele(ix_x_sex(:))%value(k2$) = a_try(1)
-else
-  lat%ele(ix_x_sex(:))%value(k2$) = sex_x_value(:) * (1 + a_try(1))
-endif
-
-if (all_y_zero) then
-  lat%ele(ix_y_sex(:))%value(k2$) = a_try(2) + delta
-else
-  lat%ele(ix_y_sex(:))%value(k2$) = sex_y_value(:) * (1 + a_try(2) + delta)
-endif
-
-call this_bookkeeping()
-call chrom_calc(lat, delta_e, chrom_x, chrom_y)
-
-dy_da(1,2) = (chrom_x - chrom_x0) / delta
-dy_da(2,2) = (chrom_y - chrom_y0) / delta
-
-end subroutine chrom_func
 
 end subroutine

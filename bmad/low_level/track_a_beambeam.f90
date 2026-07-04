@@ -1,4 +1,87 @@
 !+
+! Module track_a_beambeam_priv
+!
+! Private module used to pass state to the at_slice_func callback (used by track_a_beambeam)
+! without host association, which would force a stack trampoline and an executable stack.
+!-
+
+module track_a_beambeam_priv
+
+use bmad_interface
+
+implicit none
+
+private
+public at_slice_func
+public tbb_ele_ptr, tbb_orbit_ptr, tbb_param_ptr, tbb_s_body_ptr, tbb_mat6
+public tbb_slice_center, tbb_part_time0, tbb_part_time1, tbb_beta_strong
+public tbb_make_mat, tbb_final_calc
+
+type (ele_struct), pointer :: tbb_ele_ptr
+type (coord_struct), pointer :: tbb_orbit_ptr
+type (lat_param_struct), pointer :: tbb_param_ptr
+real(rp), pointer :: tbb_s_body_ptr
+real(rp) :: tbb_mat6(6,6)
+real(rp) :: tbb_slice_center(3), tbb_part_time0, tbb_part_time1, tbb_beta_strong
+logical :: tbb_make_mat, tbb_final_calc
+!$OMP THREADPRIVATE(tbb_ele_ptr, tbb_orbit_ptr, tbb_param_ptr, tbb_s_body_ptr, tbb_mat6, &
+!$OMP                tbb_slice_center, tbb_part_time0, tbb_part_time1, tbb_beta_strong, &
+!$OMP                tbb_make_mat, tbb_final_calc)
+
+contains
+
+!+
+! function at_slice_func(s_lab_target, status) result (ds)
+!
+! Routine to propagate the weak particle to s-position s_lab_target and return the difference
+! between the particle and the strong slice.
+! Made a module procedure (not nested) to avoid a stack trampoline. State is passed from
+! track_a_beambeam via the tbb_* module variables. Note: tbb_mat6 is only meaningful (and synced
+! with the host mat6) when tbb_make_mat is true, which happens only on the final, non-zbrent call.
+!
+! Input:
+!   s_lab_target    -- real(rp): Particle s-position in lab frame
+!
+! Output:
+!   ds              -- real(rp): difference in s-position between particle and slice in the body frame.
+!-
+
+function at_slice_func(s_lab_target, status) result (ds)
+
+real(rp), intent(in) :: s_lab_target
+real(rp) ds
+real(rp) del_s, s_lab, s_slice, dpart_time
+integer status
+
+! Calc particle s-position...
+
+! Convert from body to lab coords
+call offset_particle(tbb_ele_ptr, unset$, tbb_orbit_ptr, s_pos = tbb_s_body_ptr, s_out = s_lab, set_spin = tbb_final_calc, mat6 = tbb_mat6, make_matrix = tbb_make_mat)
+! del_s = distance to propagate in lab coords. Note: Solenoid field is always defined in lab coords.
+del_s = s_lab_target - s_lab
+! Propagate in lab coords
+call solenoid_track_and_mat (tbb_ele_ptr, del_s, tbb_param_ptr, tbb_orbit_ptr, tbb_orbit_ptr, tbb_mat6, tbb_make_mat)
+! Convert back from lab coords to body coords
+call offset_particle(tbb_ele_ptr, set$, tbb_orbit_ptr, s_pos = s_lab_target, s_out = tbb_s_body_ptr, set_spin = tbb_final_calc, mat6 = tbb_mat6, make_matrix = tbb_make_mat)
+
+! Calc slice s-position...
+! part_time is the time the weak particle is at s_body.
+
+dpart_time = particle_rf_time(tbb_orbit_ptr, tbb_ele_ptr, rf_freq = tbb_ele_ptr%value(repetition_frequency$), abs_time = .true.) - tbb_part_time1
+s_slice = tbb_slice_center(3) + (tbb_ele_ptr%value(crossing_time$) - (tbb_part_time0 + dpart_time)) * tbb_beta_strong * c_light
+
+! Difference between particle and slice s-positions
+
+ds = tbb_s_body_ptr - s_slice
+
+end function at_slice_func
+
+end module track_a_beambeam_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!+
 ! Subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 !
 ! Bmad_standard tracking through a beambeam element.
@@ -26,13 +109,14 @@
 subroutine track_a_beambeam (orbit, ele, param, track, mat6, make_matrix)
 
 use bmad_interface, except_dummy => track_a_beambeam
+use track_a_beambeam_priv
 use super_recipes_mod, only: super_zbrent
 implicit none
 
 type (coord_struct), target :: orbit, orb_save
 type (coord_struct), pointer :: orb_ptr
 type (ele_struct), target :: ele
-type (lat_param_struct) :: param
+type (lat_param_struct), target :: param
 type (track_struct), optional :: track
 type (em_field_struct) field
 type (strong_beam_struct) sbb
@@ -99,21 +183,37 @@ allocate(z_slice(n_slice))
 call bbi_slice_calc (ele, n_slice, z_slice)
 if (orbit%time_dir == -1) z_slice = z_slice(n_slice:1:-1)
 
+! Set state for the at_slice_func callback (see module track_a_beambeam_priv).
+tbb_ele_ptr => ele
+tbb_orbit_ptr => orbit
+tbb_param_ptr => param
+tbb_s_body_ptr => s_body
+tbb_part_time0 = part_time0
+tbb_part_time1 = part_time1
+tbb_beta_strong = beta_strong
+
 do i = 1, n_slice
   z = z_slice(i)        ! Distance along strong beam axis. Positive z_slice is the tail of the strong beam.
-  slice_center = strong_beam_center(ele, z) ! with respect to 
+  slice_center = strong_beam_center(ele, z) ! with respect to
 
   final_calc = .false.; make_mat = .false.
   s_body_save = s_body
   orb_save = orbit
   s0 = s00 + slice_center(3) * s0_factor
   ds = 1.0_rp
+  tbb_slice_center = slice_center
+  tbb_final_calc = final_calc
+  tbb_make_mat = make_mat
   s_lab = super_zbrent(at_slice_func, s0-ds, s0+ds, 1e-12_rp, 1e-12_rp, status)
 
   final_calc = .true.; make_mat = logic_option(.false., make_matrix)
   s_body = s_body_save
   orbit = orb_save
+  tbb_final_calc = final_calc
+  tbb_make_mat = make_mat
+  if (present(mat6)) tbb_mat6 = mat6
   ds_slice = at_slice_func(s_lab, status)
+  if (present(mat6)) mat6 = tbb_mat6
 
   !
 
@@ -201,51 +301,6 @@ if (present(track)) call save_a_step(track, ele, param, .false., orbit, 0.0_rp, 
 
 !-------------------------------------------------------
 contains
-
-!+
-! function at_slice_func(s_lab_target, status) result (ds)
-!
-! Routine to propagate the weak particle to s-position s_lab_target and return the difference between the particle and the strong slice 
-! 
-! Input:
-!   s_lab_target    -- real(rp): Particle s-position in lab frame
-! 
-! Output:
-!   ds              -- real(rp): difference in s-position between particle and slice in the body frame.
-!-
-
-function at_slice_func(s_lab_target, status) result (ds)
-
-real(rp), intent(in) :: s_lab_target
-real(rp) ds
-real(rp) del_s, s_lab, s_slice, dpart_time
-integer status
-
-! Calc particle s-position...
-
-! Convert from body to lab coords
-call offset_particle(ele, unset$, orbit, s_pos = s_body, s_out = s_lab, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
-! del_s = distance to propagate in lab coords. Note: Solenoid field is always defined in lab coords.
-del_s = s_lab_target - s_lab
-! Propagate in lab coords
-call solenoid_track_and_mat (ele, del_s, param, orbit, orbit, mat6, make_mat)
-! Convert back from lab coords to body coords
-call offset_particle(ele, set$, orbit, s_pos = s_lab_target, s_out = s_body, set_spin = final_calc, mat6 = mat6, make_matrix = make_mat)
-
-! Calc slice s-position...
-! part_time is the time the weak particle is at s_body.
-
-dpart_time = particle_rf_time(orbit, ele, rf_freq = ele%value(repetition_frequency$), abs_time = .true.) - part_time1
-s_slice = slice_center(3) + (ele%value(crossing_time$) - (part_time0 + dpart_time)) * beta_strong * c_light
-
-! Difference between particle and slice s-positions
-
-ds = s_body - s_slice
-
-end function at_slice_func
-
-!-------------------------------------------------------
-! contains
 
 !+
 ! Function strong_beam_center(ele, z) result (center)

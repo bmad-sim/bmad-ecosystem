@@ -1,4 +1,73 @@
 !+
+! Module track_to_surface_priv
+!
+! Private module used to pass state to the photon_depth_in_element callback (used by
+! track_to_surface) without host association, which would force a stack trampoline and an
+! executable stack.
+!-
+
+module track_to_surface_priv
+
+use photon_utils_mod
+
+implicit none
+
+private
+public photon_depth_in_element, tts_ele_ptr, tts_orbit_ptr
+
+type (ele_struct), pointer :: tts_ele_ptr
+type (coord_struct), pointer :: tts_orbit_ptr
+!$OMP THREADPRIVATE(tts_ele_ptr, tts_orbit_ptr)
+
+contains
+
+!-----------------------------------------------------------------------------------------------
+!+
+! Function photon_depth_in_element (s_len, status) result (delta_h)
+!
+! Private routine to be used as an argument in zbrent. Propagates
+! photon forward by a distance s_len. Returns delta_h = z-z0
+! where z0 is the height of the element surface.
+! Since positive z points inward, positive delta_h => inside element.
+! Made a module procedure (not nested) to avoid a stack trampoline.
+!
+! Input:
+!   s_len   -- real(rp): Place to position the photon.
+!
+! Output:
+!   delta_h -- real(rp): Depth of photon below surface in crystal coordinates.
+!   status  -- integer: 0 -> Calculation OK.
+!                       1 -> Calculation not OK.
+!-
+
+function photon_depth_in_element (s_len, status) result (delta_h)
+
+real(rp), intent(in) :: s_len
+real(rp) :: delta_h
+real(rp) :: point(3)
+
+integer status  ! Need to use status arg due to super_zbrent.
+logical err_flag
+
+! Extend_grid = True is needed since test points may well be outside of the grid.
+
+point = s_len * tts_orbit_ptr%vec(2:6:2) + tts_orbit_ptr%vec(1:5:2)
+delta_h = point(3) - z_at_surface(tts_ele_ptr, point(1), point(2), err_flag, .true.)
+if (err_flag) then
+  tts_orbit_ptr%state = lost$
+  status = 1
+else
+  status = 0
+endif
+
+end function photon_depth_in_element
+
+end module track_to_surface_priv
+
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!-----------------------------------------------------------------------------------------------
+!+
 ! Subroutine track_to_surface (ele, orbit, param, w_surface)
 !
 ! Routine to track a photon to the surface of the element.
@@ -20,23 +89,27 @@
 subroutine track_to_surface (ele, orbit, param, w_surface)
 
 use super_recipes_mod
+use track_to_surface_priv
 use photon_utils_mod, dummy => track_to_surface
 
 implicit none
 
-type (ele_struct) ele
-type (coord_struct) orbit
+type (ele_struct), target :: ele
+type (coord_struct), target :: orbit
 type (lat_param_struct) param
 
 real(rp) :: w_surface(3,3), s_len, s1, s2, s_center, x0, y0, z
-integer status 
+integer status
 
 character(*), parameter :: r_name = 'track_to_surface'
 
-! If there is curvature, compute the reflection point which is where 
+! If there is curvature, compute the reflection point which is where
 ! the photon intersects the surface.
 
 if (has_curvature(ele%photon)) then
+
+  tts_ele_ptr => ele
+  tts_orbit_ptr => orbit
 
   ! Assume flat crystal, compute s required to hit the intersection
 
@@ -91,47 +164,6 @@ if (ele%aperture_at == surface$) call check_aperture_limit (orbit, ele, surface$
 if (orbit%state /= alive$) return
 
 if (has_curvature(ele%photon)) call rotate_for_curved_surface (ele, orbit, set$, w_surface)
-
-contains
-!-----------------------------------------------------------------------------------------------
-!+
-! Function photon_depth_in_element (s_len, status) result (delta_h)
-! 
-! Private routine to be used as an argument in zbrent. Propagates
-! photon forward by a distance s_len. Returns delta_h = z-z0
-! where z0 is the height of the element surface. 
-! Since positive z points inward, positive delta_h => inside element.
-!
-! Input:
-!   s_len   -- real(rp): Place to position the photon.
-!
-! Output:
-!   delta_h -- real(rp): Depth of photon below surface in crystal coordinates.
-!   status  -- integer: 0 -> Calculation OK.
-!                       1 -> Calculation not OK.
-!-
-
-function photon_depth_in_element (s_len, status) result (delta_h)
-
-real(rp), intent(in) :: s_len
-real(rp) :: delta_h
-real(rp) :: point(3)
-
-integer status  ! Need to use status arg due to super_zbrent.
-logical err_flag
-
-! Extend_grid = True is needed since test points may well be outside of the grid.
-
-point = s_len * orbit%vec(2:6:2) + orbit%vec(1:5:2)
-delta_h = point(3) - z_at_surface(ele, point(1), point(2), err_flag, .true.)
-if (err_flag) then
-  orbit%state = lost$
-  status = 1
-else
-  status = 0
-endif
-
-end function photon_depth_in_element
 
 end subroutine track_to_surface
 

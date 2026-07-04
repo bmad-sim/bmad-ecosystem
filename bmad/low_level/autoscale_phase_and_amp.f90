@@ -1,4 +1,87 @@
 !+
+! Module autoscale_phase_and_amp_priv
+!
+! Private module used to pass state to the pz_calc / pz_calc_zbrent callbacks (used by
+! autoscale_phase_and_amp) without host association, which would force a stack trampoline and an
+! executable stack.
+!-
+
+module autoscale_phase_and_amp_priv
+
+use bmad_interface
+
+implicit none
+
+private
+public pz_calc, pz_calc_zbrent
+public pza_ele_ptr, pza_param_ptr, pza_pz_target_ptr, pza_is_lost_ptr, pza_n_call_ptr
+
+type (ele_struct), pointer :: pza_ele_ptr
+type (lat_param_struct), pointer :: pza_param_ptr
+real(rp), pointer :: pza_pz_target_ptr
+logical, pointer :: pza_is_lost_ptr
+integer, pointer :: pza_n_call_ptr
+!$OMP THREADPRIVATE(pza_ele_ptr, pza_param_ptr, pza_pz_target_ptr, pza_is_lost_ptr, pza_n_call_ptr)
+
+contains
+
+!----------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function pz_calc (phi_auto, err_flag) result (pz)
+
+implicit none
+
+type (coord_struct) start_orb, end_orb
+real(rp), intent(in) :: phi_auto
+real(rp) pz
+logical err_flag
+
+! 
+
+
+time_runge_kutta_com%print_too_many_step_err = .false.
+pza_ele_ptr%value(phi0_autoscale$) = phi_auto
+call attribute_bookkeeper(pza_ele_ptr, .true.)
+if (pza_ele_ptr%tracking_method == linear$) call make_mat6(pza_ele_ptr, pza_param_ptr)
+
+call init_coord (start_orb, ele = pza_ele_ptr, element_end = upstream_end$)
+call track1 (start_orb, pza_ele_ptr, pza_param_ptr, end_orb, err_flag = err_flag, ignore_radiation = .true.)
+time_runge_kutta_com%print_too_many_step_err = .true.
+
+pz = end_orb%vec(6) - pza_pz_target_ptr
+pza_is_lost_ptr = .not. particle_is_moving_forward(end_orb)
+if (pza_is_lost_ptr) pz = -2
+
+pza_n_call_ptr = pza_n_call_ptr + 1
+
+end function pz_calc
+
+!----------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline.
+
+function pz_calc_zbrent (phi_auto, status) result (pz)
+
+implicit none
+
+real(rp), intent(in) :: phi_auto
+real(rp) pz
+integer status
+logical err_flag
+
+! brent finds minima so need to flip the final energy
+
+pz = pz_calc(phi_auto, err_flag)
+
+end function pz_calc_zbrent
+
+end module autoscale_phase_and_amp_priv
+
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+!----------------------------------------------------------------
+
+!+
 ! Subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_amp, scale_phase, call_bookkeeper)
 !
 ! Routine to set the phase offset and amplitude scale of the accelerating field if
@@ -56,6 +139,7 @@ subroutine autoscale_phase_and_amp(ele, param, err_flag, scale_phase, scale_amp,
 
 use super_recipes_mod, only: super_zbrent
 use bmad_interface, dummy => autoscale_phase_and_amp
+use autoscale_phase_and_amp_priv
 
 implicit none
 
@@ -68,13 +152,14 @@ integer, parameter :: n_sample = 16
 real(rp) pz, phi, phi0, pz_max, phi_max, e_tot, scale_correct, dE_peak_wanted, dE_cut, pauto
 real(rp) dphi, e_tot_start, pz_plus, pz_minus, b, c, phi_tol, scale_tol, phi_max_old
 real(rp) value_saved(num_ele_attrib$), phi0_autoscale_original, pz_arr(0:n_sample-1), pz_max1, pz_max2
-real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s, pz_target, dE_wanted
+real(rp) dE_max1, dE_max2, integral, int_tot, int_old, s, dE_wanted
+real(rp), target :: pz_target
 
 integer i, j, tracking_method_saved, num_times_lost, i_max1, i_max2
 integer n_pts, n_pts_tot, n_loop, n_loop_max, status, sign_of_dE, tm
-integer :: n_call ! Used for debugging.
+integer, target :: n_call ! Used for debugging.
 
-logical :: is_lost
+logical, target :: is_lost
 logical step_up_seen, err_flag, do_scale_phase, do_scale_amp, phase_scale_good, amp_scale_good
 logical, optional :: scale_phase, scale_amp, call_bookkeeper
 logical :: debug = .false.
@@ -87,6 +172,13 @@ err_flag = .false.
 if (.not. ele%is_on) return
 
 pz_target = 0     ! Used with super_zbrent
+
+! Set state for the pz_calc / pz_calc_zbrent callbacks (see module autoscale_phase_and_amp_priv).
+pza_ele_ptr => ele
+pza_param_ptr => param
+pza_pz_target_ptr => pz_target
+pza_is_lost_ptr => is_lost
+pza_n_call_ptr => n_call
 do_scale_phase = logic_option(is_true(ele%value(autoscale_phase$)), scale_phase)
 do_scale_amp   = logic_option(is_true(ele%value(autoscale_amplitude$)), scale_amp)
 
@@ -576,34 +668,6 @@ end function this_phi0_auto
 !----------------------------------------------------------------
 ! contains
 
-function pz_calc (phi_auto, err_flag) result (pz)
-
-implicit none
-
-type (coord_struct) start_orb, end_orb
-real(rp), intent(in) :: phi_auto
-real(rp) pz
-logical err_flag
-
-! 
-
-
-time_runge_kutta_com%print_too_many_step_err = .false.
-ele%value(phi0_autoscale$) = phi_auto
-call attribute_bookkeeper(ele, .true.)
-if (ele%tracking_method == linear$) call make_mat6(ele, param)
-
-call init_coord (start_orb, ele = ele, element_end = upstream_end$)
-call track1 (start_orb, ele, param, end_orb, err_flag = err_flag, ignore_radiation = .true.)
-time_runge_kutta_com%print_too_many_step_err = .true.
-
-pz = end_orb%vec(6) - pz_target
-is_lost = .not. particle_is_moving_forward(end_orb)
-if (is_lost) pz = -2
-
-n_call = n_call + 1
-
-end function pz_calc
 
 !------------------------------------
 ! contains
@@ -628,19 +692,5 @@ end function dE_particle
 !----------------------------------------------------------------
 ! contains
 
-function pz_calc_zbrent (phi_auto, status) result (pz)
-
-implicit none
-
-real(rp), intent(in) :: phi_auto
-real(rp) pz
-integer status
-logical err_flag
-
-! brent finds minima so need to flip the final energy
-
-pz = pz_calc(phi_auto, err_flag)
-
-end function pz_calc_zbrent
 
 end subroutine autoscale_phase_and_amp

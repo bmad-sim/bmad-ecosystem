@@ -14,9 +14,51 @@
 !   err_flag    -- logical: Set True if there is an error. False otherwise.
 !-
 
+module converter_distribution_parser_priv
+
+use bmad_parser_mod
+
+implicit none
+
+private
+public get_more_text_func, cdp_delim_ptr, cdp_delim_found_ptr
+
+character(:), pointer :: cdp_delim_ptr
+logical, pointer :: cdp_delim_found_ptr
+!$OMP THREADPRIVATE(cdp_delim_ptr, cdp_delim_found_ptr)
+
+contains
+
+! Made a module procedure (not nested) to avoid a stack trampoline. Used by
+! converter_distribution_parser (passed to object_document_parse).
+
+function get_more_text_func (line, end_of_document, why_invalid) result (valid)
+
+integer ix_word
+character(:), allocatable :: line, why_invalid
+character(400) str
+logical end_of_document, valid, err_flag
+
+!
+
+call get_next_word(str, ix_word, '}], ', cdp_delim_ptr, cdp_delim_found_ptr, err_flag = err_flag)
+end_of_document = (len(str) /= 0 .and. .not. cdp_delim_found_ptr)
+line = trim(line) // ' ' // trim(str) // cdp_delim_ptr
+valid = .not. err_flag
+if (err_flag) call str_set(why_invalid, 'ERROR WHILE PARSING CONVERTER DISTRIBUTION')
+
+end function get_more_text_func
+
+end module converter_distribution_parser_priv
+
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------
+
 subroutine converter_distribution_parser(ele, delim, delim_found, err_flag)
 
 use bmad_parser_mod, dummy => converter_distribution_parser
+use converter_distribution_parser_priv
 use object_model_mod
 
 implicit none
@@ -42,14 +84,17 @@ real(rp), allocatable :: r(:)
 real(rp) val
 integer i, j, k, n, ix_word, n_r, n_pc, ixe, n_sd, n_subd, ix_sd
 
-character(*) delim
+character(*), target :: delim
 character(400) str
 character(:), allocatable :: line, why_invalid
 
-logical delim_found, valid, err_flag
+logical, target :: delim_found
+logical valid, err_flag
 
 !
 
+cdp_delim_ptr => delim
+cdp_delim_found_ptr => delim_found
 valid = object_document_parse (obj0, 'DISTRIBUTION', line, why_invalid, get_more_text_func, parse_one = .true.)
 bp_com%parse_line = trim(line) // ' ' // bp_com%parse_line
 call get_next_word(str, ix_word, '}],', delim, delim_found, err_flag = err_flag)
@@ -180,26 +225,6 @@ err_flag = .false.
 
 !------------------------
 contains
-
-function get_more_text_func (line, end_of_document, why_invalid) result (valid)
-
-integer ix_word
-character(:), allocatable :: line, why_invalid
-character(400) str
-logical end_of_document, valid, err_flag
-
-!
-
-call get_next_word(str, ix_word, '}], ', delim, delim_found, err_flag = err_flag)
-end_of_document = (len(str) /= 0 .and. .not. delim_found)
-line = trim(line) // ' ' // trim(str) // delim
-valid = .not. err_flag
-if (err_flag) call str_set(why_invalid, 'ERROR WHILE PARSING CONVERTER DISTRIBUTION')
-
-end function get_more_text_func
-
-!------------------------
-! contains
 
 function parse_this_dir_param (who, ele, obj2, coef_head, has_c) result (is_ok)
 

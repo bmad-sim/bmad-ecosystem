@@ -98,6 +98,14 @@ type csr_struct           ! Structurture for binning particle averages
   type (csr_particle_position_struct), allocatable :: position(:)
 end type
 
+! Used to pass state to the ddz_calc_csr callback without host association (which would force
+! a stack trampoline and an executable stack). See s_source_calc.
+type (csr_kick1_struct), pointer, private :: csr_kick1_ptr
+type (csr_struct), pointer, private :: csr_csr_ptr
+type (csr_ele_info_struct), pointer, private :: csr_einfo_s_ptr
+real(rp), pointer, private :: csr_dr_match_ptr(:)
+!$OMP THREADPRIVATE(csr_kick1_ptr, csr_csr_ptr, csr_einfo_s_ptr, csr_dr_match_ptr)
+
 contains
 
 !----------------------------------------------------------------------------
@@ -848,7 +856,8 @@ type (floor_position_struct), pointer :: fk, f0, fs
 type (ele_struct), pointer :: ele
 
 real(rp) a, b, c, dz, s_source, beta2, L0, Lz, ds_source
-real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1, dr_match(3)
+real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1
+real(rp), target :: dr_match(3)
 
 integer i, last_step, status
 logical err_flag
@@ -863,9 +872,16 @@ beta2 = csr%beta**2
 last_step = 0
 s_source = 0        ! To prevent uninitalized complaints from the compiler.
 
+! Set state for the ddz_calc_csr callback (see module header). kick1, csr, dr_match have fixed
+! addresses; einfo_s is a pointer that is reassigned below so csr_einfo_s_ptr is reset after each.
+csr_kick1_ptr => kick1
+csr_csr_ptr => csr
+csr_dr_match_ptr => dr_match
+
 do
 
   einfo_s => csr%eleinfo(kick1%ix_ele_source)
+  csr_einfo_s_ptr => einfo_s
 
   ! If at beginning of lattice assume an infinite drift.
   ! s_source will be negative
@@ -939,6 +955,7 @@ do
     kick1%ix_ele_source = kick1%ix_ele_source - 1
 
     einfo_s => csr%eleinfo(kick1%ix_ele_source)
+    csr_einfo_s_ptr => einfo_s
     if (einfo_s%ele%key == match$) then
       dr_match = einfo_s%floor1%r - einfo_s%floor0%r ! discontinuity in x.
       kick1%ix_ele_source = kick1%ix_ele_source - 1
@@ -974,14 +991,18 @@ call out_io (s_fatal$, r_name, &
 if (global_com%exit_on_error) call err_exit
 err_flag = .true.
 
-!----------------------------------------------------------------------------
-contains
+end function s_source_calc
 
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
 !+
 ! Function ddz_calc_csr (s_chord_source, status) result (ddz_this)
 !
 ! Routine to calculate the distance between the source particle and the
 ! kicked particle at constant time minus the target distance.
+! Made a module procedure (not nested) to avoid a stack trampoline. State is passed
+! from s_source_calc via the csr_*_ptr / csr_dr_match module variables.
 !
 ! Input:
 !   s_chord_source  -- real(rp): Chord distance from start of element.
@@ -1004,58 +1025,56 @@ integer i
 
 character(*), parameter :: r_name = 'ddz_calc_csr'
 
-! 
+!
 
-x = spline1(einfo_s%spline, s_chord_source)
-c = cos(einfo_s%theta_chord)
-s = sin(einfo_s%theta_chord)
-kick1%floor_s%r = [x*c + s_chord_source*s, csr%y_source, -x*s + s_chord_source*c] + einfo_s%floor0%r + dr_match   ! Floor coordinates
+x = spline1(csr_einfo_s_ptr%spline, s_chord_source)
+c = cos(csr_einfo_s_ptr%theta_chord)
+s = sin(csr_einfo_s_ptr%theta_chord)
+csr_kick1_ptr%floor_s%r = [x*c + s_chord_source*s, csr_csr_ptr%y_source, -x*s + s_chord_source*c] + csr_einfo_s_ptr%floor0%r + csr_dr_match_ptr   ! Floor coordinates
 
-kick1%L_vec = csr%floor_k%r - kick1%floor_s%r
-kick1%L = sqrt(dot_product(kick1%L_vec, kick1%L_vec))
-kick1%theta_L = atan2(kick1%L_vec(1), kick1%L_vec(3))
+csr_kick1_ptr%L_vec = csr_csr_ptr%floor_k%r - csr_kick1_ptr%floor_s%r
+csr_kick1_ptr%L = sqrt(dot_product(csr_kick1_ptr%L_vec, csr_kick1_ptr%L_vec))
+csr_kick1_ptr%theta_L = atan2(csr_kick1_ptr%L_vec(1), csr_kick1_ptr%L_vec(3))
 
 s0 = s_chord_source
-s1 = csr%s_chord_kick
+s1 = csr_csr_ptr%s_chord_kick
 
-if (kick1%ix_ele_source == csr%ix_ele_kick) then
+if (csr_kick1_ptr%ix_ele_source == csr_csr_ptr%ix_ele_kick) then
   ds = s1 - s0
   ! dtheta_L = angle of L line in centroid chord ref frame
-  dtheta_L = einfo_s%spline%coef(1) + einfo_s%spline%coef(2) * (2*s0 + ds) + einfo_s%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
-  dL = dspline_len(s0, s1, einfo_s%spline, dtheta_L) ! = Ls - L
-  ! Ls is negative if the source pt is ahead of the kick pt (ds < 0). But L is always positive. 
+  dtheta_L = csr_einfo_s_ptr%spline%coef(1) + csr_einfo_s_ptr%spline%coef(2) * (2*s0 + ds) + csr_einfo_s_ptr%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
+  dL = dspline_len(s0, s1, csr_einfo_s_ptr%spline, dtheta_L) ! = Ls - L
+  ! Ls is negative if the source pt is ahead of the kick pt (ds < 0). But L is always positive.
   if (ds < 0) dL = dL + 2 * ds    ! Correct for L always being positive.
-  kick1%theta_sl = spline1(einfo_s%spline, s0, 1) - dtheta_L
-  kick1%theta_lk = dtheta_L - spline1(einfo_s%spline, s1, 1)
+  csr_kick1_ptr%theta_sl = spline1(csr_einfo_s_ptr%spline, s0, 1) - dtheta_L
+  csr_kick1_ptr%theta_lk = dtheta_L - spline1(csr_einfo_s_ptr%spline, s1, 1)
 
 else
   ! In an element where the beam centroid takes a backstep, %theta_chord will be anti-parallel to
   ! other angles. This is why pi/2 is used with modulo2 to make sure angles are in the range [-pi/2, pi/2]
-  theta_L = kick1%theta_L
-  dL = dspline_len(s0, einfo_s%L_chord, einfo_s%spline, modulo2(theta_L-einfo_s%theta_chord, pi/2))
-  do i = kick1%ix_ele_source+1, csr%ix_ele_kick-1
-    ce => csr%eleinfo(i)
+  theta_L = csr_kick1_ptr%theta_L
+  dL = dspline_len(s0, csr_einfo_s_ptr%L_chord, csr_einfo_s_ptr%spline, modulo2(theta_L-csr_einfo_s_ptr%theta_chord, pi/2))
+  do i = csr_kick1_ptr%ix_ele_source+1, csr_csr_ptr%ix_ele_kick-1
+    ce => csr_csr_ptr%eleinfo(i)
     if (ce%ele%key == match$) cycle  ! Match elements are adjusted to give zero displacement.
     dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
   enddo
-  ce => csr%eleinfo(csr%ix_ele_kick)
+  ce => csr_csr_ptr%eleinfo(csr_csr_ptr%ix_ele_kick)
   dL = dL + dspline_len(0.0_rp, s1, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
-  kick1%theta_sl = modulo2((spline1(einfo_s%spline, s0, 1) + einfo_s%theta_chord) - theta_L, pi/2)
-  kick1%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi/2)
+  csr_kick1_ptr%theta_sl = modulo2((spline1(csr_einfo_s_ptr%spline, s0, 1) + csr_einfo_s_ptr%theta_chord) - theta_L, pi/2)
+  csr_kick1_ptr%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi/2)
 endif
 
-kick1%floor_s%theta = kick1%theta_sl + kick1%theta_L
+csr_kick1_ptr%floor_s%theta = csr_kick1_ptr%theta_sl + csr_kick1_ptr%theta_L
 
 ! The above calc for dL neglected csr%y_source. So must correct for this.
 
-if (csr%y_source /= 0) dL = dL - (kick1%L - sqrt(kick1%L_vec(1)**2 + kick1%L_vec(3)**2))
-kick1%dL = dL
-ddz_this = kick1%L / (2 * csr%gamma2) + dL
-ddz_this = ddz_this - kick1%dz_particles
+if (csr_csr_ptr%y_source /= 0) dL = dL - (csr_kick1_ptr%L - sqrt(csr_kick1_ptr%L_vec(1)**2 + csr_kick1_ptr%L_vec(3)**2))
+csr_kick1_ptr%dL = dL
+ddz_this = csr_kick1_ptr%L / (2 * csr_csr_ptr%gamma2) + dL
+ddz_this = ddz_this - csr_kick1_ptr%dz_particles
 
 end function ddz_calc_csr
-
-end function s_source_calc
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------

@@ -2,6 +2,13 @@ module space_charge_mod
 
 use csr_and_space_charge_mod
 
+! Used to pass state to the track_func callback without host association (which would force
+! a stack trampoline and an executable stack). See track_bunch_to_t.
+type (coord_struct), pointer, private :: sct_p0_ptr, sct_p_ptr
+type (branch_struct), pointer, private :: sct_branch_ptr
+real(rp), private :: sct_s_begin, sct_s_end, sct_t_target
+!$OMP THREADPRIVATE(sct_p0_ptr, sct_p_ptr, sct_branch_ptr, sct_s_begin, sct_s_end, sct_t_target)
+
 contains
 
 !------------------------------------------------------------------------------------------
@@ -503,7 +510,7 @@ implicit none
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: p0, p_ptr
 type (coord_struct), target :: p
-type (branch_struct) :: branch
+type (branch_struct), target :: branch
 type (coord_struct) :: position
 
 integer i, status
@@ -526,10 +533,17 @@ s_begin = branch%ele(0)%s
 s_end = branch%ele(branch%n_ele_track)%s
 p_ptr => p    ! To get around ifort debug info bug
 
+sct_branch_ptr => branch
+sct_s_begin = s_begin
+sct_s_end = s_end
+sct_t_target = t_target
+
 particle_loop: do i = 1, size(bunch%particle)
   p0 => bunch%particle(i)
   if (p0%state /= alive$) cycle
   p = p0
+  sct_p0_ptr => p0
+  sct_p_ptr => p
 
   ! bracket solution
   do
@@ -561,8 +575,13 @@ particle_loop: do i = 1, size(bunch%particle)
   bunch%particle(i) = p
 enddo particle_loop
 
-!--------------------------------------------------------------------
-contains
+end subroutine track_bunch_to_t
+
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------
+! Used with track_bunch_to_t. Made a module procedure (not nested) to avoid a stack trampoline.
+! State is passed via the sct_* module variables.
 
 function track_func (s_target, status) result (dt)
 
@@ -572,21 +591,21 @@ real(rp) :: dt
 
 !
 
-p0%time_dir = sign_of(s_target - p0%s)
-p%time_dir  = sign_of(s_target - p0%s)
+sct_p0_ptr%time_dir = sign_of(s_target - sct_p0_ptr%s)
+sct_p_ptr%time_dir  = sign_of(s_target - sct_p0_ptr%s)
 status = 0
 
 ! Can happen that particle needs to "drift" past the end of the branch.
 ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_t instead.
 
-if (s_target < s_begin .and. p0%s >= s_begin) then
-  call track_from_s_to_s (branch%lat, p0%s, s_begin, p0, p, ix_branch = p%ix_branch, track_state = track_state)
-  call drift_particle_to_s(p, s_target, branch)
-elseif (s_target > s_end .and. p0%s <= s_end) then
-  call track_from_s_to_s (branch%lat, p0%s, s_end, p0, p, ix_branch = p%ix_branch, track_state = track_state)
-  call drift_particle_to_s(p, s_target, branch)
+if (s_target < sct_s_begin .and. sct_p0_ptr%s >= sct_s_begin) then
+  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, sct_s_begin, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, track_state = track_state)
+  call drift_particle_to_s(sct_p_ptr, s_target, sct_branch_ptr)
+elseif (s_target > sct_s_end .and. sct_p0_ptr%s <= sct_s_end) then
+  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, sct_s_end, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, track_state = track_state)
+  call drift_particle_to_s(sct_p_ptr, s_target, sct_branch_ptr)
 else
-  call track_from_s_to_s (branch%lat, p0%s, s_target, p0, p, ix_branch = p%ix_branch, track_state = track_state)
+  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, s_target, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, track_state = track_state)
 endif
 
 if (track_state /= moving_forward$) then
@@ -595,11 +614,9 @@ if (track_state /= moving_forward$) then
   return
 endif
 
-dt = t_target - p%t 
+dt = sct_t_target - sct_p_ptr%t
 
 end function track_func
-
-end subroutine track_bunch_to_t
   
 !------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------

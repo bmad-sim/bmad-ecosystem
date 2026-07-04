@@ -2,6 +2,17 @@ module time_tracker_mod
 
 use element_at_s_mod
 
+! Used to pass state to the delta_s_target and wall_intersection_func callbacks without host
+! association (which would force a stack trampoline and an executable stack). See odeint_bmad_time.
+private delta_s_target, wall_intersection_func
+type (ele_struct), pointer :: tt_ele_ptr
+type (lat_param_struct), pointer :: tt_param_ptr
+type (coord_struct), pointer :: tt_orb_ptr, tt_old_orb_ptr
+type (em_field_struct), pointer :: tt_extra_field_ptr
+real(rp), pointer :: tt_old_t_ptr, tt_rf_time_ptr, tt_s_fringe_ptr, tt_vec_err_ptr(:)
+!$OMP THREADPRIVATE(tt_ele_ptr, tt_param_ptr, tt_orb_ptr, tt_old_orb_ptr, tt_extra_field_ptr, &
+!$OMP                tt_old_t_ptr, tt_rf_time_ptr, tt_s_fringe_ptr, tt_vec_err_ptr)
+
 contains
 
 !-------------------------------------------------------------------------
@@ -56,12 +67,13 @@ type (ele_struct), target :: ele
 type (lat_param_struct), target ::  param
 type (em_field_struct) :: saved_field
 type (track_struct), optional :: track
-type (em_field_struct), optional :: extra_field
+type (em_field_struct), optional, target :: extra_field
 type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: t_end, dt_step
 real(rp), target :: old_t, dt_tol, s_fringe_edge, t0
-real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy, rf_time
+real(rp) :: dt, dt_did, dt_next, ds_safe, t_save, dt_save, s_save, dummy
+real(rp), target :: rf_time
 real(rp), target  :: dvec_dt(10), vec_err(10), s_target, dt_next_save
 real(rp) :: stop_time, s_stop_fwd, s_body_old, ds
 real(rp), pointer :: s_body, s_fringe_ptr
@@ -77,6 +89,21 @@ character(*), parameter :: r_name = 'odeint_bmad_time'
 
 s_body => orb%vec(5)
 s_fringe_ptr => s_fringe_edge   ! To get around an intel bug: s_fringe_ptr is used in contained routine.
+
+! Set state for the delta_s_target and wall_intersection_func callbacks (see module header).
+tt_ele_ptr => ele
+tt_param_ptr => param
+tt_orb_ptr => orb
+tt_old_orb_ptr => old_orb
+tt_old_t_ptr => old_t
+tt_rf_time_ptr => rf_time
+tt_s_fringe_ptr => s_fringe_edge
+tt_vec_err_ptr => vec_err
+if (present(extra_field)) then
+  tt_extra_field_ptr => extra_field
+else
+  nullify(tt_extra_field_ptr)
+endif
 
 if (ele%key == patch$) then
   s_stop_fwd = 0  ! By convention.
@@ -338,10 +365,14 @@ orb%state = lost$
 
 
 
-!------------------------------------------------------------------------------------------------
-contains
+end subroutine odeint_bmad_time
 
-! function for zbrent to calculate timestep to exit face surface
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+! function for zbrent to calculate timestep to exit face surface.
+! Made a module procedure (not nested) to avoid a stack trampoline. State is passed from
+! odeint_bmad_time via the tt_* module variables.
 
 function delta_s_target (this_dt, status)
 
@@ -350,14 +381,21 @@ real(rp) :: delta_s_target
 integer status
 logical err_flag
 !
-call rk_time_step1 (ele, param, old_t, old_orb, this_dt, orb, vec_err, err_flag = err_flag, extra_field = extra_field)
-delta_s_target = s_body - s_fringe_ptr
-rf_time = old_t + this_dt
-  
+if (associated(tt_extra_field_ptr)) then
+  call rk_time_step1 (tt_ele_ptr, tt_param_ptr, tt_old_t_ptr, tt_old_orb_ptr, this_dt, tt_orb_ptr, tt_vec_err_ptr, err_flag = err_flag, extra_field = tt_extra_field_ptr)
+else
+  call rk_time_step1 (tt_ele_ptr, tt_param_ptr, tt_old_t_ptr, tt_old_orb_ptr, this_dt, tt_orb_ptr, tt_vec_err_ptr, err_flag = err_flag)
+endif
+delta_s_target = tt_orb_ptr%vec(5) - tt_s_fringe_ptr
+tt_rf_time_ptr = tt_old_t_ptr + this_dt
+
 end function delta_s_target
 
 !------------------------------------------------------------------------------------------------
-! contains
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+! Made a module procedure (not nested) to avoid a stack trampoline. State is passed from
+! odeint_bmad_time via the tt_* module variables.
 
 function wall_intersection_func (this_dt, status) result (d_radius)
 
@@ -367,14 +405,20 @@ real(rp) d_radius, s_here
 integer status
 logical err_flag, no_aperture_here
 
-!
-call rk_time_step1 (ele, param, old_t, old_orb, this_dt, orb, vec_err, err_flag = err_flag, extra_field = extra_field)
+character(*), parameter :: r_name = 'wall_intersection_func'
 
-test_orb = orb
-call convert_particle_coordinates_t_to_s(test_orb, ele, s_here)
-call offset_particle (ele, unset$, test_orb, s_pos=s_here, set_hvkicks = .false.)
-d_radius =  distance_to_aperture (test_orb, in_between$, ele, no_aperture_here)
-rf_time = rf_time + this_dt
+!
+if (associated(tt_extra_field_ptr)) then
+  call rk_time_step1 (tt_ele_ptr, tt_param_ptr, tt_old_t_ptr, tt_old_orb_ptr, this_dt, tt_orb_ptr, tt_vec_err_ptr, err_flag = err_flag, extra_field = tt_extra_field_ptr)
+else
+  call rk_time_step1 (tt_ele_ptr, tt_param_ptr, tt_old_t_ptr, tt_old_orb_ptr, this_dt, tt_orb_ptr, tt_vec_err_ptr, err_flag = err_flag)
+endif
+
+test_orb = tt_orb_ptr
+call convert_particle_coordinates_t_to_s(test_orb, tt_ele_ptr, s_here)
+call offset_particle (tt_ele_ptr, unset$, test_orb, s_pos=s_here, set_hvkicks = .false.)
+d_radius =  distance_to_aperture (test_orb, in_between$, tt_ele_ptr, no_aperture_here)
+tt_rf_time_ptr = tt_rf_time_ptr + this_dt
 
 if (no_aperture_here) then
   call out_io (s_fatal$, r_name, 'CONFUSED APERTURE CALCULATION. PLEASE CONTACT HELP.')
@@ -382,8 +426,6 @@ if (no_aperture_here) then
 endif
 
 end function wall_intersection_func
-
-end subroutine odeint_bmad_time
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
