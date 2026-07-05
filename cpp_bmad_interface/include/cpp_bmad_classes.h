@@ -216,15 +216,15 @@ typedef valarray<CPP_rad_map_ele>          CPP_rad_map_ele_ARRAY;
 typedef valarray<CPP_rad_map_ele_ARRAY>    CPP_rad_map_ele_MATRIX;
 typedef valarray<CPP_rad_map_ele_MATRIX>   CPP_rad_map_ele_TENSOR;
 
-class CPP_gen_grad1;
-typedef valarray<CPP_gen_grad1>          CPP_gen_grad1_ARRAY;
-typedef valarray<CPP_gen_grad1_ARRAY>    CPP_gen_grad1_MATRIX;
-typedef valarray<CPP_gen_grad1_MATRIX>   CPP_gen_grad1_TENSOR;
+class CPP_gen_grad_curve;
+typedef valarray<CPP_gen_grad_curve>          CPP_gen_grad_curve_ARRAY;
+typedef valarray<CPP_gen_grad_curve_ARRAY>    CPP_gen_grad_curve_MATRIX;
+typedef valarray<CPP_gen_grad_curve_MATRIX>   CPP_gen_grad_curve_TENSOR;
 
-class CPP_gen_grad_map;
-typedef valarray<CPP_gen_grad_map>          CPP_gen_grad_map_ARRAY;
-typedef valarray<CPP_gen_grad_map_ARRAY>    CPP_gen_grad_map_MATRIX;
-typedef valarray<CPP_gen_grad_map_MATRIX>   CPP_gen_grad_map_TENSOR;
+class CPP_gen_gradients;
+typedef valarray<CPP_gen_gradients>          CPP_gen_gradients_ARRAY;
+typedef valarray<CPP_gen_gradients_ARRAY>    CPP_gen_gradients_MATRIX;
+typedef valarray<CPP_gen_gradients_MATRIX>   CPP_gen_gradients_TENSOR;
 
 class CPP_surface_segmented_pt;
 typedef valarray<CPP_surface_segmented_pt>          CPP_surface_segmented_pt_ARRAY;
@@ -1839,77 +1839,77 @@ bool operator== (const CPP_rad_map_ele&, const CPP_rad_map_ele&);
 
 
 //--------------------------------------------------------------------
-// CPP_gen_grad1
+// CPP_gen_grad_curve
 
-class Opaque_gen_grad1_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_gen_grad_curve_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_gen_grad1 {
+class CPP_gen_grad_curve {
 public:
-  Int m;
-  Int sincos;
-  Int n_deriv_max;
+  Int kind;
+  Int n;
+  Int m_max;
   Real_MATRIX deriv;
 
-  CPP_gen_grad1() :
-    m(0),
-    sincos(0),
-    n_deriv_max(-1),
+  CPP_gen_grad_curve() :
+    kind(0),
+    n(0),
+    m_max(-1),
     deriv(Real_ARRAY(0.0, 0), 0)
     {}
 
-  ~CPP_gen_grad1() {
+  ~CPP_gen_grad_curve() {
   }
 
 };   // End Class
 
-extern "C" void gen_grad1_to_c (const Opaque_gen_grad1_class*, CPP_gen_grad1&);
-extern "C" void gen_grad1_to_f (const CPP_gen_grad1&, Opaque_gen_grad1_class*);
+extern "C" void gen_grad_curve_to_c (const Opaque_gen_grad_curve_class*, CPP_gen_grad_curve&);
+extern "C" void gen_grad_curve_to_f (const CPP_gen_grad_curve&, Opaque_gen_grad_curve_class*);
 
-bool operator== (const CPP_gen_grad1&, const CPP_gen_grad1&);
+bool operator== (const CPP_gen_grad_curve&, const CPP_gen_grad_curve&);
 
 
 //--------------------------------------------------------------------
-// CPP_gen_grad_map
+// CPP_gen_gradients
 
-class Opaque_gen_grad_map_class {};  // Opaque class for pointers to corresponding fortran structs.
+class Opaque_gen_gradients_class {};  // Opaque class for pointers to corresponding fortran structs.
 
-class CPP_gen_grad_map {
+class CPP_gen_gradients {
 public:
   string file;
-  CPP_gen_grad1_ARRAY gg;
+  CPP_gen_grad_curve_ARRAY curve;
   Int ele_anchor_pt;
   Int field_type;
   Int iz0;
   Int iz1;
   Real dz;
+  Real g_ref;
   Real_ARRAY r0;
   Real field_scale;
   Int master_parameter;
-  Bool curved_ref_frame;
 
-  CPP_gen_grad_map() :
+  CPP_gen_gradients() :
     file(),
-    gg(CPP_gen_grad1_ARRAY(CPP_gen_grad1(), 0)),
+    curve(CPP_gen_grad_curve_ARRAY(CPP_gen_grad_curve(), 0)),
     ele_anchor_pt(Bmad::ANCHOR_BEGINNING),
     field_type(Bmad::MAGNETIC),
     iz0(Bmad::INT_GARBAGE),
     iz1(Bmad::INT_GARBAGE),
     dz(0.0),
+    g_ref(0.0),
     r0(0.0, 3),
     field_scale(1),
-    master_parameter(0),
-    curved_ref_frame(false)
+    master_parameter(0)
     {}
 
-  ~CPP_gen_grad_map() {
+  ~CPP_gen_gradients() {
   }
 
 };   // End Class
 
-extern "C" void gen_grad_map_to_c (const Opaque_gen_grad_map_class*, CPP_gen_grad_map&);
-extern "C" void gen_grad_map_to_f (const CPP_gen_grad_map&, Opaque_gen_grad_map_class*);
+extern "C" void gen_gradients_to_c (const Opaque_gen_gradients_class*, CPP_gen_gradients&);
+extern "C" void gen_gradients_to_f (const CPP_gen_gradients&, Opaque_gen_gradients_class*);
 
-bool operator== (const CPP_gen_grad_map&, const CPP_gen_grad_map&);
+bool operator== (const CPP_gen_gradients&, const CPP_gen_gradients&);
 
 
 //--------------------------------------------------------------------
@@ -3227,6 +3227,8 @@ public:
   Real beam_chamber_height;
   Real lsc_sigma_cutoff;
   Real particle_sigma_cutoff;
+  Real mesh_growth_factor;
+  Real mesh_shrink_factor;
   Int_ARRAY space_charge_mesh_size;
   Int_ARRAY csr3d_mesh_size;
   Int n_bin;
@@ -3246,6 +3248,8 @@ public:
     beam_chamber_height(0.0),
     lsc_sigma_cutoff(0.1),
     particle_sigma_cutoff(-1),
+    mesh_growth_factor(0.1),
+    mesh_shrink_factor(0.1),
     space_charge_mesh_size(32, 3),
     csr3d_mesh_size(32, 3),
     n_bin(0),
@@ -3303,6 +3307,7 @@ public:
   Bool lr_wakes_on;
   Bool auto_bookkeeper;
   Bool high_energy_space_charge_on;
+  Bool high_energy_space_charge_linear;
   Bool csr_and_space_charge_on;
   Bool spin_tracking_on;
   Bool spin_sokolov_ternov_flipping_on;
@@ -3347,6 +3352,7 @@ public:
     lr_wakes_on(true),
     auto_bookkeeper(true),
     high_energy_space_charge_on(false),
+    high_energy_space_charge_linear(false),
     csr_and_space_charge_on(false),
     spin_tracking_on(false),
     spin_sokolov_ternov_flipping_on(false),
@@ -3512,7 +3518,7 @@ public:
   CPP_wall3d_ARRAY wall3d;
   CPP_cartesian_map_ARRAY cartesian_map;
   CPP_cylindrical_map_ARRAY cylindrical_map;
-  CPP_gen_grad_map_ARRAY gen_grad_map;
+  CPP_gen_gradients_ARRAY gen_gradients;
   CPP_grid_field_ARRAY grid_field;
   CPP_coord map_ref_orb_in;
   CPP_coord map_ref_orb_out;
@@ -3524,6 +3530,7 @@ public:
   Real_ARRAY vec0;
   Real_MATRIX mat6;
   Real_MATRIX c_mat;
+  Real_MATRIX dc_mat_dpz;
   Real gamma_c;
   Real s_start;
   Real s;
@@ -3622,7 +3629,7 @@ public:
     wall3d(CPP_wall3d_ARRAY(CPP_wall3d(), 0)),
     cartesian_map(CPP_cartesian_map_ARRAY(CPP_cartesian_map(), 0)),
     cylindrical_map(CPP_cylindrical_map_ARRAY(CPP_cylindrical_map(), 0)),
-    gen_grad_map(CPP_gen_grad_map_ARRAY(CPP_gen_grad_map(), 0)),
+    gen_gradients(CPP_gen_gradients_ARRAY(CPP_gen_gradients(), 0)),
     grid_field(CPP_grid_field_ARRAY(CPP_grid_field(), 0)),
     map_ref_orb_in(),
     map_ref_orb_out(),
@@ -3634,6 +3641,7 @@ public:
     vec0(0.0, 6),
     mat6(Real_ARRAY(0.0, 6), 6),
     c_mat(Real_ARRAY(0.0, 2), 2),
+    dc_mat_dpz(Real_ARRAY(0.0, 2), 2),
     gamma_c(1),
     s_start(0.0),
     s(0.0),
@@ -3848,6 +3856,7 @@ public:
   Int photon_type;
   Int creation_hash;
   Int ramper_slave_bookkeeping;
+  Bool parser_make_xfer_mats;
 
   CPP_lat() :
     use_name(),
@@ -3879,7 +3888,8 @@ public:
     ic(0, 0),
     photon_type(Bmad::INCOHERENT),
     creation_hash(0),
-    ramper_slave_bookkeeping(Bmad::STALE)
+    ramper_slave_bookkeeping(Bmad::STALE),
+    parser_make_xfer_mats(true)
     {}
 
   ~CPP_lat() {

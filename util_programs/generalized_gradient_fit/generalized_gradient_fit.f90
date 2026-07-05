@@ -2,6 +2,12 @@
 ! Program generalized_gradient_fit
 !
 ! Program to fit generalized gradiants to a field table.
+!
+! DEPRECATED (issue #2086): This program fits the obsolete straight-coordinate generalized-gradient
+! (gen_grad_map) format and does not handle a curved reference frame. It is superseded by the gg_fit
+! function of the GeneralizedGradients.jl package (https://github.com/bmad-sim/GeneralizedGradients.jl),
+! which fits the current curved-coordinate gen_gradients formalism. This program is retained only for
+! reference and is no longer maintained.
 !-
 
 program generalized_gradient_fit

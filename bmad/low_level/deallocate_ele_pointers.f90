@@ -47,7 +47,7 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%foil)
   nullify (ele%cartesian_map)
   nullify (ele%cylindrical_map)
-  nullify (ele%gen_grad_map)
+  nullify (ele%gen_gradients)
   nullify (ele%grid_field)
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
@@ -88,7 +88,7 @@ if (associated (ele%mode3))                     deallocate (ele%mode3)
 if (associated (ele%rf))                        deallocate (ele%rf)
 if (associated (ele%wake))                      deallocate (ele%wake)
 if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
-if (associated (ele%gen_grad_map))              deallocate (ele%gen_grad_map)
+if (associated (ele%gen_gradients))              deallocate (ele%gen_gradients)
 
 if (allocated (ele%multipole_cache))            deallocate (ele%multipole_cache)
 

@@ -22,7 +22,7 @@ interface operator (==)
   module procedure eq_cartesian_map, eq_cylindrical_map_term1, eq_cylindrical_map_term, eq_cylindrical_map, eq_grid_field_pt1
   module procedure eq_grid_field_pt, eq_grid_field, eq_floor_position, eq_high_energy_space_charge, eq_xy_disp
   module procedure eq_twiss, eq_mode3, eq_bookkeeping_state, eq_rad_map, eq_rad_map_ele
-  module procedure eq_gen_grad1, eq_gen_grad_map, eq_surface_segmented_pt, eq_surface_segmented, eq_surface_h_misalign_pt
+  module procedure eq_gen_grad_curve, eq_gen_gradients, eq_surface_segmented_pt, eq_surface_segmented, eq_surface_h_misalign_pt
   module procedure eq_surface_h_misalign, eq_surface_displacement_pt, eq_surface_displacement, eq_target_point, eq_surface_curvature
   module procedure eq_photon_target, eq_photon_material, eq_pixel_pt, eq_pixel_detec, eq_photon_element
   module procedure eq_wall3d_vertex, eq_wall3d_section, eq_wall3d, eq_ramper_lord, eq_control
@@ -1251,22 +1251,22 @@ end function eq_rad_map_ele
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_gen_grad1 (f1, f2) result (is_eq)
+elemental function eq_gen_grad_curve (f1, f2) result (is_eq)
 
 implicit none
 
-type(gen_grad1_struct), intent(in) :: f1, f2
+type(gen_grad_curve_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
 
 is_eq = .true.
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%m == f2%m)
+is_eq = is_eq .and. (f1%kind == f2%kind)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%sincos == f2%sincos)
+is_eq = is_eq .and. (f1%n == f2%n)
 !! f_side.equality_test[integer, 0, NOT]
-is_eq = is_eq .and. (f1%n_deriv_max == f2%n_deriv_max)
+is_eq = is_eq .and. (f1%m_max == f2%m_max)
 !! f_side.equality_test[real, 2, ALLOC]
 is_eq = is_eq .and. (allocated(f1%deriv) .eqv. allocated(f2%deriv))
 if (.not. is_eq) return
@@ -1274,16 +1274,16 @@ if (allocated(f1%deriv)) is_eq = all(shape(f1%deriv) == shape(f2%deriv))
 if (.not. is_eq) return
 if (allocated(f1%deriv)) is_eq = all(f1%deriv == f2%deriv)
 
-end function eq_gen_grad1
+end function eq_gen_grad_curve
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-elemental function eq_gen_grad_map (f1, f2) result (is_eq)
+elemental function eq_gen_gradients (f1, f2) result (is_eq)
 
 implicit none
 
-type(gen_grad_map_struct), intent(in) :: f1, f2
+type(gen_gradients_struct), intent(in) :: f1, f2
 logical is_eq
 
 !
@@ -1292,11 +1292,11 @@ is_eq = .true.
 !! f_side.equality_test[character, 0, NOT]
 is_eq = is_eq .and. (f1%file == f2%file)
 !! f_side.equality_test[type, 1, ALLOC]
-is_eq = is_eq .and. (allocated(f1%gg) .eqv. allocated(f2%gg))
+is_eq = is_eq .and. (allocated(f1%curve) .eqv. allocated(f2%curve))
 if (.not. is_eq) return
-if (allocated(f1%gg)) is_eq = all(shape(f1%gg) == shape(f2%gg))
+if (allocated(f1%curve)) is_eq = all(shape(f1%curve) == shape(f2%curve))
 if (.not. is_eq) return
-if (allocated(f1%gg)) is_eq = all(f1%gg == f2%gg)
+if (allocated(f1%curve)) is_eq = all(f1%curve == f2%curve)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ele_anchor_pt == f2%ele_anchor_pt)
 !! f_side.equality_test[integer, 0, NOT]
@@ -1307,16 +1307,16 @@ is_eq = is_eq .and. (f1%iz0 == f2%iz0)
 is_eq = is_eq .and. (f1%iz1 == f2%iz1)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%dz == f2%dz)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%g_ref == f2%g_ref)
 !! f_side.equality_test[real, 1, NOT]
 is_eq = is_eq .and. all(f1%r0 == f2%r0)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%field_scale == f2%field_scale)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%master_parameter == f2%master_parameter)
-!! f_side.equality_test[logical, 0, NOT]
-is_eq = is_eq .and. (f1%curved_ref_frame .eqv. f2%curved_ref_frame)
 
-end function eq_gen_grad_map
+end function eq_gen_gradients
 
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
@@ -2509,6 +2509,10 @@ is_eq = is_eq .and. (f1%beam_chamber_height == f2%beam_chamber_height)
 is_eq = is_eq .and. (f1%lsc_sigma_cutoff == f2%lsc_sigma_cutoff)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%particle_sigma_cutoff == f2%particle_sigma_cutoff)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%mesh_growth_factor == f2%mesh_growth_factor)
+!! f_side.equality_test[real, 0, NOT]
+is_eq = is_eq .and. (f1%mesh_shrink_factor == f2%mesh_shrink_factor)
 !! f_side.equality_test[integer, 1, NOT]
 is_eq = is_eq .and. all(f1%space_charge_mesh_size == f2%space_charge_mesh_size)
 !! f_side.equality_test[integer, 1, NOT]
@@ -2599,6 +2603,8 @@ is_eq = is_eq .and. (f1%lr_wakes_on .eqv. f2%lr_wakes_on)
 is_eq = is_eq .and. (f1%auto_bookkeeper .eqv. f2%auto_bookkeeper)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%high_energy_space_charge_on .eqv. f2%high_energy_space_charge_on)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%high_energy_space_charge_linear .eqv. f2%high_energy_space_charge_linear)
 !! f_side.equality_test[logical, 0, NOT]
 is_eq = is_eq .and. (f1%csr_and_space_charge_on .eqv. f2%csr_and_space_charge_on)
 !! f_side.equality_test[logical, 0, NOT]
@@ -2826,11 +2832,11 @@ if (associated(f1%cylindrical_map)) is_eq = all(shape(f1%cylindrical_map) == sha
 if (.not. is_eq) return
 if (associated(f1%cylindrical_map)) is_eq = all(f1%cylindrical_map == f2%cylindrical_map)
 !! f_side.equality_test[type, 1, PTR]
-is_eq = is_eq .and. (associated(f1%gen_grad_map) .eqv. associated(f2%gen_grad_map))
+is_eq = is_eq .and. (associated(f1%gen_gradients) .eqv. associated(f2%gen_gradients))
 if (.not. is_eq) return
-if (associated(f1%gen_grad_map)) is_eq = all(shape(f1%gen_grad_map) == shape(f2%gen_grad_map))
+if (associated(f1%gen_gradients)) is_eq = all(shape(f1%gen_gradients) == shape(f2%gen_gradients))
 if (.not. is_eq) return
-if (associated(f1%gen_grad_map)) is_eq = all(f1%gen_grad_map == f2%gen_grad_map)
+if (associated(f1%gen_gradients)) is_eq = all(f1%gen_gradients == f2%gen_gradients)
 !! f_side.equality_test[type, 1, PTR]
 is_eq = is_eq .and. (associated(f1%grid_field) .eqv. associated(f2%grid_field))
 if (.not. is_eq) return
@@ -2857,6 +2863,8 @@ is_eq = is_eq .and. all(f1%vec0 == f2%vec0)
 is_eq = is_eq .and. all(f1%mat6 == f2%mat6)
 !! f_side.equality_test[real, 2, NOT]
 is_eq = is_eq .and. all(f1%c_mat == f2%c_mat)
+!! f_side.equality_test[real, 2, NOT]
+is_eq = is_eq .and. all(f1%dc_mat_dpz == f2%dc_mat_dpz)
 !! f_side.equality_test[real, 0, NOT]
 is_eq = is_eq .and. (f1%gamma_c == f2%gamma_c)
 !! f_side.equality_test[real, 0, NOT]
@@ -3202,6 +3210,8 @@ is_eq = is_eq .and. (f1%photon_type == f2%photon_type)
 is_eq = is_eq .and. (f1%creation_hash == f2%creation_hash)
 !! f_side.equality_test[integer, 0, NOT]
 is_eq = is_eq .and. (f1%ramper_slave_bookkeeping == f2%ramper_slave_bookkeeping)
+!! f_side.equality_test[logical, 0, NOT]
+is_eq = is_eq .and. (f1%parser_make_xfer_mats .eqv. f2%parser_make_xfer_mats)
 
 end function eq_lat
 

@@ -106,31 +106,31 @@ endif
 
 ! Gen_grad
 
-if (who == all$ .or. who == gen_grad_map$) then
-  if (associated(ele_in%gen_grad_map) .and. associated(ele_out%gen_grad_map)) then
-    if (size(ele_in%gen_grad_map) /= size(ele_out%gen_grad_map)) then
-      call unlink_fieldmap (gen_grad_map = ele_out%gen_grad_map)
-      nm = size(ele_in%gen_grad_map)
-      allocate (ele_out%gen_grad_map(nm))
+if (who == all$ .or. who == gen_gradients$) then
+  if (associated(ele_in%gen_gradients) .and. associated(ele_out%gen_gradients)) then
+    if (size(ele_in%gen_gradients) /= size(ele_out%gen_gradients)) then
+      call unlink_fieldmap (gen_gradients = ele_out%gen_gradients)
+      nm = size(ele_in%gen_gradients)
+      allocate (ele_out%gen_gradients(nm))
       do i = 1, nm
-        ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+        ele_out%gen_gradients(i) = ele_in%gen_gradients(i)
       enddo
 
     else
-      do i = 1, size(ele_in%gen_grad_map)
-        ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+      do i = 1, size(ele_in%gen_gradients)
+        ele_out%gen_gradients(i) = ele_in%gen_gradients(i)
       enddo
     endif
 
-  elseif (associated(ele_in%gen_grad_map) .and. .not. associated(ele_out%gen_grad_map)) then
-    nm = size(ele_in%gen_grad_map)
-    allocate (ele_out%gen_grad_map(nm))
+  elseif (associated(ele_in%gen_gradients) .and. .not. associated(ele_out%gen_gradients)) then
+    nm = size(ele_in%gen_gradients)
+    allocate (ele_out%gen_gradients(nm))
     do i = 1, nm
-      ele_out%gen_grad_map(i) = ele_in%gen_grad_map(i)
+      ele_out%gen_gradients(i) = ele_in%gen_gradients(i)
     enddo
 
-  elseif (.not. associated(ele_in%gen_grad_map) .and. associated(ele_out%gen_grad_map)) then
-    call unlink_fieldmap (gen_grad_map = ele_out%gen_grad_map)
+  elseif (.not. associated(ele_in%gen_gradients) .and. associated(ele_out%gen_gradients)) then
+    call unlink_fieldmap (gen_gradients = ele_out%gen_gradients)
   endif
 endif
 

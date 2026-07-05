@@ -1,216 +1,68 @@
 !+
 ! Subroutine gen_grad1_to_gg_taylor (ele, gen_grad, iz, gg_taylor)
 !
-! Routine to take gen_grad coefs at a given z-position and return the equivalent Taylor field map.
-! Also see: gen_grad_at_s_to_gg_taylor, gen_grad_field.
+! Routine to take gen_gradients coefs at a given z-plane and return the equivalent Taylor field map.
+! The monomial field-expansion coefficients are obtained from the generalized-gradient coefficient
+! table (gen_gradients_mod / gg_coef_table_mod), which includes the reference-frame curvature (g_ref).
+! Also see: gen_grad_at_s_to_gg_taylor.
 !
 ! Input:
-!   ele           -- ele: Element containing the map.
-!   gen_grad      -- gen_grad_map_struct: Gen_grad map.
+!   ele           -- ele_struct: Element containing the map.
+!   gen_grad      -- gen_gradients_struct: Gen_gradients map.
 !   iz            -- integer: z-plane index to evaluate.
 !
 ! Output:
-!   gg_taylor(3)  -- gg_taylor_struct: Map for (Bx, By, Bz) or (Ex, Ey, Ez) fields.
+!   gg_taylor(3)  -- gg_taylor_struct: Map for (Bx, By, Bs) or (Ex, Ey, Es) fields.
 !-
 
 subroutine gen_grad1_to_gg_taylor (ele, gen_grad, iz, gg_taylor)
 
 use bmad_interface, dummy => gen_grad1_to_gg_taylor
+use gen_gradients_mod
 
 implicit none
 
-type gg_taylor_coef_struct
-  real(rp), allocatable :: c(:,:) ! (deriv-order, x_power)  Note: x_power + y_power = deriv_order
-end type
-
 type (ele_struct) ele
-type (gen_grad_map_struct), target :: gen_grad
+type (gen_gradients_struct), target :: gen_grad
 type (gg_taylor_struct), target :: gg_taylor(3)
-type (gen_grad1_struct), pointer :: gg
-type (gg_taylor_coef_struct) gg_coef(3)
+type (gen_grad_curve_struct), pointer :: crv
 
-real(rp) coef, scale
-real(rp), allocatable ::xy_plus(:), xy_zero(:), xy_minus(:)
+real(rp) scale
+real(rp) :: gval(3, 0:gg_coef_max_n$, 0:gg_coef_max_m$+1)
+real(rp) :: kcoef(6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
+real(rp) :: kbump(4:6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
 
-integer iz
-integer i, j, k, d, n, m, io, ix, m_max, iord, it
+integer iz, i, ip, iq, m, n
 
-logical is_even
+! Build the GG derivative-value array at the plane (z_rel = 0 => the stored derivatives at the plane).
 
-! Find largest order
-
-io = 0
-m_max = 0
-do i = 1, size(gen_grad%gg)
-  gg => gen_grad%gg(i)
-  io = max(io, max(1, gg%m-1) + gg%n_deriv_max)
-  m_max = max(m_max, gg%m)
+gval = 0
+do i = 1, size(gen_grad%curve)
+  crv => gen_grad%curve(i)
+  do m = 0, crv%m_max
+    gval(crv%kind, crv%n, m) = crv%deriv(iz, m)
+  enddo
 enddo
 
-allocate (gg_coef(1)%c(0:io,0:io), gg_coef(2)%c(0:io,0:io), gg_coef(3)%c(0:io,0:io))  ! (poly order, x^n power)
-allocate (xy_plus(0:m_max+1), xy_zero(0:m_max), xy_minus(0:m_max-1))
+call gg_accumulate_coefs (gen_grad%g_ref, gval, .true., .false., kcoef, kbump)
 
-gg_coef(1)%c = 0; gg_coef(2)%c = 0; gg_coef(3)%c = 0
-
-!
-
-do i = 1, size(gen_grad%gg)
-  gg => gen_grad%gg(i)
-  m = gg%m
-
-  do j = 0, m/2
-    xy_plus(m-2*j) = (-1)**j * n_choose_k(m+1, 2*j+1)  ! S_xy(m+1) coefs
-  enddo
-
-  do j = 0, (m+1)/2
-    xy_plus(m-2*j+1) = (-1)**j * n_choose_k(m+1, 2*j)  ! C_xy(m+1) coefs
-  enddo
-
-  do j = 0, divide_by_two(m-1)
-    xy_zero(m-2*j-1) = (-1)**j * n_choose_k(m, 2*j+1)  ! S_xy(m) coefs
-  enddo
-
-  do j = 0, m/2
-    xy_zero(m-2*j) = (-1)**j * n_choose_k(m, 2*j)  ! C_xy(m) coefs
-  enddo
-
-  do j = 0, divide_by_two(m-2)
-    xy_minus(m-2*j-2) = (-1)**j * n_choose_k(m-1, 2*j+1)  ! S_xy(m-1) coefs
-  enddo
-
-  do j = 0, divide_by_two(m-1)
-    xy_minus(m-2*j-1) = (-1)**j * n_choose_k(m-1, 2*j)  ! C_xy(m-1) coefs
-  enddo
-
-  is_even = .false.
-  do d = 0, gg%n_deriv_max
-    is_even = (.not. is_even)
-    coef = gg%deriv(iz,d)
-    if (coef == 0) cycle
-
-    if (is_even) then
-      n = d / 2
-      coef = coef * (-1)**n * factorial(m) / (4**n * factorial(n) * factorial(n+m))
-      iord = m + d - 1
-
-      if (gg%sincos == sin$) then
-        if (m == 0) cycle
-
-        do k = 0, n
-          do j = 0, divide_by_two(m-2)
-            it = m-2*j-2
-            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Sin
-          enddo
-          do j = 0, divide_by_two(m-1)
-            it = m-2*j-1
-            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Cos
-          enddo
-        enddo
-
-        do k = 0, n-1
-          do j = 0, m/2
-            it = m-2*j
-            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Sin
-          enddo
-          do j = 0, (m+1)/2
-            it = m-2*j+1
-            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) - coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Cos
-          enddo
-        enddo
-
-      else  ! sincos = cos$
-        if (m == 0) then
-          if (d == 0) cycle
-
-          ! For m = 0 use the mapping: (sin(m-1), cos(m-1)) -> (-sin(1-m), cos(1-m))
-          do k = 0, n
-            it = 1
-            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * (n) * n_choose_k(n,k)  ! Cos
-            it = 0
-            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) + coef * (n) * n_choose_k(n,k)  ! Sin
-          enddo
-
-        else  ! m /= 0
-          do k = 0, n
-            do j = 0, divide_by_two(m-1)
-              it = m-2*j-1
-              gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Cos
-            enddo
-            do j = 0, divide_by_two(m-2)
-              it = m-2*j-2
-              gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) - coef * (n+m) * n_choose_k(n,k) * xy_minus(it)  ! Sin
-            enddo
-          enddo
-        endif
-
-        do k = 0, n-1
-          do j = 0, (m+1)/2
-            it = m-2*j+1
-            gg_coef(1)%c(iord,2*k+it) = gg_coef(1)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Cos
-          enddo
-          do j = 0, m/2
-            it = m-2*j
-            gg_coef(2)%c(iord,2*k+it) = gg_coef(2)%c(iord,2*k+it) + coef * n * n_choose_k(n-1,k) * xy_plus(it)  ! Sin
-          enddo
-        enddo
-      endif
-
-    else  ! is odd
-      n = (d - 1) / 2
-      coef = coef * (-1)**n * factorial(m) / (4**n * factorial(n) * factorial(n+m))
-      iord = m + d - 1
-      if (gg%sincos == sin$) then
-        do k = 0, n
-          do j = 0, divide_by_two(m-1)
-            it = m-2*j-1
-            gg_coef(3)%c(iord,2*k+it) = gg_coef(3)%c(iord,2*k+it) + coef * n_choose_k(n,k) * xy_zero(it)  ! Sin
-          enddo
-        enddo
-
-      else
-        do k = 0, n
-          do j = 0, m/2
-            it = m-2*j
-            gg_coef(3)%c(iord,2*k+it) = gg_coef(3)%c(iord,2*k+it) + coef * n_choose_k(n,k) * xy_zero(it)  ! Cos
-          enddo
-        enddo
-      endif
-
-    endif  ! is_even
-  enddo  ! deriv index
-enddo  ! gg
-
-!
+! Emit the field monomials (Bx, By, Bs) as Taylor terms coef * x^ip * y^iq.
 
 scale = gen_grad%field_scale * master_parameter_value(gen_grad%master_parameter, ele)
 
 do i = 1, 3
-  n = count(gg_coef(i)%c /= 0)
+  n = count(kcoef(i,:,:) /= 0)
   call init_gg_taylor_series(gg_taylor(i), n)
 
   n = 0
-  do io = 0, ubound(gg_coef(i)%c,1)
-    do ix = 0, io
-      if (gg_coef(i)%c(io,ix) == 0) cycle
+  do ip = 0, gg_coef_max_pq$      ! x power
+    do iq = 0, gg_coef_max_pq$    ! y power
+      if (kcoef(i,ip,iq) == 0) cycle
       n = n + 1
-      gg_taylor(i)%term(n)%coef = gg_coef(i)%c(io,ix) * scale
-      gg_taylor(i)%term(n)%expn = [ix, io-ix]
+      gg_taylor(i)%term(n)%coef = kcoef(i,ip,iq) * scale
+      gg_taylor(i)%term(n)%expn = [ip, iq]
     enddo
   enddo
 enddo
-
-!-------------------------------------------------------------
-contains
-
-! This routine is needed since "(-1)/2" evaluates to 0 but what is wanted is -1.
-
-function divide_by_two(mm) result (m2)
-integer mm, m2
-if (mm < 0) then
-  m2 = -1
-else
-  m2 = mm/2
-endif
-end function divide_by_two
 
 end subroutine

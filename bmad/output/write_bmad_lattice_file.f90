@@ -56,7 +56,7 @@ type (ele_pointer_struct), pointer :: ss1(:), ss2(:)
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
-type (gen_grad_map_struct), pointer :: gg_map
+type (gen_gradients_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field
 type (gg_taylor_term_struct), pointer :: t_term
 type (wall3d_section_struct), pointer :: section
@@ -635,31 +635,31 @@ do ib = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! gen_grad_map
+    ! gen_gradients
 
-    if (associated(ele%gen_grad_map)) then
-      do im = 1, size(ele%gen_grad_map)
-        gg_map => ele%gen_grad_map(im)
+    if (associated(ele%gen_gradients)) then
+      do im = 1, size(ele%gen_gradients)
+        gg_map => ele%gen_gradients(im)
 
         ! First find out out if an file has been written
-        call find_matching_fieldmap (gg_map%file, ele, gen_grad_map$, ele2, ix_ptr, ignore_slaves = .true.) 
+        call find_matching_fieldmap (gg_map%file, ele, gen_gradients$, ele2, ix_ptr, ignore_slaves = .true.)
 
         if (integer_option(binary$, output_form) == one_file$) then
-          line = trim(line) // ', gen_grad_map_map ='
+          line = trim(line) // ', gen_gradients ='
           call write_lat_line (line, iu, .true.)
-          call write_this_gen_grad_map_map (gg_map, ele, iu, line)
+          call write_this_gen_gradients (gg_map, ele, iu, line)
 
         elseif (ix_ptr > 0) then
-          call form_this_fieldmap_name(fname, '.gen_grad_map', ele2, ix_ptr, ascii$)
-          write (line, '(3a)')  trim(line), ', gen_grad_map = call::', trim(fname)
+          call form_this_fieldmap_name(fname, '.gen_gradients', ele2, ix_ptr, ascii$)
+          write (line, '(3a)')  trim(line), ', gen_gradients = call::', trim(fname)
 
         else
-          call form_this_fieldmap_name(fname, '.gen_grad_map', ele, im, ascii$)
-          line = trim(line) // ', gen_grad_map = call::' // trim(fname)
+          call form_this_fieldmap_name(fname, '.gen_gradients', ele, im, ascii$)
+          line = trim(line) // ', gen_gradients = call::' // trim(fname)
           fname = trim(path) // '/' // trim(fname)
           iu2 = lunget()
           open (iu2, file = fname, recl = 500)
-          call write_this_gen_grad_map_map (gg_map, ele, iu2)
+          call write_this_gen_gradients (gg_map, ele, iu2)
           close (iu2)
         endif
       enddo
@@ -1769,10 +1769,10 @@ end subroutine write_this_grid_fieldmap
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine write_this_gen_grad_map_map (gg_map, ele, iu9, line)
+subroutine write_this_gen_gradients (gg_map, ele, iu9, line)
 
-type (gen_grad_map_struct), target :: gg_map
-type (gen_grad1_struct), pointer :: gg
+type (gen_gradients_struct), target :: gg_map
+type (gen_grad_curve_struct), pointer :: gg
 type (ele_struct) ele
 integer iu9, ig, iz, n, id
 character(*), optional :: line
@@ -1787,26 +1787,26 @@ write (iu9, '(2x, 3a)')       'field_scale        = ', re_str(gg_map%field_scale
 write (iu9, '(2x, 3a)')       'ele_anchor_pt      = ', trim(anchor_pt_name(gg_map%ele_anchor_pt)), ','
 write (iu9, '(2x, 3a)')       'field_type         = ', trim(em_field_type_name(gg_map%field_type)), ','
 write (iu9, '(2x, 3a)')       'dz                 = ', re_str(gg_map%dz), ','
+write (iu9, '(2x, 3a)')       'g_ref              = ', re_str(gg_map%g_ref), ','
 write (iu9, '(2x, 4a)')       'r0                 = ', trim(array_re_str(gg_map%r0)), ','
-write (iu9, '(2x, a, l1, a)') 'curved_ref_frame   = ', gg_map%curved_ref_frame, ','
 
-do ig = 1, size(gg_map%gg)
-  gg => gg_map%gg(ig)
+do ig = 1, size(gg_map%curve)
+  gg => gg_map%curve(ig)
   write (iu9, '(2x, a)') 'curve = {'
-  write (iu9, '(4x, a, i0, a)') 'm = ', gg%m, ','
-  write (iu9, '(4x, 3a)')       'kind = ', trim(expression_op_name(gg%sincos)), ','
+  write (iu9, '(4x, 3a)')       'kind = ', trim(gg_kind_name(gg%kind)), ','
+  write (iu9, '(4x, a, i0, a)') 'n = ', gg%n, ','
   write (iu9, '(4x, a)')        'derivs = {'
 
 
-  n = gg%n_deriv_max
-  write (fmt, '(a, i0, a)') '(f13.5, a, ', n+1, 'es20.12, a)' 
+  n = gg%m_max
+  write (fmt, '(a, i0, a)') '(f13.5, a, ', n+1, 'es20.12, a)'
   do iz = gg_map%iz0, gg_map%iz1-1
     write (iu9, fmt) iz*gg_map%dz, ':', gg%deriv(iz,0:n), ','
   enddo
   write (iu9, fmt) gg_map%iz1*gg_map%dz, ':', gg%deriv(gg_map%iz1,0:n)
 
   write (iu9, '(a)')   '    }'
-  if (ig == size(gg_map%gg)) then
+  if (ig == size(gg_map%curve)) then
     write (iu9, '(a)') '  }'
   else
     write (iu9, '(a)') '  },'
@@ -1821,6 +1821,6 @@ else
   write (iu9, '(a)') '}'
 endif
 
-end subroutine write_this_gen_grad_map_map
+end subroutine write_this_gen_gradients
 
 end subroutine write_bmad_lattice_file

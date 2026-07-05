@@ -301,8 +301,8 @@ if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is 
   ! Set ds_step and/or num_steps if not already set.
 
   if (val(ds_step$) == 0 .and. val(num_steps$) == 0) then
-    if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$ .and. associated(ele%gen_grad_map)) then
-      n = ele%gen_grad_map(1)%iz1 + 1 - ele%gen_grad_map(1)%iz0
+    if (ele%field_calc == fieldmap$ .and. ele%tracking_method /= bmad_standard$ .and. associated(ele%gen_gradients)) then
+      n = ele%gen_gradients(1)%iz1 + 1 - ele%gen_gradients(1)%iz0
       if (nint(val(integrator_order$)) /= 6) val(integrator_order$) = 4
       if (nint(val(integrator_order$)) == 4) then
         val(num_steps$) = max(1, nint((n-1)/4.0_rp))
@@ -1068,9 +1068,9 @@ if (associated(ele%cylindrical_map)) then
   enddo
 endif
 
-if (associated(ele%gen_grad_map)) then
-  do i = 1, size(ele%gen_grad_map)
-    ele%value(check_sum$) = ele%value(check_sum$) + ele%gen_grad_map(i)%field_scale
+if (associated(ele%gen_gradients)) then
+  do i = 1, size(ele%gen_gradients)
+    ele%value(check_sum$) = ele%value(check_sum$) + ele%gen_gradients(i)%field_scale
   enddo
 endif
 

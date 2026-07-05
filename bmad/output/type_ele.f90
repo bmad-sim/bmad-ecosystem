@@ -70,8 +70,8 @@ type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
 type (grid_field_struct), pointer :: g_field
 type (grid_field_pt1_struct), pointer :: g_pt
-type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), pointer :: gg
+type (gen_gradients_struct), pointer :: gg_map
+type (gen_grad_curve_struct), pointer :: gg
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: section
 type (wall3d_vertex_struct), pointer :: v
@@ -557,19 +557,19 @@ endif
 
 ! Gen_Grad_field
 
-if (associated(ele%gen_grad_map)) then
+if (associated(ele%gen_gradients)) then
   if (integer_option(no$, type_field) == no$) then
-    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Gen_Grad_field modes:', size(ele%gen_grad_map)
+    nl=nl+1; write (li(nl), '(a, i5)') 'Number of Gen_Gradients modes:', size(ele%gen_gradients)
   else
     nl2 = 10; if (type_field == all$) nl2 = 999
     nl=nl+1; li(nl) = ''
     if (ele%field_calc == bmad_standard$) then
-      nl=nl+1; li(nl) = 'Gen_Grad_field: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
+      nl=nl+1; li(nl) = 'Gen_Gradients: [NOT USED SINCE FIELD_CALC = BMAD_STANDARD]'
     else
-      nl=nl+1; li(nl) = 'Gen_Grad_field:'
+      nl=nl+1; li(nl) = 'Gen_Gradients:'
     endif
-    do im = 1, size(ele%gen_grad_map)
-      gg_map => ele%gen_grad_map(im)
+    do im = 1, size(ele%gen_gradients)
+      gg_map => ele%gen_gradients(im)
       if (gg_map%master_parameter == 0) then
         name = '<None>'
       else
@@ -580,20 +580,20 @@ if (associated(ele%gen_grad_map)) then
       nl=nl+1; write (li(nl), '(a, es16.8)')  '  field_scale:       ', gg_map%field_scale
       nl=nl+1; write (li(nl), '(a, 3es16.8)') '  r0:                ', gg_map%r0
       nl=nl+1; write (li(nl), '(a, es16.8)')  '  dz:                ', gg_map%dz
+      nl=nl+1; write (li(nl), '(a, es16.8)')  '  g_ref:             ', gg_map%g_ref
       nl=nl+1; write (li(nl), '(a, 2i5)')     '  iz0, iz1:          ', gg_map%iz0, gg_map%iz1
       nl=nl+1; write (li(nl), '(2a)')         '  master_parameter:  ', trim(name)
       nl=nl+1; write (li(nl), '(2a)')         '  ele_anchor_pt:     ', anchor_pt_name(gg_map%ele_anchor_pt)
-      nl=nl+1; write (li(nl), '(a, l1)')      '  curved_ref_frame   ', gg_map%curved_ref_frame
-      do ig = 1, size(gg_map%gg)
-        gg => gg_map%gg(ig)
-        nl=nl+1; write (li(nl), '(4x, i0, a, i0, 2x, a)') ig, ': Curve m = ', gg%m, expression_op_name(gg%sincos)
+      do ig = 1, size(gg_map%curve)
+        gg => gg_map%curve(ig)
+        nl=nl+1; write (li(nl), '(4x, i0, a, i0)') ig, ': Curve kind = ' // trim(gg_kind_name(gg%kind)) // ', n = ', gg%n
         nl=nl+1; write (li(nl), '(9x, a)') 'Z  Derivs....'
         do n = lbound(gg%deriv,1), ubound(gg%deriv,1)
           if (n - lbound(gg%deriv,1) > 10) then
             nl=nl+1; li(nl) = '      ... etc. ...'
             exit
           endif
-          nl=nl+1; write(li(nl), '(i10, f10.6, 99es14.6)') n, n*gg_map%dz, gg%deriv(n, 0:gg%n_deriv_max)
+          nl=nl+1; write(li(nl), '(i10, f10.6, 99es14.6)') n, n*gg_map%dz, gg%deriv(n, 0:gg%m_max)
         enddo
       enddo
     enddo

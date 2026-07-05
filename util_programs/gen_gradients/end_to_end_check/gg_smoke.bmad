@@ -1,0 +1,23 @@
+parameter[geometry] = open
+parameter[particle] = proton
+parameter[e_tot] = 1e9
+
+ff: em_field, L = 0.2, field_calc = fieldmap, tracking_method = runge_kutta,
+  gen_gradients = {
+    field_scale = 1,
+    g_ref = 0.37,
+    r0 = (0, 0, 0),
+    dz = 0.1,
+    ele_anchor_pt = beginning,
+    field_type = magnetic,
+    curve = { kind = b, n = 1, derivs = {
+      0.0 : 0.5 0.1 -0.2,
+      0.1 : 0.4 0.05 -0.1,
+      0.2 : 0.3 0.0 0.0 }},
+    curve = { kind = a, n = 2, derivs = {
+      0.0 : 0.3 -0.2 0.1,
+      0.1 : 0.2 -0.1 0.05,
+      0.2 : 0.1 0.0 0.0 }} }
+
+lat: line = (ff)
+use, lat

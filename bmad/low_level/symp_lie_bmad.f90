@@ -150,7 +150,7 @@ Case (wiggler$, undulator$)
 
   field_ele => pointer_to_field_ele(ele, 1, z_offset)
 
-  if (associated(field_ele%cylindrical_map) .or. associated(field_ele%gen_grad_map) .or. &
+  if (associated(field_ele%cylindrical_map) .or. associated(field_ele%gen_gradients) .or. &
                                                          associated(field_ele%grid_field)) then
     call out_io (s_fatal$, r_name, 'ELEMENT: ' // ele%name, 'CYLINDRICAL, GEN_GRAD OR GRID_FIELD MAP BUT SYMP_LIE_PTC CAN ONLY HANDLE CARTESIAN.')
     if (global_com%exit_on_error) call err_exit
