@@ -116,7 +116,12 @@ def convert(text, g_ref):
         elif c['kind'] == 'cos':
             cc[c['m']] = T; mmax = max(mmax, nder)
 
-    kmax = max([m for m in list(cs) + list(cc)], default=0)
+    # A varying solenoid induces even-order skew multipoles a_k = Us(k) b_s^{[k+j-1]}
+    # via the Us coupling (see below). When the physical skew multipole equals this
+    # solenoid feed, the old azimuthal harmonic C_{k,cos} vanishes and no cos curve is
+    # written -- but the inverse must still reconstruct a_k. Extend kmax to cover these.
+    sol_kmax = (len(c0c) - 1) if c0c is not None else 0
+    kmax = max([m for m in list(cs) + list(cc)] + [sol_kmax], default=0)
 
     def Wn(k, n): return (-1.0) ** n * factorial(k - 2 * n) * (k - 2 * n) / (4.0 ** n * factorial(n) * factorial(k - n))
     def Wc(k, n): return (-1.0) ** n * factorial(k - 2 * n) * k / (4.0 ** n * factorial(n) * factorial(k - n))
@@ -143,11 +148,14 @@ def convert(text, g_ref):
                         n += 1
                     Tb[j][i] = val
             b_new[k] = Tb
-        if k in cc:
+        # Build the skew (a) tower when either an explicit cos curve exists, or the
+        # solenoid feeds an even-order skew multipole (Us term) with no cos curve.
+        if k in cc or (k % 2 == 0 and c0c is not None):
             Ta = [[0.0] * npl for _ in range(mmax + 1)]
+            any_nz = False
             for j in range(mmax + 1):
                 for i in range(npl):
-                    val = factorial(k) * cc[k][j][i]
+                    val = factorial(k) * cc[k][j][i] if k in cc else 0.0
                     n = 1
                     while k - 2 * n >= 1:
                         lo = cc.get(k - 2 * n)
@@ -157,7 +165,9 @@ def convert(text, g_ref):
                     if k % 2 == 0:
                         val += factorial(k - 1) * Us(k) * bs(k + j - 1, i)
                     Ta[j][i] = val
-            a_new[k] = Ta
+                    any_nz = any_nz or val != 0.0
+            if any_nz:            # skip identically-zero induced curves
+                a_new[k] = Ta
 
     bs_new = None
     if c0c is not None:
