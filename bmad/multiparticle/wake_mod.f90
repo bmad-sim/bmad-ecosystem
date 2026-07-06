@@ -628,59 +628,50 @@ implicit none
 
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: particle(:)
-type (coord_struct) temp
-integer ix, k, nm, i0, i1, n_max, kk
-real(rp) z1, z2
+integer, allocatable :: iz(:)
+integer ix, nm, n_max
 
-! Init if needed. 
+!
 
 particle => bunch%particle
 n_max = size(particle)
-nm = n_max
 
-! If first time through
+! Sort all particles from large z (head of bunch) to small z.
+! A full n*log(n) sort is used rather than an incremental sort. The incremental sort is order n
+! when the particles are already nearly ordered but degrades to order n^2 when the particles are far
+! from ordered (which happens, for example, after tracking a bunch through a bend with dispersion),
+! and it churns heap allocations on every move. The full sort avoids both problems.
 
-if (bunch%ix_z(1) < 1) then
-  call indexer (bunch%particle%vec(5), bunch%ix_z)
-  bunch%ix_z(1:nm) = bunch%ix_z(nm:1:-1)
+call indexer (particle%vec(5), bunch%ix_z)
+bunch%ix_z(1:n_max) = bunch%ix_z(n_max:1:-1)
+
+! Move any dead particles to the end while preserving the z-ordering of the live particles.
+
+if (all(particle%state == alive$)) then
+  bunch%n_live = n_max
+  return
 endif
 
-! Order is from large z (head of bunch) to small z.
-! This ordering calc is efficient when the particles are already more-or-less ordered to start with.  
+allocate (iz(n_max))
 
-ix = 1
-do
-  if (ix > nm) exit
-  i0 = bunch%ix_z(ix)
-
-  if (particle(i0)%state /= alive$) then
-    bunch%ix_z(ix:nm) = [bunch%ix_z(ix+1:nm), i0]
-    nm = nm - 1
-    cycle
+nm = 0
+do ix = 1, n_max
+  if (particle(bunch%ix_z(ix))%state == alive$) then
+    nm = nm + 1
+    iz(nm) = bunch%ix_z(ix)
   endif
-
-  if (ix >= nm) exit
-  i1 = bunch%ix_z(ix+1)
-
-  if (particle(i1)%state /= alive$) then
-    bunch%ix_z(ix+1:nm) = [bunch%ix_z(ix+2:nm), i1]
-    nm = nm - 1
-    cycle
-  endif
-
-  if (particle(i0)%vec(5) < particle(i1)%vec(5)) then
-    do k = ix-1, 1, -1
-      kk = bunch%ix_z(k)
-      if (particle(kk)%vec(5) >= particle(i1)%vec(5)) exit
-    enddo
-  
-    bunch%ix_z(k+1:ix+1) = [bunch%ix_z(ix+1), bunch%ix_z(k+1:ix)]
-  endif
-
-  ix = ix + 1
 enddo
 
 bunch%n_live = nm
+
+do ix = 1, n_max
+  if (particle(bunch%ix_z(ix))%state /= alive$) then
+    nm = nm + 1
+    iz(nm) = bunch%ix_z(ix)
+  endif
+enddo
+
+bunch%ix_z = iz
 
 end subroutine order_particles_in_z
 
