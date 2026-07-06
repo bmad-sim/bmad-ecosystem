@@ -608,6 +608,7 @@ end subroutine sr_z_long_wake
 ! Routine to order the particles longitudinally in terms of decreasing %vec(5).
 ! That is from large z (head of bunch) to small z.
 ! Only live particles are ordered.
+! The relative order of particles with equal %vec(5) is arbitrary and may change from call to call.
 !
 ! Input:
 !   bunch     -- Bunch_struct: collection of particles.
@@ -628,7 +629,7 @@ implicit none
 
 type (bunch_struct), target :: bunch
 type (coord_struct), pointer :: particle(:)
-integer, allocatable :: iz(:)
+real(rp), allocatable :: z_key(:)
 integer ix, nm, n_max
 
 !
@@ -636,42 +637,38 @@ integer ix, nm, n_max
 particle => bunch%particle
 n_max = size(particle)
 
+! bunch%ix_z can be stale if the particle array has been reallocated (for example, by
+! remove_dead_from_bunch) without ix_z being resized to match. re_allocate is a no-op
+! when ix_z is already the right size.
+
+call re_allocate(bunch%ix_z, n_max)
+
 ! Sort all particles from large z (head of bunch) to small z.
 ! A full n*log(n) sort is used rather than an incremental sort. The incremental sort is order n
 ! when the particles are already nearly ordered but degrades to order n^2 when the particles are far
 ! from ordered (which happens, for example, after tracking a bunch through a bend with dispersion),
 ! and it churns heap allocations on every move. The full sort avoids both problems.
+!
+! The sort keys are gathered into a contiguous array since sorting on the strided particle%vec(5)
+! section directly would touch one cache line per comparison. The key is -vec(5) so that an
+! ascending sort gives the head-to-tail order directly. Dead particles are given a key of huge()
+! so they sort to the end without their coordinates (which may not even be finite) entering the
+! comparisons of the live particles.
 
-call indexer (particle%vec(5), bunch%ix_z)
-bunch%ix_z(1:n_max) = bunch%ix_z(n_max:1:-1)
-
-! Move any dead particles to the end while preserving the z-ordering of the live particles.
-
-if (all(particle%state == alive$)) then
-  bunch%n_live = n_max
-  return
-endif
-
-allocate (iz(n_max))
+allocate (z_key(n_max))
 
 nm = 0
 do ix = 1, n_max
-  if (particle(bunch%ix_z(ix))%state == alive$) then
+  if (particle(ix)%state == alive$) then
     nm = nm + 1
-    iz(nm) = bunch%ix_z(ix)
+    z_key(ix) = -particle(ix)%vec(5)
+  else
+    z_key(ix) = huge(0.0_rp)
   endif
 enddo
 
+call indexer (z_key, bunch%ix_z)
 bunch%n_live = nm
-
-do ix = 1, n_max
-  if (particle(bunch%ix_z(ix))%state /= alive$) then
-    nm = nm + 1
-    iz(nm) = bunch%ix_z(ix)
-  endif
-enddo
-
-bunch%ix_z = iz
 
 end subroutine order_particles_in_z
 

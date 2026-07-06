@@ -28,6 +28,11 @@ n = count(p%state == alive$) + count(p%state == pre_born$)
 if (allocated(bunch_out%particle)) deallocate(bunch_out%particle)
 allocate(bunch_out%particle(n))
 
+! Keep ix_z sized to match the particle array (order_particles_in_z will recompute the ordering).
+if (allocated(bunch_out%ix_z)) deallocate(bunch_out%ix_z)
+allocate(bunch_out%ix_z(n))
+bunch_out%ix_z = 0
+
 n = 0
 do ip = 1, size(p)
   if (p(ip)%state /= alive$ .and. p(ip)%state /= pre_born$) cycle
