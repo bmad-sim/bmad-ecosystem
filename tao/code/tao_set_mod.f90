@@ -1193,7 +1193,7 @@ if (is_real(value_str, real_num = r_val) .or. is_logical(value_str)) then
     write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
   endif
 
-elseif (who(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
+elseif (who2(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
   vstr = value_str
   str = ''
   do i = 1, 3
