@@ -1677,10 +1677,16 @@ do i = 1, slave%n_lord
       return
     endif
 
-    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
-    if (err_flag) then
-      if (global_com%exit_on_error) call err_exit
-      return
+    ! Use the cached attribute index to avoid re-resolving control%attribute by name every bookkeep.
+    ! Only normal %value attributes take the fast path; the rest fall back to the name-based lookup.
+    if (control%ix_attrib > 0 .and. control%ix_attrib <= num_ele_attrib$) then
+      a_ptr%r => slave%value(control%ix_attrib)
+    else
+      call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
+      if (err_flag) then
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
     endif
     call overlay_change_this(lord, a_ptr%r, control, val_attrib, ptr_attrib)
   end select
