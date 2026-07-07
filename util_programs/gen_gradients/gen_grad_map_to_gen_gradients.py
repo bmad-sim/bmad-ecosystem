@@ -30,8 +30,10 @@ Curve kinds: old (m, sin) -> new (b, n=m) [normal]; old (m, cos) -> new (a, n=m)
 The midplane gradients a_n, b_n, b_s are curvature-independent, so the field
 data carries over unchanged; `g_ref` (the new reference-frame curvature, 0 for a
 straight map) is supplied with --g-ref (default 0). For a straight map the new
-block reproduces the old field exactly; for a curved map it reproduces the
-*correct* curved field (the old straight-frame expansion was only approximate).
+block reproduces the old field exactly -- this requires emitting the higher-order
+multipoles that a z-varying harmonic feeds "up" into (see convert()); for a curved
+map it reproduces the *correct* curved field (the old straight-frame expansion was
+only approximate).
 """
 
 import sys
@@ -116,12 +118,18 @@ def convert(text, g_ref):
         elif c['kind'] == 'cos':
             cc[c['m']] = T; mmax = max(mmax, nder)
 
-    # A varying solenoid induces even-order skew multipoles a_k = Us(k) b_s^{[k+j-1]}
-    # via the Us coupling (see below). When the physical skew multipole equals this
-    # solenoid feed, the old azimuthal harmonic C_{k,cos} vanishes and no cos curve is
-    # written -- but the inverse must still reconstruct a_k. Extend kmax to cover these.
+    # The old harmonic C_m, together with its finite s-derivative tower, is an EXACT
+    # polynomial vacuum field, so it has an exact FINITE clean-multipole equivalent -- but
+    # that equivalent includes multipoles of order ABOVE m. A z-varying harmonic C_m feeds
+    # "up" into a_{m+2n}/b_{m+2n} through the same Wn/Wc mixing (taken at higher derivative
+    # order), e.g. a skew dipole with nonzero C_1'' induces a skew sextupole a_3 = -0.75 C_1''.
+    # The reconstruction of a_k/b_k must therefore run k BEYOND the highest harmonic actually
+    # present, out to the derivative-order reach (kmax below); dropping those induced curves
+    # leaves an O(rho^2) (and higher) error in the reconstructed field. Likewise a z-varying
+    # solenoid feeds even-order skew multipoles a_k via the Us coupling.
     sol_kmax = (len(c0c) - 1) if c0c is not None else 0
-    kmax = max([m for m in list(cs) + list(cc)] + [sol_kmax], default=0)
+    max_harm = max([m for m in list(cs) + list(cc)] + [0])
+    kmax = max(max_harm + mmax, sol_kmax)   # +mmax: feed-up reach of the derivative tower
 
     def Wn(k, n): return (-1.0) ** n * factorial(k - 2 * n) * (k - 2 * n) / (4.0 ** n * factorial(n) * factorial(k - n))
     def Wc(k, n): return (-1.0) ** n * factorial(k - 2 * n) * k / (4.0 ** n * factorial(n) * factorial(k - n))
@@ -132,42 +140,44 @@ def convert(text, g_ref):
             return 0.0
         return c0c[order + 1][i]
 
-    # New towers.
+    # New towers. For each order k build the normal (b) and skew (a) multipole tower from the
+    # explicit harmonic C_k (if present) plus the feed-up mixing from lower harmonics and the
+    # solenoid Us coupling; keep only the curves that are not identically zero.
     b_new, a_new = {}, {}
     for k in range(1, kmax + 1):
-        if k in cs:
-            Tb = [[0.0] * npl for _ in range(mmax + 1)]
-            for j in range(mmax + 1):
-                for i in range(npl):
-                    val = factorial(k) * cs[k][j][i]
-                    n = 1
-                    while k - 2 * n >= 1:
-                        lo = cs.get(k - 2 * n)
-                        if lo is not None and j + 2 * n < len(lo):
-                            val += factorial(k - 1) * Wn(k, n) * lo[j + 2 * n][i]
-                        n += 1
-                    Tb[j][i] = val
+        Tb = [[0.0] * npl for _ in range(mmax + 1)]
+        nz_b = False
+        for j in range(mmax + 1):
+            for i in range(npl):
+                val = factorial(k) * cs[k][j][i] if k in cs else 0.0
+                n = 1
+                while k - 2 * n >= 1:
+                    lo = cs.get(k - 2 * n)
+                    if lo is not None and j + 2 * n < len(lo):
+                        val += factorial(k - 1) * Wn(k, n) * lo[j + 2 * n][i]
+                    n += 1
+                Tb[j][i] = val
+                nz_b = nz_b or val != 0.0
+        if nz_b:
             b_new[k] = Tb
-        # Build the skew (a) tower when either an explicit cos curve exists, or the
-        # solenoid feeds an even-order skew multipole (Us term) with no cos curve.
-        if k in cc or (k % 2 == 0 and c0c is not None):
-            Ta = [[0.0] * npl for _ in range(mmax + 1)]
-            any_nz = False
-            for j in range(mmax + 1):
-                for i in range(npl):
-                    val = factorial(k) * cc[k][j][i] if k in cc else 0.0
-                    n = 1
-                    while k - 2 * n >= 1:
-                        lo = cc.get(k - 2 * n)
-                        if lo is not None and j + 2 * n < len(lo):
-                            val += factorial(k - 1) * Wc(k, n) * lo[j + 2 * n][i]
-                        n += 1
-                    if k % 2 == 0:
-                        val += factorial(k - 1) * Us(k) * bs(k + j - 1, i)
-                    Ta[j][i] = val
-                    any_nz = any_nz or val != 0.0
-            if any_nz:            # skip identically-zero induced curves
-                a_new[k] = Ta
+
+        Ta = [[0.0] * npl for _ in range(mmax + 1)]
+        nz_a = False
+        for j in range(mmax + 1):
+            for i in range(npl):
+                val = factorial(k) * cc[k][j][i] if k in cc else 0.0
+                n = 1
+                while k - 2 * n >= 1:
+                    lo = cc.get(k - 2 * n)
+                    if lo is not None and j + 2 * n < len(lo):
+                        val += factorial(k - 1) * Wc(k, n) * lo[j + 2 * n][i]
+                    n += 1
+                if k % 2 == 0:
+                    val += factorial(k - 1) * Us(k) * bs(k + j - 1, i)
+                Ta[j][i] = val
+                nz_a = nz_a or val != 0.0
+        if nz_a:
+            a_new[k] = Ta
 
     bs_new = None
     if c0c is not None:
