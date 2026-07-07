@@ -9226,7 +9226,7 @@ character(40) attrib_name
 err = .true.
 data_type = is_real$
 
-if (orbit.state /= alive$) then
+if (orbit%state /= alive$) then
   if (name(1:5) == 'orbit' .and. name /= 'orbit.state') return
   if (name(1:6) == 'ele.a.' .or. name(1:6) == 'ele.b.') return
 endif
