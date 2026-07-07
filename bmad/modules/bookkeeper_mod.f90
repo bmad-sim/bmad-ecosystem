@@ -1670,7 +1670,7 @@ do i = 1, slave%n_lord
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
   case default
-    err_flag = .not. attribute_free (slave, control%attribute, .true., .true., .true.)
+    err_flag = .not. attribute_free (slave, control%attribute, .true., .true., .true., ix_attrib = control%ix_attrib)
     if (err_flag) then
       call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
            'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(control%attribute) // ']')
