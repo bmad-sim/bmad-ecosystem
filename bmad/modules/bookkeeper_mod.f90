@@ -44,14 +44,14 @@ if (.not. lord%is_on) return
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i, control)
   attrib_name = control%attribute
-  if (attrib_name == 'L') moved = .true.
+  if (control%ix_attrib == l$) moved = .true.
 
-  select case (attrib_name)
+  select case (control%ix_attrib)
 
   !---------
   ! Edge: Varying lengths takes special code.
 
-  case ('START_EDGE', 'END_EDGE', 'S_POSITION', 'ACCORDION_EDGE', 'L')
+  case (start_edge$, end_edge$, s_position$, accordion_edge$, l$)
 
     if (slave%lord_status == multipass_lord$) then
       do j = 1, slave%n_slave
@@ -65,15 +65,15 @@ do i = 1, lord%n_slave
   !---------
   ! x_limit, y_limit, aperture
 
-  case ('X_LIMIT')
+  case (x_limit$)
     call group_change_this (slave, 'X1_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'X2_LIMIT', control, 1);  if (err_flag) return
 
-  case ('Y_LIMIT')
+  case (y_limit$)
     call group_change_this (slave, 'Y1_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'Y2_LIMIT', control, 1);  if (err_flag) return
 
-  case ('APERTURE') 
+  case (aperture$)
     call group_change_this (slave, 'X1_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'X2_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'Y1_LIMIT', control, 1);  if (err_flag) return
@@ -1657,14 +1657,14 @@ do i = 1, slave%n_lord
 
   ! overlay lord
 
-  select case (control%attribute)
-  case ('X_LIMIT')
+  select case (control%ix_attrib)
+  case (x_limit$)
     call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
-  case ('Y_LIMIT')
+  case (y_limit$)
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
-  case ('APERTURE')
+  case (aperture$)
     call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
