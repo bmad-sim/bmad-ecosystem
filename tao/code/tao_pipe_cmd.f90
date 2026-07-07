@@ -9226,6 +9226,11 @@ character(40) attrib_name
 err = .true.
 data_type = is_real$
 
+if (orbit.state /= alive$) then
+  if (name(1:5) == 'orbit' .and. name /= 'orbit.state') return
+  if (name(1:6) == 'ele.a.' .or. name(1:6) == 'ele.b.') return
+endif
+
 select case (name)
 case ('orbit.floor.x', 'orbit.floor.y', 'orbit.floor.z')
   floor%r = [orbit%vec(1), orbit%vec(3), ele%value(l$)]
@@ -9280,10 +9285,20 @@ case ('ele.a.eta')
   value = ele%a%eta
 case ('ele.a.etap')
   value = ele%a%etap
+case ('ele.a.deta_ds')
+  value = ele%a%deta_ds
 case ('ele.a.gamma')
   value = ele%a%gamma
 case ('ele.a.phi')
   value = ele%a%phi
+case ('ele.a.dbeta_dpz')
+  value = ele%b%dbeta_dpz
+case ('ele.a.dalpha_dpz')
+  value = ele%b%dalpha_dpz
+case ('ele.a.deta_dpz')
+  value = ele%b%deta_dpz
+case ('ele.a.detap_dpz')
+  value = ele%b%detap_dpz
 case ('ele.b.beta')
   value = ele%b%beta
 case ('ele.b.alpha')
@@ -9292,10 +9307,20 @@ case ('ele.b.eta')
   value = ele%b%eta
 case ('ele.b.etap')
   value = ele%b%etap
+case ('ele.b.deta_ds')
+  value = ele%b%deta_ds
 case ('ele.b.gamma')
   value = ele%b%gamma
 case ('ele.b.phi')
   value = ele%b%phi
+case ('ele.b.dbeta_dpz')
+  value = ele%b%dbeta_dpz
+case ('ele.b.dalpha_dpz')
+  value = ele%b%dalpha_dpz
+case ('ele.b.deta_dpz')
+  value = ele%b%deta_dpz
+case ('ele.b.detap_dpz')
+  value = ele%b%detap_dpz
 case ('ele.e_tot')
   value = ele%value(e_tot$)
 case ('ele.p0c')
