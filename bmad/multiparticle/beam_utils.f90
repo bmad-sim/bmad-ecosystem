@@ -46,7 +46,7 @@ real(rp) charge, ds_wake
 
 integer, optional :: direction
 integer i, j, n, jj
-logical err_flag, finished, thread_safe
+logical err_flag, finished, thread_safe, wake_here
 
 character(*), parameter :: r_name = 'track1_bunch_hom'
 
@@ -61,9 +61,21 @@ call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
 
 !------------------------------------------------
 ! Without wakefields just track through.
+! Note: An element may have a wake struct but still not apply any wake. This happens if the relevant
+! global on/off switch is set to False or if the wake has no active modes. In this case the expensive
+! wake path (which z-orders the particles and splits the element in two) must be avoided.
 
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
-if (.not. associated (wake_ele) .or. (.not. bmad_com%sr_wakes_on .and. .not. bmad_com%lr_wakes_on)) then
+
+wake_here = .false.
+if (associated(wake_ele)) then
+  if (bmad_com%sr_wakes_on .and. (size(wake_ele%wake%sr%long) /= 0 .or. size(wake_ele%wake%sr%trans) /= 0 .or. &
+                                  size(wake_ele%wake%sr%z_long%w) /= 0)) wake_here = .true.
+  if (bmad_com%lr_wakes_on .and. size(wake_ele%wake%lr%mode) /= 0) wake_here = .true.
+  if (associated(track1_wake_hook_ptr) .and. (bmad_com%sr_wakes_on .or. bmad_com%lr_wakes_on)) wake_here = .true.
+endif
+
+if (.not. wake_here) then
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
   !$OMP parallel do if (thread_safe)
