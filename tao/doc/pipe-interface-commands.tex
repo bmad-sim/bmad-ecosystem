@@ -730,26 +730,26 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
-%% pipe ele:gen_grad_map ------------------------------------
-\subsection{pipe ele:gen_grad_map}
-\index{pipe!ele:gen_grad_map}
-\label{p:ele:gen.grad.map}
+%% pipe ele:gen_gradients ------------------------------------
+\subsection{pipe ele:gen_gradients}
+\index{pipe!ele:gen_gradients}
+\label{p:ele:gen.gradients}
 
 
-Output element gen_grad_map 
+Output element gen_gradients 
 
 \begin{example}
-   pipe ele:gen_grad_map \{ele_id\}|\{which\} \{index\} \{who\}
+   pipe ele:gen_gradients \{ele_id\}|\{which\} \{index\} \{who\}
 \end{example}
 \begin{verbatim}
 Where: 
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
-  {index} is the index number in the ele%gen_grad_map(:) array
+  {index} is the index number in the ele%gen_gradients(:) array
   {who} is one of: "base", or "derivs".
 
 Example:
-  pipe ele:gen_grad_map 3@1>>7|model 2 base
+  pipe ele:gen_gradients 3@1>>7|model 2 base
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
