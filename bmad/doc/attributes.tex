@@ -2702,16 +2702,23 @@ See Sec.~\sref{s:attrib.non} for the syntax of setting \vn{grid_field} component
 The \vn{gen_gradients} attribute characterizes DC magnetic or electric fields using ``generalized
 gradients'' (GG). \bmad uses the curved-curvilinear-coordinate formalism (which reduces to the
 straight-coordinate case when the reference-frame curvature is zero) as described by Van der Schueren
-et al.\cite{b:gen.grad.curved} and implemented in the \vn{GeneralizedGradients.jl}
-package\cite{b:gen.grad.jl}. The field is characterized by the midplane derivative functions
+et al.\cite{b:gen.grad.curved}. The field is characterized by the midplane derivative functions
 $a_n(s)$ (skew), $b_n(s)$ (normal), and $b_s(s)$ (solenoidal); formulas are given in
-\Sref{s:gen.grad.phys}.
+\Sref{s:gen.grad.phys}. 
+
+Note: Before any tracking is done with GG, the GG coefficients need to be computed and the values
+stored in a lattice file. Typically, GG coefficients are computed by fitting field data. A fitting
+program is provided by the SciBmad package \vn{GeneralizedGradients.jl}\cite{b:gen.grad.jl}. This
+package also provides a translator to translate from SciBmad format to Bmad format.
 
 \begin{quote}
 \textbf{Note:} The older straight-coordinate \vn{gen_grad_map} format (Venturini--Dragt azimuthal
-harmonics $C_{m,\text{sin}/\text{cos}}$) has been removed. Old lattice files that use
-\vn{gen_grad_map} will generate an error and must be converted to the \vn{gen_gradients} format
-using the \vn{gen_grad_map_to_gen_gradients} utility (\sref{s:gen.grad.old}).
+harmonics $C_{m,\text{sin}/\text{cos}}$) has been removed. Old lattice files that use the old
+\vn{gen_grad_map} syntax will generate an error and must be converted to the new \vn{gen_gradients}
+format using the \vn{gen_grad_map_to_gen_gradients} utility (\sref{s:gen.grad.old}). Also note
+that while the old and new formalism will agree exactly on the fit planes, interpolation of the
+GG coefficients between fit planes will differ. Thus there will be shifts in tracking results 
+between old and new.
 \end{quote}
 
 An element can store a set of GGs. For example, a GG for the magnetic field and a GG for the
@@ -2721,7 +2728,7 @@ electric field. The syntax for describing a single GG is:
     field_type       = <String>,    ! Type of field: Default = magnetic.
     field_scale      = <Real>,      ! Scale factor for the E & B fields.
     master_parameter = <Name>,      ! Master scaling parameter for E & B fields.
-    g_ref            = <Real>,      ! Reference-frame curvature 1/rho. Default = 0 (straight).
+    g_ref            = <Real>,      ! Reference-frame curvature 1/rho. Default = g of element.
     ele_anchor_pt    = <Real>,      ! Anchor position: Beginning (default), Center, or End.
     r0               = (<x0>, <y0>, <z0>), ! Anchor offset. Default is 0.
     dz               = <Real>,             ! Distance between sampled field points.
@@ -2754,7 +2761,7 @@ Example:
 See Sec.~\sref{s:fieldmap.com} for an explanation of the attributes that are common with other field
 map types. The \vn{g_ref} component is the curvature $1/\rho$ of the reference frame in which the GGs
 are defined; it is zero for a straight frame and, for a bend, is normally equal to the element's
-bending strength \vn{g}. In general there will be multiple \vn{curve} instances.  A given \vn{curve}
+bending strength \vn{g}. In general, there will be multiple \vn{curve} instances.  A given \vn{curve}
 instance specifies one generalized gradient with a \vn{kind} (\vn{a} for skew, \vn{b} for normal, or
 \vn{bs} for the solenoidal term) and a harmonic index \vn{n} (\vn{n} = 1 is dipole, \vn{n} = 2 is
 quadrupole, etc.; \vn{n} = 0 for \vn{bs}). Each \vn{curve} has a table of derivatives given by the
@@ -2784,7 +2791,7 @@ Only magnetic fields may be used.
   \end{itemize}
 
 The \vn{integrator_order} for PTC dependent tracking can be either set to 4 or 6 with 4 being the
-default\vn{s:ptc.integ}.
+default\sref{s:ptc.integ}.
 
 %-----------------------------------------------------------------
 \section{RF Couplers}

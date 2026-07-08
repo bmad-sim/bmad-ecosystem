@@ -5372,6 +5372,27 @@ case (e_gun$)
 
 end select
 
+!-------------------------------------------------------------------
+! Generalized Gradient Init
+
+if (associated(ele%gen_gradients)) then
+  do n = 1, size(ele%gen_gradients)
+    if (ele%gen_gradients(n)%g_ref == real_garbage$) then
+      if (ele%key == sbend$) then
+        ele%gen_gradients(n)%g_ref == ele%value(g$)
+      else
+        ele%gen_gradients(n)%g_ref == 0
+      endif
+    endif
+
+    if (ele%gen_gradients(n)%g_ref /= ele%gen_gradients(1)%g_ref) then
+      call parser_error('IF AN ELEMENT HAS MULTIPLE GENERALIZED GRADIENT MAPS, ALL MAPS MUST HAVE THE SAME G_REF.')
+    endif
+  enddo
+endif
+
+
+
 end subroutine settable_dep_var_bookkeeping 
 
 !-------------------------------------------------------------------------
