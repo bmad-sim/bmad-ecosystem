@@ -26,7 +26,7 @@ ele => lat%ele(1)
 orb%vec = 0
 call init_coord (orb, orb, ele, downstream_end$)
 
-call gen_grad1_to_gg_taylor(ele, ele%gen_gradients(1), 0, emt)
+call gen_grad_at_s_to_gg_taylor(ele, ele%gen_gradients(1), 0.02_rp, emt)
 err = 0
 
 do i = -1, 2

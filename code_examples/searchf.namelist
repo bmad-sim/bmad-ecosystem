@@ -44,6 +44,9 @@ ptc_spin_orbital_normal_form
 File: dispersion_simulation/dispersion_simulation.f90
 dispersion_simulation
 
+File: plot_continuous_color/plot_continuous_color.f90
+plot_continuous_color
+
 File: ptc_layout_example/ptc_layout_example.f90
 ptc_layout_example
 

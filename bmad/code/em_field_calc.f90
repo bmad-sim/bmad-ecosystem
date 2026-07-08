@@ -1291,10 +1291,7 @@ case(fieldmap$)
 
     do i = 1, size(ele%gen_gradients)
       gg_map => ele%gen_gradients(i)
-
-      ! The GG expansion is always written in the (curved) element body frame; g_ref carries the
-      ! frame curvature, so pass curved_ref_frame = .true. (no chord unbending).
-      call to_fieldmap_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, .true., x, y, z, cos_ang, sin_ang, err)
+      call to_fieldmap_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, gg_map%g_ref /= 0, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return

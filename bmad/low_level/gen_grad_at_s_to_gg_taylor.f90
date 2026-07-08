@@ -4,7 +4,6 @@
 ! Routine to return the equivalent Taylor field map at a point s_pos. The monomial field-expansion
 ! coefficients are obtained from the generalized-gradient coefficient table (gen_gradients_mod /
 ! gg_coef_table_mod), which includes the reference-frame curvature (g_ref).
-! Also see gen_grad1_to_gg_taylor.
 !
 ! Input:
 !   ele           -- ele_struct: Element containing the map.

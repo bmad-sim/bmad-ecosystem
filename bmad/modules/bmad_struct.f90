@@ -784,7 +784,8 @@ type gen_gradients_struct
   integer :: iz0 = int_garbage$      ! curve%deriv(iz0:iz1, :) lower bound.
   integer :: iz1 = int_garbage$      ! curve%deriv(iz0:iz1, :) upper bound.
   real(rp) :: dz = 0                 ! Point spacing between base planes.
-  real(rp) :: g_ref = real_garbage$  ! Reference-frame curvature 1/rho (0 => straight frame).
+  real(rp) :: g_ref = real_garbage$  ! Reference-frame curvature 1/rho (0 => straight frame). 
+                                     !   Must be equal to g for a bend and zero for all else.
   real(rp) :: r0(3) = 0              ! Field origin relative to ele_anchor_pt. r0(1:2) = transverse
                                      !   expansion axis (GGCoefs origin), r0(3) = longitudinal offset.
   real(rp) :: field_scale = 1        ! Factor to scale the fields by.
