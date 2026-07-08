@@ -1656,6 +1656,10 @@ do i = 1, slave%n_lord
   endif
 
   ! overlay lord
+  ! An off overlay contributes nothing (overlay_change_this returns immediately for it), so skip all
+  ! of its makeup work rather than resolve the attribute and then discard the result.
+
+  if (.not. lord%is_on) cycle
 
   select case (control%ix_attrib)
   case (x_limit$)
