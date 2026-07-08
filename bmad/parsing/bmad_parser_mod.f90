@@ -5379,9 +5379,9 @@ if (associated(ele%gen_gradients)) then
   do n = 1, size(ele%gen_gradients)
     if (ele%gen_gradients(n)%g_ref == real_garbage$) then
       if (ele%key == sbend$) then
-        ele%gen_gradients(n)%g_ref == ele%value(g$)
+        ele%gen_gradients(n)%g_ref = ele%value(g$)
       else
-        ele%gen_gradients(n)%g_ref == 0
+        ele%gen_gradients(n)%g_ref = 0
       endif
     endif
 
