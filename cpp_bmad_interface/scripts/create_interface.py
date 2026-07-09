@@ -1605,6 +1605,17 @@ for struct in struct_definitions:
     n_dim = len(arg.array)
     p_type = arg.pointer_type
 
+    # Quad-precision real(qp) components are stored as C double on the C++ side, so the to_c2 call
+    # must narrow them: F%NAME -> real(F%NAME, rp). (The to_f2 assignment double -> qp widens and
+    # needs no cast.) Only the scalar case occurs in the Bmad structs; warn if a real(qp) array or
+    # pointer is ever added so this can be extended.
+    if arg.type == 'real' and arg.kind == 'qp':
+      if n_dim == 0 and p_type == NOT:
+        arg.f_side.to_c2_call = 'real(F%NAME, rp)'
+      else:
+        print('WARNING: real(qp) non-scalar component not handled by the interface generator: ' + \
+              struct.short_name + '%' + arg.f_name)
+
     arg.c_side.test_pat            = arg.c_side.test_pat.replace('STR_LEN', arg.kind)
     arg.f_side.to_c_var            = [var.replace('STR_LEN', arg.kind) for var in arg.f_side.to_c_var]
 

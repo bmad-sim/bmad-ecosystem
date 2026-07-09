@@ -557,6 +557,8 @@ synrad3d_wall_to_synrad_walls
 calc_this_side
 add_this_point
 calc_this_x
+dwall_func
+this_y
 
 File: code_synrad3d/synrad3d_struct.f90
 synrad3d_struct
@@ -588,6 +590,7 @@ sr3d_check_if_photon_init_coords_outside_wall
 sr3d_photon_status_calc
 sr3d_propagate_photon_a_step
 sr3d_photon_hit_spot_calc
+sr3d_photon_hit_func
 sr3d_reflect_photon
 
 File: code_synrad3d/synrad3d_parse_wall.f90

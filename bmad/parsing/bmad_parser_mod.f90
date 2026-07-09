@@ -5372,6 +5372,27 @@ case (e_gun$)
 
 end select
 
+!-------------------------------------------------------------------
+! Generalized Gradient Init
+
+if (associated(ele%gen_gradients)) then
+  do n = 1, size(ele%gen_gradients)
+    if (ele%gen_gradients(n)%g_ref == real_garbage$) then
+      if (ele%key == sbend$) then
+        ele%gen_gradients(n)%g_ref = ele%value(g$)
+      else
+        ele%gen_gradients(n)%g_ref = 0
+      endif
+    endif
+
+    if (ele%gen_gradients(n)%g_ref /= ele%gen_gradients(1)%g_ref) then
+      call parser_error('IF AN ELEMENT HAS MULTIPLE GENERALIZED GRADIENT MAPS, ALL MAPS MUST HAVE THE SAME G_REF.')
+    endif
+  enddo
+endif
+
+
+
 end subroutine settable_dep_var_bookkeeping 
 
 !-------------------------------------------------------------------------
@@ -7003,35 +7024,32 @@ end subroutine parse_grid_field
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------
 !+
-! Subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
+! Subroutine parse_gen_gradients (gg_map, ele, lat, delim, delim_found, err_flag)
 !
-! Subroutine to parse a "gen_grad_map = {}" construct
+! Subroutine to parse a "gen_gradients = {}" construct (curved-coordinate
+! generalized gradients). Each curve holds one GG derivative tower a_n, b_n, or
+! b_s selected by "kind = <a|b|bs>" and harmonic "n = <int>".
 !-
 
-subroutine parse_gen_grad_map (gg_map, ele, lat, delim, delim_found, err_flag)
+subroutine parse_gen_gradients (gg_map, ele, lat, delim, delim_found, err_flag)
 
 implicit none
 
-type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), allocatable :: gg(:)
-type (gen_grad1_struct), pointer :: gg1
+type (gen_gradients_struct), pointer :: gg_map
+type (gen_grad_curve_struct), allocatable :: gg(:)
+type (gen_grad_curve_struct), pointer :: crv
 type (ele_struct), target :: ele
-type (ele_struct), pointer :: match_ele
 type (lat_struct), target :: lat
-type (branch_struct), pointer :: branch
-type (gg_taylor_term_struct), allocatable :: term(:)
-type (gg_taylor_term_struct), pointer :: tm
 
-real(rp) coef, deriv(0:50), z(1)
+real(rp) deriv(0:50), z(1)
 
-integer i, j, nn, n, i_ib, ie, im, ix, ios, nder, n_gg
-integer lb, i_out, ix_word, iz, iz_here
+integer i, n, ix, ios, nder, n_gg
+integer ix_word, iz, iz_here
 
-character(80) err_str
 character(40) word, word2, name, attrib_name
-character(1) delim, delim2
+character(1) delim
 
-logical err_flag, delim_found, valid
+logical err_flag, delim_found
 
 ! Init
 
@@ -7052,9 +7070,12 @@ do
   case ('FIELD_SCALE')
     call parse_evaluate_value (ele%name, gg_map%field_scale, lat, delim, delim_found, err_flag, ',}', ele)
 
+  case ('G_REF')
+    call parse_evaluate_value (ele%name, gg_map%g_ref, lat, delim, delim_found, err_flag, ',}', ele)
+
   case ('R0')
     if (.not. equal_sign_here(ele, delim)) return
-    if (.not. parse_real_list (lat, trim(ele%name) // ' GEN_GRAD_MAP R0', gg_map%r0, .true., delim, delim_found)) return
+    if (.not. parse_real_list (lat, trim(ele%name) // ' GEN_GRADIENTS R0', gg_map%r0, .true., delim, delim_found)) return
     if (.not. expect_one_of (',}', .false., ele%name, delim, delim_found)) return
 
   case ('DZ')
@@ -7072,7 +7093,7 @@ do
     !
 
     select case (attrib_name)
- 
+
     case ('MASTER_PARAMETER')
       if (word2 == 'NONE') then
         ix = 0
@@ -7088,10 +7109,10 @@ do
 
     case ('ELE_ANCHOR_PT')
       call match_word(word2, anchor_pt_name(1:), gg_map%ele_anchor_pt, can_abbreviate = .false., matched_name = name)
-  
+
     case ('FIELD_TYPE')
       call match_word(word2, em_field_type_name(1:2), gg_map%field_type, can_abbreviate = .false., matched_name = name)
-  
+
     end select
 
     !
@@ -7099,52 +7120,41 @@ do
     if (name == '') then
       call parser_error ('UNKNKOWN ' // trim(attrib_name) // ' VALUE:' // word2, &
                          'IN ELEMENT: ' // ele%name)
-      return        
-    endif      
-      
-  case ('CURVED_REF_FRAME')    ! 'curved_coords' is old style.
-    if (.not. equal_sign_here(ele, delim)) return
-    call get_next_word (word2, ix_word, ':,=()', delim, delim_found, .true.)
-    gg_map%curved_ref_frame = evaluate_logical (word2, ios)
-    if (ios /= 0 .or. ix_word == 0) then
-      call parser_error ('BAD GEN_GRAD_MAP CURVED_REF_FRAME SETTING ' // word2, 'FOR: ' // ele%name)
+      return
     endif
 
   case ('CURVE')
-    if (.not. expect_this('={', .true., .false., 'NO "={" AFTER "CURVE" IN GEN_GRAD_MAP', ele, delim, delim_found)) return   
-    n_gg = size(gg_map%gg) + 1
-    call move_alloc(gg_map%gg, gg)
-    allocate (gg_map%gg(n_gg))
-    gg_map%gg(1:n_gg-1) = gg
+    if (.not. expect_this('={', .true., .false., 'NO "={" AFTER "CURVE" IN GEN_GRADIENTS', ele, delim, delim_found)) return
+    n_gg = size(gg_map%curve) + 1
+    call move_alloc(gg_map%curve, gg)
+    allocate (gg_map%curve(n_gg))
+    gg_map%curve(1:n_gg-1) = gg
     deallocate(gg)
-    gg1 => gg_map%gg(n_gg)
+    crv => gg_map%curve(n_gg)
 
     do
       call get_next_word (attrib_name, ix_word, '{}=,()', delim, delim_found, call_check = .true.)
       select case (attrib_name)
 
-      case ('M')
-        call parser_get_integer (gg1%m, word, ix_word, delim, delim_found, err_flag, 'BAD GEN_GRAD%GG%M CONSTRUCT', 'IN ELEMENT: ' // ele%name)
+      case ('N')
+        call parser_get_integer (crv%n, word, ix_word, delim, delim_found, err_flag, 'BAD GEN_GRADIENTS CURVE N CONSTRUCT', 'IN ELEMENT: ' // ele%name)
 
       case ('KIND')
         call get_next_word (word, ix_word, ',}', delim, delim_found)
-        call match_word(word, ['COS', 'SIN'], gg1%sincos, can_abbreviate = .false., matched_name = word)
-        select case (word)
-        case ('SIN');   gg1%sincos = sin$
-        case ('COS');   gg1%sincos = cos$
-        case default
-          call parser_error ('BAD GEN_GRAD_MAP TYPE = <SIN-OR-COS>" CONSTRUCT', 'FOUND IN ELEMENT: ' // ele%name)
+        call match_word(word, gg_kind_name, crv%kind, can_abbreviate = .false., matched_name = name)
+        if (name == '') then
+          call parser_error ('BAD GEN_GRADIENTS "KIND = <A, B, OR BS>" CONSTRUCT', 'FOUND IN ELEMENT: ' // ele%name)
           return
-        end select
+        endif
 
       case ('DERIVS')
         iz = int_garbage$
         nder = -1
 
-        if (.not. expect_this ('={', .true., .false., 'NO "={" AFTER "DERIVES" IN GEN_GRAD_MAP', ele, delim, delim_found)) return
+        if (.not. expect_this ('={', .true., .false., 'NO "={" AFTER "DERIVS" IN GEN_GRADIENTS', ele, delim, delim_found)) return
 
         do
-          if (.not. parser_fast_real_read(z, ele, ':', delim, 'GEN_GRAD_MAP DERIVS Z-POSITION')) return
+          if (.not. parser_fast_real_read(z, ele, ':', delim, 'GEN_GRADIENTS DERIVS Z-POSITION')) return
           iz_here = nint(z(1)/gg_map%dz)
 
           if (iz == int_garbage$) then
@@ -7155,7 +7165,7 @@ do
 
             else
               if (gg_map%iz0 /= iz_here) then
-                call parser_error ('LOWER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS DIFFERENT FROM LOWER BOUND INDEX IN PRIOR DERIVS TABLE', &
+                call parser_error ('LOWER BOUND INDEX IN GEN_GRADIENTS DERIVS TABLE IS DIFFERENT FROM LOWER BOUND INDEX IN PRIOR DERIVS TABLE', &
                                    'FOR ELEMENT: ' // ele%name)
                 return
               endif
@@ -7164,40 +7174,40 @@ do
           else
             iz = iz + 1
             if (iz /= iz_here) then
-              call parser_error ('GEN_GRAD_MAP DERIVS TABLE INDEXES NOT IN CORRECT ORDER. EXPECTED: ' // int_str(iz) // ' BUT GOT: ' // int_str(iz_here), &
+              call parser_error ('GEN_GRADIENTS DERIVS TABLE INDEXES NOT IN CORRECT ORDER. EXPECTED: ' // int_str(iz) // ' BUT GOT: ' // int_str(iz_here), &
                                  'FOR ELEMENT: ' // ele%name)
               return
             endif
 
             if (gg_map%iz1 /= int_garbage$ .and. iz > gg_map%iz1) then
-              call parser_error ('UPPER BOUND INDEX IN GEN_GRAD_MAP DERIVS TABLE IS GREATER THAN UPPER BOUND INDEX IN PRIOR DERIVS TABLE', &
+              call parser_error ('UPPER BOUND INDEX IN GEN_GRADIENTS DERIVS TABLE IS GREATER THAN UPPER BOUND INDEX IN PRIOR DERIVS TABLE', &
                                  'FOR ELEMENT: ' // ele%name)
               return
             endif
-          endif          
-
-          if (nder == -1) then
-            if (.not. parser_fast_real_read (deriv, ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE', .false., nder)) return
-            nder = nder - 1   ! Since derivs are indexed from 0.
-          else
-            if (.not. parser_fast_real_read (deriv(0:nder), ele, ',}', delim, 'GEN_GRAD_MAP DERIVS TABLE')) return
           endif
 
-          if (.not. allocated(gg1%deriv)) allocate (gg1%deriv(gg_map%iz0:gg_map%iz0+1000, 0:2*nder+1))
-          if (iz > ubound(gg1%deriv,1)) call re_allocate2d(gg1%deriv, ubound(gg1%deriv,1)+1000, 2*nder+1, lb1 = gg_map%iz0, lb2 = 0)
+          if (nder == -1) then
+            if (.not. parser_fast_real_read (deriv, ele, ',}', delim, 'GEN_GRADIENTS DERIVS TABLE', .false., nder)) return
+            nder = nder - 1   ! Since derivs are indexed from 0.
+          else
+            if (.not. parser_fast_real_read (deriv(0:nder), ele, ',}', delim, 'GEN_GRADIENTS DERIVS TABLE')) return
+          endif
 
-          gg1%deriv(iz,0:nder) = deriv(0:nder)
-          gg1%n_deriv_max = nder
+          if (.not. allocated(crv%deriv)) allocate (crv%deriv(gg_map%iz0:gg_map%iz0+1000, 0:2*nder+1))
+          if (iz > ubound(crv%deriv,1)) call re_allocate2d(crv%deriv, ubound(crv%deriv,1)+1000, 2*nder+1, lb1 = gg_map%iz0, lb2 = 0)
+
+          crv%deriv(iz,0:nder) = deriv(0:nder)
+          crv%m_max = nder
 
           if (delim == '}') exit
         enddo
 
         if (gg_map%iz1 == int_garbage$) gg_map%iz1 = iz
-        call re_allocate2d(gg1%deriv, gg_map%iz1, 2*nder+1, lb1 = gg_map%iz0, lb2 = 0)
-        gg1%n_deriv_max = nder
+        call re_allocate2d(crv%deriv, gg_map%iz1, 2*nder+1, lb1 = gg_map%iz0, lb2 = 0)
+        crv%m_max = nder
 
         if (iz /= gg_map%iz1) then
-          call parser_error ('ENDING IZ-INDEX IN GEN_GRAD_MAP DERIVS TABLE NOT IS DIFFERENT FROM PRIOR DERIVS TABLE', 'FOR ELEMENT: ' // ele%name)
+          call parser_error ('ENDING IZ-INDEX IN GEN_GRADIENTS DERIVS TABLE NOT IS DIFFERENT FROM PRIOR DERIVS TABLE', 'FOR ELEMENT: ' // ele%name)
           return
         endif
 
@@ -7212,9 +7222,9 @@ do
 
   case default
     if (attrib_name == '') then
-      call parser_error ('MANGLED GRID_FIELD DEFINITION FOR ELEMENT: ' // ele%name)
+      call parser_error ('MANGLED GEN_GRADIENTS DEFINITION FOR ELEMENT: ' // ele%name)
     else
-      call parser_error ('UNKNOWN GRID_FIELD COMPONENT: ' // attrib_name, &
+      call parser_error ('UNKNOWN GEN_GRADIENTS COMPONENT: ' // attrib_name, &
                          'FOR ELEMENT: ' // ele%name)
     endif
     return
@@ -7228,21 +7238,21 @@ enddo
 
 ! Extend derivatives to form interpolating spline polynomial
 
-do i = 1, size(gg_map%gg)
-  gg1 => gg_map%gg(i)
-  n = gg1%n_deriv_max
+do i = 1, size(gg_map%curve)
+  crv => gg_map%curve(i)
+  n = crv%m_max
 
   do iz = gg_map%iz0, gg_map%iz1-1
-    call n_spline_create(gg1%deriv(iz,0:n), gg1%deriv(iz+1,0:n), gg_map%dz, gg1%deriv(iz,:))
+    call n_spline_create(crv%deriv(iz,0:n), crv%deriv(iz+1,0:n), gg_map%dz, crv%deriv(iz,:))
   enddo
 enddo
 
-! Get final separator after gen_grad_map construct.
- 
+! Get final separator after gen_gradients construct.
+
 if (.not. expect_one_of (', ', .false., ele%name, delim, delim_found)) return
 err_flag = .false.
 
-end subroutine parse_gen_grad_map
+end subroutine parse_gen_gradients
 
 !-------------------------------------------------------------------------
 !-------------------------------------------------------------------------

@@ -128,8 +128,8 @@ type (wake_sr_mode_struct), pointer :: wsr
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
-type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), pointer :: gg
+type (gen_gradients_struct), pointer :: gg_map
+type (gen_grad_curve_struct), pointer :: gg
 type (twiss_struct), pointer :: twiss_arr(:)
 type (gg_taylor_term_struct), pointer :: em_tt
 type (grid_field_struct), pointer :: g_field
@@ -245,7 +245,7 @@ call match_word (cmd, [character(40) :: &
           'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
           'datum_create', 'datum_has_ele', 'derivative', &
           'ele:ac_kicker', 'ele:cartesian_map', 'ele:chamber_wall', 'ele:control_var', &
-          'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_grad_map', &
+          'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_gradients', &
           'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
           'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
           'ele:twiss', 'ele:wake', 'ele:wall3d', &
@@ -2856,23 +2856,23 @@ case ('ele:gen_attribs')
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
-!%% ele:gen_grad_map
+!%% ele:gen_gradients
 !
-! Output element gen_grad_map 
+! Output element gen_gradients 
 !
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe ele:gen_grad_map {ele_id}|{which} {index} {who}
+!   pipe ele:gen_gradients {ele_id}|{which} {index} {who}
 !
 ! Where: 
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
-!   {index} is the index number in the ele%gen_grad_map(:) array
+!   {index} is the index number in the ele%gen_gradients(:) array
 !   {who} is one of: "base", or "derivs".
 !
 ! Example:
-!   pipe ele:gen_grad_map 3@1>>7|model 2 base
+!   pipe ele:gen_gradients 3@1>>7|model 2 base
 ! This gives element number 7 in branch 1 of universe 3.
 ! 
 ! Parameters
@@ -2896,18 +2896,18 @@ case ('ele:gen_attribs')
 !   index: 1
 !   who: derivs
 
-case ('ele:gen_grad_map')
+case ('ele:gen_gradients')
 
   u => point_to_uni(line, .true., err); if (err) return
   tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
   ele => point_to_ele(line, tao_lat%lat, err); if (err) return
 
-  if (.not. associated(ele%gen_grad_map)) then
-    call invalid ('gen_grad_map not allocated')
+  if (.not. associated(ele%gen_gradients)) then
+    call invalid ('gen_gradients not allocated')
     return
   endif
-  ix = parse_int (tail_str, err, 1, size(ele%gen_grad_map));  if (err) return
-  gg_map => ele%gen_grad_map(ix)
+  ix = parse_int (tail_str, err, 1, size(ele%gen_gradients));  if (err) return
+  gg_map => ele%gen_gradients(ix)
 
   select case (tail_str)
   case ('base')
@@ -2920,14 +2920,14 @@ case ('ele:gen_grad_map')
     nl=incr(nl); write (li(nl), amt) 'master_parameter;ELE_PARAM;T;',        trim(name)
     nl=incr(nl); write (li(nl), amt) 'ele_anchor_pt;ENUM;T;',                 trim(anchor_pt_name(gg_map%ele_anchor_pt))
     nl=incr(nl); write (li(nl), amt) 'nongrid^field_type;ENUM;T;',            trim(em_field_type_name(gg_map%field_type))
-    nl=incr(nl); write (li(nl), lmt) 'curved_ref_frame;LOGIC;T;',             gg_map%curved_ref_frame
+    nl=incr(nl); write (li(nl), rmt) 'g_ref;REAL;T;',                         gg_map%g_ref
     nl=incr(nl); write (li(nl), imt) 'iz0;INT;F;',                            gg_map%iz0
     nl=incr(nl); write (li(nl), imt) 'iz1;INT;F;',                            gg_map%iz1
-    nl=incr(nl); write (li(nl), imt) 'size_of_gg;INT;F;',                     size(gg_map%gg)
+    nl=incr(nl); write (li(nl), imt) 'size_of_curve;INT;F;',                     size(gg_map%curve)
 
   case ('derivs')
-    do i = 1, size(gg_map%gg)
-      gg => gg_map%gg(i)
+    do i = 1, size(gg_map%curve)
+      gg => gg_map%curve(i)
       do j = gg_map%iz0, gg_map%iz1
         do k = 0, ubound(gg%deriv,2)
           nl=incr(nl); write (li(nl), '(3(i0,a), es22.14, a, es22.14)') i, ';', j, ';', k, ';', &
@@ -3133,8 +3133,8 @@ case ('ele:head')
   nl=incr(nl); write (li(nl), imt) 'num#cartesian_map;INT;F;',    n
   n = 0; if (associated(ele%cylindrical_map)) n = size(ele%cylindrical_map)
   nl=incr(nl); write (li(nl), imt) 'num#cylindrical_map;INT;F;',  n
-  n = 0; if (associated(ele%gen_grad_map)) n = size(ele%gen_grad_map)
-  nl=incr(nl); write (li(nl), imt) 'num#gen_grad_map;INT;F;',     n
+  n = 0; if (associated(ele%gen_gradients)) n = size(ele%gen_gradients)
+  nl=incr(nl); write (li(nl), imt) 'num#gen_gradients;INT;F;',     n
   n = 0; if (associated(ele%grid_field)) n = size(ele%grid_field)
   nl=incr(nl); write (li(nl), imt) 'num#grid_field;INT;F;',       n
   n = 0; if (associated(ele%wall3d)) n = size(ele%wall3d)

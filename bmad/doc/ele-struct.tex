@@ -56,7 +56,7 @@ type ele_struct
   ! E/M field map components (see Chapter on Electromagnetic Fields):
   type (cartesian_map_struct), pointer :: cartesian_map(:)     ! Used to define E/M fields.
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) ! Used to define E/M fields.
-  type (gen_grad_map_struct), pointer :: gen_grad_map(:)       ! Used to define E/M fields.
+  type (gen_gradients_struct), pointer :: gen_gradients(:)       ! Used to define E/M fields.
   type (grid_field_struct), pointer :: grid_field(:)           ! Used to define DC and AC fields.
     ele_struct definition continued on next figure...
 \end{verbatim}
@@ -172,7 +172,7 @@ pointing to the same memory locations as the pointers of any other \vn{ele_struc
 sure of this, the equal sign in the assignment \vn{ele1 = ele2} is overloaded by the routine
 \Hyperref{r:ele.equal.ele}{ele_equal_ele}.  The exception here are the ``Electro-magnetic field
 component'' pointer arrays \vn{ele%cartesian_map}, \vn{ele%cylindrical_map},
-\vn{ele%gen_grad_map}, and \vn{ele%grid_field}. Since these components potentially contain large
+\vn{ele%gen_gradients}, and \vn{ele%grid_field}. Since these components potentially contain large
 arrays, and since the individual sub-components are not likely to be individually modified, the
 field component pointers of \vn{ele1} and \vn{ele2} after the set \vn{ele1 = ele2} will point at
 the same memory locations.
@@ -624,14 +624,14 @@ wiggler the reference orbit, and hence the reference time, is not altered.
 
 \index{ele_struct!\%cartesian_map}
 \index{ele_struct!\%cylindrical_map}
-\index{ele_struct!\%gen_grad_map}
+\index{ele_struct!\%gen_gradients}
 \index{ele_struct!\%grid_field}
 The electromagnetic field of an element may be described using one or more field map
 representations.  These are stored in four pointer array components of the \vn{ele_struct}:
 \begin{example}
   ele%cartesian_map(:)     ! Cartesian harmonic field decomposition
   ele%cylindrical_map(:)   ! Cylindrical harmonic field decomposition
-  ele%gen_grad_map(:)      ! Generalized gradient field model
+  ele%gen_gradients(:)      ! Generalized gradient field model
   ele%grid_field(:)        ! Sampled-grid field (DC or AC)
 \end{example}
 Since each of these is a pointer array, its association status must be tested before accessing
@@ -727,7 +727,7 @@ polarization angle. If so, then \vn{%angle} is the polarization angle.
 
 Wiggler and undulator elements (\vn{wiggler} and \vn{undulator} element types) define their
 magnetic fields using the standard field map components of the \vn{ele_struct} (see
-\sref{s:ele.em.field}): \vn{%cartesian_map}, \vn{%cylindrical_map}, \vn{%gen_grad_map}, or
+\sref{s:ele.em.field}): \vn{%cartesian_map}, \vn{%cylindrical_map}, \vn{%gen_gradients}, or
 \vn{%grid_field}. The field decomposition models are described in detail in
 Chapter~\ref{c:em.fields}.
 

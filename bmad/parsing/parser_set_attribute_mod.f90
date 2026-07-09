@@ -62,7 +62,7 @@ type (wall3d_vertex_struct), pointer :: v_ptr
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cartesian_map_term1_struct), allocatable :: ct_terms(:)
-type (gen_grad_map_struct), pointer :: gg_map
+type (gen_gradients_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field
 type (cartesian_map_struct), pointer :: ct_map
 type (ac_kicker_struct), pointer :: ac
@@ -810,7 +810,15 @@ ix_attrib = attribute_index(ele, word, attrib_word)
 if (attrib_free_problem(word)) return
 
 if (word == "SURFACE") then
-  ix_attrib = 999  
+  ix_attrib = 999
+  attrib_word = word
+endif
+
+! "GEN_GRAD_MAP" is the obsolete straight-frame generalized-gradient format. Keep it recognized
+! (it is no longer a registered attribute) so its dedicated handler can issue a helpful error.
+
+if (word == "GEN_GRAD_MAP") then
+  ix_attrib = 999
   attrib_word = word
 endif
 
@@ -1613,45 +1621,56 @@ if (attrib_word == 'GRID_FIELD') then
 endif
 
 !-------------------------------
-! Gen_Grad_field field
+! Gen_grad_map field: obsolete straight-frame format. Replaced by gen_gradients.
 
 if (attrib_word == 'GEN_GRAD_MAP') then
+  call parser_error ('THE "GEN_GRAD_MAP" FIELD FORMAT IS OBSOLETE AND HAS BEEN REMOVED.', &
+                     'IT IS REPLACED BY THE CURVED-COORDINATE "GEN_GRADIENTS" FORMAT.', &
+                     'CONVERT OLD LATTICE FILES USING util_programs/gen_gradients/gen_grad_map_to_gen_gradients.', &
+                     'PROBLEM OCCURRED FOR ELEMENT: ' // ele%name)
+  return
+endif
 
-  if (.not. expect_this ('=', .true., .true., 'AFTER "GEN_GRAD_MAP"', ele, delim, delim_found)) return
+!-------------------------------
+! Gen_gradients field (curved-coordinate generalized gradients).
+
+if (attrib_word == 'GEN_GRADIENTS') then
+
+  if (.not. expect_this ('=', .true., .true., 'AFTER "GEN_GRADIENTS"', ele, delim, delim_found)) return
   call get_next_word (word, ix_word, '[],(){}', delim, delim_found, call_check = .true.)
 
-  ! "ele1[gen_grad_map] = ele2[gen_grad_map]" construct
+  ! "ele1[gen_gradients] = ele2[gen_gradients]" construct
 
   if (delim == '[') then
-    ele2 => parser_find_ele_for_attrib_transfer ('GEN_GRAD_MAP', word)
+    ele2 => parser_find_ele_for_attrib_transfer ('GEN_GRADIENTS', word)
     if (err_flag) return
-    if (.not. associated(ele2%gen_grad_map)) then
-      call parser_error ('NO GEN_GRAD_MAP ASSOCIATED WITH LATTICE ELEMENT: ' // word)
+    if (.not. associated(ele2%gen_gradients)) then
+      call parser_error ('NO GEN_GRADIENTS ASSOCIATED WITH LATTICE ELEMENT: ' // word)
       return
     endif
-    call transfer_fieldmap(ele2, ele, gen_grad_map$)
+    call transfer_fieldmap(ele2, ele, gen_gradients$)
     return
   endif
 
-  if (associated(ele%gen_grad_map)) then
-    i_ptr = size(ele%gen_grad_map) + 1
-    ele0%gen_grad_map => ele%gen_grad_map
-    allocate(ele%gen_grad_map(i_ptr))
-    allocate(ele%gen_grad_map(i_ptr)%gg(0))
+  if (associated(ele%gen_gradients)) then
+    i_ptr = size(ele%gen_gradients) + 1
+    ele0%gen_gradients => ele%gen_gradients
+    allocate(ele%gen_gradients(i_ptr))
+    allocate(ele%gen_gradients(i_ptr)%curve(0))
     do i = 1, i_ptr-1
-      ele%gen_grad_map(i) = ele0%gen_grad_map(i)
+      ele%gen_gradients(i) = ele0%gen_gradients(i)
     enddo
-    deallocate(ele0%gen_grad_map)
+    deallocate(ele0%gen_gradients)
   else
-    allocate(ele%gen_grad_map(1))
-    allocate(ele%gen_grad_map(1)%gg(0))
+    allocate(ele%gen_gradients(1))
+    allocate(ele%gen_gradients(1)%curve(0))
     i_ptr = 1
   endif
 
-  if (.not. expect_this ('{', .true., .true., 'AFTER "GEN_GRAD_MAP"', ele, delim, delim_found)) return
-  gg_map => ele%gen_grad_map(i_ptr)
+  if (.not. expect_this ('{', .true., .true., 'AFTER "GEN_GRADIENTS"', ele, delim, delim_found)) return
+  gg_map => ele%gen_gradients(i_ptr)
 
-  call parse_gen_grad_map(gg_map, ele, lat, delim, delim_found, err_flag)
+  call parse_gen_gradients(gg_map, ele, lat, delim, delim_found, err_flag)
 
   if (ele%key == wiggler$ .or. ele%key == undulator$) ele%field_calc = fieldmap$
   return

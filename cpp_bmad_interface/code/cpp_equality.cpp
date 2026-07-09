@@ -715,38 +715,38 @@ template bool is_all_equal (const CPP_rad_map_ele_MATRIX&, const CPP_rad_map_ele
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_gen_grad1& x, const CPP_gen_grad1& y) {
+bool operator== (const CPP_gen_grad_curve& x, const CPP_gen_grad_curve& y) {
   bool is_eq = true;
-  is_eq = is_eq && (x.m == y.m);
-  is_eq = is_eq && (x.sincos == y.sincos);
-  is_eq = is_eq && (x.n_deriv_max == y.n_deriv_max);
+  is_eq = is_eq && (x.kind == y.kind);
+  is_eq = is_eq && (x.n == y.n);
+  is_eq = is_eq && (x.m_max == y.m_max);
   is_eq = is_eq && is_all_equal(x.deriv, y.deriv);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_gen_grad1_ARRAY&, const CPP_gen_grad1_ARRAY&);
-template bool is_all_equal (const CPP_gen_grad1_MATRIX&, const CPP_gen_grad1_MATRIX&);
+template bool is_all_equal (const CPP_gen_grad_curve_ARRAY&, const CPP_gen_grad_curve_ARRAY&);
+template bool is_all_equal (const CPP_gen_grad_curve_MATRIX&, const CPP_gen_grad_curve_MATRIX&);
 
 //--------------------------------------------------------------
 
-bool operator== (const CPP_gen_grad_map& x, const CPP_gen_grad_map& y) {
+bool operator== (const CPP_gen_gradients& x, const CPP_gen_gradients& y) {
   bool is_eq = true;
   is_eq = is_eq && (x.file == y.file);
-  is_eq = is_eq && is_all_equal(x.gg, y.gg);
+  is_eq = is_eq && is_all_equal(x.curve, y.curve);
   is_eq = is_eq && (x.ele_anchor_pt == y.ele_anchor_pt);
   is_eq = is_eq && (x.field_type == y.field_type);
   is_eq = is_eq && (x.iz0 == y.iz0);
   is_eq = is_eq && (x.iz1 == y.iz1);
   is_eq = is_eq && (x.dz == y.dz);
+  is_eq = is_eq && (x.g_ref == y.g_ref);
   is_eq = is_eq && is_all_equal(x.r0, y.r0);
   is_eq = is_eq && (x.field_scale == y.field_scale);
   is_eq = is_eq && (x.master_parameter == y.master_parameter);
-  is_eq = is_eq && (x.curved_ref_frame == y.curved_ref_frame);
   return is_eq;
 };
 
-template bool is_all_equal (const CPP_gen_grad_map_ARRAY&, const CPP_gen_grad_map_ARRAY&);
-template bool is_all_equal (const CPP_gen_grad_map_MATRIX&, const CPP_gen_grad_map_MATRIX&);
+template bool is_all_equal (const CPP_gen_gradients_ARRAY&, const CPP_gen_gradients_ARRAY&);
+template bool is_all_equal (const CPP_gen_gradients_MATRIX&, const CPP_gen_gradients_MATRIX&);
 
 //--------------------------------------------------------------
 
@@ -1378,6 +1378,8 @@ bool operator== (const CPP_space_charge_common& x, const CPP_space_charge_common
   is_eq = is_eq && (x.beam_chamber_height == y.beam_chamber_height);
   is_eq = is_eq && (x.lsc_sigma_cutoff == y.lsc_sigma_cutoff);
   is_eq = is_eq && (x.particle_sigma_cutoff == y.particle_sigma_cutoff);
+  is_eq = is_eq && (x.mesh_growth_factor == y.mesh_growth_factor);
+  is_eq = is_eq && (x.mesh_shrink_factor == y.mesh_shrink_factor);
   is_eq = is_eq && is_all_equal(x.space_charge_mesh_size, y.space_charge_mesh_size);
   is_eq = is_eq && is_all_equal(x.csr3d_mesh_size, y.csr3d_mesh_size);
   is_eq = is_eq && (x.n_bin == y.n_bin);
@@ -1425,6 +1427,7 @@ bool operator== (const CPP_bmad_common& x, const CPP_bmad_common& y) {
   is_eq = is_eq && (x.lr_wakes_on == y.lr_wakes_on);
   is_eq = is_eq && (x.auto_bookkeeper == y.auto_bookkeeper);
   is_eq = is_eq && (x.high_energy_space_charge_on == y.high_energy_space_charge_on);
+  is_eq = is_eq && (x.high_energy_space_charge_linear == y.high_energy_space_charge_linear);
   is_eq = is_eq && (x.csr_and_space_charge_on == y.csr_and_space_charge_on);
   is_eq = is_eq && (x.spin_tracking_on == y.spin_tracking_on);
   is_eq = is_eq && (x.spin_sokolov_ternov_flipping_on == y.spin_sokolov_ternov_flipping_on);
@@ -1540,7 +1543,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.wall3d, y.wall3d);
   is_eq = is_eq && is_all_equal(x.cartesian_map, y.cartesian_map);
   is_eq = is_eq && is_all_equal(x.cylindrical_map, y.cylindrical_map);
-  is_eq = is_eq && is_all_equal(x.gen_grad_map, y.gen_grad_map);
+  is_eq = is_eq && is_all_equal(x.gen_gradients, y.gen_gradients);
   is_eq = is_eq && is_all_equal(x.grid_field, y.grid_field);
   is_eq = is_eq && (x.map_ref_orb_in == y.map_ref_orb_in);
   is_eq = is_eq && (x.map_ref_orb_out == y.map_ref_orb_out);
@@ -1552,6 +1555,7 @@ bool operator== (const CPP_ele& x, const CPP_ele& y) {
   is_eq = is_eq && is_all_equal(x.vec0, y.vec0);
   is_eq = is_eq && is_all_equal(x.mat6, y.mat6);
   is_eq = is_eq && is_all_equal(x.c_mat, y.c_mat);
+  is_eq = is_eq && is_all_equal(x.dc_mat_dpz, y.dc_mat_dpz);
   is_eq = is_eq && (x.gamma_c == y.gamma_c);
   is_eq = is_eq && (x.s_start == y.s_start);
   is_eq = is_eq && (x.s == y.s);
@@ -1704,6 +1708,7 @@ bool operator== (const CPP_lat& x, const CPP_lat& y) {
   is_eq = is_eq && (x.photon_type == y.photon_type);
   is_eq = is_eq && (x.creation_hash == y.creation_hash);
   is_eq = is_eq && (x.ramper_slave_bookkeeping == y.ramper_slave_bookkeeping);
+  is_eq = is_eq && (x.parser_make_xfer_mats == y.parser_make_xfer_mats);
   return is_eq;
 };
 

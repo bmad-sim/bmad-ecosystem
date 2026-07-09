@@ -1378,18 +1378,9 @@ subroutine gen_grad_at_s_to_gg_taylor (ele, gen_grad, s_pos, gg_taylor)
   import
   implicit none
   type (ele_struct) ele
-  type (gen_grad_map_struct), target :: gen_grad
+  type (gen_gradients_struct), target :: gen_grad
   type (gg_taylor_struct), target :: gg_taylor(3)
   real(rp) s_pos
-end subroutine
-
-subroutine gen_grad1_to_gg_taylor (ele, gen_grad, iz, gg_taylor)
-  import
-  implicit none
-  type (ele_struct) ele
-  type (gen_grad_map_struct), target :: gen_grad
-  type (gg_taylor_struct), target :: gg_taylor(3)
-  integer iz
 end subroutine
 
 subroutine get_slave_list (lord, slaves, n_slave)
@@ -3568,12 +3559,12 @@ subroutine type_twiss (ele, frequency_units, compact_format, lines, n_lines)
   logical, optional :: compact_format
 end subroutine
 
-subroutine unlink_fieldmap (cartesian_map, cylindrical_map, gen_grad_map, grid_field)
+subroutine unlink_fieldmap (cartesian_map, cylindrical_map, gen_gradients, grid_field)
   import
   implicit none
   type (cartesian_map_struct), pointer, optional :: cartesian_map(:)
   type (cylindrical_map_struct), pointer, optional :: cylindrical_map(:)
-  type (gen_grad_map_struct), pointer, optional :: gen_grad_map(:)
+  type (gen_gradients_struct), pointer, optional :: gen_gradients(:)
   type (grid_field_struct), pointer, optional :: grid_field(:)
 end subroutine
 
@@ -4349,8 +4340,8 @@ call transfer_ac_kick (ele_in%ac_kick, ele_out%ac_kick)
 ele_out%cylindrical_map => ele_save%cylindrical_map ! Reinstate for transfer call 
 call transfer_fieldmap (ele_in, ele_out, cylindrical_map$)
 
-ele_out%gen_grad_map => ele_save%gen_grad_map ! Reinstate for transfer call 
-call transfer_fieldmap (ele_in, ele_out, gen_grad_map$)
+ele_out%gen_gradients => ele_save%gen_gradients ! Reinstate for transfer call 
+call transfer_fieldmap (ele_in, ele_out, gen_gradients$)
 
 ele_out%grid_field => ele_save%grid_field ! Reinstate for transfer call 
 call transfer_fieldmap (ele_in, ele_out, grid_field$)

@@ -500,8 +500,8 @@ type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), pointer :: prt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
-type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), pointer :: ggcoef
+type (gen_gradients_struct), pointer :: gg_map
+type (gen_grad_curve_struct), pointer :: ggcoef
 type (grid_field_struct), pointer :: g_field
 type (ac_kicker_struct), pointer :: ac
 type (wake_struct), pointer :: wake
@@ -738,22 +738,22 @@ if (n_cyl > 0) then
   enddo
 endif
 
-! Gen_grad_field
+! Gen_gradients field
 
 if (n_gen > 0) then
-  allocate (ele%gen_grad_map(n_gen))
+  allocate (ele%gen_gradients(n_gen))
 
   do i = 1, n_gen
-    gg_map => ele%gen_grad_map(i)
+    gg_map => ele%gen_gradients(i)
 
-    read (d_unit, err = 9120, end = 9120) gg_map%field_scale, gg_map%master_parameter, gg_map%curved_ref_frame, &
+    read (d_unit, err = 9120, end = 9120) gg_map%field_scale, gg_map%master_parameter, gg_map%g_ref, &
                             gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, ns, gg_map%iz0, gg_map%iz1
-    allocate (gg_map%gg(ns))
+    allocate (gg_map%curve(ns))
     n0 = gg_map%iz0;  n1 = gg_map%iz1
 
-    do j = 1, size(gg_map%gg)
-      ggcoef => gg_map%gg(j)
-      read (d_unit, err = 9120, end = 9120) ggcoef%m, ggcoef%sincos, ggcoef%n_deriv_max, lb2
+    do j = 1, size(gg_map%curve)
+      ggcoef => gg_map%curve(j)
+      read (d_unit, err = 9120, end = 9120) ggcoef%kind, ggcoef%n, ggcoef%m_max, lb2
       allocate (ggcoef%deriv(n0:n1, 0:lb2))
       do k = n0, n1
         read (d_unit, err = 9120, end = 9120) ggcoef%deriv(k,:)

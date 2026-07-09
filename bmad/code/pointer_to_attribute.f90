@@ -52,7 +52,7 @@ type (cartesian_map_term_struct), pointer :: ct_ptr
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (grid_field_struct), pointer :: g_field
-type (gen_grad_map_struct), pointer :: gg_map
+type (gen_gradients_struct), pointer :: gg_map
 type (all_pointer_struct) a_ptr
 type (branch_struct), pointer :: branch
 type (lat_struct), pointer :: lat
@@ -341,17 +341,18 @@ if (a_name(1:16) == 'CYLINDRICAL_MAP(') then
 endif
 
 !--------------------
-! gen_grad_map
+! gen_gradients
 
-if (a_name(1:13) == 'GEN_GRAD_MAP(') then
-  if (.not. associated(ele%gen_grad_map)) goto 9130
-  n_cc = get_this_index(a_name, 13, err, 1, size(ele%gen_grad_map))
+if (a_name(1:14) == 'GEN_GRADIENTS(') then
+  if (.not. associated(ele%gen_gradients)) goto 9130
+  n_cc = get_this_index(a_name, 14, err, 1, size(ele%gen_gradients))
   if (err) goto 9140
-  gg_map => ele%gen_grad_map(n_cc)
+  gg_map => ele%gen_gradients(n_cc)
 
   select case (a_name)
   case ('%FIELD_SCALE');      a_ptr%r => gg_map%field_scale
   case ('%DZ');               a_ptr%r => gg_map%dz
+  case ('%G_REF');            a_ptr%r => gg_map%g_ref
   case ('%R0(1)');            a_ptr%r => gg_map%r0(1)
   case ('%R0(2)');            a_ptr%r => gg_map%r0(2)
   case ('%R0(3)');            a_ptr%r => gg_map%r0(3)

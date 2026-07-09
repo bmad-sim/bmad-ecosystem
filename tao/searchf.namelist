@@ -643,6 +643,8 @@ File: code/tao_alias_cmd.f90
 tao_alias_cmd
 
 File: code/tao_de_optimizer.f90
+tao_de_optimizer_priv
+merit_wrapper
 tao_de_optimizer
 
 File: code/tao_one_turn_map_calc_needed.f90

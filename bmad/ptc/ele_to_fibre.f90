@@ -5,7 +5,7 @@
 !
 ! Note: You need to call set_ptc before using this routine.
 !
-! Note: If ele contains a gen_grad_map, this routine may not be called in between calls to 
+! Note: If ele contains a gen_gradients, this routine may not be called in between calls to 
 !   FPP alloc and kill since the setting up of the PTC pancake uses FPP.
 !
 ! Input:
@@ -32,6 +32,7 @@ subroutine ele_to_fibre (ele, ptc_fibre, use_offsets, err_flag, integ_order, ste
 use ptc_interface_mod, dummy => ele_to_fibre
 use madx_ptc_module, pi_dum => pi, pi2_dum => twopi
 use dabnew_pancake
+use gen_gradients_mod
 
 implicit none
 
@@ -41,8 +42,11 @@ type (ele_struct), pointer :: field_ele, ele2
 type (cartesian_map_term1_struct), pointer :: wt
 type (cartesian_map_struct), pointer :: cm
 type (cylindrical_map_struct), pointer :: cy
-type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), pointer :: gg
+type (gen_gradients_struct), pointer :: gg_map
+type (gen_grad_curve_struct), pointer :: gg
+real(rp) :: gg_gval(3, 0:gg_coef_max_n$, 0:gg_coef_max_m$+1)
+real(rp) :: gg_kcoef(6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
+real(rp) :: gg_kbump(4:6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
 type (gg_taylor_struct), target :: gg_taylor(3)
 type (gg_taylor_term_struct), pointer :: tm
 type (taylor_struct) spin_taylor(0:3)
@@ -126,7 +130,7 @@ ele2 => pointer_to_field_ele(ele, 1, s_rel)
 n_map = 0
 if (associated(ele2%cylindrical_map)) n_map = n_map + 1
 if (associated(ele2%cartesian_map)) n_map = n_map + 1
-if (associated(ele2%gen_grad_map)) n_map = n_map + 1
+if (associated(ele2%gen_gradients)) n_map = n_map + 1
 
 if (n_map > 1) then
   call out_io (s_fatal$, r_name, 'PTC TRACKING IS ONLY ABLE TO HANDLE A SINGLE FIELD MAP IN AN ELEMENT.', &
@@ -533,9 +537,9 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
   m_abell = maxval(ele%cylindrical_map%m)
 endif
 
-! Gen_grad_map
+! Gen_gradients
 
-if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
+if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
 
   if (nint(ele2%value(integrator_order$)) /= 6) ele2%value(integrator_order$) = 4
   ptc_key%method = nint(ele2%value(integrator_order$))
@@ -549,15 +553,15 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
     dz_step = ele%value(l$) / n_step
   endif
 
-  gg_map => ele2%gen_grad_map(1)
+  gg_map => ele2%gen_gradients(1)
 
   if (key == sbend$ .and. ele%value(g$) /= 0) then
     ld = ele%value(l$)
     hd = ele%value(g$)
     lc = ele%value(l$)   ! Integration length
 
-    if (gg_map%curved_ref_frame) then
-      hc = ele%value(g$) ! pancake curvature = ele curvature
+    if (gg_map%g_ref /= 0) then
+      hc = gg_map%g_ref  ! pancake curvature = gen_gradients reference-frame curvature
       angc = (ele%value(angle$) - (n_pan-1) * ele2%value(ds_step$) * ele%value(g$)) / 2
       xc = gg_map%r0(1) * cos(ele%value(angle$)/2) - ele%value(rho$) * (1 - cos(angc))
       dc = gg_map%r0(1) * sin(ele%value(angle$)/2) + ele%value(rho$) * sin(angc)
@@ -595,9 +599,23 @@ if (associated(ele2%gen_grad_map) .and. ele2%field_calc == fieldmap$) then
   ! Note: True => Not canonical tracking.
   call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., pancake_name)
 
+  ! Max total monomial order of the field map: mark every present GG order and let the coefficient
+  ! table (which folds in the g_ref-dependent higher-degree terms) tell us the highest x^p*y^q degree.
+
+  gg_gval = 0
+  do i = 1, size(gg_map%curve)
+    gg => gg_map%curve(i)
+    do m = 0, gg%m_max
+      gg_gval(gg%kind, gg%n, m) = 1
+    enddo
+  enddo
+  call gg_accumulate_coefs (gg_map%g_ref, gg_gval, .true., .false., gg_kcoef, gg_kbump)
+
   max_order = 0
-  do i = 1, size(gg_map%gg)
-    max_order = max(max_order, gg_map%gg(i)%m+gg_map%gg(i)%n_deriv_max)
+  do i = 0, gg_coef_max_pq$        ! x power
+    do m = 0, gg_coef_max_pq$      ! y power
+      if (any(gg_kcoef(1:3,i,m) /= 0)) max_order = max(max_order, i+m)
+    enddo
   enddo
 
   ptc_key%magnet = 'PANCAKEBMADZERO'
@@ -934,7 +952,7 @@ ptc_fibre = energy_work
 ! FieldMap cartesian_map element. 
 ! Include all wiggler elements even planar_model with field_calc = bmad_standard$
 
-if (.not. use_taylor .and. .not. associated(ele2%gen_grad_map) .and. .not. associated(ele2%cylindrical_map) .and. &
+if (.not. use_taylor .and. .not. associated(ele2%gen_gradients) .and. .not. associated(ele2%cylindrical_map) .and. &
       (key == wiggler$ .or. key == undulator$ .or. (associated(ele2%cartesian_map) .and. ele2%field_calc == fieldmap$))) then
 
   

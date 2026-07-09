@@ -789,135 +789,50 @@ identity
 \end{equation}
 
 %-----------------------------------------------------------------
-\section{Generalized Gradient Map Field Modeling}
+\section{Generalized Gradient Field Modeling}
 \label{s:gen.grad.phys}
 \index{generalized gradient field modeling}
 
 \bmad has a number of \vn{field map} models that can be used to model electric or magnetic fields
-(\sref{s:fieldmap}). One model involves what are called \vn{generalized gradients}\cite{b:gen.grad}.
-This model is restricted to modeling DC magnetic or electric fields. In a lattice file, the
-generalized gradient field model is specified using the \vn{gen_grad_map} attribute as explained
-in Sec.~\sref{s:gen.grad.map}.
+(\sref{s:fieldmap}). One model involves what are called \vn{generalized gradients} (GG). This model
+is restricted to modeling DC magnetic or electric fields. In a lattice file, the generalized
+gradient field model is specified using the \vn{gen_gradients} attribute as explained in
+Sec.~\sref{s:gen.grad.map}.
 
-The electric and magnetic fields are both described by a scalar potential\footnote
-  {
-Notice the negative sign here and in \Eq{ppmpp} compared to Venturini et al.\cite{b:gen.grad}. This
-is to keep the definition of the electric scalar potential $\psi_E$ consistent with the normal
-definition.
-  }
-\begin{equation}
-  \bfB = -\nabla \, \psi_B, \qquad \bfE = -\nabla \, \psi_E
-  \label{bpep2}
-\end{equation}
-The scalar potential is then decomposed into azimuthal components
-\begin{equation}
-  \psi = \sum_{m = 1}^\infty \psi_{m,s} \, \sin(m \theta) + \sum_{m = 0}^\infty \psi_{m,c} \, \cos(m \theta)
-\end{equation}
-where the $\psi_{m,\alpha}$ ($\alpha = c,s$) are characterized by a using functions
-$C_{m,\alpha}(z)$ which are functions along the longitudinal $z$-axis.
-\begin{equation}
-  \psi_{m,\alpha} = \sum_{n = 0}^\infty \frac{(-1)^{n+1} m!}{4^n \, n! \, (n+m)!} 
-  \, \rho^{2n+m} \, C_{m,\alpha}^{[2n]}(z) 
-  \label{ppmpp}
-\end{equation}
-The notation $[2n]$ indicates the $2n$\Th derivative of $C_{m,\alpha}(z)$.
-
-From \Eq{ppmpp} the field is given by
+\bmad uses the curved-curvilinear-coordinate GG formalism of Van der Schueren et
+al.\cite{b:gen.grad.curved}, which handles a reference frame of constant curvature $g_{\text{ref}} =
+1/\rho$ (and reduces to the straight-coordinate case when $g_{\text{ref}} = 0$). The field is
+characterized by three families of midplane derivative functions of the longitudinal coordinate $s$:
+the normal (non-skew) functions $b_n(s)$, the skew functions $a_n(s)$, and the solenoidal function
+$b_s(s)$, defined by the on-midplane field
 \begin{align}
-  B_\rho   &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, (2n+m)}{4^n \, n! \, (n+m)!}
-    \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \sin m\theta + C^{[2n]}_{m,c}(z) \, \cos m\theta \right] + \CRNO
-    & \hspace{25 em} \sum_{n = 1}^\infty \frac{(-1)^n \, 2n}{4^n n! \, n!} \rho^{2n-1} \, C^{[2n]}_{0,c}(z) \CRNO
-  B_\theta &= \sum_{m = 1}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m! \, m}{4^n \, n! \, (n+m)!}
-    \rho^{2n+m-1} \left[ C^{[2n]}_{m,s}(z) \, \cos m\theta - C^{[2n]}_{m,c}(z) \, \sin m\theta \right] \\
-  B_z      &= \sum_{m = 0}^{\infty} \sum_{n = 0}^\infty \frac{(-1)^n \, m!}{4^n \, n! \, (n+m)!}
-    \rho^{2n+m} \left[ C^{[2n+1]}_{m,s}(z) \, \sin m\theta + C^{[2n+1]}_{m,c}(z) \, \cos m\theta \right] \nonumber
+  B_x(x, 0, s) &= \sum_{n \ge 1} a_n(s) \, \frac{x^{n-1}}{(n-1)!} \CRNO
+  B_y(x, 0, s) &= \sum_{n \ge 1} b_n(s) \, \frac{x^{n-1}}{(n-1)!} \\
+  B_s(0, 0, s) &= b_s(s) \nonumber
 \end{align}
-Even though the scalar potential only involves even derivatives of $C_{m,\alpha}$, the field is
-dependent upon the odd derivatives as well. The multipole index $m$ is such that $m = 0$ is for
-solenoidal fields, $m = 1$ is for dipole fields, $m = 2$ is for quadrupolar fields, etc. The
-\vn{sin}--like generalized gradients represent normal (non-skew) fields and the \vn{cos}--like one
-represent skew fields. The on-axis fields at $x=y=0$ are given by:
-\begin{equation}
-  (B_x, B_y, B_z) = (C_{1,c}, C_{1,s}, -C^{[1]}_{0,c})
-\end{equation}
+where $n$ is the multipole harmonic index ($n = 1$ dipole, $n = 2$ quadrupole, etc.). The full field
+$\bfB = (B_x, B_y, B_s)$ and the magnetic vector potential $\bfA = (A_x, A_y, A_s)$ off the midplane
+are reconstructed from these functions and their $s$-derivatives $a_n^{[m]}, b_n^{[m]}, b_s^{[m]}$
+using a precomputed coefficient table: each output component is a polynomial in $(x, y)$ whose
+coefficients are sums of the form $\sum \text{coef} \cdot g_{\text{ref}}^{\,k} \, x^p \, y^q \, G^{[m]}$
+(with $G \in \{a_n, b_n, b_s\}$), so the curvature enters through explicit powers of $g_{\text{ref}}$.
+The vector potential is constructed so that $\bfB = \nabla \times \bfA$ holds exactly (in the curved
+metric of the reference frame). This construction, the coefficient table, and the field-fitting
+tools are provided by the \vn{GeneralizedGradients.jl} package\cite{b:gen.grad.jl}; \bmad's
+coefficient table (\vn{bmad/modules/gg_coef_table_mod.f90}) is generated from it.
 
-The magnetic vector potential for $m = 0$ is constructed such that only $A_\theta$ is non-zero
-\begin{align}
-  A_\rho   &= 0 \CRNO
-  A_\theta &= \sum_{n=1}^\infty 
-    \frac{(-1)^{n+1} \, 2n}{4^n \, n! \, n!} \rho^{2n-1} \, C_{0,c}^{[2n-1]} \\
-  A_z      &= 0 \nonumber
-\end{align}
-For $m \ne 0$, the vector potential is chosen so that $A_\theta$ is zero.
-\begin{align}
-  A_\rho   &= \sum_{m = 1}^{\infty} \sum_{n=0}^\infty 
-    \frac{(-1)^{n} \, (m-1)!}{4^n \, n! \, (n+m)!} \rho^{2n+m+1} \, 
-    \left[ C_{m,s}^{[2n+1]} \cos(m \theta) - C_{m,c}^{[2n+1]} \, \sin(m \theta) \right] \CRNO 
-  A_\theta &= 0 \\
-  A_z      &= \sum_{m = 1}^{\infty} \sum_{n=0}^\infty 
-    \frac{(-1)^n \, (m-1)! \, (2n+m)}{4^n \, n! \, (n+m)!} \rho^{2n+m} \, 
-    \left[ -C_{m,s}^{[2n]} \cos(m \theta) + C_{m,c}^{[2n]} \, \sin(m \theta) \right]
-  \nonumber
-\end{align}
+The functions are characterized by specifying each function and its $s$-derivatives at equally spaced
+planes $z_i$, up to some maximum derivative order chosen by the user. Interpolation between planes is
+done with a two-point Hermite (``non-smoothing spline'') polynomial that matches the value and all
+stored derivatives at $z_i$ and $z_{i+1}$. As with the older formalism, the ``locality'' property ---
+the field at a point depends only on the two straddling planes --- makes the coefficients easy to fit
+and the evaluation fast, at the cost that, because the derivatives are truncated, the reconstructed
+field satisfies Maxwell's equations only up to the truncation order.
 
-The functions $C_{m,\alpha}(z)$ are characterized by specifying $C_{m,\alpha}(z_i)$ and derivatives
-at equally spaced points $z_i$, up to some maximum derivative order $N_{m,\alpha}$ chosen by the
-user. Interpolation is done by constructing an interpolating polynomial (``non-smoothing spline'')
-for each GG of order $2N_{m,\alpha}+1$ for each
-interval $[z_i, z_{i+1}]$ which has the correct derivatives from $0$ to $N_{m,\alpha}$ at points $z_i$ and
-$z_{i+1}$. The coefficients of the interpolating polynomial are easily calculated by inverting the
-appropriate matrix equation.
+The obsolete straight-coordinate cylindrical-harmonic formalism (Venturini and Dragt\cite{b:gen.grad}),
+used by the removed \vn{gen_grad_map} lattice format, is documented for reference in
+Appendix~\sref{s:gen.grad.old}.
 
-The advantages of a generalized gradient map over a cylindrical or Cartesian map decomposition come
-from the fact that with generalized gradients the field at some point $(x,y,z)$ is only dependent
-upon the value of $C_{m,\alpha}(z)$ and derivatives at points $z_i$ and $z_{i+1}$ where $z$ is in
-the interval $[z_i, z_{i+1}]$. This is in contrast to the cylindrical or Cartesian map decomposition
-where the field at any point is dependent upon {\em all} of the terms that characterize the
-field. This ``\vn{locality}'' property of generalized gradients means that calculating coefficients
-is easier (the calculation of $C_{m,\alpha}(z)$ at $z_i$ can be done using only the field near $z_i$
-independent of other regions) and it is easier to ensure that the field goes to zero at the
-longitudinal ends of the element. Additionally, the evaluation is faster since only coefficients to
-either side of the evaluation point contribute. The disadvantage of generalized gradients is that
-since the derivatives are truncated at some order $N_{m,\alpha}$, the resulting field does not satisfy
-Maxwell's equations with the error as a function of radius scaling with the power $\rho^{m+N_{m,\alpha}}$.
-
-It is sometimes convenient to express the fields in terms of Cartesian coordinates. For sine like
-even derivatives $C_{m,s}^{[2n]}$ the conversion is
-\begin{align}
-  \left( B_x, B_y \right) &= \left( \cos\theta \, B_\rho - \sin\theta \, B_\theta, \,
-    \sin\theta \, B_\rho + \cos\theta \, B_\theta \right) \CRNO
-  &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,s}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
-    \left( S_{xy}(m-1), \, C_{xy}(m-1) \right) \, + 
-    \label{bbtb} \\
-  &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
-    \left( S_{xy}(m+1), \, -C_{xy}(m+1) \right) \Big] \nonumber
-\end{align}
-and for the sine like odd derivatives $C_{m,s}^{[2n+1]}$
-\begin{equation}
-  B_z = \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
-    (x^2 + y^2)^n \, C^{[2n+1]}_{m,s}(z) \, S_{xy}(m)
-\end{equation}
-where the last term in \Eq{bbtb} is only present for $n > 0$.
-\begin{align}
-  S_{xy}(m) &\equiv \rho^m \, \sin m\theta = 
-    \sum_{r=0}^{2r \le m-1} (-1)^r \begin{pmatrix} m \cr 2r+1 \end{pmatrix} \,
-    x^{m-2r-1} \, y^{2r+1} \CRNO
-  C_{xy}(m) &\equiv \rho^m \, \cos m\theta = 
-    \sum_{r=0}^{2r \le m} (-1)^r \begin{pmatrix} m \cr 2r \end{pmatrix} \,
-    x^{m-2r} \, y^{2r} 
-\end{align}
-The conversion for the cosine like derivatives is:
-\begin{align}
-  \left( B_x, B_y \right) &= 
-    \frac{(-1)^n \, m!}{4^n n! \, (n+m)!} \, C_{m,c}^{[2n]} \, \Big[ (n+m) \, (x^2 + y^2)^n \,
-    \left( C_{xy}(m-1), \, -S_{xy}(m-1) \right) \, + \CRNO
-  &\hspace{13em}  n \, (x^2 + y^2)^{n-1} \, 
-    \left( C_{xy}(m+1), \, S_{xy}(m+1) \right) \Big] \\
-  B_z &= \frac{(-1)^n \, m!}{4^n n! \, (n+m)!}
-    (x^2 + y^2)^n \, C^{[2n+1]}_{m,c}(z) \, C_{xy}(m) \nonumber
-\end{align}
-
-%-----------------------------------------------------------------
 \section{RF fields}
 \label{s:rf.fields}
 \index{RF fields|hyperbf}

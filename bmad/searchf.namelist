@@ -42,6 +42,8 @@ read_binary_grid_field
 open_binary_file
 
 File: parsing/converter_distribution_parser.f90
+converter_distribution_parser_priv
+get_more_text_func
 converter_distribution_parser
 
 File: parsing/bmad_parser2.f90
@@ -119,7 +121,7 @@ parser_debug_print_info
 parse_cartesian_map
 parse_cylindrical_map
 parse_grid_field
-parse_gen_grad_map
+parse_gen_gradients
 parse_integer_list
 parse_integer_list2
 parse_real_list
@@ -458,6 +460,9 @@ File: code/set_fringe_on_off.f90
 set_fringe_on_off
 
 File: code/chrom_tune.f90
+chrom_tune_priv
+this_bookkeeping
+chrom_func
 chrom_tune
 
 File: code/find_element_ends.f90
@@ -656,10 +661,6 @@ track_all
 File: code/lat_make_mat6.f90
 lat_make_mat6
 
-File: code/lat_compute_reference_energy.f90
-lat_compute_ref_energy_and_time
-ele_compute_ref_energy_and_time
-
 File: code/multi_turn_tracking_to_mat.f90
 multi_turn_tracking_to_mat
 
@@ -736,6 +737,9 @@ File: code/twiss_propagate_all.f90
 twiss_propagate_all
 
 File: code/closed_orbit_calc.f90
+closed_orbit_calc_priv
+closed_orb_com_struct
+co_func
 closed_orbit_calc
 
 File: code/choose_quads_for_set_tune.f90
@@ -778,6 +782,8 @@ File: code/dpc_given_de.f90
 dpc_given_de
 
 File: code/set_z_tune.f90
+set_z_tune_priv
+dz_tune_func
 set_z_tune
 
 File: code/convert_total_energy_to.f90
@@ -991,6 +997,12 @@ File: low_level/create_wiggler_cartesian_map.f90
 create_wiggler_cartesian_map
 
 File: low_level/track_a_converter.f90
+track_a_converter_priv
+n_pt$
+converter_common_struct
+dxds_func
+p2_norm_func
+p1_norm_func
 track_a_converter
 
 File: low_level/track_a_sad_mult.f90
@@ -1087,12 +1099,20 @@ File: low_level/twiss_to_1_turn_mat.f90
 twiss_to_1_turn_mat
 
 File: low_level/track_a_lcavity_old.f90
+track_a_lcavity_old_priv
+internal_state_struct
+phase_abs_tol
+dphase_end_minus_start
+phase_func
+track_this_lcavity
 track_a_lcavity_old
 
 File: low_level/init_fringe_info.f90
 init_fringe_info
 
 File: low_level/track_a_beambeam.f90
+track_a_beambeam_priv
+at_slice_func
 track_a_beambeam
 
 File: low_level/reallocate_control.f90
@@ -1138,6 +1158,9 @@ File: low_level/average_twiss.f90
 average_twiss
 
 File: low_level/lcavity_rf_step_setup.f90
+lcavity_rf_step_setup_priv
+this_dt_track
+this_de_track
 lcavity_rf_step_setup
 
 File: low_level/unlink_fieldmap.f90
@@ -1148,6 +1171,10 @@ remove_lord_slave_link
 
 File: low_level/track_a_mask.f90
 track_a_mask
+
+File: low_level/compute_reference_energy.f90
+lat_compute_ref_energy_and_time
+ele_compute_ref_energy_and_time
 
 File: low_level/transfer_fieldmap.f90
 transfer_fieldmap
@@ -1166,6 +1193,9 @@ File: low_level/transfer_branch.f90
 transfer_branch
 
 File: low_level/autoscale_phase_and_amp.f90
+autoscale_phase_and_amp_priv
+pz_calc
+pz_calc_zbrent
 autoscale_phase_and_amp
 
 File: low_level/make_g2_mats.f90
@@ -1275,6 +1305,11 @@ mat6_from_s_to_s
 transfer_this_mat
 concat_transfer_mat
 
+File: modules/gen_gradients_mod.f90
+gen_gradients_mod
+gg_field_potential_calc
+gg_accumulate_coefs
+
 File: modules/measurement_mod.f90
 measurement_mod
 ele_is_monitor
@@ -1290,6 +1325,7 @@ File: modules/runge_kutta_mod.f90
 runge_kutta_mod
 runge_kutta_common_struct
 odeint_bmad
+wall_intersection_func
 rk_adaptive_step
 rk_step1
 kick_vector_calc
@@ -1409,8 +1445,8 @@ eq_mode3
 eq_bookkeeping_state
 eq_rad_map
 eq_rad_map_ele
-eq_gen_grad1
-eq_gen_grad_map
+eq_gen_grad_curve
+eq_gen_gradients
 eq_surface_segmented_pt
 eq_surface_segmented
 eq_surface_h_misalign_pt
@@ -1487,7 +1523,6 @@ rotate_em_field
 grid_field_interpolate
 field_interpolate_3d
 em_field_derivatives
-gen_grad_field
 convert_field_ele_to_lab
 
 File: modules/attribute_mod.f90
@@ -1889,8 +1924,12 @@ cartesian_map_struct
 cylindrical_map_term1_struct
 cylindrical_map_term_struct
 cylindrical_map_struct
-gen_grad1_struct
-gen_grad_map_struct
+gg_a$
+gg_b$
+gg_bs$
+gg_kind_name
+gen_grad_curve_struct
+gen_gradients_struct
 grid_field_pt1_struct
 grid_field_pt_struct
 grid_field_struct
@@ -2231,7 +2270,6 @@ gradient_err$
 critical_angle$
 bragg_angle_in$
 spin_dn_dpz_x$
-delta_e_ref$
 interpolation$
 bragg_angle_out$
 k1x$
@@ -2394,6 +2432,7 @@ transverse_sigma_cut$
 pz_aperture_center$
 mean_excitation_energy$
 fiducial_pt$
+delta_e_ref$
 cmat_22$
 dpsi_origin$
 t_offset$
@@ -2611,7 +2650,7 @@ reference$
 cartesian_map$
 cylindrical_map$
 grid_field$
-gen_grad_map$
+gen_gradients$
 create_jumbo_slave$
 accordion_edge$
 start_edge$
@@ -2854,6 +2893,8 @@ aperture_bookkeeper
 File: modules/time_tracker_mod.f90
 time_tracker_mod
 odeint_bmad_time
+delta_s_target
+wall_intersection_func
 rk_adaptive_time_step
 rk_time_step1
 em_field_kick_vector_time
@@ -2881,6 +2922,30 @@ pointer_to_wall3d
 wall3d_to_position
 create_concatenated_wall3d
 mark_patch_regions
+
+File: modules/gg_coef_table_mod.f90
+gg_coef_table_mod
+gg_n_coef_term$
+gg_coef_max_n$
+gg_coef_max_m$
+gg_coef_max_pq$
+gg_coef_max_k$
+gg_coef_term_struct
+gg_coef_table_init
+gg_set_block_001
+gg_set_block_002
+gg_set_block_003
+gg_set_block_004
+gg_set_block_005
+gg_set_block_006
+gg_set_block_007
+gg_set_block_008
+gg_set_block_009
+gg_set_block_010
+gg_set_block_011
+gg_set_block_012
+gg_set_block_013
+gg_set_block_014
 
 File: hdf5/hdf5_read_grid_field.f90
 hdf5_read_grid_field
@@ -3016,6 +3081,7 @@ track1_bunch_csr
 csr_bin_particles
 csr_bin_kicks
 s_source_calc
+ddz_calc_csr
 lsc_kick_params_calc
 i_csr
 image_charge_kick_calc
@@ -3087,6 +3153,7 @@ sc_step
 sc_adaptive_step
 track_bunch_to_s
 track_bunch_to_t
+track_func
 drift_particle_to_s
 drift_particle_to_t
 
@@ -3125,6 +3192,8 @@ File: photon/crystal_attribute_bookkeeper.f90
 crystal_attribute_bookkeeper
 
 File: photon/to_surface_coords.f90
+to_surface_coords_priv
+qfunc
 to_surface_coords
 
 File: photon/photon_reflection_mod.f90
@@ -3143,6 +3212,8 @@ read_surface_reflection_file
 photon_reflectivity
 photon_reflection
 photon_diffuse_scattering
+d_integral
+cumulr
 prob_x_diffuse
 ptwo
 zmmax
@@ -3171,9 +3242,12 @@ track_a_capillary
 capillary_track_photon_to_wall
 capillary_propagate_photon_a_step
 capillary_photon_hit_spot_calc
+photon_hit_func
 capillary_reflect_photon
 
 File: photon/track_to_surface.f90
+track_to_surface_priv
+photon_depth_in_element
 track_to_surface
 
 File: photon/track1_bmad_photon.f90
@@ -3196,6 +3270,8 @@ File: photon/rotate_for_curved_surface.f90
 rotate_for_curved_surface
 
 File: photon/init_photon_from_a_photon_init_ele.f90
+init_photon_from_a_photon_init_ele_priv
+e_curve_func
 init_photon_from_a_photon_init_ele
 
 File: photon/track1_photon_mod.f90
@@ -3223,10 +3299,13 @@ end_spline$
 absolute_photon_position
 bend_photon_init
 bend_photon_energy_integ_prob
+energy_func
 bend_vert_angle_integ_prob
+vert_angle_func
 bend_photon_polarization_init
 bend_photon_vert_angle_init
 bend_photon_e_rel_init
+p_func
 bend_photon_energy_normalized_probability
 photon_init_spline_coef_calc
 photon_init_spline_eval
@@ -3450,6 +3529,7 @@ multi_coulomb_log
 rclog_integrand
 bl_via_vlassov
 bl_via_mat
+residual_pwd_sig_z
 
 File: multiparticle/transfer_wake.f90
 transfer_wake
@@ -3549,23 +3629,17 @@ reallocate_beam
 File: multiparticle/reallocate_bunch.f90
 reallocate_bunch
 
-File: output/write_lattice_in_mad_format.f90
-write_lattice_in_mad_format
-
-File: output/write_lattice_in_sad_format.f90
-write_lattice_in_sad_format
-
 File: output/type_coord.f90
 type_coord
 
-File: output/write_lattice_in_scibmad.f90
-write_lattice_in_scibmad
+File: output/write_lattice_sad_format.f90
+write_lattice_sad_format
+
+File: output/write_lattice_scibmad_format.f90
+write_lattice_scibmad_format
 
 File: output/type_taylors.f90
 type_taylors
-
-File: output/write_lattice_in_pals.f90
-write_lattice_in_pals
 
 File: output/write_lattice_file_mod.f90
 write_lattice_file_mod
@@ -3587,14 +3661,20 @@ add_this_name_to_list
 File: output/write_bmad_lattice_file.f90
 write_bmad_lattice_file
 
-File: output/write_lattice_in_foreign_format.f90
-write_lattice_in_foreign_format
+File: output/write_lattice_pals_format.f90
+write_lattice_pals_format
 
 File: output/type_twiss.f90
 type_twiss
 
-File: output/write_lattice_in_elegant_format.f90
-write_lattice_in_elegant_format
+File: output/write_lattice_foreign_format.f90
+write_lattice_foreign_format
 
 File: output/type_ele.f90
 type_ele
+
+File: output/write_lattice_mad_format.f90
+write_lattice_mad_format
+
+File: output/write_lattice_elegant_format.f90
+write_lattice_elegant_format

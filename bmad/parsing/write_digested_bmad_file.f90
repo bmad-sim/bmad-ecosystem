@@ -229,8 +229,8 @@ type (photon_element_struct), pointer :: ph
 type (photon_reflect_table_struct), pointer :: prt
 type (cylindrical_map_struct), pointer :: cl_map
 type (cartesian_map_struct), pointer :: ct_map
-type (gen_grad_map_struct), pointer :: gg_map
-type (gen_grad1_struct), pointer :: ggcoef
+type (gen_gradients_struct), pointer :: gg_map
+type (gen_grad_curve_struct), pointer :: ggcoef
 type (grid_field_struct), pointer :: g_field
 type (ac_kicker_struct), pointer :: ac
 type (converter_distribution_struct), pointer :: c_dist
@@ -256,7 +256,7 @@ n_cart = 0; n_gen = 0; n_grid = 0; n_cyl = 0; n_cus = 0; n_foil = 0
 if (associated(ele%mode3))             mode3 = .true.
 if (associated(ele%cartesian_map))     n_cart = size(ele%cartesian_map)
 if (associated(ele%cylindrical_map))   n_cyl = size(ele%cylindrical_map)
-if (associated(ele%gen_grad_map))      n_gen = size(ele%gen_grad_map)
+if (associated(ele%gen_gradients))     n_gen = size(ele%gen_gradients)
 if (associated(ele%grid_field))        n_grid = size(ele%grid_field)
 if (associated(ele%custom))            n_cus = size(ele%custom)
 if (associated(ele%foil))              n_foil = size(ele%foil%material)
@@ -515,17 +515,17 @@ do i = 1, n_cyl
   endif
 enddo
 
-! Gen_grad_field
+! Gen_gradients field
 
 do i = 1, n_gen
-  gg_map => ele%gen_grad_map(i)
+  gg_map => ele%gen_gradients(i)
 
-  write (d_unit) gg_map%field_scale, gg_map%master_parameter, gg_map%curved_ref_frame, &
-          gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, size(gg_map%gg), gg_map%iz0, gg_map%iz1
+  write (d_unit) gg_map%field_scale, gg_map%master_parameter, gg_map%g_ref, &
+          gg_map%ele_anchor_pt, gg_map%field_type, gg_map%dz, gg_map%r0, size(gg_map%curve), gg_map%iz0, gg_map%iz1
 
-  do j = 1, size(gg_map%gg)
-    ggcoef => gg_map%gg(j)
-    write (d_unit) ggcoef%m, ggcoef%sincos, ggcoef%n_deriv_max, ubound(ggcoef%deriv,2)
+  do j = 1, size(gg_map%curve)
+    ggcoef => gg_map%curve(j)
+    write (d_unit) ggcoef%kind, ggcoef%n, ggcoef%m_max, ubound(ggcoef%deriv,2)
     do k = gg_map%iz0, gg_map%iz1
       write (d_unit) ggcoef%deriv(k,:)
     enddo

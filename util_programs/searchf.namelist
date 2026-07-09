@@ -1,4 +1,10 @@
 
+File: gen_gradients/test_kernel.f90
+test_kernel
+
+File: gen_gradients/end_to_end_check/gg_smoke.f90
+gg_smoke
+
 File: bmad_to_slicktrack/bmad_to_slicktrack.f90
 bmad_to_slicktrack
 
@@ -30,11 +36,16 @@ sym_score_calc
 write_gg_info
 write_gg_bmad
 read_gg
+merit_calc
+mrqmin_func
 
 File: ptc_profiler/ptc_profiler.f90
 ptc_profiler
 
 File: wake_fit/wake_fit.f90
+wake_fit_priv
+wake_mode_struct
+mrq_func
 wake_fit
 
 File: compare_tracking_methods_plot/compare_tracking_methods_plot.f90

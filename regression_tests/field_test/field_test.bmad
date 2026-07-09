@@ -7,7 +7,7 @@ parameter[particle]               = Electron
 beginning[beta_a] = 10
 beginning[beta_b] = 10
 
-call, file = in.solenoid.bmad
+in.solenoid: solenoid, l = 0.3
 
 s1: solenoid, l = 1, tracking_method = runge_kutta, mat6_calc_method = tracking, field_calc = fieldmap,
 grid_field = {
@@ -27,35 +27,57 @@ m1: marker, superimpose, offset = 0.3001, ref = 1>>beginning
 
 in.sol: in.solenoid, bs_field = 0.001
 
+! Straight-frame generalized gradients (converted from the old gen_grad_map format).
 qq: quadrupole, l = 0.2, k1 =   1,
-  gen_grad_map = {
-    dz = 0.1,
-    r0 = (0, 0, 0),
+  gen_gradients = {
+    field_type    = magnetic,
     ele_anchor_pt = beginning,
-    field_scale = 1e0,
     master_parameter = k1,
+    field_scale   = 1e0,
+    r0            = (0, 0, 0),
+    dz            = 0.1,
+    g_ref         = 0,
     curve = {
-      kind = sin,
-      m = 2,
+      kind = b,
+      n = 2,
       derivs = {
-        0.0: 2 3 4 5,
-        0.1: 2 3 4 5,
-        0.2: 0 0 0 0
-      }
-    },
+        0:   4 6 8 10,
+        0.1: 4 6 8 10,
+        0.2: 0 0 0 0 }},
     curve = {
-      kind = cos,
-      m = 2,
+      kind = a,
+      n = 2,
       derivs = {
-        0.0: 2 3 4 5,
-        0.1: 2 3 4 5,
-        0.2: 0 0 0 0
-      }
-    }
-  },
+        0:   4 6 8 10,
+        0.1: 4 6 8 10,
+        0.2: 0 0 0 0 }} },
   field_calc = fieldmap
 
-aa: line = (qq)
+! Curved-frame (g_ref /= 0) generalized gradients: exercises the g_ref field expansion.
+cc: em_field, l = 0.2, field_calc = fieldmap, tracking_method = runge_kutta, mat6_calc_method = tracking,
+  gen_gradients = {
+    field_type    = magnetic,
+    ele_anchor_pt = beginning,
+    field_scale   = 1,
+    r0            = (0, 0, 0),
+    dz            = 0.1,
+    g_ref         = 0.37,
+    curve = {
+      kind = b,
+      n = 1,
+      derivs = {
+        0:   0.5 0.1 -0.2,
+        0.1: 0.4 0.05 -0.1,
+        0.2: 0.3 0.0 0.0 }},
+    curve = {
+      kind = a,
+      n = 2,
+      derivs = {
+        0:   0.3 -0.2 0.1,
+        0.1: 0.2 -0.1 0.05,
+        0.2: 0.1 0.0 0.0 }} }
+
+aa: line = (qq, cc)
 ll: line = (in.sol, in.sol, s1, s2)
 
 use, aa, ll

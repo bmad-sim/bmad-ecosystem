@@ -49,6 +49,7 @@ recursive subroutine em_field_calc (ele, param, s_pos, orbit, local_ref_frame, f
 use super_recipes_mod
 use em_field_mod, dummy => em_field_calc
 use multipole_mod, dummy2 => em_field_calc
+use gen_gradients_mod
 
 implicit none
 
@@ -65,7 +66,7 @@ type (cartesian_map_struct), pointer :: ct_map
 type (cartesian_map_term1_struct), pointer :: ct_term
 type (cylindrical_map_struct), pointer :: cl_map
 type (cylindrical_map_term1_struct), pointer :: cl_term
-type (gen_grad_map_struct), pointer :: gg_map
+type (gen_gradients_struct), pointer :: gg_map
 type (grid_field_struct), pointer :: g_field, g_field_ptr
 type (grid_field_pt1_struct) g_pt
 type (floor_position_struct) lab_position, global_position, lord_position
@@ -793,7 +794,7 @@ case(helical_model$)
 
 case(fieldmap$)
   if (.not. associated(ele%cylindrical_map) .and. .not. associated(ele%cartesian_map) .and. &
-      .not. associated(ele%gen_grad_map) .and. .not. associated(ele%grid_field)) then
+      .not. associated(ele%gen_gradients) .and. .not. associated(ele%grid_field)) then
     call out_io (s_fatal$, r_name, 'No associated fieldmap (cartesican_map, grid_field, etc) FOR: ' // ele%name) 
     if (global_com%exit_on_error) call err_exit
     if (present(err_flag)) err_flag = .true.
@@ -1286,18 +1287,17 @@ case(fieldmap$)
   !------------------------------------
   ! Gen grid map calc 
 
-  if (associated(ele%gen_grad_map)) then
+  if (associated(ele%gen_gradients)) then
 
-    do i = 1, size(ele%gen_grad_map)
-      gg_map => ele%gen_grad_map(i)
-
-      call to_fieldmap_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, gg_map%curved_ref_frame, x, y, z, cos_ang, sin_ang, err)
+    do i = 1, size(ele%gen_gradients)
+      gg_map => ele%gen_gradients(i)
+      call to_fieldmap_coords (ele, local_orb, s_body, gg_map%ele_anchor_pt, gg_map%r0, gg_map%g_ref /= 0, x, y, z, cos_ang, sin_ang, err)
       if (err) then
         if (present(err_flag)) err_flag = .true.
         return
       endif
 
-      call gen_grad_add_em_field (ele, gg_map, [x,y,z], s_body, field)
+      call gen_gradients_add_em_field (ele, gg_map, [x,y,z], s_body, field)
     enddo
   endif
 
@@ -1550,16 +1550,18 @@ end subroutine restore_curvilinear_field
 !----------------------------------------------------------------------------
 ! contains
 
-subroutine gen_grad_add_em_field (ele, gg_map, r_pos, s_body, field)
+subroutine gen_gradients_add_em_field (ele, gg_map, r_pos, s_body, field)
 
 type (ele_struct) ele
-type (gen_grad_map_struct), target :: gg_map
-type (gen_grad1_struct), pointer :: gg
+type (gen_gradients_struct), target :: gg_map
+type (gen_grad_curve_struct), pointer :: crv
 type (em_field_struct) field
 
-real(rp) r_pos(3), z_rel, theta, rho, s_body
-real(rp), allocatable :: d0(:), d1(:), der(:)
-integer iz0, j, id, nd
+real(rp) r_pos(3), z_rel, s_body, scale
+real(rp) bfield(3), avec(3), da_mat(3,3)
+real(rp) gval(3, 0:gg_coef_max_n$, 0:gg_coef_max_m$+1)
+integer iz0, j, m
+logical calc_pot
 
 !
 
@@ -1570,7 +1572,7 @@ if (iz0 >= gg_map%iz1) iz0 = iz0 - 1 ! Allow one dz width out-of-bounds.
 if (iz0 < gg_map%iz0 .or. iz0 >= gg_map%iz1) then
   if (.not. logic_option(.false., grid_allow_s_out_of_bounds)) then
     call out_io (s_error$, r_name, 'PARTICLE Z  \F10.3\ POSITION OUT OF BOUNDS.', &
-                                   'FOR GEN_GRAD_MAP IN ELEMENT: ' // ele%name, r_array = [s_body])
+                                   'FOR GEN_GRADIENTS IN ELEMENT: ' // ele%name, r_array = [s_body])
   endif
   return
 endif
@@ -1578,26 +1580,30 @@ endif
 !
 
 z_rel = r_pos(3) - iz0 * gg_map%dz
+calc_pot = logic_option(.false., calc_potential)
 
-theta = atan2(r_pos(2), r_pos(1))
-rho = norm2(r_pos(1:2))
+! Interpolate each GG derivative tower to (iz0, z_rel) to build the value array, then
+! evaluate B (and, if requested, A) from the coefficient table (gen_gradients_mod).
 
-do j = 1, size(gg_map%gg)
-  gg => gg_map%gg(j)
-  nd = gg%n_deriv_max
-
-  call re_allocate2(der, 0, nd, .false.)
-  do id = 0, nd
-    der(id) = poly_eval(gg%deriv(iz0, id:), z_rel, diff_coef=.true.)
+gval = 0
+do j = 1, size(gg_map%curve)
+  crv => gg_map%curve(j)
+  do m = 0, crv%m_max
+    gval(crv%kind, crv%n, m) = poly_eval(crv%deriv(iz0, m:), z_rel, diff_coef=.true.)
   enddo
-
-  if (gg_map%field_type == magnetic$) then
-    field%B = field%B + gen_grad_field (der, gg, rho, theta) * (gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele))
-  else
-    field%E = field%E + gen_grad_field (der, gg, rho, theta) * (gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele))
-  endif
 enddo
 
-end subroutine gen_grad_add_em_field
+call gg_field_potential_calc (gg_map%g_ref, gval, r_pos(1), r_pos(2), .true., calc_pot, bfield, avec, da_mat)
+
+scale = gg_map%field_scale * master_parameter_value(gg_map%master_parameter, ele)
+
+if (gg_map%field_type == magnetic$) then
+  field%B = field%B + bfield * scale
+  if (calc_pot) field%A = field%A + avec * scale
+else
+  field%E = field%E + bfield * scale
+endif
+
+end subroutine gen_gradients_add_em_field
 
 end subroutine em_field_calc 

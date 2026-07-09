@@ -157,23 +157,24 @@ logical err
 
 !
 
+group_ele => null()
 call lat_ele_locator(name, branch%lat, eles, n_loc, err, ix_dflt_branch = branch%ix_branch)
 if (err) return
 err = .true.
 
 if (n_loc == 0) then
-  call out_io(s_error$, r_name, 'Group element not found: ' // ele%name)
+  call out_io(s_error$, r_name, 'Group element not found: ' // name)
   return
 endif
 
 if (n_loc > 1) then
-  call out_io(s_error$, r_name, 'Multiple lattice elements match group name: ' // ele%name)
+  call out_io(s_error$, r_name, 'Multiple lattice elements match group name: ' // name)
   return
 endif
 
 group_ele => eles(1)%ele
 if (group_ele%key /= group$) then
-  call out_io(s_error$, r_name, 'Element is not a group type element which is needed for tune variation: ' // ele%name)
+  call out_io(s_error$, r_name, 'Element is not a group type element which is needed for tune variation: ' // name)
   return
 endif
 

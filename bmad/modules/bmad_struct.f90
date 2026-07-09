@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 359
+integer, parameter :: bmad_inc_version$ = 360
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -759,28 +759,37 @@ type cylindrical_map_struct
   type (cylindrical_map_term_struct), pointer :: ptr => null()
 end type
 
-! Generalized gradients
+! Generalized gradients (curved-curvilinear formalism).
+! A gen_gradients map mirrors the GGCoefs struct of GeneralizedGradients.jl. Each curve holds one
+! GG derivative tower a_n(s), b_n(s), or b_s(s) sampled at the base planes. See gg_coef_table_mod
+! for how the field B = (Bx,By,Bs) and vector potential A = (Ax,Ay,As) are evaluated from these.
 
-type gen_grad1_struct
-  integer :: m = 0                      ! Azimuthal index
-  integer :: sincos = 0                 ! sin$ or cos$
-  integer :: n_deriv_max = -1           ! Max GG derivative
-  ! The derivative matrix is extended to include the interpolating spline polynomial.
-  real(rp), allocatable :: deriv(:,:)   ! Range: (iz0:iz1, 0:2*n_deriv_max+1)
-end type  
+integer, parameter :: gg_a$ = 1, gg_b$ = 2, gg_bs$ = 3   ! Curve kind: skew, normal, solenoid.
+character(2), parameter :: gg_kind_name(3) = ['A ', 'B ', 'BS']
 
-type gen_grad_map_struct
-  character(400) :: file = ''   ! Input file name. Used also as ID for instances. 
-  type (gen_grad1_struct), allocatable :: gg(:)
+type gen_grad_curve_struct
+  integer :: kind = 0                   ! gg_a$ (skew), gg_b$ (normal), or gg_bs$ (solenoid).
+  integer :: n = 0                      ! Azimuthal harmonic index (n = 0 for gg_bs$).
+  integer :: m_max = -1                 ! Max GG derivative order stored.
+  ! deriv(iz, 0:m_max) are the GG derivatives d^m/ds^m; columns m_max+1:2*m_max+1 hold the
+  ! interpolating spline extension (see n_spline_create).
+  real(rp), allocatable :: deriv(:,:)   ! Range: (iz0:iz1, 0:2*m_max+1)
+end type
+
+type gen_gradients_struct
+  character(400) :: file = ''   ! Input file name. Used also as ID for instances.
+  type (gen_grad_curve_struct), allocatable :: curve(:)
   integer :: ele_anchor_pt = anchor_beginning$  ! anchor_beginning$, anchor_center$, or anchor_end$
   integer :: field_type = magnetic$  ! or electric$
-  integer :: iz0 = int_garbage$      ! gg%deriv(iz0:iz1, :) lower bound.
-  integer :: iz1 = int_garbage$      ! gg%deriv(iz0:iz1, :) upper bound.
-  real(rp) :: dz = 0                 ! Point spacing.
-  real(rp) :: r0(3) = 0              ! field origin relative to ele_anchor_pt.
-  real(rp) :: field_scale = 1        ! Factor to scale the fields by
+  integer :: iz0 = int_garbage$      ! curve%deriv(iz0:iz1, :) lower bound.
+  integer :: iz1 = int_garbage$      ! curve%deriv(iz0:iz1, :) upper bound.
+  real(rp) :: dz = 0                 ! Point spacing between base planes.
+  real(rp) :: g_ref = real_garbage$  ! Reference-frame curvature 1/rho (0 => straight frame). 
+                                     !   Must be equal to g for a bend and zero for all else.
+  real(rp) :: r0(3) = 0              ! Field origin relative to ele_anchor_pt. r0(1:2) = transverse
+                                     !   expansion axis (GGCoefs origin), r0(3) = longitudinal offset.
+  real(rp) :: field_scale = 1        ! Factor to scale the fields by.
   integer :: master_parameter = 0    ! Master parameter in ele%value(:) array to use for scaling the field.
-  logical :: curved_ref_frame = .false.
 end type
 
 ! Grid field
@@ -1443,7 +1452,7 @@ type ele_struct
   ! E/M field structs.
   type (cartesian_map_struct), pointer :: cartesian_map(:) => null()     ! Used to define E/M fields
   type (cylindrical_map_struct), pointer :: cylindrical_map(:) => null() ! Used to define E/M fields
-  type (gen_grad_map_struct), pointer :: gen_grad_map(:) => null()       ! Used to define E/M fields.
+  type (gen_gradients_struct), pointer :: gen_gradients(:) => null()     ! Used to define E/M fields.
   type (grid_field_struct), pointer :: grid_field(:) => null()           ! Used to define E/M fields.
   ! The difference between map_ref_orb and time_ref_orb is that map_ref_orb is the reference orbit for the
   ! 1st order spin/orbit map which, in general, is non-zero while time_ref_orb follows the reference particle which is
@@ -1943,7 +1952,7 @@ integer, parameter :: reference$       = 122
 integer, parameter :: cartesian_map$   = 123
 integer, parameter :: cylindrical_map$ = 124
 integer, parameter :: grid_field$      = 125
-integer, parameter :: gen_grad_map$    = 126
+integer, parameter :: gen_gradients$   = 126
 integer, parameter :: create_jumbo_slave$ = 127
 
 integer, parameter :: accordion_edge$  = 128
