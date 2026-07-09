@@ -365,7 +365,9 @@ values are:
     old_integrator = True   ! PTC OLD_INTEGRATOR.
     exact_model    = True   ! PTC EXACT_MODEL.
     exact_misalign = True   ! PTC ALWAYS_EXACTMIS.
-    translate_patch_drift_time = True  
+    translate_patch_drift_time = True
+    pancake_symplectic = False ! Symplectic pancake integrator for gen_gradient elements?
+    pancake_canonical  = False ! Canonical pancake tracking?
   end type
 \end{example}
 
@@ -392,6 +394,19 @@ If \vn{translate_patch_drift_time} is set True (the default) the patch in PTC th
 correspond to a \bmad patch is given a reference time offset equal to the \bmad reference time
 through the patch. This is generally what is wanted but for a PTC expert who knows what they are
 doing and really wants no time offset, \vn{translate_patch_drift_time} can be set False.
+%
+  \index{pancake_symplectic}\index{pancake_canonical}
+  \item[{ptc_com[pancake_symplectic]}] \Newline
+When a \vn{gen_gradient} element (\sref{s:gen.grad.map}) is tracked through \vn{PTC}, the field map is
+translated into a set of \vn{PTC} pancakes. If \vn{pancake_symplectic} is set True, the symplectic
+pancake integrator is used (the pancakes carry the magnetic vector potential in addition to the
+field). The default is False. When \vn{pancake_symplectic} is True the allowed integrator orders
+(\sref{s:integ}) are 1, 2, 4, and 6; otherwise the allowed orders are 4 and 6.
+%
+  \item[{ptc_com[pancake_canonical]}] \Newline
+\vn{pancake_canonical} selects canonical pancake tracking. This flag is only used when
+\vn{pancake_symplectic} is False and is forced to True when \vn{pancake_symplectic} is True. The
+default is False.
   \end{description}
 
 %-----------------------------------------------------------------

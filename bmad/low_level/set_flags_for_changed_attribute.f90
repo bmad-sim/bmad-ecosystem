@@ -162,7 +162,8 @@ logical, optional :: set_dependent
 a_ptr => attrib
 
 if (ele%key /= taylor$ .or. ele%tracking_method /= taylor$) then
-  if (associated(a_ptr, ptc_com%exact_model) .or. associated(a_ptr, ptc_com%exact_misalign)) then
+  if (associated(a_ptr, ptc_com%exact_model) .or. associated(a_ptr, ptc_com%exact_misalign) .or. &
+      associated(a_ptr, ptc_com%pancake_symplectic) .or. associated(a_ptr, ptc_com%pancake_canonical)) then
     call kill_taylor (ele%spin_taylor)
     call kill_taylor (ele%taylor)
   endif

@@ -76,7 +76,7 @@ integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
-logical change, pancake_symplectic, pancake_canonical
+logical change, pancake_canonical
 logical, optional :: for_layout
 
 character(24) pancake_name
@@ -541,16 +541,16 @@ endif
 ! Gen_gradients
 
 if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
-  pancake_symplectic = .false.
-  pancake_canonical = .false.   ! Only used if pancake_symplectic = F. Must set True if pancake_symplectic = T.
 
-  ! If symplectic, order can be 1, 2, 4, 6
-  ! Otherwise, oder can be 4, 6
+  ! pancake_symplectic and pancake_canonical are ptc_com settings (ptc_com[pancake_symplectic], etc).
+  ! If symplectic, integrator order can be 1, 2, 4, 6. Otherwise, order can be 4, 6.
+  ! pancake_canonical is only used when pancake_symplectic = F and is forced True when symplectic.
+  ! Compute the effective canonical flag locally so ptc_com is not mutated.
 
+  pancake_canonical = (ptc_com%pancake_canonical .or. ptc_com%pancake_symplectic)
   n_ord_pan = nint(ele2%value(integrator_order$))
 
-  if (pancake_symplectic) then
-    pancake_canonical = .true.
+  if (ptc_com%pancake_symplectic) then
     if (n_ord_pan /= 6) n_ord_pan = 4
     ptc_key%method = n_ord_pan
 
@@ -608,7 +608,7 @@ if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
   call str_substitute(pancake_name, ':', '-')  ! Make valid file name
 
   ! Note: True => Not canonical tracking.
-  call set_pancake_constants(n_step, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, pancake_canonical, pancake_symplectic, pancake_name)
+  call set_pancake_constants(n_step, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, pancake_canonical, ptc_com%pancake_symplectic, pancake_name)
 
   ! Max total monomial order of the field map: mark every present GG order and let the coefficient
   ! table (which folds in the g_ref-dependent higher-degree terms) tell us the highest x^p*y^q degree.
@@ -772,7 +772,7 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   ff = rel_charge * charge_of(ele%ref_species) * c_light / ele2%value(p0c$)
 
   do i = 0, n_pan-1
-    if (pancake_symplectic) then
+    if (ptc_com%pancake_symplectic) then
       select case (n_ord_pan)
       case (1)
         z = z0 + i * ele%value(l$) / n_pan

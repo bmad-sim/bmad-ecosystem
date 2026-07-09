@@ -6495,6 +6495,8 @@ case ('ptc_com')
   nl=incr(nl); write (li(nl), lmt) 'exact_model;LOGIC;T;',                  ptc_com%exact_model
   nl=incr(nl); write (li(nl), lmt) 'exact_misalign;LOGIC;T;',               ptc_com%exact_misalign
   nl=incr(nl); write (li(nl), lmt) 'translate_patch_drift_time;LOGIC;T;',   ptc_com%translate_patch_drift_time
+  nl=incr(nl); write (li(nl), lmt) 'pancake_symplectic;LOGIC;T;',           ptc_com%pancake_symplectic
+  nl=incr(nl); write (li(nl), lmt) 'pancake_canonical;LOGIC;T;',            ptc_com%pancake_canonical
 
 
 !------------------------------------------------------------------------------------------------

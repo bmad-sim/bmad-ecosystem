@@ -2336,6 +2336,8 @@ case ('global')
     nl=nl+1; write(lines(nl), lmt) '  %exact_misalign             = ', ptc_com%exact_misalign
     nl=nl+1; write(lines(nl), lmt) '  %translate_patch_drift_time = ', ptc_com%translate_patch_drift_time
     nl=nl+1; write(lines(nl), lmt) '  %print_info_messages        = ', ptc_com%print_info_messages
+    nl=nl+1; write(lines(nl), lmt) '  %pancake_symplectic         = ', ptc_com%pancake_symplectic
+    nl=nl+1; write(lines(nl), lmt) '  %pancake_canonical          = ', ptc_com%pancake_canonical
 
   ! Internal parameters are not of general interest.
   case ('-internal')
