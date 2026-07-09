@@ -217,6 +217,8 @@ call write_if_int_param_changed   (ptc_com%old_integrator,              ptc_com_
 call write_if_logic_param_changed (ptc_com%exact_model,                 ptc_com_default%exact_model,                  'ptc_com[exact_model]')
 call write_if_logic_param_changed (ptc_com%exact_misalign,              ptc_com_default%exact_misalign,               'ptc_com[exact_misalign]')
 call write_if_logic_param_changed (ptc_com%translate_patch_drift_time,  ptc_com_default%translate_patch_drift_time,   'ptc_com[translate_patch_drift_time]')
+call write_if_logic_param_changed (ptc_com%pancake_symplectic,          ptc_com_default%pancake_symplectic,           'ptc_com[pancake_symplectic]')
+call write_if_logic_param_changed (ptc_com%pancake_canonical,           ptc_com_default%pancake_canonical,            'ptc_com[pancake_canonical]')
 
 call write_if_real_param_changed (space_charge_com%ds_track_step,               space_charge_com_default%ds_track_step,              'space_charge_com[ds_track_step]')
 call write_if_real_param_changed (space_charge_com%dt_track_step,               space_charge_com_default%dt_track_step,              'space_charge_com[dt_track_step]')

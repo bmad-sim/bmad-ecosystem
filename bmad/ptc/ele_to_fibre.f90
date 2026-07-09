@@ -47,7 +47,7 @@ type (gen_grad_curve_struct), pointer :: gg
 real(rp) :: gg_gval(3, 0:gg_coef_max_n$, 0:gg_coef_max_m$+1)
 real(rp) :: gg_kcoef(6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
 real(rp) :: gg_kbump(4:6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
-type (gg_taylor_struct), target :: gg_taylor(3)
+type (gg_taylor_struct), target :: gg_taylor(3), gg_a(3)
 type (gg_taylor_term_struct), pointer :: tm
 type (taylor_struct) spin_taylor(0:3)
 type (fibre), pointer :: ptc_fibre
@@ -72,10 +72,11 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map, n_mult
-integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(8)
+integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12), n_ord_pan, gfac, ib
 integer, allocatable :: pancake_field(:,:)
 
-logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
+logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
+logical change, pancake_canonical
 logical, optional :: for_layout
 
 character(24) pancake_name
@@ -541,18 +542,44 @@ endif
 
 if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
 
-  if (nint(ele2%value(integrator_order$)) /= 6) ele2%value(integrator_order$) = 4
-  ptc_key%method = nint(ele2%value(integrator_order$))
+  ! pancake_symplectic and pancake_canonical are ptc_com settings (ptc_com[pancake_symplectic], etc).
+  ! pancake_canonical is only used when pancake_symplectic = F and is forced True when symplectic.
+  ! Compute the effective canonical flag locally so ptc_com is not mutated.
 
-  if (nint(ele2%value(integrator_order$)) == 4) then
-    n_step = max(nint(ele%value(l$) / (4.0_rp*ele2%value(ds_step$))), 1)
-    n_pan = n_step * 4 + 1
+  pancake_canonical = (ptc_com%pancake_canonical .or. ptc_com%pancake_symplectic)
+
+  ! Force the pancake integrator order to a supported value (4 or 6). The z-sampling loop below
+  ! only handles these two orders. n_step is the number of integration steps and n_pan is the
+  ! number of pancake field planes that must be filled. PTC (set_pancake_constants is passed
+  ! n_step) allocates the plane array from n_step: for the symplectic scheme the planes are the
+  ! order-4/6 Yoshida sub-nodes (n_step*3 / n_step*7 planes); for the non-symplectic scheme the
+  ! planes are uniform (n_step*2+1) or dz_pan7 sub-nodes (n_step*7+1). n_pan must match exactly
+  ! [see pancake_bmad_empty0 in forest Sn_mad_like.f90].
+
+  n_ord_pan = nint(ele2%value(integrator_order$))
+  if (n_ord_pan /= 6) n_ord_pan = 4
+  ptc_key%method = n_ord_pan
+
+  if (ptc_com%pancake_symplectic) then
+    if (n_ord_pan == 4) then
+      n_step = max(nint(ele%value(l$) / (2.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 3
+    else
+      n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 7
+    endif
+
   else
-    n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
-    n_pan = n_step * 7 + 1
-    dz_step = ele%value(l$) / n_step
+    if (n_ord_pan == 4) then
+      n_step = max(nint(ele%value(l$) / (2.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 2 + 1
+    else
+      n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 7 + 1
+    endif
   endif
 
+  dz_step = ele%value(l$) / n_step
   gg_map => ele2%gen_gradients(1)
 
   if (key == sbend$ .and. ele%value(g$) /= 0) then
@@ -597,7 +624,7 @@ if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
   call str_substitute(pancake_name, ':', '-')  ! Make valid file name
 
   ! Note: True => Not canonical tracking.
-  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., pancake_name)
+  call set_pancake_constants(n_step, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, pancake_canonical, ptc_com%pancake_symplectic, pancake_name)
 
   ! Max total monomial order of the field map: mark every present GG order and let the coefficient
   ! table (which folds in the g_ref-dependent higher-degree terms) tell us the highest x^p*y^q degree.
@@ -739,8 +766,18 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
 
   field = 0
   icoef = 0   ! Must be zeroed: daall0_pancake treats a nonzero handle as an already-allocated vector.
+  gfac = 0
   call alloc_pancake(field)
   call daall0_pancake(icoef)
+  call daall0_pancake(gfac)
+
+  ! (1 + g_ref*x) curved-frame metric factor applied to the As potential block. Constant in z.
+  call dacon_pancake(gfac, 1.0_rp)
+  if (gg_map%g_ref /= 0) then
+    call dacon_pancake(icoef, 0.0_rp)
+    call dapok_pancake(icoef, [1, 0], gg_map%g_ref)   ! g_ref * x
+    call daadd_pancake(gfac, icoef, gfac)
+  endif
 
   do j = 1, n_pan
     call kill(ptc_fibre%mag%pa%b(j))
@@ -751,25 +788,70 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   ff = rel_charge * charge_of(ele%ref_species) * c_light / ele2%value(p0c$)
 
   do i = 0, n_pan-1
-    if (nint(ele2%value(integrator_order$)) == 4) then
-      z = z0 + i * ele%value(l$) / (n_pan - 1)
+    if (ptc_com%pancake_symplectic) then
+      select case (n_ord_pan)
+      case (1)
+        z = z0 + i * ele%value(l$) / n_pan
+      case (2)
+        z = z0 + dz_step/2.0_rp + i * dz_step
+      case (4)
+        k = i / 3
+        z = z0 + (k + dz_s_pan3(i-3*k)) * dz_step
+      case (6)
+        k = i / 7
+        z = z0 + (k + dz_s_pan7(i-7*k)) * dz_step
+      end select
+
     else
-      k = i / 7
-      z = z0 + (k + dz_pan7(i-7*k)) * dz_step
+      select case (n_ord_pan)
+      case (4)
+        z = z0 + i * ele%value(l$) / (n_pan - 1)
+      case (6)
+        k = i / 7
+        z = z0 + (k + dz_pan7(i-7*k)) * dz_step
+      end select
     endif
 
-    call gen_grad_at_s_to_gg_taylor(ele2, gg_map, z, gg_taylor)
+    call gen_grad_at_s_to_gg_taylor(ele2, gg_map, z, gg_taylor)   ! B = (Bx, By, Bs)
+    call gen_grad_at_s_to_gg_a_taylor(ele2, gg_map, z, gg_a)      ! A = (Ax, Ay, As)
+
+    ! Field: field(1:3) = (Bx, By, Bs).
 
     do j = 1, 3
       call dacon_pancake(field(j), 0.0_rp)
       do k = 1, size(gg_taylor(j)%term)
         tm => gg_taylor(j)%term(k)
-        coef = ff * tm%coef 
+        coef = ff * tm%coef
         call dacon_pancake(icoef, 0.0_rp)
         call dapok_pancake(icoef, tm%expn, coef)
         call daadd_pancake(field(j), icoef, field(j))
       enddo
       !! call dapri_pancake(field(j), 6)  ! Taylor print
+    enddo
+
+    ! Vector potential: for A_j (j = 1,2,3 = Ax,Ay,As) store the value and its transverse
+    ! derivatives in the field slots  ib = (4,7,10):  field(ib) = A_j, field(ib+1) = dA_j/dx,
+    ! field(ib+2) = dA_j/dy.
+
+    do j = 1, 3
+      ib = 4 + 3 * (j - 1)
+      call dacon_pancake(field(ib), 0.0_rp)
+      do k = 1, size(gg_a(j)%term)
+        tm => gg_a(j)%term(k)
+        coef = ff * tm%coef
+        call dacon_pancake(icoef, 0.0_rp)
+        call dapok_pancake(icoef, tm%expn, coef)
+        call daadd_pancake(field(ib), icoef, field(ib))
+      enddo
+      call dader_pancake(1, field(ib), field(ib+1))   ! dA_j/dx
+      call dader_pancake(2, field(ib), field(ib+2))   ! dA_j/dy
+    enddo
+
+    ! The As block (slots 10:12) carries the curved-frame metric factor (1 + g_ref*x). The
+    ! derivatives were formed from the raw As above, so multiply value and derivatives alike.
+
+    do k = 10, 12
+      call damul_pancake(field(k), gfac, field(k))
     enddo
 
     call set_tree_g_pancake(ptc_fibre%mag%pa%b(i+1), field)
@@ -778,6 +860,7 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
 
   call kill_pancake(field)
   call dadal1_pancake(icoef)
+  call dadal1_pancake(gfac)
 endif
 
 

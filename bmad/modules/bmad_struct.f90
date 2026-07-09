@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 360
+integer, parameter :: bmad_inc_version$ = 361
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -2291,6 +2291,8 @@ type extra_parsing_info_struct
   logical :: vertical_kick_set                      = .false.
   logical :: cut_factor_set                         = .false.
   logical :: translate_patch_drift_time_set         = .false.
+  logical :: pancake_symplectic_set                 = .false.
+  logical :: pancake_canonical_set                  = .false.
 end type
 
 !------------------------------------------------------------------------------
@@ -2376,6 +2378,8 @@ type ptc_common_struct
   logical :: print_info_messages = .false.         ! Allow PTC to print informational messages (which can clutter the output)?
   logical :: translate_patch_drift_time = .true.   ! When a Bmad patch is translated to a PTC fibre, is the drift
                                                    !   time included in the translation?
+  logical :: pancake_symplectic = .false.          ! Use the symplectic pancake integrator for gen_gradient elements?
+  logical :: pancake_canonical = .false.           ! Canonical pancake tracking? Forced True when pancake_symplectic = T.
 end type
 
 type (ptc_common_struct), save, target :: ptc_com, ptc_com_default

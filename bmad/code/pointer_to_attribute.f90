@@ -99,6 +99,8 @@ if (ele%key == def_ptc_com$) then
   case ('EXACT_MODEL', 'PTC_EXACT_MODEL');            a_ptr%l => ptc_com%exact_model
   case ('EXACT_MISALIGN', 'PTC_EXACT_MISALIGN');      a_ptr%l => ptc_com%exact_misalign
   case ('MAX_FRINGE_ORDER', 'PTC_MAX_FRINGE_ORDER');  a_ptr%i => ptc_com%max_fringe_order
+  case ('PANCAKE_SYMPLECTIC');                        a_ptr%l => ptc_com%pancake_symplectic
+  case ('PANCAKE_CANONICAL');                         a_ptr%l => ptc_com%pancake_canonical
   case default; goto 9000
   end select
   err_flag = .false.

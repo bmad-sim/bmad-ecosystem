@@ -1,0 +1,75 @@
+no_digested
+
+parameter[geometry] = open
+parameter[p0c]      = 1e9
+parameter[particle] = electron
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+particle_start[x]  =  1.0e-3
+particle_start[px] =  5.0e-4
+particle_start[y]  = -7.0e-4
+particle_start[py] =  3.0e-4
+
+! Straight-frame generalized-gradient element (g_ref = 0). Used both for the general
+! field/potential checks and (via PTC) for the pancake tracking checks. Base tracking is
+! runge_kutta so it is the non-PTC reference; the test program switches a copy to
+! symp_lie_ptc for the PTC pancake tracking. integrator_order = 4 is used because for that
+! order all three pancake settings (symplectic, canonical, plain) agree with runge_kutta.
+
+gg_straight: quadrupole, l = 0.2, k1 = 1, field_calc = fieldmap, integrator_order = 4, ds_step = 0.05,
+  tracking_method = runge_kutta, mat6_calc_method = tracking,
+  gen_gradients = {
+    field_type       = magnetic,
+    ele_anchor_pt    = beginning,
+    master_parameter = k1,
+    field_scale      = 1,
+    r0               = (0, 0, 0),
+    dz               = 0.1,
+    g_ref            = 0,
+    curve = {
+      kind = b,
+      n = 2,
+      derivs = {
+        0:   4 6 8,
+        0.1: 4 6 8,
+        0.2: 0 0 0 }},
+    curve = {
+      kind = a,
+      n = 2,
+      derivs = {
+        0:   1 2 0,
+        0.1: 1 2 0,
+        0.2: 0 0 0 }} }
+
+! Curved-frame (g_ref /= 0) generalized-gradient element. Exercises the g_ref field
+! expansion and the (1 + g_ref*x) metric factor in the vector potential.
+
+gg_curved: em_field, l = 0.2, field_calc = fieldmap, integrator_order = 4, ds_step = 0.05,
+  tracking_method = runge_kutta, mat6_calc_method = tracking,
+  gen_gradients = {
+    field_type    = magnetic,
+    ele_anchor_pt = beginning,
+    field_scale   = 1,
+    r0            = (0, 0, 0),
+    dz            = 0.1,
+    g_ref         = 0.37,
+    curve = {
+      kind = b,
+      n = 1,
+      derivs = {
+        0:   0.5 0.1 -0.2,
+        0.1: 0.4 0.05 -0.1,
+        0.2: 0.3 0.0 0.0 }},
+    curve = {
+      kind = a,
+      n = 2,
+      derivs = {
+        0:   0.3 -0.2 0.1,
+        0.1: 0.2 -0.1 0.05,
+        0.2: 0.1 0.0 0.0 }} }
+
+lat: line = (gg_straight, gg_curved)
+
+use, lat

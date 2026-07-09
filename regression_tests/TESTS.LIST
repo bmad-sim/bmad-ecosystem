@@ -14,6 +14,7 @@ csr_and_space_charge_test
 envelope_ibs_test
 fixer_test
 fringe_test
+generalized_gradient_test
 geometry_test
 girder_test
 hdf5_test

@@ -802,6 +802,8 @@ case ('exact_model');             call tao_set_logical_value (ptc_com%exact_mode
 case ('exact_misalign');          call tao_set_logical_value (ptc_com%exact_misalign, who, value_str, err)
 case ('use_orientation_patches'); call tao_set_logical_value (ptc_com%use_orientation_patches, who, value_str, err)
 case ('print_info_messages');     call tao_set_logical_value (ptc_com%print_info_messages, who, value_str, err)
+case ('pancake_symplectic');      call tao_set_logical_value (ptc_com%pancake_symplectic, who, value_str, err)
+case ('pancake_canonical');       call tao_set_logical_value (ptc_com%pancake_canonical, who, value_str, err)
 case default;                     call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
 end select
 

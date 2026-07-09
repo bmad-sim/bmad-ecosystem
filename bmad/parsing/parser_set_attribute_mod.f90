@@ -562,6 +562,8 @@ if (key == def_particle_start$ .or. key == def_bmad_com$ .or. key == def_space_c
     if (associated(a_ptrs(1)%l, ptc_com%exact_model))                      bp_com%extra%exact_model_set                 = .true.
     if (associated(a_ptrs(1)%l, ptc_com%exact_misalign))                   bp_com%extra%exact_misalign_set              = .true.
     if (associated(a_ptrs(1)%l, ptc_com%translate_patch_drift_time))       bp_com%extra%translate_patch_drift_time_set  = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%pancake_symplectic))               bp_com%extra%pancake_symplectic_set          = .true.
+    if (associated(a_ptrs(1)%l, ptc_com%pancake_canonical))                bp_com%extra%pancake_canonical_set           = .true.
 
   else
     call parser_error ('BOOKKEEPING ERROR. PLEASE CONTACT A BMAD MAINTAINER!')

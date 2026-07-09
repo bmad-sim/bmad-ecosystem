@@ -9,7 +9,7 @@ module c_dabnew
   private
 !  public
  
-  public c_ldamax, c_lstmax,c_leamax,c_liamax,c_dacctt2datest
+  public c_ldamax, c_lstmax,c_leamax,c_liamax,c_dacctt2datest,dalc_lsta
  
   private daalc_lno1,daall,damult,dasqrt,dacmut,dacma,DALINt,dacctt,dacctt1,dacctt2tpsa,dacctt2da
   private dainvt,dadert,dacfut,dainvt1
@@ -569,18 +569,22 @@ endif
   !    endif
   !    return
   !  end subroutine daexter
-  subroutine dalc_lsta(c_ldanow)
+  subroutine dalc_lsta(c_ldaN)
     implicit none
     !     *****************************
     !
     !-----------------------------------------------------------------------------
     !
     integer i,c_ldanow
+    INTEGER, optional :: c_ldaN
+    
     !
     c_ldanow=0
     do i=1, c_lda
        if(c_allvec(i)) c_ldanow=c_ldanow+1
     enddo
+    write(6,*) c_ldanow , " complex TPSA allocated "
+    if(present(c_ldaN)) c_ldaN=c_ldanow
     return
   end subroutine dalc_lsta
   !

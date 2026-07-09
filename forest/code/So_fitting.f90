@@ -26,6 +26,10 @@ module S_fitting
 
 
 contains
+
+
+
+
   SUBROUTINE lattice_GET_CHROM(R,my_state,CHROM)
     IMPLICIT NONE
     TYPE(layout),target,INTENT(INOUT):: r

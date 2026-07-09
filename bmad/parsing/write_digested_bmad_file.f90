@@ -192,7 +192,8 @@ if (present(extra)) then
   write (d_unit) space_charge_com
   write (d_unit) ptc_com%max_fringe_order, ptc_com%exact_model, ptc_com%exact_misalign, &
           ptc_com%vertical_kick, ptc_com%cut_factor, ptc_com%old_integrator, &
-          ptc_com%use_orientation_patches, ptc_com%print_info_messages, ptc_com%exact_misalign
+          ptc_com%use_orientation_patches, ptc_com%print_info_messages, ptc_com%translate_patch_drift_time, &
+          ptc_com%pancake_symplectic, ptc_com%pancake_canonical
 else
   write (d_unit) .false.
 endif
