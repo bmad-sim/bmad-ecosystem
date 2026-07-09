@@ -47,7 +47,7 @@ type (gen_grad_curve_struct), pointer :: gg
 real(rp) :: gg_gval(3, 0:gg_coef_max_n$, 0:gg_coef_max_m$+1)
 real(rp) :: gg_kcoef(6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
 real(rp) :: gg_kbump(4:6, 0:gg_coef_max_pq$, 0:gg_coef_max_pq$)
-type (gg_taylor_struct), target :: gg_taylor(3)
+type (gg_taylor_struct), target :: gg_taylor(3), gg_a(3)
 type (gg_taylor_term_struct), pointer :: tm
 type (taylor_struct) spin_taylor(0:3)
 type (fibre), pointer :: ptc_fibre
@@ -72,7 +72,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map, n_mult
-integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12), n_ord_pan
+integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12), n_ord_pan, gfac, ib
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
@@ -750,8 +750,18 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
 
   field = 0
   icoef = 0   ! Must be zeroed: daall0_pancake treats a nonzero handle as an already-allocated vector.
+  gfac = 0
   call alloc_pancake(field)
   call daall0_pancake(icoef)
+  call daall0_pancake(gfac)
+
+  ! (1 + g_ref*x) curved-frame metric factor applied to the As potential block. Constant in z.
+  call dacon_pancake(gfac, 1.0_rp)
+  if (gg_map%g_ref /= 0) then
+    call dacon_pancake(icoef, 0.0_rp)
+    call dapok_pancake(icoef, [1, 0], gg_map%g_ref)   ! g_ref * x
+    call daadd_pancake(gfac, icoef, gfac)
+  endif
 
   do j = 1, n_pan
     call kill(ptc_fibre%mag%pa%b(j))
@@ -786,18 +796,46 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
       end select
     endif
 
-    call gen_grad_at_s_to_gg_taylor(ele2, gg_map, z, gg_taylor)
+    call gen_grad_at_s_to_gg_taylor(ele2, gg_map, z, gg_taylor)   ! B = (Bx, By, Bs)
+    call gen_grad_at_s_to_gg_a_taylor(ele2, gg_map, z, gg_a)      ! A = (Ax, Ay, As)
+
+    ! Field: field(1:3) = (Bx, By, Bs).
 
     do j = 1, 3
       call dacon_pancake(field(j), 0.0_rp)
       do k = 1, size(gg_taylor(j)%term)
         tm => gg_taylor(j)%term(k)
-        coef = ff * tm%coef 
+        coef = ff * tm%coef
         call dacon_pancake(icoef, 0.0_rp)
         call dapok_pancake(icoef, tm%expn, coef)
         call daadd_pancake(field(j), icoef, field(j))
       enddo
       !! call dapri_pancake(field(j), 6)  ! Taylor print
+    enddo
+
+    ! Vector potential: for A_j (j = 1,2,3 = Ax,Ay,As) store the value and its transverse
+    ! derivatives in the field slots  ib = (4,7,10):  field(ib) = A_j, field(ib+1) = dA_j/dx,
+    ! field(ib+2) = dA_j/dy.
+
+    do j = 1, 3
+      ib = 4 + 3 * (j - 1)
+      call dacon_pancake(field(ib), 0.0_rp)
+      do k = 1, size(gg_a(j)%term)
+        tm => gg_a(j)%term(k)
+        coef = ff * tm%coef
+        call dacon_pancake(icoef, 0.0_rp)
+        call dapok_pancake(icoef, tm%expn, coef)
+        call daadd_pancake(field(ib), icoef, field(ib))
+      enddo
+      call dader_pancake(1, field(ib), field(ib+1))   ! dA_j/dx
+      call dader_pancake(2, field(ib), field(ib+2))   ! dA_j/dy
+    enddo
+
+    ! The As block (slots 10:12) carries the curved-frame metric factor (1 + g_ref*x). The
+    ! derivatives were formed from the raw As above, so multiply value and derivatives alike.
+
+    do k = 10, 12
+      call damul_pancake(field(k), gfac, field(k))
     enddo
 
     call set_tree_g_pancake(ptc_fibre%mag%pa%b(i+1), field)
@@ -806,6 +844,7 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
 
   call kill_pancake(field)
   call dadal1_pancake(icoef)
+  call dadal1_pancake(gfac)
 endif
 
 

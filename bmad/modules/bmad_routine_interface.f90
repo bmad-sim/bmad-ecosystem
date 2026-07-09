@@ -1383,6 +1383,16 @@ subroutine gen_grad_at_s_to_gg_taylor (ele, gen_grad, s_pos, gg_taylor)
   real(rp) s_pos
 end subroutine
 
+subroutine gen_grad_at_s_to_gg_a_taylor (ele, gen_grad, s_pos, gg_a, gg_da_ds)
+  import
+  implicit none
+  type (ele_struct) ele
+  type (gen_gradients_struct), target :: gen_grad
+  type (gg_taylor_struct), target :: gg_a(3)
+  type (gg_taylor_struct), optional, target :: gg_da_ds(3)
+  real(rp) s_pos
+end subroutine
+
 subroutine get_slave_list (lord, slaves, n_slave)
   import
   implicit none
