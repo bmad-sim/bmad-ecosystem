@@ -543,17 +543,33 @@ endif
 if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
 
   ! pancake_symplectic and pancake_canonical are ptc_com settings (ptc_com[pancake_symplectic], etc).
-  ! If symplectic, integrator order can be 1, 2, 4, 6. Otherwise, order can be 4, 6.
   ! pancake_canonical is only used when pancake_symplectic = F and is forced True when symplectic.
   ! Compute the effective canonical flag locally so ptc_com is not mutated.
 
   pancake_canonical = (ptc_com%pancake_canonical .or. ptc_com%pancake_symplectic)
+
+  ! Force the pancake integrator order to a supported value (4 or 6). The z-sampling loop below
+  ! only handles these two orders. n_step is the number of integration steps and n_pan is the
+  ! number of pancake field planes that must be filled. PTC (set_pancake_constants is passed
+  ! n_step) allocates the plane array from n_step: for the symplectic scheme the planes are the
+  ! order-4/6 Yoshida sub-nodes (n_step*3 / n_step*7 planes); for the non-symplectic scheme the
+  ! planes are uniform (n_step*2+1) or dz_pan7 sub-nodes (n_step*7+1). n_pan must match exactly
+  ! [see pancake_bmad_empty0 in forest Sn_mad_like.f90].
+
   n_ord_pan = nint(ele2%value(integrator_order$))
+  if (n_ord_pan /= 6) n_ord_pan = 4
+  ptc_key%method = n_ord_pan
 
   if (ptc_com%pancake_symplectic) then
-    if (n_ord_pan /= 6) n_ord_pan = 4
-    ptc_key%method = n_ord_pan
+    if (n_ord_pan == 4) then
+      n_step = max(nint(ele%value(l$) / (2.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 3
+    else
+      n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 7
+    endif
 
+  else
     if (n_ord_pan == 4) then
       n_step = max(nint(ele%value(l$) / (2.0_rp*ele2%value(ds_step$))), 1)
       n_pan = n_step * 2 + 1

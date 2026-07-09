@@ -27,6 +27,7 @@ set (EXE_SPECS
   cmake_files/cmake.field_test
   cmake_files/cmake.fixer_test
   cmake_files/cmake.fringe_test
+  cmake_files/cmake.generalized_gradient_test
   cmake_files/cmake.geometry_test
   cmake_files/cmake.girder_test
   cmake_files/cmake.hdf5_test
