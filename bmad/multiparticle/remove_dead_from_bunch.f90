@@ -25,12 +25,18 @@ integer ip, n
 
 p = bunch_in%particle
 n = count(p%state == alive$) + count(p%state == pre_born$)
-if (allocated(bunch_out%particle)) deallocate(bunch_out%particle)
-allocate(bunch_out%particle(n))
+if (allocated(bunch_out%particle)) then
+  if (size(bunch_out%particle) /= n) then
+    deallocate(bunch_out%particle)
+    allocate(bunch_out%particle(n))
+  endif
+else
+  allocate(bunch_out%particle(n))
+endif
 
 ! Keep ix_z sized to match the particle array (order_particles_in_z will recompute the ordering).
-if (allocated(bunch_out%ix_z)) deallocate(bunch_out%ix_z)
-allocate(bunch_out%ix_z(n))
+! Zero it since any old ordering indexes the pre-removal particle array.
+call re_allocate(bunch_out%ix_z, n)
 bunch_out%ix_z = 0
 
 n = 0
