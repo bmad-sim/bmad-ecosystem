@@ -537,7 +537,7 @@ if (associated(ele2%cylindrical_map) .and. ele2%field_calc == fieldmap$) then
   m_abell = maxval(ele%cylindrical_map%m)
 endif
 
-! Gen_grad_map
+! Gen_gradients
 
 if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
 

@@ -939,7 +939,7 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
       enddo
     endif
 
-    ! Gen_grad_map
+    ! Gen_gradients
 
     if (associated(ele%gen_gradients)) then
       do iw = 1, size(ele%gen_gradients)
