@@ -135,7 +135,7 @@ TYPE CAV4
    type(acceleration), pointer :: ACC => null()
    real(dp),   POINTER:: H1 => null(),H2 => null() 
    real(dp),  DIMENSION(:), POINTER :: AN0 => null(),BN0 => null()                 !Multipole component
-   real(dp), pointer :: ekick
+   real(dp), pointer :: ekick => null()
 END  TYPE CAV4
 
 TYPE CAV4P 
@@ -156,7 +156,7 @@ TYPE CAV4P
    type(acceleration), pointer :: ACC => null()
    TYPE(REAL_8),   POINTER:: H1 => null(),H2 => null()  
    TYPE(REAL_8),  DIMENSION(:), POINTER :: AN0 => null(),BN0 => null()         !Multipole component
-   TYPE(REAL_8), pointer :: ekick
+   TYPE(REAL_8), pointer :: ekick => null()
 END  TYPE CAV4P
 
 TYPE CAV_TRAV

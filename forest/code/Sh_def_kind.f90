@@ -25226,7 +25226,7 @@ endif
              X(4)=(X(4)-EL%P%CHARGE*AV(2))*(1.0_dp+X(5))/(1.0_dp+ST)
              X(4)=X(4)+EL%P%CHARGE*AV(2)
           endif
-          call kill(av,3)
+          call kill(z)
 
        ELSE
  if(k%TIME) then
@@ -25252,7 +25252,7 @@ endif
 
     p%x=x
     call kill(x)
-           call kill(z)
+           call kill(av,3)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   end subroutine radiate_2_probep
