@@ -75,7 +75,8 @@ integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos
 integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12), n_ord_pan
 integer, allocatable :: pancake_field(:,:)
 
-logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
+logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
+logical change, pancake_symplectic, pancake_canonical
 logical, optional :: for_layout
 
 character(24) pancake_name
