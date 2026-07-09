@@ -158,7 +158,7 @@ module precision_constants
   real(dp),parameter::c_0_7=0.7e0_dp,c_1_2d_5=1.2e-5_dp,c_1d7=1e7_dp
   real(dp),parameter:: suntao=1.6021766208e-19_dp/299792458.0_dp/9.10938356e-31_dp
   ! Constant Symplectic integrator schemes
-  real(dp) YOSK(0:4), YOSD(4),  butcher(8,8)    ! FIRST 6TH ORDER OF YOSHIDA
+  real(dp) YOSK(0:4), YOSD(4),  butcher(8,8),tyo(8),dz_s_pan7(0:7),dz_s_pan3(0:3), dz_but7(0:6), but6(8,8)   ! FIRST 6TH ORDER OF YOSHIDA
   real(dp) wyosh(0:7),wyoshid(0:15),wyoshik(15)    ! FIRST 8TH ORDER OF YOSHIDA
   real(dp) ck8(11),bk8(11),ak8(11,11),yx0,yx1,wy1,wy2,wy3,wy0
   real(dp)wy0s,wy1s,wy2s,wy3s,wy4s,wy5s,wy6s,yosks(0:6)
@@ -441,7 +441,7 @@ contains
   SUBROUTINE MAKE_YOSHIDA
     IMPLICIT NONE
     integer i ,id ,ntl
-    real(dp) a,b,b8,s21,ak
+    real(dp) a,b,b8,s21,ak,yo(7)
 !!!! For implicit testing
     yx0=1.0_dp/(2.0_dp-2.0_dp**(1.0_dp/3))
     yx1=-2.0_dp**(1.0_dp/3)*yx0
@@ -468,6 +468,28 @@ wy3=YOSK(3)
     do i=3,0,-1
        YOSK(i+1)=YOSK(I)
     enddo
+
+yo(1)=yosk(4)
+yo(2)=yosk(3)
+yo(3)=yosk(2)
+yo(4)=yosk(1)
+yo(5)=yosk(2)
+yo(6)=yosk(3)
+yo(7)=yosk(4)
+tyo(1)=yo(1)/2
+do i=1,6
+tyo(i+1)=tyo(i)+yo(i)/2+yo(i+1)/2
+enddo
+tyo(8)=tyo(7)+yo(7)/2
+do i=1,8
+ dz_s_pan7(i-1)=tyo(i)
+enddo
+
+ dz_s_pan3(0)=yx0/2
+ dz_s_pan3(1)= dz_s_pan3(0)+yx0/2+yx1/2
+ dz_s_pan3(2)= dz_s_pan3(1)+yx0/2+yx1/2
+ dz_s_pan3(3)=dz_s_pan3(2)+yx0/2  
+ 
 
 ! 6th order
   YOSKs(6)= 0.13861930854051695245808013042625e0_dp
@@ -677,6 +699,39 @@ butcher(8,5)=27.0_dp/840
 butcher(8,6)=216.0_dp/840
 butcher(8,7)=41.0_dp/840
 butcher(8,8)=0
+but6=0
+ but6(1,1)=1.0_dp 
+ but6(2,1)=1.0_dp/3
+ but6(3,2)=2.0_dp/3
+ but6(4,1)=1.0_dp/12
+ but6(4,2)=1.0_dp/3
+ but6(4,3)=-1.0_dp/12
+ but6(5,1)=-1.0_dp/16
+ but6(5,2)=9.0_dp/8
+ but6(5,3)=-3.0_dp/16
+ but6(5,4)=-3.0_dp/8
+ but6(6,2)=9.0_dp/8
+ but6(6,3)=-3.0_dp/8
+ but6(6,4)=-3.0_dp/4
+ but6(6,5)=1.0_dp/2
+ but6(7,1)=9.0_dp/44
+ but6(7,2)=-9.0_dp/11
+ but6(7,3)=63.0_dp/44
+ but6(7,4)=18.0_dp/11
+ but6(7,6)=-16.0_dp/11
+ but6(8,1)=11.0_dp/120
+ but6(8,3)=27.0_dp/40
+ but6(8,4)=27.0_dp/40
+ but6(8,5)=-4.0_dp/15
+ but6(8,6)=-4.0_dp/15
+ but6(8,7)=11.0_dp/120
+dz_but7(0:6)=0
+dz_but7(1)=1.0_dp/3
+dz_but7(2)=2.0_dp/3
+dz_but7(3)=1.0_dp/3
+dz_but7(4)=1.0_dp/2
+dz_but7(5)=1.0_dp/2
+dz_but7(6)=1.0_dp 
 
 ck8=0
 bk8=0

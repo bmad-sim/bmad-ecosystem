@@ -3409,13 +3409,13 @@ call kill(yy); call kill(id);
             stat=default+    only_2d
              ND2=2
           endif
-          if(state%radiation) then
-             check_stable=.false.
+!          if(state%radiation) then
+!             check_stable=.false.
 
-             messagelost= " Cavity needed when radiation present "
-            use_bmad_units=use_bmad_units_temp
-             return
-          endif
+!             messagelost= " Cavity needed when radiation present "
+!            use_bmad_units=use_bmad_units_temp
+!             return
+!          endif
        ELSE
           ND2=6
           STAT=STATE

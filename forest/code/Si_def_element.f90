@@ -1110,6 +1110,7 @@ CONTAINS
        EL%C4%DELTA_E=>EL%DELTA_E
        EL%C4%THIN=>EL%THIN
        ALLOCATE(EL%C4%N_BESSEL);EL%C4%N_BESSEL=0
+       ALLOCATE(EL%C4%ekick);EL%C4%ekick=0
        ALLOCATE(EL%C4%cavity_totalpath);EL%C4%cavity_totalpath=cavity_totalpath
  !      ALLOCATE(EL%C4%phase0);EL%C4%phase0=phase0
        ALLOCATE(EL%C4%NF);EL%C4%NF=N_CAV4_F
@@ -1616,6 +1617,7 @@ CONTAINS
        EL%C4%DELTA_E=>EL%DELTA_E
        EL%C4%THIN=>EL%THIN
        ALLOCATE(EL%C4%N_BESSEL);EL%C4%N_BESSEL=0
+       ALLOCATE(EL%C4%ekick);CALL ALLOC(EL%C4%ekick);EL%C4%ekick=0
        ALLOCATE(EL%C4%cavity_totalpath);EL%C4%cavity_totalpath=cavity_totalpath
 !       ALLOCATE(EL%C4%phase0);EL%C4%phase0=phase0
        ALLOCATE(EL%C4%NF);EL%C4%NF=N_CAV4_F
@@ -3786,6 +3788,7 @@ nullify(EL%filef,el%fileb);
        ELP%H2 = EL%H2
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
+       ELP%C4%ekick = EL%C4%ekick
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath
 !       ELP%C4%phase0 = EL%C4%phase0
        DO I=1,EL%C4%NF
@@ -4195,6 +4198,7 @@ nullify(EL%filef,el%fileb);
        N_CAV4_F=EL%C4%NF
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
+       ELP%C4%ekick = EL%C4%ekick
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath
 !       ELP%C4%phase0 = EL%C4%phase0
        DO I=1,EL%C4%NF
@@ -4617,6 +4621,7 @@ nullify(EL%filef,el%fileb);
        N_CAV4_F=EL%C4%NF
        CALL SETFAMILY(ELP)
        ELP%C4%N_BESSEL = EL%C4%N_BESSEL
+       ELP%C4%ekick = EL%C4%ekick
        ELP%C4%cavity_totalpath = EL%C4%cavity_totalpath
 !       ELP%C4%phase0 = EL%C4%phase0
        DO I=1,EL%C4%NF

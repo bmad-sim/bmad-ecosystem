@@ -7,6 +7,9 @@ implicit none
   public RADIATION0, NOCAVITY0, FRINGE0 ,STOCHASTIC0,ENVELOPE0,gaussian_seed_zhe,nrmax_used_zhe,alloc_bunch,kill_bunch
  public file_zhe,number_zhe_maps,get_seed,set_seed,ALLOC_TREE,track_TREE_probe_complex_zhe_no_orbital,track_miyajima_zhe
 public track_TREE_probe_complex_zhe_no_orbital_quaternion,GRNF_zhe
+public ndfill,nd2fill,size_treefill
+integer :: ndfill=3,nd2fill=6,size_treefill=15
+
 ! absoft
 !public spinor,quaternion
  logical :: use_gaussian_zhe =.false.
@@ -1079,20 +1082,27 @@ endif ! jumpnot
     TYPE(TREE_ELEMENT),target, INTENT(INout) :: T(3)
  
     type(probe) xs
-    real(dp) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
-    real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb,flucfac1
+    real(dp) s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
+    real(dp) normb,norm,xr(6),normbb,flucfac1
     integer i,j,k,ier,is
     logical, optional  :: spin,stoch,rad,linear,slim
     logical  spin0,stoch0,rad0,doit,as_is0,slim0
     integer no1
     real(dp), optional :: flucfac
     type(quaternion) qu
+!real(dp) x(size_tree),x0(size_tree),x0_begin(size_tree)
+real(dp), allocatable ::x(:),x0(:),x0_begin(:)
+allocate(x(size_treefill),x0(size_treefill),x0_begin(size_treefill))
+x=0
+x0=0
+x0_begin=0
     as_is0=t(1)%usenonsymp
     spin0=.true.
     stoch0=.true.
     rad0=.true.
     no1=t(1)%no
     slim0=.false.
+     size_treefill=nd2fill+ndfill**2
     if(present(slim)) slim0=slim
     if(present(linear)) then
      if(linear) no1=1
@@ -1112,7 +1122,7 @@ endif ! jumpnot
 !!!! put stochastic kick in front per Sagan
  if(stoch0) then 
 
-    do i=1,6
+    do i=1,nd2fill
       x(i)=xs%x(i)-t(1)%fix0(i)
     enddo
 
@@ -1122,15 +1132,15 @@ endif ! jumpnot
      xr(i)=flucfac1*GRNF_zhe_gaussian()*t(2)%fix0(i)  
    enddo
   else
-   do i=1,6
+   do i=1,nd2fill
      xr(i)=flucfac1*GRNF_zhe()*t(2)%fix0(i)  
    enddo
   endif
     xr =matmul(t(2)%rad,xr)
 
-    x(1:6)=x(1:6)+xr 
+    x(1:nd2fill)=x(1:nd2fill)+xr 
 
-    do i=1,6
+    do i=1,nd2fill
       xs%x(i)=x(i)+t(1)%fix0(i)
     enddo
  endif
@@ -1138,7 +1148,7 @@ endif ! jumpnot
     x=0.e0_dp
     x0=0.e0_dp
 x0_begin=0.0_dp
-    do i=1,6
+    do i=1,nd2fill
       x(i)=xs%x(i)
       x0(i)=xs%x(i)
       x0_begin(i)=xs%x(i)
@@ -1149,7 +1159,7 @@ x0_begin=0.0_dp
 
 !if(doit) then
 
-     do i=1,6
+     do i=1,nd2fill
       x(i)=x(i)-t(1)%fix0(i)
       x0(i)=x0(i)-t(1)%fix0(i)
       x0_begin(i)=x0_begin(i)-t(1)%fix0(i)
@@ -1161,78 +1171,85 @@ x0_begin=0.0_dp
 !      x0_begin(i)=x0_begin(i)-t(3)%fix0(i)
 !     enddo
 !endif
-      x(7:12)=x(1:6)
-      x0_begin(7:12)= x0_begin(1:6)
+      x(nd2fill+1:2*nd2fill)=x(1:nd2fill)
+      x0_begin(nd2fill+1:2*nd2fill)= x0_begin(1:nd2fill)
 
 
 !  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))
 
 
-      x0(1:6)=x(1:6)
-      x(7:12)=x(1:6)
+      x0(1:nd2fill)=x(1:nd2fill)
+      x(nd2fill+1:2*nd2fill)=x(1:nd2fill)
 if(no1>1.and.(.not.as_is0)) then
-    do i=1,3
+    do i=1,ndfill
      q(i)=x(2*i-1)
      p(i)=x(2*i)
     enddo
 
  !else
-    do i=1,3
+    do i=1,ndfill
      x(2*i-1)=0.0_dp   ! use non symplectic as approximation
     enddo
  ! endif
 !!! symplectic here!! symplectic here
 ! if(t(3)%symptrack) then
-   do i=1,3
+   do i=1,ndfill
      qf(i)=x(2*i-1)   ! use non symplectic as approximation
     enddo
 normb=1.d38
 do is=1,nrmax
-   do i=1,3
+   do i=1,ndfill
      x0(2*i)=p(i)
      x0(2*i-1)=qf(i)  
      qg(i)=0
     enddo
 
-    call track_TREE_G_complex(T(3),X0(1:15))
+    call track_TREE_G_complex(T(3),X0(1:size_treefill))
  
-    do i=1,3
-    do j=1,3
+    do i=1,ndfill
+    do j=1,ndfill
      r(i,j)=x0(ind_spin(i,j))
     enddo
     enddo
-    call matinv(r,r,3,3,ier)
+    call matinv(r(1:ndfill,1:ndfill),r(1:ndfill,1:ndfill),ndfill,ndfill,ier)
     if(ier/=0) then
      write(6,*) "matinv failed in track_TREE_probe_complex_zhe"
        check_stable_zhe=.false.
        xs%u=.true.
+deallocate(x,x0,x0_begin)
+
       return
      stop
     endif
-    do i=1,3
-    do j=1,3
+    do i=1,ndfill
+    do j=1,ndfill
       qg(i)=r(i,j)*(q(j)-x0(2*j-1)) + qg(i)
     enddo
     enddo
-    do i=1,3
+ norm=0
+    do i=1,ndfill
+   norm=abs(qg(i))+norm
 
      qf(i) = qf(i) + qg(i)
     enddo
-   norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
+ !  norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
 !write(6,*) is,normb,norm
    if(norm>t(3)%eps) then
       normbb=normb  ! saving for debugging
      normb=norm
    else
-      normbb=abs(qf(1))+abs(qf(2))+abs(qf(3))
-      
+    !  normbb=abs(qf(1))+abs(qf(2))+abs(qf(3))
+normbb=0
+          do i=1,ndfill
+   normbb=abs(qf(i))+normbb
+    enddo
      if(normb<=norm) then 
-       x(1)=qf(1)
-       x(3)=qf(2)
-       x(5)=qf(3)
-       x(2)=x0(2)
-       x(4)=x0(4)
-       x(6)=x0(6)       
+     do i=1,ndfill
+       x(2*i-1)=qf(i)
+       x(2*i)=x0(2*i)
+
+    enddo
+        
 
        x(1:6)=matmul(t(3)%rad,x(1:6))
 
@@ -1248,6 +1265,8 @@ enddo  ! is
    if(c_verbose_zhe) write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
    xs%u=.true.
    check_stable_zhe=.false.
+deallocate(x,x0,x0_begin)
+
   return
  endif
 elseif(.not.as_is0) then
@@ -1321,12 +1340,12 @@ elseif(.not.as_is0) then
    
 if(as_is0) then 
  if(no1>1) then
-  call track_TREE_G_complex(T(1),X(1:6))
+  call track_TREE_G_complex(T(1),X(1:nd2fill))
  else
        x(1:6)=matmul(t(3)%rad,x(1:6))
  endif
 else
-  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))
+  if(rad0)   call track_TREE_G_complex(T(1),X(1:nd2fill))
 endif
 
  norm=0
@@ -1338,6 +1357,8 @@ enddo
    if(c_verbose_zhe) write(6,*) " unstable " 
    xs%u=.true.
    check_stable_zhe=.false.
+deallocate(x,x0,x0_begin)
+
   return
  endif
 
@@ -1360,6 +1381,7 @@ endif
     do i=1,6
       xs%x(i)=x(i)
     enddo
+deallocate(x,x0,x0_begin)
 
   end SUBROUTINE track_TREE_probe_complex_zhe
 
@@ -2358,16 +2380,16 @@ implicit none
 logical , optional ::use_q 
 integer i,j,k
 if(Present(use_q) )use_quaternion=use_q
-    ind_spin(1,1)=1+6;ind_spin(1,2)=2+6;ind_spin(1,3)=3+6;
-    ind_spin(2,1)=4+6;ind_spin(2,2)=5+6;ind_spin(2,3)=6+6;
-    ind_spin(3,1)=7+6;ind_spin(3,2)=8+6;ind_spin(3,3)=9+6;    
+    ind_spin(1,1)=1+nd2fill;ind_spin(1,2)=2+nd2fill;ind_spin(1,3)=3+nd2fill;
+    ind_spin(2,1)=4+nd2fill;ind_spin(2,2)=5+nd2fill;ind_spin(2,3)=6+nd2fill;
+    ind_spin(3,1)=7+nd2fill;ind_spin(3,2)=8+nd2fill;ind_spin(3,3)=9+nd2fill;       
     k1_spin(1)=1;k2_spin(1)=1;
     k1_spin(2)=1;k2_spin(2)=2;
-    k1_spin(3)=1;k2_spin(3)=3;
-    k1_spin(4)=2;k2_spin(4)=1;
-    k1_spin(5)=2;k2_spin(5)=2;
-    k1_spin(6)=2;k2_spin(6)=3;
-    k1_spin(7)=3;k2_spin(7)=1;
+    k1_spin(3)=2;k2_spin(3)=1;
+    k1_spin(4)=2;k2_spin(4)=2;
+    k1_spin(5)=1;k2_spin(5)=3;
+    k1_spin(6)=3;k2_spin(6)=1;
+    k1_spin(7)=2;k2_spin(7)=3;
     k1_spin(8)=3;k2_spin(8)=2;
     k1_spin(9)=3;k2_spin(9)=3;
  

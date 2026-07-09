@@ -1826,6 +1826,12 @@ if(C%parent_fibre%mag%name(1:3)=="MAP") then
  return
  endif
 
+if(C%parent_fibre%mag%name(1:3)=="MAP") then
+ if(C%parent_fibre%mag%name=="MAP_INVARIANT") then
+    if(c%cas==case_map) call rk6_invtpsa_yer(XS,K)
+ return
+ endif
+ endif
  
  if(C%parent_fibre%mag%name=="MAPZHE") then
     if(c%cas==case_map) call track_zher(C,XS,K)
@@ -1924,6 +1930,13 @@ revert_to_ptc=.false.
     endif
 
 if(C%parent_fibre%magp%name(1:3)=="MAP") then
+
+if(C%parent_fibre%magp%name(1:3)=="MAP") then
+ if(C%parent_fibre%magp%name=="MAP_INVARIANT") then
+  !  if(c%cas==case_map) call rk6_invtpsa_yep(XS,K)
+ return
+ endif
+ endif
 
  if(C%parent_fibre%mag%name=="MAPZHE") then
     if(c%cas==case_map) call track_zhep(C,XS,K)
@@ -2372,6 +2385,128 @@ first_ye=first_ye+1
   end subroutine track_ye_invr
 
 
+ subroutine feval_invtpsa_yer(y,f)   !electric teapot s
+ 
+    IMPLICIT NONE
+!    TYPE(integration_node),pointer, INTENT(IN):: c
+    real(dp), intent(inout) :: y(6),f(6)
+ !   TYPE(INTERNAL_STATE) K
+    type(c_ray) cray
+
+
+ 
+cray%x=0
+cray%x(1:2)=y(1:2)
+ 
+ 
+           F(1)= invtpsa1(invtpsa_used).o.cray
+           F(2)= invtpsa2(invtpsa_used).o.cray
+           F(3)=0
+           F(4)=0
+           F(5)=0.0_dp
+           F(6)=0  !! ld=L in sector bend
+    
+   END subroutine feval_invtpsa_yer
+
+  subroutine rk6_invtpsa_yer(xs,K)
+    IMPLICIT none
+    !  Written by Rob Ryne, Spring 1986, based on a routine of
+    !c  J. Milutinovic.
+    !c  For a reference, see page 76 of F. Ceschino and J Kuntzmann,
+    !c  Numerical Solution of Initial Value Problems, Prentice Hall 1966.
+    !c  This integration routine makes local truncation errors at each
+    !c  step of order h**7.
+    !c  That is, it is locally correct through terms of order h**6.
+    !c  Each step requires 8 function evaluations.
+
+    integer ne
+    parameter (ne=6)
+    type(probe), INTENT(INOUT)::  xs
+    real(dp)  y(ne),yt(ne),f(ne),a(ne),b(ne),c(ne),d(ne),e(ne),g(ne),o(ne),p(ne)
+    integer j
+    real(dp)  h
+    TYPE(INTERNAL_STATE) k !,OPTIONAL :: K
+ 
+ 
+     y=xs%x
+     h=1.0d0
+    call feval_invtpsa_yer(y,f)
+ 
+
+    do  j=1,ne
+       a(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j)=y(j)+a(j)/9.0_dp
+    enddo
+
+    call feval_invtpsa_yer(yt,f)
+    do  j=1,ne
+       b(j)=h*f(j)
+    enddo
+    do   j=1,ne
+       yt(j)=y(j) + (a(j) + 3.0_dp*b(j))/24.0_dp
+    enddo
+
+    call feval_invtpsa_yer(yt,f)
+    do  j=1,ne
+       c(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       yt(j)=y(j)+(a(j)-3.0_dp*b(j)+4.0_dp*c(j))/6.0_dp
+    enddo
+
+    call feval_invtpsa_yer(yt,f)
+    do  j=1,ne
+       d(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       yt(j)=y(j) + (-5.0_dp*a(j) + 27.0_dp*b(j) - 24.0_dp*c(j) + 6.0_dp*d(j))/8.0_dp
+    enddo
+
+    call feval_invtpsa_yer(yt,f)
+    do  j=1,ne
+       e(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       yt(j)=y(j) + (221.0_dp*a(j) - 981.0_dp*b(j) + 867.0_dp*c(j)- 102.0_dp*d(j) + e(j))/9.0_dp
+    enddo
+
+    call feval_invtpsa_yer(yt,f)
+    do   j=1,ne
+       g(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(-183.0_dp*a(j)+678.0_dp*b(j)-472.0_dp*c(j)-66.0_dp*d(j)+80.0_dp*e(j) + 3.0_dp*g(j))/48.0_dp
+    enddo
+
+    call feval_invtpsa_yer(yt,f)
+    do  j=1,ne
+       o(j)=h*f(j)
+    enddo
+    do  j=1,ne
+       yt(j) = y(j)+(716.0_dp*a(j)-2079.0_dp*b(j)+1002.0_dp*c(j)+834.0_dp*d(j)-454.0_dp*e(j)-9.0_dp*g(j)+72.0_dp*o(j))/82.0_dp
+    enddo
+
+
+    call feval_invtpsa_yer(yt,f)
+    do  j=1,ne
+       p(j)=h*f(j)
+    enddo
+
+    do  j=1,ne
+       y(j) = y(j)+(41.0_dp*a(j)+216.0_dp*c(j)+27.0_dp*d(j)+272.0_dp*e(j)+27.0_dp*g(j)+216.0_dp*o(j)+41.0_dp*p(j))/840.0_dp
+    enddo
+
+     xs%x=y
+
+    return
+  end  subroutine rk6_invtpsa_yer
+
+
   subroutine track_yer(c,xs,K)   !electric teapot s
  
     IMPLICIT NONE
@@ -2493,14 +2628,13 @@ th=(sinh(xs%x(1)*C%PARENT_FIBRE%MAGp%bn(8)))/(cosh(xs%x(1)*C%PARENT_FIBRE%MAGp%b
 call kill(x)
   end subroutine track_yep
 
-
   subroutine track_examr(c,xs,K)   !electric teapot s
 use gauss_dis
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(probe), INTENT(INout) :: xs
     TYPE(INTERNAL_STATE) K
-    real(dp) mu ,x,beta,gamma,alpha,b4
+    real(dp) mu ,x,beta,gamma,alpha,b4,b5
     integer n
     C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
     C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
@@ -2515,15 +2649,22 @@ beta=C%PARENT_FIBRE%MAG%bn(2)   !2.d0
 alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
 gamma=(1.0_dp+alpha**2)/beta
 b4=C%PARENT_FIBRE%MAG%bn(4)  !1.0_dp
+b5=C%PARENT_FIBRE%MAG%bn(5)  !1.0_dp
 n=nint(C%PARENT_FIBRE%MAG%bn(3))
 
     x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
     xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
     xs%x(1)=x
+    xs%x(2)=xs%x(2)+ b4*xs%x(1)**n + b5*xs%x(1)**3
+
+return
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
      xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
 
-    xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+   ! xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+    xs%x(2)=xs%x(2)-b4*sin(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+
+
     xs%x(1)=xs%x(1)-C%PARENT_FIBRE%MAG%bn(1)*b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
 
 !call add(m1,2,0,beta)
@@ -2533,7 +2674,7 @@ n=nint(C%PARENT_FIBRE%MAG%bn(3))
 !call add(m1,-3,0,0.d0 )   ! delta stochastic
 !call add(m1,-2,0,alf ) 
 !call add(m1,3,0,power )  ! multipole order
- call GRNF(b4,10.d0)
+ call GRNF(b4,10.0_dp)
     xs%x(2)=xs%x(2)+C%PARENT_FIBRE%MAG%an(3)*b4 
 
 mu=1.5_dp*mu
@@ -2546,6 +2687,7 @@ mu=1.5_dp*mu
     xs%x(5)=x
 
   end subroutine track_examr
+
 
   subroutine track_zher(c,xs,K)   !electric teapot s
 use gauss_dis
@@ -2606,7 +2748,7 @@ use gauss_dis
     TYPE(integration_node),pointer, INTENT(IN):: c
     type(probe_8), INTENT(INout) :: xs
     TYPE(INTERNAL_STATE) K
-    real(dp) mu ,beta,gamma,alpha,b4
+    real(dp) mu ,beta,gamma,alpha,b4,b5 
     type(real_8)  x
     integer n
     C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
@@ -2622,15 +2764,24 @@ beta=C%PARENT_FIBRE%MAG%bn(2)   !2.d0
 alpha=C%PARENT_FIBRE%MAG%an(2)  !1.5d0
 gamma=(1.0_dp+alpha**2)/beta
 b4=C%PARENT_FIBRE%MAG%bn(4)  !1.0_dp
+b5=C%PARENT_FIBRE%MAG%bn(5)  !1.0_dp
 n=nint(C%PARENT_FIBRE%MAG%bn(3))
 
     x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
     xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
     xs%x(1)=x
+    xs%x(2)=xs%x(2)+ b4*xs%x(1)**n + b5*xs%x(1)**3
+
+
+call kill(x)
+
+return
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
      xs%x(2)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(2)
 
-    xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+   ! xs%x(2)=xs%x(2)-b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+    xs%x(2)=xs%x(2)-b4*sin(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
+
     xs%x(1)=xs%x(1)-C%PARENT_FIBRE%MAGp%bn(1)*b4*(xs%x(1)**n+xs%x(1)**(n+1)+xs%x(1)**(n+2)+xs%x(1)**(n+3))
 
     xs%E_ij(2,2)=C%PARENT_FIBRE%MAG%an(3)**2
@@ -2646,6 +2797,7 @@ mu=1.5_dp*mu
 
 call kill(x)
   end subroutine track_examp
+
 
 
   subroutine track_mapr1(c,xs,fac,pos,K)   !electric teapot s
@@ -2711,7 +2863,7 @@ e(pos)=1
 
   end subroutine track_mapr1
 
-
+!eeeeeeeeeeeeeeeeeeeeeeeee
 !(c,q0,qf,pf0,pf,e,dl,k)
 subroutine newtow_searchr2(c,q0,qf,p0,pf,e,dl,k)
     TYPE(integration_node),pointer, INTENT(IN):: c
@@ -2836,7 +2988,8 @@ if(.not.check_stable) return
  
   end subroutine newtow_eval
 
- 
+
+
   subroutine track_mapp1(c,xs,fac,pos,K)   !electric teapot s
     IMPLICIT NONE
     TYPE(integration_node),pointer, INTENT(IN):: c
@@ -3177,7 +3330,7 @@ if(c%parent_fibre%magp%bn(3)>=0) then
    z=z+dl
      xs%x(1)=xs%x(1)+dl*xs%x(2)
      xs%x(3)=xs%x(3)+dl*xs%x(4)
-xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0_dp)
 xs%x(4)=xs%x(4)-dl*k*xs%x(2)*xs%x(4)*rhoi*cosh(k*xs%x(3))
 
 
@@ -3187,10 +3340,10 @@ xs%x(4)=xs%x(4)-dl*k*xs%x(2)*xs%x(4)*rhoi*cosh(k*xs%x(3))
 
 call alloc(x(1))
 x(1)=xs%x(2)*xs%x(1)*dl*rhoi
- xs%x(1)=xs%x(1)*(1.d0+x(1))
- xs%x(2)=xs%x(2)*(1.d0-x(1))
+ xs%x(1)=xs%x(1)*(1.0_dp+x(1))
+ xs%x(2)=xs%x(2)*(1.0_dp-x(1))
  xs%x(1)=xs%x(1)+c%parent_fibre%magp%bn(2)*dl*rhoi*xs%x(1)**2
- xs%x(2)=xs%x(2) +c%parent_fibre%magp%bn(2)*2.d0*dl*rhoi*xs%x(1)*xs%x(2) 
+ xs%x(2)=xs%x(2) +c%parent_fibre%magp%bn(2)*2.0_dp*dl*rhoi*xs%x(1)*xs%x(2) 
 
 call kill(x(1))
 
@@ -3201,7 +3354,7 @@ else
    z=z+dl
      xs%x(1)=xs%x(1)+dl*xs%x(2)
      xs%x(3)=xs%x(3)+dl*xs%x(4)
-xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0d0)
+xs%x(4)=xs%x(4)-dl*((k*rhoi**2*cosh(k*xs%x(3))*sinh(k*xs%x(3)))/2.0_dp)
 
 xs%x(4)=xs%x(4)/(1.0_dp+dl*k*xs%x(2)*rhoi*cosh(k*xs%x(3)))
 
@@ -3212,7 +3365,7 @@ call alloc(x(1))
 x(1)=xs%x(2)*xs%x(1)*dl*rhoi
  xs%x(1)=xs%x(1)*exp(x(1))
  xs%x(2)=xs%x(2)*exp(-x(1))
- xs%x(2)=xs%x(2)/(1.d0+c%parent_fibre%magp%bn(2)*2.d0*dl*rhoi*xs%x(1))
+ xs%x(2)=xs%x(2)/(1.0_dp+c%parent_fibre%magp%bn(2)*2.0_dp*dl*rhoi*xs%x(1))
  xs%x(1)=xs%x(1)+c%parent_fibre%magp%bn(2)*dl*rhoi*xs%x(1)**2
 
 call kill(x(1))
@@ -6813,10 +6966,14 @@ x0_begin=0.0_dp
 
       x0(1:6)=x(1:6)
       x(7:12)=x(1:6)
+y=x(1:6)
 if(no1>1.and.(.not.as_is0)) then
 if(call_gen) then
-y=x(1:6)
+!y=x(1:6)
+
 call track_TREE_probe_gen_only(T,y)
+ 
+
  goto 1000
 endif
      do i=1,3
@@ -6904,12 +7061,19 @@ enddo  ! is
  endif
 
 elseif(.not.as_is0) then
+ 
+
        x(1:6)=matmul(t(3)%rad,x(1:6))
-!!!    
+ 
+!!!    write(
  endif  ! no > 1
 
 1000 continue
-if(call_gen) x(1:6)=matmul(t(3)%rad,y)
+if(call_gen.and.no1>1.and.(.not.as_is0)) then
+ 
+x(1:6)=matmul(t(3)%rad,y)
+ 
+endif
 
 !if(jumpnot) then
     if(spin0) then  ! spin
@@ -6960,7 +7124,7 @@ if(as_is0) then
        x(1:6)=matmul(t(3)%rad,x(1:6))
  endif
 else
-  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))
+!!!!  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))      !  not needed 7/1/2026
 endif
 
  norm=0
@@ -6975,18 +7139,18 @@ enddo
   return
  endif
 
-if(doit) then
+!if(doit) then
 
  
-         do i=1,6
-           x(i)=x(i)+t(1)%fix(i)
-         enddo
-else
+ !        do i=1,6
+!           x(i)=x(i)+t(1)%fix(i)   ! wrong if entrance and exit are different
+!         enddo
+!else
  
          do i=1,6
            x(i)=x(i)+t(3)%fix(i)
          enddo
-endif
+!endif
 
 
 

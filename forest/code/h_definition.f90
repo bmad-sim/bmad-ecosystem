@@ -89,8 +89,6 @@ TYPE sub_taylor
   !@2  UNIVERSAL_TAYLOR is used by Sagan in BMAD Code at Cornell
   !@2  Also used by MAD-XP
 
-
-
   TYPE UNIVERSAL_TAYLOR
      INTEGER, POINTER:: N=>null(),NV=>null()    !  Number of coeeficients and number of variables
      REAL(DP), POINTER,dimension(:)::C=>null()  ! Coefficients C(N)
@@ -102,6 +100,8 @@ TYPE sub_taylor
      complex(DP), POINTER,dimension(:)::C => null() ! Coefficients C(N)
      INTEGER, POINTER,dimension(:,:)::J=> null() ! Exponents of each coefficients J(N,NV)
   END TYPE c_UNIVERSAL_TAYLOR
+
+
   !@3 ---------------------------------------------</br>
   TYPE complextaylor
      type (taylor) r  !@1 Real part
