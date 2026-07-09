@@ -72,7 +72,7 @@ complex(rp) k_0
 
 integer, optional :: integ_order, steps
 integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos, ns, n_map, n_mult
-integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(8)
+integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12), n_ord_pan
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it, change
@@ -540,19 +540,29 @@ endif
 ! Gen_gradients
 
 if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
+  pancake_symplectic = .false.
+  pancake_canonical = .false.   ! Only used if pancake_symplectic = F. Must set True if pancake_symplectic = T.
 
-  if (nint(ele2%value(integrator_order$)) /= 6) ele2%value(integrator_order$) = 4
-  ptc_key%method = nint(ele2%value(integrator_order$))
+  ! If symplectic, order can be 1, 2, 4, 6
+  ! Otherwise, oder can be 4, 6
 
-  if (nint(ele2%value(integrator_order$)) == 4) then
-    n_step = max(nint(ele%value(l$) / (4.0_rp*ele2%value(ds_step$))), 1)
-    n_pan = n_step * 4 + 1
-  else
-    n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
-    n_pan = n_step * 7 + 1
-    dz_step = ele%value(l$) / n_step
+  n_ord_pan = nint(ele2%value(integrator_order$))
+
+  if (pancake_symplectic) then
+    pancake_canonical = .true.
+    if (n_ord_pan /= 6) n_ord_pan = 4
+    ptc_key%method = n_ord_pan
+
+    if (n_ord_pan == 4) then
+      n_step = max(nint(ele%value(l$) / (2.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 2 + 1
+    else
+      n_step = max(nint(ele%value(l$) / (7.0_rp*ele2%value(ds_step$))), 1)
+      n_pan = n_step * 7 + 1
+    endif
   endif
 
+  dz_step = ele%value(l$) / n_step
   gg_map => ele2%gen_gradients(1)
 
   if (key == sbend$ .and. ele%value(g$) /= 0) then
@@ -597,7 +607,7 @@ if (associated(ele2%gen_gradients) .and. ele2%field_calc == fieldmap$) then
   call str_substitute(pancake_name, ':', '-')  ! Make valid file name
 
   ! Note: True => Not canonical tracking.
-  call set_pancake_constants(n_pan, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, .true., pancake_name)
+  call set_pancake_constants(n_step, angc, xc, dc, gg_map%r0(2), hc, lc, hd, ld, pancake_canonical, pancake_symplectic, pancake_name)
 
   ! Max total monomial order of the field map: mark every present GG order and let the coefficient
   ! table (which folds in the g_ref-dependent higher-degree terms) tell us the highest x^p*y^q degree.
@@ -751,11 +761,28 @@ if (ptc_key%magnet == 'PANCAKEBMADZERO') then
   ff = rel_charge * charge_of(ele%ref_species) * c_light / ele2%value(p0c$)
 
   do i = 0, n_pan-1
-    if (nint(ele2%value(integrator_order$)) == 4) then
-      z = z0 + i * ele%value(l$) / (n_pan - 1)
+    if (pancake_symplectic) then
+      select case (n_ord_pan)
+      case (1)
+        z = z0 + i * ele%value(l$) / n_pan
+      case (2)
+        z = z0 + dz_step/2.0_rp + i * dz_step
+      case (4)
+        k = i / 3
+        z = z0 + (k + dz_s_pan3(i-3*k)) * dz_step
+      case (6)
+        k = i / 7
+        z = z0 + (k + dz_s_pan7(i-7*k)) * dz_step
+      end select
+
     else
-      k = i / 7
-      z = z0 + (k + dz_pan7(i-7*k)) * dz_step
+      select case (n_ord_pan)
+      case (4)
+        z = z0 + i * ele%value(l$) / (n_pan - 1)
+      case (6)
+        k = i / 7
+        z = z0 + (k + dz_pan7(i-7*k)) * dz_step
+      end select
     endif
 
     call gen_grad_at_s_to_gg_taylor(ele2, gg_map, z, gg_taylor)
