@@ -25158,7 +25158,7 @@ endif
         c%delta_rad_out=denf/2+c%delta_rad_out
        endif
 endif
-    call alloc(st)
+    call alloc(st,z)
 
     if(k%TIME) then
        ST=SQRT(1.0_dp+2.0_dp*X(5)/EL%P%beta0+x(5)**2)-1.0_dp
@@ -25207,8 +25207,6 @@ endif
           endif
        ELSEif(el%kind==kind22) then
 
-          call alloc(z)
-
           IF(EL%HE22%P%DIR==1) THEN
              Z= pos*el%l/el%p%nst
           ELSE
@@ -25226,7 +25224,6 @@ endif
              X(4)=(X(4)-EL%P%CHARGE*AV(2))*(1.0_dp+X(5))/(1.0_dp+ST)
              X(4)=X(4)+EL%P%CHARGE*AV(2)
           endif
-          call kill(av,3)
 
        ELSE
  if(k%TIME) then
@@ -25246,13 +25243,13 @@ endif
        ENDIF
     endif
 
-    call kill(st)
+    call kill(st,z)
+    call kill(av,3)
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     p%x=x
     call kill(x)
-           call kill(z)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   end subroutine radiate_2_probep
