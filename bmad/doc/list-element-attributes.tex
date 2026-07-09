@@ -57,7 +57,7 @@ field_master                     & reference                        & x_limit [m
 a0 - a20, b0 - b20               & frequencies                      & p0c [eV]                         & type                             \\
 alias                            & fringe_at                        & phi0_multipass [rad/2pi]         & vkick                            \\
 amp_vs_time                      & fringe_type                      & ptc_integration_type             & wall                             \\
-aperture [m]                     & gen_gradients                    & r0_elec [m]                      & wrap_superimpose                 \\
+aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & wrap_superimpose                 \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & x1_limit [m]                     \\
 aperture_type                    & hkick                            & ref_origin                       & x2_limit [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & ref_time_start [sec]             & x_limit [m]                      \\
@@ -151,7 +151,7 @@ b1_gradient [T/m]                & fringe_at                        & num_steps 
 b2_gradient [T/m$^2$]            & fringe_type                      & offset [m]                       & type                             \\
 b_field [T]                      & g [1/m]                          & offset_moves_aperture            & vkick                            \\
 b_field_tot [T]                  & g_tot [1/m]                      & p0c [eV]                         & wall                             \\
-bl_hkick [T*m]                   & gen_gradients                    & ptc_canonical_coords             & wrap_superimpose                 \\
+bl_hkick [T*m]                   & gen_grad_map                     & ptc_canonical_coords             & wrap_superimpose                 \\
 bl_vkick [T*m]                   & grid_field                       & ptc_field_geometry               & x1_limit [m]                     \\
 cartesian_map                    & h1 [1/m]                         & ptc_fringe_geometry              & x2_limit [m]                     \\
 create_jumbo_slave               & h2 [1/m]                         & ptc_integration_type             & x_limit [m]                      \\
@@ -276,7 +276,7 @@ ele_origin                       & n_rf_steps                       & tilt [rad]
 field_calc                       & num_steps                        & tilt_tot [rad]                   & z_offset [m]                     \\
 field_master                     & offset [m]                       & tracking_method                  & z_offset_tot [m]                 \\
 field_overlaps                   & offset_moves_aperture            & type                             &                                  \\
-gen_gradients                    & p0c [eV]                         & vkick                            &                                  \\
+gen_grad_map                     & p0c [eV]                         & vkick                            &                                  \\
  \bottomrule
  \end{tabular}
  \vfill
@@ -417,7 +417,7 @@ integrator_order                 & spin_tracking_method             & x_offset_t
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_type                      & ptc_canonical_coords             & vkick                            \\
 alias                            & gap                              & ptc_integration_type             & voltage [Volt]                   \\
-aperture [m]                     & gen_gradients                    & r0_elec [m]                      & wall                             \\
+aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & wall                             \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & wrap_superimpose                 \\
 aperture_type                    & hkick                            & ref_origin                       & x1_limit [m]                     \\
 cartesian_map                    & integrator_order                 & ref_time_start [sec]             & x2_limit [m]                     \\
@@ -446,7 +446,7 @@ fringe_at                        & p0c [eV]                         & type      
  \begin{tabular}{llll} \toprule
 alias                            & fringe_at                        & phi0_err [rad/2pi]               & wall                             \\
 aperture [m]                     & fringe_type                      & polarity                         & wrap_superimpose                 \\
-aperture_at                      & gen_gradients                    & ptc_canonical_coords             & x1_limit [m]                     \\
+aperture_at                      & gen_grad_map                     & ptc_canonical_coords             & x1_limit [m]                     \\
 aperture_type                    & grid_field                       & ptc_integration_type             & x2_limit [m]                     \\
 autoscale_amplitude              & integrator_order                 & ref_origin                       & x_limit [m]                      \\
 autoscale_phase                  & is_on                            & ref_time_start [sec]             & x_offset [m]                     \\
@@ -478,7 +478,7 @@ alias                            & field_calc                       & p0c [eV]  
 aperture [m]                     & field_overlaps                   & phi0 [rad/2pi]                   & voltage [Volt]                   \\
 aperture_at                      & fringe_at                        & phi0_autoscale [rad/2pi]         & wall                             \\
 aperture_type                    & fringe_type                      & ptc_integration_type             & wrap_superimpose                 \\
-autoscale_amplitude              & gen_gradients                    & ref_origin                       & x1_limit [m]                     \\
+autoscale_amplitude              & gen_grad_map                     & ref_origin                       & x1_limit [m]                     \\
 autoscale_phase                  & gradient [eV/m]                  & ref_time_start [sec]             & x2_limit [m]                     \\
 cartesian_map                    & grid_field                       & reference                        & x_limit [m]                      \\
 create_jumbo_slave               & integrator_order                 & rf_frequency [Hz]                & x_offset [m]                     \\
@@ -720,7 +720,7 @@ hkick                            & space_charge_method              & x_limit [m
  
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_type                      & ptc_integration_type             & wall                             \\
-alias                            & gen_gradients                    & r0_elec [m]                      & wrap_superimpose                 \\
+alias                            & gen_grad_map                     & r0_elec [m]                      & wrap_superimpose                 \\
 aperture [m]                     & grid_field                       & r0_mag [m]                       & x1_limit [m]                     \\
 aperture_at                      & h_displace [m]                   & ref_origin                       & x2_limit [m]                     \\
 aperture_type                    & hkick                            & ref_time_start [sec]             & x_limit [m]                      \\
@@ -751,7 +751,7 @@ fringe_at                        & ptc_canonical_coords             & vkick     
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_at                        & p0c [eV]                         & wall                             \\
 alias                            & fringe_type                      & ptc_canonical_coords             & wrap_superimpose                 \\
-aperture [m]                     & gen_gradients                    & ptc_integration_type             & x1_limit [m]                     \\
+aperture [m]                     & gen_grad_map                     & ptc_integration_type             & x1_limit [m]                     \\
 aperture_at                      & grid_field                       & ref_origin                       & x2_limit [m]                     \\
 aperture_type                    & integrator_order                 & ref_time_start [sec]             & x_limit [m]                      \\
 bl_kick [T*m]                    & is_on                            & reference                        & x_offset [m]                     \\
@@ -783,7 +783,7 @@ aperture [m]                     & field_master                     & offset [m]
 aperture_at                      & field_overlaps                   & offset_moves_aperture            & voltage [Volt]                   \\
 aperture_type                    & fringe_at                        & p0c [eV]                         & voltage_err [Volt]               \\
 autoscale_amplitude              & fringe_type                      & p0c_start [eV]                   & voltage_tot [Volt]               \\
-autoscale_phase                  & gen_gradients                    & phi0 [rad/2pi]                   & wall                             \\
+autoscale_phase                  & gen_grad_map                     & phi0 [rad/2pi]                   & wall                             \\
 bl_hkick [T*m]                   & gradient [eV/m]                  & phi0_autoscale [rad/2pi]         & wrap_superimpose                 \\
 bl_vkick [T*m]                   & gradient_err [eV/m]              & phi0_err [rad/2pi]               & x1_limit [m]                     \\
 bs_field [T]                     & gradient_tot [eV/m]              & phi0_multipass [rad/2pi]         & x2_limit [m]                     \\
@@ -997,7 +997,7 @@ is_on                            & reference                        & x_limit [m
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_at                        & ptc_canonical_coords             & wall                             \\
 alias                            & fringe_type                      & ptc_integration_type             & wrap_superimpose                 \\
-aperture [m]                     & gen_gradients                    & r0_elec [m]                      & x1_limit [m]                     \\
+aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & x1_limit [m]                     \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & x2_limit [m]                     \\
 aperture_type                    & hkick                            & ref_origin                       & x_limit [m]                      \\
 b3_gradient [T/m$^3$]            & integrator_order                 & ref_time_start [sec]             & x_offset [m]                     \\
@@ -1137,7 +1137,7 @@ a0 - a20, b0 - b20               & fq1 [m]                          & offset_mov
 alias                            & fq2 [m]                          & p0c [eV]                         & vkick                            \\
 aperture [m]                     & fringe_at                        & ptc_canonical_coords             & wall                             \\
 aperture_at                      & fringe_type                      & ptc_integration_type             & wrap_superimpose                 \\
-aperture_type                    & gen_gradients                    & r0_elec [m]                      & x1_limit [m]                     \\
+aperture_type                    & gen_grad_map                     & r0_elec [m]                      & x1_limit [m]                     \\
 b1_gradient [T/m]                & grid_field                       & r0_mag [m]                       & x2_limit [m]                     \\
 bl_hkick [T*m]                   & hkick                            & ref_origin                       & x_limit [m]                      \\
 bl_vkick [T*m]                   & integrator_order                 & ref_time_start [sec]             & x_offset [m]                     \\
@@ -1168,7 +1168,7 @@ alias                            & field_calc                       & n_rf_steps
 aperture [m]                     & field_overlaps                   & num_steps                        & tracking_method                  \\
 aperture_at                      & fringe_at                        & offset [m]                       & type                             \\
 aperture_type                    & fringe_type                      & offset_moves_aperture            & vkick                            \\
-autoscale_amplitude              & gen_gradients                    & p0c [eV]                         & voltage [Volt]                   \\
+autoscale_amplitude              & gen_grad_map                     & p0c [eV]                         & voltage [Volt]                   \\
 autoscale_phase                  & gradient [eV/m]                  & phi0 [rad/2pi]                   & wall                             \\
 bl_hkick [T*m]                   & grid_field                       & phi0_autoscale [rad/2pi]         & wrap_superimpose                 \\
 bl_vkick [T*m]                   & harmon                           & phi0_multipass [rad/2pi]         & x1_limit [m]                     \\
@@ -1289,7 +1289,7 @@ ele_origin                       & segmented                        & x_offset [
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_at                        & ptc_canonical_coords             & wall                             \\
 alias                            & fringe_type                      & ptc_integration_type             & wrap_superimpose                 \\
-aperture [m]                     & gen_gradients                    & r0_elec [m]                      & x1_limit [m]                     \\
+aperture [m]                     & gen_grad_map                     & r0_elec [m]                      & x1_limit [m]                     \\
 aperture_at                      & grid_field                       & r0_mag [m]                       & x2_limit [m]                     \\
 aperture_type                    & hkick                            & ref_origin                       & x_limit [m]                      \\
 b2_gradient [T/m$^2$]            & integrator_order                 & ref_time_start [sec]             & x_offset [m]                     \\
@@ -1320,7 +1320,7 @@ field_overlaps                   & p0c [eV]                         & vkick     
 a0 - a20, b0 - b20               & field_overlaps                   & offset_moves_aperture            & type                             \\
 alias                            & fringe_at                        & p0c [eV]                         & vkick                            \\
 aperture [m]                     & fringe_type                      & ptc_canonical_coords             & wall                             \\
-aperture_at                      & gen_gradients                    & ptc_integration_type             & wrap_superimpose                 \\
+aperture_at                      & gen_grad_map                     & ptc_integration_type             & wrap_superimpose                 \\
 aperture_type                    & grid_field                       & r0_elec [m]                      & x1_limit [m]                     \\
 b1_gradient [T/m]                & hkick                            & r0_mag [m]                       & x2_limit [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & ref_origin                       & x_limit [m]                      \\
@@ -1349,7 +1349,7 @@ field_master                     & offset [m]                       & tracking_m
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_at                        & p0c [eV]                         & type                             \\
 alias                            & fringe_type                      & ptc_canonical_coords             & vkick                            \\
-aperture [m]                     & gen_gradients                    & ptc_integration_type             & wall                             \\
+aperture [m]                     & gen_grad_map                     & ptc_integration_type             & wall                             \\
 aperture_at                      & grid_field                       & r0_elec [m]                      & wrap_superimpose                 \\
 aperture_type                    & hkick                            & r0_mag [m]                       & x1_limit [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & r_solenoid [m]                   & x2_limit [m]                     \\
@@ -1402,7 +1402,7 @@ lord_pad2 [m]                    & superimpose                      & x_offset_t
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_at                        & ptc_canonical_coords             & wrap_superimpose                 \\
 alias                            & fringe_type                      & ptc_integration_type             & x1_limit [m]                     \\
-aperture [m]                     & gen_gradients                    & ref_origin                       & x2_limit [m]                     \\
+aperture [m]                     & gen_grad_map                     & ref_origin                       & x2_limit [m]                     \\
 aperture_at                      & grid_field                       & ref_time_start [sec]             & x_limit [m]                      \\
 aperture_type                    & hkick                            & reference                        & x_offset [m]                     \\
 bl_hkick [T*m]                   & integrator_order                 & scale_multipoles                 & x_offset_tot [m]                 \\
@@ -1431,7 +1431,7 @@ field_overlaps                   & p0c [eV]                         & wall      
  \begin{tabular}{llll} \toprule
 a0 - a20, b0 - b20               & fringe_type                      & offset_moves_aperture            & tracking_method                  \\
 alias                            & g_max [1/m]                      & osc_amplitude [m]                & type                             \\
-aperture [m]                     & gen_gradients                    & p0c [eV]                         & vkick                            \\
+aperture [m]                     & gen_grad_map                     & p0c [eV]                         & vkick                            \\
 aperture_at                      & grid_field                       & polarity                         & wall                             \\
 aperture_type                    & hkick                            & ptc_canonical_coords             & wrap_superimpose                 \\
 b_max [T]                        & integrator_order                 & ptc_integration_type             & x1_limit [m]                     \\
