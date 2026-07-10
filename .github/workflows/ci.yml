@@ -1,5 +1,8 @@
 name: Bmad Ecosystem - Build & Test
 
+permissions:
+  contents: read
+
 on:
   # Run on demand, push, or pull request
   workflow_dispatch:
