@@ -15,7 +15,7 @@ subroutine tao_parse_command_args (error, cmd_line)
 use tao_interface, dummy => tao_parse_command_args
 use tao_command_mod, only: tao_cmd_split
 use tao_set_mod, only: tao_set_openmp_n_threads
-use tao_version_mod
+use bmad_version_mod
 
 implicit none
 
@@ -223,7 +223,7 @@ do
     s%global%verbose_on = .true.
 
   case ('-version', '--version')
-    call out_io(s_blank$, r_name, 'Date: ' // tao_version_date)
+    call out_io(s_blank$, r_name, 'Version: ' // bmad_version_date)
     stop
 
   case default
