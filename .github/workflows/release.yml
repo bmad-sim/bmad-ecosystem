@@ -36,6 +36,16 @@ jobs:
           echo "Next version: $(.github/scripts/next_version.sh)"
           echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
 
+      - name: Stamp version in Tao Fortran code
+        run: |
+          VERSION="${{ steps.release_name.outputs.version }}"
+          .github/scripts/update_tao_version.sh "$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tao/version/tao_version_mod.f90
+          git commit -m "REL: $VERSION [skip ci]"
+          git push origin HEAD:main
+
     #   Uncomment this block if we decide to run the tests later
     #   # Install system dependencies
     #   - name: Install System Dependencies
