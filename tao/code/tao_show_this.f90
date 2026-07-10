@@ -18,7 +18,6 @@ subroutine tao_show_this (what, result_id, lines, nl)
 use tao_top10_mod, dummy => tao_show_this
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch, tao_next_word
-use tao_version_mod
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
@@ -32,6 +31,7 @@ use photon_target_mod, only: to_surface_coords
 use expression_mod, only: expression_stack_to_string, split_expression_string
 use beam_utils, only: calc_bunch_params_z_slice
 use bmad_parser_struct, only: bp_com
+use bmad_version_mod
 
 implicit none
 
@@ -6401,7 +6401,7 @@ case ('variables')
 
 case ('version')
 
-  nl=nl+1; lines(nl) = 'Date: ' // tao_version_date
+  nl=nl+1; lines(nl) = 'Version: ' // bmad_version_date
 
 !----------------------------------------------------------------------
 ! wake_elements

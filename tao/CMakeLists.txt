@@ -8,9 +8,7 @@ SET (CREATE_SHARED true)
 SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 
 SET (SRC_DIRS
-  code 
-  ## hook # Now using function pointers
-  version
+  code
   )
 
 SET (EXE_SPECS
