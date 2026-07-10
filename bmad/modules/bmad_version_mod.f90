@@ -5,5 +5,5 @@
 !-
 
 module bmad_version_mod
-character(*), parameter :: bmad_version_date = "2026/07/10 14:30:00"
+character(*), parameter :: bmad_version_date = "20260710-0"
 end module
