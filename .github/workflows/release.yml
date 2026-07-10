@@ -23,8 +23,22 @@ jobs:
       matrix:
         os: [ubuntu-latest]
     steps:
-      # Check out the code from GitHub and all history
+      # Mint a short-lived (1 hour) installation token from the release
+      # GitHub App. The App's private key never expires, so there is no
+      # token to rotate. The App must be installed on this repo and added
+      # to the `main` ruleset bypass list so it can push the release commit.
+      - name: Generate GitHub App token
+        id: app_token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      # Check out the code from GitHub and all history, using the App token
+      # so the version-stamp commit below can be pushed back to main.
       - uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app_token.outputs.token }}
 
 
       - name: Define Release Name
@@ -35,6 +49,27 @@ jobs:
           # and set it as an output variable
           echo "Next version: $(.github/scripts/next_version.sh)"
           echo "version=$(.github/scripts/next_version.sh)" >> $GITHUB_OUTPUT
+
+      # Stamp the release version into the Fortran source and commit it to
+      # main so that the version Tao reports matches the release tag. This
+      # commit must land before the release/tag is created below so the
+      # tagged tree contains the correct version.
+      - name: Get GitHub App user id
+        id: app_user
+        env:
+          GH_TOKEN: ${{ steps.app_token.outputs.token }}
+        run: |
+          echo "id=$(gh api "/users/${{ steps.app_token.outputs.app-slug }}[bot]" --jq .id)" >> "$GITHUB_OUTPUT"
+
+      - name: Stamp Bmad version in Fortran code
+        run: |
+          VERSION="${{ steps.release_name.outputs.version }}"
+          .github/scripts/update_bmad_version.sh "$VERSION"
+          git config user.name "${{ steps.app_token.outputs.app-slug }}[bot]"
+          git config user.email "${{ steps.app_user.outputs.id }}+${{ steps.app_token.outputs.app-slug }}[bot]@users.noreply.github.com"
+          git add bmad/modules/bmad_version_mod.f90
+          git commit -m "REL: $VERSION [skip ci]"
+          git push origin HEAD:main
 
     #   Uncomment this block if we decide to run the tests later
     #   # Install system dependencies
