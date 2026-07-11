@@ -377,6 +377,10 @@ integer, parameter :: inside$ = 3, center_pt$ = 3, start_end$ = 99
 
 integer, parameter :: first_track_edge$ = 11, second_track_edge$ = 12, in_between$ = 13 ! Must be different from upstream_end$, downstream_end$
 
+character(20), parameter :: particle_at_name(13) = [character(20):: &
+                 'GARBAGE!', 'GARBAGE!', 'GARBAGE!', 'GARBAGE!', 'GARBAGE!', 'Surface', 'GARBAGE!', 'Unknown', 'GARBAGE!', 'GARBAGE!', &
+                 'First_Track_Edge', 'Second_Track_Edge', 'In_Between']
+
 character(16), parameter :: fiducial_pt_name(4) = [character(16):: &
       'Entrance_end', 'Exit_End', 'Center', 'None']
 
