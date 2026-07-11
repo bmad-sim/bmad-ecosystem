@@ -66,12 +66,25 @@ if (.not. bmad_com%aperture_limit_on) return
 ! In such cases, query the lord element(s).
 ! Note: Somethimes a program will modify ele%aperture_at or ele%aperture_type so check both.
 
-physical_end = physical_ele_end (particle_at, orb, ele%orientation)
-
 if (ele%aperture_at == lord_defined$ .or. ele%aperture_type == lord_defined$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
+
+    if (orb%s == lord%s_start) then
+      select case (lord%orientation)
+      case (1);  physical_end = entrance_end$
+      case (-1); physical_end = exit_end$
+      end select
+    else if (orb%s == lord%s) then
+      select case (lord%orientation)
+      case (1);  physical_end = exit_end$
+      case (-1); physical_end = entrance_end$
+      end select
+    else
+      return
+    endif
+
     if (.not. lord_edge_aligned (ele, physical_end, lord) .and. lord%aperture_at /= continuous$) cycle
     call check_aperture_limit (orb, lord, particle_at, param, old_orb, check_momentum = .false.)
     if (orb%state /= alive$) return
@@ -93,6 +106,7 @@ endif
 
 ! Check if there is an aperture here. If not, simply return.
 
+physical_end = physical_ele_end (particle_at, orb, ele%orientation)
 if (.not. at_this_ele_end (physical_end, ele%aperture_at)) return
 
 ! Check momentum limits
