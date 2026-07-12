@@ -118,7 +118,7 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_pointer_struct), allocatable, target :: eles2(:)
-type (ele_struct), pointer :: ele_start, ele_end
+type (ele_struct), pointer :: ele, ele_start, ele_end
 type (branch_struct), pointer :: branch
 
 character(*) loc_str
@@ -340,7 +340,6 @@ do
     call re_allocate_eles(eles, n_loc+n_loc2, .true.)
     do i = 1, n_loc2
       eles(n_loc+i)%ele => eles2(i)%ele
-      eles(n_loc+i)%loc = lat_ele_loc_struct(eles2(i)%ele%ix_ele, ib)
     enddo
     n_loc = n_loc + n_loc2
   endif
@@ -354,6 +353,13 @@ if (in_range == 1) then
   call out_io (s_error$, r_name, 'MISSING ELEMENT AFTER ":" IN: ' // loc_str)
   return
 endif
+
+!
+
+do i = 1, n_loc
+  ele => eles(i)%ele
+  eles(i)%loc = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
+enddo
 
 if (present(err)) err = .false.
 
