@@ -22,6 +22,10 @@
 "Expression-val4" ABS 1E-10    -0.02755772
 "Expression-str4" STR  "ran_gauss(0.3*2)+ran_gauss()"
 "Tree-str4" STR        "ran_gauss(0.3*2)+ran_gauss()"
+"Ramper-loc-1" STR    26    0
+"Ramper-loc-2" STR    27    0
+"Ramper-loc-3" STR    28    0
+"Ramper-loc-4" STR    29    0
 "Q1\1#1-n_ramp" ABS 0   1
 "Q1\1#1-p0c" REL 1E-10  2.000000000000E+09
 "Q1\1#1-k1" REL 1E-10  3.000000000000E-01
@@ -88,24 +92,43 @@
 "RAMP_PHASE-val" REL 1E-6  1.000000E-01  1.000000E-01
 "Sort"  STR   ";0;20;68;57;58;17;77;6;12;29;8;70;47;31;24;5;56;27;40;13;44;73;1;4;59;63"
 "Loc1" ABS 0  4  105  200
+"Net1" ABS 0  0  0  0
 "Loc2" ABS 0  0  101  221
+"Net2" ABS 0  0  0  0
 "Loc3" ABS 0  14  115  210
+"Net3" ABS 0  0  0  0
 "Loc4" ABS 0  1  124  219
+"Net4" ABS 0  0  0  0
 "Loc5" ABS 0  104  109  110
+"Net5" ABS 0  0  0  0
 "Loc6" ABS 0  1  18  102  118  213  220
+"Net6" ABS 0  0  0  0  0  0  0
 "Loc7" ABS 0  3  4  5  6  7  8  9  10  11  12  13  14  15
+"Net7" ABS 0  0  0  0  0  0  0  0  0  0  0  0  0  0
 "Loc8" ABS 0  103  24  106  108  25  112  114  116  119
+"Net8" ABS 0  0  0  0  0  0  0  0  0  0
 "Loc9" ABS 0  101  121  122  123
+"Net9" ABS 0  0  0  0  0
 "Loc10" ABS 0  18  118  220
+"Net10" ABS 0  0  0  0
 "Loc11" ABS 0  1  4  18  102  105  118  213  220  223
+"Net11" ABS 0  0  0  0  0  0  0  0  0  0
 "Loc12" ABS 0  2  19  103  119  214  221
+"Net12" ABS 0  0  0  0  0  0  0
 "Loc13" ABS 0  3  20  104  120  215  222
+"Net13" ABS 0  0  0  0  0  0  0
 "Loc14" ABS 0  4  10  105  111  206  223
+"Net14" ABS 0  0  0  0  0  0  0
 "Loc15" ABS 0  9
+"Net15" ABS 0  0
 "Loc16" ABS 0  109  110
+"Net16" ABS 0  0  0
 "Loc17" ABS 0  18  1  4
+"Net17" ABS 0  0  0  0
 "Loc18" ABS 0  2  22  5  7  23  11  13  16  19  103  24  106  108  25  112  114  116  119
+"Net18" ABS 0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0
 "Loc19" ABS 0  16  116  211
+"Net19" ABS 0  0  0  0
 "lat%ic"   ABS 0       1   3   2   4   5   7   6   8   9  11  10  12  13  15  14  16  17  18  19  20  21  22  24  25  26  27  28  29  30  33  34  31  35  23  32  36  37
 "lat%con1"    ABS 0       1   0  17   0
 "lat%con2"    ABS 0       2   0  17   0
@@ -234,7 +257,24 @@
 "Aperture-5"   STR "Lost_Neg_Y"
 "Aperture-6"   STR "Lost_Pos_Y"
 "Aperture-7"   STR "Lost_Neg_X"
-"N_Quad_Loc" ABS 0   9
+"QLoc1" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet1" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc2" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet2" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc3" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet3" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc4" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet4" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc5" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet5" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc6" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet6" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc7" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet7" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc8" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet8" ABS 0  0  0  0  0  0  0  0  0  0
+"QLoc9" ABS 0  8  1  10  2  11  3  9  4  5
+"QNet9" ABS 0  0  0  0  0  0  0  0  0  0
 "Pipe-superimpose-state" STR  "T"
 "Pipe-superimpose-val" REL 1E-14   1.2345679104328156E-02  1.2345679104328156E-02
 "density-1" REL 1E-12  1.174006506878E+04  3.259934931222E+03  1.174006506878E+04  3.259934931222E+03

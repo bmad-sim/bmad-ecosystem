@@ -120,6 +120,7 @@ call lat_ele_locator ('ramper::*', lat, ramper, n, err)
 do i = 1, n
   ele => ramper(i)%ele
   ele%control%var(1)%value = 1.0e-8_rp
+  write (1, '(2a, 2i5)') quote('Ramper-loc-' // int_str(i)), ' STR ', ramper(i)%loc
 enddo
 
 do i = 1, lat%n_ele_max
@@ -162,6 +163,8 @@ do i = 1, size(loc_str)
     write (1, '(a, i0)') '"Loc', i, '" ABS 0  0' 
   else
     write (1, '(a, i0, a, 100(2x, i0))') '"Loc', i, '" ABS 0', (100*eles(j)%ele%ix_branch + eles(j)%ele%ix_ele, j = 1, n_loc)
+    write (1, '(a, i0, a, 100(2x, i0))') '"Net', i, '" ABS 0', (100*(eles(j)%ele%ix_branch - eles(j)%loc%ix_branch) + &
+                                                                    (eles(j)%ele%ix_ele    - eles(j)%loc%ix_ele), j = 1, n_loc)
   endif
 enddo
 
@@ -308,7 +311,11 @@ write (1, '(3a)') '"Aperture-7"   STR "', trim(coord_state_name(orb%state)), '"'
 !
 
 call lat_ele_locator ('quad::*', lat, eles, n_loc, err)
-write (1, '(a, i4)') '"N_Quad_Loc" ABS 0', n_loc
+do i = 1, n_loc
+  write (1, '(a, i0, a, 100(2x, i0))') '"QLoc', i, '" ABS 0', (100*eles(j)%ele%ix_branch + eles(j)%ele%ix_ele, j = 1, n_loc)
+  write (1, '(a, i0, a, 100(2x, i0))') '"QNet', i, '" ABS 0', (100*(eles(j)%ele%ix_branch - eles(j)%loc%ix_branch) + &
+                                                                    (eles(j)%ele%ix_ele - eles(j)%loc%ix_ele), j = 1, n_loc)
+enddo
 
 !----------------------------------------------------------------------
 
