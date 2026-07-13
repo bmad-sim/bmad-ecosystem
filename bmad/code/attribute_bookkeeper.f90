@@ -57,6 +57,7 @@ type (converter_prob_pc_r_struct), pointer :: ppcr
 type (molecular_component_struct), allocatable :: component(:)
 type (material_struct), pointer :: material
 type (material_struct) :: materi
+type (ele_attribute_struct) ds_step_info
 
 real(rp) factor, e_factor, gc, f2, phase, E_tot, polarity, dval(num_ele_attrib$), time, beta
 real(rp) w_inv(3,3), len_old, f, dl, b_max, zmin, ky, kz, tot_mass
@@ -294,7 +295,8 @@ endif
 ! If the ref energy has not been set then, for example, k1 for a bend with field_master = T has not been set.
 ! So have to wait until the energy is set to figure out ds_step.
 
-if (attribute_index(ele, 'DS_STEP') > 0 .and. val(p0c$) > 0) then  ! If this is an attribute for this element...
+ds_step_info = attribute_info(ele, ds_step$)
+if (ds_step_info%state /= does_not_exist$ .and. val(p0c$) > 0) then  ! If this is an attribute for this element...
 
   dz_dl_max_err = 1d-8
 

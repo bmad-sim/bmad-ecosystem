@@ -3098,7 +3098,7 @@ end function attribute_free1
 ! This function overloaded by attribute_free. See attribute_free for more details.
 !-
 
-function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, dependent_attribs_free, why_not_free) result (free)
+function attribute_free2 (ele, attrib_name, err_print_flag, except_overlay, dependent_attribs_free, why_not_free, ix_attrib) result (free)
 
 implicit none
 
@@ -3107,7 +3107,7 @@ type (ele_struct) ele
 
 character(*) attrib_name
 
-integer, optional :: why_not_free
+integer, optional :: why_not_free, ix_attrib
 
 logical free
 logical, optional :: err_print_flag, except_overlay, dependent_attribs_free
@@ -3123,7 +3123,8 @@ endif
 
 ! init & check
 
-free = check_this_attribute_free (ele, attrib_name, ele%branch%lat, err_print_flag, except_overlay, dependent_attribs_free, why_not_free)
+free = check_this_attribute_free (ele, attrib_name, ele%branch%lat, err_print_flag, except_overlay, &
+                                                             dependent_attribs_free, why_not_free, ix_attrib)
 
 end function attribute_free2
 
@@ -3164,7 +3165,7 @@ end function attribute_free3
 !--------------------------------------------------------------------------
 
 function check_this_attribute_free (ele, attrib_name, lat, err_print_flag, except_overlay, &
-                                                           dependent_attribs_free, why_not_free) result (free)
+                                                           dependent_attribs_free, why_not_free, ix_attrib_in) result (free)
 
 implicit none
 
@@ -3176,7 +3177,7 @@ type (ele_attribute_struct) attrib_info
 type (control_struct), pointer :: control
 type (all_pointer_struct) a_ptr
 
-integer, optional :: why_not_free
+integer, optional :: why_not_free, ix_attrib_in
 integer ix_branch, i, ir, ix_attrib, ix, ic, is, il
 
 character(*) attrib_name
@@ -3195,9 +3196,14 @@ dep_attribs_free = logic_option(.false., dependent_attribs_free)
 
 branch => lat%branch(ele%ix_branch)
 
-! Init & check that the name corresponds to an attribute
+! Init & check that the name corresponds to an attribute.
+! Callers in the bookkeeping hot path pass the already-resolved index to skip the name lookup.
 
-ix_attrib = attribute_index(ele, attrib_name)
+if (present(ix_attrib_in)) then
+  ix_attrib = ix_attrib_in
+else
+  ix_attrib = attribute_index(ele, attrib_name)
+endif
 attrib_info = attribute_info(ele, ix_attrib)
 
 a_name = attribute_name (ele, ix_attrib)

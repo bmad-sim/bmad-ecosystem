@@ -44,14 +44,14 @@ if (.not. lord%is_on) return
 do i = 1, lord%n_slave
   slave => pointer_to_slave(lord, i, control)
   attrib_name = control%attribute
-  if (attrib_name == 'L') moved = .true.
+  if (control%ix_attrib == l$) moved = .true.
 
-  select case (attrib_name)
+  select case (control%ix_attrib)
 
   !---------
   ! Edge: Varying lengths takes special code.
 
-  case ('START_EDGE', 'END_EDGE', 'S_POSITION', 'ACCORDION_EDGE', 'L')
+  case (start_edge$, end_edge$, s_position$, accordion_edge$, l$)
 
     if (slave%lord_status == multipass_lord$) then
       do j = 1, slave%n_slave
@@ -65,15 +65,15 @@ do i = 1, lord%n_slave
   !---------
   ! x_limit, y_limit, aperture
 
-  case ('X_LIMIT')
+  case (x_limit$)
     call group_change_this (slave, 'X1_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'X2_LIMIT', control, 1);  if (err_flag) return
 
-  case ('Y_LIMIT')
+  case (y_limit$)
     call group_change_this (slave, 'Y1_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'Y2_LIMIT', control, 1);  if (err_flag) return
 
-  case ('APERTURE') 
+  case (aperture$)
     call group_change_this (slave, 'X1_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'X2_LIMIT', control, 1);  if (err_flag) return
     call group_change_this (slave, 'Y1_LIMIT', control, 1);  if (err_flag) return
@@ -1656,31 +1656,41 @@ do i = 1, slave%n_lord
   endif
 
   ! overlay lord
+  ! An off overlay contributes nothing (overlay_change_this returns immediately for it), so skip all
+  ! of its makeup work rather than resolve the attribute and then discard the result.
 
-  select case (control%attribute)
-  case ('X_LIMIT')
+  if (.not. lord%is_on) cycle
+
+  select case (control%ix_attrib)
+  case (x_limit$)
     call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
-  case ('Y_LIMIT')
+  case (y_limit$)
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
-  case ('APERTURE')
+  case (aperture$)
     call overlay_change_this(lord, slave%value(x1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(x2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y1_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
     call overlay_change_this(lord, slave%value(y2_limit$), control, val_attrib, ptr_attrib);  if (err_flag) return
   case default
-    err_flag = .not. attribute_free (slave, control%attribute, .true., .true., .true.)
+    err_flag = .not. attribute_free (slave, control%attribute, .true., .true., .true., ix_attrib = control%ix_attrib)
     if (err_flag) then
       call out_io (s_abort$, r_name, 'OVERLAY LORD: ' // lord%name, &
            'IS TRYING TO VARY NON-FREE ATTRIBUTE: ' // trim(slave%name) // '[' // trim(control%attribute) // ']')
       return
     endif
 
-    call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
-    if (err_flag) then
-      if (global_com%exit_on_error) call err_exit
-      return
+    ! Use the cached attribute index to avoid re-resolving control%attribute by name every bookkeep.
+    ! Only normal %value attributes take the fast path; the rest fall back to the name-based lookup.
+    if (control%ix_attrib > 0 .and. control%ix_attrib <= num_ele_attrib$) then
+      a_ptr%r => slave%value(control%ix_attrib)
+    else
+      call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
+      if (err_flag) then
+        if (global_com%exit_on_error) call err_exit
+        return
+      endif
     endif
     call overlay_change_this(lord, a_ptr%r, control, val_attrib, ptr_attrib)
   end select
