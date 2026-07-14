@@ -1454,8 +1454,9 @@ end subroutine ptc_rot_xz
 ! This is the Bmad-coordinate implementation: it tracks directly in Bmad phase
 ! space (no PTC coordinate conversion) using the bmad_wedger and
 ! bmad_fringe_dipoler helper routines. It reproduces the results of the
-! reference routine exact_bend_edge_kick_ptc. See the writeup in
-! bmad/doc/exact-bend-edge-bmad-coords.tex for the derivation.
+! reference routine exact_bend_edge_kick_ptc. See the Bmad manual section
+! "Exact Dipole Hard Edge Fringe Map" for the formulas, and the note
+! bmad/doc/notes/exact-bend-edge-bmad-coords.tex for the full derivation.
 !
 ! Input:
 !   ele         -- ele_struct: SBend element.
