@@ -8,7 +8,8 @@ module fringe_mod
 
 use bmad_routine_interface
 
-! Private routines for exact_bend_edge_kick
+! Private routines for exact_bend_edge_kick and exact_bend_edge_kick_ptc
+private bmad_rot_xz, bmad_wedger, bmad_fringe_dipoler
 private ptc_rot_xz, ptc_wedger, ptc_fringe_dipoler
 
 contains
@@ -1448,8 +1449,498 @@ end subroutine ptc_rot_xz
 !+
 ! Subroutine exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
-! Subroutine to track through the edge field of an sbend.
-! Uses routines adapted from PTC
+! Subroutine to track through the hard edge field of an sbend.
+!
+! This is the Bmad-coordinate implementation: it tracks directly in Bmad phase
+! space (no PTC coordinate conversion) using the bmad_wedger and
+! bmad_fringe_dipoler helper routines. It reproduces the results of the
+! reference routine exact_bend_edge_kick_ptc. See the writeup in
+! bmad/doc/exact-bend-edge-bmad-coords.tex for the derivation.
+!
+! Input:
+!   ele         -- ele_struct: SBend element.
+!   param       -- lat_param_struct:
+!   particle_at -- Integer: first_track_edge$, or second_track_edge$.
+!   orb         -- Coord_struct: Starting coords.
+!   mat6(6,6)   -- Real(rp), optional: Transfer matrix up to the edge.
+!   make_matrix -- logical, optional: Propagate the transfer matrix? Default is False.
+!
+! Output:
+!   orb        -- Coord_struct: Coords after tracking.
+!   mat6(6,6)  -- Real(rp), optional: Transfer matrix through the edge.
+!-
+
+subroutine exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+
+implicit none
+
+type (coord_struct) :: orb
+type (ele_struct) :: ele
+type (lat_param_struct) param
+
+real(rp), optional :: mat6(6,6)
+real(rp) :: mat6_int(6,6), vec(6)
+real(rp) :: beta0, g_tot, edge_angle, hgap, fint, z0, ee, beta
+
+integer :: particle_at
+
+logical err_flag, matrix
+logical, optional :: make_matrix
+character(*), parameter :: r_name = 'exact_bend_edge_kick'
+
+!
+
+matrix = logic_option(.false., make_matrix)
+
+beta0 = ele%value(p0c$) / ele%value(e_tot$)
+if (ele%is_on) then
+  g_tot = ele%value(g$) + ele%value(dg$)
+else
+  g_tot = 0
+endif
+
+if (physical_ele_end(particle_at, orb, ele%orientation) == entrance_end$) then
+  edge_angle = orb%time_dir * ele%value(e1$)
+  fint = ele%value(fint$)
+  hgap = ele%value(hgap$)
+else
+  edge_angle = orb%time_dir * ele%value(e2$)
+  fint = ele%value(fintx$)
+  hgap = ele%value(hgapx$)
+endif
+
+vec = orb%vec
+z0 = vec(5)
+
+if (particle_at == first_track_edge$) then
+  ! Drift forward
+  call bmad_wedger (edge_angle, 0.0_rp, beta0, vec, err_flag, mat6_int, make_matrix)
+  if (err_flag) then; orb%state = lost_pz$; return; endif
+  if (matrix) mat6 = matmul(mat6_int, mat6)
+
+  ! Edge kick
+  call bmad_fringe_dipoler (vec, g_tot, beta0, orb%time_dir*fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
+  if (err_flag) then; orb%state = lost_pz$; return; endif
+  if (matrix) mat6 = matmul(mat6_int, mat6)
+
+  ! Backtrack
+  call bmad_wedger (-edge_angle, g_tot, beta0, vec, err_flag, mat6_int, make_matrix)
+  if (err_flag) then; orb%state = lost_pz$; return; endif
+  if (matrix) mat6 = matmul(mat6_int, mat6)
+
+else if (particle_at == second_track_edge$) then
+  ! Backtrack
+  call bmad_wedger (-edge_angle, g_tot, beta0, vec, err_flag, mat6_int, make_matrix)
+  if (err_flag) then; orb%state = lost_pz$; return; endif
+  if (matrix) mat6 = matmul(mat6_int, mat6)
+
+  ! Edge kick
+  call bmad_fringe_dipoler (vec, g_tot, beta0, orb%time_dir*fint, hgap, particle_at, err_flag, mat6_int, make_matrix)
+  if (err_flag) then; orb%state = lost_pz$; return; endif
+  if (matrix) mat6 = matmul(mat6_int, mat6)
+
+  ! Drift forward
+  call bmad_wedger (edge_angle, 0.0_rp, beta0, vec, err_flag, mat6_int, make_matrix)
+  if (err_flag) then; orb%state = lost_pz$; return; endif
+  if (matrix) mat6 = matmul(mat6_int, mat6)
+
+else
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+! Update orbit. The particle velocity beta is constant through the edge (static
+! magnetic field => energy conserved), and z = -beta*c*(t - t0), so the
+! change in arrival time follows from the net change in z.
+
+ee = sqrt((1 + vec(6))**2 + 1/beta0**2 - 1)
+beta = (1 + vec(6)) / ee
+orb%t = orb%t - (vec(5) - z0) / (beta * c_light)
+orb%vec = vec
+
+end subroutine exact_bend_edge_kick
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! private subroutine bmad_wedger (a, g_tot, beta0, vec, err_flag, mat6, make_matrix)
+!
+! Bmad-coordinate version of ptc_wedger: transport through a wedge of bend field.
+! Tracks the arc through a wedge of curvature b1 = g_tot from the plane
+! perpendicular to the trajectory to the pole face tilted by angle a. If
+! g_tot = 0 this reduces to the field-free frame rotation bmad_rot_xz.
+!
+! Input:
+!   a           -- real(rp): wedge angle (rad).
+!   g_tot       -- real(rp): reference bending curvature.
+!   beta0       -- real(rp): reference relativistic beta.
+!   vec(6)      -- real(rp): Bmad phase space coordinates.
+!   make_matrix -- logical, optional: Propagate transfer matrix? Default is False.
+!
+! Output:
+!   vec(6)      -- real(rp): Bmad phase space coordinates.
+!   err_flag    -- logical: Set true if there is a problem.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix of the wedge map.
+!-
+
+subroutine bmad_wedger (a, g_tot, beta0, vec, err_flag, mat6, make_matrix)
+
+implicit none
+
+real(rp) :: a, g_tot, beta0, vec(6)
+real(rp), optional :: mat6(6,6)
+real(rp) :: b1, x, px, py, delta, pp, ps, pt, ca, sa, s2a, s2, pxn, psn, den, num, L
+real(rp) :: dps_px, dps_py, dps_de, dpt_py, dpt_de
+real(rp) :: dpxn_x, dpxn_px, dpxn_py, dpxn_de
+real(rp) :: dpsn_x, dpsn_px, dpsn_py, dpsn_de
+real(rp) :: dden_x, dden_px, dden_py, dden_de
+real(rp) :: dnum_x, dnum_px, dnum_py, dnum_de
+real(rp) :: sain, sbin, dApx, dApy, dAde, dBx, dBpx, dBpy, dBde
+real(rp) :: dL_x, dL_px, dL_py, dL_de
+
+logical err_flag
+logical, optional :: make_matrix
+character(*), parameter :: r_name = 'bmad_wedger'
+
+!
+
+err_flag = .true.
+b1 = g_tot
+
+if (b1 == 0) then
+  call bmad_rot_xz (a, beta0, vec, err_flag, mat6, make_matrix)
+  return
+endif
+
+x = vec(1); px = vec(2); py = vec(4); delta = vec(6)
+pp = 1 + delta
+ps = pp**2 - px**2 - py**2
+if (ps <= 0) return
+ps = sqrt(ps)
+pt = pp**2 - py**2
+if (pt <= 0) return
+pt = sqrt(pt)
+ca = cos(a); sa = sin(a); s2a = sin(2.0_rp*a); s2 = sa**2
+
+pxn = px*ca + (ps - b1*x)*sa
+psn = pt**2 - pxn**2
+if (psn <= 0) return
+psn = sqrt(psn)
+den = psn + ps*ca - px*sa
+num = x*px*s2a + s2*(2*x*ps - b1*x**2)
+L = (a + asin(px/pt) - asin(pxn/pt)) / b1
+
+if (logic_option(.false., make_matrix)) then
+  dps_px = -px/ps;  dps_py = -py/ps;  dps_de = pp/ps
+  dpt_py = -py/pt;  dpt_de = pp/pt
+  dpxn_x = -b1*sa;  dpxn_px = ca + dps_px*sa;  dpxn_py = dps_py*sa;  dpxn_de = dps_de*sa
+  dpsn_x  = (-pxn*dpxn_x)  / psn
+  dpsn_px = (-pxn*dpxn_px) / psn
+  dpsn_py = (pt*dpt_py - pxn*dpxn_py) / psn
+  dpsn_de = (pt*dpt_de - pxn*dpxn_de) / psn
+  dden_x  = dpsn_x
+  dden_px = dpsn_px + dps_px*ca - sa
+  dden_py = dpsn_py + dps_py*ca
+  dden_de = dpsn_de + dps_de*ca
+  dnum_x  = px*s2a + s2*(2*ps - 2*b1*x)
+  dnum_px = x*s2a + s2*2*x*dps_px
+  dnum_py = s2*2*x*dps_py
+  dnum_de = s2*2*x*dps_de
+  sain = sqrt(1 - (px/pt)**2)
+  sbin = sqrt(1 - (pxn/pt)**2)
+  dApx = 1/pt
+  dApy = -px*dpt_py/pt**2
+  dAde = -px*dpt_de/pt**2
+  dBx  = dpxn_x/pt
+  dBpx = dpxn_px/pt
+  dBpy = (dpxn_py*pt - pxn*dpt_py)/pt**2
+  dBde = (dpxn_de*pt - pxn*dpt_de)/pt**2
+  dL_x  = (-dBx/sbin) / b1
+  dL_px = (dApx/sain - dBpx/sbin) / b1
+  dL_py = (dApy/sain - dBpy/sbin) / b1
+  dL_de = (dAde/sain - dBde/sbin) / b1
+
+  call mat_make_unit(mat6)
+  mat6(1,1) = ca + (dnum_x*den - num*dden_x)/den**2
+  mat6(1,2) = (dnum_px*den - num*dden_px)/den**2
+  mat6(1,4) = (dnum_py*den - num*dden_py)/den**2
+  mat6(1,6) = (dnum_de*den - num*dden_de)/den**2
+  mat6(2,1) = dpxn_x
+  mat6(2,2) = dpxn_px
+  mat6(2,4) = dpxn_py
+  mat6(2,6) = dpxn_de
+  mat6(3,1) = py*dL_x
+  mat6(3,2) = py*dL_px
+  mat6(3,4) = L + py*dL_py
+  mat6(3,6) = py*dL_de
+  mat6(5,1) = -pp*dL_x
+  mat6(5,2) = -pp*dL_px
+  mat6(5,4) = -pp*dL_py
+  mat6(5,6) = -L - pp*dL_de
+endif
+
+vec(1) = x*ca + num/den
+vec(2) = pxn
+vec(3) = vec(3) + py*L
+vec(5) = vec(5) - pp*L
+err_flag = .false.
+
+end subroutine bmad_wedger
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! private subroutine bmad_rot_xz (a, beta0, vec, err_flag, mat6, make_matrix)
+!
+! Bmad-coordinate version of ptc_rot_xz: rotation of the local reference frame
+! about the y axis by angle a (field-free wedge).
+!
+! Input:
+!   a           -- real(rp): rotation angle (rad).
+!   beta0       -- real(rp): reference relativistic beta.
+!   vec(6)      -- real(rp): Bmad phase space coordinates.
+!   make_matrix -- logical, optional: Make the matrix? Default is False.
+!
+! Output:
+!   vec(6)      -- real(rp): Bmad phase space coordinates.
+!   err_flag    -- logical: Set true if there is a problem.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix of the rotation map.
+!-
+
+subroutine bmad_rot_xz (a, beta0, vec, err_flag, mat6, make_matrix)
+
+implicit none
+
+real(rp) :: a, beta0, vec(6)
+real(rp), optional :: mat6(6,6)
+real(rp) :: x, px, py, delta, pp, ps, ca, sa, den, L
+real(rp) :: dps_px, dps_py, dps_de, dd_px, dd_py, dd_de
+real(rp) :: dL_x, dL_px, dL_py, dL_de
+
+logical err_flag
+logical, optional :: make_matrix
+character(*), parameter :: r_name = 'bmad_rot_xz'
+
+!
+
+err_flag = .true.
+x = vec(1); px = vec(2); py = vec(4); delta = vec(6)
+pp = 1 + delta
+ps = pp**2 - px**2 - py**2
+if (ps <= 0) return
+ps = sqrt(ps)
+ca = cos(a); sa = sin(a)
+den = ps*ca - px*sa
+L = x*sa/den
+
+if (logic_option(.false., make_matrix)) then
+  dps_px = -px/ps;  dps_py = -py/ps;  dps_de = pp/ps
+  dd_px = dps_px*ca - sa;  dd_py = dps_py*ca;  dd_de = dps_de*ca
+  dL_x = sa/den
+  dL_px = -x*sa*dd_px/den**2
+  dL_py = -x*sa*dd_py/den**2
+  dL_de = -x*sa*dd_de/den**2
+
+  call mat_make_unit(mat6)
+  mat6(1,1) = ps/den
+  mat6(1,2) = x*(dps_px*den - ps*dd_px)/den**2
+  mat6(1,4) = x*(dps_py*den - ps*dd_py)/den**2
+  mat6(1,6) = x*(dps_de*den - ps*dd_de)/den**2
+  mat6(2,2) = ca + dps_px*sa
+  mat6(2,4) = dps_py*sa
+  mat6(2,6) = dps_de*sa
+  mat6(3,1) = py*dL_x
+  mat6(3,2) = py*dL_px
+  mat6(3,4) = L + py*dL_py
+  mat6(3,6) = py*dL_de
+  mat6(5,1) = -pp*dL_x
+  mat6(5,2) = -pp*dL_px
+  mat6(5,4) = -pp*dL_py
+  mat6(5,6) = -L - pp*dL_de
+endif
+
+vec(1) = x*ps/den
+vec(2) = px*ca + ps*sa
+vec(3) = vec(3) + py*L
+vec(5) = vec(5) - pp*L
+err_flag = .false.
+
+end subroutine bmad_rot_xz
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! private subroutine bmad_fringe_dipoler (vec, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6, make_matrix)
+!
+! Bmad-coordinate version of ptc_fringe_dipoler: the exact hard edge dipole
+! fringe impulse.
+!
+! Input:
+!   vec(6)      -- real(rp): Bmad phase space coordinates.
+!   g_tot       -- real(rp): reference bending curvature.
+!   beta0       -- real(rp): reference relativistic beta.
+!   fint        -- real(rp): field integral for pole face.
+!   hgap        -- real(rp): gap height at pole face (m). Only fint*hgap is used.
+!   particle_at -- integer: first_track_edge$, or second_track_edge$.
+!   make_matrix -- logical, optional: Make the matrix? Default is False.
+!
+! Output:
+!   vec(6)      -- real(rp): Bmad phase space coordinates.
+!   err_flag    -- logical: Set true if there is a problem.
+!   mat6(6,6)   -- real(rp), optional: Transfer matrix of the fringe map.
+!-
+
+subroutine bmad_fringe_dipoler (vec, g_tot, beta0, fint, hgap, particle_at, err_flag, mat6, make_matrix)
+
+implicit none
+
+real(rp) :: vec(6), g_tot, beta0, fint, hgap
+real(rp), optional :: mat6(6,6)
+real(rp) :: b, x, px, y, py, z, delta, pp, ee, beta, dbeta_de, ps, xp, yp, kap, fac2
+real(rp) :: d(3,3), fi(3), fi0, fi0t, co1, co2
+real(rp) :: bb1, bb2, bb3, ynew, sq, f2, m33, dtau
+real(rp) :: dps(3), dtf(3), dxp(3), dyp(3)
+real(rp) :: d11(3), d21(3), d31(3), d22(3), d32(3), d13(3), d23(3), d33(3)
+real(rp) :: dco2(3), dco1(3), dfi0(3), dfi1(3), dfi2(3), dfi3(3), dfi0t(3)
+real(rp) :: yc(3), tauc(3)
+
+integer :: particle_at, k
+logical err_flag
+logical, optional :: make_matrix
+character(*), parameter :: r_name = 'bmad_fringe_dipoler'
+
+!
+
+err_flag = .true.
+
+if (particle_at == second_track_edge$) then
+  b = -g_tot
+else if (particle_at == first_track_edge$) then
+  b = g_tot
+else
+  call out_io (s_fatal$, r_name, 'INVALID PARTICLE_AT')
+  if (global_com%exit_on_error) call err_exit
+  return
+endif
+
+x = vec(1); px = vec(2); y = vec(3); py = vec(4); z = vec(5); delta = vec(6)
+pp = 1 + delta
+ps = pp**2 - px**2 - py**2
+if (ps <= 0) return
+ps = sqrt(ps)
+ee = sqrt(pp**2 + 1/beta0**2 - 1)           ! Normalized total energy (PTC time_fac)
+beta = pp / ee
+xp = px/ps; yp = py/ps
+kap = b*fint*hgap
+fac2 = 1 + yp**2
+
+d(1,1) = (1+xp**2)/ps;  d(2,1) = xp*yp/ps;      d(3,1) = -xp
+d(1,2) = xp*yp/ps;      d(2,2) = fac2/ps;       d(3,2) = -yp
+d(1,3) = -ee*xp/ps**2;  d(2,3) = -ee*yp/ps**2;  d(3,3) = ee/ps
+
+fi0 = atan(xp/fac2) - 2*kap*(1 + xp**2*(2+yp**2))*ps
+co2 = b/cos(fi0)**2
+co1 = co2/(1 + (xp/fac2)**2)
+fi(1) = co1/fac2 - 4*kap*co2*xp*(2+yp**2)*ps
+fi(2) = -2*co1*xp*yp/fac2**2 - 4*kap*co2*xp**2*yp*ps
+fi(3) = -2*kap*co2*(1 + xp**2*(2+yp**2))
+fi0t = b*tan(fi0)
+
+bb2 = fi(1)*d(1,2) + fi(2)*d(2,2) + fi(3)*d(3,2)
+sq = 1 - 2*bb2*y
+if (sq < 0) return
+sq = sqrt(sq)
+ynew = 2*y/(1 + sq)
+bb1 = fi(1)*d(1,1) + fi(2)*d(2,1) + fi(3)*d(3,1)
+bb3 = fi(1)*d(1,3) + fi(2)*d(2,3) + fi(3)*d(3,3)
+
+if (logic_option(.false., make_matrix)) then
+  dbeta_de = (1/beta0**2 - 1)/ee**3
+  f2 = (1 + sq)**2
+  m33 = 2/(1 + sq) + 2*y*bb2/(sq*f2)          ! d(ynew)/dy
+  ! Seeds for the three active columns: px (k=1), py (k=2), delta (k=3).
+  dps = [-px/ps, -py/ps, pp/ps]
+  dtf = [0.0_rp, 0.0_rp, pp/ee]
+  dxp = [1/ps - px*dps(1)/ps**2, -px*dps(2)/ps**2, -px*dps(3)/ps**2]
+  dyp = [-py*dps(1)/ps**2, 1/ps - py*dps(2)/ps**2, -py*dps(3)/ps**2]
+  do k = 1, 3
+    d11(k) = 2*xp*dxp(k)/ps - (1+xp**2)*dps(k)/ps**2
+    d21(k) = xp*dyp(k)/ps + yp*dxp(k)/ps - xp*yp*dps(k)/ps**2
+    d31(k) = -dxp(k)
+    d22(k) = 2*yp*dyp(k)/ps - fac2*dps(k)/ps**2
+    d32(k) = -dyp(k)
+    d13(k) = 2*ee*xp*dps(k)/ps**3 - ee*dxp(k)/ps**2 - xp*dtf(k)/ps**2
+    d23(k) = 2*ee*yp*dps(k)/ps**3 - ee*dyp(k)/ps**2 - yp*dtf(k)/ps**2
+    d33(k) = -ee*dps(k)/ps**2 + dtf(k)/ps
+    dfi0(k) = -2*kap*(1+xp**2*(2+yp**2))*dps(k) &
+              - 2*kap*ps*(2*xp*(2+yp**2)*dxp(k) + 2*xp**2*yp*dyp(k)) &
+              + (dxp(k)/fac2 - 2*xp*yp*dyp(k)/fac2**2)/(1 + (xp/fac2)**2)
+    dco2(k) = 2*b*tan(fi0)*dfi0(k)/cos(fi0)**2
+    dco1(k) = dco2(k)/(1 + (xp/fac2)**2) &
+              - co2*(2*xp*dxp(k)/fac2**2 - 4*xp**2*yp*dyp(k)/fac2**3)/(1 + (xp/fac2)**2)**2
+    dfi1(k) = -4*kap*ps*xp*(2+yp**2)*dco2(k) - 4*kap*co2*xp*(2+yp**2)*dps(k) &
+              - 4*kap*co2*ps*(2+yp**2)*dxp(k) - 8*kap*co2*ps*xp*yp*dyp(k) &
+              + dco1(k)/fac2 - 2*co1*yp*dyp(k)/fac2**2
+    dfi2(k) = -4*kap*ps*xp**2*yp*dco2(k) - 4*kap*co2*xp**2*yp*dps(k) &
+              - 8*kap*co2*ps*xp*yp*dxp(k) - 4*kap*co2*ps*xp**2*dyp(k) &
+              - 2*xp*yp*dco1(k)/fac2**2 - 2*co1*yp*dxp(k)/fac2**2 &
+              + 8*co1*xp*yp**2*dyp(k)/fac2**3 - 2*co1*xp*dyp(k)/fac2**2
+    dfi3(k) = -2*kap*(1+xp**2*(2+yp**2))*dco2(k) &
+              - 2*co2*kap*(2*xp*(2+yp**2)*dxp(k) + 2*xp**2*yp*dyp(k))
+    dfi0t(k) = b*dfi0(k)/cos(fi0)**2
+    yc(k) = 2*y**2*(fi(1)*d21(k) + fi(2)*d22(k) + fi(3)*d32(k) + &
+                    d(1,2)*dfi1(k) + d(2,2)*dfi2(k) + d(3,2)*dfi3(k)) / (sq*f2)
+    tauc(k) = -ynew*bb3*yc(k) - 0.5_rp*ynew**2 * &
+              (fi(1)*d13(k) + fi(2)*d23(k) + fi(3)*d33(k) + &
+               d(1,3)*dfi1(k) + d(2,3)*dfi2(k) + d(3,3)*dfi3(k))
+  enddo
+  dtau = -0.5_rp*bb3*ynew**2
+
+  call mat_make_unit(mat6)
+  ! Column map: px -> 2, py -> 4, delta -> 6.
+  ! Row 3 (y): ynew
+  mat6(3,2) = yc(1);  mat6(3,4) = yc(2);  mat6(3,6) = yc(3);  mat6(3,3) = m33
+  ! Row 4 (py): pynew = py - fi0t*ynew
+  mat6(4,2) = -fi0t*yc(1) - ynew*dfi0t(1)
+  mat6(4,4) = 1 - fi0t*yc(2) - ynew*dfi0t(2)
+  mat6(4,6) = -fi0t*yc(3) - ynew*dfi0t(3)
+  mat6(4,3) = -fi0t*m33
+  ! Row 1 (x): xnew = x + bb1*ynew^2/2
+  mat6(1,2) = ynew*bb1*yc(1) + 0.5_rp*ynew**2 * &
+              (fi(1)*d11(1)+fi(2)*d21(1)+fi(3)*d31(1)+d(1,1)*dfi1(1)+d(2,1)*dfi2(1)+d(3,1)*dfi3(1))
+  mat6(1,4) = ynew*bb1*yc(2) + 0.5_rp*ynew**2 * &
+              (fi(1)*d11(2)+fi(2)*d21(2)+fi(3)*d31(2)+d(1,1)*dfi1(2)+d(2,1)*dfi2(2)+d(3,1)*dfi3(2))
+  mat6(1,6) = ynew*bb1*yc(3) + 0.5_rp*ynew**2 * &
+              (fi(1)*d11(3)+fi(2)*d21(3)+fi(3)*d31(3)+d(1,1)*dfi1(3)+d(2,1)*dfi2(3)+d(3,1)*dfi3(3))
+  mat6(1,3) = ynew*bb1*m33
+  ! Row 5 (z): znew = z - beta*dtau  (with beta = beta(delta))
+  mat6(5,2) = -beta*tauc(1)
+  mat6(5,4) = -beta*tauc(2)
+  mat6(5,3) = beta*ynew*bb3*m33
+  mat6(5,6) = -dbeta_de*dtau - beta*tauc(3)
+endif
+
+vec(1) = x + 0.5_rp*bb1*ynew**2
+vec(3) = ynew
+vec(4) = py - fi0t*ynew
+vec(5) = z + 0.5_rp*beta*bb3*ynew**2
+err_flag = .false.
+
+end subroutine bmad_fringe_dipoler
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine exact_bend_edge_kick_ptc (ele, param, particle_at, orb, mat6, make_matrix)
+!
+! Reference implementation of exact_bend_edge_kick that works in PTC phase-space
+! coordinates (converts Bmad -> PTC, tracks, converts back). Kept for regression
+! testing and benchmarking against the Bmad-coordinate exact_bend_edge_kick.
+! Uses routines adapted from PTC.
 !
 ! Input:
 !   ele         -- ele_struct: SBend element.
@@ -1464,7 +1955,7 @@ end subroutine ptc_rot_xz
 !   mat6       -- Real(rp), optional: Transfer matrix through the edge.
 !-
 
-subroutine exact_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
+subroutine exact_bend_edge_kick_ptc (ele, param, particle_at, orb, mat6, make_matrix)
 
 use ptc_interface_mod
 
@@ -1685,6 +2176,6 @@ vec_bmad = vec_temp
 
 end subroutine vec_ptc_to_bmad 
 
-end subroutine exact_bend_edge_kick
+end subroutine exact_bend_edge_kick_ptc
 
 end module
