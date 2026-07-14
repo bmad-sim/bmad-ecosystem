@@ -1620,13 +1620,13 @@ ps = pp**2 - px**2 - py**2
 if (ps <= 0) return
 ps = sqrt(ps)
 pt = pp**2 - py**2
-if (pt <= 0) return
+if (pt < 1e-10) return
 pt = sqrt(pt)
 ca = cos(a); sa = sin(a); s2a = sin(2.0_rp*a); s2 = sa**2
 
 pxn = px*ca + (ps - b1*x)*sa
 psn = pt**2 - pxn**2
-if (psn <= 0) return
+if (psn < 1e-10) return
 psn = sqrt(psn)
 den = psn + ps*ca - px*sa
 num = x*px*s2a + s2*(2*x*ps - b1*x**2)
