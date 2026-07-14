@@ -228,60 +228,60 @@ edge.
 \subsection{Wedge Map}
 
 The wedge transports a particle through a wedge of angle $a$ of a dipole of curvature $b = g_\tot$.
-With $p_x'$ the updated horizontal momentum and $p_s' = \sqrt{p_t^2 - p_x'^2}$,
+With $\overline{p_x}$ the updated horizontal momentum and $\overline{p_s} = \sqrt{p_t^2 - \overline{p_x}^2}$,
 \begin{align}
-  p_x' &= p_x \cos a + (p_s - b \, x) \sin a \CRNO
-  x'   &= x \cos a
-     + \frac{x \, p_x \, \sin 2a + \sin^2\!a \, (2 \, x \, p_s - b \, x^2)}{p_s' + p_s \cos a - p_x \sin a} \CRNO
-  L    &= \frac{1}{b} \left[ a + \arcsin \frac{p_x}{p_t} - \arcsin \frac{p_x'}{p_t} \right] \\
-  y'   &= y + p_y \, L \CRNO
-  z'   &= z - (1 + p_z) \, L \nonumber
+  \overline{p_x} &= p_x \cos a + (p_s - b \, x) \sin a \CRNO
+  \overline{x}   &= x \cos a
+     + \frac{x \, p_x \, \sin 2a + \sin^2\!a \, (2 \, x \, p_s - b \, x^2)}{\overline{p_s} + p_s \cos a - p_x \sin a} \CRNO
+  L    &= \frac{1}{b} \left[ a + \arcsin \frac{p_x}{p_t} - \arcsin \frac{\overline{p_x}}{p_t} \right] \\
+  \overline{y}   &= y + p_y \, L \CRNO
+  \overline{z}   &= z - (1 + p_z) \, L \nonumber
 \end{align}
 with $p_y$ and $p_z$ unchanged. Here $L$ is the arc-length parameter of the map. In the field-free
 limit $b \to 0$ (the stage~1 drift to the pole face) the wedge reduces to a rotation of the reference
 frame about the vertical axis,
 \begin{align}
-  x'   &= \frac{x \, p_s}{p_s \cos a - p_x \sin a}, \qquad\qquad
-  p_x'  = p_x \cos a + p_s \sin a, \CRNO
+  \overline{x}   &= \frac{x \, p_s}{p_s \cos a - p_x \sin a}, \qquad\qquad
+  \overline{p_x}  = p_x \cos a + p_s \sin a, \CRNO
   L    &= \frac{x \sin a}{p_s \cos a - p_x \sin a}, \qquad
-  y'    = y + p_y \, L, \qquad
-  z'    = z - (1 + p_z) \, L.
+  \overline{y}    = y + p_y \, L, \qquad
+  \overline{z}    = z - (1 + p_z) \, L.
 \end{align}
 
 \subsection{Hard Edge Fringe Kick}
 
 The hard edge fringe kick uses $b = g_\tot$ at the entrance face and $b = -g_\tot$ at the exit face.
-Define the slopes $x_p = p_x / p_s$ and $y_p = p_y / p_s$, the field integral product
-$K = f_{int} \, h_{gap}$, and the fringe angle
+Using the momentum ratios (trajectory slopes, \sref{s:phase.space}) $x' = p_x / p_s$ and
+$y' = p_y / p_s$, the field integral product $K = f_{int} \, h_{gap}$, and the fringe angle
 \begin{equation}
-  \phi_0 = \arctan \frac{x_p}{1 + y_p^2}
-    - 2 \, b \, K \, \bigl[ 1 + x_p^2 \, (2 + y_p^2) \bigr] \, p_s.
+  \phi_0 = \arctan \frac{x'}{1 + y'^2}
+    - 2 \, b \, K \, \bigl[ 1 + x'^2 \, (2 + y'^2) \bigr] \, p_s,
 \end{equation}
-Let $d$ be the matrix and $c_1, c_2$ the coefficients
+define the matrix $d$ and the coefficients $c_1, c_2$
 \begin{equation}
   d = \begin{pmatrix}
-    \dfrac{1 + x_p^2}{p_s} & \dfrac{x_p \, y_p}{p_s} & -\dfrac{x_p}{p_s^2} \\[10pt]
-    \dfrac{x_p \, y_p}{p_s} & \dfrac{1 + y_p^2}{p_s} & -\dfrac{y_p}{p_s^2} \\[10pt]
-    -x_p & -y_p & \dfrac{1}{p_s}
+    \dfrac{1 + x'^2}{p_s} & \dfrac{x' \, y'}{p_s} & -\dfrac{x'}{p_s^2} \\[10pt]
+    \dfrac{x' \, y'}{p_s} & \dfrac{1 + y'^2}{p_s} & -\dfrac{y'}{p_s^2} \\[10pt]
+    -x' & -y' & \dfrac{1}{p_s}
   \end{pmatrix}, \qquad
   c_2 = \frac{b}{\cos^2 \phi_0}, \qquad
-  c_1 = \frac{c_2}{1 + \bigl[x_p / (1 + y_p^2)\bigr]^2},
+  c_1 = \frac{c_2}{1 + \bigl[x' / (1 + y'^2)\bigr]^2},
 \end{equation}
-and let $\Bf{f} = (f_1, f_2, f_3)$ be
+and the vector $\Bf{f} = (f_1, f_2, f_3)$
 \begin{align}
-  f_1 &= \frac{c_1}{1 + y_p^2} - 4 \, b \, K \, c_2 \, x_p \, (2 + y_p^2) \, p_s \CRNO
-  f_2 &= -\frac{2 \, c_1 \, x_p \, y_p}{(1 + y_p^2)^2} - 4 \, b \, K \, c_2 \, x_p^2 \, y_p \, p_s \\
-  f_3 &= -2 \, b \, K \, c_2 \, \bigl[ 1 + x_p^2 \, (2 + y_p^2) \bigr] \nonumber
+  f_1 &= \frac{c_1}{1 + y'^2} - 4 \, b \, K \, c_2 \, x' \, (2 + y'^2) \, p_s \CRNO
+  f_2 &= -\frac{2 \, c_1 \, x' \, y'}{(1 + y'^2)^2} - 4 \, b \, K \, c_2 \, x'^2 \, y' \, p_s \\
+  f_3 &= -2 \, b \, K \, c_2 \, \bigl[ 1 + x'^2 \, (2 + y'^2) \bigr] \nonumber
 \end{align}
 With the column contractions $q_k = \sum_{i=1}^{3} f_i \, d_{ik}$ for $k = 1, 2, 3$, the kick is
 \begin{align}
-  y'   &= \frac{2 \, y}{1 + \sqrt{1 - 2 \, q_2 \, y}} \CRNO
-  p_y' &= p_y - b \, \tan(\phi_0) \, y' \CRNO
-  x'   &= x + \frac{1}{2} \, q_1 \, y'^2 \\
-  z'   &= z + \frac{1}{2} \, (1 + p_z) \, q_3 \, y'^2 \nonumber
+  \overline{y}   &= \frac{2 \, y}{1 + \sqrt{1 - 2 \, q_2 \, y}} \CRNO
+  \overline{p_y} &= p_y - b \, \tan(\phi_0) \, \overline{y} \CRNO
+  \overline{x}   &= x + \frac{1}{2} \, q_1 \, \overline{y}^2 \\
+  \overline{z}   &= z + \frac{1}{2} \, (1 + p_z) \, q_3 \, \overline{y}^2 \nonumber
 \end{align}
-with $p_x$ and $p_z$ unchanged. The updated $y'$ is used on the right-hand sides of the $p_y'$, $x'$,
-and $z'$ equations.
+with $p_x$ and $p_z$ unchanged. The updated vertical coordinate $\overline{y}$ is used on the
+right-hand sides of the $\overline{p_y}$, $\overline{x}$, and $\overline{z}$ equations.
 
 %---------------------------------------------------------------------------------
 \section{Quadrupole Soft Edge Fringe Map}
