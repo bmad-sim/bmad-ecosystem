@@ -46,6 +46,7 @@ fortran_tests = pytest.mark.parametrize(
         pytest.param("hdf5_test"),
         pytest.param("long_term_tracking_test"),
         pytest.param("mat6_calc_method_test"),
+        pytest.param("mat6_fd_test"),
         pytest.param("match_test"),
         pytest.param("mode3_test"),
         pytest.param("mode_flip_test"),
