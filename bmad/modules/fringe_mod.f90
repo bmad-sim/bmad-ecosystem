@@ -1266,7 +1266,9 @@ if (logic_option(.false., make_matrix)) then
 
   d33_dx2 = -time_fac*dpz_dx2/pz**2
   d33_dx4 = -time_fac*dpz_dx4/pz**2
-  d33_dx5 = -time_fac*dpz_dx5/pz**2-dtime_fac_dx5/pz
+  ! d(3,3) = time_fac/pz, so d/dx5 = -time_fac*dpz_dx5/pz**2 + dtime_fac_dx5/pz.
+  ! The sign of the last term was previously wrong (bug fix).
+  d33_dx5 = -time_fac*dpz_dx5/pz**2+dtime_fac_dx5/pz
 
   factor1 = b*fint*hgap
   factor2 = 1+yp**2
