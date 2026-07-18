@@ -418,7 +418,7 @@ if (init) then
   fmt = '(a, 1x, a)'
   init = .false.
 else
-  fmt = '(2x, a, 1x, a)'
+  fmt = '(4x, a, 1x, a)'
 endif
 
 write (iu, fmt) trim(line2)

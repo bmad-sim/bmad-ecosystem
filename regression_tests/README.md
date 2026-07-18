@@ -218,10 +218,10 @@ present, will default to "../../bin"
    <value_1>, etc. = List of values. Must use double quotes for STR data.
    Double quote marks must be used to surround the <tag_string> field.
    The <data_id> field can be one of:
-   STR String or logical data.
-   REL Real data with relative tolerance.
-   VEC_REL Real data with tolerance relative to the vector magnitude of the array of numbers on the line
-   ABS Real data with absolute tolerance.
+     STR      -- String or logical data.
+     REL      -- Real data with relative tolerance.
+     VEC_REL  -- Real data with tolerance relative to the vector magnitude of the array of numbers on the line
+     ABS      -- Real data with absolute tolerance.
 
 The specification lines of "output.correct" and "output.now" must match up. That is, the N^th
 specification line of "output.correct" and the N^th specification line in "output.now" must have the

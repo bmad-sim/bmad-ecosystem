@@ -52,7 +52,7 @@ character(3), parameter :: unit_spin_map(0:3) = ['1.0', '0.0', '0.0', '0.0']
 character(100) name, look_for, ele_name
 character(40), allocatable :: names(:)
 character(240) fname
-character(1000) line
+character(4000) line
 character(*), parameter :: r_name = 'write_lattice_scibmad_format'
 
 character(20) :: scibmad_ele_type(n_key$)

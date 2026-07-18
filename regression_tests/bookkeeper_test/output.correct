@@ -22,10 +22,10 @@
 "Expression-val4" ABS 1E-10    -0.02755772
 "Expression-str4" STR  "ran_gauss(0.3*2)+ran_gauss()"
 "Tree-str4" STR        "ran_gauss(0.3*2)+ran_gauss()"
-"Ramper-loc-1" STR    26    0
-"Ramper-loc-2" STR    27    0
-"Ramper-loc-3" STR    28    0
-"Ramper-loc-4" STR    29    0
+"Ramper-loc-1" STR  "   26    0"
+"Ramper-loc-2" STR  "   27    0"
+"Ramper-loc-3" STR  "   28    0"
+"Ramper-loc-4" STR  "   29    0"
 "Q1\1#1-n_ramp" ABS 0   1
 "Q1\1#1-p0c" REL 1E-10  2.000000000000E+09
 "Q1\1#1-k1" REL 1E-10  3.000000000000E-01
