@@ -120,7 +120,7 @@ call lat_ele_locator ('ramper::*', lat, ramper, n, err)
 do i = 1, n
   ele => ramper(i)%ele
   ele%control%var(1)%value = 1.0e-8_rp
-  write (1, '(2a, 2i5)') quote('Ramper-loc-' // int_str(i)), ' STR ', ramper(i)%loc
+  write (1, '(2a, 2i5, a)') quote('Ramper-loc-' // int_str(i)), ' STR  "', ramper(i)%loc, '"'
 enddo
 
 do i = 1, lat%n_ele_max
