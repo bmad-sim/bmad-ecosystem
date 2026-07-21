@@ -15,20 +15,33 @@ use super_recipes_mod, only: super_zbrent
 use open_spacecharge_mod
 use csr3d_mod, only: csr3d_steady_state_solver
 
-! csr_ele_info_struct holds info for a particular lattice element
-! The centroid "chord" is the line from the centroid position at the element entrance to
-! the centroid position at the element exit end.
+! csr_chord_struct holds the geometry of a single centroid "chord" segment.
+! The centroid "chord" is the line from the centroid position at the segment entrance to
+! the centroid position at the segment exit end. A lattice element is normally represented by a
+! single chord (element entrance to element exit). Elements whose centroid orbit wiggles within the
+! element (wigglers/undulators) are subdivided into an array of chord segments so that the spline
+! fit to the centroid orbit stays accurate without the user having to split the element by hand.
+! See issue #63.
 
-type csr_ele_info_struct
-  type (ele_struct), pointer :: ele            ! lattice element
-  type (coord_struct) orbit0, orbit1           ! centroid orbit at entrance/exit ends
-  type (floor_position_struct) floor0, floor1  ! Floor position of centroid at entrance/exit ends
-  type (floor_position_struct) ref_floor0, ref_floor1  ! Floor position of element ref coords at entrance/exit ends
+type csr_chord_struct
+  type (floor_position_struct) floor0, floor1  ! Floor position of centroid at chord entrance/exit ends
   type (spline_struct) spline                  ! Spline for centroid orbit. spline%x = distance along chord.
                                                !   The spline is zero at the ends by construction.
   real(rp) theta_chord                         ! Reference angle of chord in z-x plane
   real(rp) L_chord                             ! Chord Length. Negative if bunch moves backwards in element.
-  real(rp) dL_s                                ! L_s(of element) - L_chord
+  real(rp) dL_s                                ! L_s(of chord) - L_chord
+  real(rp) :: s0_ref = 0, s1_ref = 0           ! Element ref-coordinate s at chord entrance/exit ends.
+end type
+
+! csr_ele_info_struct holds info for a particular lattice element.
+! The chord geometry lives in the sub(:) array. Normally size(sub) = 1 (one chord for the whole
+! element); it is larger only for subdivided elements (see csr_chord_struct).
+
+type csr_ele_info_struct
+  type (ele_struct), pointer :: ele            ! lattice element
+  type (coord_struct) orbit0, orbit1           ! centroid orbit at entrance/exit ends
+  type (floor_position_struct) ref_floor0, ref_floor1  ! Floor position of element ref coords at entrance/exit ends
+  type (csr_chord_struct), allocatable :: sub(:)  ! Chord segment(s). Normally size 1.
 end type
 
 type csr_bunch_slice_struct  ! Structure for a single particle bin.
@@ -67,6 +80,7 @@ type csr_kick1_struct ! Sub-structure for csr calculation cache
   real(rp) theta_sl         ! Angle between velocity of particle at source pt and L
   real(rp) theta_lk         ! Angle between L and velocity of kicked particle
   integer ix_ele_source     ! Source element index.
+  integer ix_sub_source     ! Source chord-segment index within the source element.
   type (floor_position_struct) floor_s  ! Floor position of source pt
 end type
 
@@ -90,6 +104,7 @@ type csr_struct           ! Structurture for binning particle averages
   type(floor_position_struct) floor_k   ! Floor coords at kick point
   integer species                       ! Particle type
   integer ix_ele_kick                   ! Same as element being tracked through.
+  integer ix_sub_kick                   ! Chord-segment index within the kick element containing the kick pt.
   type (csr_bunch_slice_struct), allocatable :: slice(:)    ! slice(i) refers to the i^th bunch slice.
   type (csr_kick1_struct), allocatable :: kick1(:)          ! kick1(i) referes to the kick between two slices i bins apart.
   type (csr_ele_info_struct), allocatable :: eleinfo(:)     ! Element-by-element information.
@@ -102,9 +117,12 @@ end type
 ! a stack trampoline and an executable stack). See s_source_calc.
 type (csr_kick1_struct), pointer, private :: csr_kick1_ptr
 type (csr_struct), pointer, private :: csr_csr_ptr
-type (csr_ele_info_struct), pointer, private :: csr_einfo_s_ptr
+type (csr_chord_struct), pointer, private :: csr_einfo_s_ptr
 real(rp), pointer, private :: csr_dr_match_ptr(:)
 !$OMP THREADPRIVATE(csr_kick1_ptr, csr_csr_ptr, csr_einfo_s_ptr, csr_dr_match_ptr)
+
+! Helper routines for the chord-segment (issue #63) machinery. Kept private to avoid namespace clashes.
+private :: set_chord, orbit_to_chord_floor, ele_chord_len, prev_seg, next_seg, Ls_start_to_kick
 
 contains
 
@@ -147,14 +165,16 @@ type (ele_struct) :: runt
 type (ele_struct), pointer :: ele0, s_ele
 type (csr_struct), target :: csr
 type (csr_ele_info_struct), pointer :: eleinfo
+type (csr_chord_struct), pointer :: esub
 type (coord_struct), target :: centroid(0:)
-type (floor_position_struct) floor
+type (coord_struct) orbit
+type (floor_position_struct) floor, floor0, floor1
 
 real(rp), optional :: s_start, s_end
-real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L
+real(rp) s0_step, vec0(6), vec(6), theta_chord, theta0, theta1, L, ds_sub
 real(rp) e_tot, f1, x, z, ds_step, s_save_last
 
-integer i, j, n, ie, ns, nb, n_step, n_live, i_step
+integer i, j, n, ie, ns, nb, n_step, n_live, i_step, n_sub
 integer :: iu_wake
 
 character(*), parameter :: r_name = 'track1_bunch_csr'
@@ -183,13 +203,10 @@ endif
 
 ! n_step is the number of steps to take when tracking through the element.
 ! csr%ds_step is the true step length.
-
-if (ele%csr_method == one_dim$ .and. (ele%key == wiggler$ .or. ele%key == undulator$) .and. &
-                                (ele%field_calc == planar_model$ .or. ele%field_calc == helical_model$)) then
-  call out_io (s_warn$, r_name, 'CALCULATION OF CSR EFFECTS IN PLANAR OR HELICAL MODEL WIGGLERS MAY BE INVALID SINCE', &
-                                'CSR TRACKING USES A SPLINE FIT FOR THE CENTROID ORBIT WHICH IS INACCURATE FOR A WIGGLING ORBIT.', &
-                                'FOR: ' // ele%name)
-endif
+! Note: Planar/helical model wigglers and undulators have a centroid orbit that oscillates within
+! the element. The eleinfo construction below subdivides such elements into chord sub-segments (see
+! issue #63 and csr_chord_struct) so the spline fit to the centroid stays accurate without the user
+! having to split the element by hand.
 
 if (space_charge_com%n_bin <= space_charge_com%particle_bin_span + 1) then
   if (space_charge_com%n_bin == 0) then
@@ -230,62 +247,79 @@ do i = 0, n
   s_ele => eleinfo%ele
   eleinfo%ref_floor1 = branch%ele(i)%floor
   eleinfo%ref_floor1%r(2) = 0  ! Make sure in horizontal plane
-
   eleinfo%orbit1 = centroid(i)
-  vec = eleinfo%orbit1%vec
-  floor%r = [vec(1), vec(3), s_ele%value(l$)]
-  eleinfo%floor1 = coords_local_curvilinear_to_floor (floor, s_ele)
-  eleinfo%floor1%r(2) = 0  ! Make sure in horizontal plane
-  ! The 1d-14 is inserted to avoid 0/0 error at the beginning of an e_gun.
-  eleinfo%floor1%theta = s_ele%floor%theta + asin(vec(2) / (1.0_rp + 1d-14 + vec(6)))
+
+  ! Centroid floor position at the exit end of the element.
+  floor1 = orbit_to_chord_floor (centroid(i), s_ele, s_ele%value(l$))
 
   if (i == 0) then
-    eleinfo%ref_floor0 = csr%eleinfo(i)%ref_floor1
-    eleinfo%floor0   = csr%eleinfo(i)%floor1
-    eleinfo%orbit0   = csr%eleinfo(i)%orbit1
+    eleinfo%ref_floor0 = eleinfo%ref_floor1
+    eleinfo%orbit0     = eleinfo%orbit1
+    floor0 = floor1                                          ! Zero-length beginning element.
   else
     eleinfo%ref_floor0 = csr%eleinfo(i-1)%ref_floor1
-    eleinfo%floor0   = csr%eleinfo(i-1)%floor1
-    eleinfo%orbit0   = csr%eleinfo(i-1)%orbit1
+    eleinfo%orbit0     = csr%eleinfo(i-1)%orbit1
+    floor0 = csr%eleinfo(i-1)%sub(ubound(csr%eleinfo(i-1)%sub,1))%floor1  ! = entrance = previous exit.
   endif
 
-  vec0 = eleinfo%orbit0%vec
-  vec = eleinfo%orbit1%vec
-  theta_chord = atan2(eleinfo%floor1%r(1)-eleinfo%floor0%r(1), eleinfo%floor1%r(3)-eleinfo%floor0%r(3))
-  eleinfo%theta_chord = theta_chord
+  ! Number of chord sub-segments. Only wigglers/undulators tracked with 1D CSR are subdivided, since
+  ! their centroid orbit oscillates within the element and a single entrance-to-exit chord spline is
+  ! inaccurate. Everything else gets a single chord (identical to the historical calculation).
 
-  ! An element with a negative step length (EG off-center beam in a patch which just has an x-pitch), can
-  ! have floor%theta and theta_chord 180 degress off. Hence, restrict theta0 & theta1 to be within [-pi/2,pi/2]
-  theta0 = modulo2(eleinfo%floor0%theta - theta_chord, pi/2)
-  theta1 = modulo2(eleinfo%floor1%theta - theta_chord, pi/2)
-  eleinfo%L_chord = sqrt((eleinfo%floor1%r(1)-eleinfo%floor0%r(1))**2 + (eleinfo%floor1%r(3)-eleinfo%floor0%r(3))**2)
-  if (abs(eleinfo%L_chord) < 1d-8) then   ! 1d-8 is rather arbitrary.
-    eleinfo%spline = spline_struct()
-    eleinfo%dL_s = 0
+  n_sub = 1
+  if (s_ele%key == wiggler$ .or. s_ele%key == undulator$) then
+    if ((s_ele%field_calc == planar_model$ .or. s_ele%field_calc == helical_model$) .and. &
+                                                                    s_ele%csr_method == one_dim$) then
+      ds_sub = s_ele%value(csr_ds_step$)
+      if (ds_sub == 0) ds_sub = space_charge_com%ds_track_step
+      if (ds_sub > 0) n_sub = max(1, nint(s_ele%value(l$) / ds_sub))
+    endif
+  endif
+
+  allocate (eleinfo%sub(n_sub))
+
+  ! Single chord: entrance-to-exit. Bit-identical to the historical per-element calculation.
+
+  if (n_sub == 1) then
+    eleinfo%sub(1)%floor0 = floor0
+    eleinfo%sub(1)%floor1 = floor1
+    eleinfo%sub(1)%s0_ref = 0
+    eleinfo%sub(1)%s1_ref = s_ele%value(l$)
+    call set_chord (eleinfo%sub(1), s_ele, err_flag)
+    if (err_flag) return
     cycle
   endif
 
-  if (s_ele%key == match$) cycle  ! Match elements offsets are ignored so essentially they are like markers.
+  ! Subdivided element: track a single centroid particle through the element to sample the centroid
+  ! floor position at the interior sub-segment boundaries. Element-end floor positions are kept equal
+  ! to floor0/floor1 (from the passed-in centroid array) so element-boundary geometry is unchanged.
 
-  ! With a negative step length, %L_chord is negative
-  parallel0 = (abs(modulo2(eleinfo%floor0%theta - theta_chord, pi)) < pi/2)
-  parallel1 = (abs(modulo2(eleinfo%floor1%theta - theta_chord, pi)) < pi/2)
-  if (parallel0 .neqv. parallel1) then
-    call out_io (s_fatal$, r_name, 'VERY CONFUSED CSR CALCULATION! PLEASE SEEK HELP ' // ele%name)
-    if (global_com%exit_on_error) call err_exit
-    return
-  endif
-  if (.not. parallel0) eleinfo%L_chord = -eleinfo%L_chord
-
-  eleinfo%spline = create_a_spline ([0.0_rp, 0.0_rp], [eleinfo%L_chord, 0.0_rp], theta0, theta1)
-  eleinfo%dL_s = dspline_len(0.0_rp, eleinfo%L_chord, eleinfo%spline)
+  orbit = eleinfo%orbit0
+  do j = 1, n_sub
+    call element_slice_iterator (s_ele, branch%param, j, n_sub, runt)
+    call track1 (orbit, runt, branch%param, orbit)
+    eleinfo%sub(j)%s0_ref = (j - 1) * s_ele%value(l$) / n_sub
+    eleinfo%sub(j)%s1_ref = j * s_ele%value(l$) / n_sub
+    if (j == 1) then
+      eleinfo%sub(j)%floor0 = floor0
+    else
+      eleinfo%sub(j)%floor0 = eleinfo%sub(j-1)%floor1
+    endif
+    if (j == n_sub) then
+      eleinfo%sub(j)%floor1 = floor1
+    else
+      eleinfo%sub(j)%floor1 = orbit_to_chord_floor (orbit, s_ele, eleinfo%sub(j)%s1_ref)
+    endif
+    call set_chord (eleinfo%sub(j), s_ele, err_flag)
+    if (err_flag) return
+  enddo
 enddo
 
 !
 
 csr%species = bunch%particle(1)%species
 csr%ix_ele_kick = ele%ix_ele
-csr%actual_track_step = csr%ds_track_step * (csr%eleinfo(ele%ix_ele)%L_chord / ele%value(l$))
+csr%actual_track_step = csr%ds_track_step * (ele_chord_len(csr%eleinfo(ele%ix_ele)) / ele%value(l$))
 
 call save_a_bunch_step (ele, bunch, bunch_track, s_start)
 
@@ -327,13 +361,14 @@ do i_step = 0, n_step
   call csr_bin_particles (ele, bunch%particle, csr, err_flag); if (err_flag) return
 
   csr%s_kick = s0_step
-  csr%s_chord_kick = s_ref_to_s_chord (s0_step, csr%eleinfo(ele%ix_ele))
+  call s_ref_to_s_chord (s0_step, csr%eleinfo(ele%ix_ele), csr%ix_sub_kick, csr%s_chord_kick)
+  esub => csr%eleinfo(ele%ix_ele)%sub(csr%ix_sub_kick)
   z = csr%s_chord_kick
-  x = spline1(csr%eleinfo(ele%ix_ele)%spline, z)
-  theta_chord = csr%eleinfo(ele%ix_ele)%theta_chord
+  x = spline1(esub%spline, z)
+  theta_chord = esub%theta_chord
   csr%floor_k%r = [x*cos(theta_chord)+z*sin(theta_chord), 0.0_rp, -x*sin(theta_chord)+z*cos(theta_chord)] + &
-                      csr%eleinfo(ele%ix_ele)%floor0%r
-  csr%floor_k%theta = theta_chord + spline1(csr%eleinfo(ele%ix_ele)%spline, z, 1)
+                      esub%floor0%r
+  csr%floor_k%theta = theta_chord + spline1(esub%spline, z, 1)
 
   ! ns = 0 is the unshielded kick.
 
@@ -379,7 +414,9 @@ do i_step = 0, n_step
         ele0 => branch%ele(csr%kick1(j)%ix_ele_source)
         write (iu_wake, '(f14.10, 4es14.6)') csr%slice(j)%z_center, &
                     csr%slice(j)%charge/csr%dz_slice, csr%slice(j)%kick_csr/ds_step, &
-                    csr%kick1(j)%I_csr/ds_step, ele0%s_start + csr%kick1(j)%s_chord_source
+                    csr%kick1(j)%I_csr/ds_step, ele0%s_start + &
+                    csr%eleinfo(csr%kick1(j)%ix_ele_source)%sub(csr%kick1(j)%ix_sub_source)%s0_ref + &
+                    csr%kick1(j)%s_chord_source
       enddo
     elseif (i_step == 0) then
       write (iu_wake, '(a)') 'Note: CSR wake not calculated for element: ' // ele%name
@@ -726,9 +763,11 @@ if (csr%y_source == 0) then
 
     if (i == 1) then
       kick1%ix_ele_source = csr%ix_ele_kick
+      kick1%ix_sub_source = csr%ix_sub_kick
       dr_match = 0
     else
       kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
+      kick1%ix_sub_source = csr%kick1(i-1)%ix_sub_source
     endif
 
     kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
@@ -744,9 +783,11 @@ else
 
     if (i == lbound(csr%kick1, 1)) then
       kick1%ix_ele_source = csr%ix_ele_kick
+      kick1%ix_sub_source = csr%ix_sub_kick
       dr_match = 0
     else
       kick1%ix_ele_source = csr%kick1(i-1)%ix_ele_source
+      kick1%ix_sub_source = csr%kick1(i-1)%ix_sub_source
     endif
 
     kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
@@ -851,7 +892,7 @@ implicit none
 
 type (csr_kick1_struct), target :: kick1
 type (csr_struct), target :: csr
-type (csr_ele_info_struct), pointer :: einfo_s, einfo_k
+type (csr_chord_struct), pointer :: esub, esub_k
 type (floor_position_struct), pointer :: fk, f0, fs
 type (ele_struct), pointer :: ele
 
@@ -859,7 +900,7 @@ real(rp) a, b, c, dz, s_source, beta2, L0, Lz, ds_source
 real(rp) z0, z1, sz_kick, sz0, Lsz0, ddz0, ddz1
 real(rp), target :: dr_match(3)
 
-integer i, last_step, status
+integer i, ie, isub, last_step, status
 logical err_flag
 
 character(*), parameter :: r_name = 's_source_calc'
@@ -880,31 +921,30 @@ csr_dr_match_ptr => dr_match
 
 do
 
-  einfo_s => csr%eleinfo(kick1%ix_ele_source)
-  csr_einfo_s_ptr => einfo_s
+  ie = kick1%ix_ele_source
+  isub = kick1%ix_sub_source
+  esub => csr%eleinfo(ie)%sub(isub)
+  csr_einfo_s_ptr => esub
 
   ! If at beginning of lattice assume an infinite drift.
   ! s_source will be negative
 
-  if (kick1%ix_ele_source == 0) then
+  if (ie == 0) then
     fk => csr%floor_k
     fs => kick1%floor_s
-    f0 => einfo_s%floor1
+    f0 => esub%floor1
 
     L0 = sqrt((fk%r(1) - f0%r(1))**2 + (fk%r(3) - f0%r(3))**2 + csr%y_source**2)
     ! L_z is the z-component from lat start to the kick point.
-    Lz = (fk%r(1) - f0%r(1)) * sin(f0%theta) + (fk%r(3) - f0%r(3)) * cos(f0%theta) 
-    ! Lsz0 is Ls from the lat start to the kick point
-    Lsz0 = dspline_len(0.0_rp, csr%s_chord_kick, csr%eleinfo(csr%ix_ele_kick)%spline) + csr%s_chord_kick
-    do i = 1, csr%ix_ele_kick - 1
-      Lsz0 = Lsz0 + csr%eleinfo(i)%dL_s + csr%eleinfo(i)%L_chord
-    enddo
+    Lz = (fk%r(1) - f0%r(1)) * sin(f0%theta) + (fk%r(3) - f0%r(3)) * cos(f0%theta)
+    ! Lsz0 is Ls from the lat start to the kick point (summed over all chord segments)
+    Lsz0 = Ls_start_to_kick (csr)
 
     a = 1/csr%gamma2
     b = 2 * (Lsz0 - dz - beta2 * Lz)
     c = (Lsz0 - dz)**2 - beta2 * L0**2
     ds_source = -(-b + sqrt(b**2 - 4 * a * c)) / (2 * a)
-    s_source = einfo_s%ele%s + ds_source
+    s_source = csr%eleinfo(ie)%ele%s + ds_source
 
     fs%r = [f0%r(1) + ds_source * sin(f0%theta), csr%y_source, f0%r(3) + ds_source * cos(f0%theta)]
     fs%theta = f0%theta
@@ -913,8 +953,8 @@ do
     kick1%dL = lsz0 - ds_source - kick1%L  ! Remember s_source is negative
     kick1%theta_L = atan2(kick1%L_vec(1), kick1%L_vec(3))
     kick1%theta_sl = f0%theta - kick1%theta_L
-    einfo_k => csr%eleinfo(csr%ix_ele_kick)
-    kick1%theta_lk = kick1%theta_L - (spline1(einfo_k%spline, csr%s_chord_kick, 1) + einfo_k%theta_chord)
+    esub_k => csr%eleinfo(csr%ix_ele_kick)%sub(csr%ix_sub_kick)
+    kick1%theta_lk = kick1%theta_L - (spline1(esub_k%spline, csr%s_chord_kick, 1) + esub_k%theta_chord)
     return
   endif
 
@@ -922,7 +962,7 @@ do
   ! So if there is a match element then shift the orbit using dr_match to remove the discontinuity.
   ! Any angle discontinuity is ignored.
 
-  ele => einfo_s%ele
+  ele => csr%eleinfo(ie)%ele
 
   if (ele%key == floor_shift$) then
     call out_io (s_fatal$, r_name, &
@@ -933,14 +973,14 @@ do
     return
   endif
 
-  ! Look at ends of the source element and check if the source point is within the element or not.
+  ! Look at ends of the source chord segment and check if the source point is within it or not.
   ! Generally dz decreases with increasing s but this may not be true for patch elements.
 
   ddz0 = ddz_calc_csr(0.0_rp, status)
-  ddz1 = ddz_calc_csr(einfo_s%L_chord, status)
+  ddz1 = ddz_calc_csr(esub%L_chord, status)
 
   if (last_step == -1 .and. ddz1 > 0) then  ! Roundoff error is causing ddz1 to be positive.
-    s_source = ddz_calc_csr(einfo_s%L_chord, status)
+    s_source = ddz_calc_csr(esub%L_chord, status)
     return
   endif
 
@@ -952,27 +992,28 @@ do
   if (ddz0 < 0 .and. ddz1 < 0) then
     if (last_step == 1) exit       ! Round off error can cause problems
     last_step = -1
-    kick1%ix_ele_source = kick1%ix_ele_source - 1
+    call prev_seg (csr, kick1%ix_ele_source, kick1%ix_sub_source)
 
-    einfo_s => csr%eleinfo(kick1%ix_ele_source)
-    csr_einfo_s_ptr => einfo_s
-    if (einfo_s%ele%key == match$) then
-      dr_match = einfo_s%floor1%r - einfo_s%floor0%r ! discontinuity in x.
-      kick1%ix_ele_source = kick1%ix_ele_source - 1
+    esub => csr%eleinfo(kick1%ix_ele_source)%sub(kick1%ix_sub_source)
+    csr_einfo_s_ptr => esub
+    if (csr%eleinfo(kick1%ix_ele_source)%ele%key == match$) then
+      dr_match = esub%floor1%r - esub%floor0%r ! discontinuity in x.
+      call prev_seg (csr, kick1%ix_ele_source, kick1%ix_sub_source)
     endif
 
     cycle
   endif
 
   if (ddz0 > 0 .and. ddz1 > 0) then
-    if (kick1%ix_ele_source == csr%ix_ele_kick) return  ! Source ahead of kick pt => ignore.
+    ! Source ahead of kick pt => ignore.
+    if (kick1%ix_ele_source == csr%ix_ele_kick .and. kick1%ix_sub_source == csr%ix_sub_kick) return
     if (last_step == -1) exit      ! Round off error can cause problems
     last_step = 1
-    kick1%ix_ele_source = kick1%ix_ele_source + 1
+    call next_seg (csr, kick1%ix_ele_source, kick1%ix_sub_source)
 
     if (csr%eleinfo(kick1%ix_ele_source)%ele%key == match$) then
       dr_match = 0
-      kick1%ix_ele_source = kick1%ix_ele_source + 1
+      call next_seg (csr, kick1%ix_ele_source, kick1%ix_sub_source)
     endif
 
     cycle
@@ -980,9 +1021,9 @@ do
 
   ! Only possibility left is that root is bracketed.
 
-  s_source = super_zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1e-12_rp, 1e-8_rp, status)
+  s_source = super_zbrent (ddz_calc_csr, 0.0_rp, esub%L_chord, 1e-12_rp, 1e-8_rp, status)
   return
-    
+
 enddo
 
 call out_io (s_fatal$, r_name, &
@@ -1015,13 +1056,13 @@ function ddz_calc_csr (s_chord_source, status) result (ddz_this)
 
 implicit none
 
-type (csr_ele_info_struct), pointer :: ce
+type (csr_chord_struct), pointer :: ce
 real(rp), intent(in) :: s_chord_source
 real(rp) ddz_this, x, z, c, s, dtheta_L
 real(rp) s0, s1, ds, theta_L, dL
 
 integer status
-integer i
+integer ie, isub
 
 character(*), parameter :: r_name = 'ddz_calc_csr'
 
@@ -1039,7 +1080,9 @@ csr_kick1_ptr%theta_L = atan2(csr_kick1_ptr%L_vec(1), csr_kick1_ptr%L_vec(3))
 s0 = s_chord_source
 s1 = csr_csr_ptr%s_chord_kick
 
-if (csr_kick1_ptr%ix_ele_source == csr_csr_ptr%ix_ele_kick) then
+if (csr_kick1_ptr%ix_ele_source == csr_csr_ptr%ix_ele_kick .and. &
+                                    csr_kick1_ptr%ix_sub_source == csr_csr_ptr%ix_sub_kick) then
+  ! Source and kick points are in the same chord segment.
   ds = s1 - s0
   ! dtheta_L = angle of L line in centroid chord ref frame
   dtheta_L = csr_einfo_s_ptr%spline%coef(1) + csr_einfo_s_ptr%spline%coef(2) * (2*s0 + ds) + csr_einfo_s_ptr%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
@@ -1050,16 +1093,23 @@ if (csr_kick1_ptr%ix_ele_source == csr_csr_ptr%ix_ele_kick) then
   csr_kick1_ptr%theta_lk = dtheta_L - spline1(csr_einfo_s_ptr%spline, s1, 1)
 
 else
+  ! Source and kick points are in different chord segments. Accumulate the length excess over all
+  ! chord segments from the source segment (partial) through the kick segment (partial).
   ! In an element where the beam centroid takes a backstep, %theta_chord will be anti-parallel to
   ! other angles. This is why pi/2 is used with modulo2 to make sure angles are in the range [-pi/2, pi/2]
   theta_L = csr_kick1_ptr%theta_L
   dL = dspline_len(s0, csr_einfo_s_ptr%L_chord, csr_einfo_s_ptr%spline, modulo2(theta_L-csr_einfo_s_ptr%theta_chord, pi/2))
-  do i = csr_kick1_ptr%ix_ele_source+1, csr_csr_ptr%ix_ele_kick-1
-    ce => csr_csr_ptr%eleinfo(i)
-    if (ce%ele%key == match$) cycle  ! Match elements are adjusted to give zero displacement.
-    dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
+  ie = csr_kick1_ptr%ix_ele_source
+  isub = csr_kick1_ptr%ix_sub_source
+  call next_seg (csr_csr_ptr, ie, isub)
+  do while (.not. (ie == csr_csr_ptr%ix_ele_kick .and. isub == csr_csr_ptr%ix_sub_kick))
+    if (csr_csr_ptr%eleinfo(ie)%ele%key /= match$) then  ! Match elements are adjusted to give zero displacement.
+      ce => csr_csr_ptr%eleinfo(ie)%sub(isub)
+      dL = dL + dspline_len(0.0_rp, ce%L_chord, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
+    endif
+    call next_seg (csr_csr_ptr, ie, isub)
   enddo
-  ce => csr_csr_ptr%eleinfo(csr_csr_ptr%ix_ele_kick)
+  ce => csr_csr_ptr%eleinfo(csr_csr_ptr%ix_ele_kick)%sub(csr_csr_ptr%ix_sub_kick)
   dL = dL + dspline_len(0.0_rp, s1, ce%spline, modulo2(theta_L-ce%theta_chord, pi/2))
   csr_kick1_ptr%theta_sl = modulo2((spline1(csr_einfo_s_ptr%spline, s0, 1) + csr_einfo_s_ptr%theta_chord) - theta_L, pi/2)
   csr_kick1_ptr%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi/2)
@@ -1363,11 +1413,10 @@ implicit none
 type (csr_kick1_struct), target :: kick1
 type (csr_struct), target :: csr
 type (csr_kick1_struct), pointer :: k
-type (csr_ele_info_struct), pointer :: eleinfo
-type (spline_struct), pointer :: spl
+type (csr_chord_struct), pointer :: ksub
 
 real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick
-integer i_bin, ix_ele_kick
+integer i_bin, ix_ele_kick, ix_sub_kick
 
 !
 
@@ -1388,27 +1437,27 @@ k%I_csr = -csr%kick_factor * 2 * (k%dL / z + csr%gamma2 * k%theta_sl * k%theta_l
 
 if (i_bin == 1) then
   ix_ele_kick = csr%ix_ele_kick
+  ix_sub_kick = csr%ix_sub_kick
   s_chord_kick = csr%s_chord_kick
   do
-    if (s_chord_kick /= 0) exit  ! Not at edge of element and element has finite length
-    ix_ele_kick = ix_ele_kick - 1
+    if (s_chord_kick /= 0) exit  ! Not at edge of segment and segment has finite length
+    call prev_seg (csr, ix_ele_kick, ix_sub_kick)
     if (ix_ele_kick == 0) return  ! No kick from before beginning of lattice
-    s_chord_kick = csr%eleinfo(ix_ele_kick)%L_chord
+    s_chord_kick = csr%eleinfo(ix_ele_kick)%sub(ix_sub_kick)%L_chord
   enddo
 
-  spl => csr%eleinfo(ix_ele_kick)%spline
-  g_bend = -spline1(spl, s_chord_kick, 2) / sqrt(1 + spline1(spl, s_chord_kick, 1)**2)**3
+  ksub => csr%eleinfo(ix_ele_kick)%sub(ix_sub_kick)
+  g_bend = -spline1(ksub%spline, s_chord_kick, 2) / sqrt(1 + spline1(ksub%spline, s_chord_kick, 1)**2)**3
 
-  if (k%ix_ele_source == ix_ele_kick) then
+  if (k%ix_ele_source == ix_ele_kick .and. k%ix_sub_source == ix_sub_kick) then
     Ls = k%L + k%dL
-    k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)  
+    k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)
   else
-    ! Since source pt is in another element, split integral into pieces.
-    ! First integrate over element containing the kick point.
+    ! Since source pt is in another chord segment, split integral into pieces.
+    ! First integrate over the segment containing the kick point.
     L = s_chord_kick
-    eleinfo => csr%eleinfo(ix_ele_kick)
-    dtheta_L = eleinfo%spline%coef(1) + eleinfo%spline%coef(2) * L + eleinfo%spline%coef(3) * L**2
-    dL = dspline_len(0.0_rp, L, eleinfo%spline, dtheta_L) ! = Ls - L
+    dtheta_L = ksub%spline%coef(1) + ksub%spline%coef(2) * L + ksub%spline%coef(3) * L**2
+    dL = dspline_len(0.0_rp, L, ksub%spline, dtheta_L) ! = Ls - L
     Ls = L + dL
     zz = L / (2 * csr%gamma2) + dL
     k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * zz / Ls) / csr%gamma2)
@@ -1454,7 +1503,7 @@ real(rp) z, sin_phi, cos_phi, OneNBp, OneNBp3, radiate, coulomb1, theta, g_bend
 !
 
 k => kick1
-sp => csr%eleinfo(k%ix_ele_source)%spline
+sp => csr%eleinfo(k%ix_ele_source)%sub(k%ix_sub_source)%spline
 
 g_bend = -spline1(sp, k%s_chord_source, 2) / sqrt(1 + spline1(sp, k%s_chord_source, 1)**2)**3
 theta = k%floor_s%theta
@@ -1797,19 +1846,21 @@ end function dspline_len
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Function s_ref_to_s_chord (s_ref, eleinfo) result (s_chord)
+! Subroutine s_ref_to_s_chord (s_ref, eleinfo, ix_sub, s_chord)
 !
-! Routine to calculate s_chord given s_ref.
+! Routine to calculate the chord-segment index and s_chord (position along that segment's chord)
+! corresponding to a given s_ref (element ref coordinate).
 !
 ! Input:
 !   s_ref     -- real(rp): s-position along element ref coords.
-!   eleinfo     -- csr_ele_info_struct: Element info
+!   eleinfo   -- csr_ele_info_struct: Element info
 !
 ! Output:
-!   s_chord   -- real(rp): s-position along centroid chord.
+!   ix_sub    -- integer: Index of the chord segment containing s_ref.
+!   s_chord   -- real(rp): s-position along the containing segment's centroid chord (from its entrance).
 !-
 
-function s_ref_to_s_chord (s_ref, eleinfo) result (s_chord)
+subroutine s_ref_to_s_chord (s_ref, eleinfo, ix_sub, s_chord)
 
 implicit none
 
@@ -1817,24 +1868,263 @@ type (csr_ele_info_struct), target :: eleinfo
 type (ele_struct), pointer :: ele
 
 real(rp) s_ref, s_chord, dtheta, dr(3), x, g, t
+integer ix_sub, j
 
 !
 
 ele => eleinfo%ele
 g = ele%value(g$)
 
+! Find the chord segment containing s_ref. For an un-subdivided element (size(sub) == 1) this is
+! always segment 1 and the calculation below reduces to the historical element-level calculation.
+
+ix_sub = 1
+do j = 1, size(eleinfo%sub)
+  ix_sub = j
+  if (s_ref <= eleinfo%sub(j)%s1_ref) exit
+enddo
+
 if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. abs(g) > 1d-5) then
-  dtheta = eleinfo%floor0%theta - eleinfo%ref_floor0%theta
-  dr = eleinfo%ref_floor0%r - eleinfo%floor0%r
+  ! Bends are never subdivided, so ix_sub == 1 here.
+  dtheta = eleinfo%sub(1)%floor0%theta - eleinfo%ref_floor0%theta
+  dr = eleinfo%ref_floor0%r - eleinfo%sub(1)%floor0%r
   t = eleinfo%ref_floor0%theta + pi/2
   x = dr(1) * cos(t) + dr(3) * sin(t)
   s_chord = abs(ele%value(rho$)) * atan2(s_ref * cos(dtheta), abs(ele%value(rho$) + x + s_ref * sin(dtheta)))
 
 else
-  s_chord = s_ref * eleinfo%L_chord /ele%value(l$)
+  ! s_chord is measured from the entrance of the containing segment.
+  s_chord = (s_ref - eleinfo%sub(ix_sub)%s0_ref) * eleinfo%sub(ix_sub)%L_chord / &
+                                (eleinfo%sub(ix_sub)%s1_ref - eleinfo%sub(ix_sub)%s0_ref)
 endif
 
-end function s_ref_to_s_chord
+end subroutine s_ref_to_s_chord
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine set_chord (chord, ele, err_flag)
+!
+! Routine to compute the geometry (theta_chord, L_chord, spline, dL_s) of a single centroid chord
+! segment given its entrance/exit centroid floor positions (chord%floor0, chord%floor1).
+!
+! Input:
+!   chord   -- csr_chord_struct: With %floor0 and %floor1 set.
+!   ele     -- ele_struct: Element the chord belongs to (for match/error handling).
+!
+! Output:
+!   chord    -- csr_chord_struct: With %theta_chord, %L_chord, %spline, %dL_s set.
+!   err_flag -- logical: Set True on a fatal geometry inconsistency.
+!-
+
+subroutine set_chord (chord, ele, err_flag)
+
+implicit none
+
+type (csr_chord_struct), target :: chord
+type (ele_struct) ele
+
+real(rp) theta_chord, theta0, theta1
+logical err_flag, parallel0, parallel1
+character(*), parameter :: r_name = 'set_chord'
+
+!
+
+err_flag = .false.
+
+theta_chord = atan2(chord%floor1%r(1)-chord%floor0%r(1), chord%floor1%r(3)-chord%floor0%r(3))
+chord%theta_chord = theta_chord
+
+! An element with a negative step length (EG off-center beam in a patch which just has an x-pitch), can
+! have floor%theta and theta_chord 180 degress off. Hence, restrict theta0 & theta1 to be within [-pi/2,pi/2]
+theta0 = modulo2(chord%floor0%theta - theta_chord, pi/2)
+theta1 = modulo2(chord%floor1%theta - theta_chord, pi/2)
+chord%L_chord = sqrt((chord%floor1%r(1)-chord%floor0%r(1))**2 + (chord%floor1%r(3)-chord%floor0%r(3))**2)
+
+if (abs(chord%L_chord) < 1d-8) then   ! 1d-8 is rather arbitrary.
+  chord%spline = spline_struct()
+  chord%dL_s = 0
+  return
+endif
+
+if (ele%key == match$) then  ! Match elements offsets are ignored so essentially they are like markers.
+  chord%spline = spline_struct()
+  chord%dL_s = 0
+  return
+endif
+
+! With a negative step length, %L_chord is negative
+parallel0 = (abs(modulo2(chord%floor0%theta - theta_chord, pi)) < pi/2)
+parallel1 = (abs(modulo2(chord%floor1%theta - theta_chord, pi)) < pi/2)
+if (parallel0 .neqv. parallel1) then
+  call out_io (s_fatal$, r_name, 'VERY CONFUSED CSR CALCULATION! PLEASE SEEK HELP ' // ele%name)
+  if (global_com%exit_on_error) call err_exit
+  err_flag = .true.
+  return
+endif
+if (.not. parallel0) chord%L_chord = -chord%L_chord
+
+chord%spline = create_a_spline ([0.0_rp, 0.0_rp], [chord%L_chord, 0.0_rp], theta0, theta1)
+chord%dL_s = dspline_len(0.0_rp, chord%L_chord, chord%spline)
+
+end subroutine set_chord
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function orbit_to_chord_floor (orbit, ele, s_ref) result (fl)
+!
+! Routine to compute the centroid floor position at longitudinal element-ref position s_ref given
+! the centroid orbit there.
+!
+! Input:
+!   orbit   -- coord_struct: Centroid orbit.
+!   ele     -- ele_struct: Element.
+!   s_ref   -- real(rp): Longitudinal position (element ref coords).
+!
+! Output:
+!   fl      -- floor_position_struct: Centroid floor position (in the horizontal plane).
+!-
+
+function orbit_to_chord_floor (orbit, ele, s_ref) result (fl)
+
+implicit none
+
+type (coord_struct) orbit
+type (ele_struct) ele
+type (floor_position_struct) fl
+
+real(rp) s_ref, vec(6)
+
+!
+
+vec = orbit%vec
+fl%r = [vec(1), vec(3), s_ref]
+fl = coords_local_curvilinear_to_floor (fl, ele)
+fl%r(2) = 0  ! Make sure in horizontal plane
+! The 1d-14 is inserted to avoid 0/0 error at the beginning of an e_gun.
+fl%theta = ele%floor%theta + asin(vec(2) / (1.0_rp + 1d-14 + vec(6)))
+
+end function orbit_to_chord_floor
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function ele_chord_len (eleinfo) result (L)
+!
+! Routine to compute the total signed centroid chord length of an element (sum over its chord
+! segments). For an un-subdivided element this is just the single chord length.
+!-
+
+function ele_chord_len (eleinfo) result (L)
+
+implicit none
+
+type (csr_ele_info_struct) eleinfo
+real(rp) L
+integer j
+
+!
+
+L = 0
+do j = 1, size(eleinfo%sub)
+  L = L + eleinfo%sub(j)%L_chord
+enddo
+
+end function ele_chord_len
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Subroutine prev_seg (csr, ie, isub) / next_seg (csr, ie, isub)
+!
+! Routines to step the (element index, chord-segment index) pair to the previous/next chord segment
+! in the lattice. prev_seg leaves ie negative-safe (isub = 1) when stepping before element 0.
+!-
+
+subroutine prev_seg (csr, ie, isub)
+
+implicit none
+
+type (csr_struct) csr
+integer ie, isub
+
+!
+
+if (isub > 1) then
+  isub = isub - 1
+else
+  ie = ie - 1
+  if (ie < 0) then
+    isub = 1
+  else
+    isub = size(csr%eleinfo(ie)%sub)
+  endif
+endif
+
+end subroutine prev_seg
+
+!----------------------------------------------------------------------------
+
+subroutine next_seg (csr, ie, isub)
+
+implicit none
+
+type (csr_struct) csr
+integer ie, isub
+
+!
+
+if (isub < size(csr%eleinfo(ie)%sub)) then
+  isub = isub + 1
+else
+  ie = ie + 1
+  isub = 1
+endif
+
+end subroutine next_seg
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function Ls_start_to_kick (csr) result (Lsz0)
+!
+! Routine to compute Ls (spline path length) from the lattice start to the kick point, summed over
+! all chord segments up to and including the (partial) kick segment.
+!-
+
+function Ls_start_to_kick (csr) result (Lsz0)
+
+implicit none
+
+type (csr_struct), target :: csr
+type (csr_chord_struct), pointer :: sk
+real(rp) Lsz0
+integer i, j
+
+!
+
+sk => csr%eleinfo(csr%ix_ele_kick)%sub(csr%ix_sub_kick)
+Lsz0 = dspline_len(0.0_rp, csr%s_chord_kick, sk%spline) + csr%s_chord_kick
+
+! Full chord segments of the kick element that precede the kick segment.
+do j = 1, csr%ix_sub_kick - 1
+  Lsz0 = Lsz0 + csr%eleinfo(csr%ix_ele_kick)%sub(j)%dL_s + csr%eleinfo(csr%ix_ele_kick)%sub(j)%L_chord
+enddo
+
+! Full chord segments of all elements before the kick element.
+do i = 1, csr%ix_ele_kick - 1
+  do j = 1, size(csr%eleinfo(i)%sub)
+    Lsz0 = Lsz0 + csr%eleinfo(i)%sub(j)%dL_s + csr%eleinfo(i)%sub(j)%L_chord
+  enddo
+enddo
+
+end function Ls_start_to_kick
 
 
 
