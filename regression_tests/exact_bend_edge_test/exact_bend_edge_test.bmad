@@ -1,0 +1,18 @@
+parameter[geometry] = Open
+parameter[e_tot]    = 1e6
+parameter[particle] = Electron
+
+beginning[beta_a] = 10
+beginning[beta_b] = 32
+
+particle_start[pz] = 0.5
+
+! Sbend with finite edge angles and fringe integrals so the exact hard-edge
+! bend fringe (exact_bend_edge_kick) exercises all terms.
+
+b: sbend, l = 0.5, g = 0.6, dg = 0.02, e1 = 0.12, e2 = -0.09,
+          fint = 0.45, hgap = 0.03, fringe_type = full
+
+ll: line = (b)
+
+use, ll

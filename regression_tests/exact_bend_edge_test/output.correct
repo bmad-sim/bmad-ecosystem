@@ -1,0 +1,4 @@
+"orbit-new-minus-old"  ABS 1E-11   0.000000E+00
+"matrix-new-minus-old" ABS 1E-10   0.000000E+00
+"time-new-minus-old"   ABS 1E-16   0.000000E+00
+"new-symplectic-error" ABS 1E-9    0.000000E+00
