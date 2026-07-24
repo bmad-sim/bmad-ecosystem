@@ -574,12 +574,12 @@ case ('branch1')
 !   {ix_bunch} is the bunch index. Defaults to 1.
 !   {who} is one of:
 !       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
-!       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
-!                                       eta, etap, sigma, sigma_p, emit, norm_emit
-!       t.sigma
-!     sigma.IJ where I, J in range [1,6]
-!     rel_min.I, rel_max.I where I in range [1,6]
-!     charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
+!       charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele, t.sigma
+!       x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: 
+!              beta, alpha, gamma, phi, dbeta_dpz, dalpha_dpz,
+!              eta, etap, sigma, sigma_p, emit, norm_emit, deta_ds, deta_dpz, detap_dpz
+!       sigma.IJ where I, J in range [1,6]
+!       rel_min.I, rel_max.I where I in range [1,6]
 !
 !   Note: If ix_uni or ix_branch is present, "@" must be present.
 !
@@ -738,6 +738,13 @@ case ('bunch_comb')
   case ('t')
     select case (tail)
     case ('');         call real_array_out(real(comb1%pt%centroid%t, rp), use_real_array_buffer, 0, n)
+    case default
+      call invalid ('Bad {who}: ' // which)
+      return
+    end select
+
+  case ('t.')
+    select case (tail)
     case ('sigma');    call real_array_out(real(comb1%pt%sigma_t, rp), use_real_array_buffer, 0, n)
     case default
       call invalid ('Bad {who}: ' // which)
