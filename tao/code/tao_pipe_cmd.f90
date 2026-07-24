@@ -735,7 +735,7 @@ case ('bunch_comb')
     i = parse_int(tail(1:1), err, 1, 6);   if (err) return
     call real_array_out (comb1%pt%rel_max(i), use_real_array_buffer, 0, n)
 
-  case ('t')
+  case ('t', 't.')
     select case (tail)
     case ('');         call real_array_out(real(comb1%pt%centroid%t, rp), use_real_array_buffer, 0, n)
     case ('sigma');    call real_array_out(real(comb1%pt%sigma_t, rp), use_real_array_buffer, 0, n)
