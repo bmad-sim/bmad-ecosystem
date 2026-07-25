@@ -38,7 +38,7 @@ integer i, n, ib, ix, h5_err, h_err, ib2
 integer, allocatable :: ivec(:)
 
 character(*) file_name
-character(26) date_time, root_path, bunch_path, particle_path, fmt
+character(26) date_time, root_path, bunch_path, particle_path, fmt, species_str
 character(100) this_bunch_path
 character(*), parameter :: r_name = 'hdf5_write_beam'
 
@@ -112,11 +112,13 @@ do ib = 1, size(bunches)
     if (.not. hdf5_exists(r_id, this_bunch_path, err, .true.)) exit
   enddo
 
+  species_str = openpmd_species_name(set_species_charge(p(1)%species, 0))
+
   call H5Gcreate_f(r_id, trim(this_bunch_path), b_id, h5_err)
   call H5Gcreate_f(b_id, particle_path, b1_id, h5_err)
-  call H5Gcreate_f(b1_id, trim(openpmd_species_name(p(1)%species)), b2_id, h5_err)
+  call H5Gcreate_f(b1_id, trim(species_str), b2_id, h5_err)
 
-  call hdf5_write_attribute_string(b2_id, 'speciesType', openpmd_species_name(p(1)%species), err)
+  call hdf5_write_attribute_string(b2_id, 'speciesType', species_str, err)
   call hdf5_write_attribute_real(b2_id, 'totalCharge', bunch%charge_tot, err)
   call hdf5_write_attribute_real(b2_id, 'chargeLive', bunch%charge_live, err)
   call hdf5_write_attribute_real(b2_id, 'chargeUnitSI', 1.0_rp, err)

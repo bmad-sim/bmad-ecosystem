@@ -2,11 +2,11 @@ PALS:
   notes:
     - "Translated from Bmad lattice file: /nfs/acc/user/dcs16/bmad-ecosystem/regression_tests/write_foreign_test/write_foreign_test.bmad"
 
-  extension_names:
+  extension_labels:
     names:
-      Bmad
+      Bmad: Bmad specific data
     prefixes:
-      Bmad_
+      Bmad_: Bmad specific data
 
 
   #---------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ PALS:
         kind: BeginningEle
         ReferenceP:
           pc_ref:   8.5958E+05             
-          species_ref:: "positron"
+          species_ref: "positron"
         TwissP:
           beta_a:   1.0000E+01             
           beta_b:   1.0000E+01             
@@ -32,7 +32,7 @@ PALS:
           spin_x:   3.0000E-01             
           spin_y:   4.0000E-01             
           spin_z:   5.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Beginning_Ele
 
     - ab_multipole1: 
@@ -43,7 +43,7 @@ PALS:
         ApertureP:
           shape: RECTANGULAR     
           location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: AB_multipole
 
     - ac_kicker0123456789: 
@@ -54,7 +54,7 @@ PALS:
         ApertureP:
           shape: RECTANGULAR     
           location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: AC_Kicker
 
     - ac_kicker2: 
@@ -65,7 +65,7 @@ PALS:
         ApertureP:
           shape: RECTANGULAR     
           location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: AC_Kicker
 
     - beambeam1: 
@@ -91,7 +91,7 @@ PALS:
           voltage:   1.0000E+03             
           phi0:  -2.0000E-01             
           zero_phase: ABOVE_TRANSITION
-        BmadP:
+        Bmad:
           Bmand_key: Crab_Cavity
 
     - ecollimator1: 
@@ -109,7 +109,7 @@ PALS:
           x_offset:   2.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: ECollimator
 
     - elseparator1: 
@@ -124,7 +124,7 @@ PALS:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: ELSeparator
 
     - elseparator2: 
@@ -139,7 +139,7 @@ PALS:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: ELSeparator
 
     - em_field1: 
@@ -150,7 +150,7 @@ PALS:
           location: EXIT_END        
         RFP:
           zero_phase: ABOVE_TRANSITION
-        BmadP:
+        Bmad:
           Bmand_key: EM_Field
 
     - em_field2: 
@@ -161,7 +161,7 @@ PALS:
           location: EXIT_END        
         RFP:
           zero_phase: ABOVE_TRANSITION
-        BmadP:
+        Bmad:
           Bmand_key: EM_Field
 
     - fiducial1: 
@@ -179,7 +179,7 @@ PALS:
           x_rot:  -2.0000E-02             
           y_rot:   1.0000E-02             
           z_rot:   4.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Floor_Shift
 
     - gkicker1: 
@@ -187,7 +187,7 @@ PALS:
         ApertureP:
           shape: RECTANGULAR     
           location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: GKicker
 
     - hkicker1: 
@@ -202,7 +202,7 @@ PALS:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: HKicker
 
     - instrument1: 
@@ -238,7 +238,7 @@ PALS:
         ApertureP:
           shape: RECTANGULAR     
           location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: Monitor
 
     - multipole1: 
@@ -388,7 +388,7 @@ PALS:
           x_offset:   2.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: RCollimator
 
     - rfcavity1: 
@@ -453,7 +453,7 @@ PALS:
           location: EXIT_END        
         SolenoidP:
           Ksol:   5.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Sad_Mult
 
     - sad_mult2: 
@@ -467,7 +467,7 @@ PALS:
           location: EXIT_END        
         SolenoidP:
           Ksol:   5.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Sad_Mult
 
     - sbend1: 
@@ -671,7 +671,7 @@ PALS:
           z_rot:   1.0000E-01             
         SolenoidP:
           Ksol:   1.0000E+00             
-        BmadP:
+        Bmad:
           Bmand_key: Sol_Quad
 
     - sol_quad2: 
@@ -688,7 +688,7 @@ PALS:
           z_rot:   1.0000E-01             
         SolenoidP:
           Ksol:   1.0000E+00             
-        BmadP:
+        Bmad:
           Bmand_key: Sol_Quad
 
     - thick_multipole1: 
@@ -703,7 +703,7 @@ PALS:
         BodyShiftP:
           x_offset:   2.0000E-02             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Thick_Multipole
 
     - taylor1: 
@@ -725,7 +725,7 @@ PALS:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: VKicker
 
     - lcavity1: 
@@ -745,7 +745,7 @@ PALS:
           num_cells:   1.0000E+01             
           L_active:   4.4969E+00             
           cavity_type: STANDING_WAVE       
-        BmadP:
+        Bmad:
           Bmand_key: Lcavity
 
     - lcavity2: 
@@ -765,7 +765,7 @@ PALS:
           num_cells:   1.0000E+01             
           L_active:   4.4969E+00             
           cavity_type: STANDING_WAVE       
-        BmadP:
+        Bmad:
           Bmand_key: Lcavity
 
     - lcavity3: 
@@ -785,7 +785,7 @@ PALS:
           num_cells:   1.0000E+01             
           L_active:   4.4969E+00             
           cavity_type: TRAVELING_WAVE      
-        BmadP:
+        Bmad:
           Bmand_key: Lcavity
 
     - end_b0: 
@@ -799,7 +799,7 @@ PALS:
 
     - l1: 
         kind: BeamLine
-        line: [ beginning_b0, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2,
+        line: [ beginning_b1, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2,
                beambeam1, crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2,
                fiducial1, floor_shift1, gkicker1, hkicker1, instrument1, kicker1, match1, monitor1,
                multipole1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4,
@@ -815,10 +815,5 @@ PALS:
               periodic: false
 
     #---------------------------------------------------------------------------------------
-    # Constants
-
-
-    #---------------------------------------------------------------------------------------
-    # Bmad Overlay Translation.
-    # Note: Translated overlay parameter names use a double underscore of the form <Overlay-name>__<param-name>
+    # Lord elements
 
