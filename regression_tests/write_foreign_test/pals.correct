@@ -10,9 +10,13 @@ PALS:
 
 
   #---------------------------------------------------------------------------------------
-  # Constants
-
   facility:
+
+    #---------------------------------------------------------------------------------------
+    # Constants
+
+    #---------------------------------------------------------------------------------------
+    # Lattice Elements
 
     - beginning_b1: 
         kind: BeginningEle
@@ -33,7 +37,7 @@ PALS:
           spin_y:   4.0000E-01             
           spin_z:   5.0000E-01             
         Bmad:
-          Bmand_key: Beginning_Ele
+          Bmad_key: Beginning_Ele
 
     - ab_multipole1: 
         kind: Multipole
@@ -41,7 +45,7 @@ PALS:
           Ks2L:   2.0000E+02             
           Kn2L:   2.0000E+02             
         Bmad:
-          Bmand_key: AB_multipole
+          Bmad_key: AB_multipole
 
     - ac_kicker0123456789: 
         kind: ACKicker
@@ -49,7 +53,7 @@ PALS:
         MagneticMultipoleP:
           Kn0:  -3.3333E-02             
         Bmad:
-          Bmand_key: AC_Kicker
+          Bmad_key: AC_Kicker
 
     - ac_kicker2: 
         kind: ACKicker
@@ -57,7 +61,7 @@ PALS:
         MagneticMultipoleP:
           Ks0:   2.5000E-02             
         Bmad:
-          Bmand_key: AC_Kicker
+          Bmad_key: AC_Kicker
 
     - beambeam1: 
         kind: BeamBeam
@@ -77,7 +81,7 @@ PALS:
           phi0:  -2.0000E-01             
           zero_phase: ABOVE_TRANSITION
         Bmad:
-          Bmand_key: Crab_Cavity
+          Bmad_key: Crab_Cavity
 
     - ecollimator1: 
         kind: Drift
@@ -98,7 +102,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: ECollimator
+          Bmad_key: ECollimator
 
     - elseparator1: 
         kind: ELSeparator??
@@ -110,7 +114,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: ELSeparator
+          Bmad_key: ELSeparator
 
     - elseparator2: 
         kind: ELSeparator??
@@ -122,7 +126,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: ELSeparator
+          Bmad_key: ELSeparator
 
     - em_field1: 
         kind: EMField
@@ -130,7 +134,7 @@ PALS:
         RFP:
           zero_phase: ABOVE_TRANSITION
         Bmad:
-          Bmand_key: EM_Field
+          Bmad_key: EM_Field
 
     - em_field2: 
         kind: EMField
@@ -138,7 +142,7 @@ PALS:
         RFP:
           zero_phase: ABOVE_TRANSITION
         Bmad:
-          Bmand_key: EM_Field
+          Bmad_key: EM_Field
 
     - fiducial1: 
         kind: Fiducial
@@ -153,12 +157,12 @@ PALS:
           y_rot:   1.0000E-02             
           z_rot:   4.0000E-01             
         Bmad:
-          Bmand_key: Floor_Shift
+          Bmad_key: Floor_Shift
 
     - gkicker1: 
         kind: Kicker
         Bmad:
-          Bmand_key: GKicker
+          Bmad_key: GKicker
 
     - hkicker1: 
         kind: Kicker
@@ -170,7 +174,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: HKicker
+          Bmad_key: HKicker
 
     - instrument1: 
         kind: Instrument
@@ -194,7 +198,7 @@ PALS:
         kind: Instrument
         length:   4.5000E+00             
         Bmad:
-          Bmand_key: Monitor
+          Bmad_key: Monitor
 
     - multipole1: 
         kind: Multipole
@@ -323,7 +327,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: RCollimator
+          Bmad_key: RCollimator
 
     - rfcavity1: 
         kind: RFCavity
@@ -376,7 +380,7 @@ PALS:
         SolenoidP:
           Ksol:   5.0000E-01             
         Bmad:
-          Bmand_key: Sad_Mult
+          Bmad_key: Sad_Mult
 
     - sad_mult2: 
         kind: SadMult
@@ -387,10 +391,10 @@ PALS:
         SolenoidP:
           Ksol:   5.0000E-01             
         Bmad:
-          Bmand_key: Sad_Mult
+          Bmad_key: Sad_Mult
 
     - sbend1: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           tilt_ref:   1.0000E-01             
@@ -404,9 +408,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - rbend2: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           tilt_ref:   1.0000E-01             
@@ -420,9 +426,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - sbend3: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           tilt_ref:   1.0000E-01             
@@ -437,9 +445,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - rbend4: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
@@ -456,15 +466,17 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - sbend5: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
           tilt_ref:   1.0000E-01             
-          edge_int1:   1.4000E+00             
-          edge_int2:   1.4000E+00             
+          edge1_int:   1.4000E+00             
+          edge2_int:   1.4000E+00             
           e1:   1.0000E-01             
           e2:   2.0000E-01             
         MagneticMultipoleP:
@@ -477,9 +489,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - rbend6: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
@@ -496,9 +510,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - sbend7: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
@@ -515,6 +531,8 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmad_key: SBend
 
     - sextupole1: 
         kind: Sextupole
@@ -558,7 +576,7 @@ PALS:
         SolenoidP:
           Ksol:   1.0000E+00             
         Bmad:
-          Bmand_key: Sol_Quad
+          Bmad_key: Sol_Quad
 
     - sol_quad2: 
         kind: Solenoid
@@ -572,7 +590,7 @@ PALS:
         SolenoidP:
           Ksol:   1.0000E+00             
         Bmad:
-          Bmand_key: Sol_Quad
+          Bmad_key: Sol_Quad
 
     - thick_multipole1: 
         kind: ThickMultipole
@@ -584,7 +602,7 @@ PALS:
           x_offset:   2.0000E-02             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: Thick_Multipole
+          Bmad_key: Thick_Multipole
 
     - taylor1: 
         kind: Taylor
@@ -600,7 +618,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         Bmad:
-          Bmand_key: VKicker
+          Bmad_key: VKicker
 
     - lcavity1: 
         kind: RFCavity
@@ -617,7 +635,7 @@ PALS:
           L_active:   4.4969E+00             
           cavity_type: STANDING_WAVE       
         Bmad:
-          Bmand_key: Lcavity
+          Bmad_key: Lcavity
 
     - lcavity2: 
         kind: RFCavity
@@ -634,7 +652,7 @@ PALS:
           L_active:   4.4969E+00             
           cavity_type: STANDING_WAVE       
         Bmad:
-          Bmand_key: Lcavity
+          Bmad_key: Lcavity
 
     - lcavity3: 
         kind: RFCavity
@@ -651,7 +669,7 @@ PALS:
           L_active:   4.4969E+00             
           cavity_type: TRAVELING_WAVE      
         Bmad:
-          Bmand_key: Lcavity
+          Bmad_key: Lcavity
 
     - end_b0: 
         kind: Marker

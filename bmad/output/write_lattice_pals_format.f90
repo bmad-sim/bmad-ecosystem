@@ -111,13 +111,13 @@ pals_ele_type(pickup$)               = 'Instrument'
 pals_ele_type(pipe$)                 = 'Drift'
 pals_ele_type(quadrupole$)           = 'Quadrupole'
 pals_ele_type(ramper$)               = 'Ramper'
-pals_ele_type(rbend$)                = 'SBend'
+pals_ele_type(rbend$)                = 'Bend'
 pals_ele_type(rcollimator$)          = 'Drift'
 pals_ele_type(rf_bend$)              = 'RFBend'
 pals_ele_type(rfcavity$)             = 'RFCavity'
 pals_ele_type(sad_mult$)             = 'SadMult'
 pals_ele_type(sample$)               = 'Sample'
-pals_ele_type(sbend$)                = 'SBend'
+pals_ele_type(sbend$)                = 'Bend'
 pals_ele_type(sextupole$)            = 'Sextupole'
 pals_ele_type(sol_quad$)             = 'Solenoid'
 pals_ele_type(solenoid$)             = 'Solenoid'
@@ -154,9 +154,22 @@ id2 = id + 2*id_del
 
 call write_str(0, '')
 call write_str(id_del, '#---------------------------------------------------------------------------------------')
-call write_str(id_del, '# Constants')
-call write_str(0, '')
 write (iu, '(a)')  '  facility:'
+
+!
+
+call write_str(0, '')
+call write_str(id, '#---------------------------------------------------------------------------------------')
+call write_str(id, '# Constants')
+
+if (allocated(lat%constant)) then
+  header_needed = .true.
+  call write_str(0, '')
+  do i = 1, size(lat%constant)
+    call write_real_list(id, '- constants', downcase(lat%constant(i)%name), lat%constant(i)%value, &
+                                                                                header_needed, .false.)
+  enddo
+endif
 
 !----------------------------
 ! Write element defs
@@ -164,16 +177,19 @@ write (iu, '(a)')  '  facility:'
 ! Note: Beamlines cannot currently handle multipass nor superimpose so ignore.
 ! Stuff that is commented out due to this is marked by "!!!"
 
+call write_str(0, '')
+call write_str(id, '#---------------------------------------------------------------------------------------')
+call write_str(id, '# Lattice Elements')
+
 n_names = 0
 n = lat%n_ele_max
 allocate (names(n), an_indexx(n), named_eles_ptr(n))
 
 do ib = 0, ubound(lat%branch, 1)
   branch => lat%branch(ib)
-  ele_loop: do ie = 0, branch%n_ele_track   !!! Note: Not n_ele_max since superimpose/multipass not handled
+  ele_loop: do ie = 0, branch%n_ele_track   !!! Note: Not n_ele_max since superimpose not handled
     ele => branch%ele(ie)
     length = ele%value(l$)
-    if (ele%key == overlay$ .or. ele%key == group$ .or. ele%key == ramper$ .or. ele%key == girder$) cycle 
     if (ele%key == null_ele$) cycle
 
     call init_ele (ele_dflt, ele%key)
@@ -190,9 +206,10 @@ do ib = 0, ubound(lat%branch, 1)
     call write_str_dict(id1, '', 'kind', pals_ele_type(ele%key))
     call write_logic_dict(id1, '', 'is_on', ele%is_on, .false., .true.)
 
-    call write_str_dict(id1, '', 'label', quote(ele%type), header_needed)
-    call write_str_dict(id1, '', 'alias', quote(ele%alias), header_needed)
-    if (associated(ele%descrip)) call write_str_dict(id1, '', 'description', quote(ele%descrip))
+    header_needed = .true.
+    call write_str_dict(id2, 'MetaP', 'label', quote(ele%type), header_needed)
+    call write_str_dict(id2, 'MetaP', 'alias', quote(ele%alias), header_needed)
+    if (associated(ele%descrip)) call write_str_dict(id2, 'MetaP', 'description', quote(ele%descrip), header_needed)
 
     if (has_attribute(ele, 'L') .and. length /= 0) call write_real_dict(id1, '', 'length', length)
 
@@ -236,8 +253,8 @@ do ib = 0, ubound(lat%branch, 1)
       call write_real_dict(id2, 'BendP', 'tilt_ref',  ele%value(ref_tilt$), header_needed)
       call write_real_dict(id2, 'BendP', 'h1',        ele%value(h1$), header_needed)
       call write_real_dict(id2, 'BendP', 'h2',        ele%value(h2$), header_needed)
-      call write_real_dict(id2, 'BendP', 'edge_int1', ele%value(fint$)*ele%value(hgap$), header_needed)
-      call write_real_dict(id2, 'BendP', 'edge_int2', ele%value(fintx$)*ele%value(hgapx$), header_needed)
+      call write_real_dict(id2, 'BendP', 'edge1_int', ele%value(fint$)*ele%value(hgap$), header_needed)
+      call write_real_dict(id2, 'BendP', 'edge2_int', ele%value(fintx$)*ele%value(hgapx$), header_needed)
       if (ele%sub_key == sbend$) then
         call write_real_dict(id2, 'BendP', 'e1',        ele%value(e1$), header_needed)
         call write_real_dict(id2, 'BendP', 'e2',        ele%value(e2$), header_needed)
@@ -401,7 +418,7 @@ do ib = 0, ubound(lat%branch, 1)
     endif
 
     header_needed = .true.
-    if (key_name(ele%key) /= pals_ele_type(ele%key)) call write_str_dict(id2, 'Bmad', 'Bmand_key', key_name(ele%key), header_needed)
+    if (key_name(ele%key) /= pals_ele_type(ele%key)) call write_str_dict(id2, 'Bmad', 'Bmad_key', key_name(ele%key), header_needed)
     if (has_attribute(ele, 'TRACKING_METHOD') .and. (ele%tracking_method /= ele_dflt%tracking_method)) &
                                 call write_str_dict(id2, 'Bmad', 'tracking_method', tracking_method_name(ele%key), header_needed)
     if (has_attribute(ele, 'MAT6_CALC_METHOD') .and. (ele%mat6_calc_method /= ele_dflt%mat6_calc_method)) &
@@ -619,7 +636,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     header_needed = .true.
     do i = 1, size(ele%control%var)
       var => ele%control%var(i)
-      call write_real_dict(id2, 'variables', downcase(var%name), var%value, header_needed)
+      call write_real_dict(id2, 'variables', downcase(var%name), var%value, header_needed, .false.)
     enddo
 
     header_needed = .true.
@@ -644,7 +661,9 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       enddo
 
       line = expression_stack_to_string(control%stack)
-      if (f /= 1.0_rp) line = re_str(f) // ' * ' // trim(line)
+      if (f /= 1.0_rp) line = re_str(f) // ' * (' // trim(line) // ')'
+      if (slave%key == sbend$ .and. index(name, '.Kn0L') /= 0) line = trim(line) // ' + ' // re_str(slave%value(angle$))
+      if (slave%key == sbend$ .and. index(name, '.Bn0L') /= 0) line = trim(line) // ' + ' // re_str(slave%value(b_field$))
       call write_str_dict(id2, 'controls', '- parameter', name, header_needed)
       call write_str_dict(id2+id_del, 'controls', 'expression', line, header_needed)
     enddo
@@ -871,9 +890,9 @@ n = len_trim(bmad_name)
 if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. n >= 7 .and. bmad_name(max(1,n-4):n) == '_ELEC' .and. is_integer(bmad_name(2:max(2,n-5)))) then
   pals_name = 'ElectricMultipoleP.E'
   if (bmad_name(1:1) == 'A') then
-    pals_name = pals_name(1:1) // 's'
+    pals_name = trim(pals_name) // 's'
   else
-    pals_name = pals_name(1:1) // 'n'
+    pals_name = trim(pals_name) // 'n'
   endif
 
   pals_name = trim(pals_name) // bmad_name(2:n-5)
@@ -892,9 +911,9 @@ if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_nam
   endif
 
   if (bmad_name(1:1) == 'A') then
-    pals_name = pals_name(1:1) // 's'
+    pals_name = trim(pals_name) // 's'
   else
-    pals_name = pals_name(1:1) // 'n'
+    pals_name = trim(pals_name) // 'n'
   endif
 
   pals_name = trim(pals_name) // bmad_name(2:)
@@ -1041,17 +1060,17 @@ end subroutine write_str_list
 !------------------------------------------------------
 ! contains
 
-subroutine write_real_list(indnt, group_name, name, value, header_needed)
+subroutine write_real_list(indnt, group_name, name, value, header_needed, ignore_zero)
 
 real(rp) value
 integer indnt, ind
-logical, optional :: header_needed
+logical, optional :: header_needed, ignore_zero
 character(*) group_name, name
 character(100) :: blank = ''
 
 !
 
-if (value == 0) return
+if (value == 0 .and. logic_option(.true., ignore_zero)) return
 if (logic_option(.false., header_needed) .and. group_name /= '' .and. group_name /= '-') write (iu, '(4a)') blank(1:indnt), trim(group_name), ':'  
 ind = indent_tot(group_name, indnt+id_del)
 write (iu, '(5a)') blank(1:ind), '- ', trim(name), ': ', re_str(value)
@@ -1161,17 +1180,17 @@ end subroutine write_str_dict
 !------------------------------------------------------
 ! contains
 
-subroutine write_real_dict(indnt, group_name, name, value, header_needed)
+subroutine write_real_dict(indnt, group_name, name, value, header_needed, ignore_zero)
 
 real(rp) value
 integer indnt, ind
-logical, optional :: header_needed
+logical, optional :: header_needed, ignore_zero
 character(*) group_name, name
 character(100) :: blank = ''
 
 !
 
-if (value == 0) return
+if (value == 0 .and. logic_option(.true., ignore_zero)) return
 if (logic_option(.false., header_needed) .and. group_name /= '' .and. group_name /= '-') write (iu, '(4a)') blank(1:indnt), trim(group_name), ':'  
 ind = indent_tot(group_name, indnt+id_del)
 write (iu, '(5a)') blank(1:ind), trim(name), ': ', re_str(value)
