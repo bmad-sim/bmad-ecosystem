@@ -2,11 +2,11 @@ PALS:
   notes:
     - "Translated from Bmad lattice file: /nfs/acc/user/dcs16/bmad-ecosystem/regression_tests/write_foreign_test/write_foreign_test.bmad"
 
-  extension_names:
+  extension_labels:
     names:
-      Bmad
+      Bmad: Bmad specific data
     prefixes:
-      Bmad_
+      Bmad_: Bmad specific data
 
 
   #---------------------------------------------------------------------------------------
@@ -18,7 +18,7 @@ PALS:
         kind: BeginningEle
         ReferenceP:
           pc_ref:   8.5958E+05             
-          species_ref:: "positron"
+          species_ref: "positron"
         TwissP:
           beta_a:   1.0000E+01             
           beta_b:   1.0000E+01             
@@ -32,7 +32,7 @@ PALS:
           spin_x:   3.0000E-01             
           spin_y:   4.0000E-01             
           spin_z:   5.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Beginning_Ele
 
     - ab_multipole1: 
@@ -40,10 +40,7 @@ PALS:
         MagneticMultipoleP:
           Ks2L:   2.0000E+02             
           Kn2L:   2.0000E+02             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: AB_multipole
 
     - ac_kicker0123456789: 
@@ -51,10 +48,7 @@ PALS:
         length:   3.0000E-01             
         MagneticMultipoleP:
           Kn0:  -3.3333E-02             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: AC_Kicker
 
     - ac_kicker2: 
@@ -62,17 +56,11 @@ PALS:
         length:   4.0000E-01             
         MagneticMultipoleP:
           Ks0:   2.5000E-02             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: AC_Kicker
 
     - beambeam1: 
         kind: BeamBeam
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   3.0000E-03             
           y_offset:   3.0000E-03             
@@ -83,15 +71,12 @@ PALS:
     - crab_cavity1: 
         kind: CrabCavity
         length:   2.0000E-01             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         RFP:
           rf_frequency:   1.0000E+08             
           voltage:   1.0000E+03             
           phi0:  -2.0000E-01             
           zero_phase: ABOVE_TRANSITION
-        BmadP:
+        Bmad:
           Bmand_key: Crab_Cavity
 
     - ecollimator1: 
@@ -105,11 +90,14 @@ PALS:
           x_max:   2.0000E-01             
           y_min:  -1.0000E-01             
           y_max:   1.0000E-01             
+          shape: ELLIPTICAL      
+          location: EXIT_END        
+          aperture_shifts_with_body: true
         BodyShiftP:
           x_offset:   2.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: ECollimator
 
     - elseparator1: 
@@ -117,14 +105,11 @@ PALS:
         length:   4.5000E+00             
         ElectricMultipoleP:
           En0:  -9.5509E+02             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: ELSeparator
 
     - elseparator2: 
@@ -132,36 +117,27 @@ PALS:
         length:   4.5000E+00             
         ElectricMultipoleP:
           Es0:   9.5509E+02             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: ELSeparator
 
     - em_field1: 
         kind: EMField
         length:   1.4000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         RFP:
           zero_phase: ABOVE_TRANSITION
-        BmadP:
+        Bmad:
           Bmand_key: EM_Field
 
     - em_field2: 
         kind: EMField
         length:   1.4000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         RFP:
           zero_phase: ABOVE_TRANSITION
-        BmadP:
+        Bmad:
           Bmand_key: EM_Field
 
     - fiducial1: 
@@ -169,9 +145,6 @@ PALS:
 
     - floor_shift1: 
         kind: FloorShift
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   1.0000E-01             
           y_offset:   2.0000E-01             
@@ -179,15 +152,12 @@ PALS:
           x_rot:  -2.0000E-02             
           y_rot:   1.0000E-02             
           z_rot:   4.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Floor_Shift
 
     - gkicker1: 
         kind: Kicker
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: GKicker
 
     - hkicker1: 
@@ -195,22 +165,16 @@ PALS:
         length:   4.5000E+00             
         MagneticMultipoleP:
           Kn0:  -1.1111E-03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: HKicker
 
     - instrument1: 
         kind: Instrument
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
 
     - kicker1: 
         kind: Kicker
@@ -218,9 +182,6 @@ PALS:
         MagneticMultipoleP:
           Ks0:   6.6667E-04             
           Kn0:   1.3333E-06             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -228,17 +189,11 @@ PALS:
 
     - match1: 
         kind: Match
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
 
     - monitor1: 
         kind: Instrument
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
-        BmadP:
+        Bmad:
           Bmand_key: Monitor
 
     - multipole1: 
@@ -248,18 +203,12 @@ PALS:
           Kn1L:   6.1232E-17             
           Ks3L:   3.0805E+00             
           Kn3L:  -3.2804E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
 
     - octupole1: 
         kind: Octupole
         length:   4.5000E+00             
         MagneticMultipoleP:
           Kn3:   1.0000E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   1.0000E-02             
           x_rot:  -1.0000E-03             
@@ -268,9 +217,6 @@ PALS:
     - patch1: 
         kind: Patch
         length:   4.0050E-03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         PatchP:
           x_offset:   1.0000E-03             
           y_offset:   2.0000E-03             
@@ -292,9 +238,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   2.0000E+04             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -311,9 +254,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   2.0000E+04             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -330,9 +270,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   2.0000E+04             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -349,9 +286,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   2.0000E+04             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -368,9 +302,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   2.0000E+04             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -384,19 +315,19 @@ PALS:
           x_max:   2.0000E-01             
           y_min:  -1.0000E-01             
           y_max:   1.0000E-01             
+          shape: RECTANGULAR     
+          location: EXIT_END        
+          aperture_shifts_with_body: true
         BodyShiftP:
           x_offset:   2.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: RCollimator
 
     - rfcavity1: 
         kind: RFCavity
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -411,9 +342,6 @@ PALS:
     - rfcavity2: 
         kind: RFCavity
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -427,9 +355,6 @@ PALS:
 
     - rfcavity3: 
         kind: RFCavity
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -448,12 +373,9 @@ PALS:
           Ks1:   2.0000E-01             
           Kn2:   8.0000E+02             
           Ks10:   3.6288E+27             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         SolenoidP:
           Ksol:   5.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Sad_Mult
 
     - sad_mult2: 
@@ -462,12 +384,9 @@ PALS:
           Ks1L:   2.0000E-02             
           Kn2L:   8.0000E+01             
           Ks10L:   3.6288E+26             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         SolenoidP:
           Ksol:   5.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Sad_Mult
 
     - sbend1: 
@@ -482,9 +401,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -501,9 +417,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -521,9 +434,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -543,9 +453,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -567,9 +474,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -589,9 +493,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -611,9 +512,6 @@ PALS:
         ElectricMultipoleP:
           En0:  -2.0000E+03             
           Es1:   6.6667E+03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -623,9 +521,6 @@ PALS:
         length:   6.0000E-01             
         MagneticMultipoleP:
           Kn2:   1.0000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -634,9 +529,6 @@ PALS:
     - solenoid1: 
         kind: Solenoid
         length:   2.6000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -647,9 +539,6 @@ PALS:
     - solenoid2: 
         kind: Solenoid
         length:   2.6000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -662,16 +551,13 @@ PALS:
         length:   2.6000E+00             
         MagneticMultipoleP:
           Kn1:   1.0000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         SolenoidP:
           Ksol:   1.0000E+00             
-        BmadP:
+        Bmad:
           Bmand_key: Sol_Quad
 
     - sol_quad2: 
@@ -679,16 +565,13 @@ PALS:
         length:   2.6000E+00             
         MagneticMultipoleP:
           Kn1:   1.0000E-05             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         SolenoidP:
           Ksol:   1.0000E+00             
-        BmadP:
+        Bmad:
           Bmand_key: Sol_Quad
 
     - thick_multipole1: 
@@ -697,43 +580,31 @@ PALS:
         MagneticMultipoleP:
           Ks2:   4.4444E-01             
           Kn3:   2.6667E+01             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   2.0000E-02             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: Thick_Multipole
 
     - taylor1: 
         kind: Taylor
         length:   5.0000E-01             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
 
     - vkicker1: 
         kind: Kicker
         length:   4.5000E+00             
         MagneticMultipoleP:
           Ks0:   1.1111E-03             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
-        BmadP:
+        Bmad:
           Bmand_key: VKicker
 
     - lcavity1: 
         kind: RFCavity
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -745,15 +616,12 @@ PALS:
           num_cells:   1.0000E+01             
           L_active:   4.4969E+00             
           cavity_type: STANDING_WAVE       
-        BmadP:
+        Bmad:
           Bmand_key: Lcavity
 
     - lcavity2: 
         kind: RFCavity
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -765,15 +633,12 @@ PALS:
           num_cells:   1.0000E+01             
           L_active:   4.4969E+00             
           cavity_type: STANDING_WAVE       
-        BmadP:
+        Bmad:
           Bmand_key: Lcavity
 
     - lcavity3: 
         kind: RFCavity
         length:   4.5000E+00             
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -785,21 +650,18 @@ PALS:
           num_cells:   1.0000E+01             
           L_active:   4.4969E+00             
           cavity_type: TRAVELING_WAVE      
-        BmadP:
+        Bmad:
           Bmand_key: Lcavity
 
     - end_b0: 
         kind: Marker
-        ApertureP:
-          shape: RECTANGULAR     
-          location: EXIT_END        
 
     #---------------------------------------------------------------------------------------
     # BeamLines and Lattices
 
     - l1: 
         kind: BeamLine
-        line: [ beginning_b0, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2,
+        line: [ beginning_b1, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2,
                beambeam1, crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2,
                fiducial1, floor_shift1, gkicker1, hkicker1, instrument1, kicker1, match1, monitor1,
                multipole1, octupole1, patch1, quadrupole1, quadrupole2, quadrupole3, quadrupole4,
@@ -815,10 +677,5 @@ PALS:
               periodic: false
 
     #---------------------------------------------------------------------------------------
-    # Constants
-
-
-    #---------------------------------------------------------------------------------------
-    # Bmad Overlay Translation.
-    # Note: Translated overlay parameter names use a double underscore of the form <Overlay-name>__<param-name>
+    # Lord elements
 

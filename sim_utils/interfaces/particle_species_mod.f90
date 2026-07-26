@@ -1380,15 +1380,13 @@ end function species_id_from_openpmd
 ! Function openpmd_species_name (species) result(pmd_name)
 !
 ! Routine to return the openPMD name of a particle species given the Bmad species ID.
-! Note: the pmd_name does not include the particle charge. For example, if species
-! corresponds to He+ then the pmd_name will be "He".
 !
 ! Input:
-!   species   -- integer: Bmad species ID number.
+!   species     -- integer: Bmad species ID number.
 !
 ! Output:
-!   pmd_name  -- Character(20): Name of the species.
-!                Will return 'INVALID!' (= invalid_name) if index is not valid.
+!   pmd_name    -- Character(20): Name of the species.
+!                  Will return 'INVALID!' (= invalid_name) if index is not valid.
 !-
 
 function openpmd_species_name(species) result(pmd_name)
@@ -1401,13 +1399,8 @@ character(20) :: pmd_name
 if (lb_subatomic <= species .and. species <= ub_subatomic) then
   pmd_name = openpmd_subatomic_species_name(species)
 
-! All else just remove any charge suffix. EG: "H-" -> "H".
 else
   pmd_name = species_name(species)
-  ix = index(pmd_name, '+')
-  if (ix /= 0) pmd_name = pmd_name(1:ix-1)
-  ix = index(pmd_name, '-')
-  if (ix /= 0) pmd_name = pmd_name(1:ix-1)
 endif
 
 end function openpmd_species_name
