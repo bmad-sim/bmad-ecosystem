@@ -10,9 +10,13 @@ PALS:
 
 
   #---------------------------------------------------------------------------------------
-  # Constants
-
   facility:
+
+    #---------------------------------------------------------------------------------------
+    # Constants
+
+    #---------------------------------------------------------------------------------------
+    # Lattice Elements
 
     - beginning_b1: 
         kind: BeginningEle
@@ -390,7 +394,7 @@ PALS:
           Bmand_key: Sad_Mult
 
     - sbend1: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           tilt_ref:   1.0000E-01             
@@ -404,9 +408,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - rbend2: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           tilt_ref:   1.0000E-01             
@@ -420,9 +426,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - sbend3: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           tilt_ref:   1.0000E-01             
@@ -437,9 +445,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - rbend4: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
@@ -456,15 +466,17 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - sbend5: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
           tilt_ref:   1.0000E-01             
-          edge_int1:   1.4000E+00             
-          edge_int2:   1.4000E+00             
+          edge1_int:   1.4000E+00             
+          edge2_int:   1.4000E+00             
           e1:   1.0000E-01             
           e2:   2.0000E-01             
         MagneticMultipoleP:
@@ -477,9 +489,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - rbend6: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
@@ -496,9 +510,11 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - sbend7: 
-        kind: SBend
+        kind: Bend
         length:   6.0000E-01             
         BendP:
           g_ref:   1.0000E-02             
@@ -515,6 +531,8 @@ PALS:
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
+        Bmad:
+          Bmand_key: SBend
 
     - sextupole1: 
         kind: Sextupole
