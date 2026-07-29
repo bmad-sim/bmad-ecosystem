@@ -231,6 +231,14 @@ do ib = 0, ubound(lat%branch, 1)
       call write_real_dict(id2, 'TwissP', 'c_mat12', ele%c_mat(1,2), header_needed)
       call write_real_dict(id2, 'TwissP', 'c_mat21', ele%c_mat(2,1), header_needed)
       call write_real_dict(id2, 'TwissP', 'c_mat22', ele%c_mat(2,2), header_needed)
+      call write_real_dict(id2, 'TwissP', 'dbeta_a_dpz',  ele%a%dbeta_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'dbeta_b_dpz',  ele%b%dbeta_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'dalpha_a_dpz', ele%a%dalpha_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'dalpha_b_dpz', ele%b%dalpha_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'deta_x_dpz',   ele%x%deta_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'deta_y_dpz',   ele%y%deta_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'detap_x_dpz',  ele%x%detap_dpz, header_needed)
+      call write_real_dict(id2, 'TwissP', 'detap_y_dpz',  ele%y%detap_dpz, header_needed)
 
       orb => lat%particle_start
       header_needed = .true.
