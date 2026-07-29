@@ -1867,7 +1867,8 @@ call parser_file_stack ('pop')
 
 if (ios > 0 .or. lr(1)%freq == -1) then
   call parser_error ('CANNOT READ LONG_RANGE_MODES NAMELIST FOR ELEMENT: ' // ele%name, & 
-                'FROM FILE: '// full_file_name)
+                'FROM FILE: '// full_file_name, &
+                'NEWER VERSIONS OF GCC REQUIRE QUOTES AROUND THE POLARIZATION_ANGLE COMPONENT.')
   return
 endif
 
