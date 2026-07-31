@@ -1,0 +1,15 @@
+set (EXENAME wavefront_drift_test)
+
+set (SRC_FILES
+	wavefront/wavefront_drift_test.f90
+)
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  bsim
+  bmad
+  sim_utils
+  ${ACC_BMAD_LINK_LIBS}
+)

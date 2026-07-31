@@ -1,0 +1,30 @@
+# Environment for the wavefront validation harness.
+#
+# This provides the Python side of the Fortran/Python drift comparison. It carries
+# the runtime dependencies of openPMD-beamphysics but not the package itself:
+# openPMD-beamphysics is used directly from its checkout via PYTHONPATH, which
+# run_validation.sh sets, so that the comparison always runs against the working
+# tree rather than an installed copy.
+#
+#   conda env create -f environment.yml
+#   ./run_validation.sh --beamphysics <path to openPMD-beamphysics>
+#
+# Note this is deliberately separate from the bmad-build environment defined in
+# .github/bmad-build-env.yaml, which builds the Fortran side.
+
+name: bmad-fel-validate
+
+channels:
+  - conda-forge
+
+dependencies:
+  - python=3.12
+  - numpy
+  - scipy
+  - h5py
+  - matplotlib-base
+  - python-dateutil
+  # For Bmad's own regression suite, regression_tests/test_fortran.py, which is worth running
+  # after any change to the build configuration:
+  #   cd regression_tests && python -m pytest test_fortran.py -q
+  - pytest
