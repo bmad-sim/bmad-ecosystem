@@ -701,10 +701,10 @@ branch_loop: do i_b = 0, ubound(lat%branch, 1)
             err_flag = .true.
           endif
 
-          if (lr%q /= real_garbage$ .and. lr%Q <= 0) then
+          if (lr%q /= real_garbage$ .and. lr%Q < 0) then
             call out_io (s_fatal$, r_name, &
                       'ELEMENT: ' // ele_full_name(ele, '@N (&#)'), &
-                      'HAS LR WAKE (#\i0\) WITH NON-POSITIVE Q!  \es10.1\ ', &
+                      'HAS LR WAKE (#\i0\) WITH  Q!  \es10.1\ ', &
                       i_array = [iw], r_array = [lr%Q])
             err_flag = .true.
           endif
