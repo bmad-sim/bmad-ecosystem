@@ -1,0 +1,102 @@
+#!/bin/bash
+#
+# Build Bmad against a conda environment, which is the one route through the distribution
+# build system that resolves the dependencies rather than requiring them to be built.
+#
+# Create the environment once, then build:
+#
+#   conda env create -n bmad-build -f .github/bmad-build-env.yaml
+#   ./util/conda_compile
+#
+# BUILD_PRODUCTION=N selects util/dist_build_debug, which is the right build while
+# developing:
+#
+#   BUILD_PRODUCTION=N ./util/conda_compile
+#
+# Preferences go in the heredoc below, not in util/dist_prefs: this script restores that file
+# from origin/main on every run and appends to it, so any edit to it is discarded.
+
+set -e
+
+# Everything below is relative to the repository root, so go there. Derived from this
+# script's own location rather than from the working directory, so it can be run from
+# anywhere.
+
+cd "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+
+set +e
+
+if ! command -v conda &>/dev/null; then
+  echo "Error: conda binary not found"
+  exit 1
+fi
+
+CONDA_ROOT=$(conda info --base)
+source "$CONDA_ROOT/etc/profile.d/conda.sh"
+
+conda activate bmad-build
+
+
+
+
+export LDFLAGS="$LDFLAGS -Wl,-no_compact_unwind"
+
+# Pin HDF5 to this environment.
+#
+# util/Master.cmake calls find_package(HDF5 COMPONENTS Fortran HL) with nothing to anchor
+# it, and CMake's FindHDF5 prefers the h5fc and h5cc compiler wrappers it finds on PATH. Any
+# other conda environment that is active, or merely earlier on PATH, therefore supplies the
+# HDF5 that gets linked, while the compile side picks up this environment's hdf5.mod from
+# ACC_CONDA_PATH/include. Observed on one machine: compiled against 1.14.6 module files and
+# linked against 2.1.0 shared libraries, a mismatch across a major version that happened to
+# run. HDF5_ROOT takes precedence over the wrapper search and makes the choice explicit.
+
+export HDF5_ROOT="$CONDA_PREFIX"
+
+echo "** CONDA PREFIX IS: $CONDA_PREFIX"
+echo "** HDF5_ROOT IS:    $HDF5_ROOT"
+
+BUILD_PRODUCTION=${BUILD_PRODUCTION=Y}
+ARTIFACT_FOLDER="production"
+
+git checkout origin/main -- util/dist_prefs
+
+cat <<EOF >>util/dist_prefs
+export DIST_F90_REQUEST="gfortran"
+export ACC_PLOT_PACKAGE="pgplot"
+export ACC_PLOT_DISPLAY_TYPE="X"
+export ACC_ENABLE_OPENMP="Y"
+export ACC_ENABLE_MPI="N"
+export ACC_FORCE_BUILTIN_MPI="N"
+export ACC_ENABLE_GFORTRAN_OPTIMIZATION="$BUILD_PRODUCTION"
+export ACC_ENABLE_SHARED="Y"
+export ACC_ENABLE_SHARED_ONLY="N"
+export ACC_ENABLE_FPIC="Y"
+export ACC_ENABLE_PROFILING="N"
+export ACC_SET_GMAKE_JOBS="12"
+export ACC_CONDA_BUILD="Y"
+export ACC_CONDA_BUILD_TESTS="Y"
+export ACC_CONDA_PATH="$CONDA_PREFIX"
+export ACC_USE_MACPORTS="N"
+EOF
+
+echo "**** Invoking dist_source_me"
+source util/dist_source_me
+
+cp $CONDA_PREFIX/share/gnuconfig/config.* .
+
+# build production if BUILD_PRODUCTION is set to Y
+if [[ "$BUILD_PRODUCTION" == "Y" ]]; then
+  echo "**** Invoking dist_build_production"
+  util/dist_build_production
+else
+  echo "**** Invoking dist_build_debug"
+  util/dist_build_debug
+fi
+
+# --- Optional: build code_examples (not included in main build) ---
+# export LIBRARY_PATH=$CONDA_PREFIX/lib
+# cd code_examples/production
+# cmake ..
+# make plot_continuous_color-exe
+

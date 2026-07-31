@@ -121,3 +121,7 @@ production
 debug
 linux_lib
 
+
+# Copied in from the conda environment by util/conda_compile on every run.
+config.guess
+config.sub
