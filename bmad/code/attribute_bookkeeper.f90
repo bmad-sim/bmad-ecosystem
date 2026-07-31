@@ -131,7 +131,7 @@ if (associated(ele%wake)) then
 
     ! Old style lattice files set Q and not damp.
     if (lr%q /= real_garbage$) then  
-      if (lr%q == 0) then
+      if (lr%q == 0 .and. lr%freq /= 0) then
         call out_io (s_error$, r_name, 'Q factor for LR wake mode is zero which does not make sense!', &
                                        'For element: ' // ele%name)
       else
