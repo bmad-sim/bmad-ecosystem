@@ -97,7 +97,14 @@ end type
 ! new-array execute rule makes executing a plan on a differently aligned array undefined.
 ! Second, the buffer is module state, so wavefront_fft2 is not thread safe. Parallelising
 ! over slices, which is a later deliverable, wants one cache per thread; that is a change
-! confined to these six variables and to wavefront_fft2.
+! confined to these five variables and to wavefront_fft2.
+!
+! On the critical section inside wavefront_fft2: it guards FFTW's rule that plan creation is
+! not reentrant, and nothing else. It does not make the routine callable from a parallel
+! region, because wf_buf is written and read outside it. Both statements are repeated at the
+! section itself, since that is where the pragma would otherwise be read as a thread safety
+! claim. Note the per-thread version still needs the section, because the FFTW planner is
+! globally serialised regardless of how many buffers there are.
 
 ! The transform itself is deliberately single threaded. The parallelisation axis for a
 ! wavefront is the slice index, not the transverse transform, so fftw_plan_with_nthreads is
@@ -659,8 +666,14 @@ if (present(curvature)) then
   endif
 endif
 
-if (present(err_flag)) err_flag = .false.
-if (z_drift == 0) return
+! Note err_flag stays true from here until the transforms have actually finished. Clearing it
+! early and then returning out of the loop below on a failed transform would report success on
+! failure.
+
+if (z_drift == 0) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 
 n_grid = wavefront_shape(wf)
 nx = n_grid(1); ny = n_grid(2); nz = n_grid(3)
@@ -686,6 +699,8 @@ do i_pol = 1, 2
     field(:,:,iz) = field(:,:,iz) / real(nx * ny, wf_rp)
   enddo
 enddo
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine wavefront_drift
 
@@ -801,8 +816,15 @@ real(rp) k0, kx, ky, phase
 
 if (present(err_flag)) err_flag = .true.
 call wavefront_check (wf, err);  if (err) return
-if (present(err_flag)) err_flag = .false.
-if (z_drift == 0) return
+
+! As in wavefront_drift, err_flag is cleared only once the work is done. Nothing below can
+! fail today, since the direct sum has no fallible call in it, but clearing it up here is the
+! shape that reports success on failure the moment one is added.
+
+if (z_drift == 0) then
+  if (present(err_flag)) err_flag = .false.
+  return
+endif
 
 n_grid = wavefront_shape(wf)
 nx = n_grid(1); ny = n_grid(2); nz = n_grid(3)
@@ -858,6 +880,8 @@ do i_pol = 1, 2
     field(:,:,iz) = slice / real(nx * ny, wf_rp)
   enddo
 enddo
+
+if (present(err_flag)) err_flag = .false.
 
 end subroutine wavefront_drift_reference
 
@@ -947,6 +971,7 @@ include 'fftw3.f03'
 complex(wf_rp) dat(:,:)
 integer direction
 logical, optional :: err_flag
+logical cache_ok
 integer nx, ny
 character(*), parameter :: r_name = 'wavefront_fft2'
 
@@ -962,7 +987,14 @@ endif
 nx = size(dat, 1)
 ny = size(dat, 2)
 
-! FFTW plan creation is not thread safe, so guard it.
+! The critical section below guards one specific thing: FFTW's rule that plan creation is not
+! reentrant. It does NOT make this routine thread safe, and must not be read as doing so. The
+! work buffer wf_buf is module state, written and read outside the section, so two threads in
+! here at once corrupt each other's data whatever the planner does. See the note at the cache
+! declaration for what parallelising over slices actually requires.
+!
+! Failures are recorded in wf_cache_nx and reported after the section rather than returned
+! from inside it, since branching out of a critical construct is not allowed.
 
 !$OMP CRITICAL (wavefront_fft_plan_lock)
 
@@ -970,20 +1002,44 @@ if (nx /= wf_cache_nx .or. ny /= wf_cache_ny) then
   if (C_ASSOCIATED(wf_plan_fwd)) call fftw_destroy_plan(wf_plan_fwd)
   if (C_ASSOCIATED(wf_plan_bwd)) call fftw_destroy_plan(wf_plan_bwd)
   if (C_ASSOCIATED(wf_buf_cptr)) call fftw_free(wf_buf_cptr)
+  wf_plan_fwd = C_NULL_PTR
+  wf_plan_bwd = C_NULL_PTR
+  wf_buf_cptr = C_NULL_PTR
+  wf_buf => null()
 
-  wf_buf_cptr = fftw_alloc_complex(int(nx * ny, C_SIZE_T))
-  call C_F_POINTER (wf_buf_cptr, wf_buf, [nx, ny])
+  ! Mark the cache invalid up front, so that any failure below leaves it invalid rather than
+  ! half built. It is set to the real size only once every piece has been obtained.
+  wf_cache_nx = 0; wf_cache_ny = 0
 
-  ! Note the reversed dimension order: fftw_plan_dft_2d takes the slowest varying
-  ! dimension first, and in a Fortran (nx, ny) array that is ny. Getting this backwards is
-  ! invisible on a square grid, which is why wavefront_drift_reference exists.
-  wf_plan_fwd = fftw_plan_dft_2d(ny, nx, wf_buf, wf_buf, FFTW_FORWARD,  FFTW_MEASURE)
-  wf_plan_bwd = fftw_plan_dft_2d(ny, nx, wf_buf, wf_buf, FFTW_BACKWARD, FFTW_MEASURE)
+  ! fftw_alloc_complex and fftw_plan_dft_2d both return null on failure, and a null plan
+  ! reaching fftw_execute_dft is a crash rather than a diagnosable error.
+  wf_buf_cptr = fftw_alloc_complex(int(nx, C_SIZE_T) * int(ny, C_SIZE_T))
 
-  wf_cache_nx = nx; wf_cache_ny = ny
+  if (C_ASSOCIATED(wf_buf_cptr)) then
+    call C_F_POINTER (wf_buf_cptr, wf_buf, [nx, ny])
+
+    ! Note the reversed dimension order: fftw_plan_dft_2d takes the slowest varying
+    ! dimension first, and in a Fortran (nx, ny) array that is ny. Getting this backwards is
+    ! invisible on a square grid, which is why wavefront_drift_reference exists.
+    wf_plan_fwd = fftw_plan_dft_2d(ny, nx, wf_buf, wf_buf, FFTW_FORWARD,  FFTW_MEASURE)
+    wf_plan_bwd = fftw_plan_dft_2d(ny, nx, wf_buf, wf_buf, FFTW_BACKWARD, FFTW_MEASURE)
+
+    if (C_ASSOCIATED(wf_plan_fwd) .and. C_ASSOCIATED(wf_plan_bwd)) then
+      wf_cache_nx = nx; wf_cache_ny = ny
+    endif
+  endif
 endif
 
+cache_ok = (wf_cache_nx == nx .and. wf_cache_ny == ny)
+
 !$OMP END CRITICAL (wavefront_fft_plan_lock)
+
+if (.not. cache_ok) then
+  call out_io (s_error$, r_name, &
+        'FFTW COULD NOT ALLOCATE A WORK BUFFER OR CREATE A PLAN FOR A \i0\ BY \i0\ TRANSFORM.', &
+        i_array = [nx, ny])
+  return
+endif
 
 wf_buf = dat
 
