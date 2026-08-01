@@ -22,7 +22,8 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   IMPLICIT NONE
 
   public
- private ety2,etdiv,ety,etyt,checksympn
+ private ety2_fpp,etdiv_fpp,ety_fpp,etyt_fpp
+ private checksympn
 !integer,private,parameter::nmaxn=1000
   integer,private::nd2par,nd2part,nd2partt
   integer,private,target ::pos_of_delta  
@@ -49,9 +50,9 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   private alloc_c_normal_form,kill_c_normal_form,c_EQUALVEC,c_spinmatrix_spinmatrix,c_IdentityEQUALVEC,qua_ql
   private liebraquaternion,liebraso3,pow_tpsaMAP,c_concat_quaternion_ray,matrix_to_quaternion_in_c_damap,iexp_ad
   private EQUALql_cmap,EQUALcmap_ql,EQUAL_complex_quaternion_c_quaternion,EQUAL_c_quaternion_complex_quaternion
-  private NO,ND,ND2,NP,NDPT,NV,ndptb,rf,c_real_spinmatrix,c_taylor_spinmatrix
+  private NO,ndc,ND,ND2,NP,NDPT,NV,ndptb,rf,c_real_spinmatrix,c_taylor_spinmatrix
   private c_concat_c_uni_ray,c_concat_c_uni_rays,c_EQUALVECqua 
-  integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf
+  integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf,ndc
   private nd_used
   integer nd_used
   logical(lp):: do_linear_ac_longitudinal=.true.
@@ -140,7 +141,7 @@ integer i_alloc
 integer, private :: nmono
 integer  nmono_from_moment
 real(dp), private  :: tiny =1e-20_dp
-    logical :: sagan_gen =.false.,symplectify_map=.false.
+    logical :: sagan_gen =.true.,symplectify_map=.false.
 integer mf_,n1_,n2_
 logical :: do_damping=.false.,do_spin=.false.,use_radiation_inverse = .true.
 logical :: force_spin_input_normal=.false.
@@ -157,7 +158,9 @@ private EQUAL_arrayreal_arraytaylor,EQUAL_arraycomplex_arraytaylor
 private  EQUAL_arraytaylor_arrayreal,EQUAL_arraytaylor_arraycomplex
 private quaternion_to_spinmatrix,makeso3_equal
 logical :: correct_quaternion_field=.true.
- logical,private :: unstable(NDIM2t/2) !,hyperbolic
+ !logical,private :: unstable(NDIM2t/2) !,hyperbolic
+ logical :: unstable_fpp(NDIM2t/2) !,hyperbolic
+logical :: lapack=.false.
 !  These routines computes lattice functions a la Ripken-Forest-Wolski
 !type c_lattice_function
 ! real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0 ! E : moments, K : Invariants
@@ -172,7 +175,7 @@ logical :: correct_quaternion_field=.true.
 !!!!  radiation quantity
 ! real(dp) :: sigmas(6,6)   !  Beam sizes can be put there if computed
 !end type c_lattice_function 
- 
+
  INTERFACE compute_lattice_functions
      MODULE PROCEDURE compute_lattice_functions_1  ! call compute_lattice_functions(ML,Lat)
      MODULE PROCEDURE compute_lattice_functions_2  ! call compute_lattice_functions(M,Lat)
@@ -3648,7 +3651,7 @@ endif
       n=sqrt(2.e0_dp)
      endif
           do i=1,ndt
-         if(.not.unstable(i)) then  !.and.(.not.hyperbolic)) then
+         if(.not.unstable_fpp(i)) then  !.and.(.not.hyperbolic)) then
               from_phasor%v(2*i-1)=n*((0.5_dp.cmono.(2*i-1))+(0.5_dp.cmono.(2*i)))
              from_phasor%v(2*i)=n*((0.5_dp.cmono.(2*i-1))-(0.5_dp.cmono.(2*i)))/i_
         endif
@@ -7776,7 +7779,7 @@ else
 endif
             call c_check_rad(s1%e_ij,rad_in)
         if(rad_in) then
-          call print_e_ij(S1,mfi)
+          call print_e_ij(S1,mfi,prec)
         else
          write(mfi,*) "No Stochastic Radiation "
         endif   
@@ -7784,10 +7787,11 @@ endif
   END SUBROUTINE c_pri_map
 
 
-  SUBROUTINE  print_e_ij(S1,MFILE)
+  SUBROUTINE  print_e_ij(S1,MFILE,prec)
     implicit none
     INTEGER,OPTIONAL,INTENT(IN)::MFILE
     type (c_damap),INTENT(INout)::S1
+    real(dp),optional :: prec
     integer i,j,mfi
 
 
@@ -7797,7 +7801,11 @@ endif
          write(mfi,*) "Stochastic Radiation "
           do i=1,6
           do j=1,6
+           if(present(prec)) then
+              if(abs(s1%e_ij(i,j))>prec)  write(mfi,*) i,j,s1%e_ij(i,j)
+           else
            write(mfi,*) i,j,s1%e_ij(i,j)
+           endif
           enddo
           enddo
 
@@ -9505,12 +9513,14 @@ if(present(np1)) then
  
  
  endif
+ndc=ndc_original
 c_%rf=>rf
 c_%nd2t=>nd2t
 c_%nd2harm=>nd2harm
 c_%ndc2t=>ndc2t
 c_%no=>NO
 c_%NDPT=>NDPT
+c_%NDC=>NDC
 c_%ND=>ND
 c_%ND2=>ND2
 c_%ndptb=>ndptb
@@ -9611,8 +9621,22 @@ if(.not.(use_np.and.present(np1))) npara_fpp=0
     integer ndptt,i,np11
     np11=0
      if(present(np1)) np11=np1 
+      if(ndpt1<0) then
+        ndc=-ndpt1
+        ndpt1=0
+      endif
     call init(NO1,ND1,NP11,NDPT1)
     call c_init(NO1,nd1,np11,ndpt1,0,ptc=my_false)
+ c_%nd2t=>nd2t
+c_%nd2harm=>nd2harm
+c_%ndc2t=>ndc2t
+c_%no=>NO
+c_%NDPT=>NDPT
+c_%NDC=>NDC
+c_%ND=>ND
+c_%ND2=>ND2
+c_%ndptb=>ndptb
+c_%nv=>nv
   end subroutine init_map_all 
 
 !!! init for ci_tpsa alone no PTC
@@ -9621,6 +9645,10 @@ if(.not.(use_np.and.present(np1))) npara_fpp=0
     integer, intent(in) :: NO1,nd_or_nv
     integer, optional :: np1,ndpt1,AC_RF
     logical(lp), optional :: ptc  
+     if(ndpt1<0) then
+        ndc=-ndpt1
+        ndpt1=0
+    endif
     call c_init(NO1,nd_or_nv,np1,ndpt1,AC_rf,ptc)
      if(present(np1)) then
       call init(NO,nd,np,ndpt) 
@@ -9632,6 +9660,7 @@ c_%nd2harm=>nd2harm
 c_%ndc2t=>ndc2t
 c_%no=>NO
 c_%NDPT=>NDPT
+c_%NDC=>NDC
 c_%ND=>ND
 c_%ND2=>ND2
 c_%ndptb=>ndptb
@@ -12056,15 +12085,16 @@ subroutine c_linear_a(xy,a1)
 !# in the energy plane, or even a rotation sink if radiation is present. 
 !# R can also have rotations for clocks concerning AC modulation. (See Chap.4 of my Springer book)
     implicit none
-    integer i,j
+    integer i,j,ier
     type(c_damap), intent(inout) ::  xy,a1 
     real(dp) reval(ndim2t),imval(ndim2t),vr(ndim2t,ndim2t),vi(ndim2t,ndim2t),vrt(ndim2t,ndim2t),vit(ndim2t,ndim2t)
     real(dp) fm0(ndim2t,ndim2t),x(ndim2t/2),xx(ndim2t/2)
     integer idef(ndim2t/2)
     real(dp), allocatable :: fm(:,:),fmi(:,:),fmii(:,:)
-    type(c_damap) s1
+    type(c_damap) s1,s2
     type(c_normal_form) n
-
+    complex(dp) amc(6,6),amci(6,6),fmc(6,6),fmct(6,6)
+    logical tt
     if(.not.c_stable_da) return
 
  
@@ -12088,7 +12118,7 @@ subroutine c_linear_a(xy,a1)
      !!! Lie maps, Hamiltonian operators, act on functions.
      !!! In the world of Linear maps, this involves taking the transposed of the matrix
      !!! which represents the linear part of the map
-    if(ndpt==0) then
+    if(ndpt==0.or.c_%ndc/=0) then
       fm0(1:nd2,1:nd2)=transpose(fm(1:nd2,1:nd2))
     else
       if(c_verbose) then
@@ -12144,14 +12174,23 @@ subroutine c_linear_a(xy,a1)
     endif
  
 !###1  Find complex eigenvalues and eigenvectors
+ if(c_%ndc/=0.or.lapack) then
+   call c_eig6new(fm0(1:nd2,1:nd2),reval,imval,vr,vi)
+else
     call c_eig6(fm0,reval,imval,vr,vi)
-
-    !! This routine will locate the modulated plane
+endif
+     !! This routine will locate the modulated plane
     !! It assumes that the modulated plane are rotations
     !! It will fail if some orbital planes are exactly rotations, say beta=1.00000000 and no coupling
+if(c_%ndc==0) then
     call  c_locate_modulated_magnet_planes(fm0,idef,reval)
+else
+ if(c_%rf/=0) then
+   write(6,*)  " Modulated planes not implemented here with Induction Cavities "
+   stop 999
+ endif
+endif
 
-    call alloc(s1)
  
     if(.not.c_normal_auto) then
 
@@ -12170,9 +12209,12 @@ subroutine c_linear_a(xy,a1)
       endif
 
 !###2   Trying to locate planes when almost mid-plane symmetric
- 
+ !if(ndc/=0) goto 1234
+if(ndc/=0)  then
+      call c_locate_planes_ndc(vr,vi,reval,imval,a1)
+else
       call c_locate_planes(vr,vi,idef)
-
+endif
       if(i_piotr(1)==0) then   !.and.nd<=ndharm) then
         write(6,'(a82)') " The order of the planes has been guessed using the algorithm in c_locate_planes "
         write(6,'(a41)') " Hopefully it is correct! Please check! "
@@ -12197,7 +12239,12 @@ subroutine c_linear_a(xy,a1)
       !! I suppose that this routine can be refined
 !###3   Trying to locate planes when almost mid-plane symmetric
 
+
+if(ndc/=0)  then
+      call c_locate_planes_ndc(vr,vi,reval,imval,a1)
+else
       call c_locate_planes(vr,vi,idef)
+endif
       if(lielib_print(16)==1) then
         do i=1,nd2harm  !t
           write(6,'(i2,2(1x,G21.14))') i, reval(i),imval(i)
@@ -12209,7 +12256,35 @@ subroutine c_linear_a(xy,a1)
       endif
     endif 
 
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+if(c_%ndc/=0) then
+ 
+ return
+    call alloc(s1,s2)
+amc=0
+do i=1,6
+do j=1,6
+amc(j,i)=amc(j,i)+vr(j,i)+i_*vi(j,i)
+enddo
+enddo
+ 
+xy%e_ij=0
+ 
+ s1=transpose(amc)
+ !a1=s1**(-1)
+s2=s1**(-1)
+ xy=xy.cut.2
+! xy=s1*xy*s2
+ xy=a1**(-1)*xy*a1
+call clean(xy,xy,prec=1.d-10)
+call print(xy)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+call kill(s1,s2)
+
+
+ endif
+call alloc(s1)
 !!!! useless stuff for testing
     if(c_mess_up_vector) then
       vrt=a_mess*vr-b_mess*vi
@@ -12217,7 +12292,7 @@ subroutine c_linear_a(xy,a1)
       vr=vrt
       vi=vit
     endif
-
+1234 continue
     x=0.0_dp
     xx=1.0_dp
 
@@ -12267,7 +12342,7 @@ subroutine c_linear_a(xy,a1)
  !!!!!  
 
     
-    if(ndpt/=0) then
+    if(ndpt/=0.and.c_%ndc==0) then
       fm=a1
       fm0(1:nd2,1:nd2)=matmul( fm(1:nd2,1:nd2),fmi(1:nd2,1:nd2))
       fm(1:nd2,1:nd2)=matmul( fmii(1:nd2,1:nd2),fm0(1:nd2,1:nd2))
@@ -12284,6 +12359,7 @@ subroutine c_linear_a(xy,a1)
     !!! is truly diagonalised.
     a1%s=1
     a1%q=1.0_dp
+ 
     a1=a1**(-1)
     
 !###5  Perhaps not necessary for new BMAD
@@ -12296,7 +12372,7 @@ subroutine c_linear_a(xy,a1)
     s1%q=1.0_dp
       a1=a1*s1
     endif
-!    a1%s=1  ! make sure spin is non-zero
+
     call kill(s1)    
     deallocate(fm,fmi,fmii)   
 
@@ -12304,202 +12380,148 @@ subroutine c_linear_a(xy,a1)
     return
   end subroutine c_linear_a
 
-subroutine c_linear_a_stoch(xy,a1)
-!#internal: normal
-!# This routine linearises the linear part of the map ONLY.
-!# For a full harmonic system the call c_linear_a(xy,a1) will result in
-!# R=a1**(-1)*xy*a1.
-!# The map R can be an amplitude dependent rotation, or a rotation followed by a drift
-!# in the energy plane, or even a rotation sink if radiation is present. 
-!# R can also have rotations for clocks concerning AC modulation. (See Chap.4 of my Springer book)
+
+subroutine c_locate_planes_ndc(vr,vi,reval,imval,a1)
+!#restricted: normal
+!# Tries to locate the planes in c_linear_a, 
+!# so that if decoupled Qx correspounds to Q1 it is properly identified.
+!# If c_normal_auto.false. it is not called and the user is 
+!# asked to choose planes manually. 
     implicit none
-    integer i,j,ier
-    type(c_damap), intent(inout) ::  xy,a1 
-    real(dp) reval(ndim2t),imval(ndim2t),vr(ndim2t,ndim2t),vi(ndim2t,ndim2t),vrt(ndim2t,ndim2t),vit(ndim2t,ndim2t)
-    real(dp) fm0(ndim2t,ndim2t),x(ndim2t/2),xx(ndim2t/2)
-    integer idef(ndim2t/2)
-    real(dp), allocatable :: fm(:,:),fmi(:,:),fmii(:,:)
- !   type(c_damap) s1
-    real(dp) :: eps_eigen = 1.e-12_dp,norm
-
-    if(.not.c_stable_da) return
-
- 
-    idef=0
- 
-    allocate(fm(xy%n,xy%n),fmi(xy%n,xy%n),fmii(xy%n,xy%n))
- 
-
-     fm=xy
-     fm0=0
-
-     !!! To understand this, it is better to first understand ndpt=0
-     !!! in PTC ndpt=0 includes :    nd2=4 and nd2=6 (cavity on)
-     !!! Ndpt =5 is PTC's coasting beam normalisation
-     !!! if there are no magnet modulation,then the matrix massaging below will do very little
-     !!! see  explanation below at the "else"
-
-     !!! We are diagonalising a Lie map which is just the transposed
-     !!! of the matrix in the linear case
-     !!! The usual nonlinear map acts on rays and so does its matrix.
-     !!! Lie maps, Hamiltonian operators, act on functions.
-     !!! In the world of Linear maps, this involves taking the transposed of the matrix
-     !!! which represents the linear part of the map
-    if(ndpt==0) then
-      fm0(1:nd2,1:nd2)=transpose(fm(1:nd2,1:nd2))
-    else
-      if(c_verbose) then
-        write(6,*) " nd2t,nd2,nd2harm "
-        write(6,*) nd2t,nd2,nd2harm
-      endif
-      ! Consider the following example
-      ! ndc2t,nd2t,nd2harm,nd2
-      !           2           4           6           8
-      ! nd2= total size of phase space
-      !
-      !  ndc2t=2 dimension of coasting phase space (2 or 0), here it is 2
-      !
-      ! nd2t=4  dimension of pseudo-harmonic  phase space due to orbit (not magnet modulations) 
-      ! here it is 4, which is a normal PTC run. 
-      ! in accelerator physics, with mid-plane symmetry, it could be 2. But PTC only permits 4 and 6.
-      !
-      ! nd2harm=6  Total size of pseudo-harmonic  planes including magnet modulation. In the above case,
-      ! nd2-nd2harm=2  So there is a coasting plane. 
-      !  
-
-      !! The purpose of all the gymnastic below is to exchange the order of the planes
-      ! IF AND ONLY IF the longitudinal is coasting
-      ! The issue is that  call c_eig6(fm0,reval,imval,vr,vi) should be called only on
-      ! matrix which is pseudo-harmonic. 
-      fmi=0
-      fmii=0
-      do i=1,nd2t
-        fmi(i,i)=1
-        fmii(i,i)=1
-      enddo
-      fmi(nd2-1,nd2t+1)=1
-      fmi(nd2,nd2t+2)=1
-      fmii(nd2t+1,nd2-1)=1
-      fmii(nd2t+2,nd2)=1
-
-      do i=1,2*rf
-        fmi(nd2t+i,nd2t+2+i)=1
-        fmii(nd2t+2+i,nd2t+i)=1
-      enddo
-
-  !      fmi(1:nd2,1:nd2)=matmul(fmi(1:nd2,1:nd2),fmii(1:nd2,1:nd2))
-
-      fm0(1:nd2,1:nd2)=matmul( fm(1:nd2,1:nd2),fmii(1:nd2,1:nd2))
-      fm0(1:nd2,1:nd2)=matmul( (fmi(1:nd2,1:nd2)),fm0(1:nd2,1:nd2))
-
-
-      fm0(1:nd2harm,1:nd2harm)=transpose(fm0(1:nd2harm,1:nd2harm))
-! The diagonalisation is done only on the planes
-! 1...nd2harm which are now in the front of the matrix
-! Thus the Coasting beam is moved in the last plane  (nd2-1,nd2)
+    real(dp), intent(inout) ::  vr(ndim2t,ndim2t),vi(ndim2t,ndim2t),reval(ndim2t),imval(ndim2t)
+    real(dp) norm1,norm2,norm3,x 
+    integer idef(ndim2t/2),idef2(ndim2t)
+    real(dp) r,vrn(ndim2t,ndim2t),vin(ndim2t,ndim2t),revaln(ndim2t),imvaln(ndim2t)
     
-    endif
+    integer i,j,k
+    type(c_damap) a1  !,ac
  
-
-    call c_eig6(fm0,reval,imval,vr,vi)
-
-norm=0.0_dp
-do i=1,6
- norm=norm+ abs(reval(i))+abs(imval(i))-1.0_dp
+idef2=0
+vrn=0
+vin=0
+revaln=0
+imvaln=0
+do i=1,nd2
+  if(imval(i)==0.0_dp) then
+     if(reval(i)==1.0_dp) then
+       if(ndpt_bmad==1) idef2(i)=nd2-1
+       if(ndpt_bmad==0) idef2(i)=nd2
+       vrn(1:6,idef2(i))=vr( 1:6,I)
+       vin(1:6,idef2(i))=vi( 1:6,I)
+       revaln(idef2(i))=reval(i)
+     else
+       if(ndpt_bmad==1) idef2(i)=nd2
+       if(ndpt_bmad==0) idef2(i)=nd2-1
+       vrn(1:6,idef2(i))=vr( 1:6,I)
+       vin(1:6,idef2(i))=vi( 1:6,I)
+       revaln(idef2(i))=reval(i)
+     endif
+  endif
 enddo
-
-if(c_verbose) then
-do i=1,6
-write(6,*) i,reval(i),imval(i)
-enddo
-write(6,*) " norm ",norm
-do i=1,6
-write(6,'(i4,6(1x,g13.6))') i,vr(1:6,i)
-write(6,'(i4,6(1x,g13.6))') i,vi(1:6,i)
-enddo
-endif
+!WRITE(6,*) idef2(1:6)
 
 
-if(norm<eps_eigen) then
- a1=1
- deallocate(fm,fmi,fmii)   
-return
-endif
-    !! This routine will locate the modulated plane
-    !! It assumes that the modulated plane are rotations
-    !! It will fail if some orbital planes are exactly rotations, say beta=1.00000000 and no coupling
-  
-    x=0.0_dp
-    xx=1.0_dp
 
-    idef(1)=1
-    idef(2)=3
-    idef(3)=5
+do i=1,nd2
 
-    do i=1,ndharm  !ndt                
+ if(idef2(i)==nd2.or.idef2(i)==nd2-1) then
+ !   WRITE(6,*) -I
 
-      x(i)=0.0_dp
-      xx(i)=1.0_dp
+   cycle
+ else
 
-      !!! Here the Eigenvectors of the transposed matric (Lie map)
-      !!! are normalised so that the Poisson bracket is one.
-      !!! If the map is not Hamiltonian (radiation), no harm is done.
-      !!! If it is Hamiltonian, that alone will insure that the linear
-      !!! canonical transformation is symplectic.
-
-      do j=1,ndharm  !ndt
-           x(i)=vr(2*j-1,idef(i))*vi(2*j,idef(i))-vr(2*j,idef(i))*vi(2*j-1,idef(i))+x(i)
-      enddo
-
+  !write(6,format6) vr( 1:6,I)
+  !write(6,format6) vi(1:6,I)
+  norm1=abs(vr( 1,I))+abs(vi( 1,I))
+  norm2=abs(vr( 3,I))+abs(vi( 3,I))
+   if(norm1>norm2) then
+    norm3=0
+    do k=1,nd2
+    norm3=abs(vrn(k,1))+abs(vin(k,1))+norm3
     enddo
+     if(norm3==0) then
+       vrn(1:6,1)=vr( 1:6,I)
+       vin(1:6,1)=vi( 1:6,I)    
+       vrn(1:6,2)=vr( 1:6,I)
+       vin(1:6,2)=-vi( 1:6,I)    
+      revaln(1)=reval(i)
+      imvaln(1)=imval(i)
+      revaln(2)=reval(i)
+      imvaln(2)=-imval(i)
 
-    do i=1,ndharm  !ndt
-      if(x(i).lt.0.0_dp) xx(i)=-1.0_dp
-      x(i)=SQRT(abs(x(i)))
-    enddo
-
-
-    fm=0
-    do i=1,xy%n
-      fm(i,i)=1.0_dp
-    enddo
-
-    do i=1,nd2harm  !nd2t
-      do j=1,ndharm  !ndt
-        fm(2*j-1,i)=vr(i,idef(j))*xx(j)/x(j)
-        fm(2*j,i)=vi(i,idef(j))/x(j)
-      enddo
-    enddo
-
-
-    call matinv(fm,fm,xy%n,xy%n,ier)
-
-    if(ier/=0) then
-     write(6,*) " Problems with  c_matinv "
-     write(6,*) " ier = ",ier
     endif
+   else
+    norm3=0
+    do k=1,nd2
+    norm3=abs(vrn(k,3))+abs(vin(k,3))+norm3
+    enddo
+     if(norm3==0) then
+       vrn(1:6,3)=vr( 1:6,I)
+       vin(1:6,3)=vi( 1:6,I)    
+       vrn(1:6,4)=vr( 1:6,I)
+       vin(1:6,4)=-vi( 1:6,I)   
+      revaln(3)=reval(i)
+      imvaln(3)=imval(i)
+      revaln(4)=reval(i)
+      imvaln(4)=-imval(i)
+
+ 
+    endif
+   
+endif
+endif
+
+enddo
+
+!do k=1,nd2
+!write(6,*) " k " ,k
+! write(6,format2) revaln(k),imvaln(k)
+!write(6,*) " VVVVVVVVVVVVVVVVV"
+! write(6,format6) vrn(1:6,k)
+! write(6,format6) vin(1:6,k)
+!enddo
+
+ reval(1:nd2)=revaln(1:nd2)
+ imval(1:nd2)=imvaln(1:nd2)
+ vr(1:nd2,1:nd2) = vrn(1:nd2,1:nd2)
+ vi(1:nd2,1:nd2) = vin(1:nd2,1:nd2)
+
+! call alloc(ac)
+ 
+!ac=a1.sub.1
+ 
+a1=0
+ do i=1,nd-1
+  do j=1,nd 
+   a1%v(2*i-1)=a1%v(2*i-1) + vrn(2*j-1,2*i-1)*(1.0_dp.cmono.(2*j-1))+ vrn(2*j,2*i-1)*(1.0_dp.cmono.(2*j))
+   a1%v(2*i)=a1%v(2*i) + vin(2*j-1,2*i)*(1.0_dp.cmono.(2*j-1))+ vin(2*j,2*i)*(1.0_dp.cmono.(2*j))
+  enddo
+ enddo
+
+
+ do i=nd2-1,nd2
+ do j=1,nd2 
+  a1%v(i)=a1%v(i) + vrn(j,i)*(1.0_dp.cmono.j) 
+ enddo
+ enddo
+
+
+ do i=1,nd 
+ x=a1%v(2*i-1).pb.a1%v(2*i)
+ a1%v(2*i-1)=a1%v(2*i-1)*sqrt(abs(x))/x
+ a1%v(2*i)=a1%v(2*i)/sqrt(abs(x)) 
+enddo
+
+ !do i=1,nd 
+ !x=a1%v(2*i-1).pb.a1%v(2*i)
+ !write(6,*) i,x 
+!enddo
     a1%s=1
     a1%q=1.0_dp
-
-    a1 = fm
-
- !   call alloc(s1)
- 
- 
-
-
-
-   ! a1=a1**(-1)
-    
+a1=a1**(-1)
 
  
-!    a1%s=1  ! make sure spin is non-zero
-!    call kill(s1)    
-    deallocate(fm,fmi,fmii)   
-
-
-    return
-  end subroutine c_linear_a_stoch
+end subroutine c_locate_planes_ndc
 
 subroutine c_locate_planes(vr,vi,idef)
 !#restricted: normal
@@ -13503,22 +13525,41 @@ alpha=2*atan2(q0%x(2),q0%x(0))
     type(c_damap) ri
     call alloc(ri)
     r=m1
-
+    if(c_%ndc==0) then
+ 
+    n%s_ijr=0
     do i=1,c_%nd2 ; do j=1,c_%nd2;
      n%s_ijr(i,j)= 1.0_dp/(1.0_dp- r(i,i)*r(j,j))*m1%e_ij(i,j)
     enddo ;enddo;
-
      do i=1,c_%nd
       n%emittance(i)=abs(n%s_ijr(2*i-1,2*i))/abs(n_cai)
      enddo
+    else
+     r(c_%ndptb,c_%ndptb)=exp(-eps_ndc)*r(c_%ndptb,c_%ndptb)
+
+    n%s_ijr=0
+    do i=1,c_%nd2 ; do j=1,c_%nd2;
+     if(eps_ndc==0.and.(i==c_%ndptb.and.j==c_%ndptb)) cycle
+     n%s_ijr(i,j)= 1.0_dp/(1.0_dp- r(i,i)*r(j,j))*m1%e_ij(i,j)
+    enddo ;enddo;
+        do i=1,c_%nd-1
+      n%emittance(i)=abs(n%s_ijr(2*i-1,2*i))/abs(n_cai)
+       enddo
+      n%emittance(c_%nd)=abs(n%s_ijr(c_%ndpt,c_%ndpt)) 
+     endif
+
     n%b_ijr=m1%e_ij 
    m1%e_ij= n%s_ijr  !using m1 to transform equilibrium beam sizes
    ri=from_phasor()
    ri=c_simil(ri,m1,1)
  
    m1=c_simil(n%a_t,ri,1)
- 
    n%s_ij0=m1%e_ij
+     if(c_%ndc/=0) then
+    do i=1,c_%nd2 ; do j=1,c_%nd2;
+     if(eps_ndc==0.and.(i==c_%ndptb.and.j==c_%ndptb)) n%s_ij0(i,j)=0
+         enddo ;enddo;
+    endif
 
 !   if(use_quaternion.and.(.false.)) then
 !    call c_check_rad_spin(m1%damps,spin_in)
@@ -13579,159 +13620,8 @@ alpha=2*atan2(q0%x(2),q0%x(0))
     call cholesky_dt(A, ait)
     ki=1.0_dp
 
-    return
-
-
-    norm=0.0_dp
-    do i=1,6
-    do j=1,6
-     norm=abs(m%e_ij(i,j)) + norm
-    enddo
-    enddo
-       if(norm==0) then
-         ki=0
-         ait=0
-         return
-      endif
-
-
-
-     vf%n=m%n
-    call alloc(vf)
-    call alloc(id,as)
- 
-
-
-    norm=norm/10
-
-    f=0
-    s=0
-    do i=1,3
-     s(2*i-1,2*i)=1
-     s(2*i,2*i-1)=-1
-    enddo
-    do i=1,6
-    do j=1,6
-     b(i,j)=m%e_ij(i,j)
-     f(i,j)=m%e_ij(i,j)/norm
-    enddo
-    enddo
-
-if(.not.use_new_stochastic_normal_form) then    
-!!!! In rings without errors and middle plane symmetry
-!!!  the y-part of the envelope is exactly zero
-!!! So I add a y-part to make sure that my normal form
-!!! does not crap out
-    normy=0
-    do i=1,6
-    do j=1,6
-     yhere=i==3.or.i==4.or.j==3.or.j==4
-     if(yhere) normy=normy +abs(f(i,j))
-    enddo
-    enddo
-     if (c_verbose) write(6,*) " norm y",norm
-
-     if((normy/10)/norm<eps) then
-       f(3,3)=0.234567_dp*twopi 
-       f(4,4)=0.234567_dp*twopi 
-     endif
-endif
-     f=matmul(f,s)
-    do i=1,6
-    do j=1,6
-     vf%v(i)=vf%v(i)+ f(j,i) * (1.0_dp.cmono.j)
-    enddo
-    enddo
-
-    id=exp(vf)
-
-if(use_new_stochastic_normal_form) then
-call  c_linear_a_stoch(id,as)
-else
-call c_linear_a(id,as)
-endif 
-    a=as
-    at=transpose(a)
- if (c_verbose) then
-    do i=1,6
-          write(6,'(6(1x,G21.14))') a(i,1:6)
-    enddo
- endif
-!!!!  initially  !!!!
-!sigma_f= M sigma M^t + B
-!
-!
-!  D=  A^t B A 
-    d=matmul(at,b)
-    d=matmul(d,a)
-
-! D = is diagonal
-!  consider  a random variable r_i (i=1,6)  where <r_i>=0 and <r_i r_j>=delta_ij
-! then  
-  
-    do i=1,6
-     ki(i)=d(i,i)
-    enddo
-     do i=1,3
-      if(ki(2*i-1)<0) then
-        if(c_verbose) then
-         write(6,*) "fluctuations ill defined in plane ",i
-         write(6,*) i,ki(2*i-1:2*i)
-        endif
-         ki(2*i-1)=0
-         ki(2*i)=0
-       endif
-      if(ki(2*i)<0) then
-        if(c_verbose) then
-         write(6,*) "fluctuations ill defined in plane ",i
-         write(6,*) i,ki(2*i-1:2*i)
-        endif
-         ki(2*i-1)=0
-         ki(2*i)=0
-       endif
-      if(ki(2*i-1)/=0.and.ki(2*i)/=0) then
-        if(ki(2*i-1)-ki(2*i)/=0) then
-          if(abs( (ki(2*i-1)-ki(2*i))/(abs(ki(2*i-1))+abs(ki(2*i))))>1.d-4) then
-        if(c_verbose) then
-          write(6,*) "fluctuations ill defined in plane ",i
-          write(6,*) i,ki(2*i-1:2*i)
-        endif
-
-           ki(2*i-1)=0
-           ki(2*i)=0
-          endif
-        endif
-      endif
-     enddo 
-    do i=1,6
-     ki(i)=sqrt(ki(i))
-    enddo
-!  construct    z_i =ki(i) * r_i
-! then x= Ait z  is the appropriate kick
-! in the original space. 
-! 
-
- if(global_verbose)  then
-    write(6,*)" Stochastic kick"
-    do i=1,6
-    do j=1,6
-    if(abs(d(i,j))>eps*norm) then
-     write(6,*) i,j,d(i,j)
-    endif
-    enddo
-    enddo
-endif
-
-    ai=-matmul(matmul(s,at),s)
-    ait=transpose(ai)
-
-!  B= ait*d*ai
-
-    call kill(vf)
-    call kill(id,as)
- 
-
-end subroutine c_stochastic_kick
+    
+ end subroutine c_stochastic_kick
 
     subroutine check_kernel(k,n,je,removeit)
 !#internal: normal
@@ -16267,6 +16157,102 @@ ft=f
 
 !!!!!!!!!!!!!!!!!!!!!!! eig6
 
+ subroutine c_eig6new(fm,reval,aieval,revec,aievec)
+!*
+use lapack_in_fpp
+    implicit none
+    !**************************************************************************
+
+    !  Diagonalization routines of NERI
+
+    !ccccccccccccccccc
+    !
+    !  this routine finds the eigenvalues and eigenvectors
+    !  of the full matrix fm.
+    !  the eigenvectors are normalized so that the real and
+    !  imaginary part of vectors 1, 3, and 5 have +1 antisymmetric
+    !  product:
+    !      revec1 J aivec1 = 1 ; revec3 J aivec3 = 1 ;
+    !      revec5 J aivec5 = one
+    !  the eigenvectors 2 ,4, and 6 have the opposite normalization.
+    !  written by F. Neri, Feb 26 1986.
+    !
+ 
+    real(dp),dimension(:)::reval,aieval 
+    real(dp),dimension(:,:)::revec,aievec,fm 
+     integer Nmat,LDAmat,LDVL,LDVR,LWORK,ier
+      INTEGER          LWMAX,i,j
+      PARAMETER        ( LWMAX = 1000 )
+
+real(dp), allocatable :: mat( :, : ), VL( :, : ), VR( :, : ),WR( : ), WI( : ), WeRK( : )
+
+ !   interface
+ !      subroutine dgeev( JOBVL, JOBVR, N, A, LDA, WR, WI, VL, LDVL,VR,LDVR, WORK, LWORK, INFO )
+ !        implicit none
+ !     CHARACTER          JOBVL, JOBVR
+!      INTEGER            INFO, LDA, LDVL, LDVR, LWORK, N
+  !    DOUBLE PRECISION   A( LDA, * ), VL( LDVL, * ), VR( LDVR, * ),WI( * ), WORK( * ), WR( * )
+ !      end subroutine DGEEV
+   ! end interface 
+
+nmat=size(fm,1)
+ldamat=nmat
+LDVL=nmat
+LDVR=nmat
+
+!stop
+ALLOCATE(mat( Nmat, Nmat ), VL( Nmat, Nmat ), VR( Nmat, Nmat ),WR( Nmat ), WI( Nmat ), WeRK( LWMAX ))
+ 
+MAT=0;VL=0;VR=0;WR=0;WI=0;WERK=0;
+ 
+mat=fm(1:nmat,1:nmat)
+revec=0
+aievec=0
+
+ 
+LWORK=-1
+call DGEEV( 'N', 'Vectors', Nmat, mat, LDAmat, WR, WI, VL, LDVL, VR,LDVR, WERK, LWORK, ier)
+LWORK = MIN( LWMAX, INT( WERK( 1 ) ) )
+call DGEEV( 'N', 'Vectors', Nmat, mat, LDAmat, WR, WI, VL, LDVL, VR,LDVR, WERK, LWORK, ier)
+
+
+if(c_verbose) write(6,*) " ier,nmat ", ier,nmat
+do i=1,nmat  !,-1
+reval(i)=WR(i)
+aieval(i)=WI(i)
+if(c_verbose)write(6,*) i,atan2(WI(i),Wr(i))/twopi
+if(c_verbose)write(6,*) reval(i),aieval(i)
+enddo
+ 
+if(ier/=0) then
+write(6,*) " failure in DGEEV ",ier
+stop
+endif
+
+      DO I = 1, Nmat
+         J = 1
+         DO WHILE( J.LE.Nmat )
+            IF( WI( J ).EQ.0 ) THEN
+               revec(i,j)= VR( I, J )
+                J = J + 1
+ 
+            ELSE
+                revec(i,j)=  VR( I, J )
+                aievec(i,j)=VR( I, J+1 )
+                revec(i,j+1)=  VR( I, J )
+                aievec(i,j+1 )=-VR( I, J+1 )
+            !   WRITE(*,9999,ADVANCE='NO') V( I, J ), V( I, J+1 )
+            !   WRITE(*,9999,ADVANCE='NO') V( I, J ), -V( I, J+1 )
+ 
+               J = J + 2
+            END IF
+         END DO
+      END DO
+!
+
+DEALLOCATE(mat, VL, VR,WR, WI, WeRK)
+ 
+ end subroutine c_eig6new
 
  subroutine c_eig6(fm,reval,aieval,revec,aievec)
 !*
@@ -16307,9 +16293,9 @@ ft=f
     nn = nd2harm   !nd2t !-ndc2t
     !  compute eigenvalues and eigenvectors using double
     !  precision Eispack routines:
-    call ety(mdim,nn,ilo,ihi,aa,ort)
-    call etyt(mdim,nn,ilo,ihi,aa,ort,vv)
-    call ety2(mdim,nn,ilo,ihi,aa,reval,aieval,vv,info)
+    call ety_fpp(mdim,nn,ilo,ihi,aa,ort)
+    call etyt_fpp(mdim,nn,ilo,ihi,aa,ort,vv)
+    call ety2_fpp(mdim,nn,ilo,ihi,aa,reval,aieval,vv,info)
     
     if ( info .ne. 0 ) then
        write(6,*) '  ERROR IN C_EIG6'
@@ -16340,7 +16326,7 @@ ft=f
        eig2 = reval(i)**2+aieval(i)**2
        if(abs(eig2 -1.0_dp).gt.eps_eigenvalues_off_unit_circle) then
          if(mod(i,2)==0.and.abs(aieval(i))<eps_eigenvalues_off_unit_circle) then
-           unstable(i/2)=.true.
+           unstable_fpp(i/2)=.true.
          endif
            if(lielib_print(4)==1) then
              write(6,*) ' EIG6: Eigenvalues off the unit circle!'
@@ -16360,7 +16346,7 @@ ft=f
     return
   end subroutine c_eig6
 
-  subroutine ety(nm,n,low,igh,a,ort)
+  subroutine ety_fpp(nm,n,low,igh,a,ort)
 !*
     implicit none
     !
@@ -16473,9 +16459,9 @@ ft=f
     !
 200 return
     !     ********** last card of ety **********
-  end subroutine ety
+  end subroutine ety_fpp
 
-  subroutine etyt(nm,n,low,igh,a,ort,z)
+  subroutine etyt_fpp(nm,n,low,igh,a,ort,z)
 !*
     implicit none
     !
@@ -16568,9 +16554,9 @@ ft=f
     !
 200 return
     !     ********** last card of etyt **********
-  end subroutine etyt
+  end subroutine etyt_fpp
 
-  subroutine ety2(nm,n,low,igh,h,wr,wi,z,ierr)
+  subroutine ety2_fpp(nm,n,low,igh,h,wr,wi,z,ierr)
 !*
     implicit none
     !
@@ -16909,7 +16895,7 @@ ft=f
        ! 720    z3 = cmplx(zero,-h(na,en)) / cmplx(h(na,na)-p,q)
        !        h(na,na) = real(z3,kind=dp)
        !        h(na,en) = aimag(z3)
-720    call etdiv(z3r,z3i,0.0_dp,-h(na,en),h(na,na)-p,q)
+720    call etdiv_fpp(z3r,z3i,0.0_dp,-h(na,en),h(na,na)-p,q)
        h(na,na) = z3r
        h(na,en) = z3i
 730    h(en,na) = 0.0_dp
@@ -16938,7 +16924,7 @@ ft=f
           !           z3 = cmplx(-ra,-sa) / cmplx(w,q)
           !           h(i,na) = real(z3,kind=dp)
           !           h(i,en) = aimag(z3)
-          call etdiv(z3r,z3i,-ra,-sa,w,q)
+          call etdiv_fpp(z3r,z3i,-ra,-sa,w,q)
           h(i,na) = z3r
           h(i,en) = z3i
           go to 790
@@ -16951,7 +16937,7 @@ ft=f
           !           z3 = cmplx(x*r-zz*ra+q*sa,x*s-zz*sa-q*ra) / cmplx(vr,vi)
           !           h(i,na) = real(z3,kind=dp)
           !           h(i,en) = aimag(z3)
-          call etdiv(z3r,z3i,x*r-zz*ra+q*sa,x*s-zz*sa-q*ra,vr,vi)
+          call etdiv_fpp(z3r,z3i,x*r-zz*ra+q*sa,x*s-zz*sa-q*ra,vr,vi)
           h(i,na) = z3r
           h(i,en) = z3i
           if (abs(x) .le. abs(zz) + abs(q)) go to 785
@@ -16961,7 +16947,7 @@ ft=f
           ! 785       z3 = cmplx(-r-y*h(i,na),-s-y*h(i,en)) / cmplx(zz,q)
           !           h(i+1,na) = real(z3,kind=dp)
           !           h(i+1,en) = aimag(z3)
-785       call etdiv(z3r,z3i,-r-y*h(i,na),-s-y*h(i,en),zz,q)
+785       call etdiv_fpp(z3r,z3i,-r-y*h(i,na),-s-y*h(i,en),zz,q)
           h(i+1,na) = z3r
           h(i+1,en) = z3i
 790       continue
@@ -17005,9 +16991,9 @@ ft=f
 1000 ierr = en
 1001 return
     !     ********** last card of ety2 **********
-  end subroutine ety2
+  end subroutine ety2_fpp
 
-  subroutine etdiv(a,b,c,d,e,f)
+  subroutine etdiv_fpp(a,b,c,d,e,f)
 !*
     implicit none
     !   computes the complex division
@@ -17059,7 +17045,7 @@ ft=f
        b = -b
     endif
     return
-  end subroutine etdiv
+  end subroutine etdiv_fpp
 
 subroutine teng_edwards_a1(a1,R_TE,CS_TE,COSLIKE,t_e)
 ! newest based on de Moivres
@@ -19619,15 +19605,16 @@ END FUNCTION FindDet
     TYPE(c_damap), INTENT(INOUT) :: Ma
     INTEGER N,NP,i,k,j,kq,mf
  
-    real(dp) norm,mat(6,6)
+    real(dp) norm
     TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
     TYPE(damap) ms
     integer js(6)
     type(c_damap) L_r , N_r , N_s , L_s
-
+    real(dp), allocatable::mat(:,:)
 
  
-
+    allocate(mat(c_%nd2,c_%nd2))
+mat=0
     call alloc(L_r , N_r , N_s , L_s)
 
 !!! default   sagan_gen=.true.  
@@ -19646,7 +19633,10 @@ END FUNCTION FindDet
     ! stop
     endif
   !  np=size_tree
-size_treefill=nd2fill+ndfill**2
+nd2fill=c_%nd2
+ndfill=c_%nd
+
+size_treefill=c_%nd2+c_%nd**2
     np=size_treefill
 ! initialized in ptc ini
     ind_spin(1,1)=1+nd2fill;ind_spin(1,2)=2+nd2fill;ind_spin(1,3)=5+nd2fill;
@@ -19807,6 +19797,7 @@ close(mf)
 endif
     call kill(m); call kill(mg);
     deallocate(M);    deallocate(Mg);
+deallocate(mat)
     call kill(L_r , N_r , N_s , L_s)
 
   END SUBROUTINE SET_TREE_G_complex_zhe
@@ -19923,7 +19914,8 @@ complex(dp)v
 logical  as_is0
 integer no1
  
-real(dp)  fix(6),mat(6,6) ,f0(6),stoch,r2,coe
+real(dp) stoch,r2,coe
+real(dp) , allocatable :: fix(:),mat(:,:) ,f0(:) 
 !real(dp), allocatable :: mm(:,:),vm(:)
 type(c_damap) m,minput
 type(c_taylor) t
@@ -19943,8 +19935,12 @@ if(present(as_is)) as_is0=as_is
   
   allocate(forward(3))
  
+allocate(fix(c_%nd2),mat(c_%nd2,c_%nd2) ,f0(c_%nd2) )
 
 mat=0
+f0=0
+fix=0
+
 do i=1,size(mat,1)
 mat(i,i)=1
 enddo
@@ -19956,13 +19952,13 @@ enddo
 
 !!  
 fix=minput 
-f0=minput%x0(1:6)  
+f0=minput%x0(1:c_%nd2)  
 if(present(fix0)) f0=fix0
 
  
 m=minput  
 
-do i=1,nd2fill
+do i=1,c_%nd2
  m%v(i)=m%v(i)-(m%v(i).sub.0)
 enddo
 
@@ -19982,13 +19978,13 @@ if(stoch>=0) then
 endif
  
 forward(1)%usenonsymp=as_is0
-forward(1)%rad=mat
-forward(1)%fix0(1:6)=f0 ! entrance
-forward(1)%fixr(1:6)=fix
-forward(1)%fix(1:6)=fix    ! exit
-forward(3)%fix0(1:6)=f0 ! entrance
-forward(3)%fixr(1:6)=fix
-forward(3)%fix(1:6)=fix    ! exit
+forward(1)%rad(1:c_%nd2,1:c_%nd2)=mat
+forward(1)%fix0(1:c_%nd2)=f0 ! entrance
+forward(1)%fixr(1:c_%nd2)=fix
+forward(1)%fix(1:c_%nd2)=fix    ! exit
+forward(3)%fix0(1:c_%nd2)=f0 ! entrance
+forward(3)%fixr(1:c_%nd2)=fix
+forward(3)%fix(1:c_%nd2)=fix    ! exit
 
  forward(1)%ds=0.0_dp
  
@@ -23434,6 +23430,102 @@ v(k,1:n)=( 1.0_dp/sqrt(dot_product(v(k,1:n),v(k,1:n)))    )*v(k,1:n)
 enddo  !k
 end subroutine gramschmidt
 
+ subroutine c_gofix0(xy,a1)
+!#restricted:  normal 
+!# The routine c_gofix computes a1 such that 
+!# "call c_gofix(m,a1)" produces
+!# m0=a1**(-1)*xy*a1 to order "order_gofix" around the parameter dependent fixed point.
+!# order_gofix is defaulted to 1.
+!# dosymp is defaulted to true since 2023.4.21. 
+!# dosymp should be true if order_gofix > 1 (if c_gofix is used on its own).
+!# c_canonise will take care of a1 if needed to higher order.
+
+    implicit none
+    integer i,j,ndloc 
+    type(c_damap), intent(inout) ::  xy,a1 
+    type(c_damap) w,v,rel,x
+    type(c_taylor) t1
+    real(dp), allocatable :: mt(:,:),mv(:)
+    integer, allocatable :: je(:)
+    type(c_universal_taylor) uf1
+    type(c_vector_field) vf1
+  !  ndct=iabs(ndpt-ndptb)  ! 1 if coasting, otherwise 0
+  !  ndc2t=2*ndct  ! 2 if coasting, otherwise 0
+  !  nd2t=nd2-2*rf-ndc2t   !  size of harmonic oscillators minus modulated clocks
+  !  ndt=nd2t/2        ! ndt number of harmonic oscillators minus modulated clocks
+  !  nd2harm=nd2t+2*rf  !!!!  total dimension of harmonic phase space
+  !  ndharm=ndt+rf  !!!! total number of harmonic planes
+!   write(6,*) " nd2,ndct,ndc2t,nd2t,ndt,nd2harm,rf,ndpt "
+!   write(6,'(8(1x,i4))') nd2,ndct,ndc2t,nd2t,ndt,nd2harm,rf,ndpt
+
+  if(.not.c_stable_da) return
+
+     ndloc=0
+                 
+
+    ! COMPUTATION OF A1 AND A1I USING DAINV
+    rel%n=nv; w%n=nv; v%n=nv;x%n=nv
+    call alloc(rel);call alloc(w);call alloc(v);call alloc(x);
+    call alloc(t1);
+
+    rel=1
+    v=1
+ 
+
+    x=xy
+
+!##1
+! v=map-identity in harmonic planes
+    do i=1,nd2  
+     if(i/=ndptb) then
+        v%v(i)=x%v(i)-rel%v(i)    !   V= X-1  where X is the map
+       else
+        if(mod(i,2)==0) ndloc=i/2  ! degree of freedom of coasting plane
+      endif
+    enddo
+ 
+!##2 
+!  map is cut to order 2 or above
+    v=v.cut.(order_gofix+1)
+ 
+ 
+!##3
+!  map is inverted at least to order 1
+    w=v**(-1)    !  W= (Map-1)**-1   
+
+ 
+!##4 
+! a map x is created with dimension nv
+! x is zero except for the parameters and delta if coasting
+
+    x=0
+    x%s=1    ! spin part is identity
+    x%q=1.0_dp 
+    do i=nd2+1,nv
+     x%v(i)=1.0e0_dp.cmono.i  !  Identity in all the parameter planes
+    enddo
+! not true.....
+  !  if(ndpt/=0) x%v(ndpt)=1.0e0_dp.cmono.ndpt !  If coasting, then energy is a parameter
+ 
+   ! a1=v
+ 
+
+    v=w*x  ! v contains the fixed point, for example v(1)= eta_x * x_pt + ...
+         
+    a1=v
+
+!##5  if costing beam, a symplectic map is created from delta dependence
+ 
+    do i=1,nd2 
+       a1%v(i)=(1e0_dp.cmono.i)+a1%v(i)  ! ndpt is already identity
+    enddo 
+ 
+
+ 
+    call kill(t1);
+    call kill(v);call kill(w);call kill(rel);call kill(x);
+    return
+  end subroutine c_gofix0
 
 
 subroutine c_normal(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize)
@@ -23470,14 +23562,14 @@ subroutine c_normal(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize)
     type(c_quaternion) qnr
     integer mker, mkers,mdiss,mdis,ndptbmad 
        real(dp), allocatable :: da(:)
- 
+ real(dp) mc(6,6)
 
     call kill(n%ker)
     call kill(n%g)
     call alloc(n%ker)
     call alloc(n%g)
 n%unstable=.false.
-unstable=.false.
+unstable_fpp=.false.
 !hyperbolic=n%hyperbolic
     n%g%dir=-1
     n%ker%dir=1
@@ -23579,20 +23671,22 @@ inside_normal=.true.
   if(c_skip_gofix) then
   a1=1
 else
+    if(c_%ndc/=0) then
+  !   call  c_gofix(m1,a1) 
+
+    call  c_gofix0(m1,a1) 
+ 
+  else
     call  c_gofix(m1,a1) 
-  
+  endif
 endif 
  
  
   m1=c_simil(a1,m1,-1)
  
- 
-
     ! Does the the diagonalisation into a rotation
     call c_linear_a(m1,a2)  
  
- 
-  
 
     !!! Now the linear map is normalised
     m1=c_simil(a2,m1,-1)
@@ -23604,7 +23698,7 @@ endif
     m1=c_simil(ri,m1,1)
  
  
-!stop 999
+
     ri=(m1.sub.-1)**(-1) 
 
     ri%s=1  ! make spin identity
@@ -23625,8 +23719,16 @@ endif
          endif
        endif  
     enddo
+ if(c_%ndc>0) then
+        je=0
+        je(c_%ndpt)=1
+   eg(c_%ndpt)=ri%v(c_%ndpt).sub.je
+! do k=1,6
+!   write(6,*) k,coast(k)
+ !  write(6,*)  eg(k)
+! enddo
+ endif
  
-
     n%ker=0  ! In case reusing normal form
 
     do i=2,not
@@ -23677,10 +23779,12 @@ endif
             lam=1.0_dp
             je(k)=je(k)-1
             do l=1,xy%n 
-              if(coast(l)) cycle 
+              if(coast(l).and.c_%ndc==0) cycle 
               lam=lam*eg(l)**je(l)
             enddo
-
+            if(c_%ndc/=0) then
+             lam=lam*eg(l)**je(l)
+            endif
             if(lielib_print(13)/=0) then
                  write(mdis,*) k
                  write(mdis,'(6(1x,i4))') je(1:nd2)
@@ -23739,15 +23843,15 @@ endif
 
         if(mod(k,2)==1) then
  
-   if(.not.unstable((k+1)/2) ) then
+   if(.not.unstable_fpp((k+1)/2) ) then
             n%tune((k+1)/2)=aimag(log(eg(k)))/twopi
             n%damping((k+1)/2)=real(log(eg(k)))
             if(n%tune((k+1)/2)<0.and.n%positive) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
             if(n%tune((k+1)/2)<-0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
             if(n%tune((k+1)/2)> 0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)-1.0_dp
            else
-            n%tune((k+1)/2)=log(eg(k))
-            n%damping((k+1)/2)= log(eg(k)*eg(k+1))/2.0_dp
+            n%tune((k+1)/2)=-log(eg(k))   
+            n%damping((k+1)/2)=-log(eg(k+1))   ! log(eg(k)*eg(k+1))/2.0_dp
    endif 
 
 
@@ -23771,11 +23875,19 @@ endif
         je(ndpt)=1
         lam=(ri%v(ndptb).sub.je) 
         n%ker%f(1)%v(ndptb)=n%ker%f(1)%v(ndptb)-(lam.cmono.je)
+         if(c_%ndc==0) then
             if(mod(ndpt,2)==0) then
               n%tune(ndpt/2)=-lam
             else
               n%tune(ndptb/2)=-lam
             endif
+       else
+            if(mod(ndpt,2)==0) then
+              n%damping(ndpt/2)=log(eg(ndpt))
+            else
+              n%damping(ndptb/2)=log(eg(ndpt))
+            endif
+       endif
        endif
 
 
@@ -24095,22 +24207,26 @@ if(c_%ndpt/=0) ncoast=1
 do i=1,(c_%nd-ncoast)
 
   ! IF(.not.hyperbolic.or..not.unstable(i) ) then
-   IF( .not.unstable(i) ) then
+   IF( .not.unstable_fpp(i) ) then
 
 lam=n%tune(i)
 if(n%tune(i)>0.5e0_dp) lam=lam-1.0_dp
  n%H_l%v(2*i-1)=-(i_*twopi*lam)*dz_c(2*i-1)-n%damping(i)*dz_c(2*i-1)
  n%H_l%v(2*i)=(i_*twopi*lam)*dz_c(2*i)-n%damping(i)*dz_c(2*i)
 ELSE
- n%H_l%v(2*i-1)= (-n%damping(i)-n%tune(i))*dz_c(2*i-1)
- n%H_l%v(2*i)=(-n%damping(i)+n%tune(i))*dz_c(2*i-1)
+ n%H_l%v(2*i-1)= (n%tune(i))*dz_c(2*i-1)
+ n%H_l%v(2*i)=(n%damping(i))*dz_c(2*i)
 
 ENDIF  ! HYPERBOLIC
 
 enddo
 
 if(ncoast/=0) then
- n%H_l%v(c_%ndptb)=n%tune(c_%nd)*dz_c(c_%ndpt)
+ if(c_%ndc==0) then
+  n%H_l%v(c_%ndptb)=n%tune(c_%nd)*dz_c(c_%ndpt)
+ else
+   n%H_l%v(c_%ndpt)=-n%damping(c_%nd)*dz_c(c_%ndpt)
+ endif
 endif
 if(dospinr) then
  n%H_l%q=0.0_dp
@@ -24140,7 +24256,7 @@ if(present(phase)) then
  !if(c_%ndpt/=0) ncoast=1
  do i=1,c_%nd  !-ncoast
  !  IF(.not.hyperbolic.or..not.unstable(i) ) then
-   IF( .not.unstable(i) ) then
+   IF( .not.unstable_fpp(i) ) then
  
   phase(i)=aimag(n%h%v(2*i).k.(2*i))/twopi
 
@@ -24162,1235 +24278,6 @@ endif
 
  end subroutine c_normal !_with_quaternion
 
-subroutine c_normal_new(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize)
-!#general:  normal
-!# This routine normalises the map xy
-!# xy = n%a_t**(-1)*r*n%a_t 
-!# The linear part of r is described in Chap.4 for the orbital part
-!# and in Chap.6 for the spin. The nonlinear parts are in Chap.5 and 6.
-!# Dospin must be set to .true. if spin is to be normalised.
-!# Resonances can be left in the map. Their number is in n%nres.
-!# They are nres resonances The kth resonance is n%m(i,k).Q_i+n%ms(k)=integer
-!# canonize=.true. Then it is put into courant-snyder form or anti- courant-snyder form
-!# depending on the logical  courant_snyder_teng_edwards=true or false. (See blue or yellow book)
-!#  The map in phasors is exp(n%H_l.grad) exp(n%H_nl.grad)
-!# if fully normalized into a rotation then the map is exp(n%h.grad)
-
-    implicit none
-    type(c_damap) , intent(inout) :: xyso3
-    type(c_damap) m1,ri,nonl,a0,a1,mt,AS,xy,Nf,N_cut_2,N_nl,rispin
-    type(c_normal_form), intent(inout) ::  n
-    type(c_damap), optional :: rot
-    type(c_taylor), optional :: phase(:),nu_spin
-    type(taylor) c1,s1
-    integer,optional :: no_used
-    integer i,j,k,l,kr,not,ncoast
-    integer, allocatable :: je(:)
-    logical(lp) removeit,rad_in
-    complex(dp) v,lam,egspin(3)
-    complex(dp), allocatable :: eg(:)
-    real(dp) norm,alpha,prec !,cx,sx
-    logical(lp), optional :: dospin,canonize
-    logical dospinr 
-
-    integer mker, mkers,mdiss,mdis,ndptbmad 
-    type(c_vector_field) F
-       real(dp), allocatable :: da(:)
-
-    call kill(n%ker)
-    call kill(n%g)
-    call alloc(n%ker)
-    call alloc(n%g)
-    n%g%dir=-1
-    n%ker%dir=1
-
-    if(.not.use_quaternion) then
-     call c_normal(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize)
-     return
-    endif
-
-
-    dospinr=.false.
-    if(present(dospin)) then
-     dospinr=dospin
-     else
-      if(force_spin_input_normal) then
-        write(6,*) " your default forces you to include dospin in the input of c_normal"
-        stop
-      endif
-    endif
-
-
-
-if(bmad_automatic) then
-  if(nd2t+ndc2t/=6) then
-   write(6,*) " nd2t , ndc2t ",nd2t,ndc2t
-   write(6,*) " not BMAD on entrance, suspicious"
-  endif
-  ndptbmad=0
-    alpha=abs(xyso3%v(6).sub.'000001')
-    norm=full_abs(xyso3%v(6))
-    alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
-    if(alpha<1.d-12) then 
-      ndptbmad=6
-     call in_bmad_units
-    endif
-     alpha=abs(xyso3%v(5).sub.'000010')
-    norm=full_abs(xyso3%v(5))
-    alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
-    if(alpha<1.d-12) then
-       ndptbmad=5
-     call in_ptc_units
-    endif
-  call c_bmad_reinit(ndptbmad)
- 
-
- ! if(use_quaternion) then
-    call c_full_norm_quaternion(xyso3%q,k,norm)
-    if(k==-1) dospinr=.true.
-endif
-
-
-if(spin_automatic) then
-  dospinr=.false.
-    call c_full_norm_quaternion(xyso3%q,k,norm)
-    if(k==-1) dospinr=.true.
-endif
-
-inside_normal=.true.
- 
-    not=no
-    if(present(no_used)) then
-      not=no_used  ! sometimes only linear stuff is needed
-    else
-       if(complex_extra_order==1.and.special_extra_order_1) not=not-1
-    endif
-
-    call alloc(xy);
-    xy=xyso3
- 
-    call alloc(m1);call alloc(nonl);call alloc(a0);call alloc(a1);call alloc(ri,rispin);
- 
-    allocate(je(nv))    
-    allocate(eg(xyso3%n))
-    allocate(da(c_%nd))
-     da=0.0_dp
-    
-    m1=xy
-
-    ! Brings the map to the parameter dependent fixed point
-    ! including the coasting beam gymnastic: time-energy is canonical
-    ! but energy is constant. (Momentum compaction, phase slip etc.. falls from there)
- ! etienne
- 
-if(c_skip_gofix) then
-  a0=1
-else
-!#1 Go to fix point 
- 
-    call  c_gofix(m1,a0) 
- 
- endif
- 
-  m1=c_simil(a0,m1,-1)
- 
- 
-
-    ! Does the the diagonalisation into a rotation
-
-!#2 doing the linear normal form exactly
-
-    call c_linear_a(m1,a1)  
- 
- 
-  
-
-    !!! Now the linear map is normalised
-    m1=c_simil(a1,m1,-1)
-  
- !#3
-    !!! We go into the phasors' basis
-    ri=from_phasor(-1)
- 
-    m1=c_simil(ri,m1,1)
- 
- 
-
-   if(dospinr) then
-
-       call c_full_norm_quaternion(m1%q,k,norm) 
- 
-      if(k>=0) then
-        dospinr=.false.
-         if(use_quaternion)  then
-           write(6,*) " no quaternion spin in map: dospin command ignored "
-         else
-            write(6,*) " no spin matrix in map: dospin command ignored "
-        endif
-     endif
-    endif
-
-
-if(dospinr) then
- 
-  
-      n%AS=1
- 
-!#4  Linear part of spin 
-       call c_normal_spin_linear_quaternion(m1,m1,n%AS,alpha)
-
-      n%quaternion_angle=alpha/2.0_dp
-      rispin=1 ; rispin%q=m1%q.sub.0 ; ! exp(theta_0 L_y)   (2)
- 
-      egspin(3)=cos(alpha)-i_*sin(alpha)
-      egspin(2)=1.0_dp
-      egspin(1)=cos(alpha)+i_*sin(alpha) 
- 
- 
-endif
-
-!#5  Linear part of the orbit map and zeroth order of quaternion
-
-     ri=(m1.sub.-1)**(-1) 
-
-   
- 
-
-    !!! The tunes are stored for the nonlinear normal form recursive algorithm
-    do k=1,xy%n
-      if(coast(k)) then
-        eg(k)=1
-       else
-        je=0
-        je(k)=1
-        eg(k)=ri%v(k).sub.je
-         if(mod(k,2)==0) then
-          da(k/2)=log(abs(eg(k)))
-         endif
-       endif  
-    enddo
- 
- 
-    n%ker=0  ! In case reusing normal form
-call alloc(F)
-    do i=1,not
- 
-!#6
-      nonl=(m1*ri)
-      nonl= exp_inv(n%ker,nonl)
-  
-!#7 vector field of nonlinear part computed
-      F=0
-      F=ln(nonl,tpsa=.false.)
-if(dospinr) then
- !#8 the basis is changed to   
- ! e_x =  1/2(i + sqrt(-1) k) 
- ! e_z =  1/2(i - sqrt(-1) k)
- ! e_y =  j
- call c_q0_to_qr(F%q,F%q)
-endif
- 
-
-
-!!!!!!!!!!!!!!!!!  doing the orbital  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-      do k=1,xy%n
- 
-
-        n%g%f(i)%v(k)=0.0_dp
-        n%ker%f(i)%v(k)=0.0_dp
-
-
-        j=1
-
-        do while(.true.) 
-
-           call  c_cycle(F%v(k),j,v ,je); if(j==0) exit;
-           call check_kernel(k,xy%n,je,removeit)
-
-           if(n%nres>0.and.removeit) then 
-             do kr=1,n%nres
-               if(n%ms(kr)/=0) cycle  ! a spin resonance
-               call check_resonance(k,xy%n,je,kr,n%m,removeit)
-               if(.not.removeit) then
-                 exit
-               endif
-             enddo
-           endif
-
-          if(removeit) then
-
-            lam=1.0_dp
-            je(k)=je(k)-1
-            do l=1,xy%n 
-              if(coast(l)) cycle 
-              lam=lam*eg(l)**je(l)
-            enddo
- 
-
-            je(k)=je(k)+1
-!#9 Removing the "resonances "
-            n%g%f(i)%v(k)=n%g%f(i)%v(k)+(v.cmono.je)/(1.0_dp-lam)
-
-          else ! Put in the kernel
- 
- !#10  Leaving the Kernel which might include resonances in the one-resonance model
-              n%ker%f(i)%v(k)=n%ker%f(i)%v(k)+(v.cmono.je)
-            endif
-
-        enddo  ! over monomial
-      enddo  ! over vector index
-!!!!!!!!!!!!!!!!! end of doing the orbital  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-if(dospinr) then
- 
-
-      do k=1,3
- 
-
-        j=1
-
-        do while(.true.) 
-
-            call  c_cycle(F%q%x(k),j,v ,je); if(j==0) exit;
-           call check_kernel_spin1(k,xy%n,je,da,removeit)
-              if(n%nres>0.and.removeit) then 
-                do kr=1,n%nres
-                  call check_resonance_spin(k,xy%n,je,kr,n%ms,n%m,removeit)
-                  if(.not.removeit) then
-                    exit
-                  endif
-                enddo
-              endif
-
- 
-              if(removeit) then
-      
-                lam=egspin(k) 
-                do l=1,xy%n 
-                  if(coast(l)) cycle 
-                  lam=lam*eg(l)**je(l)
-                enddo
-!#11 Removing the "resonances "
-               n%g%f(i)%q%x(k)=n%g%f(i)%q%x(k) +(v.cmono.je)/(1.0_dp-lam)   ! (9)
-             else ! Put in the kernel
- !#12  Leaving the Kernel which might include resonances in the one-resonance model
-              n%ker%f(i)%q%x(k)=n%ker%f(i)%q%x(k)+(v.cmono.je)
-            endif
-
-
-
-        enddo  ! over monomial
-      enddo  ! over quaternion index
- 
- !#13 the quaternion basis is changed back to   i,j,k inverting \#8
-
-        call c_qr_to_q0(n%g%f(i)%q,n%g%f(i)%q)  !   (10)
-
-endif
- 
-      m1=c_simil(n%g%f(i),m1,-1)
- 
-
-    enddo
- 
-
-call kill(F)
- 
-
- !#14   n%a_t contains everything
-
-    n%a_t=a0*a1*from_phasor()*texp(n%g,n%as)*from_phasor(-1)
-
-
-! not so useful 
-    n%a1=a0
-    n%a2=a1
- 
- 
-!#15   
-
-!!!!!   here we put the normalised linear part into the factored vector field
-!!!!!   not necessary but very useful
-    do k=1,xy%n
-       if(.not.coast(k)) then    
-        je=0
-        je(k)=1     
-        n%ker%f(1)%v(k)=n%ker%f(1)%v(k)-(log(eg(k)).cmono.je)
-
-        if(mod(k,2)==1) then
-            n%tune((k+1)/2)=aimag(log(eg(k)))/twopi
-            n%damping((k+1)/2)=real(log(eg(k)))
-            if(n%tune((k+1)/2)<0.and.n%positive) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
-            if(n%tune((k+1)/2)<-0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
-            if(n%tune((k+1)/2)> 0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)-1.0_dp
-
-        endif
-       endif 
-      enddo
-
-!!!!  Not used except for moments
-        if(c_skip_gofix) then
-         do k=1,xy%n
-                  if(mod(k,2)==1) then
-                     if(n%tune((k+1)/2)>0.50_dp) n%tune((k+1)/2)=n%tune((k+1)/2)-1.0_dp
-                    endif
-         enddo
-        endif
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-!#16  The synchrotron tune should be a small negative number if necessary
-        if(nd2t==6) then
-           if(n%tune(3)>0.50_dp.and.negative_synchrotron_tune) n%tune(3)=n%tune(3)-1.0_dp
-        endif 
-
-       if(ndpt/=0) then
-        je=0
-        je(ndpt)=1
-        lam=(ri%v(ndptb).sub.je) 
-        n%ker%f(1)%v(ndptb)=n%ker%f(1)%v(ndptb)-(lam.cmono.je)
-            if(mod(ndpt,2)==0) then
-              n%tune(ndpt/2)=-lam
-            else
-              n%tune(ndptb/2)=-lam
-            endif
-       endif
-
- !#17  Checking for fluctuation, ie, stochastic radiation
- ! c_normal_radiation normalizes the stochastic map
-    call c_check_rad(m1%e_ij,rad_in)
-    if(rad_in) call c_normal_radiation(m1,n)
-
-     ri=from_phasor()
-    n%n=c_simil(ri,m1,1)
-
-
-!   backward compatibility
-    n%Atot= n%a_t
-
-!   not necessary
-  if(present(canonize)) then
-   if(canonize) call c_full_canonise(n%atot,n%atot)
-  endif
-
-
-
-    if(present(rot)) then
-      rot=n%Atot**(-1)*xy*n%Atot
-    endif
-    
-    if(present(nu_spin)) nu_spin=0.0_dp
-     if(present(phase))   then
-     do i=1,size(phase)
-         phase(i)=0.0_dp
-      enddo
-endif
- 
-
- 
-    call kill(m1);call kill(nonl);call kill(a0);call kill(a1);call kill(ri);call kill(rispin);
-
-      deallocate(eg)
-      deallocate(da)
-      deallocate(je)
-
- 
-
- 
-   call kill(xy)
-!call c_count_da(i_alloc)
-!write(6,*) " exiting c_normal ",i_alloc
-inside_normal=.false.
-!!!! finding a Lie exponent
-
-!#18   Normalized vector fields are computed or created (linear)
-
-!  if(use_quaternion.and.rf==0)  then
-   call alloc(Nf,N_cut_2,N_nl )
-   Nf=n%atot**(-1)*xyso3*n%atot
-   N_cut_2=Nf.cut.(-2)
-
-! creating the linear vector field in phasors variables
-ncoast=0
-if(c_%ndpt/=0) ncoast=1
-
-!!!! create a full vector field for N_cut_2
-!#19   Linear vector field for orbital and constant quaternion computed
-do i=1,(c_%nd-ncoast)
- n%H_l%v(2*i-1)=-(i_*twopi*n%tune(i))*dz_c(2*i-1)-n%damping(i)*dz_c(2*i-1)
- n%H_l%v(2*i)=(i_*twopi*n%tune(i))*dz_c(2*i)-n%damping(i)*dz_c(2*i)
-enddo
-if(ncoast/=0) then
- n%H_l%v(c_%ndptb)=n%tune(c_%nd)*dz_c(c_%ndpt)
-endif
-if(dospinr) then
- n%H_l%q=0.0_dp
- n%H_l%q%x(2)=n%quaternion_angle 
-endif 
-
-
-!  Put in ordinary Floquet (x,p)
-!!!! Going into variables moving on a circle 
-n%H_l=ci_phasor()*n%H_l
-
-!!! Reverse-Dragt-Finn order for Lie map
-N_nl=N_cut_2**(-1)*nf
- 
-!#20  Put in phasors
-
-n%H_nl=c_logf_spin(N_nl)
-
-!#21  Put in ordinary Floquet (x,p)
-
-n%H_l=c_phasor()*n%H_l
-n%H_nl=c_phasor()*n%H_nl
-
-!#22  Only valid without damping and no resonance left in
-
- n%H=n%H_l+n%H_nl
-   call kill(Nf,N_cut_2,N_nl )
-!  endif
-
-if(.not.old_phase_calculation) then
-if(present(phase)) then
-! ncoast=0
- !if(c_%ndpt/=0) ncoast=1
- do i=1,c_%nd  !-ncoast
-  phase(i)=aimag(n%h%v(2*i).k.(2*i))/twopi
- enddo
-
- if(c_%ndptb/=0) then
-   phase(c_%nd)=n%h%v(c_%ndptb)   ! overwrites if necessary
- endif
-endif
-
-if(present(nu_spin))  nu_spin=-spin_def_tune*n%h%q%x(2)/pi
- 
-endif
-
-
- end subroutine c_normal_new !_with_quaternion
-
-
-subroutine c_normal_new_no_fac(xyso3,n,dospin,no_used,rot,phase,nu_spin,canonize,doberz)
-!#general:  normal
-!# This routine normalises the map xy
-!# xy = n%a_t**(-1)*r*n%a_t 
-!# The linear part of r is described in Chap.4 for the orbital part
-!# and in Chap.6 for the spin. The nonlinear parts are in Chap.5 and 6.
-!# Dospin must be set to .true. if spin is to be normalised.
-!# Resonances can be left in the map. Their number is in n%nres.
-!# They are nres resonances The kth resonance is n%m(i,k).Q_i+n%ms(k)=integer
-!# canonize=.true. Then it is put into courant-snyder form or anti- courant-snyder form
-!# depending on the logical  courant_snyder_teng_edwards=true or false. (See blue or yellow book)
-!#  The map in phasors is exp(n%H_l.grad) exp(n%H_nl.grad)
-!# if fully normalized into a rotation then the map is exp(n%h.grad)
-
-    implicit none
-    type(c_damap) , intent(inout) :: xyso3
-    type(c_damap) m1,ri,nonl,a1,a2,mt,AS,xy,Nf,N_cut_2,N_nl,an,ant,ker,kert
-    type(c_normal_form), intent(inout) ::  n
-    type(c_damap), optional :: rot
-    type(c_taylor), optional :: phase(:),nu_spin
-    type(taylor) c1,s1
-    integer,optional :: no_used
-    integer i,j,k,l,kr,not,ncoast
-    integer, allocatable :: je(:)
-    logical(lp) removeit,rad_in
-    complex(dp) v,lam,egspin(3)
-    complex(dp), allocatable :: eg(:)
-    real(dp) norm,alpha,prec !,cx,sx
-    logical(lp), optional :: dospin,canonize,doberz
-    logical dospinr,change
-    type(c_spinor) n0,nr
-    type(c_quaternion) qnr
-    type(c_vector_field) kerf,gf
-    integer mker, mkers,mdiss,mdis,ndptbmad 
-       real(dp), allocatable :: da(:)
-     
-
-    call kill(n%ker)
-    call kill(n%g)
-    call alloc(n%ker)
-    call alloc(n%g)
-    call alloc(kerf,gf)
-    n%g%dir=-1
-    n%ker%dir=1
-
-    if(lielib_print(13)/=0) then
-     call kanalnummer(mker,"kernel.txt")
-     call kanalnummer(mdis,"distortion.txt")
-     call kanalnummer(mkers,"kernel_spin.txt")
-     call kanalnummer(mdiss,"distortion_spin.txt")
-    endif
-
-    dospinr=.false.
-    if(present(dospin)) then
-     dospinr=dospin
-     else
-      if(force_spin_input_normal) then
-        write(6,*) " your default forces you to include dospin in the input of c_normal"
-        stop
-      endif
-    endif
-
-
-if(bmad_automatic) then
-  if(nd2t+ndc2t/=6) then
-   write(6,*) " nd2t , ndc2t ",nd2t,ndc2t
-   write(6,*) " not BMAD on entrance, suspicious"
-  endif
-  ndptbmad=0
-    alpha=abs(xyso3%v(6).sub.'000001')
-    norm=full_abs(xyso3%v(6))
-    alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
-    if(alpha<1.d-12) then 
-      ndptbmad=6
-     call in_bmad_units
-    endif
-     alpha=abs(xyso3%v(5).sub.'000010')
-    norm=full_abs(xyso3%v(5))
-    alpha=abs(alpha-1.0_dp)+abs(norm-1.0_dp)
-    if(alpha<1.d-12) then
-       ndptbmad=5
-     call in_ptc_units
-    endif
-  call c_bmad_reinit(ndptbmad)
- 
-
-  if(use_quaternion) then
-    call c_full_norm_quaternion(xyso3%q,k,norm)
-    if(k==-1) dospinr=.true.
-  else
-   call c_full_norm_spin(xyso3%s,k,norm)
-    if(k==-1) dospinr=.true.
-  endif
-endif
-
-if(spin_automatic) then
-  dospinr=.false.
-  if(use_quaternion) then
-    call c_full_norm_quaternion(xyso3%q,k,norm)
-    if(k==-1) dospinr=.true.
-  else
-   call c_full_norm_spin(xyso3%s,k,norm)
-    if(k==-1) dospinr=.true.
-  endif
-write(6,*)"dospin ", dospinr
-endif
-
-inside_normal=.true.
-!call c_count_da(i_alloc)
-!write(6,*)" entering c_normal ", i_alloc
-    change=.false.
-    not=no
-    if(present(no_used)) then
-      not=no_used  ! sometimes only linear stuff is needed
-    else
-       if(complex_extra_order==1.and.special_extra_order_1) not=not-1
-    endif
-
-    call alloc(xy);
-    xy=xyso3
-    if(use_quaternion_in_so3.and.(.not.use_quaternion.and.dospinr)) then
-     call makequaternion(xy)
-     use_quaternion=.true.
-     change=.true.
-    endif
-    call alloc(m1);call alloc(nonl);call alloc(a1);call alloc(a2);call alloc(ri);
- call alloc(an,ant,ker,kert)
-    allocate(je(nv))    
-    allocate(eg(xyso3%n))
-    allocate(da(c_%nd))
-     da=0.0_dp
-    
-    m1=xy
-
-    ! Brings the map to the parameter dependent fixed point
-    ! including the coasting beam gymnastic: time-energy is canonical
-    ! but energy is constant. (Momentum compaction, phase slip etc.. falls from there)
- ! etienne
- 
-  if(c_skip_gofix) then
-  a1=1
-else
-    call  c_gofix(m1,a1) 
-  
-endif 
- 
- 
-  m1=c_simil(a1,m1,-1)
- 
- 
-
-    ! Does the the diagonalisation into a rotation
-    call c_linear_a(m1,a2)  
- 
- 
-  
-
-    !!! Now the linear map is normalised
-    m1=c_simil(a2,m1,-1)
-  
- 
-    !!! We go into the phasors' basis
-    ri=from_phasor(-1)
- 
-    m1=c_simil(ri,m1,1)
- 
- 
-!stop 999
-    ri=(m1.sub.-1)**(-1) 
-
-    ri%s=1  ! make spin identity
-    ri%q=1.0_dp  ! make spin identity
- 
- 
-
-    !!! The tunes are stored for the nonlinear normal form recursive algorithm
-    do k=1,xy%n
-      if(coast(k)) then
-        eg(k)=1
-       else
-        je=0
-        je(k)=1
-        eg(k)=ri%v(k).sub.je
-         if(mod(k,2)==0) then
-          da(k/2)=log(abs(eg(k)))
-         endif
-       endif  
-    enddo
- 
-    n%ker=0  ! In case reusing normal form
-an=1
-ker=1
-    do i=2,not
-ant=1
-kert=1
-      if(lielib_print(13)/=0) then
-        write(mdis,*) " **************************************** " 
-        write(mdis,*) "Order ",i
-        write(mker,*) " **************************************** " 
-        write(mker,*) "Order ",i
-      endif
-
-      nonl=(m1*ri)
-      nonl= nonl*ker**(-1)   !exp_inv(n%ker,nonl)
-!      nonl= exp_inv(n%ker,nonl)
-      nonl=nonl.sub.i
-
- 
-
-      do k=1,xy%n
-        if(lielib_print(13)/=0) then
-          write(mdis,*) " **************************************** " 
-          write(mdis,*) "field component ",k
-          write(mker,*) " **************************************** " 
-          write(mker,*) "field component ",k
-        endif
-
-     !   n%g%f(i)%v(k)=0.0_dp
-     !   n%ker%f(i)%v(k)=0.0_dp
-kerf%v(k)=0.0_dp
-gf%v(k)=0.0_dp
- 
-
-        j=1
-
-        do while(.true.) 
-
-           call  c_cycle(nonl%v(k),j,v ,je); if(j==0) exit;
-           call check_kernel(k,xy%n,je,removeit)
-
-           if(n%nres>0.and.removeit) then 
-             do kr=1,n%nres
-               if(n%ms(kr)/=0) cycle  ! a spin resonance
-               call check_resonance(k,xy%n,je,kr,n%m,removeit)
-               if(.not.removeit) then
-                 exit
-               endif
-             enddo
-           endif
-
-          if(removeit) then
-
-            lam=1.0_dp
-            je(k)=je(k)-1
-            do l=1,xy%n 
-              if(coast(l)) cycle 
-              lam=lam*eg(l)**je(l)
-            enddo
-
-            if(lielib_print(13)/=0) then
-                 write(mdis,*) k
-                 write(mdis,'(6(1x,i4))') je(1:nd2)
-                 write(mdis,*) v
-                 write(mdis,*) abs(v/(1-lam))
-            endif
-
-            je(k)=je(k)+1
-
-     !       n%g%f(i)%v(k)=n%g%f(i)%v(k)+(v.cmono.je)/(1.0_dp-lam)
-            gf%v(k)=gf%v(k)+(v.cmono.je)/(1.0_dp-lam)
-
-          else ! Put in the kernel
-
-            if(lielib_print(13)/=0) then
-               je(k)=je(k)-1
-               write(mker,*) k
-               write(mker,'(6(1x,i4))') je(1:nd2)
-               write(mker,*) v
-               write(mker,*) abs(v/(1-lam))
-               je(k)=je(k)+1
-            endif
-               kerf%v(k)=kerf%v(k)+(v.cmono.je)
-            endif
-
-        enddo  ! over monomial
-      enddo  ! over vector index
-!kert=exp(n%ker%f(i))
-
-if(present(doberz)) then
-do l=1,ant%n
- kert%v(l)=kerf%v(l)+(1.0_dp.cmono.l)
-enddo
-else
-kert=exp(kerf)
-endif
-
-ker=kert*ker
-if(present(doberz)) then
-do l=1,ant%n
- ant%v(l)=gf%v(l)+(1.0_dp.cmono.l)
-enddo
-else
-ant=exp(gf)
-endif
-an=an*ant
-      m1=c_simil(ant,m1,-1)
-!call c_full_norm_vector_field(n%g%f(i),norm)
-!write(6,*) " old ",i,norm
-    enddo
- 
-  !     if(dospinr)then
- !     endif
- 
-
-  !  n%a_t=a1*a2*from_phasor()*texp(n%g)*from_phasor(-1)
-    n%a_t=a1*a2*from_phasor()*an*from_phasor(-1)
- !
-    n%a1=a1
-    n%a2=a2
-
- 
-!!!!!   here we put the normalised linear part into the factored vector field
-!!!!!   not necessary but useful
-
-    do k=1,xy%n
-       if(.not.coast(k)) then    
-        je=0
-        je(k)=1     
-        n%ker%f(1)%v(k)=n%ker%f(1)%v(k)-(log(eg(k)).cmono.je)
-
-        if(mod(k,2)==1) then
-            n%tune((k+1)/2)=aimag(log(eg(k)))/twopi
-            n%damping((k+1)/2)=real(log(eg(k)))
-            if(n%tune((k+1)/2)<0.and.n%positive) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
-            if(n%tune((k+1)/2)<-0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)+1.0_dp
-            if(n%tune((k+1)/2)> 0.5_dp.and.(.not.n%positive)) n%tune((k+1)/2)=n%tune((k+1)/2)-1.0_dp
-
-        endif
-       endif 
-      enddo
-
-        if(c_skip_gofix) then
-         do k=1,xy%n
-                  if(mod(k,2)==1) then
-                     if(n%tune((k+1)/2)>0.50_dp) n%tune((k+1)/2)=n%tune((k+1)/2)-1.0_dp
-                    endif
-         enddo
-        endif
-        if(nd2t==6) then
-           if(n%tune(3)>0.50_dp.and.negative_synchrotron_tune) n%tune(3)=n%tune(3)-1.0_dp
-        endif 
-
-       if(ndpt/=0) then
-        je=0
-        je(ndpt)=1
-        lam=(ri%v(ndptb).sub.je) 
-        n%ker%f(1)%v(ndptb)=n%ker%f(1)%v(ndptb)-(lam.cmono.je)
-            if(mod(ndpt,2)==0) then
-              n%tune(ndpt/2)=-lam
-            else
-              n%tune(ndptb/2)=-lam
-            endif
-       endif
-
-
-    if(dospinr) then
-
-if(use_quaternion)then
-      call c_full_norm_quaternion(m1%q,k,norm) 
-else
-      call c_full_norm_spin(m1%s,k,norm)   
-endif
-      if(k>=0) then
-        dospinr=.false.
-         if(use_quaternion)  then
-           write(6,*) " no quaternion spin in map: dospin command ignored "
-         else
-            write(6,*) " no spin matrix in map: dospin command ignored "
-        endif
-     endif
-    endif
-
-
-    if(dospinr) then
-      call alloc(n0) 
-      call alloc(nr)
-      call alloc(mt) 
-      call alloc(AS) 
-      call alloc(qnr)
-      n%AS=1
- 
-
-if(use_quaternion)then
-
-      call c_normal_spin_linear_quaternion(m1,m1,n%AS,alpha)
-
-      n%quaternion_angle=alpha/2.0_dp
-      ri=1 ; ri%q=m1%q.sub.0 ; ! exp(theta_0 L_y)   (2)
-!      sx=sqrt(ri%q%x(1)**2+ri%q%x(2)**2+ri%q%x(3)**2)
-!      cx=ri%q%x(0)
-!write(6,*) alpha
-!      alpha=-(-2*atan2(sx,cx))
-!write(6,*) alpha
-!pause 723
-      egspin(3)=cos(alpha)-i_*sin(alpha)
-      egspin(2)=1.0_dp
-      egspin(1)=cos(alpha)+i_*sin(alpha) 
-else
-       call c_normal_spin_linear(m1,m1,n%AS,n0)  ! (1)
-       ri=1 ; ri%s=m1%s.sub.0 ; ! exp(theta_0 L_y)   (2)
-      egspin(3)=ri%s%s(1,1)-i_*ri%s%s(1,3)
-      egspin(2)=1.0_dp
-      egspin(1)=ri%s%s(1,1)+i_*ri%s%s(1,3)
-endif
- 
- 
-
-
-
- 
-      if(lielib_print(13)/=0) then
-        write(mdiss,*) " eg(1:4),spin_def_tune" ,spin_def_tune
-        write(mdiss,*)eg(1)
-        write(mdiss,*)eg(2)
-        write(mdiss,*)eg(3)
-        write(mdiss,*)eg(4)
-        write(mdiss,*) " egspin(1:3)" 
-        write(mdiss,*)egspin(1)
-        write(mdiss,*)egspin(2)
-        write(mdiss,*)egspin(3)
-      endif
-      if(lielib_print(13)/=0) then
-        write(mkers,*) " eg(1:4),spin_def_tune" ,spin_def_tune
-        write(mkers,*)eg(1)
-        write(mkers,*)eg(2)
-        write(mkers,*)eg(3)
-        write(mkers,*)eg(4)
-        write(mkers,*) " egspin(1:3)" 
-        write(mkers,*)egspin(1)
-        write(mkers,*)egspin(2)
-        write(mkers,*)egspin(3)
-      endif
-      
-      !!! tune is taken from egspin(1) or egspin(3)   spin_def_tune= +/- 1
-       n%spin_tune=aimag(log(egspin(2+spin_def_tune))/twopi)  
-    
-     if(n%spin_tune <0.and.n%positive) n%spin_tune=n%spin_tune+1.0_dp
-     if(n%spin_tune <-0.5_dp.and.(.not.n%positive)) n%spin_tune=n%spin_tune+1.0_dp
-     if(n%spin_tune> 0.5_dp.and.(.not.n%positive)) n%spin_tune=n%spin_tune-1.0_dp
-
-
- 
-      ! because  exp(a L_y) x = x- a z + O(a**2)
-       ri=ri**(-1) ! exp(-alpha_0 L_y)   (3)
-
-
-if(use_quaternion)then
-       nonl=m1.sub.1 ; nonl%q=1.0_dp ;nonl=nonl**(-1)  ! R_0^-1      (4)  
-else
-     nonl=m1.sub.1 ; nonl%s=1 ;nonl=nonl**(-1)  ! R_0^-1      (4)  
-endif
-!       nonl=m1.sub.1 ; nonl%s=1 ;nonl=nonl**(-1)  ! R_0^-1      (4)          
-        
-
-       do i=1,no    !+2
-          if(lielib_print(13)/=0) then
-            write(mdiss,*) " **************************************** " 
-            write(mdiss,*) "Order ",i
-            write(mkers,*) " **************************************** " 
-            write(mkers,*) "Order ",i
-          endif
-  
- 
-         
-          mt=m1*ri !  S*exp(-theta_0 L_y)    (5)
- 
- 
-if(use_quaternion)then
-       n0=mt%q
-else
-      call c_find_om_da(mt%s,n0)   ! (4)  
-endif
-
-           call c_n0_to_nr(n0,n0)   ! n0 = > eigen-operator of spin   (7)
- 
- 
- 
-          n0=n0*nonl               !  no * R^-1      (8)
- 
-
-          nr=0
-          
-          do k=1,3
-            if(lielib_print(13)/=0) then 
-              write(mdiss,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " 
-              write(mdiss,*) "Spin component ",k
-              write(mdiss,*) " "
-              write(mkers,*) " $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$ " 
-              write(mkers,*) "Spin component ",k
-              write(mkers,*) " "
-            endif
-            
-            j=1
-            do while(.true.) 
-              call  c_cycle(n0%v(k),j,v ,je); if(j==0) exit;
-              call check_kernel_spin1(k,xy%n,je,da,removeit)
-              if(n%nres>0.and.removeit) then 
-                do kr=1,n%nres
-                  call check_resonance_spin(k,xy%n,je,kr,n%ms,n%m,removeit)
-                  if(.not.removeit) then
-                    exit
-                  endif
-                enddo
-              endif
-                
-              if(removeit) then
-                lam=egspin(k) 
-                do l=1,xy%n 
-                  if(coast(l)) cycle 
-                  lam=lam*eg(l)**je(l)
-                enddo
-               
-                if(lielib_print(13)/=0) then 
-                  !do kr=1,nd2
-	!je(kr)=-(-1)**kr*je(kr)
-                  !enddo
-                  write(mdiss,'(6(1x,i4))') je(1:nd2)
-                  write(mdiss,*)lam
-                  write(mdiss,*) v
-                  write(mdiss,*) abs(v/(1-lam))
-                  !do kr=1,nd2
-	!je(kr)=-(-1)**kr*je(kr)
-                  !enddo
-                endif
-              nr%v(k)=nr%v(k) +(v.cmono.je)/(1.0_dp-lam)   ! (9)
-            else
-              if(lielib_print(13)/=0) then 
-                do kr=1,nd2
-                  je(kr)=-(-1)**kr*je(kr)
-                enddo      
-                write(mkers,'(6(1x,i4))') je(1:nd2)
-                write(mkers,*) v
-                do kr=1,nd2
-                  je(kr)=-(-1)**kr*je(kr)
-                enddo
-              endif
-            endif
-          enddo ! cycle
-        enddo ! k
- 
-
-        call c_nr_to_n0(nr,nr)  !   (10)
- 
-
- 
- 
-
-if(use_quaternion)then
-qnr=nr
- AS=1 ; 
-AS%q=exp(qnr)
-else
-      AS=1 ; AS%s=exp(nr)*AS%s 
-endif
-
-
- 
-
-        n%AS=n%AS*AS             ! (12)
- 
-
- 
-        m1=c_simil(AS,m1,-1) 
-  
-
-       enddo
-
-      n%AS=from_phasor()*n%AS*from_phasor(-1)
- 
-      n%AS=n%A_t*n%AS*n%a_t**(-1)
- 
-      call kill(AS) 
-      call kill(mt) 
-      call kill(n0) 
-      call kill(nr) 
-      call kill(qnr) 
-    endif
-      
-    call c_check_rad(m1%e_ij,rad_in)
-    if(rad_in) call c_normal_radiation(m1,n)
-
-     ri=from_phasor()
-    n%n=c_simil(ri,m1,1)
-    n%Atot=n%as*n%a_t
-
-  if(present(canonize)) then
-   if(canonize) call c_full_canonise(n%atot,n%atot)
-  endif
-
-
-
-    if(present(rot)) then
-      rot=n%Atot**(-1)*xy*n%Atot
-    endif
-    
-    if(present(nu_spin)) nu_spin=0.0_dp
-     if(present(phase))   then
-     do i=1,size(phase)
-         phase(i)=0.0_dp
-      enddo
-endif
-    if((present(phase).or.present(nu_spin)).and.old_phase_calculation) then
-
- 
-        
-      if(present(rot)) then
-        m1=rot
-      else
-        m1=n%Atot**(-1)*xy*n%Atot
-      endif
-
-
-
-
-          qphase=.false.
-      call c_full_canonise(m1,a1,phase=phase,nu_spin=nu_spin)
-      ! if(dospinr.and.present(nu_spin)) then
-      !  if(real(nu_spin.sub.'0')<0) nu_spin=-nu_spin   ! 2018.11.01  to match phase advance
-      ! endif
-          qphase=qphasedef
-    endif
-
-! error because m1 was reutilized in present(rot)
-!   call c_check_rad(m1%e_ij,rad_in)
- !!   if(rad_in) call c_normal_radiation(m1,n)
- !   call c_check_rad(m1%e_ij,rad_in)
- !!   if(rad_in) call c_normal_radiation(m1,n)
-
-    call kill(m1);call kill(nonl);call kill(a1);call kill(a2);call kill(ri);
-    call kill(an,ant,ker,kert);
-        call kill(kerf,gf)
-
-      deallocate(eg)
-      deallocate(da)
-      deallocate(je)
-
-    if(lielib_print(13)/=0) then
-     close(mker)
-     close(mdis)
-     close(mdiss)
-     close(mkers)
-    endif
-
-    if(change) then
-     call makeso3(n%a1)
-     call makeso3(n%a2)
-     call makeso3(n%a_t)
-     call makeso3(n%atot)
-     call makeso3(n%as)
-     call makeso3(n%n)
-     n%a1%q=0.0_dp
-     n%a2%q=0.0_dp
-     n%a_t%q=0.0_dp
-     n%atot%q=0.0_dp
-     n%as%q=0.0_dp
-     n%n%q=0.0_dp
-     use_quaternion=.false.
-    endif
-   call kill(xy)
-!call c_count_da(i_alloc)
-!write(6,*) " exiting c_normal ",i_alloc
-inside_normal=.false.
-!!!! finding a Lie exponent
-
-!  if(use_quaternion.and.rf==0)  then
-   call alloc(Nf,N_cut_2,N_nl )
-   Nf=n%atot**(-1)*xyso3*n%atot
-   N_cut_2=Nf.cut.(-2)
-
-! creating the linear vector field in phasors variables
-ncoast=0
-if(c_%ndpt/=0) ncoast=1
-!!!! create a full vector field for N_cut_2
-do i=1,(c_%nd-ncoast)
- n%H_l%v(2*i-1)=-(i_*twopi*n%tune(i))*dz_c(2*i-1)-n%damping(i)*dz_c(2*i-1)
- n%H_l%v(2*i)=(i_*twopi*n%tune(i))*dz_c(2*i)-n%damping(i)*dz_c(2*i)
-enddo
-if(ncoast/=0) then
- n%H_l%v(c_%ndptb)=n%tune(c_%nd)*dz_c(c_%ndpt)
-endif
-if(dospinr) then
- n%H_l%q=0.0_dp
- n%H_l%q%x(2)=n%quaternion_angle 
-endif 
-!!!! Going into variables moving on a circle 
-n%H_l=ci_phasor()*n%H_l
-
-!!! Reverse-Dragt-Finn order for Lie map
-N_nl=N_cut_2**(-1)*nf
- 
-n%H_nl=ln(N_nl)
-
-n%H_l=c_phasor()*n%H_l
-n%H_nl=c_phasor()*n%H_nl
-
- n%H=n%H_l+n%H_nl
-   call kill(Nf,N_cut_2,N_nl )
-!  endif
-
-if(.not.old_phase_calculation) then
-if(present(phase)) then
-! ncoast=0
- !if(c_%ndpt/=0) ncoast=1
- do i=1,c_%nd  !-ncoast
-  phase(i)=aimag(n%h%v(2*i).k.(2*i))/twopi
- enddo
-
- if(c_%ndptb/=0) then
-   phase(c_%nd)=n%h%v(c_%ndptb)   ! overwrites if necessary
- endif
-endif
-
-  if(present(nu_spin)) then
-    nu_spin=-spin_def_tune*n%h%q%x(2)/pi
-    nu_spin=nu_spin-(nu_spin.sub.'0')+n%spin_tune
-  endif 
-endif
-
-
- end subroutine c_normal_new_no_fac !_with_quaternion
 
 real(dp) function DET(aa0)
 implicit none

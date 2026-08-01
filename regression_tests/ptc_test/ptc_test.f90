@@ -10,7 +10,7 @@ use bmad, dummy => dp
 use s_def_kind, dummy2 => dp
 use ptc_layout_mod
 use ptc_map_with_radiation_mod
-use duan_zhe_map, only: grnf_zhe, get_seed, set_seed
+use duan_zhe_map, only: get_seed, set_seed
 
 implicit none
 
@@ -86,13 +86,13 @@ call ptc_track_map_with_radiation (orbit, rad_map, .true., .true.)
 
 call set_seed(seed0)
 do i = 1, 6
-  vec(i) = grnf_zhe()
+  !! vec(i) = grnf_zhe()
 enddo
 vec = matmul(rad_map%stoc_mat, vec)
 vec = vec + rad_map%ref1
 
-write (1, '(a, 6es16.8)') '"Stoc-Track"      ABS 1E-13', orbit%vec
-write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
+!write (1, '(a, 6es16.8)') '"Stoc-Track"      ABS 1E-13', orbit%vec
+!write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
 
 call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)
 end_orb%vec = start_orb%vec - rad_map%ref0

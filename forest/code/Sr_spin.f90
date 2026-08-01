@@ -39,12 +39,15 @@ module ptc_spin
   private TRACK_wedge_spinR,TRACK_wedge_spinp,TRACK_wedge_spin, find_as,find_frac_r,find_n0
   !REAL(DP) :: AG=A_ELECTRON
   REAL(DP) :: bran_init=pi  
-  logical :: locate_with_no_cavity = .false.,full_way=.true.
+  logical :: locate_with_no_cavity = .false.   !,full_way=.true.
   integer  :: item_min=3,mfdebug
   integer  :: case_map=case1,i11min=6776, i22max=8055
  ! logical :: excludedelta=.false.
   type(tree_element_zhe), pointer :: t_mapexam_map(:)=> null();
   type(tree_element), pointer :: t_mapexam_map8(:)=> null();
+  type(tree_element_zhe), pointer :: t_map(:,:)=> null();
+  type(tree_element), pointer :: t_map8(:,:)=> null();
+
   real(dp) mapexam_closed_orbit(6)
 
   INTERFACE assignment (=)
@@ -742,11 +745,11 @@ endif
        endif
     endif
 
-    donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
+!    donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
 
-    if(donew) then   ! actually calling old stuff pre-node
-     call TRACK(xs%x,K,fibre1,fibre2=fibre2)
-    else
+!    if(donew) then   ! actually calling old stuff pre-node
+!     call TRACK(xs%x,K,fibre1,fibre2=fibre2)
+ !   else
 revert_to_ptc=.false.
     if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
  revert_to_ptc=.true.
@@ -776,7 +779,7 @@ revert_to_ptc=.false.
       call convert_ptc_to_bmad(xs,beta,k%time)
      convert_to_bmad=.true.
    endif
-    endif
+!    endif
 
 
     C_%STABLE_DA=.true.
@@ -860,11 +863,11 @@ revert_to_ptc=.false.
  ! endif
  !endif
 
-    donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
+!    donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
 
-    if(donew) then   ! actually calling old stuff pre-node
-     call TRACK(xs%x,K,fibre1,fibre2=fibre2)
-    else
+!    if(donew) then   ! actually calling old stuff pre-node
+!     call TRACK(xs%x,K,fibre1,fibre2=fibre2)
+ !   else
 revert_to_ptc=.false.
     if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
  revert_to_ptc=.true.
@@ -894,7 +897,7 @@ revert_to_ptc=.false.
       call convert_ptc_to_bmad(xs,beta,k%time)
      convert_to_bmad=.true.
    endif
-    endif
+!    endif
 
   !if(didit) then
   !xs%x(5)=dd
@@ -1133,20 +1136,20 @@ revert_to_ptc=.false.
     logical donew
     !    logical(lp), optional ::u
     !    type(integration_node),optional, pointer :: t
-      donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
+!      donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
 
-    if(donew) then
-      i1=fibre1
-      if(present(fibre2) )THEN
-         i2=FIBRE2
-      else
-         I2=r%n+i1
-      endif
-      if(i2<i1) then
-       i2=r%n+i2
-      endif
-     CALL TRACK(r,x,I1,I2,K)
-     else
+ !   if(donew) then
+!      i1=fibre1
+!      if(present(fibre2) )THEN
+!         i2=FIBRE2
+ !     else
+ !        I2=r%n+i1
+!      endif
+ !     if(i2<i1) then
+!       i2=r%n+i2
+!      endif
+ !    CALL TRACK(r,x,I1,I2,K)
+ !    else
        if(.not.associated(r%t)) call MAKE_NODE_LAYOUT(r)
 
         xs%u=my_false
@@ -1154,13 +1157,9 @@ revert_to_ptc=.false.
         xs%q=1.0_dp
          CALL TRACK_PROBE(r,xs,K, fibre1,fibre2,node1,node2)
        X=XS%X
-    endif
-    !    if(present(u)) u=xs%u
+  !  endif
 
-    !    if(present(t)) THEN
-    !       t=>xs%lost_node
-    !       NULLIFY(xs%lost_node)
-    !    ENDIF
+  
 
   END SUBROUTINE TRACK_LAYOUT_FLAG_spin12r_x
 
@@ -1178,20 +1177,20 @@ revert_to_ptc=.false.
     integer i1,i2
     logical donew
 
-      donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
+!      donew=(.not.(full_way.or.k%full_way)).and.(.not.present(node1)).and.(.not.present(node2))
 
-    if(donew) then
-      i1=fibre1
-      if(present(fibre2) )THEN
-         i2=FIBRE2
-      else
-         I2=r%n+i1
-      endif
-      if(i2<i1) then
-       i2=r%n+i2
-      endif
-     CALL TRACK(r,x,I1,I2,K)
-     else
+!    if(donew) then
+!      i1=fibre1
+!      if(present(fibre2) )THEN
+!         i2=FIBRE2
+!      else
+!         I2=r%n+i1
+!      endif
+ !     if(i2<i1) then
+!       i2=r%n+i2
+!      endif
+!     CALL TRACK(r,x,I1,I2,K)
+!     else
        call alloc(xs)
        if(.not.associated(r%t)) call MAKE_NODE_LAYOUT(r)
 
@@ -1201,7 +1200,7 @@ revert_to_ptc=.false.
          CALL TRACK_PROBE(r,xs,K, fibre1,fibre2,node1,node2)
         X=XS%X
         call kill(xs)
-    endif
+ !   endif
 
 
 
@@ -1810,15 +1809,7 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     logical revert_to_ptc
     real(dp) beta
 
-revert_to_ptc=.false.
-    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
- revert_to_ptc=.true.
 
-      beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
-      call convert_bmad_to_ptc(xs,beta,k%time)
-     convert_to_bmad=.false.
-    endif
 
 if(C%parent_fibre%mag%name(1:3)=="MAP") then
  if(C%parent_fibre%mag%name=="MAPEXAM") then
@@ -1887,6 +1878,15 @@ if(C%parent_fibre%mag%name(1:3)=="MAP") then
  return
  endif
  else
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
     if(2*old_integrator+c%parent_fibre%mag%old_integrator>0) then
      call TRACK_NODE_FLAG_probe_R(C,XS,K)
     else
@@ -1902,14 +1902,18 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
      end select
 
     endif
-endif  ! map
-
     if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
       if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
      convert_to_bmad=.true.
    endif
+endif  ! map
+
+
+ if(C%parent_fibre%mag%name=="ZHEB") then
+    if(c%cas==CASEP2) call track_zher(C,XS,K)
+ endif
     end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_R
 
   SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p(C,XS,K)
@@ -1919,15 +1923,7 @@ endif  ! map
     logical revert_to_ptc
     real(dp) beta
 
-revert_to_ptc=.false.
-    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
- revert_to_ptc=.true.
 
-      beta=C%PARENT_FIBRE%beta0
-      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
-      call convert_bmad_to_ptc(xs,beta,k%time)
-     convert_to_bmad=.false.
-    endif
 
 if(C%parent_fibre%magp%name(1:3)=="MAP") then
 
@@ -1990,7 +1986,16 @@ if(C%parent_fibre%magp%name(1:3)=="MAP") then
     if(c%cas==case_map) call track_strangep(c,xs,K)
  return
  endif
- else
+ else   !map stuff
+revert_to_ptc=.false.
+    if(convert_to_bmad.and.use_bmad_units.and.(.not.inside_bmad)) then 
+ revert_to_ptc=.true.
+
+      beta=C%PARENT_FIBRE%beta0
+      if(C%PARENT_FIBRE%PATCH%ENERGY==4.and.c%cas==-1) beta=C%PARENT_FIBRE%PATCH%b0b
+      call convert_bmad_to_ptc(xs,beta,k%time)
+     convert_to_bmad=.false.
+    endif
     if(compute_stoch_kick) then
       c%delta_rad_in=0
       c%delta_rad_out=0 
@@ -2019,13 +2024,17 @@ CASE(KIND0,KIND1,KIND3,kind6,KIND8,KIND9,KIND11:KIND14,KIND15,kind17,KIND18,KIND
      end select
 
     endif
-endif ! map
     if(revert_to_ptc.and.use_bmad_units.and.(.not.inside_bmad)) then 
       beta=C%PARENT_FIBRE%beta0
       if(C%PARENT_FIBRE%PATCH%ENERGY==5.and.c%cas==-2) beta=C%PARENT_FIBRE%PATCH%b0b
       call convert_ptc_to_bmad(xs,beta,k%time)
      convert_to_bmad=.true.
    endif
+endif ! map
+
+ if(C%parent_fibre%magp%name=="ZHEB") then
+    if(c%cas==CASEP2) call track_zhep(C,XS,K)
+ endif
     end SUBROUTINE TRACK_NODE_FLAG_probe_wrap_p
 
   
@@ -2628,6 +2637,69 @@ th=(sinh(xs%x(1)*C%PARENT_FIBRE%MAGp%bn(8)))/(cosh(xs%x(1)*C%PARENT_FIBRE%MAGp%b
 call kill(x)
   end subroutine track_yep
 
+  subroutine track_zher(c,xs,K)   !electric teapot s
+use gauss_dis
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+    type(probe_zhe) xs0_zhe
+
+    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+ !xs0_zhe%x=xs%x
+
+     ! call track_TREE_probe_complex_zhe(t_mapexam_map(1:3),xs0_zhe,spin=.false.,rad=.false.,stoch=.false.)  !stoch=state%stochastic)
+ if(associated(t_mapexam_map8)) then
+      call track_TREE_probe_simple_zher_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation,stoch=k%stochastic)  !stoch=state%stochastic)
+ else
+      call track_TREE_probe_simple_zher_8(t_map8(c%tree,1:3),xs,spin=k%spin,rad=k%radiation,stoch=k%stochastic)  !stoch=state%stochastic)
+endif       
+!xs%x=xs0_zhe%x
+ 
+
+  end subroutine track_zher
+
+ subroutine track_zhep(c,xs,K)   !electric teapot s
+use gauss_dis
+    IMPLICIT NONE
+    TYPE(integration_node),pointer, INTENT(IN):: c
+    type(probe_8), INTENT(INout) :: xs
+    TYPE(INTERNAL_STATE) K
+ !   type(probe_zhe) xs0_zhe
+
+    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
+    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
+    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
+    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
+    C%PARENT_FIBRE%MAGp%P%MASS => C%PARENT_FIBRE%MASS
+    C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
+    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
+
+ !xs0_zhe%x=xs%x
+
+     ! call track_TREE_probe_complex_zhe(t_mapexam_map(1:3),xs0_zhe,spin=.false.,rad=.false.,stoch=.false.)  !stoch=state%stochastic)
+  !    call track_TREE_probe_simple_zhep_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation)  !stoch=state%stochastic)
+ if(associated(t_mapexam_map8)) then
+      call track_TREE_probe_simple_zhep_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation)  !stoch=state%stochastic)
+ else
+       call track_TREE_probe_simple_zhep_8(t_map8(c%tree,1:3),xs,spin=k%spin,rad=k%radiation)  !stoch=state%stochastic)
+endif 
+!xs%u=xs0_zhe%u
+!xs%x=xs0_zhe%x
+ 
+
+  end subroutine track_zhep
+
+
+
+
   subroutine track_examr(c,xs,K)   !electric teapot s
 use gauss_dis
     IMPLICIT NONE
@@ -2653,9 +2725,9 @@ b5=C%PARENT_FIBRE%MAG%bn(5)  !1.0_dp
 n=nint(C%PARENT_FIBRE%MAG%bn(3))
 
     x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
-    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
-    xs%x(1)=x
-    xs%x(2)=xs%x(2)+ b4*xs%x(1)**n + b5*xs%x(1)**3
+    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*(1.0_dp+C%PARENT_FIBRE%MAG%an(3) ) *sin(mu)*xs%x(1)
+    xs%x(1)=x+C%PARENT_FIBRE%MAG%an(4)*b5*xs%x(1)**3
+    xs%x(2)=xs%x(2)+ b4*xs%x(1)**n +b5*xs%x(1)**3 
 
 return
      xs%x(1)=exp(-C%PARENT_FIBRE%MAG%bn(1))*xs%x(1)
@@ -2689,59 +2761,6 @@ mu=1.5_dp*mu
   end subroutine track_examr
 
 
-  subroutine track_zher(c,xs,K)   !electric teapot s
-use gauss_dis
-    IMPLICIT NONE
-    TYPE(integration_node),pointer, INTENT(IN):: c
-    type(probe), INTENT(INout) :: xs
-    TYPE(INTERNAL_STATE) K
-    type(probe_zhe) xs0_zhe
-
-    C%PARENT_FIBRE%MAG%P%DIR    => C%PARENT_FIBRE%DIR
-    C%PARENT_FIBRE%MAG%P%beta0  => C%PARENT_FIBRE%beta0
-    C%PARENT_FIBRE%MAG%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
-    C%PARENT_FIBRE%MAG%P%GAMBET => C%PARENT_FIBRE%GAMBET
-    C%PARENT_FIBRE%MAG%P%MASS => C%PARENT_FIBRE%MASS
-    C%PARENT_FIBRE%MAG%P%ag => C%PARENT_FIBRE%ag
-    C%PARENT_FIBRE%MAG%P%CHARGE=>C%PARENT_FIBRE%CHARGE
-
- !xs0_zhe%x=xs%x
-
-     ! call track_TREE_probe_complex_zhe(t_mapexam_map(1:3),xs0_zhe,spin=.false.,rad=.false.,stoch=.false.)  !stoch=state%stochastic)
-      call track_TREE_probe_simple_zher_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation,stoch=k%stochastic)  !stoch=state%stochastic)
-!xs%u=xs0_zhe%u
-!xs%x=xs0_zhe%x
- 
-
-  end subroutine track_zher
-
- subroutine track_zhep(c,xs,K)   !electric teapot s
-use gauss_dis
-    IMPLICIT NONE
-    TYPE(integration_node),pointer, INTENT(IN):: c
-    type(probe_8), INTENT(INout) :: xs
-    TYPE(INTERNAL_STATE) K
- !   type(probe_zhe) xs0_zhe
-
-    C%PARENT_FIBRE%MAGp%P%DIR    => C%PARENT_FIBRE%DIR
-    C%PARENT_FIBRE%MAGp%P%beta0  => C%PARENT_FIBRE%beta0
-    C%PARENT_FIBRE%MAGp%P%GAMMA0I=> C%PARENT_FIBRE%GAMMA0I
-    C%PARENT_FIBRE%MAGp%P%GAMBET => C%PARENT_FIBRE%GAMBET
-    C%PARENT_FIBRE%MAGp%P%MASS => C%PARENT_FIBRE%MASS
-    C%PARENT_FIBRE%MAGp%P%ag => C%PARENT_FIBRE%ag
-    C%PARENT_FIBRE%MAGp%P%CHARGE=>C%PARENT_FIBRE%CHARGE
-
- !xs0_zhe%x=xs%x
-
-     ! call track_TREE_probe_complex_zhe(t_mapexam_map(1:3),xs0_zhe,spin=.false.,rad=.false.,stoch=.false.)  !stoch=state%stochastic)
-      call track_TREE_probe_simple_zhep_8(t_mapexam_map8(1:3),xs,spin=k%spin,rad=k%radiation)  !stoch=state%stochastic)
-!xs%u=xs0_zhe%u
-!xs%x=xs0_zhe%x
- 
-
-  end subroutine track_zhep
-
-
 
   subroutine track_examp(c,xs,K)   !electric teapot s
     IMPLICIT NONE
@@ -2768,9 +2787,10 @@ b5=C%PARENT_FIBRE%MAG%bn(5)  !1.0_dp
 n=nint(C%PARENT_FIBRE%MAG%bn(3))
 
     x=(cos(mu)+alpha*sin(mu))*xs%x(1)+beta*sin(mu)*xs%x(2)
-    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*sin(mu)*xs%x(1)
-    xs%x(1)=x
-    xs%x(2)=xs%x(2)+ b4*xs%x(1)**n + b5*xs%x(1)**3
+    xs%x(2)=(cos(mu)-alpha*sin(mu))*xs%x(2)-gamma*(1.0_dp+C%PARENT_FIBRE%MAG%an(3) ) *sin(mu)*xs%x(1)
+    xs%x(1)=x+C%PARENT_FIBRE%MAG%an(4)*b5*xs%x(1)**3
+    xs%x(2)=xs%x(2)+ b4*xs%x(1)**n +b5*xs%x(1)**3 
+
 
 
 call kill(x)
@@ -3417,7 +3437,7 @@ revert_to_ptc=.false.
     endif
 
 
-    if(full_way.or.k%full_way) then
+!    if(full_way.or.k%full_way) then
      useptc=.true.
 
      
@@ -3500,37 +3520,38 @@ revert_to_ptc=.false.
     IF(K%MODULATION.and.xs%nac/=0.and.c%parent_fibre%mag%slow_ac/=0) then!modulate
        CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
     ENDIF  !modulate
-  !  IF((K%MODULATION.or.ramp).and.c%parent_fibre%mag%slow_ac) THEN  !modulate
-  !     CALL restore_ANBN_SINGLE(C%PARENT_FIBRE%MAG,C%PARENT_FIBRE%MAGP)
-  !  ENDIF  !modulate
+ 
 
+! else ! full_way
+!
+!
+!
+!
+!
+!    if(c%cas==0) then
+!
+!
 
- else ! full_way
-
-
-
-    if(c%cas==0) then
-
-
-
-        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-
-
-    elseIF(c%cas==case1) then
-       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-    elseIF(c%cas==case2) then
-       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-    else
-       IF(c%cas==caseP1) THEN
-          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-       ELSEif(c%cas==caseP2) THEN
-          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-
-     ENDIF
-
-    endif
-
-endif ! full_way
+!        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!
+!
+!    elseIF(c%cas==case1) then
+!       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!    elseIF(c%cas==case2) then
+!       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!    else
+!       IF(c%cas==caseP1) THEN
+!          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!       ELSEif(c%cas==caseP2) THEN
+!!          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!
+!     ENDIF
+!
+!
+!
+!    endif
+!
+!endif ! full_way
     xs%u=.not.check_stable
     if(xs%u) then
        lost_fibre=>c%parent_fibre
@@ -3586,7 +3607,7 @@ revert_to_ptc=.false.
      convert_to_bmad=.false.
     endif
 
-    if(full_way.or.k%full_way) then
+!    if(full_way.or.k%full_way) then
     useptc=.true.
 !    if(.not.(k%nocavity.and.(ki==kind4.or.ki==kind21))) then
      if(C%PARENT_FIBRE%dir==1) then
@@ -3705,24 +3726,26 @@ if(ki==kind10)CALL UNMAKEPOTKNOB(c%parent_fibre%MAGp%TP10,CHECK_KNOB,AN,BN,k)
     call kill(ds)
 
  
-else
+! else   ! full way
 
 
-    if(c%cas==0) then
-        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-    elseIF(c%cas==case1.or.c%cas==case2) then
-       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-    else
-       IF(c%cas==caseP1) THEN
-          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-       ELSEif(c%cas==caseP2) THEN
-          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
-     ENDIF
+!    if(c%cas==0) then
+!        CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!    elseIF(c%cas==case1.or.c%cas==case2) then
+!       CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!    else
+!       IF(c%cas==caseP1) THEN
+!          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!       ELSEif(c%cas==caseP2) THEN
+!          CALL TRACK_NODE_SINGLE(C,XS,K)  !,CHARGE
+!     ENDIF
+!
+!
+!    endif
+
+!endif
 
 
-    endif
-
-endif
     xs%u=.not.check_stable
     if(xs%u) then
        lost_fibre=>c%parent_fibre
@@ -6727,7 +6750,7 @@ SUBROUTINE track_TREE_probe_gen_only(T,y)
     real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb,ranx,cut
     integer i,j,k,ier,is
    ! logical  spin0,stoch0,rad0,doit 
-    integer no1,nrmax_used
+    integer no1,nrmax_used,nd,nd2,ntree
     type(quaternion) qu
  
  !   spin0=.true.
@@ -6735,6 +6758,9 @@ SUBROUTINE track_TREE_probe_gen_only(T,y)
  !   rad0=.true.
 
 !xs=y
+nd2=t(1)%np
+nd=nd2/2
+ntree=nd**2+nd2
     no1=t(1)%no
     cut=6
 
@@ -6752,82 +6778,85 @@ SUBROUTINE track_TREE_probe_gen_only(T,y)
     x=0.e0_dp
     x0=0.e0_dp
 x0_begin=0.0_dp
-    do i=1,6
+    do i=1,nd2
       x(i)=y(i)
       x0(i)=y(i)
       x0_begin(i)=y(i)
     enddo
  
 
-      x(7:12)=x(1:6)
-      x0_begin(7:12)= x0_begin(1:6)
+      x(nd2+1:2*nd2)=x(1:nd2)
+      x0_begin(nd2+1:2*nd2)= x0_begin(1:nd2)
 
 
-      x0(1:6)=x(1:6)
-      x(7:12)=x(1:6)
+      x0(1:nd2)=x(1:nd2)
+      x(nd2+1:2*nd2)=x(1:nd2)
 
-    do i=1,3
+    do i=1,nd
      q(i)=x(2*i-1)
      p(i)=x(2*i)
     enddo
 
  !else
-    do i=1,3
+    do i=1,nd
      x(2*i-1)=0.0_dp   ! use non symplectic as approximation
     enddo
  ! endif
 !!! symplectic here!! symplectic here
 ! if(t(3)%symptrack) then
-   do i=1,3
+   do i=1,nd
      qf(i)=x(2*i-1)   ! use non symplectic as approximation
     enddo
 normb=1.d38
 do is=1,nrmax
-   do i=1,3
+   do i=1,nd
      x0(2*i)=p(i)
      x0(2*i-1)=qf(i)  
      qg(i)=0
     enddo
 
-    call track_TREE_G_complex(T(3),X0(1:15))
+    call track_TREE_G_complex(T(3),X0(1:ntree))
  
-    do i=1,3
-    do j=1,3
+    do i=1,nd
+    do j=1,nd
      r(i,j)=x0(ind_spin(i,j))
     enddo
     enddo
-    call matinv(r,r,3,3,ier)
+    call matinv(r(1:nd,1:nd),r(1:nd,1:nd),nd,nd,ier)
     if(ier/=0) then
      write(6,*) "matinv failed in track_TREE_probe_complex_zhe"
  
      stop
     endif
-    do i=1,3
-    do j=1,3
+    do i=1,nd
+    do j=1,nd
       qg(i)=r(i,j)*(q(j)-x0(2*j-1)) + qg(i)
     enddo
     enddo
-    do i=1,3
-
+    do i=1,nd
      qf(i) = qf(i) + qg(i)
     enddo
-   norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
-!write(6,*) is,normb,norm
+norm=0
+    do i=1,nd
+     norm= norm + abs(qg(i))
+    enddo
+ !write(6,*) is,normb,norm
    if(norm>t(3)%eps) then
       normbb=normb  ! saving for debugging
      normb=norm
    else
-      normbb=abs(qf(1))+abs(qf(2))+abs(qf(3))
+
+normbb=0
+    do i=1,nd
+     normbb= normbb + abs(qf(i))
+    enddo
       
      if(normb<=norm) then 
-       x(1)=qf(1)
-       x(3)=qf(2)
-       x(5)=qf(3)
-       x(2)=x0(2)
-       x(4)=x0(4)
-       x(6)=x0(6)       
-
-
+     do i=1,nd
+       x(2*i-1)=qf(i)
+       x(2*i)=x0(2*i)
+     enddo
+ 
        exit
      endif
 !write(6,*) norm,normb,t(3)%eps
@@ -6840,7 +6869,7 @@ do is=1,nrmax
 enddo  ! is 
  if(is>nrmax-10) then
    if(c_verbose_zhe) write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
-
+      check_stable_zhe=.false.
  endif
 
 
@@ -6851,7 +6880,7 @@ enddo  ! is
  
 
  norm=0
-do i=1,4    !!!  changed from 6 2022.06.08
+do i=1,min(4,nd2)    !!!  changed from 6 2022.06.08
  norm=norm+abs(x(i))
 enddo
 
@@ -6866,7 +6895,7 @@ enddo
 
 
 
-    do i=1,6
+    do i=1,nd2
     y(i) = x(i)
     enddo
    end SUBROUTINE track_TREE_probe_gen_only
@@ -6883,7 +6912,7 @@ SUBROUTINE track_TREE_probe_simple_zher_8(T,xs,spin,rad,stoch,linear)
     integer i,j,k,ier,is
     logical, optional  :: spin,stoch,rad,linear
     logical  spin0,stoch0,rad0,doit,as_is0,call_gen
-    integer no1,nrmax_used
+    integer no1,nrmax_used,nd,nd2,ntree
     type(quaternion) qu
     as_is0=t(1)%usenonsymp
     spin0=.true.
@@ -6892,7 +6921,9 @@ SUBROUTINE track_TREE_probe_simple_zher_8(T,xs,spin,rad,stoch,linear)
     no1=t(1)%no
     cut=6
 call_gen=.true.
- 
+ nd2=t(1)%np
+ nd=t(1)%np/2
+ntree=nd2+nd**2
     if(present(linear)) then
      if(linear) no1=1
     endif
@@ -6905,28 +6936,29 @@ call_gen=.true.
     x=0
     x0=0
 !    nrmax=1000
+if(.not.check_stable) return
    check_stable_zhe=.true.
-       xs%u=.false.
+   !    xs%u=.false.
 !!!! put stochastic kick in front per Sagan
  if(stoch0) then 
 
-    do i=1,6
+    do i=1,nd2
       x(i)=xs%x(i)-t(1)%fix0(i)
     enddo
 
  
 
     xr=0.0_dp
-   do i=1,6
+   do i=1,nd2
     call GRNF(ranx,cut)
      xr(i)=ranx*t(2)%fix0(i)  
    enddo
  
     xr =matmul(t(2)%rad,xr)
 
-    x(1:6)=x(1:6)+xr 
+    x(1:nd2)=x(1:nd2)+xr 
 
-    do i=1,6
+    do i=1,nd2
       xs%x(i)=x(i)+t(1)%fix0(i)
     enddo
  endif
@@ -6934,7 +6966,7 @@ call_gen=.true.
     x=0.e0_dp
     x0=0.e0_dp
 x0_begin=0.0_dp
-    do i=1,6
+    do i=1,nd2
       x(i)=xs%x(i)
       x0(i)=xs%x(i)
       x0_begin(i)=xs%x(i)
@@ -6945,7 +6977,7 @@ x0_begin=0.0_dp
 
 !if(doit) then
 
-     do i=1,6
+     do i=1,nd2
       x(i)=x(i)-t(1)%fix0(i)
       x0(i)=x0(i)-t(1)%fix0(i)
       x0_begin(i)=x0_begin(i)-t(1)%fix0(i)
@@ -6957,90 +6989,102 @@ x0_begin=0.0_dp
 !      x0_begin(i)=x0_begin(i)-t(3)%fix0(i)
 !     enddo
 !endif
-      x(7:12)=x(1:6)
-      x0_begin(7:12)= x0_begin(1:6)
+      x(nd2+1:2*nd2)=x(1:nd2)
+      x0_begin(nd2+1:2*nd2)= x0_begin(1:nd2)
 
 
 !  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))
 
 
-      x0(1:6)=x(1:6)
-      x(7:12)=x(1:6)
-y=x(1:6)
+      x0(1:nd2)=x(1:nd2)
+      x(nd2+1:2*nd2)=x(1:nd2)
+y(1:nd2)=x(1:nd2)
 if(no1>1.and.(.not.as_is0)) then
 if(call_gen) then
 !y=x(1:6)
 
-call track_TREE_probe_gen_only(T,y)
- 
 
+call track_TREE_probe_gen_only(T,y)
+
+ if(.not.check_stable_zhe) then
+   xs%u=.true.
+check_stable=.false.
+return
+endif 
  goto 1000
 endif
-     do i=1,3
+     do i=1,nd
      q(i)=x(2*i-1)
      p(i)=x(2*i)
     enddo
 
  !else
-    do i=1,3
+    do i=1,nd
      x(2*i-1)=0.0_dp   ! use non symplectic as approximation
     enddo
  ! endif
 !!! symplectic here!! symplectic here
 ! if(t(3)%symptrack) then
-   do i=1,3
+   do i=1,nd
      qf(i)=x(2*i-1)   ! use non symplectic as approximation
     enddo
 normb=1.d38
 do is=1,nrmax
-   do i=1,3
+   do i=1,nd
      x0(2*i)=p(i)
      x0(2*i-1)=qf(i)  
      qg(i)=0
     enddo
 
-    call track_TREE_G_complex(T(3),X0(1:15))
+    call track_TREE_G_complex(T(3),X0(1:ntree))
  
-    do i=1,3
-    do j=1,3
+    do i=1,nd
+    do j=1,nd
      r(i,j)=x0(ind_spin(i,j))
     enddo
     enddo
-    call matinv(r,r,3,3,ier)
+    call matinv(r(1:nd,1:nd),r,nd,nd,ier)
     if(ier/=0) then
      write(6,*) "matinv failed in track_TREE_probe_complex_zhe"
        check_stable_zhe=.false.
+check_stable=.false.
+
        xs%u=.true.
       return
      stop
     endif
-    do i=1,3
-    do j=1,3
+    do i=1,nd
+    do j=1,nd
       qg(i)=r(i,j)*(q(j)-x0(2*j-1)) + qg(i)
     enddo
     enddo
-    do i=1,3
-
+    do i=1,nd
      qf(i) = qf(i) + qg(i)
     enddo
-   norm=abs(qg(1))+abs(qg(2))+abs(qg(3))
+   norm=0
+   do i=1,nd
+   norm=abs(qg(i))+norm
+   enddo
 !write(6,*) is,normb,norm
    if(norm>t(3)%eps) then
       normbb=normb  ! saving for debugging
      normb=norm
    else
-      normbb=abs(qf(1))+abs(qf(2))+abs(qf(3))
-      
+   normbb=0
+   do i=1,nd
+   normbb=abs(qf(i))+normbb
+   enddo
+       
      if(normb<=norm) then 
-       x(1)=qf(1)
-       x(3)=qf(2)
-       x(5)=qf(3)
-       x(2)=x0(2)
-       x(4)=x0(4)
-       x(6)=x0(6)
-  
+      do i=1,nd
+       x(2*i-1)=qf(i)
+      enddo
+      do i=1,nd
+       x(2*i)=x0(2*i)
+      enddo
+       
 
-       x(1:6)=matmul(t(3)%rad,x(1:6))
+       x(1:nd2)=matmul(t(3)%rad(1:nd2,1:nd2),x(1:nd2))
 
        exit
      endif
@@ -7057,13 +7101,15 @@ enddo  ! is
    if(c_verbose_zhe) write(6,*) " Too many iterations ",normbb,norm,t(3)%eps
    xs%u=.true.
    check_stable_zhe=.false.
+check_stable=.false.
+
   return
  endif
 
 elseif(.not.as_is0) then
  
 
-       x(1:6)=matmul(t(3)%rad,x(1:6))
+       x(1:nd2)=matmul(t(3)%rad(1:nd2,1:nd2),x(1:nd2))
  
 !!!    write(
  endif  ! no > 1
@@ -7071,7 +7117,7 @@ elseif(.not.as_is0) then
 1000 continue
 if(call_gen.and.no1>1.and.(.not.as_is0)) then
  
-x(1:6)=matmul(t(3)%rad,y)
+       x(1:nd2)=matmul(t(3)%rad(1:nd2,1:nd2),y(1:nd2))
  
 endif
 
@@ -7079,16 +7125,16 @@ endif
     if(spin0) then  ! spin
 
      if(xs%use_q) then
-    call track_TREE_G_complex(T(2),x0_begin(7:15))
+    call track_TREE_G_complex(T(2),x0_begin(nd2+1:ntree))
 
        do k=0,3
-         qu%x(k)=x0_begin(7+k)
+         qu%x(k)=x0_begin(nd2+1+k)
        enddo 
  
        xs%q=qu*xs%q
        xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
      else
-    call track_TREE_G_complex(T(2),x0_begin(7:15))
+    call track_TREE_G_complex(T(2),x0_begin(nd2+1:ntree))
 
     s0=0.0e0_dp
  
@@ -7119,16 +7165,16 @@ endif
    
 if(as_is0) then 
  if(no1>1) then
-  call track_TREE_G_complex(T(1),X(1:6))
+  call track_TREE_G_complex(T(1),X(1:nd2))
  else
-       x(1:6)=matmul(t(3)%rad,x(1:6))
+       x(1:nd2)=matmul(t(3)%rad(1:nd2,1:nd2),x(1:nd2))
  endif
 else
 !!!!  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))      !  not needed 7/1/2026
 endif
 
  norm=0
-do i=1,4    !!!  changed from 6 2022.06.08
+do i=1,min(nd2,4)    !!!  changed from 6 2022.06.08
  norm=norm+abs(x(i))
 enddo
 
@@ -7136,6 +7182,8 @@ enddo
    if(c_verbose_zhe) write(6,*) " unstable " 
    xs%u=.true.
    check_stable_zhe=.false.
+check_stable=.false.
+
   return
  endif
 
@@ -7147,7 +7195,7 @@ enddo
 !         enddo
 !else
  
-         do i=1,6
+         do i=1,nd2
            x(i)=x(i)+t(3)%fix(i)
          enddo
 !endif
@@ -7155,10 +7203,10 @@ enddo
 
 
 
-    do i=1,6
+    do i=1,nd2
       xs%x(i)=x(i)
     enddo
-
+if(.not.check_stable_zhe) xs%u=.true.
   end SUBROUTINE track_TREE_probe_simple_zher_8
 
 
@@ -7175,7 +7223,7 @@ SUBROUTINE track_TREE_probe_simple_zhep_8(T,xs,spin,rad)
     integer i,j,k,ier,is,jc(6)
     logical, optional  :: spin,rad
     logical  spin0,stoch0,rad0,doit,as_is0
-    integer no1,nrmax_used
+    integer no1,nrmax_used,ntree, nd,nd2
     type(quaternion_8) qu
     type(damap) id
     as_is0=t(1)%usenonsymp
@@ -7184,6 +7232,9 @@ SUBROUTINE track_TREE_probe_simple_zhep_8(T,xs,spin,rad)
     rad0=.true.
     no1=t(1)%no
     cut=6
+    nd2=t(1)%np
+    nd=nd2/2
+    ntree=nd**2+nd2
     jc=0
     do i=1,3
      jc(2*i-1)=1
@@ -7209,12 +7260,12 @@ SUBROUTINE track_TREE_probe_simple_zhep_8(T,xs,spin,rad)
 !!!! put stochastic kick in front per Sagan
  
 !!!!!!!!!!!!!!!!!!!
-do i=1,size_tree
+do i=1,ntree
     x(i)=0.e0_dp
     x0(i)=0.e0_dp
 x0_begin(i)=0.0_dp
 enddo
-    do i=1,6
+    do i=1,nd2
       x(i)=xs%x(i)
       x0(i)=xs%x(i)
       x0_begin(i)=xs%x(i)
@@ -7225,12 +7276,12 @@ enddo
 
  
 
-     do i=1,6
+     do i=1,nd2
       x(i)=x(i)-t(1)%fix0(i)
       x0(i)=x0(i)-t(1)%fix0(i)
       x0_begin(i)=x0_begin(i)-t(1)%fix0(i)
      enddo
-      do i=1,6
+      do i=1,nd2
       x(6+i)=x(i)
       x0_begin(6+i)= x0_begin(i)
       enddo
@@ -7242,7 +7293,7 @@ enddo
 
 if(no1>1.and.(.not.as_is0)) then
 
-do i=1,6
+do i=1,nd2
 y0(i)=x(i)
 y00(i)=x(i)
 enddo
@@ -7251,22 +7302,22 @@ call track_TREE_probe_gen_only(T,y0)
 
 call alloc(id)
 
-do i=1,3
+do i=1,nd
 x0(2*i-1)=y0(2*i-1)+(1.0_dp.mono.(2*i-1))
 x0(2*i)= y00(2*i)+(1.0_dp.mono.(2*i))
 enddo
-    call track_TREE_G_complex(T(3),X0(1:15))
+    call track_TREE_G_complex(T(3),X0(1:ntree))
 !call print(x0(1:6))
-do i=1,6
+do i=1,nd2
  id%v(i)=x0(i)-(x0(i).sub.'0')
 enddo
 
  
 
- id=id**jc
+ id=id**jc(1:nd2)
  
  
-      do i=1,6
+      do i=1,nd2
        x(i)=id%v(i)+y0(i)
        enddo   
 
@@ -7275,12 +7326,12 @@ call kill(id)
 
         call alloc(y)
 
-        do i=1,6
-         do j=1,6
+        do i=1,nd2
+         do j=1,nd2
         y(i)=t(3)%rad(i,j)*x(j)+y(i)
        enddo
        enddo
-       do i=1,6
+       do i=1,nd2
         x(i)=y(i)
        enddo
    !    x(1:6)=matmul(t(3)%rad,x(1:6))
@@ -7291,12 +7342,12 @@ call kill(id)
 elseif(.not.as_is0) then
         call alloc(y)
 
-        do i=1,6
-         do j=1,6
+        do i=1,nd2
+         do j=1,nd2
         y(i)=t(3)%rad(i,j)*x(j)+y(i)
        enddo
        enddo
-       do i=1,6
+       do i=1,nd2
         x(i)=y(i)
        enddo
         call kill(y)
@@ -7311,10 +7362,10 @@ elseif(.not.as_is0) then
     if(spin0) then  ! spin
 
      if(xs%use_q) then
-    call track_TREE_G_complex(T(2),x0_begin(7:15))
+    call track_TREE_G_complex(T(2),x0_begin(nd2+1:ntree))
 
        do k=0,3
-         qu%x(k)=x0_begin(7+k)
+         qu%x(k)=x0_begin(nd2+k)
        enddo 
  
        xs%q=qu*xs%q
@@ -7323,7 +7374,7 @@ elseif(.not.as_is0) then
         xs%q%x(i)=xs%q%x(i)*tn
        enddo
      else
-    call track_TREE_G_complex(T(2),x0_begin(7:15))
+    call track_TREE_G_complex(T(2),x0_begin(nd2+1:ntree))
 
     s0=0.0e0_dp
  
@@ -7354,15 +7405,15 @@ elseif(.not.as_is0) then
    
 if(as_is0) then 
  if(no1>1) then
-  call track_TREE_G_complex(T(1),X(1:6))
+  call track_TREE_G_complex(T(1),X(1:nd2))
  else
         call alloc(y)
-        do i=1,6
-         do j=1,6
+        do i=1,nd2
+         do j=1,nd2
         y(i)=t(3)%rad(i,j)*x(j)+y(i)
        enddo
        enddo
-       do i=1,6
+       do i=1,nd2
         x(i)=y(i)
        enddo
         call kill(y)
@@ -7370,11 +7421,11 @@ if(as_is0) then
 !       x(1:6)=matmul(t(3)%rad,x(1:6))
  endif
 else
-  if(rad0)   call track_TREE_G_complex(T(1),X(1:6))
+  if(rad0)   call track_TREE_G_complex(T(1),X(1:nd2))
 endif
 
  norm=0
-do i=1,4    !!!  changed from 6 2022.06.08
+do i=1,min(nd2,4)    !!!  changed from 6 2022.06.08
  norm=norm+abs(x(i))
 enddo
 
@@ -7388,12 +7439,12 @@ enddo
 if(doit) then
 
  
-         do i=1,6
+         do i=1,nd2
            x(i)=x(i)+t(1)%fix(i)
          enddo
 else
  
-         do i=1,6
+         do i=1,nd2
            x(i)=x(i)+t(3)%fix(i)
          enddo
 endif
@@ -7401,7 +7452,7 @@ endif
 
 
 
-    do i=1,6
+    do i=1,nd2
       xs%x(i)=x(i)
     enddo
     call kill(x)

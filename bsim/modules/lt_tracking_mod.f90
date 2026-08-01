@@ -88,7 +88,7 @@ type ltt_params_struct
   logical :: ramp_particle_energy_without_rf = .false.
   logical :: rfcavity_on = .true.
   logical :: add_closed_orbit_to_init_position = .true.
-  logical :: symplectic_map_tracking = .false.
+  logical :: symplectic_map_tracking = .true.
   logical :: split_bends_for_stochastic_rad = .false.
   logical :: use_rf_clock = .false.
   logical :: debug = .false.

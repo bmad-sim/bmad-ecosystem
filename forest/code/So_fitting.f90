@@ -1728,6 +1728,10 @@ eta2=0.0_dp
     TYPE (fibre), POINTER :: C
     logical(lp)  c_da,s_da
     INTEGER TURNS0
+     if(state%dccav/=0) then
+       write(6,*) " FIND_ORBIT_LAYOUT cannot be used with dccav "
+       stop 1732
+     endif
     s_da=c_%stable_da
     c_da=c_%check_da
     !   APERTURE=c_%APERTURE_FLAG
@@ -1957,6 +1961,10 @@ eta2=0.0_dp
        return
     endif
 
+     if(state%dccav/=0) then
+       write(6,*) " FIND_ORBIT_LAYOUT cannot be used with dccav "
+       stop 1965
+     endif
 
     Nullify(C);
 
