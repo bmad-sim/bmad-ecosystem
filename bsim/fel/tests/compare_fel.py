@@ -4,17 +4,21 @@ Compare the Bmad FEL tracker (fel_ss_test) against Genesis 1.3 Version 4, over t
 steady-state Benchmark1-SASE configuration. Run through run_fel_benchmark.sh, which
 produces all the inputs; this script only reads and compares.
 
-Three tiers, each with its own tolerance sized to what it measures:
+Three tiers, each with its own tolerance sized to what it measures. The comparison
+floor is set by fundamental constants: the tracker uses Bmad's (Z0 = mu_0*c =
+376.7303...), Genesis carries a truncated impedance (376.73, 8.3e-7 relative), and that
+difference enters the coupling and compounds through gain. During deliverable-3
+development the tracker transcribed Genesis's constants and agreed at transcription
+level (tier1 2.8e-11, tier2_genesis 5.9e-8, recorded in the README); after that
+validation was banked the code moved to Bmad constants by decision, and the tiers now
+measure against the constants floor.
 
-  tier1         One undulator segment, no interludes. Isolates the transcribed FEL core:
-                push, deposition, field solve. Observed agreement ~2e-13 on the power
-                curve; anything above the tolerance is a transcription defect.
+  tier1         One undulator segment, no interludes. Isolates the FEL core: push,
+                deposition, field solve. Observed ~2e-6 (final field), consistent with
+                the impedance difference at one segment's growth.
 
   tier2_genesis The full 6-FODO line with the transcribed Genesis interlude model.
-                Everything is transcription, so this should agree at transcription level
-                too; the residual (~1e-8 observed) is rounding-difference growth through
-                exponential gain, chiefly the interlude phase advance evaluated in a
-                different operation order.
+                Observed ~2e-5, the constants difference compounded through full gain.
 
   tier2_bmad    The full line with the seam: Bmad tracks the interludes, wavefront_drift
                 moves the field, theta advances by the exact mapping from Bmad's z. This
@@ -177,8 +181,8 @@ def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("workdir", help="Directory holding all run outputs")
-    p.add_argument("--tol-tier1", type=float, default=1.0e-10)
-    p.add_argument("--tol-tier2-genesis", type=float, default=1.0e-6)
+    p.add_argument("--tol-tier1", type=float, default=1.0e-4)
+    p.add_argument("--tol-tier2-genesis", type=float, default=1.0e-3)
     p.add_argument("--tol-tier2-bmad", type=float, default=1.0e-1)
     p.add_argument("--tol-split", type=float, default=1.0e-10)
     args = p.parse_args()

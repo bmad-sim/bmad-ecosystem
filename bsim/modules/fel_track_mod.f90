@@ -36,8 +36,18 @@
 !
 ! Weights: the source deposition scales per particle as c*w_j/slicelength where Genesis
 ! has current/N -- identical algebra for uniform weights, and correct for nonuniform ones
-! (each macroparticle radiates its own charge). All in Genesis internal field units; see
-! fel_field_unit_scale.
+! (each macroparticle radiates its own charge).
+!
+! Units. The field is in V/m throughout, the wavefront_struct convention; there is no
+! internal unit system. The formulas here follow from Genesis's internal-unit forms via
+! the exact relation u = E*ks/(sqrt(2)*m_electron) (composing the dump scale
+! dfl = u*dgrid*eev/(ks*sqrt(Z0)) with E = dfl*sqrt(2*Z0)/dgrid), under which the
+! coupling, source and power expressions come out simpler than the originals: the energy
+! exchange coupling is fc*conj(E)/(sqrt(2)*m_electron), the source scale is
+! fc*Z0*sqrt(2)*c*delz*w_j/(4*dgrid^2*slicelength), and power is sum|E|^2*dgrid^2/(2*Z0).
+! Constants are Bmad's (m_electron equals Genesis's eev exactly; Z0 = mu_0_vac*c_light
+! differs from Genesis's truncated 376.73 by 8e-7 relative, the accepted floor of the
+! Genesis comparison).
 !
 ! Deliberately absent, per the deliverable: time dependence, slippage, space charge,
 ! wakes, incoherent synchrotron radiation, harmonics beyond the coupling formula, the
@@ -80,32 +90,6 @@ integer, private, save :: fel_cache_ngrid = 0
 real(rp), private, save :: fel_cache_dgrid = 0, fel_cache_ks = 0
 
 contains
-
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!------------------------------------------------------------------------------
-!+
-! Function fel_field_unit_scale (wf) result (scale)
-!
-! Routine to return the factor converting a field in V/m (the wavefront_struct
-! convention) to Genesis internal units. Multiply on entry to FEL tracking, divide on
-! exit. Composition of the dump relation dfl = u*dgrid*eev/(ks*sqrt(vacimp))
-! (writeFieldHDF5.cpp:70) with the reader's E = dfl*sqrt(2 Z0)/dgrid; the dgrid factors
-! cancel exactly. Z0 is Bmad's mu_0_vac*c_light because that is what the wavefront reader
-! used; vacimp and eev are Genesis's because they define the internal units.
-!-
-
-function fel_field_unit_scale (wf) result (scale)
-
-type (wavefront_struct) wf
-real(rp) scale, ks
-
-!
-
-ks = twopi / wf%wavelength
-scale = ks * sqrt(fel_vacimp) / (sqrt(2 * (mu_0_vac * c_light)) * fel_eev)
-
-end function fel_field_unit_scale
 
 !------------------------------------------------------------------------------
 !------------------------------------------------------------------------------
@@ -210,7 +194,7 @@ end function faw2
 ! Input:
 !   und         -- fel_und_struct: Segment parameters.
 !   beam        -- fel_beam_struct: The beam. Steady state: one slice, periodic.
-!   wf          -- wavefront_struct: The field, in Genesis internal units.
+!   wf          -- wavefront_struct: The field [V/m].
 !
 ! Output:
 !   beam, wf    -- Advanced one step.
@@ -285,7 +269,7 @@ logical err
 err_flag = .true.
 
 xks = twopi / wf%wavelength
-xku = xks * 0.5_rp / beam%gamma0 / beam%gamma0    ! Genesis's division order, kept.
+xku = xks * 0.5_rp / beam%gamma0 / beam%gamma0
 qquad = qf * beam%gamma0                          ! TrackBeam.cpp:26.
 q_hat = qquad / beam%p0_mc
 phi0_new = beam%phi0 + length * fel_phi0_rate(xks, xku, beam%p0_mc)
@@ -477,7 +461,12 @@ logical on_grid
 xks = twopi / wf%wavelength
 xku = und%ku
 aw = und%aw
-rtmp = fel_und_coupling(und, 1) / xks     ! fc(harm)/field->xks, harm = 1.
+
+! Coupling coefficient for the energy exchange: fc/(sqrt(2)*m_electron), the V/m form of
+! Genesis's fc/ks (see the module header for the unit relation). rpart then has units of
+! 1/m and dgamma/dz is per meter directly.
+
+rtmp = fel_und_coupling(und, 1) / (sqrt(2.0_rp) * m_electron)
 
 do ip = 1, sl%n
   gamma = fel_gamma_of(beam%p0_mc, sl%pz(ip))
@@ -662,18 +651,18 @@ end subroutine fel_grid_weights
 ! particles, propagate exp(K2 delz) in transverse Fourier space, add the source.
 ! Transcribed from FieldSolverFFT::advance and FFT, unfiltered path.
 !
-! The source scale, weighted. Genesis (FieldSolverFFT.cpp:21-22):
+! The source scale, weighted, in V/m. Genesis's internal-unit form
+! (FieldSolverFFT.cpp:21-22) is scl = fc*vacimp*current*ks*delz/(4*eev*npart*dgrid^2)
+! with current/npart per macroparticle; converting to V/m by the module-header relation
+! and generalizing current/npart to the per-particle c*w_j/slicelength (identical for
+! uniform weights) gives
 !
-!   scl = fc(harm)*vacimp*current*ks*delz / (4*eev*npart*dgrid^2)
+!   scl_w = fc * Z0 * sqrt(2) * c * delz / (4 * dgrid^2 * slicelength);  per particle scl_w*w_j
 !
-! carries current/npart per macroparticle. With per-particle weights that becomes
-! c*w_j/slicelength (identical for uniform w_j = I*slicelength/(c*n)):
-!
-!   scl_w = fc*vacimp*ks*delz*c / (4*eev*dgrid^2*slicelength);  per particle scl_w*w_j
-!
-! and per particle part = sqrt(faw2(x,y))*scl_w*w_j/gamma, deposited as
-! (sin theta + i cos theta)*part with the bilinear weights, added times 2 in real space
-! after the transform pair (FieldSolverFFT.cpp:111).
+! in which the rest energy and the wavenumber have cancelled. Per particle
+! part = sqrt(faw2(x,y))*scl_w*w_j/gamma, deposited as (sin theta + i cos theta)*part
+! with the bilinear weights, added times 2 in real space after the transform pair
+! (FieldSolverFFT.cpp:111).
 !-
 
 subroutine fel_field_step (und, beam, sl, wf, delz, err_flag)
@@ -703,8 +692,8 @@ call fel_field_cache_check (ngrid, dgrid, xks)
 
 fel_crsource = 0
 
-scl_w = fel_und_coupling(und, 1) * fel_vacimp * xks * delz * c_light
-scl_w = scl_w / (4 * fel_eev * dgrid * dgrid * beam%slicelength)
+scl_w = fel_und_coupling(und, 1) * (mu_0_vac * c_light) * sqrt(2.0_rp) * c_light * delz
+scl_w = scl_w / (4 * dgrid * dgrid * beam%slicelength)
 
 if (scl_w /= 0) then
   do ip = 1, sl%n
@@ -787,25 +776,24 @@ end subroutine fel_field_cache_check
 !+
 ! Subroutine fel_field_diag (wf, power, on_axis_intensity)
 !
-! Routine to compute the field diagnostics in physical units from a field in Genesis
-! internal units, matching DiagField::calc: power = sum|u|^2 * (dgrid*eev/ks)^2/vacimp
-! [W]; on-axis intensity = |u(center)|^2 * eev^2/(ks^2 vacimp) [W/m^2]. Accumulation
-! order matches Genesis's: y outer, x inner.
+! Routine to compute the field diagnostics from a field in V/m, the definitions matching
+! Genesis's DiagField::calc expressed in physical units: power = sum|E|^2 * dgrid^2/(2*Z0)
+! [W] (cell intensity |E|^2/(2*Z0) times cell area), on-axis intensity =
+! |E(center)|^2/(2*Z0) [W/m^2]. Accumulation order: y outer, x inner.
 !-
 
 subroutine fel_field_diag (wf, power, on_axis_intensity)
 
 type (wavefront_struct) wf
 real(rp) power, on_axis_intensity
-real(rp) ks, scl, wei
+real(rp) scl, wei
 integer ix, iy, ngrid_arr(3), ngrid, ic
 
 !
 
 ngrid_arr = wavefront_shape(wf)
 ngrid = ngrid_arr(1)
-ks = twopi / wf%wavelength
-scl = wf%dx * fel_eev / ks
+scl = wf%dx**2 / (2 * (mu_0_vac * c_light))
 
 power = 0
 do iy = 1, ngrid
@@ -814,11 +802,11 @@ do iy = 1, ngrid
     power = power + wei
   enddo
 enddo
-power = power * scl * scl / fel_vacimp
+power = power * scl
 
 ic = ngrid/2 + 1
 on_axis_intensity = (real(wf%Ex(ic,ic,1), rp)**2 + aimag(wf%Ex(ic,ic,1))**2) &
-                    * fel_eev**2 / (ks**2 * fel_vacimp)
+                    / (2 * (mu_0_vac * c_light))
 
 end subroutine fel_field_diag
 

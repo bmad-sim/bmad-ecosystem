@@ -52,16 +52,12 @@ use hdf5_interface
 
 implicit none
 
-! Genesis's own physical constants, transcribed from src/Main/GenMain.cpp:63-67 and used
-! in every transcribed formula so the arithmetic matches Genesis digit for digit. They
-! deliberately differ from Bmad's constants: vacimp is the impedance of free space
-! truncated to 376.73 (Bmad's mu_0_vac * c_light is 376.7303134...), and eev is the
-! electron rest mass in eV. Do not "fix" these; the comparison against Genesis depends on
-! them. They enter only the field normalization and source scale, never the coordinate
-! conversions, which use Bmad's own mass so the Bmad side stays self-consistent.
-
-real(rp), parameter :: fel_vacimp = 376.73_rp        ! [Ohm]     GenMain.cpp:63
-real(rp), parameter :: fel_eev    = 510998.95069_rp  ! [eV]      GenMain.cpp:67
+! All physical constants come from sim_utils (m_electron, c_light, mu_0_vac). Genesis
+! carries its own values -- notably an impedance of free space truncated to 376.73 where
+! mu_0_vac*c_light is 376.7303... -- and during the deliverable-3 validation this module
+! transcribed them to get transcription-level agreement. That validation is banked
+! (bsim/fel/README.md); the code now uses Bmad's constants, and the ~8e-7 relative
+! difference against Genesis is the accepted comparison floor.
 
 !+
 ! Struct fel_slice_struct

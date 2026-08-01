@@ -77,11 +77,16 @@ The Genesis dump format carries no weights, so imports are uniform and a Genesis
 comparison can only exercise the uniform case; the split-weight check below covers the
 rest.
 
-The field inside the tracker is kept in Genesis's internal units, converting once at each
-program boundary, so every coefficient of the dynamics is computed from the same numbers
-Genesis computes it from. Genesis's own constants (`vacimp = 376.73`, note the truncation,
-and `eev = 510998.95069`) are transcribed alongside the formulas and deliberately not
-"corrected" to Bmad's values.
+**Units and constants.** The field is in V/m throughout — the `wavefront_struct`
+convention — and all constants are Bmad's (`m_electron`, `mu_0_vac*c_light`); expressed
+that way the formulas are simpler than Genesis's internal-unit originals (power is
+`sum|E|^2*dA/(2*Z0)`, the coupling is `fc*conj(E)/(sqrt(2)*m_electron)`). During
+development the tracker instead transcribed Genesis's internal units and constants —
+including its truncated impedance, 376.73 against the exact 376.7303... — and agreed at
+transcription level: tier1 2.8e-11, tier2_genesis 5.9e-8, on commit 236dc372f. With that
+validation banked, the code moved to Bmad constants by decision; the 8.3e-7 relative
+impedance difference is now the floor of every Genesis comparison, and the gates below
+are sized to it.
 
 Undulator segments are marked by name (`UND*`) and their FEL parameters come from the
 namelist, not from the lattice file. A real FEL element type with its own tracking method
@@ -96,10 +101,10 @@ records at the same z positions. Measured, on the numbers this tree was develope
 
 | Tier | What runs | Largest relative difference |
 |---|---|---|
-| `tier1` | One undulator segment: the FEL core alone | **2.8e-11** (power curve 1.9e-12; per-particle final gamma 3.2e-15) |
-| `tier2_genesis` | Full 6-FODO line, interludes via the transcribed Genesis model | **5.9e-8** (power curve 7.3e-9) |
+| `tier1` | One undulator segment: the FEL core alone | **1.8e-6** (the impedance-constant floor; was 2.8e-11 with Genesis's constants transcribed) |
+| `tier2_genesis` | Full 6-FODO line, interludes via the transcribed Genesis model | **1.8e-5** (constants floor through full gain; was 5.9e-8) |
 | `tier2_bmad` | Full line, interludes via the Bmad seam | **5.0e-2** (power curve 1.3e-2) -- a measured model difference, see below |
-| `weight_split` | tier1 rerun with every particle split into coincident w/3 + 2w/3 copies, against the unsplit run | **6.2e-13** |
+| `weight_split` | tier1 rerun with every particle split into coincident w/3 + 2w/3 copies, against the unsplit run | **3.6e-13** (Fortran vs Fortran; constants-independent) |
 
 Particle ordering is preserved by both codes in steady state, so the final dumps compare
 particle by particle, not just statistically.
@@ -151,10 +156,13 @@ effect is gated, through the bunching curve and the final field.
 
 Verified by mutation, the FINDINGS.md 4.1 discipline: dropping the factor 2 on the source
 term fails tier1 at 3.5e-1; dropping the conjugation in the field gather fails at 2.8e-2;
-replacing `sqrt(faw2)` by `faw` in the deposition -- nearly degenerate for this beam, the
-two differ at second order in the transverse offsets -- still fails, at 1.5e-10 against
-the 1e-10 gate; and using one particle's weight for every deposition, invisible to every
-Genesis-based tier, fails the split-weight check at 2.4e-1.
+and using one particle's weight for every deposition, invisible to every Genesis-based
+tier, fails the split-weight check at 2.4e-1. One sensitivity was knowingly traded away
+with the move to Bmad constants: the near-degenerate replacement of `sqrt(faw2)` by `faw`
+in the deposition, a 1.5e-10-level effect that the transcription-era 1e-10 gate caught,
+now sits below the 2e-6 constants floor and is not detectable by the Genesis comparison.
+Recovering that class of sensitivity is a job for Fortran-vs-Fortran regression baselines
+(the weight_split pattern), not for tighter Genesis gates.
 
 ## Facts about Genesis this work pinned down
 
@@ -170,7 +178,9 @@ Genesis-based tier, fails the split-weight check at 2.4e-1.
 - The `&importbeam` / `&importfield` namelists take full filenames and make the
   shared-start methodology possible; `&write` before `&track` produces the dumps.
 - Genesis's internal field unit: `dfl [sqrt(W)] = u * dgrid * eev / (ks * sqrt(vacimp))`
-  (writeFieldHDF5.cpp:70), with `vacimp = 376.73` truncated and `eev = 510998.95069`.
+  (writeFieldHDF5.cpp:70), with `vacimp = 376.73` truncated and `eev = 510998.95069`
+  (identical to Bmad's `m_electron`). Equivalently `u = E*ks/(sqrt(2)*eev)` with E in
+  V/m, the relation used to derive this tracker's physical-unit formulas.
 - The quad transport is chromatic through per-particle `gammaz` with `foc^2 =
   k1*gamma0/gammaz`; Bmad's equivalent scaling is `k1*p0/p`. The two differ by ~4e-9
   relative at this energy (1 - beta0), far below the path-length-term difference.

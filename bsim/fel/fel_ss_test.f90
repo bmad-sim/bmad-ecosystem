@@ -85,7 +85,7 @@ logical :: split_weights = .false.
 character(400) :: lat_file = '', beam_file = '', field_file = '', out_root = 'fel_ss'
 character(16) :: interlude_model = 'bmad'
 
-real(rp) unit_scale, z_now, ks, power, on_axis, qf
+real(rp) z_now, ks, power, on_axis, qf
 integer ie, istep, n_arg, iu_diag, iu_nml
 logical err
 
@@ -134,11 +134,6 @@ sl => fbeam%slice(1)
 
 call wavefront_read_genesis4 (wf, field_file, err)
 if (err) stop 1
-
-! To Genesis internal units for the whole run; see fel_track_mod's header.
-
-unit_scale = fel_field_unit_scale(wf)
-wf%Ex = wf%Ex * unit_scale
 ks = twopi / wf%wavelength
 
 ! Undulator segment parameters, constant for every segment in this benchmark. kx, ky get
@@ -225,11 +220,8 @@ enddo
 
 close (iu_diag)
 
-! Final dumps in Genesis format. The field goes back to V/m for the wavefront writer;
-! the writer's dfl conversion then lands within a couple of ulp of Genesis's own dump
-! scale (the composition of the two constants is exact in real arithmetic).
+! Final dumps in Genesis format.
 
-wf%Ex = wf%Ex / unit_scale
 call wavefront_write_genesis4 (wf, trim(out_root) // '-final.fld.h5', err, 'x')
 if (err) stop 1
 
