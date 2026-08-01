@@ -30,6 +30,13 @@ Three tiers, each with its own tolerance sized to what it measures:
 Each tier compares the per-record power and bunching curves, and the final field and
 particle dumps element by element. Particle ordering is preserved by both codes (no
 sorting happens in steady state), so the dumps compare particle by particle.
+
+A fourth check compares Fortran against itself: tier1 rerun with every particle split
+into two coincident copies of weights w/3 and 2w/3 (split_weights = T). Collective
+observables are linear in the weights, so the curves and the final field must be
+unchanged to round-off. This is the only test of the weighted code paths with nonuniform
+weights -- the Genesis dump format carries no weights, so every Genesis comparison sees
+the uniform case, where a bug like using one particle's weight for all is invisible.
 """
 
 from __future__ import annotations
@@ -143,6 +150,29 @@ def compare_tier(name, fortran_diag, genesis_out, fortran_fld, genesis_fld,
     return worst, ok
 
 
+def compare_split(name, diag_a, diag_b, fld_a, fld_b, tolerance):
+    """
+    Fortran vs Fortran: split-weight run against the unsplit run.
+    """
+    print(f"--- {name} " + "-" * (74 - len(name)))
+    a, b = load_fortran_diag(diag_a), load_fortran_diag(diag_b)
+    worst = 0.0
+    n = min(len(a["z"]), len(b["z"]))
+    rel_power = (np.abs(a["power"][:n] - b["power"][:n]) / np.abs(b["power"][:n])).max()
+    rel_bunch = np.abs(a["bunching"][:n] - b["bunching"][:n]).max() / np.abs(b["bunching"][:n]).max()
+    ua, ub = load_fld(fld_a), load_fld(fld_b)
+    rel_fld = np.abs(ua - ub).max() / np.abs(ub).max()
+    worst = max(rel_power, rel_bunch, rel_fld)
+    print(f"  power curve                     elementwise max rel = {rel_power:.3e}")
+    print(f"  bunching curve                  peak normalized     = {rel_bunch:.3e}")
+    print(f"  final field                     peak normalized     = {rel_fld:.3e}")
+    ok = worst <= tolerance
+    print(f"  LARGEST RELATIVE DIFFERENCE: {worst:.6e}   (tolerance {tolerance:.1e})  "
+          + ("ok" if ok else "FAIL"))
+    print()
+    return worst, ok
+
+
 def main():
     p = argparse.ArgumentParser(description=__doc__,
                                 formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -150,6 +180,7 @@ def main():
     p.add_argument("--tol-tier1", type=float, default=1.0e-10)
     p.add_argument("--tol-tier2-genesis", type=float, default=1.0e-6)
     p.add_argument("--tol-tier2-bmad", type=float, default=1.0e-1)
+    p.add_argument("--tol-split", type=float, default=1.0e-10)
     args = p.parse_args()
     w = args.workdir
 
@@ -178,6 +209,13 @@ def main():
     ):
         worst, ok = compare_tier(name, diag, out, ffld, gfld, fpar, gpar, tol)
         results.append((name, worst, ok))
+
+    worst, ok = compare_split(
+        "weight_split: nonuniform weights must be invisible",
+        f"{w}/tier1s.diag.txt", f"{w}/tier1.diag.txt",
+        f"{w}/tier1s-final.fld.h5", f"{w}/tier1-final.fld.h5",
+        args.tol_split)
+    results.append(("weight_split: nonuniform weights must be invisible", worst, ok))
 
     print("=" * 78)
     print("Summary")

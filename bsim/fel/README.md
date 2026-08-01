@@ -6,18 +6,20 @@ lattice machinery by the seam of the design brief's section 4.1, and validated a
 Genesis over its `benchmark/Benchmark1-SASE` configuration from bitwise-identical starting
 states.
 
-No time dependence, no slippage, no space charge, no wakes, no harmonics, no per-particle
-weights, no OpenMP. Those are later deliverables.
+No time dependence, no slippage, no space charge, no wakes, no harmonics, no OpenMP.
+Those are later deliverables. Per-particle weights, by contrast, are carried from day one
+(brief section 5): the packed arrays store one, every reduction uses it, and the
+split-weight check below tests the nonuniform case that no Genesis comparison can reach.
 
 ## Files
 
 | Path | Contents |
 |---|---|
-| `bsim/modules/fel_beam_mod.f90` | Packed particle slices (structure of arrays, capacity + fill), Genesis `.par.h5` dump read/write, `coord_struct` conversion at element boundaries, beam diagnostics |
+| `bsim/modules/fel_beam_mod.f90` | Packed particle slices in Bmad coordinates plus per-particle weight, Genesis `.par.h5` dump read/write (converting), copy-only `coord_struct` conversion, weighted beam diagnostics with `N_eff` |
 | `bsim/modules/fel_track_mod.f90` | The transcribed FEL step: transverse push with natural focusing, RK4 ponderomotive advance, source deposition, FFT field solve; plus the transcribed Genesis interlude model |
 | `bsim/fel/fel_ss_test.f90` | The tracker: walks a Bmad lattice, FEL steps in undulator segments, seam everywhere else |
 | `bsim/fel/tests/run_fel_benchmark.sh` | The whole validation, one command |
-| `bsim/fel/tests/compare_fel.py` | Three-tier comparison against Genesis |
+| `bsim/fel/tests/compare_fel.py` | Comparison: three tiers against Genesis plus the split-weight invariance check |
 | `bsim/fel/tests/Aramis-ss.in`, `Aramis.lat` | Genesis deck: Benchmark1-SASE, modified as documented in the deck header |
 | `bsim/fel/tests/Aramis-1seg.in`, `Aramis-1seg.lat` | Genesis deck: one undulator segment, importing the same dumps |
 | `bsim/fel/tests/aramis.bmad`, `aramis_1seg.bmad` | The Bmad lattices |
@@ -30,8 +32,8 @@ BUILD_PRODUCTION=N ./util/conda_compile                      # builds fel_ss_tes
 ./bsim/fel/tests/run_fel_benchmark.sh [--genesis <path to genesis4>]
 ```
 
-The harness runs Genesis twice (full line and single segment), the Bmad tracker three
-times, and prints the largest relative difference of each tier. It fails loudly if the
+The harness runs Genesis twice (full line and single segment), the Bmad tracker four
+times, and prints the largest relative difference of each check. It fails loudly if the
 genesis4 binary is missing; there is no comparison without it, so there is nothing to skip
 to. Genesis must be built with FFTW, since the benchmark runs with `fft_fieldsolver=true`
 (the Bmad tracker transcribes the FFT solver; Genesis's default ADI solver is out of
@@ -45,17 +47,35 @@ the field gathered once per step, transverse half step, then source deposition a
 `exp(K2 dz)` field solve. Bmad tracking is never used inside (the brief's rule:
 `symp_lie_bmad` resolves the wiggle motion the period-averaged map assumes away).
 
-Everywhere else -- the seam -- the packed slice converts to `coord_struct`s,
-`track1_bunch` tracks them through the element, and the ponderomotive phase advances by an
-exact mapping from Bmad's z:
+Everywhere else -- the seam -- the packed slice converts to `coord_struct`s by plain
+copies, `track1_bunch` tracks them, and the field goes through `wavefront_drift`.
+
+**Coordinates.** The packed arrays store Bmad's `(x, px/p0, y, py/p0, z, pz)` plus a
+per-particle weight (macroparticle charge in Coulombs, mapping to `coord_struct%charge`).
+The ponderomotive phase is derived, not stored: Genesis's per-particle theta splits into
+a common reference advance -- one scalar per beam, `phi0`, advanced once per step -- and
+the particle-specific lag carried by Bmad's z:
 
 ```
-dtheta = ks*L*(1 - 1/beta0 + 1/(2*gamma0^2)) + ks*dz_bmad/beta
+theta_j = phi0 - ks*tau_j,    tau_j = -z_j/beta_j = c*(t_j - t_ref)
 ```
 
-derived in `fel_bunch_to_slice` (with the constant term in cancellation-free form). The
-field goes through `wavefront_drift`. The particles live in the packed arrays at all
-times except inside `track1_bunch`; `coord_struct` never enters the FEL step loop.
+This is the reference-offset formulation the design brief's section 8 identifies as the
+FP32-safe one, and it removes the brief's 6.4 hazard outright: z does not wrap, so slice
+migration has no theta-wrap-plus-index update to get wrong. The longitudinal RK4 still
+runs in Genesis's (theta, gamma) chart as per-step working variables -- theta <-> z is an
+affine map, under which RK4 is exactly invariant, so the verbatim transcription survives;
+the per-step gamma <-> pz round trip costs ~1 ulp of gamma per step, which is what moved
+tier1 from 2.5e-12 to 2.8e-11 when this representation replaced the Genesis-coordinate
+one. The particles live in the packed arrays at all times except inside `track1_bunch`;
+`coord_struct` never enters the FEL step loop.
+
+**Weights.** Every reduction is weighted: the source deposition scales per particle as
+`c*w_j/slicelength` (Genesis's `current/N` for uniform weights), bunching is
+`|sum w e^(i theta)|/sum w`, and `N_eff = (sum w)^2/sum w^2` is a per-slice diagnostic.
+The Genesis dump format carries no weights, so imports are uniform and a Genesis
+comparison can only exercise the uniform case; the split-weight check below covers the
+rest.
 
 The field inside the tracker is kept in Genesis's internal units, converting once at each
 program boundary, so every coefficient of the dynamics is computed from the same numbers
@@ -67,7 +87,7 @@ Undulator segments are marked by name (`UND*`) and their FEL parameters come fro
 namelist, not from the lattice file. A real FEL element type with its own tracking method
 is a later deliverable; this is the smallest scheme that exercises the seam.
 
-## Validation: three tiers, from one command
+## Validation: four checks, from one command
 
 Both codes start from the same Genesis `&write` dumps, so the initial state is bitwise
 identical and no loader is reproduced. Genesis records diagnostics once at the start and
@@ -76,12 +96,19 @@ records at the same z positions. Measured, on the numbers this tree was develope
 
 | Tier | What runs | Largest relative difference |
 |---|---|---|
-| `tier1` | One undulator segment: the FEL core alone | **2.5e-12** (power curve 2.7e-13; per-particle final gamma 1.6e-16, x 2.1e-15) |
-| `tier2_genesis` | Full 6-FODO line, interludes via the transcribed Genesis model | **8.1e-8** (power curve 1.1e-8) |
+| `tier1` | One undulator segment: the FEL core alone | **2.8e-11** (power curve 1.9e-12; per-particle final gamma 3.2e-15) |
+| `tier2_genesis` | Full 6-FODO line, interludes via the transcribed Genesis model | **5.9e-8** (power curve 7.3e-9) |
 | `tier2_bmad` | Full line, interludes via the Bmad seam | **5.0e-2** (power curve 1.3e-2) -- a measured model difference, see below |
+| `weight_split` | tier1 rerun with every particle split into coincident w/3 + 2w/3 copies, against the unsplit run | **6.2e-13** |
 
 Particle ordering is preserved by both codes in steady state, so the final dumps compare
 particle by particle, not just statistically.
+
+The `weight_split` check is Fortran against itself and exists because Genesis cannot test
+the weighted paths: its dump format has no weights, so every cross-code comparison sees
+the uniform case, where a bug like using one particle's weight for all is invisible.
+Collective observables are linear in the weights, so the split run must reproduce the
+unsplit one to round-off; the weight-dropping mutation fails this check at 2.4e-1.
 
 ### The tier2_bmad difference is a transport model difference, located and priced
 
@@ -124,9 +151,10 @@ effect is gated, through the bunching curve and the final field.
 
 Verified by mutation, the FINDINGS.md 4.1 discipline: dropping the factor 2 on the source
 term fails tier1 at 3.5e-1; dropping the conjugation in the field gather fails at 2.8e-2;
-and replacing `sqrt(faw2)` by `faw` in the deposition -- nearly degenerate for this beam,
-the two differ at second order in the transverse offsets -- still fails, at 1.5e-10
-against the 1e-10 gate.
+replacing `sqrt(faw2)` by `faw` in the deposition -- nearly degenerate for this beam, the
+two differ at second order in the transverse offsets -- still fails, at 1.5e-10 against
+the 1e-10 gate; and using one particle's weight for every deposition, invisible to every
+Genesis-based tier, fails the split-weight check at 2.4e-1.
 
 ## Facts about Genesis this work pinned down
 

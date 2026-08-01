@@ -140,6 +140,7 @@ make_nml () {
   und_kx = 0.5, und_ky = 0.5
   und_helical = T
   interlude_model = "$4"
+${5:+  $5}
 &end
 NML
 }
@@ -147,8 +148,9 @@ NML
 make_nml tier1.nml  aramis_1seg.bmad tier1  bmad
 make_nml tier2.nml  aramis.bmad      tier2  bmad
 make_nml tier2g.nml aramis.bmad      tier2g genesis
+make_nml tier1s.nml aramis_1seg.bmad tier1s bmad "split_weights = T"
 
-for tier in tier1 tier2 tier2g; do
+for tier in tier1 tier2 tier2g tier1s; do
   echo "--- fel_ss_test: $tier -------------------------------------------------------"
   if ! "$EXE" $tier.nml > fel-$tier.log 2>&1; then
     echo "fel_ss_test $tier FAILED; log tail:" >&2
