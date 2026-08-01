@@ -1,0 +1,38 @@
+! Bmad translation of Genesis's benchmark/Benchmark1-SASE/Aramis.lat, for the steady-state
+! FEL benchmark. See fel_ss_test.f90 for how it is used.
+!
+! The undulator segments appear as drift placeholders named UND: fel_ss_test intercepts
+! every element whose name starts with UND and applies the FEL step to it; only the length
+! matters here (the FEL parameters aw, lambdau, kx, ky, helical come from the program's
+! namelist input). Everything else -- D1, QF, QD, D2 -- is tracked by Bmad. A real FEL
+! element type with its own tracking method is a later deliverable; this placeholder scheme
+! is the smallest thing that exercises the seam.
+!
+! The reference energy: Genesis's gamma0 = 11357.82 times Bmad's electron rest mass. The
+! FEL physics uses gamma0 directly from the namelist; the lattice's p0c only sets the scale
+! of Bmad's normalized transverse momenta, and the conversion routines read it back from
+! the element, so the two sides stay individually self-consistent (see fel_beam_mod).
+!
+! Genesis's quadrupole k1 = 2 m^-2 is the geometric strength at the reference energy;
+! Bmad's k1 has the same meaning. The chromatic behavior then differs at the model level:
+! Genesis scales the focusing per particle by gamma0/gammaz (TrackBeam.cpp:26,69), Bmad by
+! p0/p. The two differ by ~4e-9 relative at this energy, quantified in the benchmark README.
+
+no_digested
+parameter[geometry] = open
+parameter[particle] = electron
+parameter[e_tot] = 11357.82 * m_electron
+
+beginning[beta_a] = 10   ! Placeholder Twiss; tracking here does not use lattice Twiss.
+beginning[beta_b] = 10
+
+UND: drift, l = 3.99            ! 266 periods of 15 mm. FEL step applied by fel_ss_test.
+D1: drift, l = 0.44
+D2: drift, l = 0.24
+QF: quadrupole, l = 0.08, k1 = 2.0
+QD: quadrupole, l = 0.08, k1 = -2.0
+
+FODO: line = (UND, D1, QF, D2, UND, D1, QD, D2)
+ARAMIS: line = (6*FODO)
+
+use, ARAMIS

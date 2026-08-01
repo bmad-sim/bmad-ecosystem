@@ -1,0 +1,17 @@
+! Single undulator segment from aramis.bmad, nothing else. This is tier 1 of the benchmark:
+! with no interludes, the comparison against Genesis isolates the transcribed FEL core --
+! push, deposition, field solve -- from every seam and transport question. See the README.
+
+no_digested
+parameter[geometry] = open
+parameter[particle] = electron
+parameter[e_tot] = 11357.82 * m_electron
+
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+UND: drift, l = 3.99
+
+SEG1: line = (UND)
+
+use, SEG1

@@ -1,0 +1,36 @@
+# Tier-1 reference: one undulator segment, no interludes, importing the SAME initial beam
+# and field dumps that the full run (Aramis-ss.in) wrote. With no drifts or quadrupoles the
+# comparison against the Bmad tracker isolates the transcribed FEL core -- ponderomotive
+# push, source deposition, FFT field solve -- from every transport and seam question.
+#
+# Run Aramis-ss.in first; it produces Aramis-initial.par.h5 and Aramis-initial.fld.h5.
+
+&setup
+rootname=Aramis1seg
+lattice=Aramis-1seg.lat
+beamline=SEG1
+lambda0=1e-10
+gamma0=11357.82
+delz=0.045000
+shotnoise=0
+nbins = 8
+beam_global_stat = true
+field_global_stat = true
+&end
+
+&importfield
+file = Aramis-initial.fld.h5
+&end
+
+&importbeam
+file = Aramis-initial.par.h5
+&end
+
+&track
+fft_fieldsolver = true
+&end
+
+&write
+field = Aramis1seg-final
+beam = Aramis1seg-final
+&end

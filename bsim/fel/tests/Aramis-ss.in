@@ -1,0 +1,62 @@
+# Steady-state reference run for the Bmad FEL tracker, derived from Genesis's
+# benchmark/Benchmark1-SASE/Aramis.in. Changes from the original, each with its reason:
+#
+#   - fft_fieldsolver = true in &track. Genesis's default field solver is ADI
+#     (fftsolver = false in src/Main/Track.cpp:15); the Bmad tracker transcribes
+#     FieldSolverFFT, so the reference must use the same solve.
+#
+#   - The third-harmonic &field block and bunchharm are removed. The undulator is
+#     helical, so fc(3) = 0 (src/Core/Undulator.cpp:146): the harmonic field couples to
+#     nothing and only diffracts. Harmonics are excluded from this deliverable.
+#
+#   - &write blocks before and after &track dump the initial and final beam and field.
+#     The initial dumps are the shared starting state both codes track from; the final
+#     dumps are what the comparison reads back.
+#
+# The physics content is unchanged: same lattice, same gamma0, same seed field, same
+# steady-state (no &time block), shotnoise = 0.
+
+&setup
+rootname=Aramis
+lattice=Aramis.lat
+beamline=ARAMIS
+lambda0=1e-10
+gamma0=11357.82
+delz=0.045000
+shotnoise=0
+nbins = 8
+beam_global_stat = true
+field_global_stat = true
+&end
+
+&lattice
+zmatch=9.5
+&end
+
+&field
+power=5e3
+dgrid=2.000000e-04
+ngrid=255
+waist_size=30e-6
+&end
+
+&beam
+current=3000
+delgam=1.000000
+ex=4.000000e-07
+ey=4.000000e-07
+&end
+
+&write
+field = Aramis-initial
+beam = Aramis-initial
+&end
+
+&track
+fft_fieldsolver = true
+&end
+
+&write
+field = Aramis-final
+beam = Aramis-final
+&end

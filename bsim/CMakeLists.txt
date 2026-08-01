@@ -42,6 +42,7 @@ set (EXE_SPECS
   cmake_files/cmake.tune_plane_res_plot
   cmake_files/cmake.wall_generator
   cmake_files/cmake.wavefront_drift_test
+  cmake_files/cmake.fel_ss_test
 )
 
 #set (FFLAGS "-qopenmp")
