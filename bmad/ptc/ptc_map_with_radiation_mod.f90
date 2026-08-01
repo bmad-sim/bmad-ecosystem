@@ -3,7 +3,7 @@ module ptc_map_with_radiation_mod
 ! Etienne wanted the "zhe" stuff to be standalone and so duplicated structures in 
 
 use ptc_layout_mod
-use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_complex_zhe, &
+use duan_zhe_map, only: tree_element_zhe => tree_element, probe_zhe => probe, track_tree_probe_simple_zher_8_zhe, &
                         zhe_ini
 
 type ptc_rad_map_struct
@@ -57,7 +57,7 @@ contains
 !   orbit1          -- coord_struct, optional: Orbit at ele1 about which the map is constructed.
 !                        If not present then the orbit will be computed using PTC tracking.
 !   create_symplectic_map
-!                   -- logical, optional: If False (default), create a Taylor map. If True, create a partially 
+!                   -- logical, optional: If False, create a Taylor map. If True (default), create a partially 
 !                        inverted map which can be symplecitally tracked.
 !
 ! Output:
@@ -195,7 +195,7 @@ endif
 c_map1 = pb8
 c_map1%x0(1:6) = orb   ! This may not be needed but cannot hurt 
 
-sagan_gen = logic_option(.false., create_symplectic_map)
+sagan_gen = logic_option(.true., create_symplectic_map)
 call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=rad_map%sub_map) 
 sagan_gen = .false.  ! Reset to False so wont affect other PTC calculations.
 
@@ -277,7 +277,7 @@ C_VERBOSE_ZHE = .false.
 z_probe = orbit%vec
 z_probe%q%x = [1, 0, 0, 0]
 
-call track_tree_probe_complex_zhe (rad_map%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
+call track_tree_probe_simple_zher_8_zhe (rad_map%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
 call convert_pc_to ((1 + z_probe%x(6)) * rad_map%p0c_end, orbit%species, beta = beta_new)

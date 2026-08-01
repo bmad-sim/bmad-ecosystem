@@ -192,6 +192,7 @@ module precision_constants
   real(dp),target ::  da_absolute_aperture=1e6_dp
   real(dp),pointer :: crash => null()
   INTEGER,  TARGET :: NPARA_original
+  INTEGER,  TARGET :: ndc_original
   logical  :: default_tpsa=.false.
    real :: drawframeblack=0  ! drawframeblack for gino
   logical, target :: lingyun_yang=.false.
@@ -286,6 +287,7 @@ module precision_constants
  !    integer,pointer :: SPIN_pos => null()       ! position of spin variables (0 or 3)
      integer,pointer :: ndpt     => null() ! constant energy variable position is different from zero
      integer,pointer ::ndptb  => null()  
+     integer,pointer ::ndc  => null()  
      integer,pointer :: NPARA    => null() ! PARAMETER LOCATION IN PTC in fpp
      integer,pointer :: npara_fpp=> null()     ! PARAMETER LOCATION IN FPP or PTC
      integer,pointer :: np_pol   => null()  ! parameters produced through pol_block

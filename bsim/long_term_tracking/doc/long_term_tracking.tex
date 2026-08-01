@@ -85,7 +85,7 @@
 
 \title{Long Term Tracking Program}
 \author{}
-\date{David Sagan \\ February 28, 2026}
+\date{David Sagan \\ July 31, 2026}
 
 \begin{document}
 \pdfbookmark[1]{Contents}{contents}
@@ -751,7 +751,7 @@ Example:
   ltt%exclude_from_maps               = "beambeam::*"
   ltt%action_angle_calc_uses_1turn_matrix = F
   ltt%split_bends_for_stochastic_rad  = F
-  ltt%symplectic_map_tracking         = F
+  ltt%symplectic_map_tracking         = T
   ltt%set_beambeam_crossing_time      = F
   ltt%space_charge_emit_calc_every_n_turns = -1
   ltt%space_charge_core_cutoff        = 0.8
@@ -983,8 +983,8 @@ radiation effects in the transport maps (\sref{s:map})? Default is False. For te
 used with non-map tracking.
 %
 \item[ltt\%symplectic_map_tracking]\Newline
-If False (the default), the maps used for tracking will be a set of truncated Taylor series
-polynomials. If True, the tracking maps will be derived from the Taylor map by partially inverting
+If False, the maps used for tracking will be a set of truncated Taylor series
+polynomials. If True (the default), the tracking maps will be derived from the Taylor map by partially inverting
 it forming an implicit symplectic map. The advantage of the symplectic map is that it is symplectic.
 The disadvantage is that, being an implicit map, the computation time will be longer.
 %

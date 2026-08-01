@@ -1838,6 +1838,8 @@ end type
 
 type (ele_struct) ele
 type (lr_wake_input_struct) lr(500)
+type (wake_lr_mode_struct), pointer :: lrw
+
 integer n_row, iu, i, j, ios
 character(*) lr_file_name
 character(400) full_file_name
@@ -1882,16 +1884,27 @@ do i = 1, size(lr)
   if (lr(i)%freq == 0) lr(i)%freq = -1
 
   j = j + 1
-  ele%wake%lr%mode(j)%freq_in   = lr(i)%freq
-  ele%wake%lr%mode(j)%freq      = lr(i)%freq
-  ele%wake%lr%mode(j)%r_over_q  = lr(i)%r_over_q
-  ele%wake%lr%mode(j)%phi       = 0
-  ele%wake%lr%mode(j)%Q         = lr(i)%Q
-  ele%wake%lr%mode(j)%m         = lr(i)%m
-  ele%wake%lr%mode(j)%b_sin     = lr(i)%b_sin
-  ele%wake%lr%mode(j)%b_cos     = lr(i)%b_cos
-  ele%wake%lr%mode(j)%a_sin     = lr(i)%a_sin
-  ele%wake%lr%mode(j)%a_cos     = lr(i)%a_cos
+  lrw => ele%wake%lr%mode(j)
+  lrw%freq_in   = lr(i)%freq
+  lrw%freq      = lr(i)%freq
+  lrw%r_over_q  = lr(i)%r_over_q
+  lrw%phi       = 0
+  lrw%Q         = lr(i)%Q
+  lrw%m         = lr(i)%m
+  lrw%b_sin     = lr(i)%b_sin
+  lrw%b_cos     = lr(i)%b_cos
+  lrw%a_sin     = lr(i)%a_sin
+  lrw%a_cos     = lr(i)%a_cos
+  lrw%damp      = real_garbage$
+
+  ! Old style lattice files set Q and not damp.
+  if (lrw%q == 0) then
+    call parser_error ('Q factor for LR wake mode is zero which does not make sense!', &
+                                   'For element: ' // ele%name)
+  elseif (lrw%freq > 0) then
+    lrw%damp = pi * lrw%freq / lrw%q
+  endif
+
 
   call downcase_string(lr(i)%angle)
   if (lr(i)%angle == '') then

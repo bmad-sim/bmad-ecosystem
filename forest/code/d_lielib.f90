@@ -105,6 +105,11 @@ contains
              if(ndpt.ne.nd2-1) then
                 line=' LETHAL ERROR IN LIEINIT'
                 write(6,*) line
+                write(6,*) ' LETHAL ERROR IN LIEINIT',ndpt,nd2-1
+               read(5,*) st(1)
+                st(1)=sqrt(st(1))
+               pause 411
+
                 stop
              endif
           endif
@@ -126,6 +131,11 @@ contains
           if(npt_pos<3.or.npt_pos>nd2) then
              line=' LETHAL ERROR IN LIEINIT'
              write(6,*) line
+             write(6,*) "npt_pos<3.or.npt_pos>nd2"
+             write(6,*) npt_pos,npt_pos,nd2
+               read(5,*) st(1)
+                st(1)=sqrt(st(1))
+               pause 412
              stop
           endif
        endif

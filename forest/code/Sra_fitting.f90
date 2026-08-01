@@ -2905,6 +2905,174 @@ SET_TPSAFIT=.FALSE.
 
     end subroutine lattice_fit_bump_min_rcs
   
+
+subroutine find_fix_special_tpsa(closed,state,eps,t,nt)
+implicit none
+type(probe) r1,r2
+type(integration_node), pointer :: t
+type(probe_8) ray
+type(internal_state) state
+type(c_damap) one_turn_map,id
+real(dp) ::  eps  , normb,norm,xx,closed(6)
+integer :: nrmax = 1000
+integer i,j,k,nt
+logical watch_mode
+
+normb=1.d38
+watch_mode=.true.
+
+call alloc(one_turn_map,id)
+call alloc(ray)
+
+r1=closed
+r2=0
+
+do j=1,nrmax
+
+id=1
+ray=r1+id
+
+do k=1,nt
+ call propagate(ray,state,node1=t)
+enddo
+
+one_turn_map=ray
+
+id=0
+do i=1,5
+ r2%x(i)=one_turn_map%v(i)
+ r2%x(i)=r2%x(i)-r1%x(i)
+ id%v(i)=r2%x(i)
+enddo
+
+do i=1,5
+ one_turn_map%v(i)=one_turn_map%v(i)-(1.d0.cmono.i)
+ one_turn_map%v(i)=one_turn_map%v(i).sub.1
+enddo
+ one_turn_map%v(6)=(1.d0.cmono.6)
+
+ one_turn_map=one_turn_map**(-1)
+
+ one_turn_map=one_turn_map.o.id
+ 
+ norm=0
+  do i=1,5 
+  xx=(one_turn_map%v(i).sub.'0')
+  norm=abs(xx)+norm
+   r1%x(i)=r1%x(i) - xx
+  enddo
+
+ if(watch_mode) then
+  if(norm<eps) then
+    normb=norm
+  else
+    normb=norm
+    watch_mode=.false.
+  endif
+ else
+      if(normb<=norm) exit
+      normb=norm
+ endif
+enddo
+  !write(6,format6) r1%x(1:6)
+  if(j>nrmax-10) then
+    write(6,*) " find_fix_special failed after ",j, " iterations"
+   endif
+call kill(one_turn_map,id)
+call kill(ray)
+closed=r1%x(1:6)
+
+  end subroutine find_fix_special_tpsa
+
+
+subroutine find_fix_special_real(closed,state,eps,t,nt)
+implicit none
+type(probe) r1,r2,r0
+!type(fibre), pointer :: p
+type(integration_node), pointer :: t
+type(probe) ray
+type(internal_state) state
+real(dp) ::  eps ,epsi =  1.d-10, normb,norm,xx,closed(6)
+real(dp) one_turn_map(5,5) 
+integer :: nrmax = 1000
+integer i,j,i1,i2,ier,nt,k
+logical watch_mode
+
+normb=1.d38
+watch_mode=.true.
+
+ 
+r1=closed
+r0=0
+r2=0
+one_turn_map=0
+
+
+do j=1,nrmax
+
+ray=r1
+  do k=1,nt
+  call propagate(ray,state,node1=t)
+  enddo
+r0=ray
+
+do i1=1,5
+ ray=r1
+ ray%x(i1)=ray%x(i1)+epsi
+  do k=1,nt
+   call propagate(ray,state,node1=t)
+  enddo
+ do i2=1,5
+  one_turn_map(i2,i1) = (ray%x(i2)-r0%x(i2))/epsi
+ enddo
+enddo
+
+
+do i=1,5
+ r2%x(i)=r0%x(i)
+ r2%x(i)=r2%x(i)-r1%x(i)
+enddo
+
+do i=1,5
+ one_turn_map(i,i)= one_turn_map(i,i)-1
+enddo
+ 
+    call matinv(one_turn_map,one_turn_map,5,5,ier)
+if(ier/=0) then
+     write(6,*) " matinv(one_turn_map,one_turn_map,5,5,ier) failed",j 
+endif
+
+ 
+r2%x(1:5)=matmul(one_turn_map,r2%x(1:5))
+
+ norm=0
+  do i=1,5 
+  xx=r2%x(i)
+  norm=abs(xx)+norm
+   r1%x(i)=r1%x(i) - xx
+  enddo
+
+ if(watch_mode) then
+  if(norm<eps) then
+    normb=norm
+  else
+    normb=norm
+    watch_mode=.false.
+  endif
+ else
+      if(normb<=norm) exit
+      normb=norm
+ endif
+enddo
+  !write(6,format6) r1%x(1:6)
+  if(j>nrmax-10) then
+    write(6,*) " find_fix_special failed after ",j, " iterations"
+   endif
+ 
+closed=r1%x(1:6)
+
+  end subroutine find_fix_special_real
+
       SUBROUTINE FIND_ORBIT_LAYOUT_da(RING,FIX,STATE,TURNS,fibre1,node1,total) ! Finds orbit without TPSA in State or compatible state
     IMPLICIT NONE
     TYPE(layout),target,INTENT(INOUT):: RING
@@ -2949,20 +3117,30 @@ SET_TPSAFIT=.FALSE.
     TYPE (fibre), POINTER :: C
     TYPE (integration_node), POINTER :: t
     logical(lp) APERTURE,use_bmad_units_temp
-    INTEGER TURNS0,trackflag
+    INTEGER TURNS0,trackflag,nt
     type(damap) id
     type(real_8) yy(6)
     type(layout), pointer :: ring
     logical isStableFixPoint
-
+    
     fix=fix0
     tot=0
+     nt=1
+     if(present(turns)) nt=turns
     if(present(fibre1)) then
      ring=>fibre1%parent_layout
+      if(state%dccav>0) then
+        call find_fix_special_tpsa(FIX0,state,eps,fibre1%t1,nt)
+        return
+      endif
     else
      ring=>node1%parent_fibre%parent_layout
+      if(state%dccav>0) then
+        call find_fix_special_tpsa(FIX0,state,eps,node1,nt)
+        return
+      endif
     endif
-
+   
     if (.not.STATE%NOCAVITY.and.check_longitudinal) then
         freqmin=1.d38
         t6=0
@@ -3308,19 +3486,32 @@ call kill(yy); call kill(id);
     TYPE (integration_node), POINTER :: t
     logical(lp) APERTURE,use_bmad_units_temp
     logical isStableFixPoint, didPhaseJump
-    INTEGER TURNS0,trackflag
+    INTEGER TURNS0,trackflag,nt
 
-
+nt=1
+if(present(turns)) nt=turns
     fix=fix0
 
     didPhaseJump = .false.
 
     tot=0
+  
+
+     if(present(turns)) nt=turns
     if(present(fibre1)) then
      ring=>fibre1%parent_layout
+      if(state%dccav>0) then
+        call find_fix_special_real(FIX0,state,eps,fibre1%t1,nt)
+        return
+      endif
     else
      ring=>node1%parent_fibre%parent_layout
+      if(state%dccav>0) then
+        call find_fix_special_real(FIX0,state,eps,node1,nt)
+        return
+      endif
     endif
+
 
 
     if (.not.STATE%NOCAVITY.and.check_longitudinal) then

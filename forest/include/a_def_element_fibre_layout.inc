@@ -115,7 +115,8 @@ TYPE INTERNAL_STATE
    LOGICAL(LP) SPIN  ! Spin is tracked
    LOGICAL(LP) MODULATION !  One modulated family tracked by probe
    LOGICAL(LP) ONLY_2D  !  REAL_8 Taylor in (x,p_x)
-   LOGICAL(LP) FULL_WAY  ! 
+   INTEGER DCCAV   ! total time or path length is used
+ !  LOGICAL(LP) FULL_WAY  ! 
 END TYPE INTERNAL_STATE
 
 
@@ -380,6 +381,7 @@ TYPE INTEGRATION_NODE
    !   TYPE(EXTRA_WORK), POINTER :: WORK
    TYPE(BEAM_BEAM_NODE), POINTER :: BB  => null()
 !   TYPE(tree_element), POINTER :: T
+   INTEGER, POINTER ::  tree
 END TYPE INTEGRATION_NODE
 
 TYPE FIBRE

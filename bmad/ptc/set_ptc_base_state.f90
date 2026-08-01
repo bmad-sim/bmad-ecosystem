@@ -44,7 +44,7 @@ case("DELTA");      call set_it(ptc_private%base_state%delta)
 case("SPIN");       call set_it(ptc_private%base_state%spin)
 case("MODULATION"); call set_it(ptc_private%base_state%modulation)
 case("ONLY_2D");    call set_it(ptc_private%base_state%only_2d)
-case("FULL_WAY");   call set_it(ptc_private%base_state%full_way)
+case("FULL_WAY");   call err_exit
 case default;       call err_exit
 end select
 
