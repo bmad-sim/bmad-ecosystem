@@ -22,7 +22,7 @@ type (ele_struct), pointer :: ele, lord, slave, slave0
 type (branch_struct), pointer :: branch
 
 integer i, j, n, ic, icon, ix2
-real(8) ss, s_end
+real(rp) ss, ds
 logical s_shift
 
 ! Just go through all the elements and add up the lengths.
@@ -53,7 +53,19 @@ do i = 0, ubound(lat%branch, 1)
     if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
   enddo
 
-  branch%param%total_length = ss - branch%ele(0)%s
+  ds = ss - branch%ele(0)%s
+  if (abs(branch%param%total_length - ds) > 1d-15 * ds) then
+    do n = 0, branch%n_ele_track
+      ele => branch%ele(n)
+      select case (ele%key)
+      case (crab_cavity$, rfcavity$, rf_bend$)
+        if (ele%slave_status == super_slave$) ele => pointer_to_super_lord(ele)
+      end select
+      ele%bookkeeping_state%control = stale$
+    enddo
+  endif
+
+  branch%param%total_length = ds
   branch%param%bookkeeping_state%s_position = ok$
 enddo
 
