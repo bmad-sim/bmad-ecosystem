@@ -4,32 +4,31 @@ The following namelist block defines how the plot window (also called
 the plot page) is broken up.
 
 &tao_plot_page
-  plot_page%size = 800, 600
-  plot_page%text_height = 12.0 
-  plot_page%border = 0, 0, 0, 0, '%PAGE'
+  plot_page%size        = 800, 600
+  plot_page%text_height = 12.0
+  plot_page%border      = 0, 0, 0, 0, '%PAGE'
   plot_page%n_curve_pts = 900
 /
 
-
 !------------------ layout ------
 &tao_template_plot
-  plot%name = 'layout'
+  plot%name             = 'layout'
   default_graph%x%label = ' '
-  plot%n_graph = 1
-  plot%x_axis_type = 's'
+  plot%n_graph          = 1
+  plot%x_axis_type      = 's'
 /
 
 &tao_template_graph
-  graph_index = 1
-  graph%name = 'u1'
-  graph%type = 'lat_layout'
-  graph%box = 1, 1, 1, 1
-  graph%x%draw_numbers = False
-  graph%ix_universe = -1 !Syntax Changed from 0
-  graph%margin =  0.15, 0.05, 0.12, 0.12, '%BOX'
-  graph%y%max =  20
-  graph%y%min = -20
-  graph%y%major_div = 4
+  graph_index          = 1
+  graph%name           = 'u1'
+  graph%type           = 'lat_layout'
+  graph%box            = 1, 1, 1, 1
+  graph%x%draw_numbers = F
+  graph%ix_universe    = -1                              !Syntax Changed from 0
+  graph%margin         = 0.15, 0.05, 0.12, 0.12, '%BOX'
+  graph%y%max          = 20
+  graph%y%min          = -20
+  graph%y%major_div    = 4
 /
 
 &lat_layout_drawing
@@ -49,7 +48,7 @@ the plot page) is broken up.
   ele_shape(14) = "rfcavity::*"        "XBox"          "Red"    100     'none'
   ele_shape(15) = "E_GUN::*"           "XBox"          "Black"   20     'none'
   ele_shape(16) = "EM_FIELD::*"        "Box"           "Blue"    20     'none'
-/       
+/
 
 &floor_plan_drawing
   ele_shape(1)  = "Quadrupole::*"      "Box"      "Blue"    15    'none'
@@ -68,8 +67,8 @@ the plot page) is broken up.
   ele_shape(14) = "rfcavity::*"        "XBox"     "Red"     10    'none'
   ele_shape(15) = "E_GUN::*"           "XBox"     "Black"   20    'none'
   ele_shape(16) = "EM_FIELD::*"        "Box"      "Blue"    20    'none'
-/  
-                                            
+/
+
 ! Colors: 
 !"BLACK" 
 !"RED" 
