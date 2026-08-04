@@ -62,6 +62,7 @@ do i = 0, ubound(lat%branch, 1)
         if (ele%slave_status == super_slave$) ele => pointer_to_super_lord(ele)
       end select
       ele%bookkeeping_state%control = stale$
+      branch%param%bookkeeping_state%control = stale$
     enddo
   endif
 
