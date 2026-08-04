@@ -1509,19 +1509,19 @@ type ele_struct
   integer :: aperture_at = exit_end$              ! Aperture location: entrance_end$, ...
   integer :: aperture_type = rectangular$         ! rectangular$, elliptical$, auto_aperture$, ...
   integer :: ref_species = not_set$               ! Reference species
-  integer :: orientation = 1                 ! -1 -> Element is longitudinally reversed. +1 -> Normal.
-  logical :: symplectify = .false.           ! Symplectify mat6 matrices.
-  logical :: mode_flip = .false.             ! Have the normal modes traded places?
-  logical :: multipoles_on = .true.          ! For turning multipoles on/off
-  logical :: scale_multipoles = .true.       ! Are ab_multipoles within other elements (EG: quads, etc.) 
-                                             !        scaled by the strength of the element?
+  integer :: orientation = 1                      ! -1 -> Element is longitudinally reversed. +1 -> Normal.
+  logical :: symplectify = .false.                ! Symplectify mat6 matrices.
+  logical :: mode_flip = .false.                  ! Have the normal modes traded places?
+  logical :: multipoles_on = .true.               ! For turning multipoles on/off
+  logical :: scale_multipoles = .true.            ! Are ab_multipoles within other elements (EG: quads, etc.) 
+                                                  !        scaled by the strength of the element?
   logical :: taylor_map_includes_offsets = .true. ! Taylor map calculated with element misalignments?
-  logical :: field_master = .false.          ! Calculate strength from the field value?
-  logical :: is_on = .true.                  ! For turning element on/off.
-  logical :: logic = .false.                 ! For general use. Not used by Bmad (except during lattice parsing).
-  logical :: bmad_logic = .false.            ! For Bmad internal use only.
-  logical :: select = .false.                ! For Bmad internal use only.
-  logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
+  logical :: field_master = .false.               ! Calculate strength from the field value?
+  logical :: is_on = .true.                       ! For turning element on/off.
+  logical :: logic = .false.                      ! For general use. Not used by Bmad (except during lattice parsing).
+  logical :: bmad_logic = .false.                 ! For Bmad internal use only.
+  logical :: select = .false.                     ! For Bmad internal use only.
+  logical :: offset_moves_aperture = .false.      ! element offsets affects aperture?
 contains
   procedure next_in_branch
   !! final :: ele_finalizer
@@ -1631,6 +1631,7 @@ type branch_struct
   type (coord_struct) :: particle_start = coord_struct() 
   type (wall3d_struct), pointer :: wall3d(:) => null()
   type (ptc_branch1_struct) ptc              ! Pointer to layout. Note: ptc info not transferred with "branch1 = branch2" set.
+  logical :: b_logic = .false.          ! For Bmad internal use only.
 end type
 
 integer, parameter :: opal$ = 1, impactt$ = 2
