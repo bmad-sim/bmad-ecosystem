@@ -54,7 +54,7 @@ integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset
 
 ! See the documentation in the Bmad manual for more details.
 
-type expression_atom_struct
+type expression_atom_struct   ! Old non-tree struct still used by Bmad. 
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
   real(rp) :: value = 0
@@ -66,6 +66,7 @@ type expression_tree_struct
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. 
   real(rp) :: value = 0
+  logical :: reverse_polish = .true.         ! Can the children node(:) array be in reverse Polish order?
   type (expression_tree_struct), pointer :: node(:) => null()  ! Child nodes. Note: Pointer used here since Ifort does not support allocatable.
 end type
 
