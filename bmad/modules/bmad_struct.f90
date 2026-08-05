@@ -625,7 +625,7 @@ end type
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
-  real(rp) :: damp = 0      ! Dampling factor.
+  real(rp) :: damp = 0      ! Dampling factor (1/m).
   real(rp) :: k = 0         ! k factor
   real(rp) :: phi = 0       ! Phase in radians/2pi
   real(rp) :: b_sin = 0     ! non-skew (x) sin-like component of the wake
