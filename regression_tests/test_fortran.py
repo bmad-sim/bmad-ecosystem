@@ -39,6 +39,7 @@ fortran_tests = pytest.mark.parametrize(
         pytest.param("coord_test"),
         pytest.param("csr_and_space_charge_test"),
         pytest.param("envelope_ibs_test"),
+        pytest.param("exact_bend_edge_test"),
         pytest.param("fringe_test"),
         pytest.param("generalized_gradient_test"),
         pytest.param("geometry_test"),
