@@ -1,0 +1,15 @@
+! MVP: "Stale bookkeeping status flags detected" during optimization.
+
+no_digested
+
+beginning[e_tot]    = 2000e6
+parameter[particle] = electron
+parameter[geometry] = closed
+
+D1: drift, L = 1.5887907064808635
+D2: drift, L = 1.5887907064808635
+Q1: quad,  L = 0.3, K1 =  1.086021144034338
+Q2: quad,  L = 0.3, K1 = -1.086021144034338
+
+FODO: line = (Q1, D1, Q2, D2)
+use, FODO

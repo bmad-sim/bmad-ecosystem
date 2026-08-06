@@ -1,0 +1,29 @@
+&tao_design_lattice
+  design_lattice(1)%file = 'stale_bookkeeping.bmad'
+/
+
+&tao_params
+  global%optimizer = 'lmdif'
+/
+
+&tao_d2_data
+  d2_data%name = 'dat'
+  universe     = '1'
+  n_d1_data    = 1
+/
+
+&tao_d1_data
+  ix_d1_data     = 1
+  d1_data%name   = 'dat'
+  datum(1) = 'beta.a' '' '' 'end' 'target' 8.0 1
+/
+
+&tao_var
+  v1_var%name       = 'var'
+  default_step      = 0.0001
+  default_universe  = '1'
+  ix_min_var        = 1
+  ix_max_var        = 1
+  var(1:1)%ele_name  = 'D1'
+  var(1:1)%attribute = 'L'
+/
