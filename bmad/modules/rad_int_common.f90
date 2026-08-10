@@ -393,12 +393,14 @@ endif
 ! No caching...
 ! Note: calc_wiggler_g_params assumes that orb is lab (not element) coords.
 
-dz = 1d-3
+! z1 is the companion point used to form the finite difference estimate of g. z1 is placed upstream
+! of z_here when z_here is at (or near) the downstream end. Note: z_here itself must not be shifted.
+! Shifting z_here would evaluate the integrands 1 mm inside the element at the downstream end and,
+! since qromb_rad_int always samples the element ends, this biases all of the integrals.
+
+dz = min(1d-3, ele%value(l$) / 2)
 z1 = z_here + dz
-if (z1 > ele%value(l$)) then
-  z_here = max(0.0_rp, z_here - dz)
-  z1 = min(ele%value(l$), z_here + dz)
-endif
+if (z1 > ele%value(l$)) z1 = z_here - dz
 
 ! If wiggler/undulator with Taylor tracking then switch to symp_lie_bmad tracking 
 
@@ -438,7 +440,11 @@ is_special_wiggler = ((ele%key == wiggler$ .or. ele%key == undulator$) .and. ele
 if (is_special_wiggler) then
   call calc_wiggler_g_params (ele, info%branch%param, z_here, orb_end, pt, info)
 else
-  call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1, .false., .false., orb_end, orb_end1)
+  if (z1 > z_here) then
+    call twiss_and_track_intra_ele (ele, info%branch%param, z_here, z1, .false., .false., orb_end, orb_end1)
+  else  ! z1 is upstream of z_here so track to z1 from the start of the element.
+    call twiss_and_track_intra_ele (ele, info%branch%param, 0.0_rp, z1, .true., .false., orb_start, orb_end1, ele0)
+  endif
   info%g_x = pt%g_x0 - (orb_end1%vec(2) - orb_end%vec(2)) / (z1 - z_here)
   info%g_y = pt%g_y0 - (orb_end1%vec(4) - orb_end%vec(4)) / (z1 - z_here)
   info%dg2_x = 0
