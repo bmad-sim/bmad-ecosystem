@@ -11,6 +11,9 @@ use longitudinal_profile_mod
 
 implicit none
 
+procedure(track1_custom_def) :: track1_custom
+procedure(make_mat6_custom_def) :: make_mat6_custom
+
 type ibs_data_struct
   real(rp) current
   real(rp) a_emittance
@@ -40,7 +43,7 @@ real(rp) inductance
 real(rp) eta_set, etap_set
 real(rp) t6(6,6)
 real(rp) sigma_mat(6,6)
-real(rp) inv_Ta_int, inv_Tb_int, inv_Tz_int
+real(rp) inv_Ta_int, inv_Tb_int, inv_Tp_int
 real(rp) s, delta_s
 real(rp) Ha, Hb
 real(rp) L_ratio
@@ -50,6 +53,7 @@ real(rp) initial_blow_up(3)
 logical error, do_pwd
 logical :: ptc_calc
 logical set_dispersion
+logical bunched
 
 character(200) in_file
 character(4) :: ibs_formula
@@ -77,6 +81,7 @@ type(coord_struct) ptc_co
 
 namelist /parameters/ &
   lat_file, &        ! Lattice file in BMAD format.
+  bunched, &         ! Bunched or unbunched beam.
   granularity, &     ! Step size along lattice in meters.  Set to -1 for element-by-element.
   ptc_calc, &        ! Use PTC for emittance calculation.
   b_emit, &          ! Zero current vertical emittance.  Set to -1 for rad int calc.
@@ -103,6 +108,9 @@ namelist /parameters/ &
                      ! emittance.dat is populated with.  See set_t6_eta for details.
   eta_set, &         ! Sets vertical dispersion at every element to this fixed value.
   etap_set           ! Sets vertical dispersion prime at every element to this fixes value.
+
+track1_custom_ptr => track1_custom
+make_mat6_custom_ptr => make_mat6_custom
 
 call load_parameters_file(in_file)
 if(do_pwd) then
@@ -199,7 +207,9 @@ do i=6,stdoutlun,stdoutlun-6
   write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
   write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
   write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
-  write(i,*) "   sigma_z (m)     : ", mode%sig_z
+  if (bunched) then
+    write(i,*) "   sigma_z (m)     : ", mode%sig_z
+  endif
   write(i,*)
 enddo
 
@@ -213,7 +223,9 @@ do i=6,stdoutlun,stdoutlun-6
   write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
   write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
   write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
-  write(i,*) "   sigma_z (m)     : ", mode%sig_z
+  if (bunched) then
+    write(i,*) "   sigma_z (m)     : ", mode%sig_z
+  endif
   write(i,*)
 enddo
 
@@ -227,6 +239,7 @@ ibs_sim_params%do_pwd = do_pwd
 ibs_sim_params%inductance = inductance
 ibs_sim_params%formula = ibs_formula
 ibs_sim_params%tau_a = lat%param%total_length / c_light / mode%a%alpha_damp  !needed for tail cut calculation
+ibs_sim_params%bunched = bunched
 
 if(eqb_method == 'rlx') then
   call ibs_equib_rlx(lat,ibs_sim_params,mode0,mode,ratio,initial_blow_up,granularity)  !relaxation method
@@ -243,7 +256,9 @@ do i=6,stdoutlun,stdoutlun-6
   write(i,*) "   emit_a (m*rad)  : ", mode%a%emittance
   write(i,*) "   emit_b (m*rad)  : ", mode%b%emittance
   write(i,*) "   sigmaE_E (rel.) : ", mode%sigE_E
-  write(i,*) "   sigma_z (m)     : ", mode%sig_z
+  if (bunched) then
+    write(i,*) "   sigma_z (m)     : ", mode%sig_z
+  endif
   write(i,*)
 enddo
 
@@ -275,10 +290,10 @@ write(rateslun,'(4a14)') "# (m)", "(1/s)", "(1/s)", "(1/s)"
 write(rateslun,'(a)') "# Element-by-element rates at start of simulation at full current."
 lat%param%n_part = high_current * lat%param%total_length / e_charge / abs(charge_of(lat%param%particle)) / c_light
 call ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
-write(rateslun,'(a,3f15.7)') "# Initial average rates: ", rates%inv_Tz, rates%inv_Ta, rates%inv_Tb
+write(rateslun,'(a,3f15.7)') "# Initial average rates: ", rates%inv_Tp, rates%inv_Ta, rates%inv_Tb
 do i=1,lat%n_ele_track
   call ibs1(lat,ibs_sim_params,rates,i=i)
-  write(rateslun,'(F14.5,3f16.6)') lat%ele(i)%s, rates%inv_Tz, rates%inv_Ta, rates%inv_Tb
+  write(rateslun,'(F14.5,3f16.6)') lat%ele(i)%s, rates%inv_Tp, rates%inv_Ta, rates%inv_Tb
 enddo
 close(rateslun)
 
@@ -300,20 +315,26 @@ do i=1,n_steps
     stop
   endif
 
-  call transfer_matrix_calc (lat, t6, ix1=x_view, one_turn=.TRUE.)
-  if(set_dispersion) call set_t6_eta(t6)
-  call make_smat_from_abc(t6, mode, sigma_mat, error)
-  view_sigma_x = SQRT(sigma_mat(1,1))
+  if (bunched) then
+    call transfer_matrix_calc (lat, t6, ix1=x_view, one_turn=.TRUE.)
+    if(set_dispersion) call set_t6_eta(t6)
+    call make_smat_from_abc(t6, mode, sigma_mat, error)
+    view_sigma_x = SQRT(sigma_mat(1,1))
 
-  call transfer_matrix_calc (lat, t6, ix1=y_view, one_turn=.TRUE.)
-  if(set_dispersion) call set_t6_eta(t6)
-  call make_smat_from_abc(t6, mode, sigma_mat, error)
-  view_sigma_y = SQRT(sigma_mat(3,3))
+    call transfer_matrix_calc (lat, t6, ix1=y_view, one_turn=.TRUE.)
+    if(set_dispersion) call set_t6_eta(t6)
+    call make_smat_from_abc(t6, mode, sigma_mat, error)
+    view_sigma_y = SQRT(sigma_mat(3,3))
 
-  call transfer_matrix_calc (lat, t6, ix1=z_view, one_turn=.TRUE.)
-  if(set_dispersion) call set_t6_eta(t6)
-  call make_smat_from_abc(t6, mode, sigma_mat, error)
-  view_sigma_z = sqrt(sigma_mat(5,5))
+    call transfer_matrix_calc (lat, t6, ix1=z_view, one_turn=.TRUE.)
+    if(set_dispersion) call set_t6_eta(t6)
+    call make_smat_from_abc(t6, mode, sigma_mat, error)
+    view_sigma_z = sqrt(sigma_mat(5,5))
+  else
+    view_sigma_x = 0.0d0
+    view_sigma_y = 0.0d0
+    view_sigma_z = 0.0d0
+  endif
 
   ibs_data(i) = ibs_data_struct(currents(i),mode%a%emittance,mode%b%emittance,mode%sigE_E,mode%sig_z, view_sigma_x, view_sigma_y, view_sigma_z)
 
@@ -354,9 +375,9 @@ open(int_rateslun,file='ibs_rates_integrated.out')
 scalinglun = lunget()
 open(scalinglun,file='ibs_scaling.out')
 write(rateslun,'(a)') "# Element-by-element rates at equilibrium at full current"
-write(rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tz"
+write(rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tp"
 write(rateslun,'(4a14)') "# (m)", "(1/s)", "(1/s)", "(1/s)" 
-write(int_rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tz"
+write(int_rateslun,'(4a14)') "# s", "inv_Ta", "inv_Tb", "inv_Tp"
 write(int_rateslun,'(4a14)') "# (m)", "(1/s)", "(1/s)", "(1/s)" 
 write(scalinglun,'(5a14)') "# s", "inv_Ta", "inv_Tb", "Ha", "Hb"
 write(scalinglun,'(5a14)') "# (m)", "(1/s)", "(1/s)", "(m)", "(m)"
@@ -364,7 +385,7 @@ write(scalinglun,'(5a14)') "# (m)", "(1/s)", "(1/s)", "(m)", "(m)"
 
 inv_Ta_int = 0.0d0
 inv_Tb_int = 0.0d0
-inv_Tz_int = 0.0d0
+inv_Tp_int = 0.0d0
 delta_s = 0.1
 s=delta_s
 write(rateslun,*) "# delta_s = ", delta_s
@@ -372,12 +393,12 @@ write(int_rateslun,*) "# delta_s = ", delta_s
 
 do while(s .lt. lat%param%total_length)
   call ibs1(lat,ibs_sim_params,rates,s=s)
-  write(rateslun,'(F14.5,3ES14.4)') s, rates%inv_Ta, rates%inv_Tb, rates%inv_Tz
+  write(rateslun,'(F14.5,3ES14.4)') s, rates%inv_Ta, rates%inv_Tb, rates%inv_Tp
 
   inv_Ta_int = inv_Ta_int + rates%inv_Ta * delta_s
   inv_Tb_int = inv_Tb_int + rates%inv_Tb * delta_s
-  inv_Tz_int = inv_Tz_int + rates%inv_Tz * delta_s
-  write(int_rateslun,'(F14.5,3ES14.4)') s, inv_Ta_int, inv_Tb_int, inv_Tz_int
+  inv_Tp_int = inv_Tp_int + rates%inv_Tp * delta_s
+  write(int_rateslun,'(F14.5,3ES14.4)') s, inv_Ta_int, inv_Tb_int, inv_Tp_int
 
   call twiss_and_track_at_s(lat, s, ele_at_s)
   Ha = ( (ele_at_s%a%eta**2) + ( ele_at_s%a%beta*ele_at_s%a%etap + ele_at_s%a%alpha*ele_at_s%a%eta )**2)/ele_at_s%a%beta
@@ -433,6 +454,7 @@ contains
     inductance    = -99.0
     clog_to_use   = -99
     eqb_method    = ''
+    bunched       = .true.
     initial_blow_up = (/-1.0d0,-1.0d0,-1.0d0/)
 
     eta_set = -99.0
