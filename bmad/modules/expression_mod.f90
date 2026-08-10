@@ -35,10 +35,13 @@ contains
 !   arrow$, equal$, colon$, double_colon$, vertical_bar$, compound$
 ! 
 ! An expression string will be split on:
-!   Two character operators: "->", "::" 
 !   operators: + -  * / ^ = : &
 !   brackets: [] () {}
 !   comma: ,
+!
+! Reverse polish tree will be constructed for mathematical expressions.
+! Exception: Any expression with the "->" (arrow$) token is not considered mathematical.
+! The reason why "::" is still considered mathematical is due to Tao syntax.
 !
 ! Root node name is "root" and is of type root$
 ! Brackets in the expression string must be matched.
@@ -285,7 +288,7 @@ do in = 1, n_node
       select case(tree%node(in-1)%type)
       case(constant$, variable$, func_parens$, parens$, square_brackets$, curly_brackets$)
       case default
-        node%type = unary_plus$
+        node%type = unary_minus$
       end select
     endif
 
@@ -401,16 +404,18 @@ recursive subroutine reverse_polish_pass(tree, err_flag, err_str)
 type (expression_tree_struct), target :: tree, t2, op(20)
 type (expression_tree_struct), pointer :: node2, snode
 
-integer i, it2, it, n_node, i_op, n_nonop, level
-logical err_flag, has_op, callit
+integer, parameter :: no_op$ = 0, has_op$ = 1, veto_polish$ = 2
+integer i, it2, it, n_node, i_op, n_nonop, level, op_status
+logical err_flag, callit
 character(*) err_str
 
-! If tree%node(:) array does not represent an expression, skip reverse Polish step.
+! If tree%node(:) array does not represent a methematical expression, skip reverse Polish step.
+! Note: a "->" token means it is no mathematical so no reverse polish step.
 
 if (.not. associated(tree%node)) return
 n_node = size(tree%node)
 
-has_op = .false.
+op_status = no_op$
 do it2 = 1, n_node
   node2 => tree%node(it2)
 
@@ -435,11 +440,18 @@ do it2 = 1, n_node
 
   select case (node2%type)
   case (plus$, minus$, times$, divide$, power$, unary_plus$, unary_minus$, func_parens$)
-    has_op = .true.
+    if (op_status == no_op$) op_status = has_op$
+  case (arrow$)
+    op_status = veto_polish$
   end select
 enddo
 
-if (.not. has_op) return
+if (op_status /= has_op$) then
+  tree%reverse_polish = .false.
+  return
+else
+  tree%reverse_polish = .true.
+endif
 
 !
 
@@ -759,11 +771,11 @@ case (square_brackets$, parens$, func_parens$, curly_brackets$)
   if (rt_inc) str = trim(str) // tree%name(2:2)
   allocate(character(len_trim(str)) :: str_out)
   str_out = trim(str)
-  if (tree%type == func_parens$ .and. rt_inc) str_out = trim(parent%node(n_node+1)%name) // str_out
+  if (tree%type == func_parens$ .and. rt_inc .and. parent%reverse_polish) str_out = trim(parent%node(n_node+1)%name) // str_out
   return
 
 case (function$)
-  ! Handled by func_parens$ case.
+  if (.not. parent%reverse_polish .and. rt_inc) str = tree%name  ! Otherwise handled by func_parens$ case.
 
 case (comma$, equal$)
   if (integer_option(2, n_node) > 1 .and. rt_inc) str = tree%name
@@ -786,6 +798,7 @@ do n = 1, n_sub
   endif
 
   ss(iss) = expression_tree_to_string(tree%node(n), .true., n, tree)
+  if (.not. tree%reverse_polish) cycle
 
   select case (tree%node(n)%type)
   case (plus$, minus$, times$, divide$, power$)
