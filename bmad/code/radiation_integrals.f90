@@ -110,7 +110,7 @@ real(rp) kz, fac, c, s, factor, g2, g_x0, dz_small, z1, const_q, vec0(6), mat6(6
 real(rp), parameter :: const_q_factor = 55 * h_bar_planck * c_light / (32 * sqrt_3) ! Cf: Sands Eq 5.46 pg 124.
 
 integer, optional :: ix_cache, ix_branch
-integer i, j, k, n, ix, ixe, ib, ip, ir, key2, n_step, ix_pole_max
+integer i, j, k, n, n2, ix, ixe, ib, ip, ir, key2, n_step, ix_pole_max
 
 character(*), parameter :: r_name = 'radiation_integrals'
 
@@ -313,8 +313,20 @@ if (use_cache .or. init_cache) then
     else  
       beta_min = min(ele2%a%beta, ele2%b%beta, branch%ele(ixe-1)%a%beta, branch%ele(ixe-1)%b%beta)
       n_step = nint(ele%value(l$) / min(ele2%value(ds_step$), beta_min / 10, abs(ele2%value(l$))/2))
-      n_step = min(n_step, nint(1000*ele2%value(l$)))   ! So del_z is at least 1 mm 
-      n_step = max(n_step, 3)
+      n_step = min(n_step, nint(1000*ele2%value(l$)))   ! So del_z is at least 1 mm
+
+      ! Round n_step up to a power of two (minimum of 4). qromb_rad_int evaluates the integrands at
+      ! points that are a power of two subdivision of the element. With n_step a power of two these
+      ! points coincide with cache points and so propagate_part_way does not have to interpolate.
+      ! Otherwise the linear interpolation between cache points introduces an O(del_z^2) error whose
+      ! size depends upon how the element happens to be sliced. That is, without this, splitting a
+      ! magnet into pieces changes the computed emittance.
+
+      n2 = 4
+      do while (n2 < n_step)
+        n2 = 2 * n2
+      enddo
+      n_step = n2
       del_z = ele2%value(l$) / n_step
       call allocate_cache(cache_ele, n_step)
 
