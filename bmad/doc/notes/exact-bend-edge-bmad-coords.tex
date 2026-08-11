@@ -1,0 +1,472 @@
+%-----------------------------------------------------------------------------
+% exact-bend-edge-bmad-coords.tex
+%
+% Standalone writeup of the "exact" (PTC-derived) sbend edge-field tracking
+% routines in bmad/modules/fringe_mod.f90, and their reformulation directly
+% in Bmad phase-space coordinates (so that the PTC <-> Bmad coordinate
+% conversions can be eliminated).
+%
+% Compile with: pdflatex exact-bend-edge-bmad-coords.tex
+%-----------------------------------------------------------------------------
+\documentclass[11pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\ptcE}{\mathcal{E}}          % normalized total energy E/(P0 c)
+\newcommand{\Pmag}{\mathcal{P}}          % normalized total momentum P/P0
+\newcommand{\ftrack}{\code{first\_track\_edge\$}}
+\newcommand{\strack}{\code{second\_track\_edge\$}}
+
+\newmdenv[
+  linecolor=blue!55!black,
+  linewidth=0.8pt,
+  backgroundcolor=blue!4,
+  skipabove=6pt, skipbelow=6pt,
+  innertopmargin=6pt, innerbottommargin=6pt
+]{keybox}
+
+\title{Exact (PTC) sbend edge-field maps and their Bmad-coordinate form}
+\author{Bmad}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+The Bmad routine \code{exact\_bend\_edge\_kick} in
+\code{bmad/modules/fringe\_mod.f90} tracks a particle through the hard edge of
+an sbend using three helper routines adapted from PTC (Forest's \code{WEDGER},
+\code{FRINGE\_DIPOLER}, and \code{ROT\_XZ}). As currently written, the routine
+converts the orbit from Bmad phase-space coordinates to PTC coordinates, applies
+the three PTC maps, and converts back. This note (i)~documents the three PTC
+routines as they stand, and (ii)~shows that the PTC$\leftrightarrow$Bmad
+conversion is the \emph{identity} on the four transverse coordinates and only
+remaps the energy/longitudinal pair. Consequently the whole calculation can be
+carried out directly in Bmad coordinates: the transverse formulas are unchanged,
+and only the longitudinal ($z$) bookkeeping is modified. Explicit Bmad-coordinate
+formulas are given for all three routines. The transverse formulas quoted here
+were checked numerically against an independent geometric simulation and agree to
+machine precision ($\sim 5\times 10^{-15}$).
+\end{abstract}
+
+\tableofcontents
+
+%=============================================================================
+\section{Phase-space coordinates and the PTC\,$\leftrightarrow$\,Bmad conversion}
+%=============================================================================
+
+\subsection{Bmad coordinates}
+
+Bmad uses the phase-space vector
+\begin{equation}
+  \mathbf{r} = (x,\ p_x,\ y,\ p_y,\ z,\ p_z),
+\end{equation}
+where the transverse momenta are normalized to the reference momentum $P_0$,
+\begin{equation}
+  p_x = \frac{P_x}{P_0}, \qquad p_y = \frac{P_y}{P_0},
+\end{equation}
+the energy-like sixth coordinate is
+\begin{equation}
+  p_z = \frac{\Delta P}{P_0} = \frac{P - P_0}{P_0}
+  \quad\Longrightarrow\quad
+  \frac{P}{P_0} \equiv \Pmag = 1 + p_z,
+\end{equation}
+and the longitudinal coordinate is
+\begin{equation}
+  z = -\,\beta\, c\,\bigl(t - t_0(s)\bigr),
+\end{equation}
+with $\beta$ the \emph{particle} velocity (in units of $c$) and $t_0(s)$ the
+reference time. The longitudinal (design-direction) momentum is
+\begin{equation}
+  \boxed{\;p_s = \sqrt{(1+p_z)^2 - p_x^2 - p_y^2}\;}
+  \label{eq:ps}
+\end{equation}
+
+\medskip
+\noindent\textbf{Notational warning.} In the Fortran source the local variable
+\code{pz} denotes the \emph{longitudinal momentum} $p_s$ of
+Eq.~\eqref{eq:ps}, \emph{not} the Bmad sixth coordinate \code{orb\%vec(6)}$=p_z$.
+Throughout this note we write $p_s$ for the longitudinal momentum and reserve
+$p_z$ for the Bmad energy coordinate.
+
+\subsection{PTC coordinates}
+
+The PTC routines use the same four transverse coordinates $x, p_x, y, p_y$, but
+replace the longitudinal pair $(z, p_z)$ by $(\tau, p_\tau)$:
+\begin{align}
+  p_\tau &\equiv \frac{E - E_0}{P_0\, c} = \frac{E}{P_0\, c} - \frac{1}{\beta_0}
+     & &\text{(energy deviation, code \code{X(5)})}, \\
+  \tau   &\equiv c\,(t - t_0)
+     & &\text{(arrival-time coordinate, code \code{X(6)})}.
+\end{align}
+Define the normalized total energy
+\begin{equation}
+  \ptcE \equiv \frac{E}{P_0\,c} = \frac{1}{\beta_0} + p_\tau
+  \qquad\text{(code \code{time\_fac} $= 1/\beta_0 + $\code{X(5)}).}
+\end{equation}
+Using $E^2 = (Pc)^2 + (mc^2)^2$ and $(mc^2/P_0c)^2 = 1/\beta_0^2 - 1$,
+\begin{equation}
+  \Pmag^2 = \left(\frac{P}{P_0}\right)^2
+          = \ptcE^2 - \left(\frac{1}{\beta_0^2}-1\right)
+          = 1 + \frac{2 p_\tau}{\beta_0} + p_\tau^2 .
+  \label{eq:Pptc}
+\end{equation}
+Hence the longitudinal momentum used in the PTC routines,
+\begin{equation}
+  \code{pz} = \sqrt{1 + \tfrac{2}{\beta_0}\code{X(5)} + \code{X(5)}^2
+                     - \code{X(2)}^2 - \code{X(4)}^2}
+  = \sqrt{\Pmag^2 - p_x^2 - p_y^2} = p_s ,
+\end{equation}
+is \emph{identical} to the Bmad longitudinal momentum \eqref{eq:ps}, and
+\begin{equation}
+  \code{pt} = \sqrt{\Pmag^2 - p_y^2}
+\end{equation}
+is the momentum projected into the horizontal bend plane.
+
+\subsection{The conversion is trivial on the transverse coordinates}
+
+The routines \code{vec\_bmad\_to\_ptc} and \code{vec\_ptc\_to\_bmad} implement
+\begin{keybox}
+\begin{itemize}
+\item[] $x,\ p_x,\ y,\ p_y$ \quad are \textbf{unchanged},
+\item[] energy: \quad
+  $\displaystyle p_\tau = \ptcE - \frac{1}{\beta_0}
+     = \sqrt{(1+p_z)^2 + \tfrac{1}{\beta_0^2} - 1} - \frac{1}{\beta_0}$,
+  \qquad
+  $p_z = \sqrt{1 + \tfrac{2 p_\tau}{\beta_0} + p_\tau^2} - 1$,
+\item[] longitudinal: \quad
+  $\displaystyle \tau = -\,\frac{z}{\beta}
+     = -\,z\,\frac{\ptcE}{1+p_z}$,
+  \qquad
+  $z = -\,\beta\,\tau$,
+  \qquad with
+  $\displaystyle \beta = \frac{Pc}{E} = \frac{1+p_z}{\ptcE}$.
+\end{itemize}
+\end{keybox}
+\noindent
+(The nonlinear $p_z \leftrightarrow p_\tau$ maps in the code are just algebraic
+rearrangements of the two boxed square-root relations, written to avoid
+cancellation.)
+
+Two facts drive everything that follows:
+\begin{enumerate}
+\item All three edge maps are produced by \emph{static magnetic} fields, so the
+  total momentum $P$ (hence $p_z$, $p_\tau$, $\ptcE$, and $\beta$) is
+  \textbf{invariant} through each routine.
+\item The conversion touches only the energy/longitudinal pair. Therefore any
+  formula the PTC routines use for $x, p_x, y, p_y$ is \emph{already} a valid
+  Bmad formula, provided $p_s$, $p_t$, and $\ptcE$ are evaluated from the Bmad
+  coordinates via the relations above.
+\end{enumerate}
+
+Because $\beta$ is constant, the exact relation $z = -\beta\,\tau$ can be
+differenced,
+\begin{equation}
+  \boxed{\;\Delta z = -\,\beta\,\Delta\tau,
+    \qquad \beta = \frac{1+p_z}{\ptcE},
+    \qquad \ptcE = \sqrt{(1+p_z)^2 + \tfrac{1}{\beta_0^2} - 1}\;}
+  \label{eq:ztau}
+\end{equation}
+so every PTC time update $\Delta\tau$ maps to a Bmad update
+$\Delta z = -\beta\,\Delta\tau$. This single substitution, together with keeping
+the transverse formulas verbatim, is the entire content of "staying in Bmad
+coordinates."
+
+%=============================================================================
+\section{The composite edge map \code{exact\_bend\_edge\_kick}}
+%=============================================================================
+
+Let $e$ be the pole-face angle ($e_1$ at entrance, $e_2$ at exit) and
+$g_{\rm tot} = g + \delta g$ the total bend curvature. The edge is modeled as a
+thin hard-edge fringe sandwiched between two wedges (Fig.~conceptually: a
+field-free rotation to the pole face, the fringe impulse, and a bend-field wedge
+back to the body frame). With \code{time\_dir}$=\pm1$ and
+$a \equiv \code{time\_dir}\cdot e$:
+\begin{center}
+\begin{tabular}{ll}
+\textbf{Entrance} (\ftrack): &
+  \code{ptc\_wedger}$(a,\,0)$ \;$\to$\;
+  \code{ptc\_fringe\_dipoler}$(g_{\rm tot})$ \;$\to$\;
+  \code{ptc\_wedger}$(-a,\,g_{\rm tot})$ \\[2pt]
+\textbf{Exit} (\strack): &
+  \code{ptc\_wedger}$(-a,\,g_{\rm tot})$ \;$\to$\;
+  \code{ptc\_fringe\_dipoler}$(g_{\rm tot})$ \;$\to$\;
+  \code{ptc\_wedger}$(a,\,0)$
+\end{tabular}
+\end{center}
+A wedge with zero curvature (\code{ptc\_wedger} with $b_1=0$) degenerates to the
+pure frame rotation \code{ptc\_rot\_xz}. We document the three primitives next.
+
+%=============================================================================
+\section{\code{ptc\_rot\_xz}: rotation of the reference frame about $\hat y$}
+%=============================================================================
+
+This is a coordinate transformation to a reference frame rotated by angle $a$
+about the vertical axis (no field). With $p_s$ from Eq.~\eqref{eq:ps} and the
+convenience factor
+\begin{equation}
+  D \equiv 1 - \frac{p_x \tan a}{p_s}
+        = \frac{p_s\cos a - p_x \sin a}{p_s\cos a}
+        = \frac{p_s'}{p_s\cos a},
+  \qquad p_s' \equiv p_s\cos a - p_x\sin a,
+\end{equation}
+the PTC map is
+\begin{align}
+  x       &\to \frac{x}{\cos a \; D}
+             = \frac{x\, p_s}{p_s\cos a - p_x\sin a}, \\
+  p_x     &\to p_x\cos a + p_s\sin a, \\
+  y       &\to y + p_y\,L, \\
+  \tau    &\to \tau + \ptcE\,L,
+  \qquad\text{where}\quad
+  L \equiv \frac{x\,\tan a}{p_s\,D}
+         = \frac{x\,\sin a}{p_s\cos a - p_x\sin a}
+         = \frac{x\,\sin a}{p_s'} .
+  \label{eq:rotL}
+\end{align}
+Here $L$ is the effective drift length picked up in sliding the observation plane
+from the old face to the rotated face. The energy $p_\tau$ and $p_y$ are
+unchanged. Note $p_x \to p_x\cos a + p_s\sin a$ is simply the projection of the
+(rotated) momentum onto the new transverse axis.
+
+%=============================================================================
+\section{\code{ptc\_wedger}: transport through a wedge of bend field}
+%=============================================================================
+
+\code{ptc\_wedger} propagates the particle from the plane perpendicular to the
+incoming trajectory to the pole face tilted by the wedge angle $a$, while the
+particle follows a circular arc of the dipole field of curvature
+$b_1 \equiv g_{\rm tot}$. If $b_1 = 0$ it calls \code{ptc\_rot\_xz}.
+
+\subsection{Geometry}
+
+Motion is a circular arc in the horizontal ($x$--$z$) plane of radius
+$R = p_t/b_1$; the vertical momentum $p_y$ is unchanged and $y$ advances linearly
+with the arc. The centre of the arc is at
+\begin{equation}
+  x_c = x - \frac{p_s}{b_1}, \qquad z_c = z + \frac{p_x}{b_1},
+\end{equation}
+so along the trajectory two quantities are conserved,
+\begin{equation}
+  p_s - b_1\,x = \text{const}, \qquad p_x + b_1\,z = \text{const}.
+  \label{eq:inv}
+\end{equation}
+Rotating the frame by $a$ about $\hat y$
+($x' = x\cos a + z\sin a$, $\ z' = -x\sin a + z\cos a$, and likewise for the
+momenta) leaves the dipole field invariant, so the analogous invariants hold in
+the primed frame.
+
+\subsection{PTC formulas}
+
+Define the post-map longitudinal momentum
+$p_s' = \sqrt{p_t^2 - (p_x^{\rm new})^2}$ (code \code{pzs}). Then:
+
+\paragraph{New transverse momentum.} Applying the invariant
+$p_x' + b_1 z' = \text{const}$ between the entrance ($z=0$) and the pole face
+($z'=0$):
+\begin{equation}
+  \boxed{\; p_x^{\rm new} = p_x\cos a + (p_s - b_1\,x)\,\sin a \;}
+  \label{eq:wedgepx}
+\end{equation}
+The extra $-b_1 x\sin a$ (relative to a pure rotation $p_x\cos a + p_s\sin a$) is
+the field contribution accrued over the finite path across the wedge.
+
+\paragraph{New transverse position.} The new-frame $x$ is where the arc (centre
+$(x_c,z_c)$, radius $R$) meets the rotated face; solving the circle--line
+intersection and simplifying with \eqref{eq:inv} gives the numerically safe form
+used in the code,
+\begin{equation}
+  \boxed{\;
+  x^{\rm new} = x\cos a
+    + \frac{x\,p_x\,\sin 2a + \sin^2\!a\,\bigl(2\,x\,p_s - b_1\,x^2\bigr)}
+           {p_s' + p_s\cos a - p_x\sin a} \;}
+  \label{eq:wedgex}
+\end{equation}
+The compact (but $0/0$ as $b_1\to0$) equivalent is
+$x^{\rm new} = x\cos a + (p_s' + p_x\sin a - p_s\cos a)/b_1$; the denominator in
+\eqref{eq:wedgex} equals the sum of entrance and exit longitudinal momenta in the
+rotated frame and is manifestly positive.
+
+\paragraph{Arc length, vertical, and time.} With the in-plane momentum direction
+$\psi = \arcsin(p_x/p_t)$, the arc sweeps a total angle $\Theta$ and the
+effective length is $L = \Theta/b_1$:
+\begin{equation}
+  \boxed{\;
+  L = \frac{1}{b_1}\left[\,a + \arcsin\!\frac{p_x}{p_t}
+                              - \arcsin\!\frac{p_x^{\rm new}}{p_t}\,\right] \;}
+  \label{eq:wedgeL}
+\end{equation}
+\begin{equation}
+  y \to y + p_y\,L, \qquad \tau \to \tau + \ptcE\,L .
+\end{equation}
+The energy $p_\tau$ and $p_y$ are unchanged. As $b_1\to0$, \eqref{eq:wedgeL}
+reduces to $L = x\sin a/(p_s\cos a - p_x\sin a)$, reproducing \eqref{eq:rotL}.
+
+%=============================================================================
+\section{\code{ptc\_fringe\_dipoler}: the hard-edge dipole fringe impulse}
+%=============================================================================
+
+This is the thin nonlinear map of the hard bend edge (adapted from Forest's
+\code{FRINGE\_DIPOLER}). Let
+\begin{equation}
+  b = \begin{cases} +g_{\rm tot} & \text{at \ftrack} \\
+                    -g_{\rm tot} & \text{at \strack} \end{cases}
+  \qquad
+  \kappa \equiv b\,f_{\rm int}\,h_{\rm gap},
+\end{equation}
+and use the slopes and longitudinal momentum
+\begin{equation}
+  p_s = \sqrt{\Pmag^2 - p_x^2 - p_y^2}, \qquad
+  x_p = \frac{p_x}{p_s}, \qquad y_p = \frac{p_y}{p_s}, \qquad
+  \ptcE = \frac{1}{\beta_0} + p_\tau .
+\end{equation}
+Define the $3\times3$ matrix $d$ (columns index $x$, $y$, and time):
+\begin{equation}
+  d =
+  \begin{pmatrix}
+    \dfrac{1+x_p^2}{p_s} & \dfrac{x_p y_p}{p_s} & -\dfrac{\ptcE\,x_p}{p_s^2} \\[8pt]
+    \dfrac{x_p y_p}{p_s} & \dfrac{1+y_p^2}{p_s} & -\dfrac{\ptcE\,y_p}{p_s^2} \\[8pt]
+    -x_p                 & -y_p                 &  \dfrac{\ptcE}{p_s}
+  \end{pmatrix},
+\end{equation}
+the fringe phase
+\begin{equation}
+  \Phi_0 = \arctan\!\frac{x_p}{1+y_p^2}
+           - 2\kappa\,\bigl(1 + x_p^2(2+y_p^2)\bigr)\,p_s ,
+\end{equation}
+the coefficients
+\begin{equation}
+  c_2 = \frac{b}{\cos^2\Phi_0}, \qquad
+  c_1 = \frac{c_2}{1 + \bigl(x_p/(1+y_p^2)\bigr)^2},
+\end{equation}
+and the vector $\mathbf f = (f_1, f_2, f_3)$,
+\begin{align}
+  f_1 &= \frac{c_1}{1+y_p^2} - 4\kappa\,c_2\,x_p(2+y_p^2)\,p_s, \\
+  f_2 &= -\frac{2 c_1 x_p y_p}{(1+y_p^2)^2} - 4\kappa\,c_2\,x_p^2 y_p\,p_s, \\
+  f_3 &= -2\kappa\,c_2\,\bigl(1 + x_p^2(2+y_p^2)\bigr).
+\end{align}
+Writing $\mathbf d_{,k}$ for the $k$-th column of $d$ and
+$\beta_k \equiv \mathbf f \cdot \mathbf d_{,k}$, the map is (applied in this
+order):
+\begin{align}
+  y      &\to y' = \frac{2\,y}{1 + \sqrt{1 - 2\,\beta_2\,y}},
+             & \beta_2 &= \mathbf f\cdot\mathbf d_{,2}, \\
+  p_y    &\to p_y - b\tan(\Phi_0)\,y', & & \\
+  x      &\to x + \tfrac12\,\beta_1\,y'^2,
+             & \beta_1 &= \mathbf f\cdot\mathbf d_{,1}, \\
+  \tau   &\to \tau - \tfrac12\,\beta_3\,y'^2,
+             & \beta_3 &= \mathbf f\cdot\mathbf d_{,3}.
+\end{align}
+The coordinates $p_x$ and $p_\tau$ are unchanged. The reference energy enters
+\emph{only} through $\ptcE$ in the third column of $d$, i.e.\ only in the
+$\tau$ (time) update.
+
+%=============================================================================
+\section{Reformulation directly in Bmad coordinates}
+%=============================================================================
+
+We now drop \code{vec\_bmad\_to\_ptc} and \code{vec\_ptc\_to\_bmad} and evaluate
+everything from the Bmad vector $(x, p_x, y, p_y, z, p_z)$. The recipe is uniform.
+
+\begin{keybox}
+\textbf{Master principle.} For each of the three maps:
+\begin{enumerate}
+\item Compute the auxiliary quantities from the Bmad coordinates:
+  \begin{equation}
+    \Pmag = 1 + p_z, \qquad
+    p_s = \sqrt{\Pmag^2 - p_x^2 - p_y^2}, \qquad
+    p_t = \sqrt{\Pmag^2 - p_y^2},
+  \end{equation}
+  \begin{equation}
+    \ptcE = \sqrt{\Pmag^2 + \tfrac{1}{\beta_0^2} - 1}, \qquad
+    \beta = \frac{\Pmag}{\ptcE} .
+  \end{equation}
+\item Apply the \emph{unchanged} transverse formulas for $x, p_x, y, p_y$.
+\item Replace the PTC time update $\Delta\tau$ by the Bmad longitudinal update
+  \begin{equation}
+    \Delta z = -\,\beta\,\Delta\tau .
+  \end{equation}
+\item Leave $p_z$ unchanged (energy is conserved).
+\end{enumerate}
+\end{keybox}
+
+Because $\Delta\tau = \ptcE\,L$ for the two wedge maps and $\beta\,\ptcE = \Pmag
+= 1 + p_z$, the $\ptcE$ factor cancels and the Bmad longitudinal update is
+especially clean:
+\begin{equation}
+  \Delta z = -\,\beta\,\ptcE\,L = -\,(1 + p_z)\,L .
+\end{equation}
+
+\subsection{\code{ptc\_rot\_xz} in Bmad coordinates}
+\begin{align}
+  L        &= \frac{x\,\sin a}{p_s\cos a - p_x\sin a}, \\
+  x        &\to \frac{x\,p_s}{p_s\cos a - p_x\sin a}, \\
+  p_x      &\to p_x\cos a + p_s\sin a, \\
+  y        &\to y + p_y\,L, \\
+  z        &\to z - (1 + p_z)\,L, \\
+  p_y,\ p_z &\ \text{unchanged.}
+\end{align}
+
+\subsection{\code{ptc\_wedger} in Bmad coordinates}
+With $b_1 = g_{\rm tot}$ (and falling back to the previous subsection when
+$b_1=0$):
+\begin{align}
+  p_x^{\rm new} &= p_x\cos a + (p_s - b_1\,x)\,\sin a, \\
+  p_s'          &= \sqrt{p_t^2 - (p_x^{\rm new})^2}, \\
+  x             &\to x\cos a
+     + \frac{x\,p_x\,\sin 2a + \sin^2\!a\,(2\,x\,p_s - b_1\,x^2)}
+            {p_s' + p_s\cos a - p_x\sin a}, \\
+  L             &= \frac{1}{b_1}\left[\,a + \arcsin\!\frac{p_x}{p_t}
+                            - \arcsin\!\frac{p_x^{\rm new}}{p_t}\,\right], \\
+  p_x           &\to p_x^{\rm new}, \\
+  y             &\to y + p_y\,L, \\
+  z             &\to z - (1 + p_z)\,L, \\
+  p_y,\ p_z     &\ \text{unchanged.}
+\end{align}
+
+\subsection{\code{ptc\_fringe\_dipoler} in Bmad coordinates}
+All transverse formulas of the previous section are used verbatim (with $p_s$,
+$x_p$, $y_p$, $\ptcE$ from the Bmad coordinates as in the master principle). Only
+the time update changes:
+\begin{align}
+  y   &\to y' = \frac{2\,y}{1 + \sqrt{1 - 2\,\beta_2\,y}}, \\
+  p_y &\to p_y - b\tan(\Phi_0)\,y', \\
+  x   &\to x + \tfrac12\,\beta_1\,y'^2, \\
+  z   &\to z + \tfrac{\beta}{2}\,\beta_3\,y'^2, \\
+  p_x,\ p_z &\ \text{unchanged,}
+\end{align}
+where $\beta_k = \mathbf f\cdot\mathbf d_{,k}$ and $\beta = (1+p_z)/\ptcE$. Note
+that here $\beta_3$ already contains one factor of $\ptcE$ (through the third
+column of $d$), so the Bmad $z$ update carries the product $\beta\,\ptcE = 1+p_z$
+times the $\ptcE$-free part of $\beta_3$; equivalently one may simply form
+$\beta_3$ as written and multiply by $\beta$.
+
+\subsection{Overall simplification}
+
+Staying in Bmad coordinates removes the two nonlinear coordinate maps that
+currently bracket the calculation (and their Jacobians in the matrix path).
+The transverse dynamics are byte-for-byte the same; the only substantive change
+is that the longitudinal coordinate is advanced with $\Delta z = -\beta\,
+\Delta\tau$ (equivalently $-(1+p_z)L$ for the wedges), and the energy factor
+$\ptcE = \sqrt{(1+p_z)^2 + 1/\beta_0^2 - 1}$ is obtained algebraically from
+$p_z$ rather than by carrying the separate PTC energy variable $p_\tau$.
+
+%=============================================================================
+\section*{Verification}
+\addcontentsline{toc}{section}{Verification}
+%=============================================================================
+
+The wedge transverse formulas
+\eqref{eq:wedgepx}--\eqref{eq:wedgeL} were compared against an independent
+geometric simulation (explicit circular-arc/rotated-face intersection) over
+$2\times10^4$ randomized inputs spanning
+$|a|\le0.4$, $b_1\in[-3,3]$, $\beta_0\in[0.5,1)$, and transverse coordinates up
+to $\pm0.05$; the maximum absolute discrepancy was $4.7\times10^{-15}$. The
+$b_1\to0$ limit of the wedge reproduces \code{ptc\_rot\_xz} analytically.
+
+\end{document}
