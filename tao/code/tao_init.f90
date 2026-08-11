@@ -37,8 +37,8 @@ real(rp) value, sigma(6,6), merit
 real(rp), pointer :: ptr_attrib
 
 character(100) line, line2
-character(200) plot_file, data_file, var_file, file_name, startup_file, hook_init_file
-character(200) building_wall_file, beam_file, why_invalid, init_tao_file, str, files(20)
+character(400) plot_file, data_file, var_file, file_name, startup_file, hook_init_file
+character(400) building_wall_file, beam_file, why_invalid, init_tao_file, str, files(20)
 character(40) name1, name2
 character(16) :: r_name = 'tao_init'
 character(16) init_name
@@ -591,7 +591,7 @@ end subroutine deallocate_everything
 subroutine set_this_file_name (file_name, default_name, arg_name, hook_name)
 
 character(*) file_name, default_name, arg_name, hook_name
-character(200) name
+character(400) name
 
 ! Order of preference. Highest used first:
 !   1) Name has been set on the command line.

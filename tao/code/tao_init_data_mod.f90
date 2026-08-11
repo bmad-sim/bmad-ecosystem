@@ -42,7 +42,7 @@ integer :: n_d2_data(lbound(s%u, 1):ubound(s%u, 1)), n_data(lbound(s%u, 1):uboun
 
 character(*) data_file
 character(40) :: r_name = 'tao_init_data'
-character(200) file_name
+character(400) file_name
 character(40) name,  universe, d_typ, use_same_lat_eles_as
 character(40) default_merit_type, default_data_source, def_merit_type, def_data_source
 character(200) search_for_lat_eles

@@ -22,7 +22,7 @@ real(rp) x_mid, z_mid, dx, dz, a, a2, theta, x_offset, z_offset
 integer i, j, iu, ios, n_wall
 
 character(*) wall_file
-character(200) complete_file_name
+character(400) complete_file_name
 character(40) name
 character(16) constraint
 character(*), parameter :: r_name = 'tao_init_building_wall'
