@@ -11,9 +11,6 @@ use longitudinal_profile_mod
 
 implicit none
 
-procedure(track1_custom_def) :: track1_custom
-procedure(make_mat6_custom_def) :: make_mat6_custom
-
 type ibs_data_struct
   real(rp) current
   real(rp) a_emittance
@@ -108,9 +105,6 @@ namelist /parameters/ &
                      ! emittance.dat is populated with.  See set_t6_eta for details.
   eta_set, &         ! Sets vertical dispersion at every element to this fixed value.
   etap_set           ! Sets vertical dispersion prime at every element to this fixes value.
-
-track1_custom_ptr => track1_custom
-make_mat6_custom_ptr => make_mat6_custom
 
 call load_parameters_file(in_file)
 if(do_pwd) then
