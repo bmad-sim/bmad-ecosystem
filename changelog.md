@@ -10,6 +10,11 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-08-11 Fixed: Reference energy calculation for an lcavity whose field overlaps other elements.
+  In the overlap regions the super_slave is an em_field element and such a slave was given the full
+  energy gain of the lcavity lord instead of its share. This resulted in a wrong reference energy
+  and in "Stale bookkeeping status flags detected" errors.
+
 - 2026-08-10 Fixed: Radiation integrals no longer depend upon how a magnet is sliced. Two bugs in
   the integration were fixed: The non-cached calculation evaluated the integrands 1 mm inside the
   element at the downstream end, and the cached calculation used a set of cache points that did not
