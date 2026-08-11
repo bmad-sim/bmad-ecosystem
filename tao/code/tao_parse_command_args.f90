@@ -22,7 +22,7 @@ implicit none
 type (tao_common_struct) com_saved
 
 character(*), optional :: cmd_line
-character(200) :: cmd_words(12)
+character(n_file_max_len) :: cmd_words(42)
 character(80) arg0, arg1, base, switch
 character(*), parameter :: r_name = 'tao_parse_command_args'
 
@@ -58,7 +58,7 @@ if (associated(tao_hook_parse_command_args_ptr)) call tao_hook_parse_command_arg
 if (.not. s%init%parse_cmd_args) return
 
 if (present(cmd_line)) then
-  call tao_cmd_split(cmd_line, 12, cmd_words, .false., error)
+  call tao_cmd_split(cmd_line, size(cmd_words)-1, cmd_words, .false., error)
   if (error) return
   n_arg = size(cmd_words)
   if (cmd_words(1) == '') return
