@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 361
+integer, parameter :: bmad_inc_version$ = 362
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -54,7 +54,7 @@ integer, parameter :: taylor_offset$ = 1000000000     ! Taylor term index offset
 
 ! See the documentation in the Bmad manual for more details.
 
-type expression_atom_struct
+type expression_atom_struct   ! Old non-tree struct still used by Bmad. 
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. To convert to string use: expression_op_name
   real(rp) :: value = 0
@@ -66,6 +66,7 @@ type expression_tree_struct
   character(60) :: name = ''
   integer :: type = 0   ! plus$, minum$, sin$, cos$, etc. 
   real(rp) :: value = 0
+  logical :: reverse_polish = .true.         ! Can the children node(:) array be in reverse Polish order?
   type (expression_tree_struct), pointer :: node(:) => null()  ! Child nodes. Note: Pointer used here since Ifort does not support allocatable.
 end type
 
@@ -624,7 +625,7 @@ end type
 
 type wake_sr_mode_struct    ! Psudo-mode Short-range wake struct 
   real(rp) :: amp = 0       ! Amplitude
-  real(rp) :: damp = 0      ! Dampling factor.
+  real(rp) :: damp = 0      ! Dampling factor (1/m).
   real(rp) :: k = 0         ! k factor
   real(rp) :: phi = 0       ! Phase in radians/2pi
   real(rp) :: b_sin = 0     ! non-skew (x) sin-like component of the wake
@@ -1508,19 +1509,19 @@ type ele_struct
   integer :: aperture_at = exit_end$              ! Aperture location: entrance_end$, ...
   integer :: aperture_type = rectangular$         ! rectangular$, elliptical$, auto_aperture$, ...
   integer :: ref_species = not_set$               ! Reference species
-  integer :: orientation = 1                 ! -1 -> Element is longitudinally reversed. +1 -> Normal.
-  logical :: symplectify = .false.           ! Symplectify mat6 matrices.
-  logical :: mode_flip = .false.             ! Have the normal modes traded places?
-  logical :: multipoles_on = .true.          ! For turning multipoles on/off
-  logical :: scale_multipoles = .true.       ! Are ab_multipoles within other elements (EG: quads, etc.) 
-                                             !        scaled by the strength of the element?
+  integer :: orientation = 1                      ! -1 -> Element is longitudinally reversed. +1 -> Normal.
+  logical :: symplectify = .false.                ! Symplectify mat6 matrices.
+  logical :: mode_flip = .false.                  ! Have the normal modes traded places?
+  logical :: multipoles_on = .true.               ! For turning multipoles on/off
+  logical :: scale_multipoles = .true.            ! Are ab_multipoles within other elements (EG: quads, etc.) 
+                                                  !        scaled by the strength of the element?
   logical :: taylor_map_includes_offsets = .true. ! Taylor map calculated with element misalignments?
-  logical :: field_master = .false.          ! Calculate strength from the field value?
-  logical :: is_on = .true.                  ! For turning element on/off.
-  logical :: logic = .false.                 ! For general use. Not used by Bmad (except during lattice parsing).
-  logical :: bmad_logic = .false.            ! For Bmad internal use only.
-  logical :: select = .false.                ! For Bmad internal use only.
-  logical :: offset_moves_aperture = .false. ! element offsets affects aperture?
+  logical :: field_master = .false.               ! Calculate strength from the field value?
+  logical :: is_on = .true.                       ! For turning element on/off.
+  logical :: logic = .false.                      ! For general use. Not used by Bmad (except during lattice parsing).
+  logical :: bmad_logic = .false.                 ! For Bmad internal use only.
+  logical :: select = .false.                     ! For Bmad internal use only.
+  logical :: offset_moves_aperture = .false.      ! element offsets affects aperture?
 contains
   procedure next_in_branch
   !! final :: ele_finalizer
@@ -1630,6 +1631,7 @@ type branch_struct
   type (coord_struct) :: particle_start = coord_struct() 
   type (wall3d_struct), pointer :: wall3d(:) => null()
   type (ptc_branch1_struct) ptc              ! Pointer to layout. Note: ptc info not transferred with "branch1 = branch2" set.
+  logical :: b_logic = .false.          ! For Bmad internal use only.
 end type
 
 integer, parameter :: opal$ = 1, impactt$ = 2

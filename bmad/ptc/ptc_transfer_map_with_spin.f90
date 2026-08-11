@@ -1,5 +1,5 @@
 !+
-! Subroutine ptc_transfer_map_with_spin (branch, t_map, s_map, orb0, err_flag, ix1, ix2, one_turn, unit_start)
+! Subroutine ptc_transfer_map_with_spin (branch, t_map_init, s_map, orb0, err_flag, ix1, ix2, one_turn, unit_start)
 !
 ! Subroutine to calculate the transfer map between two elements.
 ! To calculate just the first order transfer matrices see the routine:
@@ -23,7 +23,7 @@
 !
 ! Input:
 !   branch     -- branch_struct: Lattice branch used in the calculation.
-!   t_map(6)   -- taylor_struct: Initial orbital map (used when unit_start = False)
+!   t_map_init(6)   -- taylor_struct: Initial orbital map (used when unit_start = False)
 !   s_map(3,3) -- taylor_struct: Initial spin map (used when unit_start = False)
 !   orb0       -- coord_struct: Initial orbit around which the map is made.
 !   ix1        -- integer, optional: Element start index for the calculation.
@@ -33,17 +33,17 @@
 !   one_turn   -- logical, optional: If present and True, and if ix1 = ix2,
 !                   and the lattice is circular, then construct the one-turn
 !                   map from ix1 back to ix1. Default = False.
-!   unit_start -- logical, optional: If present and False then t_map will be
+!   unit_start -- logical, optional: If present and False then t_map_init will be
 !                   used as the starting map instead of the unit map.
 !                   Default = True
 !
 ! Output:
-!   t_map(6)   -- Taylor_struct: Orbital transfer map.
+!   t_map_init(6)   -- Taylor_struct: Orbital transfer map.
 !   s_map(4)   -- Taylor_struct: Quaternion spin transfer map.
 !   err_flag   -- logical: Set True if problem like number overflow, etc.
 !-
 
-subroutine ptc_transfer_map_with_spin (branch, t_map, s_map, orb0, err_flag, ix1, ix2, one_turn, unit_start)
+subroutine ptc_transfer_map_with_spin (branch, t_map_init, s_map, orb0, err_flag, ix1, ix2, one_turn, unit_start)
 
 use ptc_layout_mod, dummy => ptc_transfer_map_with_spin 
 use pointer_lattice
@@ -51,7 +51,7 @@ use pointer_lattice
 implicit none
 
 type (branch_struct) :: branch
-type (taylor_struct) :: t_map(6), s_map(4)
+type (taylor_struct) :: t_map_init(6), s_map(4)
 type (ele_struct), pointer :: ele
 type (coord_struct) orb0
 type (internal_state) ptc_state
@@ -82,7 +82,7 @@ call alloc (ptc_c_map)
 call alloc (ptc_probe8)
 call alloc (y0)
 
-t_map(:)%ref = orb0%vec
+t_map_init(:)%ref = orb0%vec
 x = orb0%vec
 
 ptc_state = ptc_private%base_state + SPIN0
@@ -112,7 +112,7 @@ if (any(x /= 0)) then
   call kill(y2)
 endif
 
-t_map = y0
+t_map_init = y0
 
 do i = 1, 4
   s_map(i) = ptc_probe8%q%x(i-1)%t

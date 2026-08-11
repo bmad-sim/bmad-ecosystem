@@ -117,11 +117,13 @@ type (coord_struct), pointer :: particle
 type (wake_lr_mode_struct), pointer :: mode
 
 real(rp) t0, dt, dt_phase, kx0, ky0, ff0, w_norm, w_skew
-real(rp) omega, f_exp, ff, c_dt, s_dt, kx, ky, vec(6)
+real(rp) omega, f_damp, f_exp, ff, c_dt, s_dt, kx, ky, vec(6)
 real(rp) c_a, s_a, kxx, exp_shift, a_sin, b_sin, t_cut
 real(rp) da_sin, da_cos, db_sin, db_cos
 
 integer n_mode, i, j, k, i0, n
+
+character(*), parameter :: r_name = 'track1_lr_wake'
 
 ! Check to see if we need to do any calc
 
@@ -147,9 +149,9 @@ do i = 1, size(ele%wake%lr%mode)
   mode => ele%wake%lr%mode(i)
 
   omega = twopi * mode%freq
-  f_exp = mode%damp
+  f_damp = mode%damp
   dt = ele%wake%lr%time_scale * (t0 - ele%wake%lr%t_ref)
-  exp_shift = exp(-dt * f_exp)
+  exp_shift = exp(-dt * f_damp)
 
   mode%b_sin = exp_shift * mode%b_sin
   mode%b_cos = exp_shift * mode%b_cos
@@ -178,7 +180,7 @@ do i = 1, size(ele%wake%lr%mode)
   mode => ele%wake%lr%mode(i)
 
   omega = twopi * mode%freq
-  f_exp = mode%damp
+  f_damp = mode%damp
 
   if (mode%polarized) then
     c_a = cos(twopi*mode%angle)
@@ -195,6 +197,15 @@ do i = 1, size(ele%wake%lr%mode)
     ff0 = ele%wake%lr%amp_scale * abs(particle%charge) * mode%r_over_q
 
     dt = ele%wake%lr%time_scale * (particle%t - ele%wake%lr%t_ref)
+    f_exp = dt * f_damp
+    if (abs(f_exp) > 100) then
+      call out_io(s_error$, r_name, 'LR wake damping factor times the bunch width is large enough to cause floating point overflow.', &
+                                    'For element: ' // ele_full_name(ele) // ', Mode # ' // int_str(i) // ', damping factor: ' // real_str(f_damp), &
+                                    'All particles will be marked as lost.')
+      bunch%particle%state = lost$
+      return
+    endif
+
     dt_phase = dt
     if (mode%freq_in < 0 .and. .not. bmad_com%absolute_time_tracking) then
       dt_phase = dt_phase + ele%value(phi0_multipass$) / omega ! Fundamental mode phase shift
@@ -226,12 +237,12 @@ do i = 1, size(ele%wake%lr%mode)
 
     ! Longitudinal non-self-wake kick
 
-    ff = exp(-dt * f_exp) / ele%value(p0c$)
+    ff = exp(-f_exp) / ele%value(p0c$)
     c_dt = cos (dt_phase * omega + twopi * mode%phi)
     s_dt = sin (dt_phase * omega + twopi * mode%phi)
 
-    w_norm = (mode%b_sin * ff * (-f_exp * s_dt + omega * c_dt) + mode%b_cos * ff * (f_exp * c_dt + omega * s_dt)) / c_light
-    w_skew = (mode%a_sin * ff * (-f_exp * s_dt + omega * c_dt) + mode%a_cos * ff * (f_exp * c_dt + omega * s_dt)) / c_light
+    w_norm = (mode%b_sin * ff * (-f_damp * s_dt + omega * c_dt) + mode%b_cos * ff * (f_damp * c_dt + omega * s_dt)) / c_light
+    w_skew = (mode%a_sin * ff * (-f_damp * s_dt + omega * c_dt) + mode%a_cos * ff * (f_damp * c_dt + omega * s_dt)) / c_light
 
     particle%vec(6) = particle%vec(6) + w_norm * kx0 + w_skew * ky0
 
@@ -249,7 +260,7 @@ do i = 1, size(ele%wake%lr%mode)
 
     ! Update wake amplitudes
 
-    ff = ff0 * c_light * exp(dt * f_exp) 
+    ff = ff0 * c_light * exp(f_exp) 
 
     if (mode%polarized) then
       kx = ff * (kx0 * c_a * c_a + ky0 * s_a * c_a)

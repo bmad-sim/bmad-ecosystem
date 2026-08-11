@@ -19,15 +19,16 @@ implicit none
 
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele, lord, slave, slave0
-type (branch_struct), pointer :: branch
+type (branch_struct), pointer :: branch, b2
 
 integer i, j, n, ic, icon, ix2
-real(8) ss, s_end
-logical s_shift
+real(rp) ss, tot_len, beta, time
+logical s_shift, len_change
 
 ! Just go through all the elements and add up the lengths.
 
 s_shift = .false.
+len_change = .false.
 
 do i = 0, ubound(lat%branch, 1)
   branch => lat%branch(i)
@@ -53,7 +54,9 @@ do i = 0, ubound(lat%branch, 1)
     if (ele%bookkeeping_state%s_position == stale$) ele%bookkeeping_state%s_position = ok$
   enddo
 
-  branch%param%total_length = ss - branch%ele(0)%s
+  tot_len = ss - branch%ele(0)%s
+  len_change = (abs(branch%param%total_length - tot_len) > 1d-15 * tot_len)
+  branch%param%total_length = tot_len
   branch%param%bookkeeping_state%s_position = ok$
 enddo
 
@@ -91,5 +94,31 @@ do n = lat%n_ele_track+1, lat%n_ele_max
     lord%s = 0
   end select
 enddo
+
+!
+
+if (len_change) then
+  do i = 0, ubound(lat%branch, 1)
+    branch => lat%branch(i)
+    do n = 0, branch%n_ele_max
+      ele => branch%ele(n)
+      if (ele%value(e_tot$) == 0) cycle
+                          
+      select case (ele%key)
+      case (crab_cavity$, rfcavity$, rf_bend$)
+        beta = ele%value(p0c$) / ele%value(e_tot$)
+        b2 => pointer_to_branch(ele)
+        time = branch%param%total_length / (c_light * beta)
+        if (time == 0) cycle
+        if (is_true(ele%value(harmon_master$))) then
+          ele%value(rf_frequency$) = ele%value(harmon$) / time
+        else
+          ele%value(harmon$) = ele%value(rf_frequency$) * time
+        endif
+      end select
+
+    enddo
+  enddo
+endif
 
 end subroutine

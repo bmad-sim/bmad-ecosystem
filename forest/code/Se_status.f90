@@ -90,19 +90,20 @@ module S_status
   !  !!  include "a_def_arbitrary.inc"
   !  !  include "a_def_user2.inc"
 
-  TYPE(INTERNAL_STATE),PARAMETER::DEFAULT0=INTERNAL_STATE   (0,f,f,f,f,f,f,f,f,f,f,f,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::TOTALPATH0=INTERNAL_STATE (1,f,f,f,f,f,f,f,f,f,f,f,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::TIME0=INTERNAL_STATE      (0,t,f,f,f,f,f,f,f,f,f,f,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::RADIATION0=INTERNAL_STATE (0,f,t,f,f,f,f,f,f,f,f,f,f,t)
-  TYPE(INTERNAL_STATE),PARAMETER::NOCAVITY0=INTERNAL_STATE  (0,f,f,t,f,f,f,f,f,f,f,f,f,t)
-  TYPE(INTERNAL_STATE),PARAMETER::FRINGE0=INTERNAL_STATE    (0,f,f,f,t,f,f,f,f,f,f,f,f,t)
-  TYPE(INTERNAL_STATE),PARAMETER::STOCHASTIC0=INTERNAL_STATE(0,f,f,f,f,t,f,f,f,f,f,f,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::ENVELOPE0=INTERNAL_STATE  (0,f,f,f,f,f,t,f,f,f,f,f,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::ONLY_4d0=INTERNAL_STATE   (0,f,f,t,f,f,f,f,t,f,f,f,f,t)
-  TYPE(INTERNAL_STATE),PARAMETER::DELTA0=INTERNAL_STATE     (0,f,f,t,f,f,f,f,t,t,f,f,f,t)
-  TYPE(INTERNAL_STATE),PARAMETER::SPIN0=INTERNAL_STATE      (0,f,f,f,f,f,f,f,f,f,t,f,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::MODULATION0=INTERNAL_STATE(0,f,f,f,f,f,f,f,f,f,f,t,f,F)
-  TYPE(INTERNAL_STATE),PARAMETER::only_2d0   =INTERNAL_STATE(0,f,f,t,f,f,f,f,f,f,f,f,t,t)
+  TYPE(INTERNAL_STATE),PARAMETER::DEFAULT0=INTERNAL_STATE   (0,f,f,f,f,f,f,f,f,f,f,f,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::TOTALPATH0=INTERNAL_STATE (1,f,f,f,f,f,f,f,f,f,f,f,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::TIME0=INTERNAL_STATE      (0,t,f,f,f,f,f,f,f,f,f,f,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::RADIATION0=INTERNAL_STATE (0,f,t,f,f,f,f,f,f,f,f,f,f,0) !t)
+  TYPE(INTERNAL_STATE),PARAMETER::NOCAVITY0=INTERNAL_STATE  (0,f,f,t,f,f,f,f,f,f,f,f,f,0) !t)
+  TYPE(INTERNAL_STATE),PARAMETER::FRINGE0=INTERNAL_STATE    (0,f,f,f,t,f,f,f,f,f,f,f,f,0) !t)
+  TYPE(INTERNAL_STATE),PARAMETER::STOCHASTIC0=INTERNAL_STATE(0,f,f,f,f,t,f,f,f,f,f,f,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::ENVELOPE0=INTERNAL_STATE  (0,f,f,f,f,f,t,f,f,f,f,f,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::ONLY_4d0=INTERNAL_STATE   (0,f,f,t,f,f,f,f,t,f,f,f,f,0) !t)
+  TYPE(INTERNAL_STATE),PARAMETER::DELTA0=INTERNAL_STATE     (0,f,f,t,f,f,f,f,t,t,f,f,f,0) !t)
+  TYPE(INTERNAL_STATE),PARAMETER::SPIN0=INTERNAL_STATE      (0,f,f,f,f,f,f,f,f,f,t,f,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::MODULATION0=INTERNAL_STATE(0,f,f,f,f,f,f,f,f,f,f,t,f,0) !F)
+  TYPE(INTERNAL_STATE),PARAMETER::only_2d0   =INTERNAL_STATE(0,f,f,t,f,f,f,f,f,f,f,f,t,0) !t)
+  TYPE(INTERNAL_STATE),PARAMETER::DCCAV0   =INTERNAL_STATE     (0,f,f,t,f,f,f,f,f,f,f,f,f,1) !t)
 
   TYPE(INTERNAL_STATE), target ::  DEFAULT=DEFAULT0
   TYPE(INTERNAL_STATE), target ::  TOTALPATH=TOTALPATH0
@@ -117,6 +118,7 @@ module S_status
   TYPE(INTERNAL_STATE), target ::  SPIN=SPIN0
   TYPE(INTERNAL_STATE), target ::  MODULATION=MODULATION0
   TYPE(INTERNAL_STATE), target ::  only_2d=only_2d0
+  TYPE(INTERNAL_STATE), target ::  DCCAV=DCCAV0
    type(acceleration), pointer :: acc
    type(acceleration), pointer :: accFIRST
    type(fibre), pointer :: paccfirst
@@ -1139,6 +1141,7 @@ CONTAINS
     TOTALPATH=TOTALPATH0
     RADIATION=RADIATION0
     NOCAVITY=NOCAVITY0
+    DCCAV=DCCAV0
     ENVELOPE=ENVELOPE0
     FRINGE=FRINGE0
     TIME=TIME0
@@ -1200,6 +1203,7 @@ CONTAINS
     write(mf,'((1X,a20,1x,a5))' ) "      DELTA       = ", CONV(S%DELTA    )
     write(mf,'((1X,a20,1x,a5))' ) "      SPIN        = ", CONV(S%SPIN    )
     write(mf,'((1X,a20,1x,a5))' ) "      MODULATION  = ", CONV(S%MODULATION    )
+    write(mf, '((1X,a20,1x,i4))' )  "      DCCAV       = ", (S%DCCAV    )
     write(mf, '((1X,a20,1x,a5))' )"      RAMPING     = "  , CONV(ramp    )
     write(mf, '((1X,a20,1x,a5))' )"      ACCELERATE  = "  , CONV(ACCELERATE    )
     !    write(mf,'((1X,a20,1x,I4))' ) " SPIN DIMENSION   = ", S%SPIN_DIM
@@ -1252,6 +1256,8 @@ CONTAINS
 
     NOCAVITY=  NOCAVITY+DEFAULT
 
+    DCCAV=  DCCAV+DEFAULT
+
     STOCHASTIC=  STOCHASTIC+DEFAULT
 
     ENVELOPE=  ENVELOPE+DEFAULT
@@ -1284,6 +1290,7 @@ CONTAINS
     !   S2%EXACTMIS=       S1%EXACTMIS
     S2%RADIATION=     S1%RADIATION
     S2%NOCAVITY=    S1%NOCAVITY
+    S2%DCCAV=    S1%DCCAV
     S2%TIME=        S1%TIME
     S2%FRINGE=           S1%FRINGE
     S2%stochastic=           S1%stochastic
@@ -1294,7 +1301,7 @@ CONTAINS
     S2%DELTA=       S1%DELTA
     S2%SPIN=       S1%SPIN
     S2%MODULATION=       S1%MODULATION
-    S2%FULL_WAY=       S1%FULL_WAY
+  !  S2%FULL_WAY=       S1%FULL_WAY
     !    S2%spin_dim=       S1%spin_dim
   END SUBROUTINE EQUALt
 
@@ -1335,6 +1342,8 @@ CONTAINS
          S2=MODULATION0
     case(13)
          S2=only_2d0
+    case(14)
+         S2=DCCAV0
     case default
       S2%TOTALPATH = -1
     end select
@@ -1348,60 +1357,18 @@ CONTAINS
     TYPE (INTERNAL_STATE) add
     TYPE (INTERNAL_STATE), INTENT (IN) :: S1, S2
 
-    if(s2%totalpath/=0.and.s2%totalpath/=1) then 
-      add=s1
-      return
-    endif
-    if(s1%totalpath/=0.and.s1%totalpath/=1) then 
-      add=s1
-      return
-    endif
+!    if(s2%totalpath/=0.and.s2%totalpath/=1) then 
+!      add=s1
+!      return
+!    endif
+!    if(s1%totalpath/=0.and.s1%totalpath/=1) then 
+!      add=s1
+!      return
+!    endif
     add%TOTALPATH=0
     if((S1%TOTALPATH==1).OR.(S2%TOTALPATH==1)) add%TOTALPATH=1
 
-    !    add%EXACT    =       S1%EXACT.OR.S2%EXACT
-    !   add%EXACTMIS    =       (S1%EXACTMIS.OR.S2%EXACTMIS).and.(.not.sixtrack_compatible)
-    add%RADIATION  =  S1%RADIATION.OR.S2%RADIATION
-    add%NOCAVITY =  S1%NOCAVITY.OR.S2%NOCAVITY
-    add%TIME     =  S1%TIME.OR.S2%TIME
-    add%FRINGE   =       S1%FRINGE.OR.S2%FRINGE
-    add%stochastic   =       S1%stochastic.OR.S2%stochastic
-    add%ENVELOPE   =       S1%ENVELOPE.OR.S2%ENVELOPE
-    add%ONLY_2D  =       S1%ONLY_2D.OR.S2%ONLY_2D
-    add%ONLY_4D  =       S1%ONLY_4D.OR.S2%ONLY_4D
-    add%DELTA  =       S1%DELTA.OR.S2%DELTA
-    add%SPIN  =       S1%SPIN.OR.S2%SPIN
-    add%MODULATION  =       S1%MODULATION.OR.S2%MODULATION
-    add%PARA_IN  =       S1%PARA_IN.OR.S2%PARA_IN.or.ALWAYS_knobs
-    !    add%SPIN_DIM  =       MAX(S1%SPIN_DIM,S2%SPIN_DIM)
-    IF(add%stochastic) THEN
-       add%RADIATION=T
-    ENDIF
-  !  IF(add%ENVELOPE) THEN
-  !     add%radiation=T
-  !  ENDIF
-    IF(add%stochastic) THEN
-       add%radiation=T
-    ENDIF
-    IF(add%DELTA) THEN
-       add%ONLY_4D=T
-       add%NOCAVITY =  T
-    ENDIF
-    IF(add%ONLY_4D) THEN
-       add%TOTALPATH=  0
-       add%RADIATION  =  F
-       add%NOCAVITY =  T
-       add%stochastic   =  F
-       add%ENVELOPE   =  F
-    ENDIF
-    IF(add%ONLY_2D) THEN
-       add%TOTALPATH=  0
-       add%RADIATION  =  F
-       add%NOCAVITY =  T
-       add%stochastic   =  F
-       add%ENVELOPE   =  F
-    ENDIF
-
+ 
     add%RADIATION  =  S1%RADIATION.OR.S2%RADIATION
     add%NOCAVITY =  S1%NOCAVITY.OR.S2%NOCAVITY
     add%TIME     =  S1%TIME.OR.S2%TIME
@@ -1415,8 +1382,44 @@ CONTAINS
     add%MODULATION  =       S1%MODULATION.OR.S2%MODULATION
     add%PARA_IN  =       S1%PARA_IN.OR.S2%PARA_IN.or.ALWAYS_knobs
     if(add%only_4d.and.add%only_2d) add%only_4d=my_false
+    add%dccav =  max(S1%dccav,S2%dccav)
 
-    ADD%FULL_WAY=ADD%RADIATION.OR.ADD%stochastic.OR.ADD%ENVELOPE.OR.ADD%SPIN.OR.ADD%MODULATION
+
+    IF(add%stochastic) THEN
+       add%RADIATION=T
+    ENDIF
+  !  IF(add%ENVELOPE) THEN
+  !     add%radiation=T
+  !  ENDIF
+    IF(add%stochastic) THEN
+       add%radiation=T
+    ENDIF
+    IF(add%DELTA) THEN
+       add%ONLY_4D=T
+       add%NOCAVITY =  T
+       add%dccav =  f
+
+    ENDIF
+    IF(add%ONLY_4D) THEN
+       add%TOTALPATH=  0
+       add%RADIATION  =  F
+       add%NOCAVITY =  T
+       add%stochastic   =  F
+       add%ENVELOPE   =  F
+       add%dccav =  f
+
+    ENDIF
+    IF(add%ONLY_2D) THEN
+       add%TOTALPATH=  0
+       add%RADIATION  =  F
+       add%NOCAVITY =  T
+       add%stochastic   =  F
+       add%ENVELOPE   =  F
+       add%dccav =  f
+
+    ENDIF
+
+!    ADD%FULL_WAY=ADD%RADIATION.OR.ADD%stochastic.OR.ADD%ENVELOPE.OR.ADD%SPIN.OR.ADD%MODULATION
   END FUNCTION add
 
   FUNCTION sub( S1, S2 )
@@ -1425,14 +1428,14 @@ CONTAINS
     TYPE (INTERNAL_STATE), INTENT (IN) :: S1, S2
     logical(lp) dum1,dum2,tt1,tt2
 
-    if(s2%totalpath/=0.and.s2%totalpath/=1) then 
-      sub=s1
-      return
-    endif
-    if(s1%totalpath/=0.and.s1%totalpath/=1) then 
-      sub=s1
-      return
-    endif
+ !   if(s2%totalpath/=0.and.s2%totalpath/=1) then 
+ !     sub=s1
+!      return
+  !  endif
+ !   if(s1%totalpath/=0.and.s1%totalpath/=1) then 
+ !     sub=s1
+  !    return
+ !   endif
 
     tt1=s1%only_2d
     tt2=s2%only_2d
@@ -1457,6 +1460,8 @@ CONTAINS
     sub%SPIN  =       S1%SPIN.min.S2%SPIN
     sub%MODULATION  = S1%MODULATION.min.S2%MODULATION
     sub%PARA_IN  =       (S1%PARA_IN.MIN.S2%PARA_IN).or.ALWAYS_knobs
+    sub%dccav =  min(S1%dccav,S2%dccav)
+
     !    sub%SPIN_DIM  =       MAX(S1%SPIN_DIM,S2%SPIN_DIM)
     IF(sub%stochastic) THEN
        sub%RADIATION=T
@@ -1471,6 +1476,7 @@ CONTAINS
           sub%ONLY_4D=T
         endif
        sub%NOCAVITY =  T
+       sub%dccav =  f
     ENDIF
 
     IF(sub%ONLY_4D) THEN
@@ -1480,6 +1486,8 @@ CONTAINS
        sub%stochastic  =  F
        sub%NOCAVITY =  T
        sub%stochastic   =  F
+       sub%dccav =  f
+
     ENDIF
 
     IF(sub%ONLY_2D) THEN
@@ -1489,8 +1497,10 @@ CONTAINS
        sub%stochastic  =  F
        sub%NOCAVITY =  T
        sub%stochastic   =  F
+       sub%dccav =  f
+
     ENDIF
-    sub%FULL_WAY=sub%RADIATION.OR.sub%stochastic.OR.sub%ENVELOPE.OR.sub%SPIN.OR.sub%MODULATION
+!    sub%FULL_WAY=sub%RADIATION.OR.sub%stochastic.OR.sub%ENVELOPE.OR.sub%SPIN.OR.sub%MODULATION
   END FUNCTION sub
 
   FUNCTION PARA_REMA(S1)   ! UNARY +
@@ -1518,7 +1528,7 @@ CONTAINS
     use_complex_in_ptc=my_true
     call S_init(STATE,NO1,NP1,pack,ND2,NPARA,number_of_clocks)
    end subroutine init_all
-
+ ! status programming here.....
   subroutine S_init(STATE,NO1,NP1,pack,ND2,NPARA,number_of_clocks)
     !  subroutine S_init(STATE,NO1,NP1,PACKAGE,MAPINT,ND2,NPARA)
     implicit none
@@ -1530,7 +1540,7 @@ CONTAINS
     INTEGER  ND2l,NPARAl,n_acc,no1c,nv,i
     LOGICAL(lp) package
 
-     
+      
      do_damping=.false.
      do_spin=.false.
     if(state%radiation) do_damping=.true.
@@ -1580,7 +1590,7 @@ CONTAINS
  n_acc=0
     IF(STATE%modulation)  then
        doing_ac_modulation_in_ptc=.true.
-      n_acc=1
+      n_acc=1 
      !  ND1=ND1+1
      if(present(number_of_clocks)) n_acc=number_of_clocks 
         !1
@@ -1591,14 +1601,18 @@ CONTAINS
    ! endif
     !    write(6,*) NO1,ND1,NP1,NDEL,NDPT1
     !pause 678
-     
+     ndc_original=0
     CALL INIT(NO1,ND1,NP1+NDEL+2*n_acc,NDPT1,PACKAGE)
     nv=2*nd1+NP1+NDEL+2*n_acc
-
+   if(state%dccav/=0) then 
+      NDPT1=5 + ndpt_bmad  
+      ndc_original=1
+   endif
 
 
     ND2l=ND1*2+2*n_acc
     NPARAl=ND2l+NDEL
+    C_%ndc=>ndc_original
     C_%NPARA=NPARAl
     C_%ND2=ND2l
     C_%npara_fpp=NPARAl

@@ -43,7 +43,7 @@ module definition
   !  private xintex,dsta,sta,angle,rad,ps,rads,mx
   ! numerical differentiation by knobs
   logical(lp) :: knob_numerical=.false.
-  real(dp) ::  knob_eps(lnv)=1e-6_dp
+  real(dp) ::  knob_eps(lnv)=1e-6_dp,eps_ndc=0
   integer ::  knob_i =0
   INTEGER,PARAMETER::NMAX=22
   integer,private,parameter::n_max=10   ! sagan stuff
@@ -510,6 +510,7 @@ TYPE c_normal_form
  type(c_damap) n   !@1 transformation n (m=a n a^-1)
  type(c_damap) As  !@1  For Spin   (m = As a n a^-1 As^-1)
  logical :: unstable(NDIM2t/2) !,hyperbolic
+! real(dp) :: eps_ndc =  eps_ndc
 END TYPE c_normal_form
 !2BMAD  
 

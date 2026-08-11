@@ -10,6 +10,12 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-08-10 Fixed: Radiation integrals no longer depend upon how a magnet is sliced. Two bugs in
+  the integration were fixed: The non-cached calculation evaluated the integrands 1 mm inside the
+  element at the downstream end, and the cached calculation used a set of cache points that did not
+  line up with the points where the integrands are evaluated so that the interpolation between cache
+  points introduced an error that varied with the slicing.
+
 - 2024-05-06 Fixed Tao `cut` command orbit setting.
 
 - 2024-04-24 Removed: srdt_lsq_soln program since it is not supported and Tao has this functionality.

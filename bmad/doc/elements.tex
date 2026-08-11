@@ -1191,6 +1191,7 @@ The attributes specific to an \vn{crab_cavity} are
                               !   respect to the RF. phi0 = 0 is on crest.
   phi0_multipass  = <Real>    ! Phase (rad/2\(\pi\)) with respect to a multipass lord (\sref{c:multipass}).
   rf_frequency    = <Real>    ! RF frequency (Hz).
+  rf_wavelength               ! RF wavelength. Dependent parameter.
   harmon          = <Real>    ! Harmonic number
   harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent variable
                               !   with reference energy changes?
@@ -1229,6 +1230,13 @@ fields needed for spin tracking are:
   \int \! E_s &= 2 \, \pi \, \beta \, V \, \, f_\txt{rf} \, x \, \cos(2 \, \pi \, (f_\txt{rf} \, t + \phi_0))
 \end{align}
 where $\beta = v/c$ is the normalized speed of the particle.
+
+The relationship between \vn{harmon} and $f_\txt{rf}$ is 
+\vn{harmon} = $t_0 \cdot f_\txt{rf}$ where $t_0$ is the reference 1-turn transit time.
+
+The \vn{rf_wavelength} is computed to be $c / f_\txt{rf}$. Notice that this is independent of the
+velocity of the reference particle. In particular, It will only be true that \vn{harmon} times
+\vn{rf_wavelength} will equal the branch length if the reference particle travels at the speed of light.
 
 Note: Multipoles \ref{s:multip} do not vary in time. 
 
@@ -4793,6 +4801,7 @@ Attributes specific to an \vn{rf_bend} are:
 
   ! RF-like attributes:
   rf_frequency    = <Real>    ! Frequency
+  rf_wavelength               ! RF wavelength. Dependent parameter.
   harmon          = <Real>    ! Harmonic number
   harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
   phi0            = <Real>    ! Cavity phase (rad/2pi).
@@ -4807,6 +4816,13 @@ The geometry of the \vn{rf_bend} is the same as an \vn{sbend}. An \vn{rf_bend} h
 which is equivalent to \vn{e1} and \vn{e2} being zero for an \vn{sbend}. Since the fields are specified
 using a grid field map, there are no fringe attributes to set (for any elements where a grid field is
 used, it is always assumed that the fringe fields are included as part of the grid field).
+
+The relationship between \vn{harmon} and $f_\txt{rf}$ is 
+\vn{harmon} = $t_0 \cdot f_\txt{rf}$ where $t_0$ is the reference 1-turn transit time.
+
+The \vn{rf_wavelength} is computed to be $c / f_\txt{rf}$. Notice that this is independent of the
+velocity of the reference particle. In particular, It will only be true that \vn{harmon} times
+\vn{rf_wavelength} will equal the branch length if the reference particle travels at the speed of light.
 
 \newpage
 
@@ -4843,6 +4859,7 @@ See \sref{s:list.rfcavity} for a full list of element attributes along with a th
 \index{rf_frequency}\index{harmon}\index{voltage}\index{phi0}\index{phi0_multipass}
 Attributes specific to an \vn{rfcavity} are:
 \begin{example}
+  rf_wavelength               ! RF wavelength. Dependent parameter.
   rf_frequency    = <Real>    ! Frequency
   harmon          = <Real>    ! Harmonic number
   harmon_master   = <Logic>   ! Is harmon or rf_frequency the dependent var with ref energy changes?
@@ -4943,6 +4960,13 @@ Example:
 \begin{example}
   rf1: rfcav, l = 4.5, harmon = 1281, voltage = 5e6
 \end{example}
+
+The relationship between \vn{harmon} and $f_\txt{rf}$ is 
+\vn{harmon} = $t_0 \cdot f_\txt{rf}$ where $t_0$ is the reference 1-turn transit time.
+
+The \vn{rf_wavelength} is computed to be $c / f_\txt{rf}$. Notice that this is independent of the
+velocity of the reference particle. In particular, It will only be true that \vn{harmon} times
+\vn{rf_wavelength} will equal the branch length if the reference particle travels at the speed of light.
 
 Note: Multipoles \ref{s:multip} do not vary in time. 
 

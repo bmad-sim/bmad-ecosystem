@@ -2059,17 +2059,18 @@ end subroutine alloc_lie_ye
     IF(J==1) THEN
        EL%DELTA_E=X(5)
        CALL DRIFT(EL%h1,EL%h1,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
-       IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
-       if(el%xprime) then  
-        z=0.0_dp
-        hcurv=0.0_dp
-         if(el%p%dir==-1) z=el%p%lc
-         ve=0
-         call Abmad_TRANS(EL,Z,X,k,A,AD)
-         call gen_conv_to_xp(X,a,ve,EL%P%EXACT,EL%P%beta0,hcurv)
-       endif
+       IF(k%NOCAVITY.and.(.not.EL%always_on).and.(k%dccav==0)) RETURN
+ !      if(el%xprime) then  
+ !       z=0.0_dp
+ !        hcurv=0.0_dp
+ !         if(el%p%dir==-1) z=el%p%lc
+ !         ve=0
+ !         call Abmad_TRANS(EL,Z,X,k,A,AD)
+ !        call gen_conv_to_xp(X,a,ve,EL%P%EXACT,EL%P%beta0,hcurv)
+ !      endif
        IF(EL%THIN) THEN
-          X(5)=X(5)+el%ekick
+          if(k%dccav/=0) X(5)=X(5)+el%ekick
+          IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
           CALL CAVITY(EL,X,k)
           EL%DELTA_E=(X(5)-EL%DELTA_E)*EL%P%P0C
           RETURN
@@ -2084,14 +2085,14 @@ end subroutine alloc_lie_ye
           X(6)=X(6)-(el%CAVITY_TOTALPATH-k%TOTALPATH)*EL%P%LD
        endif
 
-       if(el%xprime) then  
-        z=el%p%lc
-        hcurv=0.0_dp
-         if(el%p%dir==-1) z=0.0_dp
-         ve=0
-         call Abmad_TRANS(EL,Z,X,k,A,AD)
-         call gen_conv_to_px(X,a,ve,EL%P%EXACT,EL%P%beta0,hcurv)
-       endif
+ !      if(el%xprime) then  
+ !       z=el%p%lc
+ !       hcurv=0.0_dp
+ !        if(el%p%dir==-1) z=0.0_dp
+ !        ve=0
+ !        call Abmad_TRANS(EL,Z,X,k,A,AD)
+ !        call gen_conv_to_px(X,a,ve,EL%P%EXACT,EL%P%beta0,hcurv)
+ !      endif
 
        CALL DRIFT(EL%h2,EL%h2,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
@@ -2114,10 +2115,11 @@ end subroutine alloc_lie_ye
        h=EL%h1
        CALL DRIFT(EL%h1,h,EL%P%beta0,k%TOTALPATH,EL%P%EXACT,k%TIME,X)
 
-       IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
+       IF(k%NOCAVITY.and.(.not.EL%always_on).and.(k%dccav==0)) RETURN
 
        IF(EL%THIN) THEN
-          X(5)=X(5)+el%ekick
+          if(k%dccav/=0) X(5)=X(5)+el%ekick
+          IF(k%NOCAVITY.and.(.not.EL%always_on)) RETURN
 
           CALL CAVITY(EL,X,k)
           EL%DELTA_E=(X(5)-EL%DELTA_E)*EL%P%P0C
@@ -25252,7 +25254,8 @@ endif
 
     p%x=x
     call kill(x)
-           call kill(av,3)
+          call kill(av,3)
+
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
   end subroutine radiate_2_probep
