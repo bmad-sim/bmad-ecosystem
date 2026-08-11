@@ -733,7 +733,7 @@ type tao_command_file_struct
   logical :: reset_at_end = .true.  ! Reset lattice_calc_on and plot_on at end of file?
   logical :: lattice_calc_save = .true.
   logical :: plot_save = .true.
-  character(200) :: multi_cmd = ''  ! Commands not yet executed when there are mulitple commands on a line
+  character(1000) :: multi_cmd = ''  ! Commands not yet executed when there are mulitple commands on a line
 end type
 
 character(20), parameter :: multi_cmd_file_name = '! Multi-Command'
