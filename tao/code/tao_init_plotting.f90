@@ -54,7 +54,7 @@ integer, parameter :: int_g$ = int_garbage$
 
 character(*) plot_file_in
 character(len(plot_file_in)) plot_file_array
-character(400) plot_file, full_file_name
+character(n_file_max_len) plot_file, full_file_name
 character(100) graph_name
 character(80) label
 character(40) str, old_name

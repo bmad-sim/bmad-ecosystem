@@ -34,7 +34,7 @@ integer n, iostat
 
 character(*) init_file
 character(*), parameter :: r_name = 'tao_init_global'
-character(400) file_name
+character(n_file_max_len) file_name
 character(40) name, universe
 
 character(100) line
@@ -166,10 +166,10 @@ integer n, iostat, ix_universe
 
 character(*) init_file
 character(40) track_start, track_end, beam_track_start, beam_track_end
-character(400) file_name
-character(400) beam0_file, beam_init_file_name, beam_position0_file    ! Very old style syntax
-character(400) beam_saved_at, beam_dump_at, beam_dump_file
-character(400) saved_at, dump_at, dump_file
+character(n_file_max_len) file_name
+character(n_file_max_len) beam0_file, beam_init_file_name, beam_position0_file    ! Very old style syntax
+character(n_file_max_len) beam_saved_at, beam_dump_at, beam_dump_file
+character(n_file_max_len) saved_at, dump_at, dump_file
 character(*), parameter :: r_name = 'tao_init_beams'
 
 logical err, always_reinit
@@ -426,7 +426,7 @@ real(rp) pz(100), a_emit, b_emit, ellipse_scale
 integer :: ix_universe, ios, iu, i, j, n_pz, n_da
 
 character(*) init_file
-character(400) file_name
+character(n_file_max_len) file_name
 character(*), parameter :: r_name = 'tao_init_dynamic_aperture'
 
 namelist / tao_dynamic_aperture / ix_universe, da_param, pz, a_emit, b_emit, ellipse_scale

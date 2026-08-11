@@ -22,7 +22,7 @@ implicit none
 type (tao_common_struct) com_saved
 
 character(*), optional :: cmd_line
-character(400) :: cmd_words(42)
+character(n_file_max_len) :: cmd_words(42)
 character(80) arg0, arg1, base, switch
 character(*), parameter :: r_name = 'tao_parse_command_args'
 

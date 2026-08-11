@@ -22,7 +22,7 @@ type (tao_command_file_struct), allocatable :: tmp_cmd_file(:)
 
 character(*) file_name
 character(*), optional :: cmd_arg(:)
-character(400) full_name, basename
+character(n_file_max_len) full_name, basename
 character(*), parameter :: r_name = 'tao_call_cmd'
 
 integer iu, nl, nl0, ix
