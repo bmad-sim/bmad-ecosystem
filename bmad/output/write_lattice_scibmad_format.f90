@@ -1090,17 +1090,88 @@ logical has_defexpr_var
 !
 
 do i = 1, size(stack)
-  select case (stack(i)%type)
-  case (constant$)      ! Something like "c_light"
+  select case (downcase(stack(i)%name))
+  case ('c_light', 'm_electron', 'm_proton', 'm_neutron', 'm_muon', 'm_pion_0', 'm_pion_charged', &
+        'm_deuteron', 'm_helion', 'h_planck')
     stack(i)%name = upcase(stack(i)%name)
-  case (variable$)
+  case ('pi', 'sqrt', 'log', 'exp', 'sin', 'cos', 'tan', 'cot', 'asin', 'acos', 'atan', 'sinh', 'cosh', &
+        'tanh', 'coth', 'asinh', 'acosh', 'atanh', 'acoth', 'abs', 'factorial', 'sign')
+    stack(i)%name = downcase(stack(i)%name)
+  case ('twopi')
+    stack(i)%name = '2*pi'
+  case ('fourpi')
+    stack(i)%name = '4*pi'
+  case ('e', 'e_log')
+    stack(i)%name = 'exp(1.0)'
+  case ('sqrt_2')
+    stack(i)%name = 'sqrt(2.0)'
+  case ('degrad')
+    stack(i)%name = '(180 / pi)'
+  case ('degrees', 'raddeg')
+    stack(i)%name = '(pi / 180)'
+  case ('r_e')
+    stack(i)%name = 'R_ELECTRON'
+  case ('r_p')
+    stack(i)%name = 'R_PROTON'
+  case ('h_bar_planck')
+    stack(i)%name = 'H_BAR'
+  case ('e_charge')
+    stack(i)%name = 'E_CHARGE'
+  case ('fine_struct_const')
+    stack(i)%name = 'FINE_STRUCTURE'
+  case ('emass')
+    stack(i)%name = '(1e-9 * M_ELECTRON)'
+  case ('pmass')
+    stack(i)%name = '(1e-9 * M_PROTON)'
+  case ('anom_moment_electron')
+    stack(i)%name = 'ANOMALY_ELECTRON'
+  case ('anom_moment_muon')
+    stack(i)%name = 'ANOMALY_MUON'
+  case ('anom_moment_proton')
+    stack(i)%name = 'gyromagnetic_anomaly(Species("proton"))'
+  case ('anom_moment_deuteron')
+    stack(i)%name = 'gyromagnetic_anomaly(Species("deuteron"))'
+
+  case ('atan2')
+    stack(i)%name = 'atan'
+  case ('modulo')
+    stack(i)%name = 'mod'
+  case ('sinc')
+    stack(i)%name = 'sincu'
+  case ('ran')
+    stack(i)%name = 'rand'
+  case ('ran_gauss')
+    stack(i)%name = 'randn'
+  case ('int')
+    stack(i)%name = 'trunc'
+  case ('nint')
+    stack(i)%name = 'round'
+  case ('floor')
+    stack(i)%name = 'floor'
+  case ('ceiling')
+    stack(i)%name = 'ceil'
+  case ('mass_of')
+    stack(i)%name = 'massof'
+  case ('charge_of')
+    stack(i)%name = 'chargeof'
+  case ('anomalous_modment_of')
+    stack(i)%name = ''
+  case ('species')
+    stack(i)%name = 'Species'
 
   case default
-    if (stack(i)%type > var_offset$ .and. stack(i)%type < var_offset$ + n_var_max$) then
-      stack(i)%name = trim(lord%name) // '_' // downcase(stack(i)%name)
-      call find_index(stack(i)%name, defexpr_nametab, ix_match)
-      if (ix_match >0) has_defexpr_var = .true.
-    endif
+    select case (stack(i)%type)
+    case (constant$)      ! Something like "c_light"
+      stack(i)%name = upcase(stack(i)%name)
+    case (variable$)
+
+    case default
+      if (stack(i)%type > var_offset$ .and. stack(i)%type < var_offset$ + n_var_max$) then
+        stack(i)%name = trim(lord%name) // '_' // downcase(stack(i)%name)
+        call find_index(stack(i)%name, defexpr_nametab, ix_match)
+        if (ix_match >0) has_defexpr_var = .true.
+      endif
+    end select
   end select
 enddo
 
