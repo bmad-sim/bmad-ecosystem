@@ -29,9 +29,9 @@ type (ele_struct), pointer :: ele
 type (coord_struct), allocatable :: orbit(:)
 
 character(*) namelist_file
-character(200) full_input_name
+character(n_file_max_len) full_input_name
 character(100) unique_name_suffix, suffix
-character(400) lattice_file_arg
+character(n_file_max_len) lattice_file_arg
 character(40) name
 character(*), parameter :: r_name = 'tao_init_lattice'
 

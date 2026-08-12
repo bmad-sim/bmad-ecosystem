@@ -94,7 +94,7 @@ end subroutine re_allocate_c_double
 
 function tao_c_init_tao (c_str) bind(c) result (err)
 character(c_char), intent (in) ::  c_str(*)
-character(1000) :: f_str
+character(10000) :: f_str
 integer :: errcode
 integer(c_int) :: err
 
@@ -127,7 +127,7 @@ end function tao_c_init_tao
 
 function tao_c_command (c_str) bind(c) result (err)
 character(c_char), intent (in) ::  c_str(*)
-character(1000) :: f_str
+character(10000) :: f_str
 integer :: errcode
 integer(c_int) :: err
 
