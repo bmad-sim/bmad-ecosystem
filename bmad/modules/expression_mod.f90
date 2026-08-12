@@ -1361,6 +1361,7 @@ if (ix_stack == size(stack)) then
 endif
 
 call pushit (stack%type, ix_stack, this_type)
+stack(ix_stack)%name = expression_op_name(this_type)
 
 end subroutine pushit_stack
 
@@ -1794,7 +1795,7 @@ if (logic_option(.false., polish)) then
     atom => stack(i)
     if (atom%type == end_stack$) exit
     if (atom%type >= 1 .and. atom%type <= size(expression_op_name)) then
-      str = trim(str) // ', ' // expression_op_name(atom%type)    
+      str = trim(str) // ', ' // atom%name    
     else
       str = trim(str) // ', ' // atom%name
     endif
@@ -1836,7 +1837,7 @@ else
       else
         if (expression_eval_level(s2(i2)%type) < expression_eval_level(atom%type)) s2_name(i2)%str = '(' // trim(s2_name(i2)%str) // ')'
       endif
-      s2_name(i2-1)%str = trim(s2_name(i2-1)%str) // trim(expression_op_name(atom%type)) // s2_name(i2)%str
+      s2_name(i2-1)%str = trim(s2_name(i2-1)%str) // trim(atom%name) // s2_name(i2)%str
       s2(i2-1)%type = atom%type
       i2 = i2 - 1
 
@@ -1859,21 +1860,21 @@ else
  
     case (ran$)
       i2 = i2 + 1
-      s2_name(i2)%str = trim(expression_op_name(atom%type)) // '()'
+      s2_name(i2)%str = trim(atom%name) // '()'
       s2%type = atom%type
 
     case (ran_gauss$)
       if (nint(stack(i-1)%value) == 0) then
         i2 = i2 + 1
-        s2_name(i2)%str = trim(expression_op_name(atom%type)) // '()'
+        s2_name(i2)%str = trim(atom%name) // '()'
       else
-        s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ')'
+        s2_name(i2)%str = trim(atom%name) // '(' // trim(s2_name(i2)%str) // ')'
       endif
       s2%type = atom%type
 
     case (atan2$, modulo$)
       i2 = i2 - 1
-      s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ',' // trim(s2_name(i2+1)%str) // ')'
+      s2_name(i2)%str = trim(atom%name) // '(' // trim(s2_name(i2)%str) // ',' // trim(s2_name(i2+1)%str) // ')'
       s2%type = atom%type
 
     case (factorial$)
@@ -1885,7 +1886,7 @@ else
       cycle
 
     case default ! Function
-      s2_name(i2)%str = trim(expression_op_name(atom%type)) // '(' // trim(s2_name(i2)%str) // ')'
+      s2_name(i2)%str = trim(atom%name) // '(' // trim(s2_name(i2)%str) // ')'
       s2%type = atom%type
 
     end select
