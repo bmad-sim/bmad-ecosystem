@@ -821,13 +821,13 @@ plots is illustrated in the Bmad manual in the \vn{Lattice Examples} chapter.
 
 %------------------------------------------------------------------
 
-There is a python script for making an intensity plot of the
-\vn{det_pix_out_file} in:
+There is a python script for plotting the \vn{det_pix_out_file} in:
 \begin{example}
   $ACC_ROOT_DIR/lux/scripts/plot_det_pix.py
 \end{example}
 
-The script needs python3 to run. You can invoke the script using the command:
+The script needs python3 along with the \vn{numpy} and \vn{matplotlib} packages. You can invoke the
+script using the command:
 \begin{example}
   <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
 \end{example}
@@ -836,23 +836,54 @@ version of python is not python3 then the following may work
 \begin{example}
   python3 <path-to-lux-root-dir>/scripts/plot_det_pix.py <det_pix_out_file>
 \end{example}
+The associated \vn{.x}, \vn{.y} and \vn{.histogram} files may be given instead, in which case the
+script plots a curve rather than an image.
+
+The plot window is interactive so that the data can be explored without rerunning the script:
+\begin{example}
+  Quantity list    Plot any column of the file: intensity, e_ave, ang_x_ave, etc.
+  log scale        Switch between linear and logarithmic color scales.
+  equal aspect     Switch between a locked and a free aspect ratio.
+  cut at cursor    Clicking on the image plots horizontal and vertical lineouts
+                     through the point clicked on. When off, the side panels show
+                     the sum (or average) over all pixels.
+  colormap         Cycle through colormaps.
+\end{example}
+The keys \vn{n} and \vn{p} step through the quantities, \vn{l}, \vn{a}, \vn{m} and \vn{c} toggle the
+above settings, and \vn{?} prints the list of keys. Zooming, panning and saving the plot to a file
+are done with the standard \vn{matplotlib} toolbar. As the cursor is moved over the image, the
+toolbar shows the pixel under it along with its value.
+
+The colormap is chosen to suit the quantity being plotted: a sequential map for quantities like the
+intensity that do not change sign, a diverging map centered on zero for quantities like \vn{e_ave}
+that do, and a cyclic map for the phases. Pixels that are not in the data file are drawn in gray.
 
 The script has a number of optional arguments. The syntax for running the script is:
 \begin{example}
-  plot_det_pix.py \{-aspect <aspect_ratio>\} \{-scale <scale>\} 
-                                         \{-plot <who_to_plot>\} \{<data_file_name>\}
-  <who_to_plot> = x         # Intensity of x-polarized photons
-                = y         # Intensity of y-polarized photons
-                = i         # Total intensity (sum of x & y polarizations)
-                = e         # Energy
+  plot_det_pix.py \{-plot <column>\} \{-scale <scale>\} \{-aspect <aspect_ratio>\}
+                  \{-margin <n_pixel>\} \{-cmap <colormap>\} \{-log\} \{-list\}
+                  \{-save <file>\} \{-noshow\} \{-dpi <dpi>\} \{<data_file_name>\}
   Defaults:
-    <aspect_ratio>   = 1
+    <column>         = i
     <scale>          = 1e3
-    <data_file_name> = det_pix
-    <who_to_plot>    = i
+    <aspect_ratio>   = 1
+    <n_pixel>        = 4
+    <data_file_name> = det.pix
 \end{example}
 
-Figure~\ref{f:det.plot} shows two example intensity plots. 
+The \vn{<column>} argument is the name of any column in the data file. The name may be abbreviated
+as long as the abbreviation is unambiguous. For compatibility with older versions of the script, the
+following abbreviations are also accepted:
+\begin{example}
+  <column> = x         # Intensity of x-polarized photons
+           = y         # Intensity of y-polarized photons
+           = i         # Total intensity (sum of x & y polarizations)
+           = e         # Energy
+\end{example}
+Use \vn{-list} to print the header parameters and the list of columns of a data file without
+plotting anything.
+
+Figure~\ref{f:det.plot} shows two example intensity plots.
 
 The \vn{<scale>} parameter sets the scale of the axis numbers. A scale of \vn{1e3} results in the
 axis numbers being in millimeters.
@@ -861,6 +892,71 @@ The \vn{<aspect_ratio>} parameter sets the aspect ratio of the plot. An aspect r
 default) will mean that the vertical and horizontal scales (detector position per plotted unit
 length) begin the same. An aspect ratio greater than one will enlarge the vertical scale and less than
 one will enlarge the horizontal scale.
+
+The \vn{<n_pixel>} margin parameter sets the number of blank pixels drawn around the region of the
+detector that has data.
+
+The \vn{-save} argument writes the plot to a file. Combined with \vn{-noshow}, which suppresses the
+plot window, this can be used to generate plots from a script or on a machine without a display.
+
+%------------------------------------------------------------------
+\subsection{Plotting det_pix Data in Your Own Scripts}
+\label{s:det.pix.module}
+
+The reader that \vn{plot_det_pix.py} uses is a module of its own:
+\begin{example}
+  $ACC_ROOT_DIR/lux/scripts/det_pix.py
+\end{example}
+It can be used directly for custom plots and analysis. For example:
+\begin{example}
+  import sys
+  sys.path.append('<path-to-lux-root-dir>/scripts')
+  import det_pix
+
+  dp = det_pix.read('spherical.det_pix')
+  print(dp.params['n_track_tot'])        # Any header parameter.
+  print(dp.columns)                      # Names of the columns.
+  total = dp.col('intensity').sum()      # Any column, as a numpy array.
+
+  grid = dp.image('e_ave', scale = 1e3)  # Column mapped onto the pixel grid.
+  plt.imshow(grid.z, origin = 'lower', extent = grid.extent)
+\end{example}
+Column names are the ones in the data file, lowercased. Names in the \vn{Init} block, to the right
+of the vertical bar in the file, are prefixed with \vn{init_} so that, for example, \vn{ang_x_ave}
+and \vn{init_ang_x_ave} do not collide. The \vn{.x}, \vn{.y} and \vn{.histogram} files are read by
+the same routine. For these, use \vn{dp.curve(<column>)}, which returns the abscissa and the column
+as a pair of arrays.
+
+Running the module as a program prints a summary of a data file:
+\begin{example}
+  python3 <path-to-lux-root-dir>/scripts/det_pix.py <data_file_name>
+\end{example}
+
+%------------------------------------------------------------------
+\subsection{Combining det_pix Files from Multiple Runs}
+\label{s:combine}
+
+When a simulation has to be broken up into several runs, the resulting
+\vn{det_pix_out_files} can be merged into one with:
+\begin{example}
+  <path-to-lux-root-dir>/scripts/combine_det_pix_files.py <file1> <file2> ... \{-out <file>\}
+\end{example}
+The output, \vn{combined.det_pix} unless \vn{-out} says otherwise, is written in the same format
+Lux uses and so can be plotted or read like any other \vn{det_pix_out_file}.
+
+Note that the runs are not simply added up. The intensities Lux writes are normalized by the number
+of photons tracked (\sref{ss:master.params}), so each file is first put back on an unnormalized footing,
+the runs are summed, and the result is renormalized by the total number of photons tracked over all
+of the runs. Averages such as \vn{E_ave} and \vn{Ang_x_ave} are combined weighted by unnormalized
+intensity, which is how Lux forms them in the first place, and the rms values are combined through
+the second moments. Combining a file with itself therefore reproduces that file, apart from the
+photon counts.
+
+The runs must be of the same simulation: the script will stop if the files disagree on the pixel
+size, the normalization coefficient, or where the detector is. Also note that only pixels present in
+the input files can appear in the output, so
+\vn{lux_param%intensity_min_det_pixel_cutoff} must be set low enough in the runs being combined.
+Photon phases are not combined, so this script is not useful for coherent simulations.
 
 %------------------------------------------------------------------
 \subsection{Other plotting}
