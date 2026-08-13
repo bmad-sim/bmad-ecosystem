@@ -108,7 +108,7 @@ PALS:
         kind: ELSeparator??
         length:   4.5000E+00             
         ElectricMultipoleP:
-          En0:  -9.5509E+02             
+          En0:  -1.9102E+02             
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -168,7 +168,7 @@ PALS:
         kind: Kicker
         length:   4.5000E+00             
         MagneticMultipoleP:
-          Kn0:  -1.1111E-03             
+          Kn0:  -2.2222E-04             
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -184,8 +184,8 @@ PALS:
         kind: Kicker
         length:   4.5000E+00             
         MagneticMultipoleP:
-          Ks0:   6.6667E-04             
-          Kn0:   1.3333E-06             
+          Ks0:   2.2222E-04             
+          Kn0:   4.4444E-07             
         BodyShiftP:
           x_offset:   5.0000E-02             
           x_rot:  -1.0000E-03             
@@ -235,8 +235,8 @@ PALS:
         kind: Quadrupole
         length:   6.0000E-01             
         MagneticMultipoleP:
-          Ks0:   9.8821E-03             
-          Kn0:   1.1785E-04             
+          Ks0:   1.2357E-02             
+          Kn0:  -1.1785E-02             
           Ks1:   1.0000E-01             
           Kn1:   1.0000E+00             
         ElectricMultipoleP:
@@ -399,8 +399,8 @@ PALS:
         BendP:
           tilt_ref:   1.0000E-01             
         MagneticMultipoleP:
-          Ks0:  -1.6583E-04             
-          Kn0:   1.6639E-05             
+          Ks0:  -3.3222E-04             
+          Kn0:  -1.6417E-03             
           Kn1:   3.0000E-01             
         ElectricMultipoleP:
           En0:  -2.0000E+03             
@@ -697,3 +697,35 @@ PALS:
     #---------------------------------------------------------------------------------------
     # Lord elements
 
+
+    - ov_kick: 
+        kind: Controller
+        control_type: ABSOLUTE
+        variables:
+          xk:   1.0000E-03             
+        controls:
+          - parameter: quadrupole1>MagneticMultipoleP.Kn0
+            expression:  -1.1785E+00              * (2*xk)
+          - parameter: quadrupole1>MagneticMultipoleP.Ks0
+            expression:  -1.1785E+00              * (2*xk) +   1.0000E-02
+          - parameter: sbend1>MagneticMultipoleP.Kn0
+            expression:  -1.6583E+00              * (xk) +   1.6639E-05
+          - parameter: sbend1>MagneticMultipoleP.Ks0
+            expression:  -1.6639E-01              * (xk) +  -1.6583E-04
+          - parameter: hkicker1>MagneticMultipoleP.Kn0
+            expression:  -2.2222E-01              * (xk)
+          - parameter: kicker1>MagneticMultipoleP.Ks0
+            expression:   2.2222E-01              * (xk)
+          - parameter: elseparator1>ElectricMultipoleP.En0
+            expression:  -1.9102E+05              * (xk)
+
+    - ov_kick2: 
+        kind: Controller
+        control_type: ABSOLUTE
+        variables:
+          xk2:   2.0000E-03             
+        controls:
+          - parameter: quadrupole1>MagneticMultipoleP.Kn0
+            expression:  -1.1785E+00              * (xk2) +  -1.1785E+00              * (3*xk2)
+          - parameter: quadrupole1>MagneticMultipoleP.Ks0
+            expression:  -1.1785E+00              * (xk2) +   1.1785E+00              * (3*xk2)

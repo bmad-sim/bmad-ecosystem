@@ -29,7 +29,8 @@ type (multipass_region_lat_struct), target :: mult_lat
 type (multipass_all_info_struct), target :: m_info
 type (multipass_region_ele_struct), pointer :: mult_ele(:), m_ele
 type (multipass_ele_info_struct), pointer :: e_info
-type (ele_pointer_struct), allocatable :: named_eles_ptr(:)  ! List of unique element names 
+type (ele_pointer_struct), allocatable :: named_eles_ptr(:)  ! List of unique element names
+type (ele_pointer_struct), allocatable :: ctl_slave(:)       ! Slaves of a controller being written
 type (lat_ele_order_struct) order
 type (ele_attribute_struct) info
 type (taylor_struct) taylor(6), spin_taylor(0:3)
@@ -38,9 +39,11 @@ type (control_struct), pointer :: ctl
 type (control_struct) control
 type (control_var1_struct), pointer :: var
 
-real(rp) f, length, ang2
+real(rp) f, length, ang2, resid, factor(2)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
+integer n_pals, n_ctl, ixm
+integer, allocatable :: ctl_indx(:)
 integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r
 integer :: ix_lord, ix_super, ie1, ib1, id, id1, id2, id_del = 2
 integer, allocatable :: an_indexx(:), index_list(:)
@@ -51,6 +54,10 @@ logical, optional :: err_flag
 character(*) pals_file
 character(1) prefix
 character(3), parameter :: unit_spin_map(0:3) = ['1.0', '0.0', '0.0', '0.0']
+character(40) pals_name(2)
+character(40), allocatable :: ctl_attrib(:)
+character(100), allocatable :: ctl_param(:)
+character(1000), allocatable :: ctl_expr(:)
 character(100) :: name, look_for, ele_name, attrib_name, blank = ''
 character(40), allocatable :: names(:)
 character(240) fname
@@ -647,7 +654,16 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       call write_real_dict(id2, 'variables', downcase(var%name), var%value, header_needed, .false.)
     enddo
 
-    header_needed = .true.
+    ! Note: A Bmad attribute may map to more than one PALS attribute (EG: HKICK of a tilted element
+    ! maps to both the normal and skew n = 0 multipole components) and multiple Bmad attributes may
+    ! map to a single PALS attribute. So the expressions are collected by PALS parameter name.
+
+    n_ctl = 0
+    if (allocated(ctl_param)) deallocate (ctl_param, ctl_attrib, ctl_expr, ctl_indx, ctl_slave)
+    n = max(1, 2*ele%n_slave)
+    allocate (ctl_param(n), ctl_attrib(n), ctl_expr(n), ctl_indx(n), ctl_slave(n))
+    ctl_param = ''; ctl_expr = ''
+
     do is = 1, ele%n_slave
       slave => pointer_to_slave(ele, is, ctl)
       control = ctl
@@ -656,8 +672,8 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
         exit
       endif
 
-      attrib_name = pals_attrib_name(ctl%attribute, slave, f)
-      name = trim(pals_ele_name(slave)) // '>' // trim(attrib_name)
+      call pals_attrib_name(ctl%attribute, slave, n_pals, pals_name, factor)
+      if (n_pals == 0) cycle   ! Attribute cannot be translated.
 
       do i = 1, size(control%stack)
         select case (control%stack(i)%type)
@@ -668,11 +684,45 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
         end select
       enddo
 
-      line = expression_stack_to_string(control%stack)
-      if (f /= 1.0_rp) line = re_str(f) // ' * (' // trim(line) // ')'
-      if (slave%key == sbend$ .and. index(name, '.Kn0L') /= 0) line = trim(line) // ' + ' // re_str(slave%value(angle$))
-      if (slave%key == sbend$ .and. index(name, '.Bn0L') /= 0) line = trim(line) // ' + ' // re_str(slave%value(b_field$))
-      call write_str_dict(id2, 'controls', '- parameter', name, header_needed)
+      bline = expression_stack_to_string(control%stack)
+
+      do k = 1, n_pals
+        name = trim(pals_ele_name(slave)) // '>' // trim(pals_name(k))
+
+        if (factor(k) == 1.0_rp) then
+          line = bline
+        else
+          line = re_str(factor(k)) // ' * (' // trim(bline) // ')'
+        endif
+
+        call find_index(name, ctl_param, ctl_indx, n_ctl, ixm)
+        if (ixm == 0) then
+          call find_index(name, ctl_param, ctl_indx, n_ctl, ixm, add_to_list = .true.)
+          ctl_attrib(ixm) = pals_name(k)
+          ctl_slave(ixm)%ele => slave
+        endif
+
+        if (ctl_expr(ixm) == '') then
+          ctl_expr(ixm) = line
+        else
+          ctl_expr(ixm) = trim(ctl_expr(ixm)) // ' + ' // trim(line)
+        endif
+      enddo
+    enddo
+
+    ! A PALS multipole component may have contributions from Bmad attributes that are not
+    ! controlled (EG: The bend angle contribution to Kn0). Such contributions are constant so
+    ! just add them in.
+
+    header_needed = .true.
+    do i = 1, n_ctl
+      line = ctl_expr(i)
+      if (ele%key == overlay$) then
+        resid = pals_control_residual(ctl_slave(i)%ele, ele, ctl_attrib(i))
+        if (resid /= 0) line = trim(line) // ' + ' // re_str(resid)
+      endif
+
+      call write_str_dict(id2, 'controls', '- parameter', ctl_param(i), header_needed)
       call write_str_dict(id2+id_del, 'controls', 'expression', line, header_needed)
     enddo
   end select
@@ -878,32 +928,42 @@ end subroutine write_this_taylor
 !------------------------------------------------------
 ! contains
 
-! Return Pals attribute name given Bmad attribute name.
+! Return Pals attribute name(s) given Bmad attribute name.
+! Since a Bmad attribute may map to more than one PALS attribute (EG: HKICK of a tilted element
+! maps to both the normal and skew n = 0 multipole components), up to two names are returned.
+! n_pals = 0 => Attribute cannot be translated.
+! The value of the PALS attribute pals_name(i) is factor(i) times the value of the Bmad attribute.
+! no_print = True suppresses the error message for an attribute that cannot be translated.
 
-function pals_attrib_name(bmad_name, ele, factor) result (pals_name)
+subroutine pals_attrib_name(bmad_name, ele, n_pals, pals_name, factor, no_print)
 
 type (ele_struct) ele
 
+integer n_pals
 character(*) bmad_name
-character(40) pals_name
-real(rp) factor
+character(40) pals_name(2)
+real(rp) factor(2)
 integer n
+logical, optional :: no_print
 
 ! factor is the conversion factor from Bmad parameter to PALS parameter.
 ! For example, accounting for a length normalization.
 
+n_pals = 1
+pals_name = ''
 factor = 1.0_rp
 n = len_trim(bmad_name)
 
-if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. n >= 7 .and. bmad_name(max(1,n-4):n) == '_ELEC' .and. is_integer(bmad_name(2:max(2,n-5)))) then
-  pals_name = 'ElectricMultipoleP.E'
+if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. n >= 7 .and. bmad_name(max(1,n-4):n) == '_ELEC' .and. is_integer(bmad_name(2:max(2,n-5)), ix)) then
+  pals_name(1) = 'ElectricMultipoleP.E'
   if (bmad_name(1:1) == 'A') then
-    pals_name = trim(pals_name) // 's'
+    pals_name(1) = trim(pals_name(1)) // 's'
   else
-    pals_name = trim(pals_name) // 'n'
+    pals_name(1) = trim(pals_name(1)) // 'n'
   endif
 
-  pals_name = trim(pals_name) // bmad_name(2:n-5)
+  pals_name(1) = trim(pals_name(1)) // bmad_name(2:n-5)
+  factor(1) = factorial(ix)
   return
 endif
 
@@ -911,97 +971,369 @@ endif
 
 if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_name(2:), ix)) then
   if (ele%field_master) then
-    pals_name = 'MagneticMultipoleP.B'
-    factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+    pals_name(1) = 'MagneticMultipoleP.B'
+    factor(1) = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
   else
-    pals_name = 'MagneticMultipoleP.K'
-    factor = 1
+    pals_name(1) = 'MagneticMultipoleP.K'
+    factor(1) = 1
   endif
 
   if (bmad_name(1:1) == 'A') then
-    pals_name = trim(pals_name) // 's'
+    pals_name(1) = trim(pals_name(1)) // 's'
   else
-    pals_name = trim(pals_name) // 'n'
+    pals_name(1) = trim(pals_name(1)) // 'n'
   endif
 
-  pals_name = trim(pals_name) // bmad_name(2:)
-  factor = factor * factorial(ix)
-  pals_name = trim(pals_name) // 'L'
+  pals_name(1) = trim(pals_name(1)) // bmad_name(2:)
+  factor(1) = factor(1) * factorial(ix)
 
+  ! Note: The element definition writes the integrated multipole (with an "L" suffix) only if the
+  ! element has zero length. Otherwise the length normalized multipole is written.
+
+  if (ele%value(l$) == 0) then
+    pals_name(1) = trim(pals_name(1)) // 'L'
+  else
+    factor(1) = factor(1) / ele%value(l$)
+  endif
+
+  return
+endif
+
+! Kick attributes translate to n = 0 multipole components.
+
+select case (bmad_name)
+case ('KICK', 'HKICK', 'VKICK', 'BL_KICK', 'BL_HKICK', 'BL_VKICK')
+  call pals_kick_attrib_name(bmad_name, ele, n_pals, pals_name, factor)
+  return
+end select
+
+!
+
+select case (bmad_name)
+case ('B1_GRADIENT');   pals_name(1) = 'MagneticMultipoleP.Bn1'
+case ('B2_GRADIENT');   pals_name(1) = 'MagneticMultipoleP.Bn2'
+case ('B3_GRADIENT');   pals_name(1) = 'MagneticMultipoleP.Bn3'
+case ('K1');            pals_name(1) = 'MagneticMultipoleP.Kn1'
+case ('K2');            pals_name(1) = 'MagneticMultipoleP.Kn2'
+case ('K3');            pals_name(1) = 'MagneticMultipoleP.Kn3'
+
+case ('L');             pals_name(1) = 'length'
+
+case ('E1');            pals_name(1) = 'BendP.e1'
+case ('E2');            pals_name(1) = 'BendP.e2'
+case ('G');             pals_name(1) = 'BendP.g_ref'
+case ('ANGLE');         pals_name(1) = 'BendP.angle'
+case ('TILT_REF');      pals_name(1) = 'BendP.tilt_ref'
+
+case ('X1_LIMIT');      pals_name(1) = 'ApertureP.x_min'
+case ('X2_LIMIT');      pals_name(1) = 'ApertureP.x_max'; factor(1) = -1
+case ('Y1_LIMIT');      pals_name(1) = 'ApertureP.y_min'
+case ('Y2_LIMIT');      pals_name(1) = 'ApertureP.y_max'; factor(1) = -1
+
+case ('VOLTAGE');       pals_name(1) = 'RFP.voltage'
+case ('GRADINET');      pals_name(1) = 'RFP.gradient'
+case ('PHASE');         pals_name(1) = 'RFP.phase'
+case ('RF_FREQUENCY');  pals_name(1) = 'RFP.frequency'
+
+case ('T_OFFSET');      pals_name(1) = 't_offset'
+case ('KS');            pals_name(1) = 'Ksol'
+case ('BS_FIELD');      pals_name(1) = 'Bsol'
+
+case ('X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH', 'TILT')
+  if (ele%key == patch$) then
+    select case (bmad_name)
+    case ('X_OFFSET');      pals_name(1) = 'PatchP.dx'
+    case ('Y_OFFSET');      pals_name(1) = 'PatchP.dy'
+    case ('Z_OFFSET');      pals_name(1) = 'PatchP.dz'
+    case ('X_PITCH');       pals_name(1) = 'PatchP.dy_rot'
+    case ('Y_PITCH');       pals_name(1) = 'PatchP.dx_rot'; factor(1) = -1
+    case ('TILT');          pals_name(1) = 'PatchP.dz_rot'
+    end select
+  elseif (ele%key == floor_shift$ .or. ele%key == fiducial$) then
+    select case (bmad_name)
+    case ('X_OFFSET');      pals_name(1) = 'CoordinateSetP.dx'
+    case ('Y_OFFSET');      pals_name(1) = 'CoordinateSetP.dy'
+    case ('Z_OFFSET');      pals_name(1) = 'CoordinateSetP.dz'
+    case ('X_PITCH');       pals_name(1) = 'CoordinateSetP.dy_rot'
+    case ('Y_PITCH');       pals_name(1) = 'CoordinateSetP.dx_rot'; factor(1) = -1
+    case ('TILT');          pals_name(1) = 'CoordinateSetP.dz_rot'
+    end select
+  else
+    select case (bmad_name)
+    case ('X_OFFSET');      pals_name(1) = 'BodyShiftP.x_offset'
+    case ('Y_OFFSET');      pals_name(1) = 'BodyShiftP.y_offset'
+    case ('Z_OFFSET');      pals_name(1) = 'BodyShiftP.z_offset'
+    case ('X_PITCH');       pals_name(1) = 'BodyShiftP.y_rot'
+    case ('Y_PITCH');       pals_name(1) = 'BodyShiftP.x_rot'; factor(1) = -1
+    case ('TILT');          pals_name(1) = 'BodyShiftP.z_rot'
+    end select
+  endif
+
+case default
+  n_pals = 0
+  if (.not. logic_option(.false., no_print)) then
+    print *, 'Attribute not yet coded for translation: ' // trim(bmad_name)
+    print *, 'Please report this.'
+  endif
+end select
+
+end subroutine pals_attrib_name
+
+!------------------------------------------------------
+! contains
+
+! Return PALS attribute name(s) for the Bmad kick attributes KICK, HKICK, VKICK and the
+! corresponding integrated field attributes BL_KICK, BL_HKICK, BL_VKICK.
+! In PALS a kick is represented by the n = 0 multipole components so a kick attribute of a
+! tilted element must be distributed between the normal and skew components.
+! The conversion mirrors what multipole_ele_to_ab does with the kick attributes (which is what is
+! used when writing the element definitions) so that controlled values are consistent with the
+! element definition values.
+
+subroutine pals_kick_attrib_name(bmad_name, ele, n_pals, pals_name, factor)
+
+type (ele_struct) ele
+
+integer n_pals, key, i
+real(rp) factor(2), f0, tilt, coef(2)
+character(*) bmad_name
+character(40) pals_name(2)
+character(1) prefix
+logical is_hkick
+
+! is_hkick = True if the attribute gives a kick in the horizontal plane (in the element body frame).
+
+key = ele%key
+is_hkick = (index(bmad_name, 'VKICK') == 0)
+if (key == vkicker$) is_hkick = .false.
+if (key == hkicker$) is_hkick = .true.
+
+! coef(1) is the normal (Kn0/Bn0) coefficient and coef(2) is the skew (Ks0/Bs0) coefficient.
+! Note: For kicker type elements the kick is defined in the element body frame so there is no
+! rotation by the element tilt.
+
+select case (key)
+case (hkicker$, vkicker$, kicker$, ac_kicker$)
+  if (is_hkick) then
+    coef = [-1.0_rp, 0.0_rp]
+  else
+    coef = [0.0_rp, 1.0_rp]
+  endif
+
+case (elseparator$)   ! Kick is electric
+  if (ele%value(l$) == 0) then
+    n_pals = 0
+    return
+  endif
+
+  if (is_hkick) then
+    pals_name(1) = 'ElectricMultipoleP.En0'
+    factor(1) = -ele%value(p0c$) / ele%value(l$)
+  else
+    pals_name(1) = 'ElectricMultipoleP.Es0'
+    factor(1) = ele%value(p0c$) / ele%value(l$)
+  endif
+  n_pals = 1
+  return
+
+case default
+  if (key == sbend$ .or. key == rf_bend$) then
+    tilt = ele%value(ref_tilt_tot$)
+  else
+    tilt = ele%value(tilt_tot$)
+  endif
+
+  if (is_hkick) then
+    coef = [-cos(tilt), -sin(tilt)]
+  else
+    coef = [-sin(tilt), cos(tilt)]
+  endif
+end select
+
+! BL_KICK, BL_HKICK and BL_VKICK are integrated field values so no scaling by the reference momentum.
+
+if (bmad_name(1:3) == 'BL_') then
+  prefix = 'B'
+  f0 = 1
+elseif (ele%field_master) then
+  prefix = 'B'
+  f0 = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+else
+  prefix = 'K'
+  f0 = 1
+endif
+
+if (ele%value(l$) /= 0) f0 = f0 / ele%value(l$)
+
+!
+
+n_pals = 0
+
+if (coef(1) /= 0) then
+  n_pals = n_pals + 1
+  pals_name(n_pals) = 'MagneticMultipoleP.' // prefix // 'n0'
+  factor(n_pals) = f0 * coef(1)
+endif
+
+if (coef(2) /= 0) then
+  n_pals = n_pals + 1
+  pals_name(n_pals) = 'MagneticMultipoleP.' // prefix // 's0'
+  factor(n_pals) = f0 * coef(2)
+endif
+
+if (ele%value(l$) == 0) then
+  do i = 1, n_pals
+    pals_name(i) = trim(pals_name(i)) // 'L'
+  enddo
+endif
+
+end subroutine pals_kick_attrib_name
+
+!------------------------------------------------------
+! contains
+
+! Return the constant (not controlled) part of the PALS multipole attribute pals_name of slave.
+! Zero is returned if pals_name is not a multipole attribute or if there is nothing to add.
+! Since several controllers may control a given component, and each controller writes its own
+! expression for it, the constant part is only returned for the first controller of the component.
+! Note: Group elements are ignored here since a group control is relative (a delta).
+
+function pals_control_residual(slave, lord, pals_name) result (resid)
+
+type (ele_struct) slave, lord
+type (ele_struct), pointer :: this_lord
+type (control_struct), pointer :: this_ctl
+
+real(rp) resid, tot, sum_ctl, fact(2)
+integer ix1, il, kk, np, n_done, ix_done(40)
+character(*) pals_name
+character(40) nam(2)
+logical is_mult, is_new, contributes
+
+!
+
+resid = 0
+tot = pals_multipole_value(slave, pals_name, is_mult)
+if (.not. is_mult) return
+
+! sum_ctl is the present value of the part of the component that is controlled.
+! Multiple controllers may control a given attribute. In this case the attribute value is the sum
+! of the contributions of all the controllers so only count the attribute value once.
+
+sum_ctl = 0
+n_done = 0
+ix1 = 0
+
+do il = 1, slave%n_lord
+  this_lord => pointer_to_lord(slave, il, this_ctl)
+  if (this_lord%key /= overlay$) cycle
+  if (this_ctl%ix_attrib < 1 .or. this_ctl%ix_attrib > num_ele_attrib$) cycle
+  call pals_attrib_name(this_ctl%attribute, slave, np, nam, fact, no_print = .true.)
+
+  is_new = .true.
+  do kk = 1, n_done
+    if (ix_done(kk) == this_ctl%ix_attrib) is_new = .false.
+  enddo
+
+  contributes = .false.
+  do kk = 1, np
+    if (nam(kk) /= pals_name) cycle
+    contributes = .true.
+    if (is_new) sum_ctl = sum_ctl + fact(kk) * slave%value(this_ctl%ix_attrib)
+  enddo
+
+  if (.not. contributes) cycle
+  if (ix1 == 0) ix1 = this_lord%ix_ele    ! First controller of this component.
+  if (is_new .and. n_done < size(ix_done)) then
+    n_done = n_done + 1
+    ix_done(n_done) = this_ctl%ix_attrib
+  endif
+enddo
+
+! Only the first controller of the component gets the constant part.
+
+if (ix1 /= lord%ix_ele) return
+if (abs(tot - sum_ctl) > 1e-14_rp * max(abs(tot), abs(sum_ctl))) resid = tot - sum_ctl
+
+end function pals_control_residual
+
+!------------------------------------------------------
+! contains
+
+! Return the value of the PALS multipole attribute pals_name as computed when writing the
+! element definition. is_multipole is set False if pals_name is not a multipole attribute.
+! This is needed since a given PALS multipole component may get contributions from several Bmad
+! attributes (EG: Kn0 of a bend gets contributions from HKICK, VKICK, DG and the bend angle) and
+! the part not controlled by a controller must be added in when writing a controlled value.
+
+function pals_multipole_value(ele, pals_name, is_multipole) result (value)
+
+type (ele_struct) ele
+
+real(rp) value, ff, a_p(0:n_pole_maxx), b_p(0:n_pole_maxx)
+integer nlen, nord, ixp
+character(*) pals_name
+character(40) nam
+logical is_multipole
+
+!
+
+value = 0
+is_multipole = .false.
+
+ixp = index(pals_name, '.')
+if (ixp == 0) return
+nam = pals_name(ixp+1:)
+if (nam(2:2) /= 'n' .and. nam(2:2) /= 's') return
+
+! Electric multipoles are not scaled by the element length.
+
+if (pals_name(1:ixp) == 'ElectricMultipoleP.') then
+  if (.not. is_integer(nam(3:), nord)) return
+  if (nord > n_pole_maxx) return
+  call multipole_ele_to_ab(ele, .false., ixp, a_p, b_p, electric$, include_kicks$)
+  ff = 1
+
+elseif (pals_name(1:ixp) == 'MagneticMultipoleP.') then
+  if ((nam(1:1) == 'B') .neqv. ele%field_master) return   ! Prefix is 'B' if and only if field_master.
+
+  nlen = len_trim(nam)
+  if (nam(nlen:nlen) == 'L') then
+    if (ele%value(l$) /= 0) return
+    nam = nam(1:nlen-1)
+  else
+    if (ele%value(l$) == 0) return
+  endif
+
+  if (.not. is_integer(nam(3:), nord)) return
+  if (nord > n_pole_maxx) return
+
+  call multipole_ele_to_ab(ele, .false., ixp, a_p, b_p, magnetic$, include_kicks$)
+  if (ele%key == sbend$) b_p(0) = b_p(0) + ele%value(angle$)
+
+  if (ele%field_master) then
+    ff = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+  else
+    ff = 1
+  endif
+
+  if (ele%value(l$) /= 0) ff = ff / ele%value(l$)
+
+else
   return
 endif
 
 !
 
-select case (bmad_name)
-case ('BL_KICK');       pals_name = 'MagneticMultipoleP.Bn0L'
-case ('BL_HKICK');      pals_name = 'MagneticMultipoleP.Bn0L'
-case ('BL_VKICK');      pals_name = 'MagneticMultipoleP.Bs0L'
-case ('B1_GRADIENT');   pals_name = 'MagneticMultipoleP.Bn1'
-case ('B2_GRADIENT');   pals_name = 'MagneticMultipoleP.Bn2'
-case ('B3_GRADIENT');   pals_name = 'MagneticMultipoleP.Bn3'
-case ('K1');            pals_name = 'MagneticMultipoleP.Kn1'
-case ('K2');            pals_name = 'MagneticMultipoleP.Kn2'
-case ('K3');            pals_name = 'MagneticMultipoleP.Kn3'
+if (nam(2:2) == 's') then
+  value = ff * factorial(nord) * a_p(nord)
+else
+  value = ff * factorial(nord) * b_p(nord)
+endif
 
-case ('L');             pals_name = 'length'
+is_multipole = .true.
 
-case ('E1');            pals_name = 'BendP.e1'
-case ('E2');            pals_name = 'BendP.e2'
-case ('G');             pals_name = 'BendP.g_ref'
-case ('ANGLE');         pals_name = 'BendP.angle'
-case ('TILT_REF');      pals_name = 'BendP.tilt_ref'
-
-case ('X1_LIMIT');      pals_name = 'ApertureP.x_min'
-case ('X2_LIMIT');      pals_name = 'ApertureP.x_max'; factor = -1
-case ('Y1_LIMIT');      pals_name = 'ApertureP.y_min'
-case ('Y2_LIMIT');      pals_name = 'ApertureP.y_max'; factor = -1
-
-case ('VOLTAGE');       pals_name = 'RFP.voltage'
-case ('GRADINET');      pals_name = 'RFP.gradient'
-case ('PHASE');         pals_name = 'RFP.phase'
-case ('RF_FREQUENCY');  pals_name = 'RFP.frequency'
-
-case ('T_OFFSET');      pals_name = 't_offset'
-case ('KS');            pals_name = 'Ksol'
-case ('BS_FIELD');      pals_name = 'Bsol'
-
-case ('X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH', 'TILT')
-  if (ele%key == patch$) then
-    select case (bmad_name)
-    case ('X_OFFSET');      pals_name = 'PatchP.dx'
-    case ('Y_OFFSET');      pals_name = 'PatchP.dy'
-    case ('Z_OFFSET');      pals_name = 'PatchP.dz'
-    case ('X_PITCH');       pals_name = 'PatchP.dy_rot'
-    case ('Y_PITCH');       pals_name = 'PatchP.dx_rot'; factor = -1
-    case ('TILT');          pals_name = 'PatchP.dz_rot'
-    end select
-  elseif (ele%key == floor_shift$ .or. ele%key == fiducial$) then
-    select case (bmad_name)
-    case ('X_OFFSET');      pals_name = 'CoordinateSetP.dx'
-    case ('Y_OFFSET');      pals_name = 'CoordinateSetP.dy'
-    case ('Z_OFFSET');      pals_name = 'CoordinateSetP.dz'
-    case ('X_PITCH');       pals_name = 'CoordinateSetP.dy_rot'
-    case ('Y_PITCH');       pals_name = 'CoordinateSetP.dx_rot'; factor = -1
-    case ('TILT');          pals_name = 'CoordinateSetP.dz_rot'
-    end select
-  else
-    select case (bmad_name)
-    case ('X_OFFSET');      pals_name = 'BodyShiftP.x_offset'
-    case ('Y_OFFSET');      pals_name = 'BodyShiftP.y_offset'
-    case ('Z_OFFSET');      pals_name = 'BodyShiftP.z_offset'
-    case ('X_PITCH');       pals_name = 'BodyShiftP.y_rot'
-    case ('Y_PITCH');       pals_name = 'BodyShiftP.x_rot'; factor = -1
-    case ('TILT');          pals_name = 'BodyShiftP.z_rot'
-    end select
-  endif
-
-case default
-  print *, 'Attribute not yet coded for translation', trim(bmad_name)
-  print *, 'Please report this.'
-end select
-
-end function pals_attrib_name
+end function pals_multipole_value
 
 !------------------------------------------------------
 ! contains

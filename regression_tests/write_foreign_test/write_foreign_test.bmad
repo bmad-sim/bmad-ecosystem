@@ -125,6 +125,16 @@ wiggler_map1:      wiggler, l = 1.6, num_steps = 10, field_calc = fieldmap, cart
 wiggler_flat1: wiggler, l = 1, b_max = 0.0001, n_pole = 20, num_steps = 1, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1
 wiggler_heli1: wiggler, l = 1, b_max = 0.0001, n_pole = 20, num_steps = 1, x_offset = 0.01, y_pitch = 0.001, tilt = 0.1, field_calc = helical_model
 
+! Overlays controlling kick attributes.
+! Note: quadrupole1 and sbend1 are tilted and have multipoles and a vkick that are not controlled.
+! So the kick is distributed over both the normal and skew components and the non-controlled
+! part must be added in to the control expression.
+! ov_kick2 controls two attributes of quadrupole1 that map to the same normal/skew components.
+
+ov_kick: overlay = {quadrupole1[hkick]: 2*xk, sbend1[hkick]: xk, hkicker1[kick]: xk,
+                    kicker1[vkick]: xk, elseparator1[hkick]: xk}, var = {xk}, xk = 1e-3
+ov_kick2: overlay = {quadrupole1[hkick]: xk2, quadrupole1[vkick]: 3*xk2}, var = {xk2}, xk2 = 2e-3
+
 !-----------
 ! Put lcavity elements last since they shift reference energy
 !l1: line = (ab_multipole1, ac_kicker1, ac_kicker2, ac_kicker3, beambeam1, crab_cavity1, drift1, ecollimator1, elseparator1, elseparator2,

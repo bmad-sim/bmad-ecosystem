@@ -1021,13 +1021,13 @@ type (control_struct), pointer :: ctl
 type (control_struct)  control
 type (nametable_struct) defexpr_nametab
 
-real(rp) f
-integer ix, j, iv, it, n_contl, indx(40), ixm
+real(rp) factor(2), sum_ctl(40), tot, resid
+integer ix, j, k, iv, n_sci, n_contl, indx(40), ixm, n_done, ix_done(40)
 
-character(40) sci_name, attrib_names(40)
+character(40) sci_name(2), sci_names(40)
 character(100) name
-character(1000) :: c_str(40)
-logical has_defexpr_var(40)
+character(1000) :: c_str(40), str, term
+logical has_defexpr_var(40), hdv, is_new, is_mult
 
 ! Do not output if slave is already outputted or has overlay lords that have not yet been outputted.
 
@@ -1043,27 +1043,71 @@ enddo
 slave%select = .true.
 
 c_str = ''
-attrib_names = ''
+sci_names = ''
 n_contl = 0
+n_done = 0
+sum_ctl = 0
 has_defexpr_var = .false.
+
+! Note: A single Bmad attribute (EG: HKICK of a tilted element) may map to multiple SciBmad
+! attributes and multiple Bmad attributes may map to a single SciBmad attribute. So the
+! expressions are collected by SciBmad attribute name.
+! sum_ctl(i) is the present value of the part of the SciBmad attribute that is controlled.
 
 do ix = 1, slave%n_lord
   lord => pointer_to_lord(slave, ix, ctl)
   control = ctl
-  call find_index(control%attribute, attrib_names, indx, n_contl, ixm)
-  if (ixm == 0) call find_index(control%attribute, attrib_names, indx, n_contl, ixm, add_to_list = .true.)
+  call scibmad_attrib_name(control%attribute, slave, n_sci, sci_name, factor)
+  if (n_sci == 0) cycle    ! Attribute cannot be translated.
 
-  if (c_str(ixm) == '') then
-    c_str(ixm) = this_expression(control%stack, lord, has_defexpr_var(ixm))
-  else
-    c_str(ixm) = trim(c_str(ixm)) // ' + ' // this_expression(control%stack, lord, has_defexpr_var(ixm))
+  ! Multiple lords may control a given attribute. In this case the attribute value is the sum of
+  ! the contributions of all the lords so only count the attribute value once.
+
+  is_new = (control%ix_attrib > 0 .and. control%ix_attrib <= num_ele_attrib$)
+  do j = 1, n_done
+    if (ix_done(j) == control%ix_attrib) is_new = .false.
+  enddo
+  if (is_new .and. n_done < size(ix_done)) then
+    n_done = n_done + 1
+    ix_done(n_done) = control%ix_attrib
   endif
+
+  hdv = .false.
+  str = this_expression(control%stack, lord, hdv)
+
+  do k = 1, n_sci
+    call find_index(sci_name(k), sci_names, indx, n_contl, ixm)
+    if (ixm == 0) call find_index(sci_name(k), sci_names, indx, n_contl, ixm, add_to_list = .true.)
+
+    if (factor(k) == 1.0_rp) then
+      term = str
+    else
+      term = re_str(factor(k)) // ' * (' // trim(str) // ')'
+    endif
+
+    if (c_str(ixm) == '') then
+      c_str(ixm) = term
+    else
+      c_str(ixm) = trim(c_str(ixm)) // ' + ' // trim(term)
+    endif
+
+    if (is_new) sum_ctl(ixm) = sum_ctl(ixm) + factor(k) * slave%value(control%ix_attrib)
+    if (hdv) has_defexpr_var(ixm) = .true.
+  enddo
 enddo
 
+! A SciBmad multipole component may have contributions from Bmad attributes that are not controlled
+! (EG: The bend angle contribution to Kn0). Such contributions are constant so just add them in.
+
 do iv = 1, n_contl
-  sci_name = scibmad_attrib_name(attrib_names(iv), slave, f)
-  name = trim(downcase(slave%name)) // '.' // trim(sci_name)
-  if (f /= 1.0_rp) c_str(iv) = re_str(f) // ' * (' // trim(c_str(iv)) // ')'
+  name = trim(downcase(slave%name)) // '.' // trim(sci_names(iv))
+
+  tot = scibmad_multipole_value(slave, sci_names(iv), is_mult)
+  if (is_mult) then
+    resid = tot - sum_ctl(iv)
+    if (abs(resid) > 1e-14_rp * max(abs(tot), abs(sum_ctl(iv)))) &
+                                            c_str(iv) = re_str(resid) // ' + ' // trim(c_str(iv))
+  endif
 
   if (has_defexpr_var(iv)) then
     write (iu, '(4a)') trim(name), ' = ', trim(c_str(iv))
@@ -1182,91 +1226,287 @@ end function this_expression
 !------------------------------------------------------
 ! contains
 
-! Return SciBmad attribute name given Bmad attribute name.
+! Return SciBmad attribute name(s) given Bmad attribute name.
+! Since a Bmad attribute may map to more than one SciBmad attribute (EG: HKICK of a tilted element
+! maps to both the normal and skew n = 0 multipole components), up to two names are returned.
+! n_sci = 0 => Attribute cannot be translated.
+! The value of the SciBmad attribute sci_name(i) is factor(i) times the value of the Bmad attribute.
 
-function scibmad_attrib_name(bmad_name, ele, factor) result (sci_name)
+subroutine scibmad_attrib_name(bmad_name, ele, n_sci, sci_name, factor)
 
 type (ele_struct) ele
 
+integer n_sci
 character(*) bmad_name
-character(40) sci_name
-real(rp) factor
+character(40) sci_name(2)
+real(rp) factor(2)
 
 !
 
+n_sci = 1
+sci_name = ''
 factor = 1.0_rp
 
 if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_name(2:), ix)) then
   if (ele%field_master) then
-    sci_name = 'B'
-    factor = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+    sci_name(1) = 'B'
+    factor(1) = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
   else
-    sci_name = 'K'
-    factor = 1
+    sci_name(1) = 'K'
+    factor(1) = 1
   endif
 
   if (bmad_name(1:1) == 'A') then
-    sci_name = sci_name(1:1) // 's'
+    sci_name(1) = sci_name(1)(1:1) // 's'
   else
-    sci_name = sci_name(1:1) // 'n'
+    sci_name(1) = sci_name(1)(1:1) // 'n'
   endif
 
-  sci_name = trim(sci_name) // bmad_name(2:)
-  factor = factor * factorial(ix)
+  sci_name(1) = trim(sci_name(1)) // bmad_name(2:)
+  factor(1) = factor(1) * factorial(ix)
 
   if (ele%value(l$) == 0) then
-    sci_name = trim(sci_name) // 'L'
+    sci_name(1) = trim(sci_name(1)) // 'L'
   else
-    factor = factor / ele%value(l$)
+    factor(1) = factor(1) / ele%value(l$)
   endif
 
   return
 endif
 
+! Kick attributes translate to n = 0 multipole components.
+
 select case (bmad_name)
-case ('BL_KICK');       sci_name = 'Bn0L'
-case ('BL_HKICK');      sci_name = 'Bn0L'
-case ('BL_VKICK');      sci_name = 'Bs0L'
-case ('B1_GRADIENT');   sci_name = 'Bn1'
-case ('B2_GRADIENT');   sci_name = 'Bn2'
-case ('B3_GRADIENT');   sci_name = 'Bn3'
-case ('K1');            sci_name = 'Kn1'
-case ('K2');            sci_name = 'Kn2'
-case ('K3');            sci_name = 'Kn3'
-case ('E1');            sci_name = 'e1'
-case ('E2');            sci_name = 'e2'
-case ('G');             sci_name = 'g_ref'
-case ('ANGLE');         sci_name = 'g_ref'
-case ('L');             sci_name = 'L'
+case ('KICK', 'HKICK', 'VKICK', 'BL_KICK', 'BL_HKICK', 'BL_VKICK')
+  call scibmad_kick_attrib_name(bmad_name, ele, n_sci, sci_name, factor)
+  return
+end select
+
+select case (bmad_name)
+case ('B1_GRADIENT');   sci_name(1) = 'Bn1'
+case ('B2_GRADIENT');   sci_name(1) = 'Bn2'
+case ('B3_GRADIENT');   sci_name(1) = 'Bn3'
+case ('K1');            sci_name(1) = 'Kn1'
+case ('K2');            sci_name(1) = 'Kn2'
+case ('K3');            sci_name(1) = 'Kn3'
+case ('E1');            sci_name(1) = 'e1'
+case ('E2');            sci_name(1) = 'e2'
+case ('G');             sci_name(1) = 'g_ref'
+case ('ANGLE');         sci_name(1) = 'g_ref'
+case ('L');             sci_name(1) = 'L'
 case ('X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH', 'TILT')
   if (ele%key == patch$) then
     select case (bmad_name)
-    case ('X_OFFSET');      sci_name = 'dx'
-    case ('Y_OFFSET');      sci_name = 'dy'
-    case ('Z_OFFSET');      sci_name = 'dz'
-    case ('X_PITCH');       sci_name = 'dy_rot'
-    case ('Y_PITCH');       sci_name = 'dx_rot'; factor = -1
-    case ('TILT');          sci_name = 'dz_rot'
+    case ('X_OFFSET');      sci_name(1) = 'dx'
+    case ('Y_OFFSET');      sci_name(1) = 'dy'
+    case ('Z_OFFSET');      sci_name(1) = 'dz'
+    case ('X_PITCH');       sci_name(1) = 'dy_rot'
+    case ('Y_PITCH');       sci_name(1) = 'dx_rot'; factor(1) = -1
+    case ('TILT');          sci_name(1) = 'dz_rot'
     end select
   else
     select case (bmad_name)
-    case ('X_OFFSET');      sci_name = 'x_offset'
-    case ('Y_OFFSET');      sci_name = 'y_offset'
-    case ('Z_OFFSET');      sci_name = 'z_offset'
-    case ('X_PITCH');       sci_name = 'y_rot'
-    case ('Y_PITCH');       sci_name = 'x_rot'; factor = -1
-    case ('TILT');          sci_name = 'z_rot'
+    case ('X_OFFSET');      sci_name(1) = 'x_offset'
+    case ('Y_OFFSET');      sci_name(1) = 'y_offset'
+    case ('Z_OFFSET');      sci_name(1) = 'z_offset'
+    case ('X_PITCH');       sci_name(1) = 'y_rot'
+    case ('Y_PITCH');       sci_name(1) = 'x_rot'; factor(1) = -1
+    case ('TILT');          sci_name(1) = 'z_rot'
     end select
   endif
 
-case ('T_OFFSET');      sci_name = 't_offset'
-case ('KS');            sci_name = 'Ksol'
-case ('BS_FIELD');      sci_name = 'Bsol'
+case ('T_OFFSET');      sci_name(1) = 't_offset'
+case ('KS');            sci_name(1) = 'Ksol'
+case ('BS_FIELD');      sci_name(1) = 'Bsol'
 case default
+  n_sci = 0
   print *, 'Attribute not yet coded for translation: ' // trim(bmad_name)
   print *, 'Please report this.'
 end select
 
-end function scibmad_attrib_name
+end subroutine scibmad_attrib_name
+
+!------------------------------------------------------
+! contains
+
+! Return SciBmad attribute name(s) for the Bmad kick attributes KICK, HKICK, VKICK and the
+! corresponding integrated field attributes BL_KICK, BL_HKICK, BL_VKICK.
+! In SciBmad a kick is represented by the n = 0 multipole components so a kick attribute of a
+! tilted element must be distributed between the normal and skew components.
+! The conversion mirrors what multipole_ele_to_ab does with the kick attributes (which is what is
+! used when writing the element definitions) so that overlay/group controlled values are consistent
+! with the element definition values.
+
+subroutine scibmad_kick_attrib_name(bmad_name, ele, n_sci, sci_name, factor)
+
+type (ele_struct) ele
+
+integer n_sci, key, i
+real(rp) factor(2), f0, tilt, coef(2)
+character(*) bmad_name
+character(40) sci_name(2)
+character(1) prefix
+logical is_hkick
+
+! is_hkick = True if the attribute gives a kick in the horizontal plane (in the element body frame).
+
+key = ele%key
+is_hkick = (index(bmad_name, 'VKICK') == 0)
+if (key == vkicker$) is_hkick = .false.
+if (key == hkicker$) is_hkick = .true.
+
+! coef(1) is the normal (Kn0/Bn0) coefficient and coef(2) is the skew (Ks0/Bs0) coefficient.
+! Note: For kicker type elements the kick is defined in the element body frame so there is no
+! rotation by the element tilt.
+
+select case (key)
+case (hkicker$, vkicker$, kicker$, ac_kicker$)
+  if (is_hkick) then
+    coef = [-1.0_rp, 0.0_rp]
+  else
+    coef = [0.0_rp, 1.0_rp]
+  endif
+
+case (elseparator$)   ! Kick is electric
+  if (ele%value(l$) == 0) then
+    n_sci = 0
+    return
+  endif
+
+  if (is_hkick) then
+    sci_name(1) = 'En0'
+    factor(1) = -ele%value(p0c$) / ele%value(l$)
+  else
+    sci_name(1) = 'Es0'
+    factor(1) = ele%value(p0c$) / ele%value(l$)
+  endif
+  n_sci = 1
+  return
+
+case default
+  if (key == sbend$ .or. key == rf_bend$) then
+    tilt = ele%value(ref_tilt_tot$)
+  else
+    tilt = ele%value(tilt_tot$)
+  endif
+
+  if (is_hkick) then
+    coef = [-cos(tilt), -sin(tilt)]
+  else
+    coef = [-sin(tilt), cos(tilt)]
+  endif
+end select
+
+! BL_KICK, BL_HKICK and BL_VKICK are integrated field values so no scaling by the reference momentum.
+
+if (bmad_name(1:3) == 'BL_') then
+  prefix = 'B'
+  f0 = 1
+elseif (ele%field_master) then
+  prefix = 'B'
+  f0 = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+else
+  prefix = 'K'
+  f0 = 1
+endif
+
+if (ele%value(l$) /= 0) f0 = f0 / ele%value(l$)
+
+!
+
+n_sci = 0
+
+if (coef(1) /= 0) then
+  n_sci = n_sci + 1
+  sci_name(n_sci) = prefix // 'n0'
+  factor(n_sci) = f0 * coef(1)
+endif
+
+if (coef(2) /= 0) then
+  n_sci = n_sci + 1
+  sci_name(n_sci) = prefix // 's0'
+  factor(n_sci) = f0 * coef(2)
+endif
+
+if (ele%value(l$) == 0) then
+  do i = 1, n_sci
+    sci_name(i) = trim(sci_name(i)) // 'L'
+  enddo
+endif
+
+end subroutine scibmad_kick_attrib_name
+
+!------------------------------------------------------
+! contains
+
+! Return the value of the SciBmad multipole attribute sci_name as computed when writing the
+! element definition. is_multipole is set False if sci_name is not a multipole attribute.
+! This is needed since a given SciBmad multipole component may get contributions from several
+! Bmad attributes (EG: Kn0 of a bend gets contributions from HKICK, VKICK, DG and the bend angle)
+! and the part not controlled by an overlay must be added in when writing a controlled value.
+
+function scibmad_multipole_value(ele, sci_name, is_multipole) result (value)
+
+type (ele_struct) ele
+
+real(rp) value, ff, a_p(0:n_pole_maxx), b_p(0:n_pole_maxx)
+integer nlen, nord, ixp
+character(*) sci_name
+character(40) nam
+logical is_multipole
+
+!
+
+value = 0
+is_multipole = .false.
+
+nam = sci_name
+if (nam(2:2) /= 'n' .and. nam(2:2) /= 's') return
+
+! Electric multipoles are not scaled by the element length.
+
+if (nam(1:1) == 'E') then
+  if (.not. is_integer(nam(3:), nord)) return
+  if (nord > n_pole_maxx) return
+  call multipole_ele_to_ab(ele, .false., ixp, a_p, b_p, electric$, include_kicks$)
+  ff = 1
+
+else
+  if ((nam(1:1) == 'B') .neqv. ele%field_master) return   ! Prefix is 'B' if and only if field_master.
+
+  nlen = len_trim(nam)
+  if (nam(nlen:nlen) == 'L') then
+    if (ele%value(l$) /= 0) return
+    nam = nam(1:nlen-1)
+  else
+    if (ele%value(l$) == 0) return
+  endif
+
+  if (.not. is_integer(nam(3:), nord)) return
+  if (nord > n_pole_maxx) return
+
+  call multipole_ele_to_ab(ele, .false., ixp, a_p, b_p, magnetic$, include_kicks$)
+  if (ele%key == sbend$) b_p(0) = b_p(0) + ele%value(angle$)
+
+  if (ele%field_master) then
+    ff = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
+  else
+    ff = 1
+  endif
+
+  if (ele%value(l$) /= 0) ff = ff / ele%value(l$)
+endif
+
+!
+
+if (nam(2:2) == 's') then
+  value = ff * factorial(nord) * a_p(nord)
+else
+  value = ff * factorial(nord) * b_p(nord)
+endif
+
+is_multipole = .true.
+
+end function scibmad_multipole_value
 
 end subroutine write_lattice_scibmad_format

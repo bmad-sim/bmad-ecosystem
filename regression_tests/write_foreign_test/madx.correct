@@ -20,9 +20,9 @@ CRAB_CAVITY1: drift, l =   2.0000E-01;
 E_KICKER_4: kicker, l =   0.0000E+00, hkick = 5.0000E-03, vkick = 1.0000E-03;
 ECOLLIMATOR1: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = 1.2597E-03, rm66 = 1.0000E+00;
-E_KICKER_5: kicker, l =   0.0000E+00, hkick = 2.5000E-03;
+E_KICKER_5: kicker, l =   0.0000E+00, hkick = 5.0000E-04;
 ELSEPARATOR1: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
-     rm55 = 1.0000E+00, kick5 = 1.4063E-05, rm66 = 1.0000E+00;
+     rm55 = 1.0000E+00, kick5 = 5.6250E-07, rm66 = 1.0000E+00;
 E_KICKER_6: kicker, l =   0.0000E+00, vkick = 2.5000E-03;
 ELSEPARATOR2: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = 1.4063E-05, rm66 = 1.0000E+00;
@@ -31,10 +31,10 @@ EM_FIELD2: drift, l =   1.4000E+00;
 FIDUCIAL1: marker;
 FLOOR_SHIFT1: drift, l =   0.0000E+00;
 GKICKER1: drift, l =   0.0000E+00;
-HKICKER1: hkicker, l =   4.5000E+00, kick = 5.0000E-03, tilt = 1.0000E-01;
+HKICKER1: hkicker, l =   4.5000E+00, kick = 1.0000E-03, tilt = 1.0000E-01;
 INSTRUMENT1: drift, l =   4.5000E+00;
-KMULTIPOLE_7: multipole, knl = {2.9850E-06}, ksl = {2.9950E-07};
-KICKER1: kicker, l =   4.5000E+00, vkick = 3.0000E-03, tilt = 1.0000E-01;
+KMULTIPOLE_7: multipole, knl = {9.9500E-07}, ksl = {9.9833E-08};
+KICKER1: kicker, l =   4.5000E+00, vkick = 1.0000E-03, tilt = 1.0000E-01;
 MATCH1: matrix, rm11 = 1.5650E+00, rm12 = -7.3485E-02, rm13 = 3.5194E-01, rm14 = -3.8271E-02,
      rm21 = 7.3485E-02, rm22 = 6.8042E-01, rm23 = 3.3143E-02, rm24 = -2.0320E-01,
      rm31 = 3.5194E-01, rm32 = -3.3143E-02, rm33 = 1.1997E+00, rm34 = -5.6569E-02,
@@ -49,9 +49,9 @@ PATCH1__y: yrotation, angle =  -1.0000E-03;
 PATCH1__x: xrotation, angle =  -2.0000E-03;
 PATCH1__s: srotation, angle =   2.0000E+00;
 QMULTIPOLE_8: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {-2.1213E-03, 0};
-Q_KICKER_9: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
+Q_KICKER_9: kicker, l =   0.0000E+00, hkick = 2.0000E-03, vkick = 3.0000E-03;
 QUADRUPOLE1: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
-     rm55 = 1.0000E+00, kick5 = -2.7022E-05, rm66 = 1.0000E+00;
+     rm55 = 1.0000E+00, kick5 = -9.0976E-05, rm66 = 1.0000E+00;
 QMULTIPOLE_10: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {2.1213E-03, 0};
 Q_KICKER_11: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE2: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
@@ -73,8 +73,8 @@ RCOLLIMATOR1: collimator, l =   4.5000E+00, apertype = rectangle, aperture = {  
 RFCAVITY1: rfcavity, l =   4.5000E+00, volt = 1.0000E-01, lag = 6.0000E-01, harmon = 184;
 RFCAVITY2: rfcavity, l =   4.5000E+00, volt = 1.0000E-01, lag = 6.0000E-01, harmon = 184;
 RFCAVITY3: rfcavity, l =   0.0000E+00, volt = 1.0000E-01, lag = 6.0000E-01, harmon = 184;
-SBEND1: sbend, l =   6.0000E-01, k1 = 3.0000E-01, tilt = 1.0000E-01, k0 = 1.6639E-05,
-     k0s = -1.6583E-04;
+SBEND1: sbend, l =   6.0000E-01, k1 = 3.0000E-01, tilt = 1.0000E-01, k0 = -1.6417E-03,
+     k0s = -3.3222E-04;
 RBEND2: sbend, l =   6.0000E-01, tilt = 1.0000E-01, k0 = 1.6639E-05, k0s = -1.6583E-04;
 SBEND3: sbend, l =   6.0000E-01, k1 = 3.0000E-01, tilt = 1.0000E-01, k0 = 1.6639E-05,
      k0s = -1.6583E-04;
