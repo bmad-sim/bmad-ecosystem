@@ -38,14 +38,15 @@ type (nametable_struct) var_nametab, defexpr_nametab
 type (control_struct), pointer :: ctl
 type (control_struct) control
 
-real(rp) f, length, ang2
+real(rp) f, length, ang2, k_wig, n_per
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r, ios
-integer ix_lord, ix_super, ie1, ib1
+integer ix_lord, ix_super, ie1, ib1, n_step, i_order, n_wig
 integer, allocatable :: an_indexx(:), index_list(:)
 
 logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added, has_defexpr_var
+logical has_planar_wiggler
 logical xlate_err    ! Set True if something in the lattice cannot be translated.
 logical, optional :: err_flag
 
@@ -76,7 +77,7 @@ scibmad_ele_type(taylor$)               = 'LineElement'
 scibmad_ele_type(rfcavity$)             = 'RFCavity'
 scibmad_ele_type(elseparator$)          = 'ELSeparator'
 scibmad_ele_type(beambeam$)             = 'BeamBeam'
-scibmad_ele_type(wiggler$)              = 'Wiggler'
+scibmad_ele_type(wiggler$)              = 'LineElement'   ! Beamlines has no Wiggler constructor. Uses kind = "Wiggler".
 scibmad_ele_type(sol_quad$)             = 'Solenoid'
 scibmad_ele_type(marker$)               = 'Marker'
 scibmad_ele_type(kicker$)               = 'Kicker'
@@ -111,7 +112,7 @@ scibmad_ele_type(e_gun$)                = 'EGun'
 scibmad_ele_type(em_field$)             = 'EMField'
 scibmad_ele_type(floor_shift$)          = 'FloorShift'
 scibmad_ele_type(fiducial$)             = 'Fiducial'
-scibmad_ele_type(undulator$)            = 'Undulator'
+scibmad_ele_type(undulator$)            = 'LineElement'   ! Beamlines has no Undulator constructor. Uses kind = "Wiggler".
 scibmad_ele_type(diffraction_plate$)    = 'DiffractionPlate'
 scibmad_ele_type(photon_init$)          = 'PhotonInit'
 scibmad_ele_type(sample$)               = 'Sample'
@@ -141,11 +142,26 @@ if (ios /= 0) then
   return
 endif
 
-! Header
+! Header.
+! Planar wigglers/undulators are translated using a four-potential integrated with the Yoshida
+! integrator. Yoshida is exported by SciBmad and not by Beamlines so it needs an extra "using".
+
+has_planar_wiggler = .false.
+do ib = 0, ubound(lat%branch, 1)
+  branch => lat%branch(ib)
+  do ie = 1, branch%n_ele_track
+    if (is_planar_wiggler(branch%ele(ie))) has_planar_wiggler = .true.
+  enddo
+enddo
 
 write (iu, '(4a)') '# Translated from Bmad lattice file: ', trim(lat%input_file_name)
 write (iu, '(a)')
 write (iu, '(a)')  'using Beamlines'
+if (has_planar_wiggler) write (iu, '(a)') 'using SciBmad: Yoshida'
+
+! Write the four-potential function used by wiggler and undulator elements.
+
+if (has_planar_wiggler) call write_planar_wiggler_four_potential(iu)
 
 ! Write functions for Taylor elements
 
@@ -321,6 +337,44 @@ do ib = 0, ubound(lat%branch, 1)
     select case (ele%key)
     case (match$, taylor$)
       line = trim(line) // ', transport_map = map_' // trim(ele_name)
+
+    ! Only the periodic planar model (with kx = 0) can be translated. The field is defined by the
+    ! four-potential written by write_planar_wiggler_four_potential and is integrated by the
+    ! Yoshida integrator using the Bmad step size.
+
+    case (wiggler$, undulator$)
+      if (is_planar_wiggler(ele)) then
+
+        ! With an integer number of periods the vector potential vanishes at both ends of the element
+        ! so the canonical momenta used by SciBmad are the same as the momenta used by Bmad there.
+        ! If the number of periods is not an integer, adjust the period so that it is. This is an
+        ! approximation and not an error.
+
+        n_per = length / ele%value(l_period$)
+        n_wig = max(1, nint(n_per))
+        if (abs(n_per - n_wig) > 1e-8_rp * n_wig) then
+          print *, trim(key_name(ele%key)) // ': ' // trim(ele%name) // ' does not have an integer number of periods.'
+          print *, '     Warning: L_PERIOD has been changed from ' // trim(adjustl(re_str(ele%value(l_period$)))) // &
+                   ' to ' // trim(adjustl(re_str(length / n_wig))) // ' to give ' // int_str(n_wig) // ' periods.'
+        endif
+
+        k_wig = twopi * n_wig / length
+        n_step = max(1, nint(ele%value(num_steps$)))
+        i_order = nint(ele%value(integrator_order$))
+        if (all(i_order /= [2, 4, 6, 8])) i_order = 6   ! Yoshida only accepts these orders.
+
+        line = trim(line) // ', kind = ' // quote('Wiggler')
+        line = trim(line) // ', four_potential = planar_wiggler_four_potential'
+        line = trim(line) // ', four_potential_params = (' // re_str(ele%value(b_max$)) // ', ' // &
+                                          re_str(k_wig) // ', ' // re_str(-k_wig * length / 2) // ')'
+        line = trim(line) // ', four_potential_normalized = false'
+        line = trim(line) // ', tracking_method = Yoshida(order = ' // int_str(i_order) // &
+                                                       ', n_steps = ' // int_str(n_step) // ')'
+      else
+        print *, trim(key_name(ele%key)) // ': ' // trim(ele%name) // &
+                          ' does not use the periodic planar model with kx = 0. This cannot yet be translated!'
+        xlate_err = .true.
+      endif
     end select
 
     !
@@ -373,7 +427,9 @@ do ib = 0, ubound(lat%branch, 1)
     if (ele%key == lcavity$) then
       if (ele%value(voltage$)+ele%value(voltage_err$) /= 0)  line = trim(line) // ', voltage = ' // re_str((ele%value(voltage$) + ele%value(voltage_err$)))
       if (ele%value(phi0$) /= 0)  line = trim(line) // ', phi0 = ' // re_str(ele%value(phi0$) + ele%value(phi0_err$))
-      line = trim(line) // ', tracking_method = SaganCavity(num_cells = ' // re_str(ele%value(n_rf_steps$)) // ', L_active = ' // re_str(ele%value(L_active$)) // ')'
+      ! Note: SaganCavity wants n_cells to be an integer.
+      line = trim(line) // ', tracking_method = SaganCavity(n_cells = ' // int_str(nint(ele%value(n_rf_steps$))) // &
+                                                        ', L_active = ' // re_str(ele%value(L_active$)) // ')'
 
     elseif (has_attribute(ele, 'RF_FREQUENCY')) then
       if (ele%key == rfcavity$) line = trim(line) // ', zero_phase = PhaseRef.AboveTransition'
@@ -654,6 +710,71 @@ else
 endif
 
 end function jbool
+
+!----------------------------------------------------------------------------------------------
+! contains
+!
+! Returns True if ele is a wiggler or undulator that uses Bmad's periodic planar model with kx = 0.
+! This is the only wiggler model that can currently be translated.
+
+function is_planar_wiggler(ele) result (is_planar)
+
+type (ele_struct) ele
+logical is_planar
+
+!
+
+is_planar = .false.
+if (ele%key /= wiggler$ .and. ele%key /= undulator$) return
+if (ele%field_calc /= planar_model$) return
+if (ele%value(kx$) /= 0) return
+if (ele%value(l_period$) == 0 .or. ele%value(l$) == 0) return
+is_planar = .true.
+
+end function is_planar_wiggler
+
+!----------------------------------------------------------------------------------------------
+! contains
+!
+! Write the Julia function that gives the four-potential of Bmad's periodic planar wiggler model.
+! This function must be present in the translated lattice file since it is not part of SciBmad.
+
+subroutine write_planar_wiggler_four_potential (iu)
+
+integer iu
+
+!
+
+write (iu, '(a)')
+write (iu, '(a)') '# Four-potential, and its derivatives, of the Bmad periodic planar wiggler/undulator model with kx = 0.'
+write (iu, '(a)') '# params = (B_max [Tesla], k_w [1/m], phase [rad]). The gauge used is phi = Ay = As = 0 with'
+write (iu, '(a)') '#   Ax = (B_max / k_w) * cosh(k_w*y) * sin(k_w*s + phase)'
+write (iu, '(a)') '# which gives the Bmad field'
+write (iu, '(a)') '#   Bx = 0,  By = B_max*cosh(k_w*y)*cos(k_w*s + phase),  Bs = -B_max*sinh(k_w*y)*sin(k_w*s + phase).'
+write (iu, '(a)') '# The potential is in physical units so four_potential_normalized must be false.'
+write (iu, '(a)') '# The derivative tuple order is:'
+write (iu, '(a)') '#   (dphi/dx, dphi/dy, dphi/ds, dphi/dt, dAx/dx, dAx/dy, dAx/ds, dAx/dt,'
+write (iu, '(a)') '#    dAy/dx,  dAy/dy,  dAy/ds,  dAy/dt,  dAs/dx, dAs/dy, dAs/ds, dAs/dt)'
+write (iu, '(a)') '# Note: Bmad measures z with respect to a reference particle that follows the wiggling on-axis'
+write (iu, '(a)') '# trajectory while SciBmad uses a straight line reference. The z of the two codes will therefore'
+write (iu, '(a)') '# differ by the on-axis path lengthening of the wiggler.'
+write (iu, '(a)')
+write (iu, '(a)') '@inline function planar_wiggler_four_potential(x, y, s, t, params)'
+write (iu, '(a)') '  B_max, k_w, phase = params'
+write (iu, '(a)') '  theta = k_w * s + phase'
+write (iu, '(a)') '  A_x = (B_max / k_w) * cosh(k_w * y) * sin(theta)'
+write (iu, '(a)') '  dA_x_dy = B_max * sinh(k_w * y) * sin(theta)'
+write (iu, '(a)') '  dA_x_ds = B_max * cosh(k_w * y) * cos(theta)'
+write (iu, '(a)') '  z = zero(A_x)'
+write (iu, '(a)') '  potential = (z, A_x, z, z)'
+write (iu, '(a)') '  derivatives = (z, z, z, z,'
+write (iu, '(a)') '                 z, dA_x_dy, dA_x_ds, z,'
+write (iu, '(a)') '                 z, z, z, z,'
+write (iu, '(a)') '                 z, z, z, z)'
+write (iu, '(a)') '  return potential, derivatives'
+write (iu, '(a)') 'end'
+
+end subroutine write_planar_wiggler_four_potential
 
 !----------------------------------------------------------------------------------------------
 ! contains

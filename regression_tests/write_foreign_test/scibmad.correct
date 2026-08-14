@@ -1,4 +1,4 @@
-# Translated from Bmad lattice file: /nfs/acc/user/dcs16/bmad-ecosystem/regression_tests/write_foreign_test/write_foreign_test.bmad
+# Translated from Bmad lattice file: write_foreign_test.bmad
 
 using Beamlines
 
@@ -259,16 +259,16 @@ end
      tilt =   1.0000E-01)
   lcavity1 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
      tilt =   1.0000E-01, voltage =   5.0000E+03, phi0 =  -1.9000E-01,
-     tracking_method = SaganCavity(num_cells =   1.0000E+01             ,
-     L_active =   4.4969E+00             ), traveling_wave = false)
+     tracking_method = SaganCavity(n_cells = 10, L_active =   4.4969E+00             ),
+     traveling_wave = false)
   lcavity2 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
      tilt =   1.0000E-01, voltage =   5.0000E+00, phi0 =  -1.9000E-01,
-     tracking_method = SaganCavity(num_cells =   1.0000E+01             ,
-     L_active =   4.4969E+00             ), traveling_wave = false)
+     tracking_method = SaganCavity(n_cells = 10, L_active =   4.4969E+00             ),
+     traveling_wave = false)
   lcavity3 = RFCavity(L =   4.5000E+00, x_offset =   5.0000E-02, x_rot =  -1.0000E-03,
      tilt =   1.0000E-01, voltage =   5.0450E+03, phi0 =  -1.9000E-01,
-     tracking_method = SaganCavity(num_cells =   1.0000E+01             ,
-     L_active =   4.4969E+00             ), traveling_wave = true)
+     tracking_method = SaganCavity(n_cells = 10, L_active =   4.4969E+00             ),
+     traveling_wave = true)
   end_b0 = Marker()
 end    # @elements
 #---------------------------------------------------------------------------------------
