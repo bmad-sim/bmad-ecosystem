@@ -4,11 +4,13 @@
 ! Routine to create a SciBmad lattice file.
 !
 ! Input:
+!   scibmad_file  -- character(*): SciBmad lattice file name.
 !   lat           -- lat_struct: Lattice
 !
 ! Output:
-!   scibmad_file  -- character(*): SciBmad lattice file name.
-!   err_flag      -- logical: Error flag
+!   err_flag      -- logical, optional: Set True if there is a problem. That is, if the file could
+!                     not be opened or if the lattice contains something that could not be
+!                     translated. Set False otherwise.
 !-
 
 subroutine write_lattice_scibmad_format(scibmad_file, lat, err_flag)
@@ -39,11 +41,12 @@ type (control_struct) control
 real(rp) f, length, ang2
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
-integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r
+integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r, ios
 integer ix_lord, ix_super, ie1, ib1
 integer, allocatable :: an_indexx(:), index_list(:)
 
 logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added, has_defexpr_var
+logical xlate_err    ! Set True if something in the lattice cannot be translated.
 logical, optional :: err_flag
 
 character(*) scibmad_file
@@ -57,7 +60,10 @@ character(*), parameter :: r_name = 'write_lattice_scibmad_format'
 
 character(20) :: scibmad_ele_type(n_key$)
 
-!
+! err_flag is set False only after the file has been successfully written.
+
+if (present(err_flag)) err_flag = .true.
+xlate_err = .false.
 
 scibmad_ele_type(drift$)                = 'Drift'
 scibmad_ele_type(sbend$)                = 'SBend'
@@ -129,7 +135,11 @@ scibmad_ele_type(fixer$)                = 'Fixer'
 
 call fullfilename(scibmad_file, fname)
 iu = lunget()
-open (iu, file = fname, status = 'unknown')
+open (iu, file = fname, status = 'unknown', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN FILE FOR WRITING: ' // trim(fname))
+  return
+endif
 
 ! Header
 
@@ -241,7 +251,10 @@ do ib = 0, ubound(lat%branch, 1)
       if (ele%value(roll$) /= 0)  line = trim(line) // ', roll = ' // re_str(ele%value(roll$))
       !!! if (ele%value(fint$)*ele%value(hgap$) /= 0)    line = trim(line) // ', edge_int1 = ' // re_str(ele%value(fint$)*ele%value(hgap$))
       !!! if (ele%value(fintx$)*ele%value(hgapx$) /= 0)  line = trim(line) // ', edge_int2 = ' // re_str(ele%value(fintx$)*ele%value(hgapx$))
-      if (ele%value(fint$)*ele%value(hgap$) /= 0 .or. ele%value(fintx$)*ele%value(hgapx$) /= 0) print *, 'BEND EDGE_INT PARAMETER CANNOT YET BE TRANSLATED!'
+      if (ele%value(fint$)*ele%value(hgap$) /= 0 .or. ele%value(fintx$)*ele%value(hgapx$) /= 0) then
+        print *, 'BEND EDGE_INT PARAMETER CANNOT YET BE TRANSLATED!'
+        xlate_err = .true.
+      endif
 
     elseif (has_attribute(ele, 'L')) then
       if (length /= 0) line = trim(line) // ', L = ' // re_str(length)
@@ -430,6 +443,7 @@ if (.false.) then   !!!
       if (mult_ele(ie)%region_start_pt) then
         if (in_multi_region) then
           call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #1! PLEASE REPORT THIS!')
+          xlate_err = .true.
         endif
         in_multi_region = .true.
         ix_r = mult_ele(ie)%ix_region
@@ -439,6 +453,7 @@ if (.false.) then   !!!
 
       if (mult_ele(ie)%ix_region /= ix_r) then
         call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #2! PLEASE REPORT THIS!')
+        xlate_err = .true.
       endif
 
       call write_scibmad_element (line, iu, ele, lat)
@@ -452,6 +467,7 @@ if (.false.) then   !!!
 
     if (in_multi_region) then
       call out_io (s_error$, r_name, 'MULTIPASS BOOKKEEPING ERROR #3! PLEASE REPORT THIS!')
+      xlate_err = .true.
     endif
   enddo  ! ib branch loop
 endif  !!!
@@ -471,22 +487,21 @@ call nametable_init(defexpr_nametab)
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(ie)
-  if (lord%key == group$) then
-    print *, 'GROUP ELEMENTS CANNOT YET BE TRANSLATED!'
-    cycle
-  endif
 
   if (lord%key == girder$) then
     print *, 'GIRDER ELEMENTS CANNOT YET BE TRANSLATED!'
+    xlate_err = .true.
     cycle
   endif
 
-  if (lord%key == overlay$) then
+  if (lord%key == overlay$ .or. lord%key == group$) then
     do is = 1, lord%n_slave
       slave => pointer_to_slave(lord, is, ctl)
       control = ctl
       if (.not. allocated(control%stack)) then
-        print *, 'Overlay: ' // trim(lord%name) // ' uses knot points for the control curve. This cannot yet be translated!'
+        print *, trim(key_name(lord%key)) // ': ' // trim(lord%name) // &
+                             ' uses knot points for the control curve. This cannot yet be translated!'
+        xlate_err = .true.
         exit
       endif
 
@@ -505,8 +520,8 @@ lat%ele%select = .false.
 
 do ie = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(ie)
-  if (lord%key == overlay$) then
-    call overlay_out(lord, lat, defexpr_nametab)
+  if (lord%key == overlay$ .or. lord%key == group$) then
+    call controller_out(lord, lat, defexpr_nametab)
   endif
 enddo
 
@@ -622,6 +637,8 @@ enddo
 close(iu)
 deallocate (names, an_indexx)
 !!! deallocate (mult_lat%branch)
+
+if (present(err_flag)) err_flag = xlate_err
 
 !----------------------------------------------------------------------------------------------
 contains
@@ -935,10 +952,12 @@ end subroutine write_this_taylor
 !------------------------------------------------------
 ! contains
 
-recursive subroutine overlay_out(overlay, lat, defexpr_nametab)
+! Output the control variables of an overlay or group element (called a "controller" here).
+
+recursive subroutine controller_out(controller, lat, defexpr_nametab)
 
 type (lat_struct), target :: lat
-type (ele_struct) overlay
+type (ele_struct) controller
 type (ele_struct), pointer :: lord, slave
 type (control_struct), pointer :: ctl
 type (control_struct) control
@@ -946,43 +965,68 @@ type (nametable_struct) defexpr_nametab
 
 integer ix, j, iv, it
 
-character(1000) c_str(40)
+character(1000) c_str(40), str
+logical is_group, has_ovl(40), has_grp(40)
 
 ! Output is top down.
-! Do not output if overlay is already outputted or has lords that have not yet been outputted.
+! Do not output if controller is already outputted or has lords that have not yet been outputted.
 
-if (overlay%select) return
-do ix = 1, overlay%n_lord
-  lord => pointer_to_lord(overlay, ix)
+if (controller%select) return
+do ix = 1, controller%n_lord
+  lord => pointer_to_lord(controller, ix)
+  if (lord%key /= overlay$ .and. lord%key /= group$) cycle
   if (.not. lord%select) return
 enddo
 
 ! Output vars.
 ! Controled vars are defined with a defered expression.
 
-overlay%select = .true.
+controller%select = .true.
 c_str = ''
+has_ovl = .false.
+has_grp = .false.
 has_defexpr_var = .false.
 
-do ix = 1, overlay%n_lord
-  lord => pointer_to_lord(overlay, ix)
+do ix = 1, controller%n_lord
+  lord => pointer_to_lord(controller, ix)
+  if (lord%key /= overlay$ .and. lord%key /= group$) cycle
+  is_group = (lord%key == group$)
+
   do j = 1, lord%n_slave
     slave => pointer_to_slave(lord, j, ctl)
     control = ctl
-    if (slave%ix_ele /= overlay%ix_ele) cycle
+    if (slave%ix_ele /= controller%ix_ele) cycle
+    if (.not. allocated(control%stack)) cycle   ! Knot point control. Message already given above.
     it = control%ix_attrib - var_offset$
-    if (c_str(it) == '') then
-      c_str(it) = this_expression(control%stack, lord, has_defexpr_var)
+    if (it < 1 .or. it > size(c_str)) cycle
+
+    if (is_group) then
+      has_grp(it) = .true.
+      str = delta_expression(control, lord, has_defexpr_var)
     else
-      c_str(it) = trim(c_str(it)) // ' + ' // this_expression(control%stack, lord, has_defexpr_var)
+      has_ovl(it) = .true.
+      str = this_expression(control%stack, lord, has_defexpr_var)
+    endif
+
+    if (c_str(it) == '') then
+      c_str(it) = str
+    else
+      c_str(it) = trim(c_str(it)) // ' + ' // trim(str)
     endif
   enddo
 enddo
 
-do iv = 1, size(overlay%control%var)
-  name = trim(overlay%name) // '_' // trim(downcase(overlay%control%var(iv)%name))
+do iv = 1, size(controller%control%var)
+  name = trim(controller%name) // '_' // trim(downcase(controller%control%var(iv)%name))
+
+  ! A group varies its slave incrementally so the present value of the var is the base value
+  ! that the group deltas are added to.
+
+  if (has_grp(iv) .and. .not. has_ovl(iv)) &
+                c_str(iv) = re_str(controller%control%var(iv)%value) // ' + ' // trim(c_str(iv))
+
   if (c_str(iv) == '') then
-    write (iu, '(2a, es24.16)') trim(name), ' = ', overlay%control%var(iv)%value
+    write (iu, '(2a, es24.16)') trim(name), ' = ', controller%control%var(iv)%value
   elseif (has_defexpr_var) then
     write (iu, '(3a)') 'if !@isdefined(', trim(name), ')'
     write (iu, '(7a)') '  const ', trim(name), ' = ', trim(c_str(iv))
@@ -996,23 +1040,23 @@ do iv = 1, size(overlay%control%var)
   endif
 enddo
 
-! Now that this overlay has been outputted, check if any overlay slaves need outputting.
+! Now that this controller has been outputted, check if any slaves need outputting.
 
-do ix = 1, overlay%n_slave
-  slave => pointer_to_slave(overlay, ix)
-  if (slave%key == overlay$) then
-    call overlay_out(slave, lat, defexpr_nametab)
+do ix = 1, controller%n_slave
+  slave => pointer_to_slave(controller, ix)
+  if (slave%key == overlay$ .or. slave%key == group$) then
+    call controller_out(slave, lat, defexpr_nametab)
   else
-    call overlay_slave_out(slave, lat, defexpr_nametab)
+    call controller_slave_out(slave, lat, defexpr_nametab)
   endif
 enddo
 
-end subroutine overlay_out
+end subroutine controller_out
 
 !------------------------------------------------------
 ! contains
 
-recursive subroutine overlay_slave_out(slave, lat, defexpr_nametab)
+recursive subroutine controller_slave_out(slave, lat, defexpr_nametab)
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
@@ -1021,20 +1065,20 @@ type (control_struct), pointer :: ctl
 type (control_struct)  control
 type (nametable_struct) defexpr_nametab
 
-real(rp) factor(2), sum_ctl(40), tot, resid
+real(rp) factor(2), sum_ctl(40), grp_base(40), tot, resid
 integer ix, j, k, iv, n_sci, n_contl, indx(40), ixm, n_done, ix_done(40)
 
 character(40) sci_name(2), sci_names(40)
 character(100) name
 character(1000) :: c_str(40), str, term
-logical has_defexpr_var(40), hdv, is_new, is_mult
+logical has_defexpr_var(40), has_ovl(40), has_grp(40), hdv, is_new, is_mult, is_group
 
-! Do not output if slave is already outputted or has overlay lords that have not yet been outputted.
+! Do not output if slave is already outputted or has controller lords that have not yet been outputted.
 
 if (slave%select) return
 do ix = 1, slave%n_lord
   lord => pointer_to_lord(slave, ix)
-  if (.not. lord%key == overlay$) cycle
+  if (lord%key /= overlay$ .and. lord%key /= group$) cycle
   if (.not. lord%select) return
 enddo
 
@@ -1047,16 +1091,25 @@ sci_names = ''
 n_contl = 0
 n_done = 0
 sum_ctl = 0
+grp_base = 0
 has_defexpr_var = .false.
+has_ovl = .false.
+has_grp = .false.
 
 ! Note: A single Bmad attribute (EG: HKICK of a tilted element) may map to multiple SciBmad
 ! attributes and multiple Bmad attributes may map to a single SciBmad attribute. So the
 ! expressions are collected by SciBmad attribute name.
 ! sum_ctl(i) is the present value of the part of the SciBmad attribute that is controlled.
+! grp_base(i) is the present value of the part that is varied by a group. Unlike an overlay, a
+! group varies an attribute incrementally so the present value is the base that deltas add to.
 
 do ix = 1, slave%n_lord
   lord => pointer_to_lord(slave, ix, ctl)
+  if (lord%key /= overlay$ .and. lord%key /= group$) cycle
   control = ctl
+  if (.not. allocated(control%stack)) cycle   ! Knot point control. Message already given.
+  is_group = (lord%key == group$)
+
   call scibmad_attrib_name(control%attribute, slave, n_sci, sci_name, factor)
   if (n_sci == 0) cycle    ! Attribute cannot be translated.
 
@@ -1073,7 +1126,11 @@ do ix = 1, slave%n_lord
   endif
 
   hdv = .false.
-  str = this_expression(control%stack, lord, hdv)
+  if (is_group) then
+    str = delta_expression(control, lord, hdv)
+  else
+    str = this_expression(control%stack, lord, hdv)
+  endif
 
   do k = 1, n_sci
     call find_index(sci_name(k), sci_names, indx, n_contl, ixm)
@@ -1091,13 +1148,22 @@ do ix = 1, slave%n_lord
       c_str(ixm) = trim(c_str(ixm)) // ' + ' // trim(term)
     endif
 
-    if (is_new) sum_ctl(ixm) = sum_ctl(ixm) + factor(k) * slave%value(control%ix_attrib)
+    if (is_group) then
+      has_grp(ixm) = .true.
+      if (is_new) grp_base(ixm) = grp_base(ixm) + factor(k) * slave%value(control%ix_attrib)
+    else
+      has_ovl(ixm) = .true.
+      if (is_new) sum_ctl(ixm) = sum_ctl(ixm) + factor(k) * slave%value(control%ix_attrib)
+    endif
+
     if (hdv) has_defexpr_var(ixm) = .true.
   enddo
 enddo
 
 ! A SciBmad multipole component may have contributions from Bmad attributes that are not controlled
 ! (EG: The bend angle contribution to Kn0). Such contributions are constant so just add them in.
+! Note: Since a group contribution is a delta with respect to the present attribute value, the
+! group base value is part of the "not controlled" residual for a multipole component.
 
 do iv = 1, n_contl
   name = trim(downcase(slave%name)) // '.' // trim(sci_names(iv))
@@ -1107,6 +1173,8 @@ do iv = 1, n_contl
     resid = tot - sum_ctl(iv)
     if (abs(resid) > 1e-14_rp * max(abs(tot), abs(sum_ctl(iv)))) &
                                             c_str(iv) = re_str(resid) // ' + ' // trim(c_str(iv))
+  elseif (has_grp(iv) .and. .not. has_ovl(iv)) then
+    c_str(iv) = re_str(grp_base(iv)) // ' + ' // trim(c_str(iv))
   endif
 
   if (has_defexpr_var(iv)) then
@@ -1117,7 +1185,7 @@ do iv = 1, n_contl
 
 enddo
 
-end subroutine overlay_slave_out
+end subroutine controller_slave_out
 
 !------------------------------------------------------
 ! contains
@@ -1226,6 +1294,49 @@ end function this_expression
 !------------------------------------------------------
 ! contains
 
+! A group element varies a controlled quantity Q incrementally:
+!   Q -> Q + (E(v) - E(v0))
+! where E is the control expression, v are the group variables and v0 are the variable values
+! corresponding to the present value of Q. So the group contribution to Q is the returned
+! delta expression and the present value of Q is the base value that the delta is added to.
+
+function delta_expression(control, lord, has_defexpr_var) result (expr)
+
+type (control_struct) control
+type (ele_struct) lord
+
+real(rp) val0
+logical has_defexpr_var, err
+character(1000) expr
+character(100) err_str
+
+! Note: E(v0) must be evaluated before this_expression is called since this_expression
+! translates the atom names in the stack to their SciBmad equivalents.
+
+val0 = 0
+if (allocated(lord%control%var)) then
+  val0 = expression_stack_value(control%stack, err, err_str, lord%control%var, .false.)
+  if (err) then
+    print *, 'Cannot evaluate control expression of group: ' // trim(lord%name)
+    print *, err_str
+    xlate_err = .true.
+    val0 = 0
+  endif
+endif
+
+expr = this_expression(control%stack, lord, has_defexpr_var)
+
+if (val0 == 0) then
+  expr = '(' // trim(expr) // ')'
+else
+  expr = '(' // trim(expr) // ' - (' // trim(re_str(val0)) // '))'
+endif
+
+end function delta_expression
+
+!------------------------------------------------------
+! contains
+
 ! Return SciBmad attribute name(s) given Bmad attribute name.
 ! Since a Bmad attribute may map to more than one SciBmad attribute (EG: HKICK of a tilted element
 ! maps to both the normal and skew n = 0 multipole components), up to two names are returned.
@@ -1318,8 +1429,19 @@ case ('X_OFFSET', 'Y_OFFSET', 'Z_OFFSET', 'X_PITCH', 'Y_PITCH', 'TILT')
 case ('T_OFFSET');      sci_name(1) = 't_offset'
 case ('KS');            sci_name(1) = 'Ksol'
 case ('BS_FIELD');      sci_name(1) = 'Bsol'
+
+! These group specific attributes vary the lengths of neighboring elements. There is no
+! SciBmad equivalent.
+
+case ('START_EDGE', 'END_EDGE', 'ACCORDION_EDGE', 'S_POSITION', 'LORD_PAD1', 'LORD_PAD2')
+  n_sci = 0
+  xlate_err = .true.
+  print *, 'Group control of the ' // trim(bmad_name) // ' attribute of element ' // &
+                                                trim(ele%name) // ' cannot be translated.'
+
 case default
   n_sci = 0
+  xlate_err = .true.
   print *, 'Attribute not yet coded for translation: ' // trim(bmad_name)
   print *, 'Please report this.'
 end select

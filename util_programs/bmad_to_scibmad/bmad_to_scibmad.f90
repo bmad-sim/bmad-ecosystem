@@ -53,4 +53,8 @@ endif
 call write_lattice_scibmad_format(scibmad_name, lat, err_flag)
 print *, 'SciBmad file: ' // trim(scibmad_name)
 
+if (err_flag) then
+  call out_io (s_warn$, r_name, 'THE TRANSLATION IS NOT COMPLETE! SEE THE MESSAGES ABOVE.')
+endif
+
 end program
