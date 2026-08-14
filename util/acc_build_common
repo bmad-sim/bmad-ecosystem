@@ -148,6 +148,26 @@ func_set_gmake_job_level () {
 }
 
 
+# Function to set compiler and Linker flags for conda builds.
+#
+# The conda include and lib directories must be named explicitly. Note that -rpath-link is
+# needed in addition to -L so that the linker can resolve the indirect dependencies of the
+# shared libraries it is handed (for example, libstdc++.so.6 needed by libsim_utils.so).
+# Up through conda-forge "compilers 1.11" this was done implicitly by the conda-gcc-specs
+# and gcc_linux-64 packages. Those were dropped in "compilers 2.0" (gcc 15.3) so the flags
+# must now be set here. Previously this was done only for OpenMP builds which is why the
+# non-OpenMP CI build was the one that broke.
+
+func_set_conda_flags () {
+
+    if [[ "${CONDA_BUILD}" ]]; then
+      export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+      export FCFLAGS="${FCFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
+      export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib -Wl,-rpath-link,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+    fi
+}
+
+
 # Function to set compiler and Linker flags, if OpenMP is enabled
 
 func_set_openmp_flags () {
@@ -158,22 +178,17 @@ func_set_openmp_flags () {
           # Fix setting OpenMP configure flag 12-Sep-2022
           export BUILD_OPENMP=1
 
-          if [[ "${CONDA_BUILD}" ]]; then
-            export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
-            export FCFLAGS="${FFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
-            export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
-          fi
           export CFLAGS="-fopenmp ${CFLAGS}"
           if [ "${FC}" == "gfortran" ] ; then
             export FCFLAGS="-fopenmp ${FCFLAGS}"
             export LDFLAGS="-lgomp ${LDFLAGS}"
           elif [ "${IFORT_MAJOR_VERSION}" ] ; then
             if [ "${IFORT_MAJOR_VERSION}" -gt 15 ] ; then
-                export FCFLAGS="-qopenmp" 
+                export FCFLAGS="-qopenmp ${FCFLAGS}"
             else
-                export FCFLAGS="-openmp"
+                export FCFLAGS="-openmp ${FCFLAGS}"
             fi
-            export LDFLAGS="-liomp5"
+            export LDFLAGS="-liomp5 ${LDFLAGS}"
           fi
             ;;
       *)
@@ -744,6 +759,7 @@ if ( [ "${1}" == "-debug" ] || [ "${1}" == "-production" ] ) ; then
       echo -e "\nPreparing "${BUILD_TYPE}" build of `echo ${PACKAGE_VERSION}`...\n"
 
       func_set_gmake_job_level
+      func_set_conda_flags
       func_set_openmp_flags
       func_set_fpic_flags
       func_check_fortran_version
