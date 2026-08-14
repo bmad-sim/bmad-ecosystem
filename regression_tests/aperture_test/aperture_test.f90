@@ -48,6 +48,16 @@ ele%tracking_method = time_runge_kutta$
 call track1(start_orb, ele, lat%param, end_orb)
 write (1, '(a, 6f10.6, i4)') '"TRK"  ABS 0', end_orb%vec, end_orb%state
 
+! Wall hit within the first Runge-Kutta step. The wall intersection point must be computed
+! correctly here and not just be the position at the end of the step. See issue #2141.
+
+ele => lat%branch(2)%ele(1)
+call init_coord (start_orb, lat%particle_start, ele, upstream_end$)
+start_orb%vec(1) = 0.00995_rp   ! Wall (x_limit = 0.01) is hit at s = 4.9749...e-4
+start_orb%vec(2) = 0.1_rp
+call track1 (start_orb, ele, lat%branch(2)%param, end_orb)
+write (1, '(a, 2f14.9, i4)') '"RK-Wall-Hit"  ABS 1E-8', end_orb%vec(1), end_orb%s, end_orb%state
+
 do i = 3, lat%n_ele_track-1  ! Do not include END marker element.
   call check_this_aperture (lat%ele(i))
 enddo

@@ -10,6 +10,12 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-08-13 Fixed: With Runge-Kutta tracking, the wall intersection point of a particle that hit an
+  aperture during the first integration step was not computed and the particle was left at the end
+  point of the step. With CSR/space charge tracking, where an element is tracked as a set of slices
+  and each slice restarts the integration, this produced nonphysical spikes in the distribution of
+  wall hits spaced by `ds_track_step`.
+
 - 2026-08-10 Fixed: Radiation integrals no longer depend upon how a magnet is sliced. Two bugs in
   the integration were fixed: The non-cached calculation evaluated the integrands 1 mm inside the
   element at the downstream end, and the cached calculation used a set of cache points that did not

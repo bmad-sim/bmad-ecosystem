@@ -48,4 +48,14 @@ line2[geometry] = open
 line2[beta_a] = 10
 line2[beta_b] = 10
 
-use, line1, line2
+!---------------- Wall hit in the first Runge-Kutta step. See issue #2141.
+
+d3: pipe, l = 1, aperture_at = continuous, aperture_type = elliptical, x_limit = 0.01, y_limit = 0.01,
+        tracking_method = runge_kutta
+
+line3: line = (d3)
+line3[geometry] = open
+line3[beta_a] = 10
+line3[beta_b] = 10
+
+use, line1, line2, line3

@@ -82,7 +82,7 @@ integer :: n_step, s_dir, nr_max, n_step_max, status
 
 logical, optional :: make_matrix
 logical, target :: err_flag
-logical err, at_hard_edge, track_spin, too_large
+logical err, at_hard_edge, track_spin, too_large, no_aperture_here
 
 character(*), parameter :: r_name = 'odeint_bmad'
 
@@ -194,7 +194,17 @@ do n_step = 1, n_step_max
   case (continuous$, wall_transition$)
     call check_aperture_limit (orbit, ele, in_between$, param, old_orbit, check_momentum = .false.)
     if (orbit%state /= alive$) then
-      if (n_step == 1) return  ! Cannot do anything if this is the first step
+      ! The zbrent root finder needs the particle to be inside the aperture at the start of the step.
+      ! This is always true except possibly for the first step since the starting point has not been checked.
+      ! Note: Do not want to skip the zbrent calc when the particle starts inside since, if the element is a
+      ! slice of a larger element (EG with CSR tracking), losses in the first step are not at all rare.
+      if (n_step == 1) then
+        dist_to_wall = distance_to_aperture (old_orbit, in_between$, ele, no_aperture_here)
+        if (no_aperture_here .or. dist_to_wall > 0) then   ! Cannot bracket the wall crossing point.
+          err_flag = .false.
+          return
+        endif
+      endif
       ! Due to the zbrent finite tolerance, the particle may not have crossed the wall boundary.
       ! So step a small amount to make sure that the particle is past the wall.
       rk_ele_ptr => ele
