@@ -24,7 +24,7 @@ implicit none
 
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele, lord, slave, slave2, multi_lord
+type (ele_struct), pointer :: ele, ele2, lord, slave, slave2, multi_lord
 type (coord_struct), pointer :: orb
 type (multipass_region_lat_struct), target :: mult_lat
 type (multipass_all_info_struct), target :: m_info
@@ -38,11 +38,11 @@ type (nametable_struct) var_nametab, defexpr_nametab
 type (control_struct), pointer :: ctl
 type (control_struct) control
 
-real(rp) f, length, ang2, k_wig, n_per
+real(rp) f, length, ang2, k_wig, n_per, phase
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 
 integer n, i, j, k, ix, ib, ie, iu, is, n_names, ix_match, ix_pass, ix_r, ios
-integer ix_lord, ix_super, ie1, ib1, n_step, i_order, n_wig
+integer ix_lord, ix_super, ie1, ib1, n_step, i_order, n_wig, eles_not_translated(20)
 integer, allocatable :: an_indexx(:), index_list(:)
 
 logical has_been_added, in_multi_region, have_expand_lattice_line, err, is_added, has_defexpr_var
@@ -54,11 +54,10 @@ character(*) scibmad_file
 character(1) prefix
 character(3), parameter :: unit_spin_map(0:3) = ['1.0', '0.0', '0.0', '0.0']
 character(100) name, look_for, ele_name
-character(40), allocatable :: names(:)
+character(40), allocatable :: scibmad_names(:)
 character(240) fname
 character(4000) line
 character(*), parameter :: r_name = 'write_lattice_scibmad_format'
-
 character(20) :: scibmad_ele_type(n_key$)
 
 ! err_flag is set False only after the file has been successfully written.
@@ -72,16 +71,16 @@ scibmad_ele_type(quadrupole$)           = 'Quadrupole'
 scibmad_ele_type(group$)                = '??Group'
 scibmad_ele_type(sextupole$)            = 'Sextupole'
 scibmad_ele_type(overlay$)              = '??Overlay'
-scibmad_ele_type(custom$)               = 'Custom'
+scibmad_ele_type(custom$)               = 'Marker'
 scibmad_ele_type(taylor$)               = 'LineElement'
 scibmad_ele_type(rfcavity$)             = 'RFCavity'
-scibmad_ele_type(elseparator$)          = 'ELSeparator'
+scibmad_ele_type(elseparator$)          = 'Drift'           !!! Not translated
 scibmad_ele_type(beambeam$)             = 'BeamBeam'
 scibmad_ele_type(wiggler$)              = 'LineElement'   ! Beamlines has no Wiggler constructor. Uses kind = "Wiggler".
 scibmad_ele_type(sol_quad$)             = 'Solenoid'
 scibmad_ele_type(marker$)               = 'Marker'
 scibmad_ele_type(kicker$)               = 'Kicker'
-scibmad_ele_type(hybrid$)               = 'Hybrid'
+scibmad_ele_type(hybrid$)               = 'Marker'
 scibmad_ele_type(octupole$)             = 'Octupole'
 scibmad_ele_type(rbend$)                = 'SBend'
 scibmad_ele_type(multipole$)            = 'Multipole'
@@ -91,7 +90,6 @@ scibmad_ele_type(patch$)                = 'Patch'
 scibmad_ele_type(lcavity$)              = 'RFCavity'
 scibmad_ele_type(null_ele$)             = 'NullEle'
 scibmad_ele_type(beginning_ele$)        = 'BeginningEle'
-scibmad_ele_type(def_line$)             = '!Line'
 scibmad_ele_type(match$)                = 'LineElement'
 scibmad_ele_type(monitor$)              = 'Drift'
 scibmad_ele_type(instrument$)           = 'Drift'
@@ -99,38 +97,41 @@ scibmad_ele_type(hkicker$)              = 'Kicker'
 scibmad_ele_type(vkicker$)              = 'Kicker'
 scibmad_ele_type(rcollimator$)          = 'Drift'
 scibmad_ele_type(ecollimator$)          = 'Drift'
-scibmad_ele_type(girder$)               = 'Girder'
+scibmad_ele_type(girder$)               = 'Nothing!'
 scibmad_ele_type(converter$)            = 'Converter'
-scibmad_ele_type(photon_fork$)          = 'Fork'
-scibmad_ele_type(fork$)                 = 'Fork'
-scibmad_ele_type(mirror$)               = 'Mirror'
-scibmad_ele_type(crystal$)              = 'Crystal'
+scibmad_ele_type(photon_fork$)          = 'Marker'      !!! Not translated
+scibmad_ele_type(fork$)                 = 'Marker'      !!! Not translated
+scibmad_ele_type(mirror$)               = 'Marker'      !!! Not translated
+scibmad_ele_type(crystal$)              = 'Marker'      !!! Not translated
 scibmad_ele_type(pipe$)                 = 'Drift'
-scibmad_ele_type(capillary$)            = 'Capillary'
-scibmad_ele_type(multilayer_mirror$)    = 'MultilayerMirror'
+scibmad_ele_type(capillary$)            = 'Drift'       !!! Not translated
+scibmad_ele_type(multilayer_mirror$)    = 'Drift'       !!! Not translated
 scibmad_ele_type(e_gun$)                = 'EGun'
 scibmad_ele_type(em_field$)             = 'EMField'
 scibmad_ele_type(floor_shift$)          = 'FloorShift'
 scibmad_ele_type(fiducial$)             = 'Fiducial'
 scibmad_ele_type(undulator$)            = 'LineElement'   ! Beamlines has no Undulator constructor. Uses kind = "Wiggler".
-scibmad_ele_type(diffraction_plate$)    = 'DiffractionPlate'
-scibmad_ele_type(photon_init$)          = 'PhotonInit'
-scibmad_ele_type(sample$)               = 'Sample'
-scibmad_ele_type(detector$)             = 'Detector'
-scibmad_ele_type(sad_mult$)             = 'SadMult'
-scibmad_ele_type(mask$)                 = 'Mask'
-scibmad_ele_type(ac_kicker$)            = 'ACKicker'
-scibmad_ele_type(lens$)                 = 'Lens'
+scibmad_ele_type(diffraction_plate$)    = 'Marker'
+scibmad_ele_type(photon_init$)          = 'Marker'
+scibmad_ele_type(sample$)               = 'Marker'
+scibmad_ele_type(detector$)             = 'Marker'
+scibmad_ele_type(sad_mult$)             = 'Marker'
+scibmad_ele_type(mask$)                 = 'Marker'
+scibmad_ele_type(ac_kicker$)            = 'Marker'
+scibmad_ele_type(lens$)                 = 'Marker'
 scibmad_ele_type(crab_cavity$)          = 'CrabCavity'
 scibmad_ele_type(ramper$)               = 'Ramper'
-scibmad_ele_type(def_ptc_com$)          = '!PTC_Com'
 scibmad_ele_type(rf_bend$)              = 'RFBend'
 scibmad_ele_type(gkicker$)              = 'Kicker'
-scibmad_ele_type(foil$)                 = 'Foil'
+scibmad_ele_type(foil$)                 = 'Marker'
 scibmad_ele_type(thick_multipole$)      = 'ThickMultipole'
 scibmad_ele_type(pickup$)               = 'Drift'
 scibmad_ele_type(feedback$)             = 'Drift'
 scibmad_ele_type(fixer$)                = 'Fixer'
+
+eles_not_translated = -1
+eles_not_translated(1:18) = [elseparator$, photon_fork$, fork$, mirror$, crystal$, diffraction_plate$, photon_init$, &
+                           sample$, detector$, sad_mult$, mask$, ac_kicker$, lens$, foil$, pickup$, feedback$, hybrid$, custom$]
 
 ! Open file
 
@@ -142,9 +143,12 @@ if (ios /= 0) then
   return
 endif
 
-! Header.
-! Planar wigglers/undulators are translated using a four-potential integrated with the Yoshida
-! integrator. Yoshida is exported by SciBmad and not by Beamlines so it needs an extra "using".
+write (iu, '(4a)') '# Translated from Bmad lattice file: ', trim(lat%input_file_name)
+write (iu, '(a)')
+write (iu, '(a)')  'using Beamlines'
+write (iu, '(a)')  'using BeamTracking'
+
+! Write the four-potential function used by wiggler and undulator elements.
 
 has_planar_wiggler = .false.
 do ib = 0, ubound(lat%branch, 1)
@@ -153,13 +157,6 @@ do ib = 0, ubound(lat%branch, 1)
     if (is_planar_wiggler(branch%ele(ie))) has_planar_wiggler = .true.
   enddo
 enddo
-
-write (iu, '(4a)') '# Translated from Bmad lattice file: ', trim(lat%input_file_name)
-write (iu, '(a)')
-write (iu, '(a)')  'using Beamlines'
-if (has_planar_wiggler) write (iu, '(a)') 'using SciBmad: Yoshida'
-
-! Write the four-potential function used by wiggler and undulator elements.
 
 if (has_planar_wiggler) call write_planar_wiggler_four_potential(iu)
 
@@ -170,6 +167,11 @@ do ib = 0, ubound(lat%branch, 1)
   do ie = 1, branch%n_ele_max
     ele => branch%ele(ie)
     length = ele%value(l$)
+
+    if (any(ele%key == eles_not_translated)) then
+      call out_io(s_warn$, r_name, 'Element translation problem for ' // ele_full_name(ele) // ' of type: ' // key_name(ele%key), &
+                                  '   Will translate to a: ' // scibmad_ele_type(ele%key))
+    endif
 
     select case (ele%key)
     case (match$)
@@ -192,7 +194,7 @@ enddo
 
 n_names = 0
 n = lat%n_ele_max
-allocate (names(n), an_indexx(n), named_eles_ptr(n))
+allocate (scibmad_names(n), an_indexx(n), named_eles_ptr(n))
 
 write (iu, '(a)')
 write (iu, '(a)') '@elements begin'
@@ -223,7 +225,7 @@ do ib = 0, ubound(lat%branch, 1)
 
     ! Do not write anything for elements that have a duplicate name.
 
-    call add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles_ptr)
+    call add_this_name_to_list (ele, scibmad_names, an_indexx, n_names, ix_match, has_been_added, named_eles_ptr, scibmad_ele_name(ele))
     if (.not. has_been_added) cycle
 
     ! Write element def
@@ -268,7 +270,7 @@ do ib = 0, ubound(lat%branch, 1)
       !!! if (ele%value(fint$)*ele%value(hgap$) /= 0)    line = trim(line) // ', edge_int1 = ' // re_str(ele%value(fint$)*ele%value(hgap$))
       !!! if (ele%value(fintx$)*ele%value(hgapx$) /= 0)  line = trim(line) // ', edge_int2 = ' // re_str(ele%value(fintx$)*ele%value(hgapx$))
       if (ele%value(fint$)*ele%value(hgap$) /= 0 .or. ele%value(fintx$)*ele%value(hgapx$) /= 0) then
-        print *, 'BEND EDGE_INT PARAMETER CANNOT YET BE TRANSLATED!'
+        call out_io(s_warn$, r_name, 'BEND EDGE_INT PARAMETER CANNOT YET BE TRANSLATED!')
         xlate_err = .true.
       endif
 
@@ -350,29 +352,29 @@ do ib = 0, ubound(lat%branch, 1)
         ! If the number of periods is not an integer, adjust the period so that it is. This is an
         ! approximation and not an error.
 
-        n_per = length / ele%value(l_period$)
+        ele2 => pointer_to_field_ele(ele, 1)   ! In case ele is a super_slave. If not, ele2 == ele.
+        n_per = ele2%value(l$) / ele2%value(l_period$)
         n_wig = max(1, nint(n_per))
         if (abs(n_per - n_wig) > 1e-8_rp * n_wig) then
-          print *, trim(key_name(ele%key)) // ': ' // trim(ele%name) // ' does not have an integer number of periods.'
-          print *, '     Warning: L_PERIOD has been changed from ' // trim(adjustl(re_str(ele%value(l_period$)))) // &
-                   ' to ' // trim(adjustl(re_str(length / n_wig))) // ' to give ' // int_str(n_wig) // ' periods.'
+          call out_io(s_warn$, r_name, ele_full_name(ele2) // ' does not have an integer number of periods.', &
+                                '     L_PERIOD will be adjusted to make an integer number of periods.')
         endif
 
-        k_wig = twopi * n_wig / length
-        n_step = max(1, nint(ele%value(num_steps$)))
-        i_order = nint(ele%value(integrator_order$))
-        if (all(i_order /= [2, 4, 6, 8])) i_order = 6   ! Yoshida only accepts these orders.
+        k_wig = twopi * n_wig / ele2%value(l$)
+        n_step = max(1, nint(ele2%value(num_steps$)))
+        i_order = nint(ele2%value(integrator_order$))
+        phase = k_wig * ((ele%s_start - ele2%s_start) - 0.5_rp * ele2%value(l$))
+        if (all(i_order /= [2, 4, 6, 8])) i_order = 4   ! Yoshida only accepts these orders.
 
         line = trim(line) // ', kind = ' // quote('Wiggler')
         line = trim(line) // ', four_potential = planar_wiggler_four_potential'
         line = trim(line) // ', four_potential_params = (' // re_str(ele%value(b_max$)) // ', ' // &
-                                          re_str(k_wig) // ', ' // re_str(-k_wig * length / 2) // ')'
+                                          re_str(k_wig) // ', ' // re_str(phase) // ')'
         line = trim(line) // ', four_potential_normalized = false'
         line = trim(line) // ', tracking_method = Yoshida(order = ' // int_str(i_order) // &
                                                        ', n_steps = ' // int_str(n_step) // ')'
       else
-        print *, trim(key_name(ele%key)) // ': ' // trim(ele%name) // &
-                          ' does not use the periodic planar model with kx = 0. This cannot yet be translated!'
+        call out_io(s_warn$, r_name, ele_full_name(ele) // ' does not use the periodic planar model. This cannot yet be translated!')
         xlate_err = .true.
       endif
     end select
@@ -455,10 +457,10 @@ do ib = 0, ubound(lat%branch, 1)
 
     if (ele%key == fork$ .or. ele%key == photon_fork$) then
       n = nint(ele%value(ix_to_branch$))
-      line = trim(line) // ', to_line = ' // trim(downcase(lat%branch(n)%name))
+!!!      line = trim(line) // ', to_line = ' // quote(downcase(lat%branch(n)%name))
       if (ele%value(ix_to_element$) > 0) then
         i = nint(ele%value(ix_to_element$))
-        line = trim(line) // ', to_element = ' // trim(scibmad_ele_name(lat%branch(n)%ele(i)))
+!!!        line = trim(line) // ', to_element = ' // quote(scibmad_ele_name(lat%branch(n)%ele(i)))
       endif
     endif
 
@@ -545,7 +547,6 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
   lord => lat%ele(ie)
 
   if (lord%key == girder$) then
-    print *, 'GIRDER ELEMENTS CANNOT YET BE TRANSLATED!'
     xlate_err = .true.
     cycle
   endif
@@ -555,8 +556,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
       slave => pointer_to_slave(lord, is, ctl)
       control = ctl
       if (.not. allocated(control%stack)) then
-        print *, trim(key_name(lord%key)) // ': ' // trim(lord%name) // &
-                             ' uses knot points for the control curve. This cannot yet be translated!'
+        call out_io(s_warn$, r_name, ele_full_name(lord) // ' uses knot points for the control curve. This cannot yet be translated!')
         xlate_err = .true.
         exit
       endif
@@ -684,14 +684,13 @@ do ib = 0, ubound(lat%branch, 1)
     ele => branch%ele(ie)
     if (ele%slave_status == super_slave$) cycle
     if (ele%slave_status == multipass_slave$) cycle
-    !!! call eles_with_same_name_handler(ele, named_eles_ptr, an_indexx, names, n_names, order)
   enddo
 enddo
 
 ! cleanup
 
 close(iu)
-deallocate (names, an_indexx)
+deallocate (scibmad_names, an_indexx)
 !!! deallocate (mult_lat%branch)
 
 if (present(err_flag)) err_flag = xlate_err
@@ -720,15 +719,17 @@ end function jbool
 function is_planar_wiggler(ele) result (is_planar)
 
 type (ele_struct) ele
+type (ele_struct), pointer :: ele2
 logical is_planar
 
 !
 
 is_planar = .false.
 if (ele%key /= wiggler$ .and. ele%key /= undulator$) return
-if (ele%field_calc /= planar_model$) return
 if (ele%value(kx$) /= 0) return
 if (ele%value(l_period$) == 0 .or. ele%value(l$) == 0) return
+ele2 => pointer_to_field_ele(ele, 1)
+if (ele2%field_calc /= planar_model$) return
 is_planar = .true.
 
 end function is_planar_wiggler
@@ -853,7 +854,7 @@ end subroutine write_expand_lat_header
 !--------------------------------------------------------------------------------
 ! contains
 
-subroutine eles_with_same_name_handler(ele, named_eles_ptr, an_indexx, names, n_names, order)
+subroutine eles_with_same_name_handler(ele, named_eles_ptr, an_indexx, scibmad_names, n_names, order)
 
 type (ele_struct), target :: ele
 type (ele_struct), pointer :: ele0
@@ -863,7 +864,7 @@ type (lat_ele_order_struct) order
 
 real(rp), pointer :: a0(:), b0(:), ksl0(:), a(:), b(:), ksl(:)
 real(rp), target :: az(0:n_pole_maxx) = 0, bz(0:n_pole_maxx) = 0
-character(40), allocatable :: names(:)
+character(40), allocatable :: scibmad_names(:)
 integer, allocatable :: an_indexx(:)
 integer n_names, ix_match
 integer i, iv
@@ -872,7 +873,7 @@ integer i, iv
 
 lat => ele%branch%lat
 if (ele%slave_status == multipass_slave$) return
-call find_index (ele%name, names, an_indexx, n_names, ix_match)
+call find_index (scibmad_ele_name(ele), scibmad_names, an_indexx, n_names, ix_match)
 ele0 => named_eles_ptr(ix_match)%ele   ! Element with this name whose attributes were written to the lattice file.
 if (ele%ix_ele == ele0%ix_ele .and. ele%ix_branch == ele0%ix_branch) return
 
@@ -958,10 +959,10 @@ name_out = downcase(ele%name)
 if (name_out == 'end') name_out = 'end_b' // int_str(ele%ix_branch)
 
 ix = index(name_out, '#')
-if (ix /= 0) name_out = name_out(1:ix-1) // '!s' // name_out(ix+1:)
+if (ix /= 0) name_out = name_out(1:ix-1) // '_s' // name_out(ix+1:)
 
 ix = index(name_out, '\')     !'
-if (ix /= 0) name_out = name_out(1:ix-1) // '!m' // name_out(ix+1:)
+if (ix /= 0) name_out = name_out(1:ix-1) // '_m' // name_out(ix+1:)
 
 end function scibmad_ele_name
 
@@ -1181,7 +1182,7 @@ recursive subroutine controller_slave_out(slave, lat, defexpr_nametab)
 
 type (lat_struct), target :: lat
 type (ele_struct) slave
-type (ele_struct), pointer :: lord
+type (ele_struct), pointer :: lord, slave2
 type (control_struct), pointer :: ctl
 type (control_struct)  control
 type (nametable_struct) defexpr_nametab
@@ -1287,8 +1288,6 @@ enddo
 ! group base value is part of the "not controlled" residual for a multipole component.
 
 do iv = 1, n_contl
-  name = trim(downcase(slave%name)) // '.' // trim(sci_names(iv))
-
   tot = scibmad_multipole_value(slave, sci_names(iv), is_mult)
   if (is_mult) then
     resid = tot - sum_ctl(iv)
@@ -1299,9 +1298,18 @@ do iv = 1, n_contl
   endif
 
   if (has_defexpr_var(iv)) then
-    write (iu, '(4a)') trim(name), ' = ', trim(c_str(iv))
+    term = ' = ' // trim(c_str(iv))
   else
-    write (iu, '(6a)') trim(name), ' = DefExpr(() -> ', trim(c_str(iv)), ')'
+    term = ' = DefExpr(() -> ' // trim(c_str(iv)) // ')'
+  endif
+
+  if (slave%lord_status == super_lord$) then
+    do j = 1, slave%n_slave
+      slave2 => pointer_to_slave(slave, j)
+      write (iu, '(2a)') trim(scibmad_ele_name(slave2)) // '.' // trim(sci_names(iv)), trim(term)
+    enddo  
+  else
+    write (iu, '(2a)') trim(scibmad_ele_name(slave)) // '.' // trim(sci_names(iv)), trim(term)
   endif
 
 enddo
@@ -1438,8 +1446,7 @@ val0 = 0
 if (allocated(lord%control%var)) then
   val0 = expression_stack_value(control%stack, err, err_str, lord%control%var, .false.)
   if (err) then
-    print *, 'Cannot evaluate control expression of group: ' // trim(lord%name)
-    print *, err_str
+    call out_io(s_warn$, r_name, 'Cannot evaluate control expression of group: ' // trim(lord%name), err_str)
     xlate_err = .true.
     val0 = 0
   endif
@@ -1557,14 +1564,14 @@ case ('BS_FIELD');      sci_name(1) = 'Bsol'
 case ('START_EDGE', 'END_EDGE', 'ACCORDION_EDGE', 'S_POSITION', 'LORD_PAD1', 'LORD_PAD2')
   n_sci = 0
   xlate_err = .true.
-  print *, 'Group control of the ' // trim(bmad_name) // ' attribute of element ' // &
-                                                trim(ele%name) // ' cannot be translated.'
+  call out_io(s_warn$, r_name, 'Group control of the ' // trim(bmad_name) // ' attribute of element ' // &
+                                                trim(ele%name) // ' cannot be translated.')
 
 case default
   n_sci = 0
   xlate_err = .true.
-  print *, 'Attribute not yet coded for translation: ' // trim(bmad_name)
-  print *, 'Please report this.'
+  call out_io(s_warn$, r_name, 'Attribute not yet coded for translation: ' // trim(bmad_name), &
+                               'Please report this.')
 end select
 
 end subroutine scibmad_attrib_name
