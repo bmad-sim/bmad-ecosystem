@@ -37,11 +37,11 @@ lux/examples/bent_crystal/track.dat
 
 bmad-doc/tao_examples/csr_beam_tracking/*.dat
 
+lux/doc/lux.pdf
 tao/doc/tao.pdf
 bmad/doc/bmad.pdf
 util/searchf.pyc
 bsim/**/doc/*.pdf
-lux/doc/lux.pdf
 
 bmad-doc/tutorial_bmad_tao/doc/tutorial_bmad_tao.pdf
 bmad-doc/tutorial_ring_design/doc/tutorial_ring_design.pdf

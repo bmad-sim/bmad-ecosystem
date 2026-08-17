@@ -77,7 +77,7 @@ do i = 0, ubound(lat%branch, 1)
       if (global_com%exit_on_error) call err_exit
     endif
 
-    call append_this_fibre(ele%ptc_fibre, .true.)
+    call append_this_fibre(ele%ptc_fibre, ele, lay, .true.)
 
     ! Must add an energy patch if the reference energy shifts.
 
@@ -122,10 +122,13 @@ enddo
 !-----------------------------------------------------------------------------
 contains
 
-subroutine append_this_fibre(ele_fib, do_point)
+subroutine append_this_fibre(ele_fib, ele, lay, do_point)
 
 type (fibre), pointer :: ele_fib
 type (fibre), pointer :: this_fib
+type (ele_struct) ele
+type (layout), pointer :: lay
+
 logical, optional :: do_point
 
 !
