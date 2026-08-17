@@ -1,6 +1,8 @@
 module tao_init_data_mod
 
 use tao_interface
+use tao_nml_mod
+use tao_attrib_resolve_mod
 
 integer, parameter, private :: n_datum_min     = -100   ! min index of datum per d1_data
 
@@ -27,10 +29,13 @@ use random_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_d2_data_input) d2_data
-type (tao_d1_data_input) d1_data
-type (tao_datum_input), allocatable :: datum(:)
+type (tao_d2_data_input), target :: d2_data
+type (tao_d1_data_input), target :: d1_data
+type (tao_datum_input), allocatable, target :: datum(:)
 type (lat_struct), pointer :: lat
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 
 real(rp) default_weight, def_weight, default_meas, def_meas        ! default merit function weight
 
@@ -50,17 +55,26 @@ character(200) line, default_data_type, def_data_type
 
 logical err, free, gang, found
 logical :: good_uni(lbound(s%u, 1) : ubound(s%u, 1))
+logical nml_eof
 
-namelist / tao_d2_data / d2_data, n_d1_data, universe, &
-                default_merit_type, default_weight, default_meas, default_data_type, default_data_source
-
-namelist / tao_d1_data / d1_data, datum, ix_d1_data, &
-               default_merit_type, default_weight, default_meas, default_data_type, default_data_source, &
-               use_same_lat_eles_as, search_for_lat_eles, ix_min_data, ix_max_data
+character(200) why
+character(:), allocatable :: nml_val(:)
+integer n_val, i_val, i_ele, i_slot, i1_sub, i2_sub, i_item
 
 !-----------------------------------------------------------------------
 
-n = 4000
+! Size the datum array.
+!
+! Two things set the size. The file itself, through the largest datum subscript and any
+! ix_max_data it gives, and the lattice, because a d1_data that uses search_for_lat_eles gets
+! one datum per matched element and so can need as many datums as there are elements.
+!
+! This used to be max(4000, largest branch element count). The lattice term is a real
+! requirement, but the 4000 floor was a guess that existed only because a namelist read gives
+! no way to ask how much data is coming. The file is now scanned instead, so the floor is gone.
+
+n = 0
+
 do i = lbound(s%u, 1), ubound(s%u,1)
   lat => s%u(i)%model%lat
   do j = 0, ubound(lat%branch, 1)
@@ -68,7 +82,20 @@ do i = lbound(s%u, 1), ubound(s%u,1)
   enddo
 enddo
 
-allocate (datum(n_datum_min:n))
+if (data_file /= '') then
+  call tao_open_file (data_file, iu, file_name, s_fatal$)
+  if (iu /= 0) then
+    do
+      call tao_nml_group_read (iu, file_name, 'tao_d1_data', nml_group, nml_eof, err, why)
+      if (err .or. nml_eof) exit
+      n = max(n, tao_nml_max_subscript(nml_group, 'datum'))
+      n = max(n, tao_nml_int_item(nml_group, 'ix_max_data', 0))
+    enddo
+    close (iu)
+  endif
+endif
+
+allocate (datum(n_datum_min:max(n, 1)))
 
 ! Find out how many d2_data structures we need for each universe
 
@@ -97,17 +124,23 @@ do
   universe = '*'
   d2_data%name = ''
   n_nml = n_nml + 1
-  read (iu, nml = tao_d2_data, iostat = ios)
-  if (ios > 0) then
+  call tao_nml_group_read (iu, file_name, 'tao_d2_data', nml_group, nml_eof, err, why)
+  if (err) then
     call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR IN FILE: ' // data_file, &
                                    'THIS IS THE ' // ordinal_str(n_nml) // ' TAO_D2_DATA NAMELIST IN THE FILE', &
-                                   'WITH D2_DATA%NAME = ' // quote(d2_data%name))
-    rewind (iu)
-    do
-      read (iu, nml = tao_d2_data)  ! force printing of error message
-    enddo
+                                   'WITH D2_DATA%NAME = ' // quote(d2_data%name), why)
+    return
   endif
-  if (ios < 0 .and. d2_data%name == '') exit  ! Exit on end-of-file and no namelist read
+  if (nml_eof) exit  ! Exit on end-of-file
+
+  ! This pass only needs the universe list, to know how many d2 structures to allocate.
+  do i_item = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i_item), ref, err)
+    if (err) cycle
+    if (ref%head == 'universe') call tao_nml_value_set (nml_group%item(i_item), universe, err)
+    if (ref%head == 'd2_data' .and. ref%rest == 'name') &
+                              call tao_nml_value_set (nml_group%item(i_item), d2_data%name, err)
+  enddo
 
   if (.not. tao_is_valid_name(d2_data%name, line)) then
     call out_io (s_error$, r_name, 'D2_DATA%NAME IN TAO_D2_DATA NAMELIST IS INVALID SINCE: ' // line, &
@@ -130,8 +163,7 @@ do
   where (good_uni) n_d2_data = n_d2_data + 1
 enddo
 
-rewind (iu)
-
+call tao_nml_rewind (iu)
 ! Allocate space for the data
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
@@ -151,8 +183,35 @@ do
   default_weight         = real_garbage$
   default_meas           = real_garbage$
 
-  read (iu, nml = tao_d2_data, iostat = ios)
-  if (ios < 0 .and. d2_data%name == '') exit    ! Exit on end-of-file and no namelist read
+  call tao_nml_group_read (iu, file_name, 'tao_d2_data', nml_group, nml_eof, err, why)
+  if (err) then
+    call out_io (s_error$, r_name, 'TAO_D2_DATA NAMELIST READ ERROR IN FILE: ' // data_file, why)
+    return
+  endif
+  if (nml_eof) exit    ! Exit on end-of-file
+
+  do i_item = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i_item), ref, err)
+    if (err) cycle
+    select case (ref%head)
+    case ('d2_data')
+      call tao_res_tao_d2_data_input (d2_data, ref%rest, ptr, err, why)
+      if (err) then
+        call tao_nml_err (nml_group%item(i_item), why)
+      else
+        call tao_nml_value_set (nml_group%item(i_item), ptr, err)
+      endif
+    case ('n_d1_data');            call tao_nml_value_set (nml_group%item(i_item), n_d1_data, err)
+    case ('universe');             call tao_nml_value_set (nml_group%item(i_item), universe, err)
+    case ('default_merit_type');   call tao_nml_value_set (nml_group%item(i_item), default_merit_type, err)
+    case ('default_weight');       call tao_nml_value_set (nml_group%item(i_item), default_weight, err)
+    case ('default_meas');         call tao_nml_value_set (nml_group%item(i_item), default_meas, err)
+    case ('default_data_type');    call tao_nml_value_set (nml_group%item(i_item), default_data_type, err)
+    case ('default_data_source');  call tao_nml_value_set (nml_group%item(i_item), default_data_source, err)
+    case default;                  call tao_nml_unknown (nml_group%item(i_item), 'tao_d2_data', err)
+    end select
+  enddo
+
   call out_io (s_blank$, r_name, 'Init: Read tao_d2_data namelist: ' // quote(d2_data%name))
 
   if (universe == '*') then
@@ -201,9 +260,10 @@ do
 
     ! Read datum/data
 
-    read (iu, nml = tao_d1_data, iostat = ios)
-    if (ios /= 0) then
-      if (ios < 0) then
+    call tao_nml_group_read (iu, file_name, 'tao_d1_data', nml_group, nml_eof, err, why)
+
+    if (err .or. nml_eof) then
+      if (nml_eof) then
         call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST END-OF-FILE READ ERROR (MISSING/BAD QUOTATION MARK PERHAPS?).', &
                                        'IN FILE: ' // data_file, &
                                        'THIS IS THE ' // ordinal_str(k) // ' TAO_D1_DATA NAMELIST AFTER THE ', &
@@ -212,13 +272,88 @@ do
         call out_io (s_error$, r_name, 'TAO_D1_DATA NAMELIST READ ERROR.', &
                                        'IN FILE: ' // data_file, &
                                        'THIS IS THE ' // ordinal_str(k) // ' TAO_D1_DATA NAMELIST AFTER THE ', &
-                                       'TAO_D2_DATA NAMELIST WITH D2_DATA%NAME = ' // quote(d2_data%name))
+                                       'TAO_D2_DATA NAMELIST WITH D2_DATA%NAME = ' // quote(d2_data%name), why)
       endif
-      rewind (iu)
-      do
-        read (iu, nml = tao_d1_data)  ! Force printing of error message
-      enddo
+      return
     endif
+
+    do i_item = 1, nml_group%n_item
+      call tao_nml_item_ref (nml_group%item(i_item), ref, err)
+      if (err) cycle
+
+      select case (ref%head)
+      case ('d1_data')
+        call tao_res_tao_d1_data_input (d1_data, ref%rest, ptr, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(i_item), why)
+        else
+          call tao_nml_value_set (nml_group%item(i_item), ptr, err)
+        endif
+
+      case ('datum')
+        call tao_nml_ref_bounds (nml_group%item(i_item), ref, lbound(datum,1), ubound(datum,1), &
+                                                                          i1_sub, i2_sub, err)
+        if (err) cycle
+
+        if (i1_sub == i2_sub .and. ref%rest /= '') then
+          call tao_res_tao_datum_input (datum(i1_sub), ref%rest, ptr, err, why)
+          if (err) then
+            call tao_nml_err (nml_group%item(i_item), why)
+          else
+            call tao_nml_value_set (nml_group%item(i_item), ptr, err)
+          endif
+
+        else
+          ! A subscript range and/or a whole structure assignment. The value list is spread
+          ! over the elements, and within an element over the components.
+          call tao_nml_split_values (nml_group%item(i_item)%value, nml_val, n_val, err, why)
+          if (err) then
+            call tao_nml_err (nml_group%item(i_item), why)
+            cycle
+          endif
+          i_val = 0
+          datum_loop: do i_ele = i1_sub, i2_sub
+            if (ref%rest == '') then
+              do i_slot = 1, n_val
+                call tao_res_tao_datum_input_slot (datum(i_ele), '', i_slot, ptr, err, why)
+                if (err) exit
+                i_val = i_val + 1
+                if (i_val > n_val) exit datum_loop
+                if (nml_val(i_val) == '') cycle
+                call tao_set_ptr_value (ptr, nml_val(i_val), err, why)
+                if (err) then
+                  call tao_nml_err (nml_group%item(i_item), why)
+                  exit datum_loop
+                endif
+              enddo
+              err = .false.
+            else
+              i_val = i_val + 1
+              if (i_val > n_val) exit datum_loop
+              call tao_res_tao_datum_input (datum(i_ele), ref%rest, ptr, err, why)
+              if (.not. err .and. nml_val(i_val) /= '') &
+                                      call tao_set_ptr_value (ptr, nml_val(i_val), err, why)
+              if (err) then
+                call tao_nml_err (nml_group%item(i_item), why)
+                exit datum_loop
+              endif
+            endif
+          enddo datum_loop
+        endif
+
+      case ('ix_d1_data');           call tao_nml_value_set (nml_group%item(i_item), ix_d1_data, err)
+      case ('ix_min_data');          call tao_nml_value_set (nml_group%item(i_item), ix_min_data, err)
+      case ('ix_max_data');          call tao_nml_value_set (nml_group%item(i_item), ix_max_data, err)
+      case ('default_merit_type');   call tao_nml_value_set (nml_group%item(i_item), default_merit_type, err)
+      case ('default_weight');       call tao_nml_value_set (nml_group%item(i_item), default_weight, err)
+      case ('default_meas');         call tao_nml_value_set (nml_group%item(i_item), default_meas, err)
+      case ('default_data_type');    call tao_nml_value_set (nml_group%item(i_item), default_data_type, err)
+      case ('default_data_source');  call tao_nml_value_set (nml_group%item(i_item), default_data_source, err)
+      case ('use_same_lat_eles_as'); call tao_nml_value_set (nml_group%item(i_item), use_same_lat_eles_as, err)
+      case ('search_for_lat_eles');  call tao_nml_value_set (nml_group%item(i_item), search_for_lat_eles, err)
+      case default;                  call tao_nml_unknown (nml_group%item(i_item), 'tao_d1_data', err)
+      end select
+    enddo
 
     if (.not. tao_is_valid_name(d2_data%name, line)) then
       call out_io (s_error$, r_name, 'D1_DATA%NAME IN TAO_D1_DATA NAMELIST IS INVALID SINCE: ' // line, &

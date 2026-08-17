@@ -1,0 +1,14 @@
+set (EXENAME tao_attrib_test)
+
+FILE (GLOB SRC_FILES "tao_attrib_test/*.f90")
+
+set (INC_DIRS
+)
+
+set (LINK_LIBS
+  tao
+  bmad
+  sim_utils
+  ${PLOT_LINK_LIBS}
+  ${ACC_BMAD_LINK_LIBS}
+)

@@ -1,6 +1,7 @@
 module tao_set_mod
 
 use tao_interface
+use tao_attrib_resolve_mod
 
 implicit none
 
@@ -488,18 +489,19 @@ use bookkeeper_mod, only: set_on_off
 
 implicit none
 
-type (tao_global_struct) global, old_global
+type (tao_global_struct), target :: global
+type (tao_global_struct) old_global
 type (tao_universe_struct), pointer :: u
+type (tao_ptr_struct) ptr
 
 character(*) who, value_str
 character(*), parameter :: r_name = 'tao_set_global_cmd'
 character(len(value_str)+24) val
+character(200) why
 
 real(rp), allocatable :: set_val(:)
-integer iu, ios, iuni, i, ix
+integer ios, iuni, i, ix
 logical err
-
-namelist / params / global
 
 ! Special cases
 
@@ -530,9 +532,8 @@ if (value_str == '') then
   return
 endif
 
-! open a scratch file for a namelist read
+!
 
-iu = tao_open_scratch_file (err);  if (err) return
 ios = 0
 
 select case (who)
@@ -561,17 +562,17 @@ if (ios /= 0) then
   return
 endif
 
-write (iu, '(a)') '&params'
-write (iu, '(a)') ' global%' // trim(who) // ' = ' // trim(val)
-write (iu, '(a)') '/'
-write (iu, *)
-rewind (iu)
 global = s%global  ! set defaults
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
 
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+call tao_res_tao_global_struct (global, who, ptr, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
+
+call tao_set_ptr_value (ptr, val, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
   return
 endif
 
@@ -663,19 +664,20 @@ subroutine tao_set_space_charge_com_cmd (who, value_str)
 
 implicit none
 
-type (space_charge_common_struct) local_space_charge_com
+type (space_charge_common_struct), target :: local_space_charge_com
+type (tao_ptr_struct) ptr
 
 character(*) who, value_str
 character(len(value_str)+24) val
 character(*), parameter :: r_name = 'tao_set_space_charge_com_cmd'
+character(200) why
+character(40) comp_name
 
 real(rp), allocatable :: set_val(:)
-integer iu, ios
+integer ios
 logical err
 
-namelist / params / local_space_charge_com
-
-! open a scratch file for a namelist read
+!
 
 select case (who)
 case ('diagnostic_output_file')
@@ -694,22 +696,23 @@ case default  ! Is logical
   val = value_str
 end select
 
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
 if (who == 'sigma_cut') then   ! Old style
-  write (iu, '(a)') ' local_space_charge_com%lsc_sigma_cut = ' // trim(val)
+  comp_name = 'lsc_sigma_cut'
 else
-  write (iu, '(a)') ' local_space_charge_com%' // trim(who) // ' = ' // trim(val)
+  comp_name = who
 endif
-write (iu, '(a)') '/'
-rewind (iu)
-local_space_charge_com = space_charge_com  ! set defaults
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
 
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+local_space_charge_com = space_charge_com  ! set defaults
+
+call tao_res_space_charge_common_struct (local_space_charge_com, comp_name, ptr, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
+
+call tao_set_ptr_value (ptr, val, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
   return
 endif
 
@@ -735,37 +738,38 @@ subroutine tao_set_bmad_com_cmd (who, value_str)
 
 implicit none
 
-type (bmad_common_struct) this_bmad_com
+type (bmad_common_struct), target :: this_bmad_com
+type (tao_ptr_struct) ptr
 
 character(*) who, value_str
 character(*), parameter :: r_name = 'tao_set_bmad_com_cmd'
+character(200) why
 
-integer iu, ios
 logical err
 
-namelist / params / this_bmad_com
+! Note: this_bmad_com must have the TARGET attribute. The resolver returns a pointer into it
+! and that pointer is only guaranteed to stay valid after the resolver returns if the actual
+! argument is a target. See the header of tao_attrib_resolve_mod.
 
-! open a scratch file for a namelist read
-
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
-write (iu, '(a)') ' this_bmad_com%' // trim(who) // ' = ' // trim(value_str)
-write (iu, '(a)') '/'
-rewind (iu)
 this_bmad_com = bmad_com  ! set defaults
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
+
+call tao_res_bmad_common_struct (this_bmad_com, who, ptr, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
+
+call tao_set_ptr_value (ptr, value_str, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
 
 call tao_data_check (err)
 if (err) return
 
-if (ios == 0) then
-  bmad_com = this_bmad_com
-  s%u%calc%lattice = .true.
-else
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
-endif
+bmad_com = this_bmad_com
+s%u%calc%lattice = .true.
 
 end subroutine tao_set_bmad_com_cmd
 
@@ -828,36 +832,35 @@ use geodesic_lm
 
 implicit none
 
-type (geodesic_lm_param_struct) this_geodesic_lm
+type (geodesic_lm_param_struct), target :: this_geodesic_lm
+type (tao_ptr_struct) ptr
 
 character(*) who, value_str
 character(*), parameter :: r_name = 'tao_set_geodesic_lm_cmd'
+character(200) why
 
-integer iu, ios
 logical err
 
-namelist / params / this_geodesic_lm
+!
 
-! open a scratch file for a namelist read
-
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
-write (iu, '(a)') ' this_geodesic_lm%' // trim(who) // ' = ' // trim(value_str)
-write (iu, '(a)') '/'
-rewind (iu)
 this_geodesic_lm = geodesic_lm_param  ! set defaults
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
+
+call tao_res_geodesic_lm_param_struct (this_geodesic_lm, who, ptr, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
+
+call tao_set_ptr_value (ptr, value_str, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
 
 call tao_data_check (err)
 if (err) return
 
-if (ios == 0) then
-  geodesic_lm_param = this_geodesic_lm
-else
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
-endif
+geodesic_lm_param = this_geodesic_lm
 
 end subroutine tao_set_geodesic_lm_cmd
 
@@ -880,28 +883,33 @@ use opti_de_mod, only: opti_de_param
 
 implicit none
 
+type (tao_ptr_struct) ptr
+type (opti_de_param_struct), target :: this_de_param
+
 character(*) who, value_str
 character(*), parameter :: r_name = 'tao_set_opti_de_param_cmd'
+character(200) why
 
-integer iu, ios
 logical err
 
-namelist / params / opti_de_param
+! Note: opti_de_param is a module variable without the target attribute, so a local copy with
+! the target attribute is used and copied back. See the note in tao_set_bmad_com_cmd.
 
-! open a scratch file for a namelist read
+this_de_param = opti_de_param
 
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
-write (iu, '(a)') ' opti_de_param%' // trim(who) // ' = ' // trim(value_str)
-write (iu, '(a)') '/'
-rewind (iu)
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
-
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+call tao_res_opti_de_param_struct (this_de_param, who, ptr, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
 endif
+
+call tao_set_ptr_value (ptr, value_str, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
+
+opti_de_param = this_de_param
 
 end subroutine tao_set_opti_de_param_cmd
 
@@ -926,39 +934,40 @@ subroutine tao_set_wave_cmd (who, value_str, err)
 
 implicit none
 
-type (tao_wave_struct) wave
+type (tao_ptr_struct) ptr
 
 character(*) who, value_str
 character(*), parameter :: r_name = 'tao_set_wave_cmd'
+character(200) why
 
-real(rp) ix_a(2), ix_b(2)
+real(rp), target :: ix_a(2), ix_b(2)
 
-integer iu, ios
 logical err
 
-namelist / params / ix_a, ix_b
-
-! open a scratch file for a namelist read
-
-iu = tao_open_scratch_file (err);  if (err) return
+! Unlike the other set routines here, the target is a pair of plain arrays rather than a
+! structure, so the name is dispatched directly instead of through a generated resolver.
 
 err = .true.
 
 ix_a = [s%wave%ix_a1, s%wave%ix_a2]
 ix_b = [s%wave%ix_b1, s%wave%ix_b2]
 
-write (iu, '(a)') '&params'
-write (iu, '(a)') trim(who) // ' = ' // trim(value_str)
-write (iu, '(a)') '/'
-rewind (iu)
-wave = s%wave  ! set defaults
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
+select case (who)
+case ('ix_a');  ptr%r1 => ix_a
+case ('ix_b');  ptr%r1 => ix_b
+case default
+  call out_io (s_error$, r_name, 'NO SUCH COMPONENT: ' // trim(who), &
+                                 'SHOULD BE ONE OF: ix_a, ix_b')
+  return
+end select
 
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+call tao_set_ptr_value (ptr, value_str, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
   return
 endif
+
+err = .true.
 
 s%wave%ix_a1 = ix_a(1)
 s%wave%ix_a2 = ix_a(2)
@@ -1142,15 +1151,17 @@ subroutine tao_set_beam_init_cmd (who, value_str, branch_str)
 
 implicit none
 
-type (beam_init_struct) beam_init
+type (beam_init_struct), target :: beam_init
 type (tao_universe_struct), pointer :: u
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_struct), pointer :: ele
 type (tao_beam_branch_struct), pointer :: bb
 
+type (tao_ptr_struct) ptr
+
 real(rp), allocatable :: set_val(:)
 real(rp) r_val
-integer i, ix, iu, ios, ib, n_loc
+integer i, ix, ib, n_loc
 logical err, eval_err, found
 logical, allocatable :: picked_uni(:)
 
@@ -1159,8 +1170,8 @@ character(*), parameter :: r_name = 'tao_set_beam_init_cmd'
 character(1) delim
 character(40) name, switch, who2
 character(100) str, vstr
-
-namelist / params / beam_init
+character(len(value_str)+40) val
+character(200) why
 
 ! get universe
 
@@ -1180,19 +1191,16 @@ if (ix > 0) then
   return
 endif
 
-! Beam_init. open a scratch file for a namelist read
+! Beam_init. Build the value string that the component will be set from.
 
 eval_err = .false.
 if (who2 == 'sig_e') who2 = 'sig_pz'
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
 
 if (is_real(value_str, real_num = r_val) .or. is_logical(value_str)) then
   if (who2 == 'n_particle') then  ! Sometimes people use "1E3" for the value
-    write (iu, '(a, i0)') ' beam_init%' // trim(who2) // ' = ', nint(r_val)
+    write (val, '(i0)') nint(r_val)
   else
-    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', trim(value_str)
+    val = trim(value_str)
   endif
 
 elseif (who2(1:17) == 'distribution_type') then  ! Value is a vector so quote() function is not good here.
@@ -1203,7 +1211,7 @@ elseif (who2(1:17) == 'distribution_type') then  ! Value is a vector so quote() 
     if (name == '') exit
     str = trim(str) // ' ' // quote(name)
   enddo
-  write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', str
+  val = str
 
 else
   select case (who2)
@@ -1214,7 +1222,7 @@ else
       call out_io (s_error$, r_name, 'INVALID RANDOM_ENGINE VALUE: ' // value_str)
       return
     endif
-    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+    val = quote(value_str)
 
   case ('random_gauss_converter')
     call downcase_string(value_str)
@@ -1223,20 +1231,20 @@ else
       call out_io (s_error$, r_name, 'INVALID RANDOM_GAUSS_CONVERTER VALUE: ' // value_str)
       return
     endif
-    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+    val = quote(value_str)
 
   case ('species')
     if (species_id(unquote(value_str)) == invalid$) then
       call out_io (s_error$, r_name, 'INVALID SPECIES VALUE: ' // value_str)
       return
     endif
-    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+    val = quote(value_str)
 
   case ('position_file')
-    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', quote(value_str)
+    val = quote(value_str)
 
   case ('center_jitter', 'center', 'spin')
-    write (iu, '(2a)') ' beam_init%' // trim(who2) // ' = ', value_str
+    val = value_str
 
   case default
     ! If tao_evaluate_expression fails then the root cause may be that the User is trying
@@ -1244,28 +1252,28 @@ else
     ! is not a valid beam_init component. So delay error messages until we know for sure.
     call tao_evaluate_expression (value_str, 1, .false., set_val, eval_err, print_err = .false.)
     if (eval_err) then
-      write (iu, '(a)') ' beam_init%' // trim(who2) // ' = 0'  ! For a test
+      val = '0'  ! For a test
     else
-      write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+      write (val, '(es23.15)') set_val(1)
     endif
   end select
 endif
-
-write (iu, '(a)') '/'
 
 !
 
 do i = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. picked_uni(i)) cycle
 
-  rewind (iu)
   u => s%u(i)
   bb => u%model_branch(0)%beam
   beam_init = bb%beam_init  ! set defaults
-  read (iu, nml = params, iostat = ios)
-  if (ios /= 0 .or. eval_err) then
-    if (ios /= 0) then
-      call out_io (s_error$, r_name, 'BAD BEAM_INIT COMPONENT: ' // who2)
+
+  call tao_res_beam_init_struct (beam_init, who2, ptr, err, why)
+  if (.not. err) call tao_set_ptr_value (ptr, val, err, why)
+
+  if (err .or. eval_err) then
+    if (err) then
+      call out_io (s_error$, r_name, 'BAD BEAM_INIT COMPONENT: ' // who2, why)
     else
       call tao_evaluate_expression (value_str, 1, .false., set_val, eval_err, print_err = .true.) ! Print error message
     endif
@@ -1289,7 +1297,6 @@ do i = lbound(s%u, 1), ubound(s%u, 1)
   u%beam%track_beam_in_universe = .true.
 enddo
 
-close (iu, status = 'delete') 
 deallocate (picked_uni)
 
 end subroutine tao_set_beam_init_cmd
@@ -1406,18 +1413,17 @@ use tao_plot_window_mod, only: tao_destroy_plot_window, tao_create_plot_window
 
 implicit none
 
-type (tao_plot_page_input) plot_page
+type (tao_plot_page_input), target :: plot_page
+type (tao_ptr_struct) ptr
 
 character(*) component, value_str
 character(*), optional :: value_str2
 character(24) :: r_name = 'tao_set_plot_page_cmd'
+character(200) why
+character(len(value_str)+220) val
 
 real(rp) x, y
-integer iu, ios
 logical err
-
-
-namelist / params / plot_page
 
 ! Special cases
 
@@ -1433,33 +1439,29 @@ case ('subtitle')
 
 end select
 
-! For everything else...
-! open a scratch file for a namelist read
-
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
+! For everything else, build the value string and set the component through the resolver.
 
 select case (component)
 case ('subtitle%string', 'subtitle%units', 'subtitle%justify', 'plot_display_type', &
       'title%string', 'title%units', 'title%justify')
-  write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // quote(value_str)
+  val = quote(value_str)
 case ('size')
-  write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str) // ',' // trim(value_str2)
+  val = trim(value_str) // ',' // trim(value_str2)
 case default
-  write (iu, '(a)') ' plot_page%' // trim(component) // ' = ' // trim(value_str)
+  val = trim(value_str)
 end select
-
-write (iu, '(a)') '/'
-rewind (iu)
 
 call tao_set_plotting (plot_page, s%plot_page, .false., .true.)
 
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
+call tao_res_tao_plot_page_input (plot_page, component, ptr, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
+  return
+endif
 
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+call tao_set_ptr_value (ptr, val, err, why)
+if (err) then
+  call out_io (s_error$, r_name, why)
   return
 endif
 
@@ -2794,32 +2796,24 @@ end subroutine tao_set_default_cmd
 subroutine tao_set_dynamic_aperture_cmd (who, value_str)
 
 type (tao_universe_struct), pointer :: u
-type (aperture_param_struct) ap_param
+type (aperture_param_struct), target :: ap_param
+type (tao_ptr_struct) ptr
 
-real(rp) pz(20), a_emit, b_emit, ellipse_scale
-integer i, iu, ios, iof, n, n2
+real(rp), target :: pz(20), a_emit, b_emit, ellipse_scale
+integer i, iu, isub, n, n2
 
 character(*) who, value_str
 character(20) who2
 character(*), parameter :: r_name = 'tao_set_dynamic_aperture_cmd'
+character(200) why
+character(:), allocatable :: head, rest
 logical, allocatable :: this_u(:)
-logical err
+logical err, has_sub
 
-namelist / params / ap_param, pz, a_emit, b_emit, ellipse_scale
-
-!
+! The settable names are the components of ap_param plus the loose quantities pz, a_emit,
+! b_emit, and ellipse_scale, which is why the dispatch below is partly by hand.
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
-
-iof = tao_open_scratch_file (err);  if (err) return
-
-write (iof, '(a)') '&params'
-if (who2(1:2) == 'pz') then
-  write (iof, '(a)') trim(who2) // ' = ' // trim(value_str)
-else
-  write (iof, '(a)') ' ap_param%' // trim(who2) // ' = ' // trim(value_str)
-endif
-write (iof, '(a)') '/'
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle
@@ -2832,12 +2826,39 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   b_emit = u%dynamic_aperture%b_emit
   ellipse_scale = u%dynamic_aperture%ellipse_scale
   ap_param = u%dynamic_aperture%param
-  rewind(iof)
-  read (iof, nml = params, iostat = ios)
 
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
-    close (iof, status = 'delete') 
+  ptr = tao_ptr_struct()
+  call tao_split_attrib_name (who2, head, has_sub, isub, rest, err, why)
+
+  if (.not. err) then
+    select case (head)
+    case ('pz')
+      if (tao_res_array_bad(head, rest, has_sub, isub, 1, size(pz), err, why)) then
+        ! err and why are set by the guard.
+      elseif (has_sub) then
+        ptr%r => pz(isub)
+      else
+        ptr%r1 => pz
+      endif
+
+    case ('a_emit')
+      if (.not. tao_res_scalar_bad(head, has_sub, rest, err, why)) ptr%r => a_emit
+
+    case ('b_emit')
+      if (.not. tao_res_scalar_bad(head, has_sub, rest, err, why)) ptr%r => b_emit
+
+    case ('ellipse_scale')
+      if (.not. tao_res_scalar_bad(head, has_sub, rest, err, why)) ptr%r => ellipse_scale
+
+    case default
+      call tao_res_aperture_param_struct (ap_param, who2, ptr, err, why)
+    end select
+  endif
+
+  if (.not. err) call tao_set_ptr_value (ptr, value_str, err, why)
+
+  if (err) then
+    call out_io (s_error$, r_name, why)
     return
   endif
 
@@ -2859,8 +2880,6 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (allocated(u%dynamic_aperture%scan)) deallocate (u%dynamic_aperture%scan)
   allocate(u%dynamic_aperture%scan(n))
 enddo
-
-close (iof, status = 'delete') 
 
 end subroutine tao_set_dynamic_aperture_cmd
 
@@ -3521,14 +3540,17 @@ type (tao_drawing_struct), target :: drawing
 type (tao_ele_shape_input), pointer :: es_in
 type (tao_ele_shape_struct), pointer :: es
 
+type (tao_ptr_struct) ptr
+
 character(*) component, value_str
 character(*), parameter :: r_name = 'tao_set_drawing_cmd'
+character(200) why
+character(len(value_str)+2) val
+character(:), allocatable :: head, rest
 
-integer i, ix, n, iu, ios
+integer i, ix, n, isub
 
-logical err, needs_quotes
-
-namelist / params / ele_shape
+logical err, needs_quotes, has_sub
 
 ! Init
 
@@ -3555,24 +3577,33 @@ if (ix /= 0) then
   if (value_str(n:n) == "'" .or. value_str(n:n) == '"') needs_quotes = .false.
 endif
 
-! open a scratch file for a namelist read
+! Set the component. Note that component names here are subscripted references into the local
+! ele_shape array, eg "ele_shape(3)%shape", so the leading name is dispatched by hand and the
+! generated resolver handles the rest.
 
-iu = tao_open_scratch_file (err);  if (err) return
-
-write (iu, '(a)') '&params'
 if (needs_quotes) then
-  write (iu, '(a)') trim(component) // ' = "' // trim(value_str) // '"'
+  val = '"' // trim(value_str) // '"'
 else
-  write (iu, '(a)') trim(component) // ' = ' // trim(value_str)
+  val = trim(value_str)
 endif
-write (iu, '(a)') '/'
-write (iu, *)
-rewind (iu)
-read (iu, nml = params, iostat = ios)
-close (iu, status = 'delete')
 
-if (ios /= 0) then
-  call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+call tao_split_attrib_name (component, head, has_sub, isub, rest, err, why)
+
+if (.not. err) then
+  if (head /= 'ele_shape') then
+    err = .true.
+    why = 'NO SUCH COMPONENT: ' // trim(head) // '  (SHOULD BE ele_shape)'
+  elseif (tao_res_struct_array_bad(head, rest, has_sub, isub, 1, size(ele_shape), err, why)) then
+    ! err and why are set by the guard.
+  else
+    call tao_res_tao_ele_shape_input (ele_shape(isub), rest, ptr, err, why)
+  endif
+endif
+
+if (.not. err) call tao_set_ptr_value (ptr, val, err, why)
+
+if (err) then
+  call out_io (s_error$, r_name, why)
   return
 endif
 
@@ -3885,10 +3916,8 @@ type (qp_point_struct) qp_point
 character(*) component, value, qp_point_name
 character(*), parameter :: r_name = 'tao_set_qp_point_struct '
 integer, optional :: ix_uni
-integer iu, ios
+integer ios
 logical error
-
-namelist / params / qp_point
 
 !
 
@@ -3901,20 +3930,43 @@ case ('units')
   qp_point%units = value
   error = .false.
 case ('')
-  iu = tao_open_scratch_file (error);  if (error) return
-  write (iu, '(a)') '&params'
-  write (iu, '(a)') ' qp_point = ' // trim(value)
-  write (iu, '(a)') '/'
-  write (iu, *)
+  ! A whole structure value, eg "1.0, 2.0, %BOX". A namelist read of a structure value assigns
+  ! components in declaration order and leaves any not supplied unchanged, so the components
+  ! are read in order and only the ones actually supplied are committed.
+  !
+  ! Note: this branch leaves the error argument untouched on both the success and the failure
+  ! path. That is pre-existing behavior which is kept here deliberately, but it does mean a bad
+  ! value is reported to the user and not to the caller.
+  block
+    real(rp) x, y
+    character(len(qp_point%units)) units
+    integer n_val
 
-  rewind (iu)
-  read (iu, nml = params, iostat = ios)
-  close (iu, status = 'delete')
+    x = qp_point%x
+    y = qp_point%y
+    units = qp_point%units
+    n_val = 0
 
-  if (ios /= 0) then
-    call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
-    return
-  endif
+    read (value, *, iostat = ios) x
+    if (ios == 0) then
+      n_val = 1
+      read (value, *, iostat = ios) x, y
+      if (ios == 0) then
+        n_val = 2
+        read (value, *, iostat = ios) x, y, units
+        if (ios == 0) n_val = 3
+      endif
+    endif
+
+    if (n_val == 0) then
+      call out_io (s_error$, r_name, 'BAD COMPONENT OR NUMBER')
+      return
+    endif
+
+    qp_point%x = x
+    if (n_val >= 2) qp_point%y = y
+    if (n_val >= 3) qp_point%units = units
+  end block
 
 case default
   call out_io (s_error$, r_name, "BAD GRAPH QP_POINT COMPONENT " // component)

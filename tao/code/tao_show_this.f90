@@ -18,6 +18,7 @@ subroutine tao_show_this (what, result_id, lines, nl)
 use tao_top10_mod, dummy => tao_show_this
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch, tao_next_word
+use tao_nml_mod
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
@@ -139,8 +140,11 @@ type show_lat_column_info_struct
   integer :: indent = 0   ! Spacing from start of line to beginning of column.
 end type
 
-type (old_show_lat_column_struct) column(60)
-type (show_lat_column_struct) col(60)
+type (old_show_lat_column_struct), target :: column(60)
+type (show_lat_column_struct), target :: col(60)
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) nml_ref
+type (tao_ptr_struct) nml_ptr
 type (show_lat_column_info_struct) col_info(60) 
 
 real(rp) phase_units, gam, s_ele, s0, s1, s2, s3, val, z, z1, z2, z_in, s_pos, dt, angle, r
@@ -190,6 +194,11 @@ integer xfer_mat_print, twiss_out, ix_sec, n_attrib, ie0, a_type, ib, ix_min, n_
 integer eval_pt, n_count, print_field, nt
 integer, allocatable :: ix_c(:), ix_remove(:)
 
+character(200) nml_why
+character(:), allocatable :: nml_val(:)
+integer i1_nml, i2_nml, iv_nml, ie_nml, is_nml, n_nml_val
+logical nml_eof, nml_err
+
 logical bmad_format, good_opt_only, print_wall, show_lost, logic, aligned, undef_uses_column_format, print_debug
 logical err, found, first_time, by_s, print_header_lines, all_lat, limited, show_labels, do_calc, flip, show_energy
 logical show_sym, show_line, show_shape, print_data, ok, print_tail_lines, print_slaves, print_super_slaves
@@ -200,7 +209,6 @@ logical print_internal, has_radiation, has_elements
 logical, allocatable :: picked_uni(:), valid(:), picked2(:)
 logical, allocatable :: picked_ele(:)
 
-namelist / custom_show_list / column, col
 
 !
 
@@ -2842,12 +2850,54 @@ case ('lattice')
       endif
       column(:) = old_show_lat_column_struct()
       col(:)    = show_lat_column_struct()
-      read (iu, nml = custom_show_list, iostat = ios)
+
+      call tao_nml_group_read (iu, file_name, 'custom_show_list', nml_group, nml_eof, nml_err, nml_why)
       close (iu)
-      if (ios /= 0) then
+      if (nml_err .or. nml_eof) then
         nl=1; lines(1) = 'CANNOT READ "CUSTOM_SHOW_LIST" NAMELIST IN FILE: ' // file_name
+        if (nml_err) then
+          nl=2; lines(2) = nml_why
+        endif
         return
       endif
+
+      ! The two column structures are declared locally in this routine rather than in a module
+      ! so they have no generated resolver and their components are dispatched by hand.
+
+      do i = 1, nml_group%n_item
+        call tao_nml_item_ref (nml_group%item(i), nml_ref, nml_err)
+        if (nml_err) cycle
+
+        if (nml_ref%head /= 'column' .and. nml_ref%head /= 'col') then
+          call tao_nml_unknown (nml_group%item(i), 'custom_show_list', nml_err)
+          cycle
+        endif
+
+        call tao_nml_ref_bounds (nml_group%item(i), nml_ref, 1, 60, i1_nml, i2_nml, nml_err)
+        if (nml_err) cycle
+
+        call tao_nml_split_values (nml_group%item(i)%value, nml_val, n_nml_val, nml_err, nml_why)
+        if (nml_err) then
+          call tao_nml_err (nml_group%item(i), nml_why)
+          cycle
+        endif
+
+        iv_nml = 0
+        col_loop: do ie_nml = i1_nml, i2_nml
+          do is_nml = 1, max(n_nml_val, 1)
+            call column_slot (nml_ref%head, ie_nml, nml_ref%rest, is_nml, nml_ptr, nml_err, nml_why)
+            if (nml_err) exit
+            iv_nml = iv_nml + 1
+            if (iv_nml > n_nml_val) exit col_loop
+            if (nml_val(iv_nml) == '') cycle
+            call tao_set_ptr_value (nml_ptr, nml_val(iv_nml), nml_err, nml_why)
+            if (nml_err) then
+              call tao_nml_err (nml_group%item(i), nml_why)
+              exit col_loop
+            endif
+          enddo
+        enddo col_loop
+      enddo
 
       if (column(1)%name /= '') then ! Old style
         do i = 1, size(column)
@@ -6652,7 +6702,114 @@ end select
 
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
+!----------------------------------------------------------------------------
 contains
+
+!+
+! Subroutine column_slot (which, ie, name, is, ptr, err, why)
+!
+! Pointer to the is-th component, in declaration order, of element ie of the column or col
+! array. Used to apply a positional value list from the custom_show_list group.
+!
+! These two structures are declared locally in tao_show_this rather than in a module, so they
+! have no generated resolver in tao_attrib_resolve_mod and are handled here.
+!-
+
+subroutine column_slot (which, ie, name, is, ptr, err, why)
+
+type (tao_ptr_struct) ptr
+character(*) which, name
+integer ie, is, i_use
+logical err
+
+character(*) why
+
+!
+
+ptr = tao_ptr_struct()
+err = .false.
+why = ''
+
+! A named component selects one thing, so only slot 1 is valid for it.
+
+i_use = is
+
+if (name /= '') then
+  if (is /= 1) then
+    err = .true.
+    why = 'TOO MANY VALUES FOR COMPONENT: ' // trim(name)
+    return
+  endif
+  i_use = column_slot_index(which, name)
+  if (i_use == 0) then
+    err = .true.
+    why = 'NO SUCH COMPONENT: ' // trim(name)
+    return
+  endif
+endif
+
+if (which == 'column') then
+  select case (i_use)
+  case (1);  ptr%str => column(ie)%name
+  case (2);  ptr%str => column(ie)%format
+  case (3);  ptr%i   => column(ie)%width
+  case (4);  ptr%str => column(ie)%label
+  case (5);  ptr%l   => column(ie)%remove_line_if_zero
+  case (6);  ptr%r   => column(ie)%scale_factor
+  case default;  err = .true.;  why = 'TOO MANY VALUES. COLUMN HAS 6 COMPONENTS'
+  end select
+
+else
+  select case (i_use)
+  case (1);  ptr%str => col(ie)%name
+  case (2);  ptr%str => col(ie)%format
+  case (3);  ptr%str => col(ie)%label
+  case (4);  ptr%l   => col(ie)%remove_line_if_zero
+  case (5);  ptr%r   => col(ie)%scale_factor
+  case (6);  ptr%i   => col(ie)%width
+  case default;  err = .true.;  why = 'TOO MANY VALUES. COL HAS 6 COMPONENTS'
+  end select
+endif
+
+end subroutine column_slot
+
+!+
+! Function column_slot_index (which, name) result (ix)
+!
+! Position of a named component within the column or col structure. 0 if there is no such name.
+!-
+
+function column_slot_index (which, name) result (ix)
+
+character(*) which, name
+integer ix
+
+!
+
+ix = 0
+
+if (which == 'column') then
+  select case (name)
+  case ('name');                 ix = 1
+  case ('format');               ix = 2
+  case ('width');                ix = 3
+  case ('label');                ix = 4
+  case ('remove_line_if_zero');  ix = 5
+  case ('scale_factor');         ix = 6
+  end select
+else
+  select case (name)
+  case ('name');                 ix = 1
+  case ('format');               ix = 2
+  case ('label');                ix = 3
+  case ('remove_line_if_zero');  ix = 4
+  case ('scale_factor');         ix = 5
+  case ('width');                ix = 6
+  end select
+endif
+
+end function column_slot_index
+
 
 subroutine point_to_this_uni(ix_uni, ix_branch, u, lat, branch, model_branch, tao_branch, design_tao_branch)
 

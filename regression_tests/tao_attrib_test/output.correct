@@ -1,0 +1,21 @@
+"real-scalar"       ABS 1e-14   1.500000E+00
+"integer-scalar"    ABS 0     7
+"logical-scalar"    STR       "F"
+"char-scalar"       STR       "proton"
+"array-element"     ABS 1e-14   2.500000E+00
+"whole-array-size"  ABS 0     6
+"char-array-elem"   STR       "GRID"
+"nested-scalar"     ABS 0     11
+"nested-array"      ABS 0     13
+"struct-array"      ABS 1e-14   3.500000E+00
+"case-and-space"    ABS 1e-14   4.500000E+00
+"input-struct"      STR       "Q01W"
+"no-errors"         STR       "F"
+"err-unknown"       STR "T" "NO SUCH COMPONENT: no_such_component  (IN BMAD_COMMON_STRUCT)"
+"err-sub-on-scalar" STR "T" "COMPONENT IS NOT AN ARRAY SO A SUBSCRIPT IS NOT ALLOWED: taylor_order"
+"err-sub-range"     STR "T" "SUBSCRIPT 99 IS OUT OF RANGE [1, 6] FOR COMPONENT: d_orb"
+"err-struct-bare"   STR "T" "COMPONENT IS A STRUCTURE SO A SUBCOMPONENT MUST BE GIVEN. EG: kv%<SUBCOMPONENT>"
+"err-sub-of-scalar" STR "T" "COMPONENT IS NOT A STRUCTURE SO IT HAS NO SUBCOMPONENT foo: taylor_order"
+"err-no-subscript"  STR "T" "COMPONENT IS AN ARRAY OF STRUCTURES SO A SUBSCRIPT MUST BE GIVEN: ellipse"
+"err-blank"         STR "T" "BLANK COMPONENT NAME"
+"err-bad-subscript" STR "T" "SUBSCRIPT IS NOT AN INTEGER: d_orb(x)"

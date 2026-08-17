@@ -58,6 +58,8 @@ set (EXE_SPECS
   cmake_files/cmake.spin_general_test
   cmake_files/cmake.superimpose_test
   cmake_files/cmake.synrad3d_test
+  cmake_files/cmake.tao_attrib_test
+  cmake_files/cmake.tao_nml_test
   cmake_files/cmake.taylor_test
   cmake_files/cmake.time_runge_kutta_test
   cmake_files/cmake.tracking_method_test

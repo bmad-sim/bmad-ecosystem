@@ -13,6 +13,8 @@ subroutine tao_init_plotting (plot_file_in)
 
 use tao_input_struct
 use tao_plot_window_mod, dummy => tao_init_plotting
+use tao_nml_mod
+use tao_attrib_resolve_mod
 use quick_plot
 
 implicit none
@@ -30,17 +32,20 @@ type old_tao_ele_shape_struct    ! for the element layout plot
   integer key                ! Element key index to match to
 end type
 
-type (tao_plot_page_input) plot_page
+type (tao_plot_page_input), target :: plot_page
 type (tao_plot_struct), pointer :: plt
 type (tao_graph_struct), pointer :: grph
 type (tao_curve_struct), pointer :: crv
-type (tao_plot_input) plot, default_plot
-type (tao_graph_input) :: graph, default_graph, master_default_graph
-type (tao_region_input) region(n_region_maxx)
-type (tao_curve_input) curve(n_curve_maxx), default_curve
-type (tao_place_input) place(30)
-type (old_tao_ele_shape_struct) shape(30)
-type (tao_ele_shape_input) ele_shape(60)
+type (tao_plot_input), target :: plot, default_plot
+type (tao_graph_input), target :: graph, default_graph, master_default_graph
+type (tao_region_input), target :: region(n_region_maxx)
+type (tao_curve_input), target :: curve(n_curve_maxx), default_curve
+type (tao_place_input), target :: place(30)
+type (old_tao_ele_shape_struct), target :: shape(30)
+type (tao_ele_shape_input), target :: ele_shape(60)
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 type (tao_ele_shape_struct), pointer :: e_shape
 type (ele_pointer_struct), allocatable :: eles(:)
 type (qp_axis_struct) init_axis
@@ -66,19 +71,11 @@ character(24), parameter :: draw_color(8) = [character(24):: 'black', 'blue', 'r
 character(*), parameter :: r_name = 'tao_init_plotting'
 
 logical err, include_default_plots, include_default_shapes, include_dflt_lat_layout, include_dflt_floor_plan
+logical nml_eof, found1, found2, err1, err2
 
-namelist / tao_plot_page / plot_page, default_plot, default_graph, region, place, include_default_plots
-namelist / tao_template_plot / plot, default_graph, default_curve
-namelist / tao_template_graph / graph, graph_index, curve
-
-namelist / floor_plan_drawing / ele_shape, include_default_shapes
-namelist / lat_layout_drawing / ele_shape, include_default_shapes
-
-! These are old style
-
-namelist / element_shapes / shape
-namelist / element_shapes_floor_plan / ele_shape
-namelist / element_shapes_lat_layout / ele_shape
+character(200) why
+character(:), allocatable :: nml_val(:)
+integer n_val, i_val, i_ele, i_slot, i1_sub, i2_sub, i_item
 
 ! See if this routine has been called before
 
@@ -164,13 +161,45 @@ if (iu == 0) then
 endif
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_plot_page namelist')
-read (iu, nml = tao_plot_page, iostat = ios)
-if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file)
-  rewind (iu)
-  read (iu, nml = tao_plot_page)  ! To give error message
+call tao_nml_group_read (iu, plot_file, 'tao_plot_page', nml_group, nml_eof, err, why)
+
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR READING TAO_PLOT_PAGE NAMELIST IN FILE:' // plot_file, why)
+elseif (nml_eof) then
+  call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist found')
+else
+  do i_item = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i_item), ref, err)
+    if (err) cycle
+
+    select case (ref%head)
+    case ('plot_page')
+      call apply_item (nml_group%item(i_item), ref, 1, 1, 'plot_page')
+
+    case ('default_plot')
+      call apply_item (nml_group%item(i_item), ref, 1, 1, 'default_plot')
+
+    case ('default_graph')
+      call apply_item (nml_group%item(i_item), ref, 1, 1, 'default_graph')
+
+    case ('region')
+      call tao_nml_ref_bounds (nml_group%item(i_item), ref, 1, size(region), i1_sub, i2_sub, err)
+      if (err) cycle
+      call apply_item (nml_group%item(i_item), ref, i1_sub, i2_sub, 'region')
+
+    case ('place')
+      call tao_nml_ref_bounds (nml_group%item(i_item), ref, 1, size(place), i1_sub, i2_sub, err)
+      if (err) cycle
+      call apply_item (nml_group%item(i_item), ref, i1_sub, i2_sub, 'place')
+
+    case ('include_default_plots')
+      call tao_nml_value_set (nml_group%item(i_item), include_default_plots, err)
+
+    case default
+      call tao_nml_unknown (nml_group%item(i_item), 'tao_plot_page', err)
+    end select
+  enddo
 endif
-if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_plot_page namelist found')
 
 master_default_graph = default_graph
 call tao_set_plotting (plot_page, s%plot_page, .true.)
@@ -214,21 +243,33 @@ call tao_read_in_patterns(iu, plot_file)
 ! Read in element shapes...
 ! First look for old style namelist 
 
-rewind (iu)
+call tao_nml_rewind (iu)
 ele_shape(:) = tao_ele_shape_input()
 
 shape(:)%key_name = ''
 shape(:)%ele_name = ''
 
-read (iu, nml = element_shapes, iostat = ios)
+call tao_nml_group_read (iu, plot_file, 'element_shapes', nml_group, nml_eof, err, why)
 
-if (ios > 0) then
-  call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST.', 'IN FILE: ' // plot_file)
-  rewind (iu)
-  read (iu, nml = element_shapes)  ! To generate error message
+if (err) then
+  call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES NAMELIST.', 'IN FILE: ' // plot_file, why)
 endif
 
-if (ios == 0) then
+if (.not. err .and. .not. nml_eof) then
+  do i_item = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i_item), ref, err)
+    if (err) cycle
+    if (ref%head /= 'shape') then
+      call tao_nml_unknown (nml_group%item(i_item), 'element_shapes', err)
+      cycle
+    endif
+    call tao_nml_ref_bounds (nml_group%item(i_item), ref, 1, size(shape), i1_sub, i2_sub, err)
+    if (err) cycle
+    call set_old_shape (nml_group%item(i_item), ref, i1_sub, i2_sub)
+  enddo
+endif
+
+if (.not. err .and. .not. nml_eof) then
   call out_io (s_error$, r_name, 'ELEMENT_SHAPES NAMELIST IS DEPRECATED.', &
                                  'PLEASE CONVERT TO FLOOR_PLAN_DRAWING AND/OR LAT_LAYOUT_DRAWING NAMELISTS.', 'IN FILE: ' // plot_file)
   do i = 1, size(shape)
@@ -251,35 +292,23 @@ endif
 
 ! Look for new style shape namelist if could not find old style
 
-if (ios < 0) then
+if (nml_eof) then
 
   ! Read floor_plan_drawing namelist
 
   include_default_shapes = .false.
-  rewind (iu)
-  read (iu, nml = element_shapes_floor_plan, iostat = ios1)  ! Deprecated name
-  rewind (iu)
-  read (iu, nml = floor_plan_drawing, iostat = ios2)
+  call tao_nml_rewind (iu)
+  call read_shape_group ('element_shapes_floor_plan', found1, err1)   ! Deprecated name
+  call tao_nml_rewind (iu)
+  call read_shape_group ('floor_plan_drawing', found2, err2)
   include_dflt_floor_plan = include_default_shapes
 
-  if (ios1 >= 0) then
+  if (found1 .or. err1) then
     call out_io (s_error$, r_name, &
             'Note: The "element_shapes_floor_plan" namelist has been renamed to', &
             '      "floor_plan_drawing" to reflect the fact that this namelist ', &
             '      now is used to specify more than element shapes. Please     ', &
             '      make the appropriate change in your input file...           ')
-  endif
-
-  if (ios1 > 0) then 
-    rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_FLOOR_PLAN NAMELIST', 'IN FILE: ' // plot_file)
-    read (iu, nml = element_shapes_floor_plan)  ! To generate error message
-  endif
-
-  if (ios2 > 0) then 
-    rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING FLOOR_PLAN_DRAWING NAMELIST', 'IN FILE: ' // plot_file)
-    read (iu, nml = floor_plan_drawing)
   endif
 
   call tao_transfer_shape (ele_shape, s%plot_page%floor_plan%ele_shape, 'FLOOR_PLAN_DRAWING')
@@ -289,35 +318,20 @@ if (ios < 0) then
   ele_shape(:) = tao_ele_shape_input()
 
   include_default_shapes = .false.
-  rewind (iu)
-  read (iu, nml = element_shapes_lat_layout, iostat = ios1)
-  rewind (iu)
-  read (iu, nml = lat_layout_drawing, iostat = ios2)
+  call tao_nml_rewind (iu)
+  call read_shape_group ('element_shapes_lat_layout', found1, err1)
+  call tao_nml_rewind (iu)
+  call read_shape_group ('lat_layout_drawing', found2, err2)
   include_dflt_lat_layout = include_default_shapes
 
-  if (ios1 == 0) then
+  if (found1) then
     call out_io (s_error$, r_name, &
             'Note: The "element_shapes_lattice_list" namelist has been renamed to', &
             '      "lat_layout_drawing" to reflect the fact that this namelist   ', &
             '      now is used to specify more than element shapes. Please       ', &
             '      make the appropriate change in your input file...             ')
-  endif
-
-  if (ios1 == 0) then
     ele_shape(:)%size = ele_shape(:)%size * 1.0 / 40.0 ! scale to current def.
   endif 
-
-  if (ios1 > 0) then 
-    rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING ELEMENT_SHAPES_LAT_LAYOUT NAMELIST', 'IN FILE: ' // plot_file)
-    read (iu, nml = element_shapes_lat_layout)  ! To generate error message
-  endif
-
-  if (ios2 > 0) then 
-    rewind (iu)
-    call out_io (s_error$, r_name, 'ERROR READING LAT_LAYOUT_DRAWING NAMELIST', 'IN FILE: ' // plot_file)
-    read (iu, nml = lat_layout_drawing)
-  endif
 
   call tao_transfer_shape (ele_shape, s%plot_page%lat_layout%ele_shape, 'LAT_LAYOUT_DRAWING')
 endif
@@ -341,21 +355,16 @@ do   ! Loop over plot files
   call tao_open_file (plot_file, iu, full_file_name, s_fatal$)
 
   do   ! Loop over templates in a file
-    read (iu, nml = tao_template_plot, iostat = ios)
-    if (ios > 0) then
+    call read_template_plot (full_file_name, found1, err1)
+    if (err1) then
       call out_io (s_error$, r_name, &
                 'TAO_TEMPLATE_PLOT NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name, &
-                'THIS IS THE ' // ordinal_str(ip+1) // ' TAO_TEMPLATE_PLOT NAMELIST IN THE FILE.')
-
-      rewind (iu)
-      do
-        read (iu, nml = tao_template_plot)  ! force printing of error message
-      enddo
+                'THIS IS THE ' // ordinal_str(ip+1) // ' TAO_TEMPLATE_PLOT NAMELIST IN THE FILE.', why)
       return
     endif
 
+    if (.not. found1) exit
     call out_io (s_blank$, r_name, 'Init: Read tao_template_plot ' // quote(plot%name))
-    if (ios /= 0) exit
     ip = ip + 1
   enddo
 
@@ -404,8 +413,8 @@ do  ! Loop over plot files
                 null_name$, int_g$, int_g$, int_g$, int_g$, int_g$, null_name$, null_name$, &
                 int_g$, int_g$, .true., .true.)
 
-    read (iu, nml = tao_template_plot, iostat = ios)  
-    if (ios /= 0) exit
+    call read_template_plot (full_file_name, found1, err1)
+    if (err1 .or. .not. found1) exit
 
     call out_io (s_blank$, r_name, 'Init: Read tao_template_plot namelist: ' // plot%name)
     do i = 1, ip
@@ -461,16 +470,13 @@ do  ! Loop over plot files
         curve(:)%draw_symbols = .true.
       endif
 
-      read (iu, nml = tao_template_graph, iostat = ios)
-      if (ios > 0) then
+      call read_template_graph (full_file_name, found1, err1)
+      if (err1) then
         call out_io (s_error$, r_name, &
                'TAO_TEMPLATE_GRAPH NAMELIST READ ERROR.', 'IN FILE: ' // full_file_name, &
                'AFTER TAO_TEMPLATE_PLOT WITH PLOT%NAME = ' // quote(plot%name), &
-               'READING TAO_TEMPLATE_GRAPH WITH INDEX: ' // int_str(i_graph))
-        rewind (iu)
-        do
-          read (iu, nml = tao_template_graph)  ! force printing of error message
-        enddo
+               'READING TAO_TEMPLATE_GRAPH WITH INDEX: ' // int_str(i_graph), why)
+        return
       endif
 
       call out_io (s_blank$, r_name, 'Init: Read tao_template_graph ' // graph%name)
@@ -814,6 +820,344 @@ call tao_create_plot_window
 
 !----------------------------------------------------------------------------------------
 contains
+
+!------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------
+!+
+! Subroutine read_shape_group (group_name, found, had_err)
+!
+! Read one of the element shape groups into the ele_shape array and include_default_shapes.
+!
+! The several shape groups (floor_plan_drawing, lat_layout_drawing, and their deprecated
+! names) all have the same two items, so they share this routine. The caller rewinds first.
+!
+! Output:
+!   found   -- logical: True if a group of this name was present.
+!   had_err -- logical: True if there was a read error.
+!-
+
+subroutine read_shape_group (group_name, found, had_err)
+
+character(*) group_name
+logical found, had_err
+logical loc_err, loc_eof
+integer ii, jj
+
+!
+
+had_err = .false.
+call tao_nml_group_read (iu, plot_file, group_name, nml_group, loc_eof, loc_err, why)
+
+if (loc_err) then
+  call out_io (s_error$, r_name, 'ERROR READING ' // upcase(group_name) // ' NAMELIST', &
+                                 'IN FILE: ' // plot_file, why)
+  had_err = .true.
+  found = .false.
+  return
+endif
+
+found = (.not. loc_eof)
+if (.not. found) return
+
+do ii = 1, nml_group%n_item
+  call tao_nml_item_ref (nml_group%item(ii), ref, loc_err)
+  if (loc_err) cycle
+
+  select case (ref%head)
+  case ('include_default_shapes')
+    call tao_nml_value_set (nml_group%item(ii), include_default_shapes, loc_err)
+
+  case ('ele_shape')
+    call tao_nml_ref_bounds (nml_group%item(ii), ref, 1, size(ele_shape), i1_sub, i2_sub, loc_err)
+    if (loc_err) cycle
+    call apply_item (nml_group%item(ii), ref, i1_sub, i2_sub, 'ele_shape')
+
+  case default
+    call tao_nml_unknown (nml_group%item(ii), group_name, loc_err)
+  end select
+enddo
+
+end subroutine read_shape_group
+
+!------------------------------------------------------------------------------------
+!+
+! Subroutine read_template_plot (fname, found, had_err)
+!
+! Read a tao_template_plot group into plot, default_graph, and default_curve.
+!-
+
+subroutine read_template_plot (fname, found, had_err)
+
+character(*) fname
+integer ii
+logical found, had_err, loc_err, loc_eof
+
+!
+
+had_err = .false.
+call tao_nml_group_read (iu, fname, 'tao_template_plot', nml_group, loc_eof, loc_err, why)
+if (loc_err) then
+  had_err = .true.
+  found = .false.
+  return
+endif
+
+found = (.not. loc_eof)
+if (.not. found) return
+
+do ii = 1, nml_group%n_item
+  call tao_nml_item_ref (nml_group%item(ii), ref, loc_err)
+  if (loc_err) cycle
+
+  select case (ref%head)
+  case ('plot');           call apply_item (nml_group%item(ii), ref, 1, 1, 'plot')
+  case ('default_graph');  call apply_item (nml_group%item(ii), ref, 1, 1, 'default_graph')
+  case ('default_curve');  call apply_item (nml_group%item(ii), ref, 1, 1, 'default_curve')
+  case default;            call tao_nml_unknown (nml_group%item(ii), 'tao_template_plot', loc_err)
+  end select
+enddo
+
+end subroutine read_template_plot
+
+!------------------------------------------------------------------------------------
+!+
+! Subroutine read_template_graph (fname, found, had_err)
+!
+! Read a tao_template_graph group into graph, graph_index, and the curve array.
+!-
+
+subroutine read_template_graph (fname, found, had_err)
+
+character(*) fname
+integer ii
+logical found, had_err, loc_err, loc_eof
+
+!
+
+had_err = .false.
+call tao_nml_group_read (iu, fname, 'tao_template_graph', nml_group, loc_eof, loc_err, why)
+if (loc_err) then
+  had_err = .true.
+  found = .false.
+  return
+endif
+
+found = (.not. loc_eof)
+if (.not. found) return
+
+do ii = 1, nml_group%n_item
+  call tao_nml_item_ref (nml_group%item(ii), ref, loc_err)
+  if (loc_err) cycle
+
+  select case (ref%head)
+  case ('graph')
+    call apply_item (nml_group%item(ii), ref, 1, 1, 'graph')
+
+  case ('graph_index')
+    call tao_nml_value_set (nml_group%item(ii), graph_index, loc_err)
+
+  case ('curve')
+    call tao_nml_ref_bounds (nml_group%item(ii), ref, 1, size(curve), i1_sub, i2_sub, loc_err)
+    if (loc_err) cycle
+    call apply_item (nml_group%item(ii), ref, i1_sub, i2_sub, 'curve')
+
+  case default
+    call tao_nml_unknown (nml_group%item(ii), 'tao_template_graph', loc_err)
+  end select
+enddo
+
+end subroutine read_template_graph
+
+!------------------------------------------------------------------------------------
+!+
+! Subroutine set_old_shape (item, ref, i1, i2)
+!
+! Apply an item to the deprecated "shape" array.
+!
+! old_tao_ele_shape_struct is declared locally in this routine rather than in a module, so it
+! has no generated resolver and its components are dispatched by hand here. The element_shapes
+! namelist this serves is itself deprecated.
+!-
+
+subroutine set_old_shape (item, ref, i1, i2)
+
+type (tao_nml_item_struct) item
+type (tao_nml_ref_struct) ref
+
+integer i1, i2, ie, iv, nv
+logical loc_err
+
+!
+
+if (ref%rest == '') then
+  call tao_nml_err (item, 'A COMPONENT MUST BE GIVEN FOR SHAPE. EG: shape(1)%ele_name')
+  return
+endif
+
+call tao_nml_split_values (item%value, nml_val, nv, loc_err, why)
+if (loc_err) then
+  call tao_nml_err (item, why)
+  return
+endif
+
+iv = 0
+
+do ie = i1, i2
+  iv = iv + 1
+  if (iv > nv) exit
+  if (nml_val(iv) == '') cycle
+
+  ptr = tao_ptr_struct()
+  select case (ref%rest)
+  case ('key_name');   ptr%str => shape(ie)%key_name
+  case ('ele_name');   ptr%str => shape(ie)%ele_name
+  case ('shape');      ptr%str => shape(ie)%shape
+  case ('color');      ptr%str => shape(ie)%color
+  case ('size');       ptr%r   => shape(ie)%size
+  case ('draw_name');  ptr%l   => shape(ie)%draw_name
+  case ('key');        ptr%i   => shape(ie)%key
+  case default
+    call tao_nml_err (item, 'NO SUCH SHAPE COMPONENT: ' // trim(ref%rest))
+    return
+  end select
+
+  call tao_set_ptr_value (ptr, nml_val(iv), loc_err, why)
+  if (loc_err) then
+    call tao_nml_err (item, why)
+    return
+  endif
+enddo
+
+end subroutine set_old_shape
+
+!------------------------------------------------------------------------------------
+!+
+! Subroutine apply_item (item, ref, i1, i2, which)
+!
+! Apply one namelist item to a target held by tao_init_plotting.
+!
+! "which" names the target variable or array. i1 and i2 give the element range, and are both 1
+! for a target that is not an array.
+!
+! There are two paths. A single element whose named component resolves to one settable thing is
+! the common case and goes through the resolver directly, which also gets the "too many values"
+! check. Anything else, meaning a subscript range, a whole structure assignment, or a component
+! that is itself a structure, spreads the value list over elements and then over components in
+! declaration order, which is what a namelist read does. Eg all three of these work:
+!     ele_shape(3)%shape = "box"
+!     ele_shape(3) = "Quadrupole::*", "box", "blue", 0.2
+!     plot_page%border = 0, 0, 0, 0, "%PAGE"
+!-
+
+subroutine apply_item (item, ref, i1, i2, which)
+
+type (tao_nml_item_struct) item
+type (tao_nml_ref_struct) ref
+
+character(*) which
+character(200) why_first
+
+integer i1, i2, ie, is, iv, nv
+logical loc_err, any_set
+
+!
+
+if (i1 == i2 .and. ref%rest /= '') then
+  call resolve_one (which, i1, ref%rest, loc_err)
+  if (.not. loc_err) then
+    call tao_nml_value_set (item, ptr, loc_err)
+    return
+  endif
+  why_first = why
+else
+  why_first = ''
+endif
+
+call tao_nml_split_values (item%value, nml_val, nv, loc_err, why)
+if (loc_err) then
+  call tao_nml_err (item, why)
+  return
+endif
+
+iv = 0
+any_set = .false.
+
+ele_loop: do ie = i1, i2
+  do is = 1, max(nv, 1)
+    call resolve_slot (which, ie, ref%rest, is, loc_err)
+    if (loc_err) exit                       ! Past the last component of this element.
+    iv = iv + 1
+    if (iv > nv) exit ele_loop
+    any_set = .true.
+    if (nml_val(iv) == '') cycle
+    call tao_set_ptr_value (ptr, nml_val(iv), loc_err, why)
+    if (loc_err) then
+      call tao_nml_err (item, why)
+      return
+    endif
+  enddo
+enddo ele_loop
+
+if (.not. any_set) then
+  if (why_first /= '') why = why_first
+  call tao_nml_err (item, why)
+endif
+
+end subroutine apply_item
+
+!------------------------------------------------------------------------------------
+!+
+! Subroutine resolve_one (which, ie, name, e)
+!
+! Resolve a named component of element ie of one of the input structure arrays.
+!-
+
+subroutine resolve_one (which, ie, name, e)
+character(*) which, name
+integer ie
+logical e
+select case (which)
+case ('ele_shape');      call tao_res_tao_ele_shape_input (ele_shape(ie), name, ptr, e, why)
+case ('region');         call tao_res_tao_region_input (region(ie), name, ptr, e, why)
+case ('place');          call tao_res_tao_place_input (place(ie), name, ptr, e, why)
+case ('curve');          call tao_res_tao_curve_input (curve(ie), name, ptr, e, why)
+case ('plot_page');      call tao_res_tao_plot_page_input (plot_page, name, ptr, e, why)
+case ('default_plot');   call tao_res_tao_plot_input (default_plot, name, ptr, e, why)
+case ('plot');           call tao_res_tao_plot_input (plot, name, ptr, e, why)
+case ('default_graph');  call tao_res_tao_graph_input (default_graph, name, ptr, e, why)
+case ('graph');          call tao_res_tao_graph_input (graph, name, ptr, e, why)
+case ('default_curve');  call tao_res_tao_curve_input (default_curve, name, ptr, e, why)
+case default;            e = .true.;  why = 'INTERNAL ERROR: BAD ARRAY NAME ' // which
+end select
+end subroutine resolve_one
+
+!------------------------------------------------------------------------------------
+!+
+! Subroutine resolve_slot (which, ie, is, e)
+!
+! Resolve the is-th component, in declaration order, of element ie of one of the input
+! structure arrays. Used for a whole structure positional assignment.
+!-
+
+subroutine resolve_slot (which, ie, name, is, e)
+character(*) which, name
+integer ie, is
+logical e
+select case (which)
+case ('ele_shape');      call tao_res_tao_ele_shape_input_slot (ele_shape(ie), name, is, ptr, e, why)
+case ('region');         call tao_res_tao_region_input_slot (region(ie), name, is, ptr, e, why)
+case ('place');          call tao_res_tao_place_input_slot (place(ie), name, is, ptr, e, why)
+case ('curve');          call tao_res_tao_curve_input_slot (curve(ie), name, is, ptr, e, why)
+case ('plot_page');      call tao_res_tao_plot_page_input_slot (plot_page, name, is, ptr, e, why)
+case ('default_plot');   call tao_res_tao_plot_input_slot (default_plot, name, is, ptr, e, why)
+case ('plot');           call tao_res_tao_plot_input_slot (plot, name, is, ptr, e, why)
+case ('default_graph');  call tao_res_tao_graph_input_slot (default_graph, name, is, ptr, e, why)
+case ('graph');          call tao_res_tao_graph_input_slot (graph, name, is, ptr, e, why)
+case ('default_curve');  call tao_res_tao_curve_input_slot (default_curve, name, is, ptr, e, why)
+case default;            e = .true.;  why = 'INTERNAL ERROR: BAD ARRAY NAME ' // which
+end select
+end subroutine resolve_slot
+
 
 subroutine transfer_this_axis (axis_out, axis_in)
 
@@ -3117,26 +3461,33 @@ end subroutine tao_init_plotting
 subroutine tao_read_in_patterns(iu, plot_file)
 
 use tao_struct
+use tao_nml_mod
+use tao_attrib_resolve_mod
 
 implicit none
 
 type (tao_shape_pattern_struct), allocatable :: temp_pat(:)
 type (tao_shape_pattern_struct), pointer :: pat
-type (qp_line_struct) :: line 
-type (tao_shape_pattern_point_struct) :: pt(30)
+type (qp_line_struct), target :: line
+type (tao_shape_pattern_point_struct), target :: pt(30)
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 
-integer iu, ios, nn, j, jc, jpt, nc, npt
+integer iu, ios, nn, j, jc, jpt, nc, npt, ii, i1_sub, i2_sub, iv, nv, ie, is
 
 character(40) name
 character(8) :: scale   ! This is no longer used.
 character(*) plot_file
+character(200) why
+character(:), allocatable :: nml_val(:)
 character(*), parameter :: r_name = 'tao_read_in_patterns'
 
-namelist / shape_pattern / name, line, pt, scale
+logical err, nml_eof
 
 !
 
-rewind (iu)
+call tao_nml_rewind (iu)
 if (allocated(s%plot_page%pattern)) deallocate(s%plot_page%pattern)
 allocate (s%plot_page%pattern(0))
 
@@ -3145,15 +3496,69 @@ do  ! Loop over all patterns
   pt    = tao_shape_pattern_point_struct()
   name = ''
 
-  read (iu, nml = shape_pattern, iostat = ios) 
-  if (ios < 0) exit
-  if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST.', 'IN FILE: ' // plot_file)
-    rewind (iu)
-    do
-      read (iu, nml = shape_pattern)  ! To generate error message
-    enddo
+  call tao_nml_group_read (iu, plot_file, 'shape_pattern', nml_group, nml_eof, err, why)
+  if (err) then
+    call out_io (s_error$, r_name, 'ERROR READING SHAPE_PATTERN NAMELIST.', 'IN FILE: ' // plot_file, why)
+    return
   endif
+  if (nml_eof) exit
+
+  do ii = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(ii), ref, err)
+    if (err) cycle
+
+    select case (ref%head)
+    case ('name');   call tao_nml_value_set (nml_group%item(ii), name, err)
+    case ('scale');  call tao_nml_value_set (nml_group%item(ii), scale, err)
+
+    case ('line')
+      call tao_res_qp_line_struct (line, ref%rest, ptr, err, why)
+      if (err) then
+        call tao_nml_err (nml_group%item(ii), why)
+      else
+        call tao_nml_value_set (nml_group%item(ii), ptr, err)
+      endif
+
+    case ('pt')
+      call tao_nml_ref_bounds (nml_group%item(ii), ref, 1, size(pt), i1_sub, i2_sub, err)
+      if (err) cycle
+
+      if (i1_sub == i2_sub .and. ref%rest /= '') then
+        call tao_res_tao_shape_pattern_point_struct (pt(i1_sub), ref%rest, ptr, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(ii), why)
+        else
+          call tao_nml_value_set (nml_group%item(ii), ptr, err)
+        endif
+
+      else
+        call tao_nml_split_values (nml_group%item(ii)%value, nml_val, nv, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(ii), why)
+          cycle
+        endif
+        iv = 0
+        pt_loop: do ie = i1_sub, i2_sub
+          do is = 1, max(nv, 1)
+            call tao_res_tao_shape_pattern_point_struct_slot (pt(ie), ref%rest, is, ptr, err, why)
+            if (err) exit
+            iv = iv + 1
+            if (iv > nv) exit pt_loop
+            if (nml_val(iv) == '') cycle
+            call tao_set_ptr_value (ptr, nml_val(iv), err, why)
+            if (err) then
+              call tao_nml_err (nml_group%item(ii), why)
+              exit pt_loop
+            endif
+          enddo
+        enddo pt_loop
+        err = .false.
+      endif
+
+    case default
+      call tao_nml_unknown (nml_group%item(ii), 'shape_pattern', err)
+    end select
+  enddo
 
   !
 

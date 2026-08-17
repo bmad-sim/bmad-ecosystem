@@ -14,10 +14,15 @@ subroutine tao_init_lattice (namelist_file, err_flag)
 
 use tao_interface, except => tao_init_lattice
 use tao_input_struct
+use tao_nml_mod
+use tao_attrib_resolve_mod
 use ptc_interface_mod
 
 implicit none
 
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 type (tao_design_lat_input), target :: design_lattice(200)
 type (tao_design_lat_input), pointer :: design_lat1, dl0
 type (lat_struct), pointer :: lat
@@ -39,11 +44,11 @@ integer i_uni, j, k, n, iu, ios, version, ix, key, n_universes, ib, ie, status
 
 logical err_flag, custom_init, combine_consecutive_elements_of_like_name
 logical alternative_lat_file_exists
-logical err, err1, err2
+logical err, err1, err2, nml_eof
 
-namelist / tao_design_lattice / design_lattice, &
-       combine_consecutive_elements_of_like_name, unique_name_suffix, &
-       n_universes
+character(200) why
+character(:), allocatable :: nml_val(:)
+integer n_val
 
 ! Defaults
 
@@ -73,20 +78,70 @@ if (s%com%init_read_lat_info .and. namelist_file /= '') then  ! If there is a cu
   combine_consecutive_elements_of_like_name = .false.
   unique_name_suffix = ''
 
-  read (iu, nml = tao_design_lattice, iostat = ios)
-  if (ios > 0 .or. (ios < 0 .and. .not. alternative_lat_file_exists)) then
-    if (ios < 0) then
+  call tao_nml_group_read (iu, namelist_file, 'tao_design_lattice', nml_group, nml_eof, err, why)
+
+  if (err .or. (nml_eof .and. .not. alternative_lat_file_exists)) then
+    if (nml_eof) then
       call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST NOT FOUND IN FILE: ' // namelist_file, &
                                      'I NEED TO READ THIS NAMELIST TO KNOW THE LATTICE FILE NAME!')
-      return
     else
-      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR IN FILE: ' // namelist_file)
-      rewind (iu)
-      do
-        read (iu, nml = tao_design_lattice)  ! force printing of error message
-      enddo
+      call out_io (s_abort$, r_name, 'TAO_DESIGN_LATTICE NAMELIST READ ERROR IN FILE: ' // namelist_file, why)
     endif
+    close (iu)
+    return
   endif
+
+  do j = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(j), ref, err)
+    if (err) cycle
+    select case (ref%head)
+    case ('design_lattice')
+      if (.not. ref%has_sub) then
+        call tao_nml_err (nml_group%item(j), 'DESIGN_LATTICE IS AN ARRAY SO A SUBSCRIPT IS NEEDED')
+        cycle
+      endif
+      if (ref%isub < 1 .or. ref%isub > size(design_lattice)) then
+        call tao_nml_err (nml_group%item(j), 'DESIGN_LATTICE SUBSCRIPT OUT OF RANGE')
+        cycle
+      endif
+
+      if (ref%rest == '') then
+        ! Whole structure assignment. Eg: design_lattice(1) = "lat.bmad"
+        call tao_nml_split_values (nml_group%item(j)%value, nml_val, n_val, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(j), why)
+          cycle
+        endif
+        do k = 1, n_val
+          if (nml_val(k) == '') cycle    ! Null value leaves the component unchanged.
+          call tao_res_tao_design_lat_input_slot (design_lattice(ref%isub), '', k, ptr, err, why)
+          if (.not. err) call tao_set_ptr_value (ptr, nml_val(k), err, why)
+          if (err) then
+            call tao_nml_err (nml_group%item(j), why)
+            exit
+          endif
+        enddo
+
+      else
+        call tao_res_tao_design_lat_input (design_lattice(ref%isub), ref%rest, ptr, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(j), why)
+        else
+          call tao_nml_value_set (nml_group%item(j), ptr, err)
+        endif
+      endif
+
+    case ('combine_consecutive_elements_of_like_name')
+      call tao_nml_value_set (nml_group%item(j), combine_consecutive_elements_of_like_name, err)
+    case ('unique_name_suffix')
+      call tao_nml_value_set (nml_group%item(j), unique_name_suffix, err)
+    case ('n_universes')
+      call tao_nml_value_set (nml_group%item(j), n_universes, err)
+    case default
+      call tao_nml_unknown (nml_group%item(j), 'tao_design_lattice', err)
+    end select
+  enddo
+
   close (iu)
 
   s%com%combine_consecutive_elements_of_like_name = combine_consecutive_elements_of_like_name

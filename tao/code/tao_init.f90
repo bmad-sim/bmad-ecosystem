@@ -17,6 +17,7 @@ use tao_command_mod, dummy8 => tao_init
 use tao_set_mod, dummy9 => tao_init
 use tao_plot_mod, only: tao_draw_plots
 use tao_plot_window_mod, only: tao_destroy_plot_window
+use tao_nml_mod
 use random_mod
 
 !$ use omp_lib
@@ -48,9 +49,12 @@ integer iu_log
 
 logical err_flag
 logical err, calc_ok, valid_value, this_calc_ok, using_default
+logical nml_eof, nml_has_sub
 
-namelist / tao_start / startup_file, building_wall_file, hook_init_file, &
-               data_file, var_file, plot_file, n_universes, init_name, beam_file
+type (tao_nml_group_struct) nml_group
+character(:), allocatable :: nml_head, nml_rest
+character(200) why
+integer nml_isub
 
 ! Put all informational messages in the tao_init.log file.
 ! Only print error messages. Not standard ones.
@@ -170,18 +174,31 @@ if (iu /= 0) then
 
   rewind(iu)
 
-  ! Read tao_start namelist.
+  ! Read tao_start group.
 
-  read (iu, nml = tao_start, iostat = ios)
+  call tao_nml_group_read (iu, file_name, 'tao_start', nml_group, nml_eof, err, why)
 
-  if (ios < 0) then
+  if (err) then
+    call out_io (s_error$, r_name, 'ERROR IN READING "TAO_START" NAMELIST IN FILE: ' // file_name, why)
+  elseif (nml_eof) then
     call out_io (s_info$, r_name, 'Cannot read "tao_start" namelist in file: ' // file_name)
-  endif
-
-  if (ios > 0) then
-    call out_io (s_error$, r_name, 'ERROR IN READING "TAO_START" NAMELIST IN FILE: ' // file_name)
-    rewind (iu)
-    read (iu, nml = tao_start)  ! And generate error message.    
+  else
+    do i = 1, nml_group%n_item
+      call tao_nml_item_split (nml_group%item(i), nml_head, nml_has_sub, nml_isub, nml_rest, err)
+      if (err) cycle
+      select case (nml_head)
+      case ('startup_file');        call tao_nml_value_set (nml_group%item(i), startup_file, err)
+      case ('building_wall_file');  call tao_nml_value_set (nml_group%item(i), building_wall_file, err)
+      case ('hook_init_file');      call tao_nml_value_set (nml_group%item(i), hook_init_file, err)
+      case ('data_file');           call tao_nml_value_set (nml_group%item(i), data_file, err)
+      case ('var_file');            call tao_nml_value_set (nml_group%item(i), var_file, err)
+      case ('plot_file');           call tao_nml_value_set (nml_group%item(i), plot_file, err)
+      case ('beam_file');           call tao_nml_value_set (nml_group%item(i), beam_file, err)
+      case ('n_universes');         call tao_nml_value_set (nml_group%item(i), n_universes, err)
+      case ('init_name');           call tao_nml_value_set (nml_group%item(i), init_name, err)
+      case default;                 call tao_nml_unknown (nml_group%item(i), 'tao_start', err)
+      end select
+    enddo
   endif
 
   close (iu)

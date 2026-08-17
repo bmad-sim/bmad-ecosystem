@@ -1,6 +1,8 @@
 module tao_init_mod
 
 use tao_interface
+use tao_nml_mod
+use tao_attrib_resolve_mod
  
 implicit none
 
@@ -25,7 +27,11 @@ use opti_de_mod, only: opti_de_param
 use input_mod
 use tao_set_mod, only: tao_set_openmp_n_threads
 
-type (tao_global_struct) :: global
+type (tao_global_struct), target :: global
+type (opti_de_param_struct), target :: this_de_param
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 
 integer ios, iu, i, j, k, ix, num
 integer n_data_max, n_var_max
@@ -36,14 +42,12 @@ character(*) init_file
 character(*), parameter :: r_name = 'tao_init_global'
 character(n_file_max_len) file_name
 character(40) name, universe
+character(200) why
 
 character(100) line
 
-logical err, xxx
+logical err, xxx, nml_eof
 
-namelist / tao_params / global, bmad_com, space_charge_com, opti_de_param, &
-          n_data_max, n_var_max, n_d2_data_max, n_v1_var_max
-  
 !-----------------------------------------------------------------------
 ! First time through capture the default global (could have been set via command line arg.)
 
@@ -70,14 +74,50 @@ endif
 ! Read tao_params
 
 call out_io (s_blank$, r_name, 'Init: Reading tao_params namelist')
-read (iu, nml = tao_params, iostat = ios)
-if (ios > 0) then
+
+this_de_param = opti_de_param   ! opti_de_param is a module variable without the target attribute.
+
+call tao_nml_group_read (iu, file_name, 'tao_params', nml_group, nml_eof, err, why)
+
+if (err) then
   call out_io (s_error$, r_name, 'ERROR READING TAO_PARAMS NAMELIST. NOTE: GLOBAL%INIT_LAT_SIGMA_FROM_BEAM PARAMETER', &
-                                 'IS NOW NAMED GLOBAL%LAT_SIGMA_CALC_USES_EMIT_FROM. SEE THE TAO MANUAL FOR DETAILS.')
-  rewind (iu)
-  read (iu, nml = tao_params)  ! To give error message
+                                 'IS NOW NAMED GLOBAL%LAT_SIGMA_CALC_USES_EMIT_FROM. SEE THE TAO MANUAL FOR DETAILS.', why)
+elseif (nml_eof) then
+  call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
+else
+  do i = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i), ref, err)
+    if (err) cycle
+
+    select case (ref%head)
+    case ('global')
+      call tao_res_tao_global_struct (global, ref%rest, ptr, err, why)
+    case ('bmad_com')
+      call tao_res_bmad_common_struct (bmad_com, ref%rest, ptr, err, why)
+    case ('space_charge_com')
+      call tao_res_space_charge_common_struct (space_charge_com, ref%rest, ptr, err, why)
+    case ('opti_de_param')
+      call tao_res_opti_de_param_struct (this_de_param, ref%rest, ptr, err, why)
+
+    case ('n_data_max');     call tao_nml_value_set (nml_group%item(i), n_data_max, err);     cycle
+    case ('n_var_max');      call tao_nml_value_set (nml_group%item(i), n_var_max, err);      cycle
+    case ('n_d2_data_max');  call tao_nml_value_set (nml_group%item(i), n_d2_data_max, err);  cycle
+    case ('n_v1_var_max');   call tao_nml_value_set (nml_group%item(i), n_v1_var_max, err);   cycle
+
+    case default
+      call tao_nml_unknown (nml_group%item(i), 'tao_params', err)
+      cycle
+    end select
+
+    if (err) then
+      call tao_nml_err (nml_group%item(i), why)
+    else
+      call tao_nml_value_set (nml_group%item(i), ptr, err)
+    endif
+  enddo
+
+  opti_de_param = this_de_param
 endif
-if (ios < 0) call out_io (s_blank$, r_name, 'Note: No tao_params namelist found')
 
 ! transfer global to s%global
 s%global = global
@@ -155,14 +195,17 @@ subroutine tao_init_beams (init_file)
 use tao_input_struct
 
 type (tao_universe_struct), pointer :: u
-type (beam_init_struct) beam_init
+type (beam_init_struct), target :: beam_init
 type (tao_beam_branch_struct), pointer :: bb
 type (branch_struct), pointer :: branch
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 
 real(rp) comb_ds_save
 
 integer i, k, iu, ios, ib, n_uni, ib0, ie0
-integer n, iostat, ix_universe
+integer n, iostat, ix_universe, j
 
 character(*) init_file
 character(40) track_start, track_end, beam_track_start, beam_track_end
@@ -170,14 +213,10 @@ character(n_file_max_len) file_name
 character(n_file_max_len) beam0_file, beam_init_file_name, beam_position0_file    ! Very old style syntax
 character(n_file_max_len) beam_saved_at, beam_dump_at, beam_dump_file
 character(n_file_max_len) saved_at, dump_at, dump_file
+character(200) why
 character(*), parameter :: r_name = 'tao_init_beams'
 
-logical err, always_reinit
-
-namelist / tao_beam_init / ix_universe, beam_init, always_reinit, &
-            beam0_file, beam_init_file_name, beam_position0_file, &
-            beam_track_start, beam_track_end, beam_saved_at, beam_dump_at, beam_dump_file, &
-            track_start, track_end, saved_at, dump_at, dump_file, comb_ds_save
+logical err, always_reinit, nml_eof
 
 !-----------------------------------------------------------------------
 ! Init Beams
@@ -257,16 +296,45 @@ do
 
   ! Read beam parameters
 
-  read (iu, nml = tao_beam_init, iostat = ios)
-  if (ios > 0) then
-    call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!')
-    rewind (iu)
-    do
-      read (iu, nml = tao_beam_init)  ! generate an error message
-    enddo
+  call tao_nml_group_read (iu, file_name, 'tao_beam_init', nml_group, nml_eof, err, why)
+  if (err) then
+    call out_io (s_abort$, r_name, 'INIT: TAO_BEAM_INIT NAMELIST READ ERROR!', why)
+    return
   endif
 
-  if (ios < 0 .and. ix_universe == -1) exit  ! Exit on end-of-file and no namelist read
+  if (nml_eof) exit  ! Exit on end-of-file
+
+  do j = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(j), ref, err)
+    if (err) cycle
+    select case (ref%head)
+    case ('beam_init')
+      call tao_res_beam_init_struct (beam_init, ref%rest, ptr, err, why)
+      if (err) then
+        call tao_nml_err (nml_group%item(j), why)
+      else
+        call tao_nml_value_set (nml_group%item(j), ptr, err)
+      endif
+
+    case ('ix_universe');          call tao_nml_value_set (nml_group%item(j), ix_universe, err)
+    case ('always_reinit');        call tao_nml_value_set (nml_group%item(j), always_reinit, err)
+    case ('beam0_file');           call tao_nml_value_set (nml_group%item(j), beam0_file, err)
+    case ('beam_init_file_name');  call tao_nml_value_set (nml_group%item(j), beam_init_file_name, err)
+    case ('beam_position0_file');  call tao_nml_value_set (nml_group%item(j), beam_position0_file, err)
+    case ('beam_track_start');     call tao_nml_value_set (nml_group%item(j), beam_track_start, err)
+    case ('beam_track_end');       call tao_nml_value_set (nml_group%item(j), beam_track_end, err)
+    case ('beam_saved_at');        call tao_nml_value_set (nml_group%item(j), beam_saved_at, err)
+    case ('beam_dump_at');         call tao_nml_value_set (nml_group%item(j), beam_dump_at, err)
+    case ('beam_dump_file');       call tao_nml_value_set (nml_group%item(j), beam_dump_file, err)
+    case ('track_start');          call tao_nml_value_set (nml_group%item(j), track_start, err)
+    case ('track_end');            call tao_nml_value_set (nml_group%item(j), track_end, err)
+    case ('saved_at');             call tao_nml_value_set (nml_group%item(j), saved_at, err)
+    case ('dump_at');              call tao_nml_value_set (nml_group%item(j), dump_at, err)
+    case ('dump_file');            call tao_nml_value_set (nml_group%item(j), dump_file, err)
+    case ('comb_ds_save');         call tao_nml_value_set (nml_group%item(j), comb_ds_save, err)
+    case default;                  call tao_nml_unknown (nml_group%item(j), 'tao_beam_init', err)
+    end select
+  enddo
 
   ! Convert old style to current style
 
@@ -418,18 +486,23 @@ subroutine tao_init_dynamic_aperture(init_file)
 
 use tao_input_struct
 
-type (aperture_param_struct) :: da_param
+type (aperture_param_struct), target :: da_param
 type (tao_universe_struct), pointer :: u
 type (tao_dynamic_aperture_struct), pointer :: da
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 
-real(rp) pz(100), a_emit, b_emit, ellipse_scale
-integer :: ix_universe, ios, iu, i, j, n_pz, n_da
+real(rp), target :: pz(100)
+real(rp) a_emit, b_emit, ellipse_scale
+integer :: ix_universe, ios, iu, i, j, k, n_pz, n_da
 
 character(*) init_file
 character(n_file_max_len) file_name
+character(200) why
 character(*), parameter :: r_name = 'tao_init_dynamic_aperture'
 
-namelist / tao_dynamic_aperture / ix_universe, da_param, pz, a_emit, b_emit, ellipse_scale
+logical err, nml_eof
 
 !
 
@@ -449,19 +522,50 @@ do n_da = 1, 1000
   ellipse_scale = 1
   ix_universe = -1
   da_param = aperture_param_struct()
-  read (iu, nml = tao_dynamic_aperture, iostat = ios)
-  if (ios > 0) then
+  call tao_nml_group_read (iu, file_name, 'tao_dynamic_aperture', nml_group, nml_eof, err, why)
+  if (err) then
     call out_io (s_error$, r_name, 'ERROR READING TAO_DYNAMIC_APERTURE NAMELIST.', &
-                                   '[NOTE: THE SYNTAX WAS CHANGED 2021/6. PLEASE SEE THE TAO MANUAL.')
-    rewind (iu)
-    read (iu, nml = tao_dynamic_aperture)  ! To give error message
+                                   '[NOTE: THE SYNTAX WAS CHANGED 2021/6. PLEASE SEE THE TAO MANUAL.', why)
+    close(iu)
+    return
   endif
 
-  if (ios < 0) then
+  if (nml_eof) then
     if (n_da == 1) call out_io (s_blank$, r_name, 'Note: No tao_dynamic_aperture namelist found')
     close(iu)
     return
   endif
+
+  do k = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(k), ref, err)
+    if (err) cycle
+    select case (ref%head)
+    case ('da_param')
+      call tao_res_aperture_param_struct (da_param, ref%rest, ptr, err, why)
+      if (err) then
+        call tao_nml_err (nml_group%item(k), why)
+      else
+        call tao_nml_value_set (nml_group%item(k), ptr, err)
+      endif
+
+    case ('pz')
+      if (ref%has_sub) then
+        if (ref%isub < 1 .or. ref%isub > size(pz)) then
+          call tao_nml_err (nml_group%item(k), 'PZ SUBSCRIPT OUT OF RANGE')
+        else
+          call tao_nml_value_set (nml_group%item(k), pz(ref%isub), err)
+        endif
+      else
+        call tao_nml_value_set (nml_group%item(k), pz, err)
+      endif
+
+    case ('ix_universe');    call tao_nml_value_set (nml_group%item(k), ix_universe, err)
+    case ('a_emit');         call tao_nml_value_set (nml_group%item(k), a_emit, err)
+    case ('b_emit');         call tao_nml_value_set (nml_group%item(k), b_emit, err)
+    case ('ellipse_scale');  call tao_nml_value_set (nml_group%item(k), ellipse_scale, err)
+    case default;            call tao_nml_unknown (nml_group%item(k), 'tao_dynamic_aperture', err)
+    end select
+  enddo
 
   ! Count the list of pz
   ! Default if no pz set is 1 scan with pz = 0

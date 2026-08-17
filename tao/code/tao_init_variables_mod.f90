@@ -1,8 +1,9 @@
 module tao_init_variables_mod
 
 use tao_interface
+use tao_nml_mod
+use tao_attrib_resolve_mod
 
-integer, parameter, private :: n_var_maxx      = 5000   ! max index of datum per v1_var 
 integer, parameter, private :: n_var_minn      = -100   ! min index of datum per v1_var 
 
 contains
@@ -28,11 +29,14 @@ use random_mod
 implicit none
 
 type (tao_universe_struct), pointer :: u
-type (tao_v1_var_input) v1_var
+type (tao_v1_var_input), target :: v1_var
 type (tao_v1_var_struct), pointer :: v1_var_ptr
-type (tao_var_input) var(n_var_minn:n_var_maxx)
+type (tao_var_input), allocatable, target :: var(:)
 type (tao_var_struct), pointer :: v
 type (ele_struct), pointer :: ele
+type (tao_nml_group_struct) nml_group
+type (tao_nml_ref_struct) ref
+type (tao_ptr_struct) ptr
 
 real(rp) default_weight        ! default merit function weight
 real(rp) default_step          ! default "small" step size
@@ -55,11 +59,11 @@ logical err, free, gang
 logical searching, limited
 logical, allocatable :: dflt_good_unis(:), good_unis(:)
 logical :: logical_is_garbage
+logical nml_eof
 
-namelist / tao_var / v1_var, var, default_weight, default_meas, default_step, default_key_delta, &
-                    ix_min_var, ix_max_var, default_universe, default_attribute, &
-                    default_low_lim, default_high_lim, default_merit_type, default_good_user, &
-                    use_same_lat_eles_as, search_for_lat_eles, default_key_bound
+character(200) why
+character(:), allocatable :: nml_val(:)
+integer n_val, i_val, i_ele, i_slot
 
 !-----------------------------------------------------------------------
 ! Init
@@ -87,24 +91,64 @@ if (iu == 0) then
   return
 endif
 
+! Size the var array.
+!
+! Two things set the size. The file itself, through the largest var subscript and any
+! ix_max_var it gives, and the lattice, because a v1_var that uses search_for_lat_eles gets one
+! variable per matched element.
+!
+! This used to be a fixed var(-100:5000). The 5000 was a guess that existed only because a
+! namelist read gives no way to ask how much is coming, and it was both wasteful for a small
+! lattice and a hard ceiling for a large one.
+
+n = 0
+
+do i = lbound(s%u, 1), ubound(s%u,1)
+  do j = 0, ubound(s%u(i)%model%lat%branch, 1)
+    n = max(n, s%u(i)%model%lat%branch(j)%n_ele_max+10)
+  enddo
+enddo
+
+do
+  call tao_nml_group_read (iu, file_name, 'tao_var', nml_group, nml_eof, err, why)
+  if (err .or. nml_eof) exit
+  n = max(n, tao_nml_max_subscript(nml_group, 'var'))
+  n = max(n, tao_nml_int_item(nml_group, 'ix_max_var', 0))
+enddo
+
+allocate (var(n_var_minn:max(n, 1)))
+
+call tao_nml_rewind (iu)
+
 ! Count how many v1_var definitions there are
 
 n = 0
 n_nml = 0
 do
   v1_var%name = ''
+  default_universe = ''
   n_nml = n_nml + 1
-  read (iu, nml = tao_var, iostat = ios)
-  if (ios > 0) then
+  call tao_nml_group_read (iu, file_name, 'tao_var', nml_group, nml_eof, err, why)
+  if (err) then
     call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR IN FILE: ' // var_file, &
                                    'THIS IS THE ' // ordinal_str(n_nml) // ' TAO_VAR NAMELIST IN THE FILE.', &
-                                   'WITH V1_VAR%NAME = ' // quote(v1_var%name))
-    rewind (iu)
-    do
-      read (iu, nml = tao_var)  ! force printing of error message
-    enddo
+                                   'WITH V1_VAR%NAME = ' // quote(v1_var%name), why)
+    return
   endif
-  if (ios < 0 .and. v1_var%name == '') exit  ! Exit on end-of-file and no namelist read
+  if (nml_eof) exit  ! Exit on end-of-file
+
+  ! This pass only needs to know how many v1_var arrays there are and whether each is cloned
+  ! across universes, so only those two items are looked at.
+  do i = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i), ref, err)
+    if (err) cycle
+    select case (ref%head)
+    case ('v1_var')
+      if (ref%rest == 'name') call tao_nml_value_set (nml_group%item(i), v1_var%name, err)
+    case ('default_universe')
+      call tao_nml_value_set (nml_group%item(i), default_universe, err)
+    end select
+  enddo
   if (index(default_universe, 'clone') == 0) then
     n = n + 1
   else
@@ -117,8 +161,7 @@ n_list = n
 
 ! Now fill in all the information
 
-rewind (iu)
-
+call tao_nml_rewind (iu)
 allocate (dflt_good_unis(lbound(s%u,1):ubound(s%u, 1)), good_unis(lbound(s%u,1):ubound(s%u,1)))
 
 n_v1 = 0
@@ -159,8 +202,97 @@ var_loop: do
   enddo
   var%key_delta      = 0d0
 
-  read (iu, nml = tao_var, iostat = ios)
-  if (ios < 0 .and. v1_var%name == '') exit         ! exit on end-of-file
+  call tao_nml_group_read (iu, file_name, 'tao_var', nml_group, nml_eof, err, why)
+  if (err) then
+    call out_io (s_error$, r_name, 'TAO_VAR NAMELIST READ ERROR IN FILE: ' // var_file, why)
+    return
+  endif
+  if (nml_eof) exit         ! exit on end-of-file
+
+  do i = 1, nml_group%n_item
+    call tao_nml_item_ref (nml_group%item(i), ref, err)
+    if (err) cycle
+
+    select case (ref%head)
+    case ('v1_var')
+      call tao_res_tao_v1_var_input (v1_var, ref%rest, ptr, err, why)
+      if (err) then
+        call tao_nml_err (nml_group%item(i), why)
+      else
+        call tao_nml_value_set (nml_group%item(i), ptr, err)
+      endif
+
+    case ('var')
+      call tao_nml_ref_bounds (nml_group%item(i), ref, lbound(var,1), ubound(var,1), j1, j2, err)
+      if (err) cycle
+
+      if (j1 == j2 .and. ref%rest /= '') then
+        ! One element and one component. The common case.
+        call tao_res_tao_var_input (var(j1), ref%rest, ptr, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(i), why)
+        else
+          call tao_nml_value_set (nml_group%item(i), ptr, err)
+        endif
+
+      else
+        ! A subscript range and/or a whole structure assignment. The value list is spread over
+        ! the elements, and within an element over the components, which is the order a
+        ! namelist read uses. Eg: var(1:4)%ele_name = 'A', 'B', 'C', 'D'
+        call tao_nml_split_values (nml_group%item(i)%value, nml_val, n_val, err, why)
+        if (err) then
+          call tao_nml_err (nml_group%item(i), why)
+          cycle
+        endif
+        i_val = 0
+        elem_loop: do i_ele = j1, j2
+          if (ref%rest == '') then
+            do i_slot = 1, n_val
+              call tao_res_tao_var_input_slot (var(i_ele), '', i_slot, ptr, err, why)
+              if (err) exit                      ! Past the last component of this element.
+              i_val = i_val + 1
+              if (i_val > n_val) exit elem_loop
+              if (nml_val(i_val) == '') cycle
+              call tao_set_ptr_value (ptr, nml_val(i_val), err, why)
+              if (err) then
+                call tao_nml_err (nml_group%item(i), why)
+                exit elem_loop
+              endif
+            enddo
+            err = .false.
+          else
+            i_val = i_val + 1
+            if (i_val > n_val) exit elem_loop
+            call tao_res_tao_var_input (var(i_ele), ref%rest, ptr, err, why)
+            if (.not. err .and. nml_val(i_val) /= '') &
+                                    call tao_set_ptr_value (ptr, nml_val(i_val), err, why)
+            if (err) then
+              call tao_nml_err (nml_group%item(i), why)
+              exit elem_loop
+            endif
+          endif
+        enddo elem_loop
+      endif
+
+    case ('default_weight');      call tao_nml_value_set (nml_group%item(i), default_weight, err)
+    case ('default_meas');        call tao_nml_value_set (nml_group%item(i), default_meas, err)
+    case ('default_step');        call tao_nml_value_set (nml_group%item(i), default_step, err)
+    case ('default_key_delta');   call tao_nml_value_set (nml_group%item(i), default_key_delta, err)
+    case ('ix_min_var');          call tao_nml_value_set (nml_group%item(i), ix_min_var, err)
+    case ('ix_max_var');          call tao_nml_value_set (nml_group%item(i), ix_max_var, err)
+    case ('default_universe');    call tao_nml_value_set (nml_group%item(i), default_universe, err)
+    case ('default_attribute');   call tao_nml_value_set (nml_group%item(i), default_attribute, err)
+    case ('default_low_lim');     call tao_nml_value_set (nml_group%item(i), default_low_lim, err)
+    case ('default_high_lim');    call tao_nml_value_set (nml_group%item(i), default_high_lim, err)
+    case ('default_merit_type');  call tao_nml_value_set (nml_group%item(i), default_merit_type, err)
+    case ('default_good_user');   call tao_nml_value_set (nml_group%item(i), default_good_user, err)
+    case ('default_key_bound');   call tao_nml_value_set (nml_group%item(i), default_key_bound, err)
+    case ('use_same_lat_eles_as'); call tao_nml_value_set (nml_group%item(i), use_same_lat_eles_as, err)
+    case ('search_for_lat_eles'); call tao_nml_value_set (nml_group%item(i), search_for_lat_eles, err)
+    case default;                 call tao_nml_unknown (nml_group%item(i), 'tao_var', err)
+    end select
+  enddo
+
   call out_io (s_blank$, r_name, 'Init: Read tao_var namelist: ' // quote(v1_var%name))
 
   if (.not. tao_is_valid_name(v1_var%name, line)) then
@@ -337,7 +469,7 @@ type (tao_v1_var_struct), pointer :: v1_ptr
 type (tao_var_struct), pointer :: var_ptr
 type (ele_pointer_struct), allocatable :: eles(:)
 type (tao_v1_var_input) v1_var
-type (tao_var_input) var(n_var_minn:n_var_maxx)
+type (tao_var_input) var(n_var_minn:)
 
 real(rp) default_weight, default_meas, default_step, default_low_lim, default_high_lim
 

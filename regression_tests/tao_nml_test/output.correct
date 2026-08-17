@@ -1,0 +1,44 @@
+"rv" ABS 1e-14   1.250000E+00  1.250000E+00
+"iv" ABS 0 42 42
+"lv" STR "T" "T"
+"sv" STR "a string, with a comma" "a string, with a comma"
+"arr1" ABS 1e-14   1.000000E+00  1.000000E+00
+"arr2" ABS 1e-14   2.000000E+00  2.000000E+00
+"arr3" ABS 1e-14   3.000000E+00  3.000000E+00
+"arr4" ABS 1e-14   4.000000E+00  4.000000E+00
+"arr5" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"arr6" ABS 1e-14   9.500000E+00  9.500000E+00
+"rng1" ABS 1e-14   1.100000E+01  1.100000E+01
+"rng2" ABS 1e-14   1.200000E+01  1.200000E+01
+"rng3" ABS 1e-14   1.300000E+01  1.300000E+01
+"rng4" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"rng5" ABS 1e-14   2.500000E+01  2.500000E+01
+"rng6" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"rng7" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"rng8" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"rep1" ABS 1e-14   7.500000E+00  7.500000E+00
+"rep2" ABS 1e-14   7.500000E+00  7.500000E+00
+"rep3" ABS 1e-14   7.500000E+00  7.500000E+00
+"rep4" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"tab1" ABS 1e-14   1.000000E+00  1.000000E+00
+"tab2" ABS 1e-14   2.000000E+00  2.000000E+00
+"tab3" ABS 1e-14   3.000000E+00  3.000000E+00
+"nul1" ABS 1e-14   1.000000E+00  1.000000E+00
+"nul2" ABS 1e-14  -1.000000E+00 -1.000000E+00
+"nul3" ABS 1e-14   3.000000E+00  3.000000E+00
+"dat%ele_name" STR "Q01W" "Q01W"
+"dat%data_type" STR "orbit.x" "orbit.x"
+"dat%merit_type" STR "target" "target"
+"dat%weight" ABS 1e-14   3.500000E+00  3.500000E+00
+"dat%good_user" STR "F" "F"
+"n-mismatch"        ABS 0     0
+"n-items"           ABS 0     16
+"skip-to-group"     STR       "second_group"
+"skip-err"          STR       "F"
+"second-item-1"     STR       "alpha"
+"second-value-1"    STR       "7"
+"unterminated-err"  STR       "F"
+"unterminated-eof"  STR       "F"
+"unterminated-rv"   ABS 1e-14   8.250000E+00
+"unterminated-iv"   ABS 0     77
+"n-mismatch-final"  ABS 0     0
