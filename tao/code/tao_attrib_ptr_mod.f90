@@ -311,6 +311,11 @@ end function tao_ptr_type_name
 !      the whole array instead hits end of record and fails. So an array is filled only as far
 !      as the values provided, counted by reading successively longer leading sections.
 !
+!      Note that the count of values that read successfully cannot by itself distinguish a
+!      short list from a list with a bad value in it: "d_orb = 1e-6, junk, 3e-6" reads exactly
+!      one value, just as "d_orb = 1e-6" does. The list is therefore also split into values
+!      textually, and it is an error if fewer values read than were supplied.
+!
 ! The one intentional difference from a namelist read: a blank value string is an error here.
 ! A namelist read silently ignores a blank value field, so "set bmad_com sr_wakes_on = " used
 ! to do nothing at all and report success. No previously working input is rejected.
@@ -330,8 +335,9 @@ type (tao_ptr_struct), intent(in) :: ptr
 
 character(*), intent(in) :: value_str
 character(*), intent(out) :: why
+character(:), allocatable :: val(:)
 
-integer ios, n, lb
+integer ios, n, n_val, n_size, lb
 
 logical, intent(out) :: err
 
@@ -339,10 +345,26 @@ logical, intent(out) :: err
 
 err = .true.
 ios = 0
+n_val = 0
 
 if (value_str == '') then
   why = 'VALUE IS BLANK'
   return
+endif
+
+! For an array target, count the values supplied. See point 2 in the header.
+
+n_size = -1
+if (associated(ptr%r1)) n_size = size(ptr%r1)
+if (associated(ptr%i1)) n_size = size(ptr%i1)
+if (associated(ptr%l1)) n_size = size(ptr%l1)
+if (associated(ptr%str1)) n_size = size(ptr%str1)
+
+if (n_size > -1) then
+  call tao_nml_split_values (value_str, val, n_val, err, why)
+  if (err) return
+  err = .true.
+  if (n_val > n_size) goto 9100
 endif
 
 if (associated(ptr%r)) then
@@ -396,7 +418,7 @@ elseif (associated(ptr%r1)) then
     v(1:size(ptr%r1)) = ptr%r1
     n = n_items_read_r(value_str, v, size(ptr%r1))
     if (n < 0) goto 9100
-    if (n == 0) goto 9000
+    if (n < n_val) goto 9200
     lb = lbound(ptr%r1, 1)
     ptr%r1(lb:lb+n-1) = v(1:n)
   end block
@@ -409,7 +431,7 @@ elseif (associated(ptr%i1)) then
     v(1:size(ptr%i1)) = ptr%i1
     n = n_items_read_i(value_str, v, size(ptr%i1))
     if (n < 0) goto 9100
-    if (n == 0) goto 9000
+    if (n < n_val) goto 9200
     lb = lbound(ptr%i1, 1)
     ptr%i1(lb:lb+n-1) = v(1:n)
   end block
@@ -422,7 +444,7 @@ elseif (associated(ptr%l1)) then
     v(1:size(ptr%l1)) = ptr%l1
     n = n_items_read_l(value_str, v, size(ptr%l1))
     if (n < 0) goto 9100
-    if (n == 0) goto 9000
+    if (n < n_val) goto 9200
     lb = lbound(ptr%l1, 1)
     ptr%l1(lb:lb+n-1) = v(1:n)
   end block
@@ -434,7 +456,7 @@ elseif (associated(ptr%str1)) then
     v(1:size(ptr%str1)) = ptr%str1
     n = n_items_read_str(value_str, v, size(ptr%str1))
     if (n < 0) goto 9100
-    if (n == 0) goto 9000
+    if (n < n_val) goto 9200
     lb = lbound(ptr%str1, 1)
     ptr%str1(lb:lb+n-1) = v(1:n)
   end block
@@ -460,7 +482,168 @@ why = 'TOO MANY VALUES GIVEN FOR ' // trim(tao_ptr_type_name(ptr)) // &
                                                         ' COMPONENT: ' // trim(value_str)
 return
 
+! Fewer values read than were supplied, so value number n+1 is the one that cannot be decoded.
+
+9200 continue
+why = 'CANNOT DECODE THE VALUE ' // trim(val(n+1)) // ' AS TYPE ' // &
+              trim(tao_ptr_type_name(ptr)) // ' IN THE VALUE LIST: ' // trim(value_str)
+return
+
 end subroutine tao_set_ptr_value
+
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!--------------------------------------------------------------------------
+!+
+! Subroutine tao_nml_split_values (str, val, n_val, err, why)
+!
+! Split a namelist value list into individual values.
+!
+! This is needed for a whole structure assignment such as
+!     ele_shape(3) = "Quadrupole::*", "box", "blue", 0.2
+! where the values are assigned to the components of the structure in declaration order. The
+! generated tao_res_*_slot routines give the pointer for each position. It is also used by
+! tao_set_ptr_value to know how many values were meant for an array component, which is what
+! tells a short value list apart from a value that cannot be decoded. The routine keeps the
+! tao_nml_ prefix, rather than being named for the module it now lives in, since what it
+! splits is a namelist value list.
+!
+! Values are separated by commas and/or blanks. Two commas in a row give a null value, which a
+! namelist read takes to mean "leave this component alone", and which is returned here as a
+! blank string. A repeat count "n*value" expands to n copies, and a bare "n*" expands to n
+! null values.
+!
+! Input:
+!   str    -- character(*): The value list.
+!
+! Output:
+!   val    -- character(*), allocatable: The individual values. Quote marks are kept so that
+!               the setter can tell a quoted string from a bare word.
+!   n_val  -- integer: Number of values.
+!   err    -- logical: Set True on a malformed list.
+!   why    -- character(*): Explanation if err is True.
+!-
+
+subroutine tao_nml_split_values (str, val, n_val, err, why)
+
+character(*), intent(in) :: str
+character(:), allocatable, intent(out) :: val(:)
+character(*), intent(out) :: why
+character(:), allocatable :: tok
+character(1) quote_ch
+
+integer, intent(out) :: n_val
+integer i, j, n, i_rep, ix_star
+
+logical, intent(out) :: err
+
+!
+
+err = .false.
+why = ''
+n_val = 0
+allocate (character(max(len(str), 1)) :: val(max(32, len(str)/2 + 4)))
+
+i = 1
+
+do
+  ! Skip blanks.
+  do while (i <= len(str))
+    if (str(i:i) /= ' ') exit
+    i = i + 1
+  enddo
+  if (i > len(str)) exit
+
+  ! A comma here means a null value.
+
+  if (str(i:i) == ',') then
+    call add_val ('')
+    i = i + 1
+    cycle
+  endif
+
+  ! Read one token.
+
+  if (str(i:i) == '"' .or. str(i:i) == "'") then
+    quote_ch = str(i:i)
+    j = i + 1
+    do
+      if (j > len(str)) then
+        err = .true.
+        why = 'UNBALANCED QUOTE MARK IN VALUE: ' // trim(str)
+        return
+      endif
+      if (str(j:j) == quote_ch) then
+        if (j < len(str)) then
+          if (str(j+1:j+1) == quote_ch) then
+            j = j + 2
+            cycle
+          endif
+        endif
+        exit
+      endif
+      j = j + 1
+    enddo
+    tok = str(i:j)
+    i = j + 1
+
+  else
+    j = i
+    do while (j <= len(str))
+      if (str(j:j) == ',' .or. str(j:j) == ' ') exit
+      j = j + 1
+    enddo
+    tok = str(i:j-1)
+    i = j
+  endif
+
+  ! A leading "n*" is a repeat count.
+
+  i_rep = 1
+  ix_star = index(tok, '*')
+  if (ix_star > 1 .and. tok(1:1) /= '"' .and. tok(1:1) /= "'") then
+    if (is_integer(tok(1:ix_star-1), n)) then
+      if (n < 0) then
+        err = .true.
+        why = 'NEGATIVE REPEAT COUNT IN VALUE: ' // trim(tok)
+        return
+      endif
+      i_rep = n
+      tok = tok(ix_star+1:)
+    endif
+  endif
+
+  do n = 1, i_rep
+    call add_val (tok)
+  enddo
+
+  ! Consume one separating comma if present.
+
+  do while (i <= len(str))
+    if (str(i:i) /= ' ') exit
+    i = i + 1
+  enddo
+  if (i <= len(str)) then
+    if (str(i:i) == ',') i = i + 1
+  endif
+enddo
+
+!--------------------------------------------------------------------------
+contains
+
+subroutine add_val (v)
+character(*) v
+character(len(val)), allocatable :: tmp(:)
+n_val = n_val + 1
+if (n_val > size(val)) then
+  allocate (tmp(2*size(val)))
+  tmp(1:n_val-1) = val(1:n_val-1)
+  call move_alloc (tmp, val)
+endif
+val(n_val) = v
+end subroutine add_val
+
+end subroutine tao_nml_split_values
 
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
@@ -477,7 +660,7 @@ end subroutine tao_set_ptr_value
 
 function n_items_read_r (str, v, n_max) result (n)
 character(*), intent(in) :: str
-real(rp), intent(out) :: v(:)
+real(rp), intent(inout) :: v(:)
 integer, intent(in) :: n_max
 integer n, i, ios
 n = 0
@@ -493,7 +676,7 @@ end function n_items_read_r
 
 function n_items_read_i (str, v, n_max) result (n)
 character(*), intent(in) :: str
-integer, intent(out) :: v(:)
+integer, intent(inout) :: v(:)
 integer, intent(in) :: n_max
 integer n, i, ios
 n = 0
@@ -509,7 +692,7 @@ end function n_items_read_i
 
 function n_items_read_l (str, v, n_max) result (n)
 character(*), intent(in) :: str
-logical, intent(out) :: v(:)
+logical, intent(inout) :: v(:)
 integer, intent(in) :: n_max
 integer n, i, ios
 n = 0
@@ -525,7 +708,7 @@ end function n_items_read_l
 
 function n_items_read_str (str, v, n_max) result (n)
 character(*), intent(in) :: str
-character(*), intent(out) :: v(:)
+character(*), intent(inout) :: v(:)
 integer, intent(in) :: n_max
 integer n, i, ios
 n = 0

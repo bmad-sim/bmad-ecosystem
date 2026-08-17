@@ -23,9 +23,12 @@ use tao_attrib_resolve_mod
 
 implicit none
 
-type (bmad_common_struct) bc
-type (beam_init_struct) bi
-type (tao_datum_input) datum
+! The target attribute is required. A pointer returned by a resolver becomes undefined on
+! return if the actual argument is not a target. See the note in tao_attrib_resolve_mod.
+
+type (bmad_common_struct), target :: bc
+type (beam_init_struct), target :: bi
+type (tao_datum_input), target :: datum
 type (tao_ptr_struct) ptr
 
 integer iu
@@ -115,6 +118,32 @@ write (iu, '(4a)') '"err-blank"         STR ', quote(logic_str(err)), ' ', quote
 call bc_test ('d_orb(x)')
 write (iu, '(4a)') '"err-bad-subscript" STR ', quote(logic_str(err)), ' ', quote(trim(why))
 
+! Value lists for an array component, which is where a plain list directed read and a namelist
+! read differ. See the notes in tao_set_ptr_value. d_orb has six elements, all 1e-5 by default.
+
+call set_test ('d_orb', '1e-6, 2e-6')
+write (iu, '(a, 6es14.6)') '"val-short-list"    ABS 1e-14 ', bc%d_orb
+
+call set_test ('d_orb', '1e-6,,3e-6')
+write (iu, '(a, 6es14.6)') '"val-null-in-list"  ABS 1e-14 ', bc%d_orb
+
+call set_test ('d_orb', '3*2e-6')
+write (iu, '(a, 6es14.6)') '"val-repeat-count"  ABS 1e-14 ', bc%d_orb
+
+! A bad value in the middle of a list reads as a short list unless the number of values
+! supplied is counted separately, which would silently leave the rest of the list unapplied.
+
+call set_test ('d_orb', '1e-6, junk, 3e-6')
+write (iu, '(4a)') '"err-bad-in-list"   STR ', quote(logic_str(err)), ' ', quote(trim(why))
+
+call set_test ('d_orb', '7*1e-6')
+write (iu, '(4a)') '"err-too-many"      STR ', quote(logic_str(err)), ' ', quote(trim(why))
+
+! A repeat count supplies more than one value, which a namelist read rejects for a scalar.
+
+call set_test ('taylor_order', '2*5')
+write (iu, '(4a)') '"err-excess-scalar" STR ', quote(logic_str(err)), ' ', quote(trim(why))
+
 close (iu)
 
 !--------------------------------------------------------------------------
@@ -136,6 +165,18 @@ ptr = tao_ptr_struct()
 call tao_res_beam_init_struct (bi, name, ptr, err, why)
 any_err = (any_err .or. err)
 end subroutine bi_test
+
+! Resolve a bmad_com component and set it from a value string. bc is reset first so that each
+! case starts from the default values and "unchanged" can be told from "set to the default".
+
+subroutine set_test (name, value)
+character(*) name, value
+bc = bmad_common_struct()
+ptr = tao_ptr_struct()
+call tao_res_bmad_common_struct (bc, name, ptr, err, why)
+if (err) return
+call tao_set_ptr_value (ptr, value, err, why)
+end subroutine set_test
 
 function size_or_zero (ptr) result (n)
 type (tao_ptr_struct) ptr

@@ -198,6 +198,67 @@ block
   write (iu, '(a, i0)')     '"unterminated-iv"   ABS 0     ', iv
 end block
 
+! Expressions. A numeric scalar may be given an expression rather than a plain number, so the
+! named constants that tao_evaluate_expression knows about, such as pi and c_light, can be used.
+!
+! This is the second deliberate difference from a namelist read, and again there is nothing to
+! compare against since a namelist read rejects all of these. The expected values are asserted
+! directly.
+!
+! Note the absence of a division: "/" ends the group, so "c_light / 1e9" would not reach the
+! evaluator. That is not new behavior, it is the namelist file syntax being kept as is.
+
+block
+  integer iu2
+  type (tao_nml_group_struct) g4
+
+  open (newunit = iu2, file = 'nml_test_expr.nml', status = 'replace')
+  write (iu2, '(a)') '&exprgrp'
+  write (iu2, '(a)') '  rv = 2*pi              ! named constant, and "*" is a multiply here'
+  write (iu2, '(a)') '  arr(1) = c_light * 1e-9'
+  write (iu2, '(a)') '  arr(2) = sqrt(m_electron) * 1e-3'
+  write (iu2, '(a)') '  iv = 40 + 60           ! would read as just 40 without this'
+  write (iu2, '(a)') '  rep = 3*7.5            ! an array, so still a repeat count'
+  write (iu2, '(a)') '/'
+  close (iu2)
+
+  call reset_vars()
+  open (newunit = iu2, file = 'nml_test_expr.nml', status = 'old')
+  call tao_nml_group_read (iu2, 'nml_test_expr.nml', 'exprgrp', g4, eof, err, why)
+  close (iu2)
+
+  do i = 1, g4%n_item
+    call tao_nml_item_ref (g4%item(i), item_ref, err)
+    if (err) cycle
+    select case (item_ref%head)
+    case ('rv');   call tao_nml_value_set (g4%item(i), rv, err)
+    case ('iv');   call tao_nml_value_set (g4%item(i), iv, err)
+    case ('rep');  call tao_nml_value_set (g4%item(i), rep, err)
+    case ('arr');  call set_arr (g4%item(i), arr)
+    end select
+    if (err) exit
+  enddo
+
+  write (iu, '(a, l1, a)')  '"expr-err"          STR       "', err, '"'
+  write (iu, '(a, es14.6)') '"expr-twopi"        ABS 1e-14 ', rv
+  write (iu, '(a, es14.6)') '"expr-c-light"      ABS 1e-14 ', arr(1)
+  write (iu, '(a, es14.6)') '"expr-sqrt"         ABS 1e-14 ', arr(2)
+  write (iu, '(a, i0)')     '"expr-integer"      ABS 0     ', iv
+  write (iu, '(a, 3es14.6)') '"expr-repeat-kept"  ABS 1e-14 ', rep(1:3)
+
+  ! A value that is neither a number nor an expression is still an error.
+
+  block
+    type (tao_nml_item_struct) bad_item
+    bad_item%name = 'rv'
+    bad_item%value = 'not_a_constant'
+    bad_item%file = 'nml_test_expr.nml'
+    bad_item%i_line = 1
+    call tao_nml_value_set (bad_item, rv, err)
+    write (iu, '(a, l1, a)') '"expr-bad-err"      STR       "', err, '"'
+  end block
+end block
+
 write (iu, '(a, i0)') '"n-mismatch-final"  ABS 0     ', n_mismatch
 
 close (iu)
@@ -209,6 +270,8 @@ block
   open (newunit = iu2, file = 'nml_test_input.nml', status = 'old')
   close (iu2, status = 'delete')
   open (newunit = iu2, file = 'nml_test_bad.nml', status = 'old')
+  close (iu2, status = 'delete')
+  open (newunit = iu2, file = 'nml_test_expr.nml', status = 'old')
   close (iu2, status = 'delete')
 end block
 

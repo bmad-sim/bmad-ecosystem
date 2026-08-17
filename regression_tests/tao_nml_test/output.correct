@@ -41,4 +41,11 @@
 "unterminated-eof"  STR       "F"
 "unterminated-rv"   ABS 1e-14   8.250000E+00
 "unterminated-iv"   ABS 0     77
+"expr-err"          STR       "F"
+"expr-twopi"        ABS 1e-14   6.283185E+00
+"expr-c-light"      ABS 1e-14   2.997925E-01
+"expr-sqrt"         ABS 1e-14   7.148419E-01
+"expr-integer"      ABS 0     100
+"expr-repeat-kept"  ABS 1e-14   7.500000E+00  7.500000E+00  7.500000E+00
+"expr-bad-err"      STR       "T"
 "n-mismatch-final"  ABS 0     0

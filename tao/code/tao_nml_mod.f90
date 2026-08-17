@@ -23,6 +23,15 @@
 !   * A group with no terminating "/" is ended by end of file rather than discarded.
 !   * A blank value is an error rather than being silently ignored. See tao_set_ptr_value.
 !
+! Two things to know about expressions, both of which follow from the file syntax being
+! unchanged rather than from any choice made here:
+!   * A "/" cannot appear in a value since it ends the group. So write "c_light * 1e-9",
+!     not "c_light / 1e9". This is not new. A namelist read ends the group at the "/" too.
+!   * An expression is only tried where a namelist read would have failed, so "3*1.5" for an
+!     array component is still a repeat count and not a multiplication. For a scalar there is
+!     no such ambiguity to preserve: a repeat count supplies more than one value, which a
+!     namelist read rejects for a scalar, so "2*pi" is a multiplication.
+!
 ! Syntax accepted, otherwise matching what gfortran's namelist read accepts:
 !   &group_name  or  $group_name          Start of a group.
 !   /  or  &end  or  $end                 End of a group.
@@ -950,156 +959,6 @@ end subroutine tao_nml_ref_bounds
 !--------------------------------------------------------------------------
 !--------------------------------------------------------------------------
 !+
-! Subroutine tao_nml_split_values (str, val, n_val, err, why)
-!
-! Split a namelist value list into individual values.
-!
-! This is needed for a whole structure assignment such as
-!     ele_shape(3) = "Quadrupole::*", "box", "blue", 0.2
-! where the values are assigned to the components of the structure in declaration order. The
-! generated tao_res_*_slot routines give the pointer for each position.
-!
-! Values are separated by commas and/or blanks. Two commas in a row give a null value, which a
-! namelist read takes to mean "leave this component alone", and which is returned here as a
-! blank string. A repeat count "n*value" expands to n copies, and a bare "n*" expands to n
-! null values.
-!
-! Input:
-!   str    -- character(*): The value list.
-!
-! Output:
-!   val    -- character(*), allocatable: The individual values. Quote marks are kept so that
-!               the setter can tell a quoted string from a bare word.
-!   n_val  -- integer: Number of values.
-!   err    -- logical: Set True on a malformed list.
-!   why    -- character(*): Explanation if err is True.
-!-
-
-subroutine tao_nml_split_values (str, val, n_val, err, why)
-
-character(*), intent(in) :: str
-character(:), allocatable, intent(out) :: val(:)
-character(*), intent(out) :: why
-character(:), allocatable :: tok
-character(1) quote_ch
-
-integer, intent(out) :: n_val
-integer i, j, n, i_rep, ix_star
-
-logical, intent(out) :: err
-
-!
-
-err = .false.
-why = ''
-n_val = 0
-allocate (character(max(len(str), 1)) :: val(max(32, len(str)/2 + 4)))
-
-i = 1
-
-do
-  ! Skip blanks.
-  do while (i <= len(str))
-    if (str(i:i) /= ' ') exit
-    i = i + 1
-  enddo
-  if (i > len(str)) exit
-
-  ! A comma here means a null value.
-
-  if (str(i:i) == ',') then
-    call add_val ('')
-    i = i + 1
-    cycle
-  endif
-
-  ! Read one token.
-
-  if (str(i:i) == '"' .or. str(i:i) == "'") then
-    quote_ch = str(i:i)
-    j = i + 1
-    do
-      if (j > len(str)) then
-        err = .true.
-        why = 'UNBALANCED QUOTE MARK IN VALUE: ' // trim(str)
-        return
-      endif
-      if (str(j:j) == quote_ch) then
-        if (j < len(str)) then
-          if (str(j+1:j+1) == quote_ch) then
-            j = j + 2
-            cycle
-          endif
-        endif
-        exit
-      endif
-      j = j + 1
-    enddo
-    tok = str(i:j)
-    i = j + 1
-
-  else
-    j = i
-    do while (j <= len(str))
-      if (str(j:j) == ',' .or. str(j:j) == ' ') exit
-      j = j + 1
-    enddo
-    tok = str(i:j-1)
-    i = j
-  endif
-
-  ! A leading "n*" is a repeat count.
-
-  i_rep = 1
-  ix_star = index(tok, '*')
-  if (ix_star > 1 .and. tok(1:1) /= '"' .and. tok(1:1) /= "'") then
-    if (is_integer(tok(1:ix_star-1), n)) then
-      if (n < 0) then
-        err = .true.
-        why = 'NEGATIVE REPEAT COUNT IN VALUE: ' // trim(tok)
-        return
-      endif
-      i_rep = n
-      tok = tok(ix_star+1:)
-    endif
-  endif
-
-  do n = 1, i_rep
-    call add_val (tok)
-  enddo
-
-  ! Consume one separating comma if present.
-
-  do while (i <= len(str))
-    if (str(i:i) /= ' ') exit
-    i = i + 1
-  enddo
-  if (i <= len(str)) then
-    if (str(i:i) == ',') i = i + 1
-  endif
-enddo
-
-!--------------------------------------------------------------------------
-contains
-
-subroutine add_val (v)
-character(*) v
-character(len(val)), allocatable :: tmp(:)
-n_val = n_val + 1
-if (n_val > size(val)) then
-  allocate (tmp(2*size(val)))
-  tmp(1:n_val-1) = val(1:n_val-1)
-  call move_alloc (tmp, val)
-endif
-val(n_val) = v
-end subroutine add_val
-
-end subroutine tao_nml_split_values
-
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!--------------------------------------------------------------------------
-!+
 ! Subroutine tao_nml_err (item, msg)
 !
 ! Report an error for an item, naming the file and line.
@@ -1178,6 +1037,14 @@ logical is_num_target, split_err
 ! either have rejected or, worse, silently truncated. Eg "n_opti_cycles = 40 + 60" reads as
 ! just "40" under list directed input, so the expression has to be tried before the plain read
 ! rather than only after it fails.
+!
+! Only a scalar is handled here. A value list for an array component is not evaluated, so
+! "d_orb = 1e-6, 2*pi*1e-6" is an error rather than being silently taken as a repeat count.
+!
+! Note that trying the expression first is what makes "2*pi" a multiplication rather than a
+! repeat count of 2. There is nothing lost by that: a repeat count supplies more than one
+! value and a namelist read rejects more than one value for a scalar. Whole structure
+! assignment, where a repeat count is meaningful, does not come through here.
 
 is_num_target = (associated(ptr%r) .or. associated(ptr%i))
 
