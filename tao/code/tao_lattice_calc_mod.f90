@@ -596,8 +596,10 @@ do
       endif
 
       if (err) then
+        ix_track = ie
+        tao_model_ele(ie)%beam = beam   ! Make sure we save lost info.
         calc_ok = .false.
-        return
+        exit
       endif
     endif
 
@@ -703,6 +705,7 @@ n_lost = 0
 do n_bunch = 1, size(beam%bunch)
   n_lost = n_lost + count(beam%bunch(n_bunch)%particle(:)%state /= alive$ .and. beam%bunch(n_bunch)%particle(:)%state /= pre_born$)
 enddo
+
 if (n_lost /= 0) &
   call out_io (s_blank$, r_name, "Total number of lost particles by the end of universe \I2\: \I5\.", &
                                   i_array = [u%ix_uni, n_lost])
