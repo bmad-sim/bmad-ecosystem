@@ -762,7 +762,7 @@ end subroutine tao_var_stuffit2
 ! Input:
 !   var       -- Tao_var_struct: Structure has the info of where to point.
 !   ix_uni    -- Integer: the universe to use
-!   ix_ele    -- Integer: Index of element.
+!   ele       -- ele_struct: Element containing slave parameter.
 !
 ! Output:
 !   var%slave(ix_slave) -- Tao_var_slave_struct: New component of %slave(:) array is added. 
