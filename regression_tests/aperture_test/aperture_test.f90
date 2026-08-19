@@ -68,6 +68,27 @@ do i = 1, branch%n_ele_track
   call check_this_aperture2(branch%ele(i))
 enddo
 
+! A super_slave with more than one lord has aperture_at = lord_defined. The continuous
+! aperture of the pipe lord must still be enforced in the interior of such a slave.
+! Here the particle must be lost at x = 0.005 (at s = 0.1) which is inside the region
+! where the quadrupole is superimposed. See issue #2101.
+
+branch => lat%branch(3)
+do j = 1, 2
+  call init_coord (orbit, ele = branch%ele(0), element_end = downstream_end$)
+  orbit%vec(2) = 0.05_rp
+
+  do i = 1, branch%n_ele_track
+    ele => branch%ele(i)
+    if (j == 2) ele%tracking_method = time_runge_kutta$
+    call track1 (orbit, ele, branch%param, end_orb)
+    orbit = end_orb
+    if (orbit%state /= alive$) exit
+  enddo
+
+  write (1, '(a, i0, a, 2f14.9, i4)') '"Superimpose-Aperture-', j, '"  ABS 1E-8', orbit%vec(1), orbit%s, orbit%state
+enddo
+
 !
 
 close (1)
