@@ -706,12 +706,14 @@ elseif (slave(1)%ix_ele == -1) then
 ! Universe independent.
 
 elseif (ix_uni == 0) then
-  i_uni = slave(1)%ix_uni
-  u => s%u(i_uni)
-  lat => u%model%lat
-  ele => lat%branch(slave(1)%ix_branch)%ele(slave(1)%ix_ele)
-  n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
+  do ix = 1, size(slave)
+    i_uni = slave(ix)%ix_uni
+    u => s%u(i_uni)
+    lat => u%model%lat
+    ele => lat%branch(slave(ix)%ix_branch)%ele(slave(ix)%ix_ele)
+    n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
                                                             '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+  enddo
 
 ! Universe is given.
 
