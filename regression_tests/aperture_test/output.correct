@@ -46,5 +46,7 @@
 "7 END 1" STR "No Aperture"
 "7 END 2" STR "No Aperture"
 "7 END 3" STR "No Aperture"
-"Superimpose-Aperture-1"  ABS 1E-8   0.005000000   0.099874922   4
-"Superimpose-Aperture-2"  ABS 1E-8   0.005000000   0.099874922   2
+"Superimpose-Continuous-RK"  ABS 1E-8   0.005000000   0.099874922   4
+"Superimpose-Continuous-TRK"  ABS 1E-8   0.005000000   0.099874922   2
+"Superimpose-Wall-Transition-RK"  ABS 1E-8   0.005000000   0.099874922   2
+"Superimpose-Wall-Transition-TRK"  ABS 1E-8   0.005000000   0.099874922   2

@@ -50,7 +50,8 @@ if (ele%slave_status == super_slave$) then
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
     if (lord%lord_status /= super_lord$) cycle
-    if (.not. lord_edge_aligned (ele, physical_end, lord) .and. lord%aperture_at /= continuous$) cycle
+    if (.not. lord_edge_aligned (ele, physical_end, lord) .and. &
+        lord%aperture_at /= continuous$ .and. lord%aperture_at /= wall_transition$) cycle
     lord_dist = distance_to_aperture (orbit, particle_at, lord, no_ap)
     if (dist == real_garbage$ .or. lord_dist > dist) then
       dist = lord_dist

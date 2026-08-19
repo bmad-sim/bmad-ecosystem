@@ -219,10 +219,11 @@ do n_step = 1, n_step_max
 
       if (associated(wall_hit_handler_custom_ptr)) call wall_hit_handler_custom_ptr (orbit, ele, s_body)
       if (orbit%state /= alive$) return
-      if (ele%aperture_at /= wall_transition$) then
+      ! Note: For a super_slave with multiple lords, the aperture is defined by the lord(s).
+      if (.not. aperture_at_is_wall_transition(ele)) then
         call out_io (s_error$, r_name, 'CUSTOM CODE IS KEEPING A PARTICLE ALIVE ACCROSS A BOUNDARY!', &
-                                       'IN THIS CASE, THE APERTURE_AT COMPONENT OF ELEMENT: ' // ele%name, &
-                                       'NEEDS TO BE SET TO "WALL_TRANSITION".')
+                                       'IN THIS CASE, THE APERTURE_AT COMPONENT OF ELEMENT: ' // ele_full_name(ele), &
+                                       '(OR OF ITS LORD IF THIS ELEMENT IS A SUPER_SLAVE) NEEDS TO BE SET TO "WALL_TRANSITION".')
         if (global_com%exit_on_error) call err_exit
         return
       endif

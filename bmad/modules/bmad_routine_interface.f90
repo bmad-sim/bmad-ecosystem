@@ -483,6 +483,13 @@ recursive subroutine apply_rampers_to_slave (slave, err_flag)
   logical err_flag
 end subroutine
 
+function aperture_at_is_wall_transition (ele) result (is_wall_transition)
+  import
+  implicit none
+  type (ele_struct), target :: ele
+  logical is_wall_transition
+end function
+
 function at_this_ele_end (now_at, where_at) result (is_at_this_end)
   import
   implicit none
