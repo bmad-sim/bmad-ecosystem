@@ -222,7 +222,7 @@ do n_step = 1, bmad_com%max_num_runge_kutta_step
   ! Adapted from runge_kutta_mod's odeint_bmad.
 
   select case (ele%aperture_at)
-  case (continuous$, wall_transition$)
+  case (continuous$, wall_transition$, lord_defined$)
     call check_aperture_limit (orb, ele, in_between$, param, old_orb, check_momentum = .false.)
     if (orb%state /= alive$) then
       ! Cannot do anything if this is the first step

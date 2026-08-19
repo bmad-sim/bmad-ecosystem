@@ -191,7 +191,7 @@ do n_step = 1, n_step_max
   ! Check x/y limit apertures
 
   select case (ele%aperture_at)
-  case (continuous$, wall_transition$)
+  case (continuous$, wall_transition$, lord_defined$)
     call check_aperture_limit (orbit, ele, in_between$, param, old_orbit, check_momentum = .false.)
     if (orbit%state /= alive$) then
       ! The zbrent root finder needs the particle to be inside the aperture at the start of the step.
