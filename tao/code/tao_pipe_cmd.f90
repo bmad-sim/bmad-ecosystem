@@ -125,6 +125,7 @@ type (floor_position_struct) floor, floor1, floor2, end1, end2, f_orb
 type (tao_floor_plan_struct), pointer :: fp
 type (wake_struct), pointer :: wake
 type (wake_sr_mode_struct), pointer :: wsr
+type (wake_sr_z_long_struct), pointer :: srz
 type (wake_lr_mode_struct), pointer :: lr_mode
 type (wall3d_struct), pointer :: wall3d
 type (wall3d_section_struct), pointer :: sec
@@ -3841,7 +3842,11 @@ case ('ele:twiss')
 !   {Who} is one of:
 !       "sr_long"        "sr_long_table"
 !       "sr_trans"       "sr_trans_table"
+!       "sr_z_long"      "sr_z_long_table"
 !       "lr_mode_table"  "base"
+!
+! Note: The "sr_z_long_table" rows are the tabulated (z, W(z)) points of the short-range
+! longitudinal wake. The z values are computed as z(i) = -z0 + (i-1)*dz.
 !
 ! Example:
 !   pipe ele:wake 3@1>>7|model
@@ -3865,6 +3870,13 @@ case ('ele:twiss')
 !   ele_id: 1@0>>1
 !   which: model
 !   who: sr_long
+!
+! Example: 2
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/tao.init_wake
+!  args:
+!   ele_id: zw
+!   which: model
+!   who: sr_z_long_table
 
 case ('ele:wake')
 
@@ -3878,6 +3890,9 @@ case ('ele:wake')
   endif
 
   wake => ele%wake
+  srz => wake%sr%z_long
+  n = 0
+  if (allocated(srz%w)) n = size(srz%w)
 
   select case (tail_str)
   case ('base')
@@ -3891,6 +3906,7 @@ case ('ele:wake')
     nl=incr(nl); write (li(nl), lmt) 'lr%self_wake_on;LOGIC;T;',      wake%lr%self_wake_on
     nl=incr(nl); write (li(nl), lmt) 'has#sr_long;LOGIC;F;',          allocated(wake%sr%long)
     nl=incr(nl); write (li(nl), lmt) 'has#sr_trans;LOGIC;F;',         allocated(wake%sr%trans)
+    nl=incr(nl); write (li(nl), lmt) 'has#sr_z_long;LOGIC;F;',        (n /= 0)
     nl=incr(nl); write (li(nl), lmt) 'has#lr_mode;LOGIC;F;',          allocated(wake%lr%mode)
 
   case ('sr_long')
@@ -3911,6 +3927,21 @@ case ('ele:wake')
       wsr => wake%sr%trans(i)
       nl=incr(nl); write (li(nl), '(4(es16.8, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
           sr_transverse_polarization_name(wsr%polarization), ';', sr_transverse_position_dep_name(wsr%position_dependence)
+    enddo
+
+  case ('sr_z_long')
+    nl=incr(nl); write (li(nl), rmt) 'dz;REAL;F;',                    srz%dz
+    nl=incr(nl); write (li(nl), rmt) 'z0;REAL;F;',                    srz%z0
+    nl=incr(nl); write (li(nl), rmt) 'smoothing_sigma;REAL;T;',       srz%smoothing_sigma
+    nl=incr(nl); write (li(nl), amt) 'position_dependence;STR;F;',   &
+                                        trim(sr_longitudinal_position_dep_name(srz%position_dependence))
+    nl=incr(nl); write (li(nl), lmt) 'time_based;LOGIC;F;',           srz%time_based
+    nl=incr(nl); write (li(nl), imt) 'n_pt;INT;F;',                   n
+
+  case ('sr_z_long_table')
+    do i = 1, n
+      z = -srz%z0 + (i-1) * srz%dz
+      nl=incr(nl); write (li(nl), '(es16.8, a, es16.8)') z, ';', srz%w(i)
     enddo
 
   case ('lr_mode_table')
