@@ -36,7 +36,24 @@ q: quad, lr_wake = {amp_scale = 1, time_scale = 1, freq_spread = 0, self_wake_on
   mode = {3e5, 0.2, 2e-5, 0.4, 3, unpol, 1, 2, 3, 4}, 
   mode = {4e5, 0.3, 3e-5, 0.5, 4, unpol}}, l = 1
 
-l1: line = (p1, p2, p3, rf1, rf2, q)
+! Tabulated (z-dependent) short-range longitudinal wake.
+zw: pipe, l = 1, sr_wake = {
+  amp_scale = 1.0, z_scale = 1.0, scale_with_length = F, z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 0,
+    position_dependence = none,
+    w = {
+      -40e-6  4.0e14,
+      -30e-6  3.0e14,
+      -20e-6  2.0e14,
+      -10e-6  1.0e14,
+        0e-6  0.5e14,
+    }
+  }
+}
+
+l1: line = (p1, p2, p3, rf1, rf2, q, zw)
 l2: line = (z1)
 l2[geometry] = open
 l2[beta_a] = 10
