@@ -109,8 +109,13 @@ else
   sliced_ele%lord => ele_in
 endif
 
+! Note: When re-slicing a slice_slave, sliced_ele%lord is set above to ele_in%lord, so sliced_ele has
+! the same lords as ele_in and must inherit ele_in%n_lord. Leaving n_lord = 1 here would hide all but
+! the first lord from em_field_calc (which loops 1 to n_lord), making field_calc = refer_to_lords$
+! return zero field for a slice of a slice of a multi-lord super_slave.
+
 sliced_ele%n_lord = 1
-if (ele_in%slave_status == super_slave$) sliced_ele%n_lord = ele_in%n_lord
+if (ele_in%slave_status == super_slave$ .or. ele_in%slave_status == slice_slave$) sliced_ele%n_lord = ele_in%n_lord
 
 ! Err check. Remember: the element length may be negative
 
