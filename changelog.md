@@ -10,6 +10,11 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-08-19 Added: The Tao `pipe ele:wake` command accepts two new `{who}` values, `sr_z_long` and
+  `sr_z_long_table`, which return the parameters and the tabulated (z, W(z)) points of the
+  short-range longitudinal z-dependent wake. Previously only the pseudo-mode representation of the
+  short-range wake was accessible through the pipe interface.
+
 - 2026-08-13 Fixed: With Runge-Kutta tracking, the wall intersection point of a particle that hit an
   aperture during the first integration step was not computed and the particle was left at the end
   point of the step. With CSR/space charge tracking, where an element is tracked as a set of slices
