@@ -191,7 +191,7 @@ do n_step = 1, n_step_max
   ! Check x/y limit apertures
 
   select case (ele%aperture_at)
-  case (continuous$, wall_transition$)
+  case (continuous$, wall_transition$, lord_defined$)
     call check_aperture_limit (orbit, ele, in_between$, param, old_orbit, check_momentum = .false.)
     if (orbit%state /= alive$) then
       ! The zbrent root finder needs the particle to be inside the aperture at the start of the step.
@@ -219,10 +219,11 @@ do n_step = 1, n_step_max
 
       if (associated(wall_hit_handler_custom_ptr)) call wall_hit_handler_custom_ptr (orbit, ele, s_body)
       if (orbit%state /= alive$) return
-      if (ele%aperture_at /= wall_transition$) then
+      ! Note: For a super_slave with multiple lords, the aperture is defined by the lord(s).
+      if (.not. aperture_at_is_wall_transition(ele)) then
         call out_io (s_error$, r_name, 'CUSTOM CODE IS KEEPING A PARTICLE ALIVE ACCROSS A BOUNDARY!', &
-                                       'IN THIS CASE, THE APERTURE_AT COMPONENT OF ELEMENT: ' // ele%name, &
-                                       'NEEDS TO BE SET TO "WALL_TRANSITION".')
+                                       'IN THIS CASE, THE APERTURE_AT COMPONENT OF ELEMENT: ' // ele_full_name(ele), &
+                                       '(OR OF ITS LORD IF THIS ELEMENT IS A SUPER_SLAVE) NEEDS TO BE SET TO "WALL_TRANSITION".')
         if (global_com%exit_on_error) call err_exit
         return
       endif

@@ -14,6 +14,8 @@ integer :: i, j, ib, nargs, isn
 logical print_extra
  
 character(100) lat_file
+character(20) :: ap_name(3:4) = [character(20):: 'Continuous', 'Wall-Transition']
+character(3) :: tm_name(2) = [character(3):: 'RK', 'TRK']
 
 !
 
@@ -66,6 +68,31 @@ enddo
 branch => lat%branch(1)
 do i = 1, branch%n_ele_track
   call check_this_aperture2(branch%ele(i))
+enddo
+
+! A super_slave with more than one lord has aperture_at = lord_defined. A continuous or
+! wall_transition aperture of the pipe lord must still be enforced in the interior of such a
+! slave. Branch 3 has a continuous aperture and branch 4 a wall_transition aperture. In both
+! cases the particle must be lost at x = 0.005, which is at s = 0.0998... and thus inside the
+! region where the quadrupole is superimposed. See issue #2101.
+
+do ib = 3, 4
+  branch => lat%branch(ib)
+  do j = 1, 2
+    call init_coord (orbit, ele = branch%ele(0), element_end = downstream_end$)
+    orbit%vec(2) = 0.05_rp
+
+    do i = 1, branch%n_ele_track
+      ele => branch%ele(i)
+      if (j == 2) ele%tracking_method = time_runge_kutta$
+      call track1 (orbit, ele, branch%param, end_orb)
+      orbit = end_orb
+      if (orbit%state /= alive$) exit
+    enddo
+
+    write (1, '(a, 2f14.9, i4)') quote('Superimpose-' // trim(ap_name(ib)) // '-' // trim(tm_name(j))) // &
+                                                                   '  ABS 1E-8', orbit%vec(1), orbit%s, orbit%state
+  enddo
 enddo
 
 !
