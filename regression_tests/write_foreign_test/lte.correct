@@ -21,9 +21,9 @@ CRAB_CAVITY1: rfdf, phase = -7.2000E+01, l = 2.0000E-01, voltage = 1.0000E+03, &
 E_KICKER_4: ekicker, hkick = 5.0000E-03, vkick = 1.0000E-03
 ECOLLIMATOR1: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
      r44 = 1.0000E+00, c5 = 1.2597E-03, r55 = 1.0000E+00, r66 = 1.0000E+00
-E_KICKER_5: ekicker, hkick = 2.5000E-03
+E_KICKER_5: ekicker, hkick = 5.0000E-04
 ELSEPARATOR1: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = 1.4063E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = 5.6250E-07, r55 = 1.0000E+00, r66 = 1.0000E+00
 E_KICKER_6: ekicker, vkick = 2.5000E-03
 ELSEPARATOR2: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
      r44 = 1.0000E+00, c5 = 1.4063E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
@@ -34,10 +34,10 @@ FLOOR_SHIFT1: floor, x = 1.1718E-01, y = 4.2911E-01, z = 5.9532E-01, &
      theta = 1.1422E-02, phi = 4.2315E-02, psi = 8.0006E-01
 GKICKER1: malign, dx = 1.0000E-02, dy = 3.0000E-02, dz = 5.0000E-02, &
      dxp = 2.0000E-02, dyp = 4.0000E-02, dp = 6.0000E-02
-HKICKER1: ehkick, l = 4.5000E+00, kick = 5.0000E-03, tilt = 1.0000E-01, &
+HKICKER1: ehkick, l = 4.5000E+00, kick = 1.0000E-03, tilt = 1.0000E-01, &
      dx = 5.0000E-02
 INSTRUMENT1: moni, l = 4.5000E+00
-KICKER1: ekicker, l = 4.5000E+00, vkick = 3.0000E-03, tilt = 1.0000E-01, &
+KICKER1: ekicker, l = 4.5000E+00, vkick = 1.0000E-03, tilt = 1.0000E-01, &
      dx = 5.0000E-02
 MATCH1: ematrix, C5 = -2.5770E-01, R11 = 1.5650E+00, R12 = -7.3485E-02, &
      R13 = 3.5194E-01, R14 = -3.8271E-02, R21 = 7.3485E-02, R22 = 6.8042E-01, &
@@ -56,9 +56,9 @@ DRIFT_PATCH1: edrift, l = 4.0000E-03
 PATCH1: malign, dx = 1.0000E-03, dy = 2.0000E-03, dt = 1.0000E-11, &
      dxp = 1.0000E-03, dyp = 2.0000E-03
 QMULTIPOLE_8__1: mult, knl = 3.0000E-02, tilt = -3.0616E-17, order = 1
-Q_KICKER_9: ekicker, vkick = -5.0000E-05
+Q_KICKER_9: ekicker, hkick = 2.0000E-03, vkick = 3.0000E-03
 QUADRUPOLE1: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = -2.7022E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = -9.0976E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
 QMULTIPOLE_10__1: mult, knl = -3.0000E-02, order = 1
 Q_KICKER_11: ekicker, vkick = -5.0000E-05
 QUADRUPOLE2: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
@@ -85,9 +85,9 @@ RFCAVITY3: rfca, phase = 3.6000E+01, body_focus_model="SRS", standing_wave = 1, 
      end1_focus=1, end2_focus=1, volt = 1.0000E+05, freq = 5.0000E+08
 SAD_MULT1: drift, l = 1.0000E-01
 SAD_MULT2: drift
-S_KICKER_18: ekicker, vkick = -5.0000E-05
+S_KICKER_18: ekicker, hkick = 5.0000E-04, vkick = -5.0000E-05
 SBEND1: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = 5.0844E-08, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = -2.5403E-06, r55 = 1.0000E+00, r66 = 1.0000E+00
 S_KICKER_19: ekicker, vkick = -5.0000E-05
 RBEND2: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
      r44 = 1.0000E+00, c5 = -3.5886E-08, r55 = 1.0000E+00, r66 = 1.0000E+00

@@ -82,10 +82,11 @@ if (ele%aperture_at == lord_defined$ .or. ele%aperture_type == lord_defined$) th
       case (-1); physical_end = entrance_end$
       end select
     else
-      return
+      physical_end = in_between$   ! Particle is in the interior of this lord.
     endif
 
-    if (.not. lord_edge_aligned (ele, physical_end, lord) .and. lord%aperture_at /= continuous$) cycle
+    if (.not. lord_edge_aligned (ele, physical_end, lord) .and. &
+        lord%aperture_at /= continuous$ .and. lord%aperture_at /= wall_transition$) cycle
     call check_aperture_limit (orb, lord, particle_at, param, old_orb, check_momentum = .false.)
     if (orb%state /= alive$) return
   enddo

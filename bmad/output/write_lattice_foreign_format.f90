@@ -73,7 +73,7 @@ logical, optional :: use_matrix_model, include_apertures, err
 select case (out_type)
 
 case ('SCIBMAD')
-  call write_lattice_scibmad_format(out_file_name, lat)
+  call write_lattice_scibmad_format(out_file_name, lat, err)
 
 case ('PALS')
   call write_lattice_pals_format(out_file_name, lat)

@@ -47,7 +47,7 @@ character(*), parameter :: r_name = 'tao_init_variables'
 character(40) name, universe, default_universe
 character(40) default_merit_type, default_attribute
 character(40) use_same_lat_eles_as
-character(200) file_name
+character(n_file_max_len) file_name
 character(200) line, search_for_lat_eles
 
 logical default_key_bound, default_good_user
@@ -762,7 +762,7 @@ end subroutine tao_var_stuffit2
 ! Input:
 !   var       -- Tao_var_struct: Structure has the info of where to point.
 !   ix_uni    -- Integer: the universe to use
-!   ix_ele    -- Integer: Index of element.
+!   ele       -- ele_struct: Element containing slave parameter.
 !
 ! Output:
 !   var%slave(ix_slave) -- Tao_var_slave_struct: New component of %slave(:) array is added. 

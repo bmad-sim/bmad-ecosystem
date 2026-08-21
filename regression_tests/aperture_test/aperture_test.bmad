@@ -48,4 +48,43 @@ line2[geometry] = open
 line2[beta_a] = 10
 line2[beta_b] = 10
 
-use, line1, line2
+!---------------- Wall hit in the first Runge-Kutta step. See issue #2141.
+
+d3: pipe, l = 1, aperture_at = continuous, aperture_type = elliptical, x_limit = 0.01, y_limit = 0.01,
+        tracking_method = runge_kutta
+
+line3: line = (d3)
+line3[geometry] = open
+line3[beta_a] = 10
+line3[beta_b] = 10
+
+!---------------- Continuous aperture within a superimposed region. See issue #2101.
+! The quadrupole splits d4 into three super_slaves. The middle slave has two lords and so
+! has aperture_at = lord_defined. The continuous aperture of d4 must still be enforced there.
+
+d4: pipe, l = 1, aperture_at = continuous, aperture_type = elliptical, x_limit = 0.005, y_limit = 0.005,
+        tracking_method = runge_kutta
+q4: quadrupole, l = 0.9, k1 = 0, superimpose, ref = d4, ref_origin = center, ele_origin = center,
+        tracking_method = runge_kutta
+
+line4: line = (d4)
+line4[geometry] = open
+line4[beta_a] = 10
+line4[beta_b] = 10
+
+!---------------- Wall_transition aperture within a superimposed region. See issue #2101.
+
+d5: pipe, l = 1, tracking_method = runge_kutta,
+        aperture_at = wall_transition, aperture_type = wall3d,
+        wall = { superimpose = .true., thickness = 0.0005,
+        section = { type = wall_start, s = 0, v(1) = {0.005, 0.005}},
+        section = { type = wall_end,   s = 1, v(1) = {0.005, 0.005}} }
+q5: quadrupole, l = 0.9, k1 = 0, superimpose, ref = d5, ref_origin = center, ele_origin = center,
+        tracking_method = runge_kutta
+
+line5: line = (d5)
+line5[geometry] = open
+line5[beta_a] = 10
+line5[beta_b] = 10
+
+use, line1, line2, line3, line4, line5

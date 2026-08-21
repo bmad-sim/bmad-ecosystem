@@ -317,6 +317,24 @@ if (FORTRAN_COMPILER MATCHES "gfortran")
  list (APPEND ACC_LINK_FLAGS "-ldl")
 endif()
 
+#-----------------------------------------------------------------------
+# Conda builds: point the linker at the conda lib directory.
+#
+# -rpath-link is needed in addition to -L since -L is not searched when the linker resolves
+# the indirect dependencies of a shared library on the link line. For example, libsim_utils.so
+# has C++ code in it and so needs libstdc++.so.6 which lives in the conda lib directory.
+# Up through conda-forge "compilers 1.11" this was supplied implicitly by the conda-gcc-specs
+# and gcc_linux-64 packages. Those were dropped in "compilers 2.0" (gcc 15.3) so the flags must
+# now be set here. -rpath is also set so that the libraries and executables built can find the
+# conda libraries at run time. Note: -rpath-link is a GNU ld option not present on Darwin where
+# the absolute install_name of a library makes this unnecessary.
+#-----------------------------------------------------------------------
+
+IF ("$ENV{ACC_CONDA_BUILD}" MATCHES "Y" AND NOT "${CMAKE_SYSTEM_NAME}" MATCHES "Darwin")
+  list (APPEND ACC_LINK_FLAGS "-L$ENV{ACC_CONDA_PATH}/lib" "-Wl,-rpath,$ENV{ACC_CONDA_PATH}/lib" "-Wl,-rpath-link,$ENV{ACC_CONDA_PATH}/lib")
+  SET (CMAKE_SHARED_LINKER_FLAGS "-L$ENV{ACC_CONDA_PATH}/lib -Wl,-rpath,$ENV{ACC_CONDA_PATH}/lib -Wl,-rpath-link,$ENV{ACC_CONDA_PATH}/lib ${CMAKE_SHARED_LINKER_FLAGS}")
+ENDIF ()
+
 IF (${MSYS})
     SET (ACC_LINK_FLAGS)
     SET (SHARED_LINK_LIBS ${SHARED_LINK_LIBS} ${STDCXX_LINK_LIBS} readline termcap gdi32 Comdlg32)

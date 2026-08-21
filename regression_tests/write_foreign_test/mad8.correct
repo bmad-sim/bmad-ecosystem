@@ -24,10 +24,10 @@ E_KICKER_4: kicker, l =   0.0000E+00, hkick = 5.0000E-03, vkick = 1.0000E-03
 ECOLLIMATOR1: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
      kick(5) = 1.2597E-03, rm(6,6) = 1.0000E+00
-E_KICKER_5: kicker, l =   0.0000E+00, hkick = 2.5000E-03
+E_KICKER_5: kicker, l =   0.0000E+00, hkick = 5.0000E-04
 ELSEPARATOR1: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = 1.4063E-05, rm(6,6) = 1.0000E+00
+     kick(5) = 5.6250E-07, rm(6,6) = 1.0000E+00
 E_KICKER_6: kicker, l =   0.0000E+00, vkick = 2.5000E-03
 ELSEPARATOR2: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
@@ -37,10 +37,10 @@ EM_FIELD2: drift, l =   1.4000E+00
 FIDUCIAL1: marker
 FLOOR_SHIFT1: drift, l =   0.0000E+00
 GKICKER1: drift, l =   0.0000E+00
-HKICKER1: hkicker, l =   4.5000E+00, kick = 5.0000E-03, tilt = 1.0000E-01
+HKICKER1: hkicker, l =   4.5000E+00, kick = 1.0000E-03, tilt = 1.0000E-01
 INSTRUMENT1: drift, l =   4.5000E+00
-KMULTIPOLE_7: multipole, K0L = 3.0000E-06, T0 = 1.0000E-01
-KICKER1: kicker, l =   4.5000E+00, vkick = 3.0000E-03, tilt = 1.0000E-01
+KMULTIPOLE_7: multipole, K0L = 1.0000E-06, T0 = 1.0000E-01
+KICKER1: kicker, l =   4.5000E+00, vkick = 1.0000E-03, tilt = 1.0000E-01
 MATCH1: matrix, rm(1,1) = 1.5650E+00, rm(1,2) = -7.3485E-02, rm(1, &
     3) = 3.5194E-01, rm(1,4) = -3.8271E-02, rm(2,1) = 7.3485E-02, &
      rm(2,2) = 6.8042E-01, rm(2,3) = 3.3143E-02, rm(2,4) = -2.0320E-01, &
@@ -55,10 +55,10 @@ OCTUPOLE1: octupole, l =   4.5000E+00, k3 = 1.0000E+03, tilt = 3.9270E-01
 DRIFT_PATCH1: drift, l =   4.0000E-03
 QMULTIPOLE_8: multipole, K0L = 3.0000E-03, T0 = -7.8540E-01, K1L = 3.0000E-02, &
      T1 = -3.0616E-17
-Q_KICKER_9: kicker, l =   0.0000E+00, vkick = -5.0000E-05
+Q_KICKER_9: kicker, l =   0.0000E+00, hkick = 2.0000E-03, vkick = 3.0000E-03
 QUADRUPOLE1: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = -2.7022E-05, rm(6,6) = 1.0000E+00
+     kick(5) = -9.0976E-05, rm(6,6) = 1.0000E+00
 QMULTIPOLE_10: multipole, K0L = -3.0000E-03, T0 = -7.8540E-01, &
      K1L = -3.0000E-02
 Q_KICKER_11: kicker, l =   0.0000E+00, vkick = -5.0000E-05
@@ -91,10 +91,10 @@ RFCAVITY2: rfcavity, l =   4.5000E+00, volt = 1.0000E-01, lag = 6.0000E-01, &
      harmon = 184
 RFCAVITY3: rfcavity, l =   0.0000E+00, volt = 1.0000E-01, lag = 6.0000E-01, &
      harmon = 184
-S_KICKER_18: kicker, l =   0.0000E+00, vkick = -5.0000E-05
+S_KICKER_18: kicker, l =   0.0000E+00, hkick = 5.0000E-04, vkick = -5.0000E-05
 SBEND1: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, rm(3, &
     3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = 5.0844E-08, rm(6,6) = 1.0000E+00
+     kick(5) = -2.5403E-06, rm(6,6) = 1.0000E+00
 S_KICKER_19: kicker, l =   0.0000E+00, vkick = -5.0000E-05
 RBEND2: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, rm(3, &
     3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &

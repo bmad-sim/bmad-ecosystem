@@ -7,8 +7,14 @@
 !
 ! To write a Bmad lattice file, use: write_bmad_lattice_file
 !
-! Note: sol_quad elements are replaced by a drift-matrix-drift or solenoid-quad model.
-! Note: wiggler elements are replaced by a drift-matrix-drift or drift-bend model.
+! Note: sol_quad elements are replaced by a drift-matrix-drift model.
+!
+! Note: A wiggler or undulator is translated to an Elegant CWIGGLER element along with an SDDS
+! file, or a pair of files, holding the harmonic expansion of the field. The Cartesian harmonic
+! expansion used by CWIGGLER is the same one used by a Bmad cartesian_map so the translation is
+! exact. See the cwiggler_translate routine below for the details and for the list of Bmad field
+! maps that cannot be represented this way. A wiggler that cannot be translated to a CWIGGLER is
+! replaced by a drift-matrix-drift model.
 !
 ! Input:
 !   out_file_name     -- character(*): Name of the mad output lattice file.
@@ -18,7 +24,7 @@
 !                          being translated to MAD-8 or SAD.
 !   use_matrix_model  -- logical, optional: Use a drift-matrix_drift model for wigglers/undulators?
 !                           [A MAD "matrix" is a 2nd order Taylor map.] This switch is ignored for SAD conversion.
-!                           Default is False -> Use a bend-drift-bend model. 
+!                           Default is False -> Use a CWIGGLER element.
 !                           Note: sol_quad elements always use a drift-matrix-drift model.
 !   include_apertures -- logical, optional: If True (the default), add to the output lattice a zero length
 !                           collimator element next to any non-collimator element that has an aperture.
@@ -41,9 +47,11 @@ use ptc_interface_mod, only: taylor_inverse, concat_taylor
 
 implicit none
 
-type (lat_struct), target :: lat, lat_model, lat_out
+type (lat_struct), target :: lat, lat_out
 type (ele_struct), pointer :: ele, ele1, ele2, lord, sol_ele, first_sol_edge
 type (ele_struct) :: drift_ele, ab_ele, taylor_ele, col_ele, kicker_ele, null_ele, bend_ele, quad_ele
+type (ele_struct) :: wig_ele
+type (cartesian_map_struct), target :: wig_cmap    ! Scratch map for periodic type wigglers.
 type (coord_struct) orb_start, orb_end, orb_center
 type (coord_struct), allocatable, optional :: ref_orbit(:)
 type (coord_struct), allocatable :: orbit_out(:)
@@ -69,6 +77,7 @@ integer :: ix_line_min, ix_line_max, n_warn_max, n_wig_model_err, print_wig_mode
 character(*), parameter :: r_name = "write_lattice_elegant_format"
 character(*) out_file_name
 character(300) line, knl_str, ksl_str
+character(200) sdds_base
 character(40) orig_name, str, bmad_params(20), elegant_params(20)
 character(40), allocatable :: names(:)
 character(4000) line_out   ! Can be this large for taylor maps.
@@ -78,7 +87,7 @@ character(1), parameter :: num(9) = ['1', '2', '3', '4', '5', '6', '7', '8', '9'
 logical, optional :: use_matrix_model, include_apertures, err
 logical init_needed, err_flag, monopole
 logical parsing, warn_printed, converted, ptc_exact_model
-logical print_err
+logical print_err, wig_note_printed, wig_ok
 
 ! Use ptc exact_model = True since this is needed to get the drift nonlinear terms
 
@@ -92,6 +101,7 @@ if (dr12_max < 0) dr12_max = 1d-5
 n_warn_max = 10
 n_wig_model_err = 0
 print_wig_model_err_max = 5
+wig_note_printed = .false.
 
 ix = integer_option(0, ix_branch)
 if (ix < 0 .or. ix > ubound(lat%branch, 1)) then
@@ -140,6 +150,15 @@ open (iu, file = line, iostat = ios)
 if (ios /= 0) then
   call out_io (s_error$, r_name, 'CANNOT OPEN FILE: ' // trim(out_file_name))
   return
+endif
+
+! Any CWIGGLER harmonic files are named after the lattice file so that they land in the same
+! place and so that a relative file name in the lattice resolves the same way the lattice does.
+
+sdds_base = out_file_name
+n = len_trim(sdds_base)
+if (n > 4) then
+  if (sdds_base(n-3:n) == '.lte') sdds_base = sdds_base(1:n-4)
 endif
 
 !-----------------------------------------------------------------------------
@@ -298,74 +317,90 @@ do
     endif
   endif
 
-  ! Convert sol_quad_and wiggler elements to an "equivalent" set of elements.
-  ! NOTE: FOR NOW, SOL_QUAD USES DRIFT-MATRIX-DRIFT MODEL!
+  ! A wiggler/undulator is translated to an Elegant CWIGGLER element if possible. Otherwise, and
+  ! always for a sol_quad, a drift-matrix-drift model is used.
 
   if (ele%key == wiggler$ .or. ele%key == undulator$ .or. ele%key == sol_quad$) then
-    if (logic_option(.false., use_matrix_model) .or. ele%key == sol_quad$) then
-      call out_io (s_warn$, r_name, 'Converting element to drift-matrix-drift model: ' // ele%name)
-      drift_ele%value = ele%value
-      drift_ele%value(l$) = -val(l$) / 2
-      call make_mat6 (drift_ele, branch_out%param)
-      taylor_ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
-      call mat6_to_taylor (taylor_ele%vec0, taylor_ele%mat6, taylor_ele%taylor)
 
-      ! Add drifts before and after wigglers and sol_quads so total length is invariant
-      j_count = j_count + 1
-      write (drift_ele%name, '(a, i0)') 'DRIFT_Z', j_count
-      taylor_ele%name = ele%name
-      drift_ele%value(l$) = val(l$) / 2
-      ele%key = -1 ! Mark to ignore
-      call insert_element (lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
-      call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
-      call insert_element (lat_out, drift_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
-      ix_ele = ix_ele + 2
-      cycle
+    ! Try for a CWIGGLER. If the wiggler has been sliced due to superposition, the CWIGGLER is
+    ! constructed from the super_lord since a slice is not an integer number of wiggler periods.
+    ! In this case the slices, and any markers in between, are replaced by the super_lord. This
+    ! is only done if nothing else has been superimposed on the wiggler since such an element
+    ! would be lost.
 
-    ! Non matrix model...
-    ! If the wiggler has been sliced due to superposition, throw 
-    ! out the markers that caused the slicing.
+    if (ele%key /= sol_quad$ .and. .not. logic_option(.false., use_matrix_model)) then
+      ix1 = -1; ix2 = -1
+      wig_ok = .true.
 
-    else
-      if (ele%key == wiggler$ .or. ele%key == undulator$) then  ! Not a sol_quad
-        if (ele%slave_status == super_slave$) then
-          ! Create the wiggler model using the super_lord
-          lord => pointer_to_lord(ele, 1)
-          call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // lord%name)
-          call create_planar_wiggler_model (lord, lat_model)
-          ! Remove all the slave elements and markers in between.
-          call out_io (s_warn$, r_name, &
-              'Note: Not translating to MAD/XSIF the markers within wiggler: ' // lord%name)
-          call find_element_ends (lord, ele1, ele2)
-          ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
-          lord%key = -1 ! mark for deletion
-          ! If the wiggler wraps around the origin we are in trouble.
-          if (ix2 < ix1) then 
-            call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
-            if (global_com%exit_on_error) call err_exit
-          endif
-          do i = ix1+1, ix2
-            branch_out%ele(i)%key = -1  ! mark for deletion
-          enddo
-          ix_ele = ix_ele + (ix2 - ix1 - 1)
-        else
-          call out_io (s_warn$, r_name, 'Converting element to drift-bend-drift model: ' // ele%name)
-          call create_planar_wiggler_model (ele, lat_model)
-          ele%key = -1 ! Mark to ignore
+      if (ele%slave_status == super_slave$) then
+        lord => pointer_to_lord(ele, 1)
+        call find_element_ends (lord, ele1, ele2)
+        ix1 = ele1%ix_ele; ix2 = ele2%ix_ele
+        ! If the wiggler wraps around the origin we are in trouble.
+        if (ix2 < ix1) then
+          call out_io (s_fatal$, r_name, 'Wiggler wraps around origin. Cannot translate this!')
+          if (global_com%exit_on_error) call err_exit
         endif
 
-      else   ! sol_quad
-        call create_sol_quad_model (ele, lat_model)  ! NOT YET IMPLEMENTED!
-        ele%key = -1 ! Mark to ignore
+        do i = ix1+1, ix2
+          ele1 => branch_out%ele(i)
+          if (ele1%key == -1 .or. ele1%key == marker$) cycle
+          if (ele1%slave_status == super_slave$ .and. ele1%n_lord == 1) then
+            ele2 => pointer_to_lord(ele1, 1)
+            if (ele2%ix_ele == lord%ix_ele) cycle
+          endif
+          wig_ok = .false.
+          exit
+        enddo
+
+        if (.not. wig_ok) call out_io (s_warn$, r_name, &
+            'Wiggler has other elements superimposed on it so it cannot be translated to a CWIGGLER: ' // lord%name, &
+            'Will use a drift-matrix-drift model instead.')
+      else
+        lord => ele
       endif
 
-      do j = 1, lat_model%n_ele_track
-        call insert_element (lat_out, lat_model%ele(j), ix_ele+j, branch_out%ix_branch, orbit_out)
-      enddo
-
-      ix_ele = ix_ele + lat_model%n_ele_track - 1
-      cycle
+      if (wig_ok .and. (lord%key == wiggler$ .or. lord%key == undulator$)) then
+        if (cwiggler_translate(lord, line_out, .false.)) then
+          if (ele%slave_status == super_slave$) then
+            call out_io (s_warn$, r_name, &
+                'Note: Not translating to Elegant the markers within wiggler: ' // lord%name)
+            wig_ele = lord
+            wig_ele%slave_status = free$
+            wig_ele%lord_status  = not_a_lord$
+            wig_ele%n_lord = 0; wig_ele%n_slave = 0; wig_ele%n_lord_field = 0; wig_ele%n_slave_field = 0
+            lord%key = -1  ! Mark for deletion
+            do i = ix1+1, ix2
+              branch_out%ele(i)%key = -1  ! Mark for deletion
+            enddo
+            call insert_element (lat_out, wig_ele, ix2+1, branch_out%ix_branch, orbit_out)
+            ix_ele = ix2 + 1
+          endif
+          cycle
+        endif
+      endif
     endif
+
+    ! Drift-matrix-drift model.
+
+    call out_io (s_warn$, r_name, 'Converting element to drift-matrix-drift model: ' // ele%name)
+    drift_ele%value = ele%value
+    drift_ele%value(l$) = -val(l$) / 2
+    call make_mat6 (drift_ele, branch_out%param)
+    taylor_ele%mat6 = matmul(matmul(drift_ele%mat6, ele%mat6), drift_ele%mat6)
+    call mat6_to_taylor (taylor_ele%vec0, taylor_ele%mat6, taylor_ele%taylor)
+
+    ! Add drifts before and after wigglers and sol_quads so total length is invariant
+    j_count = j_count + 1
+    write (drift_ele%name, '(a, i0)') 'DRIFT_Z', j_count
+    taylor_ele%name = ele%name
+    drift_ele%value(l$) = val(l$) / 2
+    ele%key = -1 ! Mark to ignore
+    call insert_element (lat_out, drift_ele, ix_ele+1, branch_out%ix_branch, orbit_out)
+    call insert_element (lat_out, taylor_ele, ix_ele+2, branch_out%ix_branch, orbit_out)
+    call insert_element (lat_out, drift_ele, ix_ele+3, branch_out%ix_branch, orbit_out)
+    ix_ele = ix_ele + 2
+    cycle
   endif
 
 enddo
@@ -683,9 +718,14 @@ do
     call value_to_line (line_out, r0, 'dy', 'R')
 
   case (wiggler$, undulator$)   ! Elegant
-    write (line_out, '(2a)') trim(ele%name) // ': wiggler'
-    bmad_params(:7) = [character(40):: 'l', 'b_max', 'x_offset', 'y_offset', 'z_offset', 'tilt', 'n_pole']
-    elegant_params(:7) = [character(40):: 'l', 'b', 'dx', 'dy', 'dz', 'tilt', 'poles']
+    ! The substitution loop above has already verified that the translation is possible.
+    if (.not. cwiggler_translate(ele, line_out, .true.)) then
+      call out_io (s_error$, r_name, 'INTERNAL ERROR: CANNOT TRANSLATE WIGGLER TO A CWIGGLER: ' // trim(ele%name), &
+                                     'PLEASE REPORT THIS. CONVERTING TO A DRIFT.')
+      write (line_out, '(2a)') trim(ele%name) // ': edrift'
+      bmad_params(:1) = [character(40):: 'l']
+      elegant_params(:1) = [character(40):: 'l']
+    endif
 
   case (rfcavity$, lcavity$)   ! Elegant
     if (ele%key == rfcavity$) then
@@ -780,7 +820,7 @@ do
 
   ! Elegant
   
-  case (instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$)  ! Has tilt but not pitches.
+  case (instrument$, detector$, monitor$, hkicker$, vkicker$, kicker$, wiggler$, undulator$)  ! Has tilt but not pitches.
     if (has_orientation_attributes(ele) .and. (ele%value(x_pitch$) /= 0 .or. ele%value(y_pitch$) /= 0)) then
       call out_io (s_warn$, r_name, 'X_PITCH OR Y_PITCH PARAMETERS OF A ' // trim(key_name(ele%key)) // ' CANNOT BE TRANSLATED TO ELEGANT: ' // ele%name)
     endif
@@ -876,7 +916,7 @@ deallocate (names)
 if (present(err)) err = .false.
 
 call deallocate_lat_pointers (lat_out)
-call deallocate_lat_pointers (lat_model)
+if (associated(wig_cmap%ptr)) deallocate (wig_cmap%ptr)
 
 ! Restore ptc settings
 
@@ -924,5 +964,366 @@ enddo
 write (iu, '(2a)') trim(line_out), trim(eol_char)
 
 end subroutine write_line
+
+!------------------------------------------------------------------------
+! contains
+!+
+! Function cwiggler_translate (ele, line_out, do_write) result (is_ok)
+!
+! Translate a wiggler or undulator to an Elegant CWIGGLER element.
+!
+! Elegant's CWIGGLER uses the same Cartesian harmonic field expansion that a Bmad cartesian_map
+! uses so the translation is exact. With (x, y, z) measured from the entrance end of the element,
+! a Bmad term of the family_y/hyper_y variety gives (see em_field_calc):
+!   Bx = -coef * (kx/ky) * sin(kx*(x+x0)) * sinh(ky*(y+y0)) * cos(kz*z + phi_z)
+!   By =  coef *          cos(kx*(x+x0)) * cosh(ky*(y+y0)) * cos(kz*z + phi_z)
+! while Elegant's horizontal wiggler with normal poles gives (see routine GWigB in the Elegant
+! file gwig.c):
+!   Bx =  B_MAX * Cmn * (kx/ky) * sin(kx*x) * sinh(ky*y) * cos(kz*z + Phase)
+!   By = -B_MAX * Cmn *          cos(kx*x) * cosh(ky*y) * cos(kz*z + Phase)
+! So the two are the same expansion with B_MAX * Cmn = -coef. Doing this for all four of the
+! Elegant expansions gives the table:
+!
+!   Bmad family  Bmad form  Elegant expansion                   B_MAX * Cmn   k constraint
+!   -----------  ---------  ---------------------------------   -----------   ---------------
+!   family_y     hyper_y    BY_FILE with BY_SPLIT_POLE = 0       -coef         ky^2 = kx^2+kz^2
+!   family_y     hyper_x    BY_FILE with BY_SPLIT_POLE = 1       -coef*ky/kx   kx^2 = ky^2+kz^2
+!   family_x     hyper_x    BX_FILE with BX_SPLIT_POLE = 0        coef         kx^2 = ky^2+kz^2
+!   family_x     hyper_y    BX_FILE with BX_SPLIT_POLE = 1        coef*kx/ky   ky^2 = kx^2+kz^2
+!
+! B_MAX is set to 1 Tesla so that the Cmn column of a harmonic file is simply the field in Tesla.
+! This avoids any normalization ambiguity and makes Elegant's radiation integral estimate, which
+! uses B_MAX * sum(Cmn), come out right.
+!
+! Elegant has no analog of a Bmad hyper_xy form term nor of a family_qu or family_sq term so a
+! map using any of these cannot be translated. Nor can a cylindrical_map, grid_field, or
+! gen_gradients wiggler. In these cases is_ok is set False and the calling code falls back to a
+! drift-matrix-drift model.
+!
+! Periodic type (planar_model and helical_model) wigglers do not store a cartesian_map but they
+! do have an exactly equivalent one which create_wiggler_cartesian_map constructs. This is the
+! same map that the PTC and symp_lie_bmad tracking use.
+!
+! Input:
+!   ele       -- ele_struct: Wiggler or undulator element.
+!   do_write  -- logical: If True, write the harmonic file(s) and construct the element line.
+!                  If False, only test whether the translation is possible.
+!
+! Output:
+!   line_out  -- character(*): Elegant element definition. Only set if do_write is True.
+!   is_ok     -- logical: True if the element can be translated to a CWIGGLER.
+!-
+
+function cwiggler_translate (ele, line_out, do_write) result (is_ok)
+
+type (ele_struct), target :: ele
+type (ele_struct), pointer :: f_ele
+type (cartesian_map_struct), pointer :: cm
+type (cartesian_map_term1_struct), pointer :: ct
+
+real(rp) scale, s_anchor, z0, kw, kz_min, kz_max, len_ele, ph, dn, ff, x_off, y_off
+real(rp), allocatable :: c_amp(:), phase(:)
+
+integer it, jt, iw, ix_swap, n_term, n_row, n_period, n_step, n_by, n_bx, form_by, form_bx, iu2, ios2
+integer, allocatable :: ib(:), indx(:)
+
+character(*) line_out
+character(200) by_file, bx_file, fname, full_name
+
+logical do_write, is_ok
+
+! Get the element that holds the field. For a super_slave this is the lord and so the CWIGGLER
+! would not correspond to the slave. The calling code resolves this before calling here.
+
+is_ok = .false.
+len_ele = ele%value(l$)
+if (len_ele == 0) return
+
+f_ele => pointer_to_field_ele(ele, 1)
+if (f_ele%value(l$) /= len_ele) then
+  call cwig_err (ele, 'GETS ITS FIELD FROM AN ELEMENT OF A DIFFERENT LENGTH.', do_write)
+  return
+endif
+
+! Get the Cartesian map.
+
+select case (f_ele%field_calc)
+case (planar_model$, helical_model$)
+  if (f_ele%value(l_period$) == 0) then
+    call cwig_err (ele, 'IS A PERIODIC TYPE WIGGLER WITH L_PERIOD = 0.', do_write)
+    return
+  endif
+  call create_wiggler_cartesian_map (f_ele, wig_cmap)
+  cm => wig_cmap
+
+case (fieldmap$)
+  if (associated(f_ele%cylindrical_map) .or. associated(f_ele%grid_field) .or. associated(f_ele%gen_gradients)) then
+    call cwig_err (ele, 'HAS A FIELD MAP THAT IS NOT A CARTESIAN_MAP.', do_write)
+    return
+  endif
+  if (.not. associated(f_ele%cartesian_map)) then
+    call cwig_err (ele, 'HAS FIELD_CALC = FIELDMAP BUT NO FIELD MAP.', do_write)
+    return
+  endif
+  if (size(f_ele%cartesian_map) /= 1) then
+    call cwig_err (ele, 'HAS MORE THAN ONE CARTESIAN_MAP.', do_write)
+    return
+  endif
+  cm => f_ele%cartesian_map(1)
+
+case default
+  call cwig_err (ele, 'HAS A FIELD_CALC SETTING THAT CANNOT BE TRANSLATED: ' // int_str(f_ele%field_calc), do_write)
+  return
+end select
+
+if (cm%field_type /= magnetic$) then
+  call cwig_err (ele, 'HAS AN ELECTRIC CARTESIAN_MAP.', do_write)
+  return
+endif
+
+if (.not. associated(cm%ptr)) return
+if (.not. allocated(cm%ptr%term)) return
+if (size(cm%ptr%term) == 0) return
+
+! Sort the terms into the By (family_y) and Bx (family_x) sets and compute the Cmn and Phase
+! columns. Elegant has one split-pole switch per set so all terms of a set must have the same form.
+
+n_term = size(cm%ptr%term)
+allocate (c_amp(n_term), phase(n_term), ib(n_term), indx(n_term))
+
+scale = cm%field_scale * master_parameter_value(cm%master_parameter, ele)
+
+select case (cm%ele_anchor_pt)
+case (anchor_center$); s_anchor = len_ele / 2
+case (anchor_end$);    s_anchor = len_ele
+case default;          s_anchor = 0
+end select
+z0 = s_anchor + cm%r0(3)   ! Bmad map z = (distance from entrance) - z0.
+
+n_by = 0; n_bx = 0
+form_by = 0; form_bx = 0
+kz_min = 1e30_rp; kz_max = 0
+
+do it = 1, n_term
+  ct => cm%ptr%term(it)
+
+  if (ct%kz <= 0) then
+    call cwig_err (ele, 'HAS A CARTESIAN_MAP TERM WITH KZ <= 0 WHICH ELEGANT DOES NOT ALLOW.', do_write)
+    return
+  endif
+
+  if (ct%x0 /= cm%ptr%term(1)%x0 .or. ct%y0 /= cm%ptr%term(1)%y0) then
+    call cwig_err (ele, 'HAS CARTESIAN_MAP TERMS WITH DIFFERING X0/Y0 OFFSETS.', do_write)
+    return
+  endif
+
+  ! Elegant checks the Maxwell constraint on the wave numbers to a relative accuracy of 1d-6.
+
+  select case (ct%form)
+  case (hyper_y$); ff = sqrt(ct%kx**2 + ct%kz**2) / ct%ky
+  case (hyper_x$); ff = sqrt(ct%ky**2 + ct%kz**2) / ct%kx
+  case default
+    call cwig_err (ele, 'HAS A HYPER_XY FORM CARTESIAN_MAP TERM WHICH ELEGANT CANNOT MODEL.', do_write)
+    return
+  end select
+
+  if (abs(ff - 1) > 1d-8) then
+    call cwig_err (ele, 'HAS A CARTESIAN_MAP TERM WHOSE WAVE NUMBERS DO NOT SATISFY THE MAXWELL CONSTRAINT.', do_write)
+    return
+  endif
+
+  select case (ct%family)
+  case (family_y$)
+    n_by = n_by + 1
+    ib(it) = 1
+    if (form_by == 0) form_by = ct%form
+    if (ct%form /= form_by) then
+      call cwig_err (ele, 'HAS BOTH HYPER_Y AND HYPER_X FORM FAMILY_Y TERMS. ELEGANT HAS ONE BY_SPLIT_POLE SWITCH.', do_write)
+      return
+    endif
+    if (ct%form == hyper_y$) then
+      c_amp(it) = -scale * ct%coef
+    else
+      if (ct%ky == 0) then
+        call cwig_err (ele, 'HAS A SPLIT POLE HORIZONTAL WIGGLER TERM WITH KY = 0 WHICH ELEGANT DOES NOT ALLOW.', do_write)
+        return
+      endif
+      c_amp(it) = -scale * ct%coef * ct%ky / ct%kx
+    endif
+
+  case (family_x$)
+    n_bx = n_bx + 1
+    ib(it) = 2
+    if (form_bx == 0) form_bx = ct%form
+    if (ct%form /= form_bx) then
+      call cwig_err (ele, 'HAS BOTH HYPER_X AND HYPER_Y FORM FAMILY_X TERMS. ELEGANT HAS ONE BX_SPLIT_POLE SWITCH.', do_write)
+      return
+    endif
+    if (ct%form == hyper_x$) then
+      c_amp(it) = scale * ct%coef
+    else
+      if (ct%kx == 0) then
+        call cwig_err (ele, 'HAS A SPLIT POLE VERTICAL WIGGLER TERM WITH KX = 0 WHICH ELEGANT DOES NOT ALLOW.', do_write)
+        return
+      endif
+      c_amp(it) = scale * ct%coef * ct%kx / ct%ky
+    endif
+
+  case default
+    call cwig_err (ele, 'HAS A QU OR SQ FAMILY CARTESIAN_MAP TERM WHICH ELEGANT CANNOT MODEL.', do_write)
+    return
+  end select
+
+  ph = modulo(ct%phi_z - ct%kz * z0, twopi)
+  if (ph >= twopi) ph = 0   ! Guard against roundoff. Elegant demands a non-negative first phase.
+  phase(it) = ph
+
+  kz_min = min(kz_min, ct%kz)
+  kz_max = max(kz_max, ct%kz)
+enddo
+
+! Elegant normalizes the wave numbers to kw = twopi/(L/PERIODS) with PERIODS an integer. Also the
+! integration step size must resolve the highest harmonic: Elegant demands
+! pi * kz_max / kw <= STEPS_PER_PERIOD and that STEPS_PER_PERIOD be a multiple of 4.
+
+dn = len_ele * kz_min / twopi
+n_period = max(1, nint(dn))
+kw = twopi * n_period / len_ele
+
+if (do_write .and. abs(dn - n_period) > 1d-6 * dn) then
+  call out_io (s_warn$, r_name, 'Wiggler length is not an integer number of field periods: ' // trim(ele%name), &
+                                'The Elegant CWIGGLER PERIODS parameter will be set to ' // int_str(n_period) // '.')
+endif
+
+n_step = max(12, 4 * ceiling(pi * kz_max / (4 * kw)))
+
+if (.not. do_write) then
+  is_ok = .true.
+  return
+endif
+
+! Write the harmonic file(s). The rows are ordered by increasing kz since Elegant treats the first
+! row as the fundamental.
+
+indx = [(it, it = 1, n_term)]
+do it = 2, n_term
+  do jt = it, 2, -1
+    if (cm%ptr%term(indx(jt))%kz >= cm%ptr%term(indx(jt-1))%kz) exit
+    ix_swap = indx(jt); indx(jt) = indx(jt-1); indx(jt-1) = ix_swap
+  enddo
+enddo
+
+by_file = ''; bx_file = ''
+
+do iw = 1, 2
+  if (iw == 1) then
+    if (n_by == 0) cycle
+    n_row = n_by
+    fname = trim(sdds_base) // '.' // trim(ele%name) // '.by.sdds'
+  else
+    if (n_bx == 0) cycle
+    n_row = n_bx
+    fname = trim(sdds_base) // '.' // trim(ele%name) // '.bx.sdds'
+  endif
+
+  call fullfilename (fname, full_name)
+  iu2 = lunget()
+  open (iu2, file = full_name, iostat = ios2)
+  if (ios2 /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT OPEN CWIGGLER HARMONIC FILE: ' // trim(fname))
+    return
+  endif
+
+  write (iu2, '(a)') 'SDDS1'
+  write (iu2, '(4a)') '&description text="CWIGGLER harmonics from the Bmad cartesian_map of element ', &
+                                                            trim(ele%name), '", contents="cwiggler harmonics" &end'
+  write (iu2, '(a)') '&column name=Cmn, units=T, type=double &end'
+  write (iu2, '(a)') '&column name=KxOverKw, type=double &end'
+  write (iu2, '(a)') '&column name=KyOverKw, type=double &end'
+  write (iu2, '(a)') '&column name=KzOverKw, type=double &end'
+  write (iu2, '(a)') '&column name=Phase, units=rad, type=double &end'
+  write (iu2, '(a)') '&data mode=ascii, &end'
+  write (iu2, '(i0)') n_row
+
+  do jt = 1, n_term
+    it = indx(jt)
+    if (ib(it) /= iw) cycle
+    ct => cm%ptr%term(it)
+    write (iu2, '(5(a, 1x))') re_str(c_amp(it)), re_str(ct%kx/kw), re_str(ct%ky/kw), re_str(ct%kz/kw), re_str(phase(it))
+  enddo
+
+  close (iu2)
+
+  if (iw == 1) then
+    by_file = fname
+  else
+    bx_file = fname
+  endif
+enddo
+
+! Construct the element definition. FORCE_MATCHED is turned off since it would inset the field
+! from the ends of the element and so give a field different from the Bmad one.
+
+if (.not. wig_note_printed) then
+  write (iu, '(3a)') comment_char, &
+      ' CWIGGLER B_MAX is set to 1 so that the Cmn column of a harmonic file is the field in Tesla.', trim(eol_char)
+  wig_note_printed = .true.
+endif
+
+write (line_out, '(2a)') trim(ele%name), ': cwiggler, b_max = 1, integration_order = 4, force_matched = 0'
+call value_to_line (line_out, len_ele, 'l', 'R')
+line_out = trim(line_out) // ', periods = ' // int_str(n_period) // ', steps_per_period = ' // int_str(n_step)
+
+if (by_file /= '') then
+  line_out = trim(line_out) // ', by_file = "' // trim(by_file) // '"'
+  if (form_by == hyper_x$) line_out = trim(line_out) // ', by_split_pole = 1'
+endif
+
+if (bx_file /= '') then
+  line_out = trim(line_out) // ', bx_file = "' // trim(bx_file) // '"'
+  if (form_bx == hyper_y$) line_out = trim(line_out) // ', bx_split_pole = 1'
+endif
+
+! The map r0 and term x0/y0 shift the field within the element so they add to the element offset.
+
+x_off = ele%value(x_offset$) + cm%r0(1) - cm%ptr%term(1)%x0
+y_off = ele%value(y_offset$) + cm%r0(2) - cm%ptr%term(1)%y0
+
+call value_to_line (line_out, x_off, 'dx', 'R')
+call value_to_line (line_out, y_off, 'dy', 'R')
+call value_to_line (line_out, ele%value(z_offset$), 'dz', 'R')
+call value_to_line (line_out, ele%value(tilt$), 'tilt', 'R')
+
+is_ok = .true.
+
+end function cwiggler_translate
+
+!------------------------------------------------------------------------
+! contains
+!
+! Print a rate limited explanation of why a wiggler cannot be translated to a CWIGGLER.
+! Only printed on the testing pass so that the message appears once per element instance.
+
+subroutine cwig_err (ele, why, do_write)
+
+type (ele_struct) ele
+character(*) why
+logical do_write
+
+!
+
+if (do_write) return
+
+n_wig_model_err = n_wig_model_err + 1
+if (n_wig_model_err > print_wig_model_err_max) return
+
+call out_io (s_warn$, r_name, 'Cannot translate to an Elegant CWIGGLER the element: ' // trim(ele%name), &
+                              'Since this element ' // trim(why), &
+                              'Will use a drift-matrix-drift model instead.')
+
+if (n_wig_model_err == print_wig_model_err_max) call out_io (s_warn$, r_name, &
+                              'Enough wiggler translation warnings. Will stop issuing them now.')
+
+end subroutine cwig_err
 
 end subroutine write_lattice_elegant_format

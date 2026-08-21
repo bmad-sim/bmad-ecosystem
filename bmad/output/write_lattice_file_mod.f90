@@ -486,7 +486,7 @@ end subroutine value_to_line
 !--------------------------------------------------------------------------------
 !--------------------------------------------------------------------------------
 
-subroutine add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles)
+subroutine add_this_name_to_list (ele, names, an_indexx, n_names, ix_match, has_been_added, named_eles, name_in_list)
 
 type (ele_struct), target :: ele
 type (ele_pointer_struct), allocatable :: named_eles(:)  ! List of unique element names 
@@ -495,6 +495,7 @@ integer, allocatable :: an_indexx(:)
 integer n_names, ix_match
 logical has_been_added
 character(40), allocatable :: names(:)
+character(*), optional :: name_in_list
 
 !
 
@@ -503,7 +504,13 @@ if (size(names) < n_names + 1) then
   call re_allocate(an_indexx, 2*size(names))
   call re_allocate_eles(named_eles, 2*size(names), .true.)
 endif
-call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
+
+if (present(name_in_list)) then
+  call find_index (name_in_list, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
+else
+  call find_index (ele%name, names, an_indexx, n_names, ix_match, add_to_list = .true., has_been_added = has_been_added)
+endif
+
 if (has_been_added) named_eles(n_names)%ele => ele
 
 end subroutine add_this_name_to_list

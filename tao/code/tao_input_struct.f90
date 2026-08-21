@@ -166,8 +166,8 @@ end type
 ! other structures
 
 type tao_design_lat_input
-  character(400) :: file = ''
-  character(400) :: file2 = ''
+  character(n_file_max_len) :: file = ''
+  character(n_file_max_len) :: file2 = ''
   character(16) :: language = ''
   character(40) :: use_line = ''
   logical :: one_turn_map_calc = .false.

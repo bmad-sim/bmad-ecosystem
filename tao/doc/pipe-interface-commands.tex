@@ -92,12 +92,12 @@ Where:
   {ix_bunch} is the bunch index. Defaults to 1.
   {who} is one of:
       x, px, y, py, z, pz, t, s, spin.x, spin.y, spin.z, p0c, beta     -- centroid 
-      x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: beta, alpha, gamma, phi, 
-                                      eta, etap, sigma, sigma_p, emit, norm_emit
-      t.sigma
-    sigma.IJ where I, J in range [1,6]
-    rel_min.I, rel_max.I where I in range [1,6]
-    charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele
+      charge_live, n_particle_live, n_particle_lost_in_ele, ix_ele, t.sigma
+      x.Q, y.Q, z.Q, a.Q, b.Q, c.Q where Q is one of: 
+             beta, alpha, gamma, phi, dbeta_dpz, dalpha_dpz,
+             eta, etap, sigma, sigma_p, emit, norm_emit, deta_ds, deta_dpz, detap_dpz
+      sigma.IJ where I, J in range [1,6]
+      rel_min.I, rel_max.I where I in range [1,6]
 
   Note: If ix_uni or ix_branch is present, "@" must be present.
 
@@ -1046,7 +1046,11 @@ Where:
   {Who} is one of:
       "sr_long"        "sr_long_table"
       "sr_trans"       "sr_trans_table"
+      "sr_z_long"      "sr_z_long_table"
       "lr_mode_table"  "base"
+
+Note: The "sr_z_long_table" rows are the tabulated (z, W(z)) points of the short-range
+longitudinal wake. The z values are computed as z(i) = -z0 + (i-1)*dz.
 
 Example:
   pipe ele:wake 3@1>>7|model

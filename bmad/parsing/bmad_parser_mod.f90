@@ -8372,7 +8372,7 @@ if (allocated(con0%stack)) then
       n = size(con_out%stack)
       call reallocate_expression_stack(con_out%stack, n+2)
       con_out%stack(n+1) = expression_atom_struct(lord%control%var(ix_var)%name, ix_var+var_offset$, 0.0_rp)
-      con_out%stack(n+2) = expression_atom_struct('', times$, 0.0_rp)
+      con_out%stack(n+2) = expression_atom_struct('*', times$, 0.0_rp)
     endif
   endif
 
