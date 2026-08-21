@@ -15,13 +15,20 @@ particle_start[y] = 1e-4
 
 ben01: sbend, l = 0.1, b_field = 0.17, b1_gradient = -10
 eg1: e_gun, l = 1, space_charge_method = cathode_fft_3d
+wig01: wiggler, l = 0.5, n_period = 5, b_max = 0.6, field_calc = planar_model, csr_method = 1_dim
 
 br0: line = (ben01)
 br1: line = (eg1)
+br2: line = (wig01)
 
 br1[p0c] = 1e6
 br1[geometry] = open
 br1[beta_a] = 1
 br1[beta_b] = 1
 
-use, br0, br1
+br2[geometry] = open
+br2[e_tot] = 42e6
+br2[beta_a] = 3
+br2[beta_b] = 3
+
+use, br0, br1, br2
