@@ -90,6 +90,20 @@ call transfer_matrix_calc(lat, m1, vec1)
 write (1, '(a, 2es16.8)') '"Overlap-before" ABS 1e-12', m1(2,1), m1(4,3)
 
 !-----------------------------------------
+! Lcavity whose field overlaps other elements. The reference energy of the slaves of the
+! lcavity lord must vary monotonically and be consistent with the lord's reference energy.
+
+call bmad_parser('overlap_lcavity.bmad', lat)
+
+call lat_ele_locator ('CAV1', lat, eles, n_loc, err)
+ele => eles(1)%ele
+slave => pointer_to_slave(ele, ele%n_slave)
+write (1, '(a, 2es16.8)') '"Overlap-lcav-lord" ABS 1', ele%value(e_tot$) - ele%value(e_tot_start$), &
+                                                      ele%value(e_tot$) - slave%value(e_tot$)
+write (1, '(a, 9es16.8)') '"Overlap-lcav-dE" ABS 1', &
+                          (lat%ele(i)%value(e_tot$) - lat%ele(0)%value(e_tot$), i = 1, lat%n_ele_track)
+
+!-----------------------------------------
 
 do i = 1, size(tree_str)
   call expression_string_to_tree(tree_str(i), tree, err, err_str)

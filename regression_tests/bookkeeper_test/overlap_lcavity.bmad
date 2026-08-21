@@ -1,0 +1,25 @@
+no_digested
+
+! Lcavity overlapping a solenoid. Tests that the reference energy of the slaves of the lcavity
+! is consistent with the reference energy of the lcavity lord. See issue #2026.
+
+parameter[geometry] = open
+parameter[particle] = electron
+parameter[p0c] = 1e7
+
+beginning[beta_a] = 1
+beginning[beta_b] = 1
+
+d1: drift, l = 2
+
+sol1: solenoid, l = 0.4, bs_field = 0.05, field_master = T, tracking_method = time_runge_kutta
+sol2: solenoid, l = 0.4, bs_field = 0.05, field_master = T, tracking_method = time_runge_kutta
+cav1: lcavity, l = 0.3, gradient = 1e6, rf_frequency = 1.3e9, phi0 = 0, &
+          autoscale_phase = F, autoscale_amplitude = F, tracking_method = time_runge_kutta
+
+superimpose, element = sol1, ref = d1, ref_origin = beginning, offset = 0.5
+superimpose, element = sol2, ref = d1, ref_origin = beginning, offset = 1.1
+superimpose, element = cav1, ref = d1, ref_origin = beginning, offset = 0.8
+
+l: line = (d1)
+use, l

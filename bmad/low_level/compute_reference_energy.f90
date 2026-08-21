@@ -620,13 +620,22 @@ case (lcavity$, nonconst_ref_energy$)
   n = nint(ele%value(n_rf_steps$))
   lord => pointer_to_super_lord(ele, lord_type = lcavity$)
 
-  if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. &
-                                               ele%tracking_method == bmad_standard$ .and. n > 0) then
+  ! Note: The number of rf steps must be taken from the lord since a slave that is an em_field
+  ! element (which happens with overlapping fields) does not have an n_rf_steps attribute.
+
+  if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. lord%key == lcavity$) then
+    n = nint(lord%value(n_rf_steps$))
+  endif
+
+  ! With rf steps, E_tot and p0c of a slave are computed from the lord's step table by
+  ! lcavity_rf_step_setup below. Otherwise the slave gets its share of the lord's voltage.
+
+  if ((ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) .and. n > 0) then
     ! Note: E_tot and p0c computed by lcavity_rf_step_setup below.
 
   else
     phi = twopi * (lord%value(phi0$) + lord%value(phi0_multipass$))
-    e_tot = ele%value(e_tot_start$) + lord%value(voltage$) * cos(phi)
+    e_tot = ele%value(e_tot_start$) + lord%value(voltage$) * cos(phi) * this_voltage_fraction(ele, lord)
     call convert_total_energy_to (e_tot, param%particle, pc = ele%value(p0c$), err_flag = err_flag, print_err = .false.)
     if (err_flag) then
       call out_io (s_error$, r_name, 'REFERENCE ENERGY BELOW REST MASS AT EXIT END OF LCAVITY: ' // ele_full_name(ele))
@@ -844,6 +853,33 @@ bmad_com = bmad_com_saved
 
 !---------------------------------------------------------------------------------
 contains
+
+!+
+! Function this_voltage_fraction (ele, lord) result (fraction)
+!
+! Routine to return the fraction of the lord's voltage that is seen by ele.
+! If ele is not a slave of lord (that is, ele and lord are the same element), the fraction is 1.
+! Note: A slave that is an em_field element (which happens when there are overlapping fields) does not
+! have a voltage attribute of its own so the fraction must be computed from the element lengths.
+!-
+
+function this_voltage_fraction (ele, lord) result (fraction)
+
+type (ele_struct) ele, lord
+real(rp) fraction
+
+!
+
+fraction = 1
+if (ele%slave_status /= super_slave$ .and. ele%slave_status /= slice_slave$) return
+if (lord%value(l$) == 0) return
+
+fraction = ele%value(l$) / lord%value(l$)
+
+end function this_voltage_fraction
+
+!---------------------------------------------------------------------------------
+! contains
 
 subroutine track_this_ele (orb_start, orb_end, ref_time_start, is_inside, error)
 

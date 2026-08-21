@@ -133,9 +133,13 @@ character(*), parameter :: r_name = 'lcavity_rf_step_setup'
 
 ele2 => ele   ! To get around ifort debug problem.
 
+! Note: With overlapping field elements, a slave of an lcavity lord may have other lords (EG solenoids)
+! so the lcavity lord must be searched for. Also the number of rf steps must be obtained from the lord
+! since a slave that is an em_field element does not have an n_rf_steps attribute.
+
 if (ele%slave_status == super_slave$ .or. ele%slave_status == slice_slave$) then
-  lord => pointer_to_super_lord(ele, ix_slave_back = ix_slave)
-  if (lord%key /= lcavity$ .or. nint(ele%value(n_rf_steps$)) < 1) return
+  lord => pointer_to_super_lord(ele, ix_slave_back = ix_slave, lord_type = lcavity$)
+  if (lord%key /= lcavity$ .or. nint(lord%value(n_rf_steps$)) < 1) return
   call this_super_slave_rf_setup(ele, lord, ix_slave)
   return
 endif

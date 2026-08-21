@@ -10,6 +10,10 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-08-11 Fixed: Reference energy calculation for an lcavity whose field overlaps other elements.
+  In the overlap regions the super_slave is an em_field element and such a slave was given the full
+  energy gain of the lcavity lord instead of its share. This resulted in a wrong reference energy
+  and in "Stale bookkeeping status flags detected" errors.
 - 2026-08-19 Added: The Tao `pipe ele:wake` command accepts two new `{who}` values, `sr_z_long` and
   `sr_z_long_table`, which return the parameters and the tabulated (z, W(z)) points of the
   short-range longitudinal z-dependent wake. Previously only the pseudo-mode representation of the
