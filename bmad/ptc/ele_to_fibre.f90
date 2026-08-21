@@ -75,7 +75,7 @@ integer i, ii, j, k, m, n, key, n_term, exception, ix, met, net, ap_type, ap_pos
 integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12), n_ord_pan, gfac, ib
 integer, allocatable :: pancake_field(:,:)
 
-logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
+logical use_offsets, err_flag, kill_spin_fringe, found, is_planar_wiggler, use_taylor, done_it
 logical change, pancake_canonical
 logical, optional :: for_layout
 
@@ -1122,13 +1122,7 @@ ptc_fibre%charge = rel_charge
 ! In theory can put in a taylor map for any element but for now only setup Bmad taylor and match elements.
 
 if (key == taylor$ .or. key == match$) then
-  ! The map can be split into pieces by taking the log of the map.
-  ! onemap = T means do not split.
-  ! At this point in time there is no splitting allowed.
-
   if (.not. associated(ele%taylor(1)%term)) call ele_to_taylor (ele)
-
-  onemap = .true.
 
   call alloc(ptc_c_damap)
 
@@ -1142,6 +1136,10 @@ if (key == taylor$ .or. key == match$) then
 
   call taylor_to_real_8 (ele%taylor, beta0, beta1, ptc_re8, ref0, ref1)
   ptc_c_damap = ptc_re8
+  ptc_c_damap%x0(1:6) = ref0
+  do i = 1, 6
+    ptc_c_damap%v(i) = ptc_c_damap%v(i) + ref1(i)
+  enddo
 
   if (associated(ele%spin_taylor(1)%term) .and. ele%is_on) then
     do j = 0, 3
@@ -1162,101 +1160,31 @@ if (key == taylor$ .or. key == match$) then
 
   ! 
 
-  if (.not. onemap) then
-    call nth_root(ptc_c_damap, ptc_c_damap, ptc_fibre%mag%p%nst)
-  endif
-
-  if (ptc_fibre%dir == 1) then
-    if (.not.associated(ptc_fibre%mag%forward)) then 
-      allocate(ptc_fibre%mag%forward(3))
-    else
-      call KILL(ptc_fibre%mag%forward)  ! The kill only zeros the Berz-part, it stays associated.
-    endif
-
-    call SET_TREE_G_complex(ptc_fibre%mag%forward, ptc_c_damap)
-    ptc_fibre%mag%do1mapf = onemap
-    ptc_fibre%mag%usef = .true.
-    arbre => ptc_fibre%mag%forward
+  if (.not.associated(ptc_fibre%taylormap)) then 
+    allocate(ptc_fibre%taylormap(3))
   else
-    if (.not. associated(ptc_fibre%mag%backward)) then 
-      allocate(ptc_fibre%mag%backward(3))
-    else
-      call KILL(ptc_fibre%mag%backward)  ! The kill only zeros the Berz-part, it stays associated.
-    endif
-    call SET_TREE_G_complex(ptc_fibre%mag%backward, ptc_c_damap)
-    ptc_fibre%mag%do1mapb = onemap
-    ptc_fibre%mag%useb = .true.
-    arbre => ptc_fibre%mag%backward
+    call KILL(ptc_fibre%taylormap)  ! The kill only zeros the Berz-part, it stays associated.
+    deallocate(ptc_fibre%taylormap)
   endif
 
-  !! arbre => ptc_fibre%mag%forward
-  call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off
-  arbre(1)%fix0(1:6) = ref0
-  arbre(1)%fixr(1:6) = ref1
-  arbre(1)%fix(1:6) = ref1
+  ! as_is = .false. means partial inversion is used to have symplectic tracking (if 
+  ! the map is symplectic to the order of truncation).
 
-  if (onemap) then
-    arbre(1)%ds = ptc_fibre%mag%p%ld
-  else
-    arbre(1)%ds = ptc_fibre%mag%p%ld/ptc_fibre%mag%p%nst 
-  endif
+  call fill_tree_element_line_zhe_outside_map(ptc_c_damap, as_is = (.not. ele%symplectify), &
+                                        stochprec = 1.d-8, TREE_ON_FIBRE = ptc_fibre%taylormap)  
 
+  ptc_fibre%usetaylormap=3    !  the map represents a single fibre and it is in BMAD units
+
+  arbre => ptc_fibre%taylormap
+  call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off   
+!  arbre(1)%fix0(1:6) = ref0
+!  arbre(1)%fixr(1:6) = ref1
+!  arbre(1)%fix(1:6) = ref1
+  arbre(1)%ds = ptc_fibre%mag%p%ld
   arbre(1)%beta0 = ptc_fibre%beta0
-
-  if (ptc_fibre%dir == 1) then
-    if (.not.associated(ptc_fibre%magp%forward)) then 
-      allocate(ptc_fibre%magp%forward(3))
-      allocate(ptc_fibre%magp%usef)
-    else
-      call KILL(ptc_fibre%magp%forward)
-    endif
-    !call SET_TREE_G_complex(ptc_fibre%magp%forward,m)
-    do i = 1, 3
-      call alloc_tree(ptc_fibre%magp%forward(i), ptc_fibre%mag%forward(i)%n, ptc_fibre%mag%forward(i)%np)
-      call copy_tree(ptc_fibre%mag%forward(i), ptc_fibre%magp%forward(i))
-    enddo
-    ptc_fibre%magp%do1mapf = onemap
-    ptc_fibre%magp%usef = .true.             ! Use the Taylor map by default 
-    arbre => ptc_fibre%magp%forward
-
-  else
-    if (.not.associated(ptc_fibre%magp%backward)) then 
-      allocate(ptc_fibre%magp%backward(3))
-      allocate(ptc_fibre%magp%useb)
-    else
-      call KILL(ptc_fibre%magp%backward)
-    endif
-    ! call SET_TREE_G_complex(ptc_fibre%magp%backward,m)
-    do i = 1, 3
-      call alloc_tree(ptc_fibre%magp%backward(i), ptc_fibre%mag%backward(i)%n, ptc_fibre%mag%backward(i)%np)
-      call copy_tree(ptc_fibre%mag%backward(i), ptc_fibre%magp%backward(i))
-    enddo
-    ptc_fibre%magp%do1mapb = onemap
-    ptc_fibre%magp%useb = .true.
-    arbre => ptc_fibre%magp%backward
-  endif
-
-  ! File names in case a flat file is to be created.
-  write (ptc_fibre%mag%filef, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txf'
-  !!write (ptc_fibre%mag%fileb, '(2a, i0, a)') trim(downcase(ele%name)), '_', ele%ix_ele, '.txb'
-
-  !
-
-  call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off
-  arbre(1)%fix0(1:6) = ref0
-  arbre(1)%fixr(1:6) = ref1
-  arbre(1)%fix(1:6) = ref1
-
-  if (onemap) then
-    arbre(1)%ds = ptc_fibre%mag%p%ld    ! Length of magnet (arc of circle if a bend)
-  else
-    arbre(1)%ds = ptc_fibre%mag%p%ld/ptc_fibre%mag%p%nst
-  endif
-
-  arbre(1)%beta0 = ptc_fibre%beta0
-   
+    
   call kill(ptc_c_damap)
-endif
+endif 
 
 ! Customization if wanted
 

@@ -5524,12 +5524,13 @@ And
 Note: When tracking a particle's spin through a map, the quaternion used to rotate the spin is
 always normalized to one so that the magnitude of the spin will be invariant. 
 
-Note: Tracking through a \vn{taylor} elements using \vn{symp_lie_ptc} is the same as
-tracking with the \vn{taylor} tracking method.  That is, the Taylor map is simply
-evaluated and no effort at symplectification is done. Furthermore, evaluating the Taylor
-map of a \vn{taylor} element using the \vn{taylor} method is faster than evaluation using
-\vn{symp_lie_ptc}. Thus the \vn{taylor} tracking method should always be used with
-\vn{taylor} elements.
+Note: Tracking through a \vn{taylor} elements using \vn{symp_lie_ptc} is the same as tracking with
+the \vn{taylor} tracking method if the \vn{symplectify} parameter is set False (the default).  If
+\vn{symplectify} is set True, symplectic tracking is done using a partically inverted map.  Note: If
+\vn{symplectify} is set True, the tracking will be symplectic only if the Taylor map is symplectic
+up to the order of truncation. If \vn{symplectify} is False, evaluating the Taylor map of a
+\vn{taylor} element using the \vn{taylor} tracking method is faster than evaluation using
+\vn{symp_lie_ptc} and will produce the same results.
 
 \newpage
 
