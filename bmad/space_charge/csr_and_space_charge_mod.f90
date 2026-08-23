@@ -1532,9 +1532,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
       r1 = (zp - csr%slice(i0)%z_center) / csr%dz_slice
       r0 = 1 - r1
       if (r1 < -0.01_rp .or. r1 > 1.01_rp .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
-        !$OMP critical
         call out_io (s_error$, 'csr_and_sc_apply_kicks', 'CSR INTERNAL ERROR!')
-        !$OMP end critical
         if (global_com%exit_on_error) call err_exit
       endif
       particle(ip)%vec(6) = particle(ip)%vec(6) + r0 * csr%slice(i0)%kick_csr + r1 * csr%slice(i0+1)%kick_csr
@@ -1556,9 +1554,7 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
 
     ! r1 should be in [0,1] but allow for some round-off error
     if (r1 < -0.01_rp .or. r1 > 1.01_rp .or. i0 < 1 .or. i0 >= space_charge_com%n_bin) then
-      !$OMP critical
       call out_io (s_error$, 'csr_and_sc_apply_kicks', 'CSR INTERNAL ERROR!')
-      !$OMP end critical
       if (global_com%exit_on_error) call err_exit
     endif
 

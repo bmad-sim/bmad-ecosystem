@@ -42,6 +42,25 @@ end type
 type (out_io_mod_com_struct), save, private :: out_io_com
 type (out_io_output_direct_struct), save, private :: out_io_direct
 
+! Thread safety:
+! out_io is reachable from within OpenMP parallel regions. For example, track1_bunch_hom and
+! track_bunch_time track the particles of a bunch in parallel and a per-particle tracking error
+! (Runge-Kutta step size too small, etc.) results in an out_io call from every thread.
+! Emitting a message mutates shared state: the capture buffer (out_io_com%n_buffer_lines along with
+! the out_io_com%buffer allocation) and the file/terminal units. Without serialization, two threads
+! can grow the capture buffer at the same time which corrupts the heap and aborts the program.
+! Therefore the out_io routines serialize the entire message with an OpenMP critical region.
+! The entire message and not just individual lines is serialized so that lines from different
+! threads are not interleaved and so that the out_io_called / out_io_line / out_io_end bracketing
+! that a program may use for capturing output is not broken up.
+!
+! Two things to keep in mind:
+!   1) The critical region MUST be named. All unnamed critical regions in a program share a single
+!      lock and critical regions are not reentrant. Since a calling routine may well guard its own
+!      out_io call with an unnamed critical region, an unnamed region here could deadlock.
+!   2) The out_io_called, out_io_line, and out_io_end routines, which a program may override to
+!      capture output, are called with the lock held. An override must not itself call out_io.
+
 private out_io_line12, out_io_int, out_io_real, out_io_logical
 private header_io, find_format, out_io_lines, insert_numbers, out_io_line_out
 
@@ -265,6 +284,8 @@ logical, optional :: insert_tag_line
 if (global_rank /= 0) return  ! For running under MPI
 if (level == s_nooutput$) return
 
+!$OMP critical (out_io_emit)
+
 call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -277,6 +298,8 @@ else
 endif
 
 if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+
+!$OMP end critical (out_io_emit)
 
 end subroutine out_io_real
 
@@ -309,6 +332,8 @@ logical, optional :: insert_tag_line
 if (global_rank /= 0) return  ! For running under MPI
 if (level == s_nooutput$) return
 
+!$OMP critical (out_io_emit)
+
 call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -321,6 +346,8 @@ else
 endif
 
 if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+
+!$OMP end critical (out_io_emit)
 
 end subroutine out_io_int
 
@@ -353,6 +380,8 @@ logical, optional :: insert_tag_line
 if (global_rank /= 0) return  ! For running under MPI
 if (level == s_nooutput$) return
 
+!$OMP critical (out_io_emit)
+
 call header_io (level, routine_name, insert_tag_line)
 
 call find_format (line, n_prefix, fmt, ix1, ix2, found)
@@ -365,6 +394,8 @@ else
 endif
 
 if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+
+!$OMP end critical (out_io_emit)
 
 end subroutine out_io_logical
 
@@ -400,6 +431,8 @@ integer level, nr, ni, nl
 if (global_rank /= 0) return  ! For running under MPI
 if (level == s_nooutput$) return
 
+!$OMP critical (out_io_emit)
+
 call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
@@ -418,6 +451,8 @@ if (present(line11)) call insert_numbers (level, fmt, nr, ni, nl, line11, r_arra
 if (present(line12)) call insert_numbers (level, fmt, nr, ni, nl, line12, r_array, i_array, l_array, insert_tag_line)
 
 if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+
+!$OMP end critical (out_io_emit)
 
 end subroutine out_io_line12
 
@@ -450,6 +485,8 @@ integer level, i, nr, ni, nl
 if (global_rank /= 0) return  ! For running under MPI
 if (level == s_nooutput$) return
 
+!$OMP critical (out_io_emit)
+
 call header_io (level, routine_name, insert_tag_line)
 
 nr = 0; ni = 0; nl = 0  ! number of numbers used.
@@ -459,6 +496,8 @@ do i = 1, size(lines)
 enddo
 
 if (out_io_direct%print_and_capture(level) .and. out_io_com%capture_state == 'UNBUFFERED') call out_io_end()
+
+!$OMP end critical (out_io_emit)
 
 end subroutine out_io_lines
 
