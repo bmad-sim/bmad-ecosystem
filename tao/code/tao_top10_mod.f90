@@ -669,10 +669,12 @@ subroutine print_this_var (var, str, n_line, tao_format)
 
 type (tao_var_struct), target :: var
 type (ele_struct), pointer :: ele
+type (tao_universe_struct), pointer :: u
 type (tao_var_slave_struct), pointer :: slave(:)
 integer n_line
 integer ix, n_ele, i_uni
 logical, optional :: tao_format
+logical matches
 character(*), allocatable :: str(:)
 
 !
@@ -706,14 +708,21 @@ elseif (slave(1)%ix_ele == -1) then
 ! Universe independent.
 
 elseif (ix_uni == 0) then
-  do ix = 1, size(slave)
-    i_uni = slave(ix)%ix_uni
-    u => s%u(i_uni)
-    lat => u%model%lat
-    ele => lat%branch(slave(ix)%ix_branch)%ele(slave(ix)%ix_ele)
-    n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
-                                                            '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
-  enddo
+  
+
+  if (check_match_ele_name(var%ele_name, slave, ix_uni)) then
+    n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)') trim(var%ele_name), &
+                                                              '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+
+  else
+    do ix = 1, size(slave)
+      u => s%u(slave(ix)%ix_uni)
+      lat => u%model%lat
+      ele => lat%branch(slave(ix)%ix_branch)%ele(slave(ix)%ix_ele)
+      n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(ele_unique_name(ele, u%ele_order)), &
+                                                              '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+    enddo
+  endif
 
 ! Universe is given.
 
@@ -721,9 +730,9 @@ else
   u => s%u(ix_uni)
   lat => u%model%lat
 
-  ix = nametable_bracket_indexx(lat%nametable, var%ele_name, n_ele)
-  if (n_ele == count(slave%ix_uni == ix_uni)) then
-    n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
+  if (check_match_ele_name(var%ele_name, slave, ix_uni)) then
+    n_line=n_line+1; write (str(n_line), '(4a, es25.17e3, 3x, a)')  trim(var%ele_name), &
+                                                              '[', trim(var%attrib_name), '] = ', var%model_value, useit_str
   else
     if (n_line+size(slave)+1 >= size(str)) call re_allocate (str, 2*(n_line+size(slave)))
 
@@ -745,6 +754,40 @@ else
 endif
 
 end subroutine print_this_var
+
+!-----------------------------------------------------------------------------
+! contains
+
+! Check that all slaves correspond to all elements of a given name.
+
+function check_match_ele_name(ele_name, slave, ix_uni) result (matches)
+
+type (tao_var_slave_struct) :: slave(:)
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele
+type (tao_universe_struct), pointer :: u
+
+integer ix_uni, ix, iu, n
+character(*) ele_name
+logical matches, err
+
+!
+
+matches = .false.
+
+do ix = 1, size(slave)
+  u => s%u(slave(ix)%ix_uni)
+  ele => u%model%lat%branch(slave(ix)%ix_branch)%ele(slave(ix)%ix_ele)
+  if (ele%name /= ele_name) return
+enddo
+
+!!  ix = nametable_bracket_indexx(lat%nametable, var%ele_name, n_ele)
+
+if (ix_uni > 0 .and. count(slave%ix_uni == ix_uni) == 0) return
+
+matches = .true.
+
+end function check_match_ele_name
 
 end subroutine tao_print_vars
 
