@@ -172,6 +172,15 @@ if (ele%space_charge_method == fft_3d$) then
   csr%mesh3d%nhi = space_charge_com%space_charge_mesh_size
 endif
 
+if (centroid(ele%ix_ele)%state /= alive$) then
+  call out_io (s_error$, r_name, &
+          'CENTROID REFERENCE PARTICLE FOR CSR SPACE CHARGE CALC HAS BEEN LOST AT ELEMENT: ' // ele_full_name(ele), &
+          'THE CALCULATION CANNOT BE DONE.', &
+          'ALL PARTICLES IN THE BUNCH WILL BE MARKED AS LOST.')
+  bunch%particle%state = lost$
+  return
+endif
+
 ! No CSR for a zero length element.
 ! And taylor elements get ignored.
 
