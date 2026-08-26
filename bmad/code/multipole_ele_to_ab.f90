@@ -65,11 +65,11 @@ if (.not. ele%is_on .or. ele%key == pipe$) return
 
 p_type = integer_option(magnetic$, pole_type)
 include_kck = integer_option(no$, include_kicks)
-can_use_cache = logic_option(.false., original)
 if (.not. allocated(ele%multipole_cache)) allocate(ele%multipole_cache)
 
 !
 
+can_use_cache = .false.
 cache => ele%multipole_cache
 if (can_use_cache) then
   call set_from_cache(ele, cache, p_type, include_kck, is_set, can_use_cache);  if (is_set) return
