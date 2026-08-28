@@ -98,7 +98,7 @@ end type
 
 type tao_eval_node_struct
   integer :: type = 0                 
-  character(120) :: name = ''
+  character(200) :: name = ''
   real(rp) :: scale = 1               ! Scale factor for ping data
   real(rp), allocatable :: value(:)
   type (tao_expression_info_struct), allocatable :: info(:)
@@ -678,7 +678,7 @@ type tao_global_struct
   character(16) :: optimizer     = 'lm'          ! optimizer to use.
   character(40) :: print_command = 'lpr'
   character(80) :: var_out_file  = 'var#.out'
-  character(100) :: history_file = '~/.history_tao'
+  character(200) :: history_file = '~/.history_tao'
   logical :: beam_timer_on = .false.                  ! For timing the beam tracking calculation.
   logical :: box_plots = .false.                      ! For debugging plot layout issues.
   logical :: blank_line_between_commands = .true.     ! Add a blank line between command output?
@@ -1015,9 +1015,9 @@ end type
 ! Beam information for a universe 
 
 type tao_beam_uni_struct
-  character(200) :: saved_at = ''
+  character(400) :: saved_at = ''
   character(n_file_max_len) :: dump_file = ''
-  character(200) :: dump_at = ''
+  character(400) :: dump_at = ''
   logical :: track_beam_in_universe = .false.    ! Beam tracking enabled in this universe?
   logical :: always_reinit = .false.
 end type
