@@ -58,6 +58,9 @@ s0 = real_option((i_slice-1)*ds, s_start)
 s1 = real_option(i_slice*ds, s_end)
 
 if (i_slice == 1) then
+  ! Any pointers (EG %rad_map) that sliced_ele owns from a previous element must be deallocated here.
+  ! Transfer_ele with nullify_pointers = True will only nullify and this would orphan the memory.
+  call deallocate_ele_pointers (sliced_ele)
   call transfer_ele (ele, sliced_ele, .true.)
 endif
 

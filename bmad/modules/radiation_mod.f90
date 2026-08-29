@@ -248,6 +248,11 @@ call tracking_rad_map_setup (runt, 1e-4_rp, downstream_end$, ele%rad_map%rm1, er
 8000 continue
 bmad_com = bmad_com_save
 
+! runt is a local temporary. Fortran does not deallocate the pointer components of a local
+! variable so this must be done by hand to prevent a memory leak.
+
+call deallocate_ele_pointers (runt)
+
 end subroutine radiation_map_setup
 
 !---------------------------------------------------------------------------

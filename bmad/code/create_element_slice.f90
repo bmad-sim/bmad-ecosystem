@@ -77,6 +77,9 @@ endif
 !
 
 if (.not. associated(sliced_ele%lord, ele_in) .or. sliced_ele%ix_ele /= ix_slice_slave$) then
+  ! Note: transfer_ele with nullify_pointers = True only nullifies the pointers of sliced_ele. So any
+  ! memory (EG %rad_map) that sliced_ele owns must be deallocated here to prevent a memory leak.
+  call deallocate_ele_pointers(sliced_ele)
   call transfer_ele(ele_in, sliced_ele, .true.)
 endif
 
@@ -230,13 +233,19 @@ elseif (ele_has_constant_ds_dt_ref(ele_in)) then
   sliced_ele%time_ref_orb_in%vec = 0
 
 else
-  call transfer_ele (sliced_ele, ele2)
+  ! Note: The pointers of ele2 are nullified so that ele2 does not share memory with sliced_ele.
+  ! Otherwise the deallocate_ele_pointers call above would deallocate memory owned by sliced_ele.
+  call transfer_ele (sliced_ele, ele2, .true.)
   call create_element_slice (ele2, ele_in, offset, 0.0_rp, param, .true., .false., err2_flag)
-  if (err2_flag) return
+  if (err2_flag) then
+    call deallocate_ele_pointers (ele2)
+    return
+  endif
   ele0%value(p0c$)      = ele2%value(p0c$)
   ele0%value(e_tot$)    = ele2%value(e_tot$)
   ele0%ref_time         = ele2%ref_time
   sliced_ele%time_ref_orb_in = ele2%time_ref_orb_out
+  call deallocate_ele_pointers (ele2)   ! ele2 is a local temporary so avoid a memory leak.
 endif
 
 ele0%ref_species = ele_in%ref_species
