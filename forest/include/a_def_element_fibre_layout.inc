@@ -276,10 +276,10 @@ TYPE ELEMENT
    !   integer, POINTER ::girder_index => null()
    type(girder),pointer :: assembly => null()   ! actual girders
    type(ramping), pointer :: ramp => null()
-   type(tree_element), pointer :: forward(:)=> null(),backward(:)=> null()  ! Taylor tracking on a fibre
-   logical, pointer :: usef=> null(),useb=> null()
-   integer, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
-   logical, pointer :: do1mapf=> null(),do1mapb=> null()
+  ! type(tree_element), pointer :: forward(:)=> null(),backward(:)=> null()  ! Taylor tracking on a fibre
+  ! logical, pointer :: usef=> null(),useb=> null()
+  ! integer, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
+  ! logical, pointer :: do1mapf=> null(),do1mapb=> null()
    real(dp), pointer :: ene   ! for tapering
 END TYPE  ELEMENT
 
@@ -341,10 +341,10 @@ TYPE ELEMENTP
    TYPE(FIBRE), POINTER :: PARENT_FIBRE => null()
    !   TYPE(fibre_appearance), POINTER :: doko
    type(ramping), pointer :: ramp => null()
-   type(tree_element), pointer :: forward(:)=> null(),backward(:)=> null()
-   logical, pointer :: usef=> null(),useb=> null()
-   integer, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
-   logical, pointer :: do1mapf=> null(),do1mapb=> null()
+ !  type(tree_element), pointer :: forward(:)=> null(),backward(:)=> null()
+ !  logical, pointer :: usef=> null(),useb=> null()
+ !  integer, pointer :: skip_ptc_f=> null(),skip_ptc_b=> null()
+ !  logical, pointer :: do1mapf=> null(),do1mapb=> null()
 END TYPE  ELEMENTP
 
 type fibre_appearance
@@ -410,6 +410,9 @@ TYPE FIBRE
    TYPE (FIBRE),POINTER :: P => null()   ! tying them in the so-called database universe M_u
    TYPE (FIBRE),POINTER :: N => null()
    INTEGER,POINTER :: loc => null()
+   type(tree_element), pointer :: taylormap(:)=> null()  ! Taylor tracking on a fibre
+   integer, pointer :: usetaylormap=> null() 
+
 
 END TYPE FIBRE
 

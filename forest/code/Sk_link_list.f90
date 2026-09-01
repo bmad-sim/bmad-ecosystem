@@ -153,6 +153,7 @@ CONTAINS
 
     if(use_info) current%i=>el%i
     current%dir=>el%dir
+    current%usetaylormap=>el%usetaylormap
     !  OCTOBER 2007
     !        current%P0C=>el%P0C
     current%BETA0=>el%BETA0
@@ -259,6 +260,7 @@ CONTAINS
     call copy(el%PATCH,current%PATCH)
     if(use_info.and.associated(current%patch)) call copy(el%i,current%i)
     current%dir=el%dir
+    current%usetaylormap=el%usetaylormap
     !        current%P0C    =el%P0C
     current%BETA0  =el%BETA0
     current%GAMMA0I=el%GAMMA0I
@@ -903,8 +905,9 @@ endif
     current%MASS=el%MASS
     current%AG=el%AG
     current%CHARGE=el%CHARGE
-
-
+     allocate(current%usetaylormap);
+     current%usetaylormap=0
+     nullify(Current%taylormap)
     ALLOCATE(Current%pos);
     current%pos=l%n
     !    current%P0C=el%P0C
@@ -1003,6 +1006,7 @@ endif
     nullify(current%PARENT_LAYOUT);
     nullify(current%T1,current%T2,current%TM);
     nullify(current%i,current%pos,current%loc);
+    nullify(current%taylormap,current%usetaylormap);
 
 
     !    nullify(Current%P0C);
@@ -1035,6 +1039,7 @@ endif
     ALLOCATE(Current%CHART);
     ALLOCATE(Current%PATCH);
     ALLOCATE(Current%pos);
+    ALLOCATE(Current%usetaylormap);
 
     !    ALLOCATE(Current%P0C);
     ALLOCATE(Current%BETA0);
@@ -1073,6 +1078,8 @@ endif
     c%CHART=0
     !if(associated(c%PATCH))
     c%PATCH=0
+    c%usetaylormap=0
+    nullify(c%taylormap)
   end SUBROUTINE alloc_fibre
 
   SUBROUTINE zero_fibre( c,i ) ! Does the full allocation of fibre and initialization of internal variables
@@ -1091,7 +1098,8 @@ endif
        !       c%P0C=zero
        !       c%BETA0=zero
        c%mag=0
-       c%magp=0
+       c%mag=0
+       c%usetaylormap=0
        if(associated(c%CHART)) c%CHART=0
        if(associated(c%PATCH)) c%PATCH=0
     elseif(i==-1) then
@@ -1112,6 +1120,10 @@ endif
              C%PATCH=-1
              deallocate(c%PATCH);
           ENDIF
+          IF(ASSOCIATED(c%taylormap)) then
+           call KILL(c%taylormap(:))
+           deallocate(c%taylormap)
+         endif
        ELSE   ! POINTED LAYOUT
           IF(.NOT.ASSOCIATED(c%mag%PARENT_FIBRE%CHART,c%CHART)) then
              C%CHART=-1
@@ -1175,7 +1187,10 @@ endif
           call kill(c%i);
           deallocate(c%i);
        ENDIF
-
+       IF(ASSOCIATED(c%taylormap)) THEN
+          call kill(c%taylormap(:));
+          deallocate(c%taylormap);
+       ENDIF
     else
        !w_p=0
        !w_p%nc=1
@@ -1202,6 +1217,7 @@ endif
        !       c%BETA0=zero
        c%mag=0
        c%magp=0
+       c%usetaylormap=0
        if(associated(c%CHART)) c%CHART=0
        if(associated(c%PATCH)) c%PATCH=0
     elseif(i==-1) then
@@ -1255,6 +1271,10 @@ endif
        IF(ASSOCIATED(c%i)) THEN
           call kill(c%i);
           deallocate(c%i);
+       ENDIF
+       IF(ASSOCIATED(c%taylormap)) THEN
+          call kill(c%taylormap(:));
+          deallocate(c%taylormap);
        ENDIF
              IF(ASSOCIATED(c%pos)) THEN
        deallocate(c%pos);

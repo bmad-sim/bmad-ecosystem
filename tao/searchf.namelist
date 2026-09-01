@@ -376,6 +376,7 @@ negated_str
 tao_shape_label_name
 tao_wave_data_name
 n_char_show
+n_file_max_len
 assignment
 tao_cmd_history_struct
 tao_real_pointer_struct
@@ -867,7 +868,3 @@ tao_deallocate_tree
 
 File: program/tao_program.f90
 tao_program
-
-File: version/tao_version_mod.f90
-tao_version_mod
-tao_version_date

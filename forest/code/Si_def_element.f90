@@ -2983,7 +2983,6 @@ nullify(EL%filef,el%fileb);
     nullify(EL%SIAMESE_FRAME);
     nullify(EL%girder_FRAME);
     nullify(EL%doko);
-    nullify(EL%forward,EL%backWARD,el%usef,el%useb,el%skip_ptc_f,el%skip_ptc_b,el%do1mapf,el%do1mapb);   
   end SUBROUTINE null_EL
 
   SUBROUTINE null_ELp(EL)
@@ -3039,7 +3038,6 @@ nullify(EL%filef,el%fileb);
     nullify(EL%PA);
     nullify(EL%P);
     nullify(EL%PARENT_FIBRE);
-    nullify(EL%forward,EL%backWARD,el%usef,el%useb,el%skip_ptc_f,el%skip_ptc_b,el%do1mapf,el%do1mapb);
   end SUBROUTINE null_ELp
 
 
@@ -3182,23 +3180,9 @@ nullify(EL%filef,el%fileb);
           DEALLOCATE(EL%WI)
        ENDIF
 
-       IF(ASSOCIATED(EL%forward))        then
-          call kill(EL%forward)     
-          DEALLOCATE(EL%forward)
-       ENDIF
+ 
+ 
 
-
-       IF(ASSOCIATED(EL%backWARD))        then
-          call kill(EL%backWARD)     
-          DEALLOCATE(EL%backWARD)
-       ENDIF
-
-    IF(ASSOCIATED(EL%skip_ptc_f))DEALLOCATE(EL%skip_ptc_f)
-    IF(ASSOCIATED(EL%skip_ptc_b))DEALLOCATE(EL%skip_ptc_b)
-    IF(ASSOCIATED(el%do1mapf))DEALLOCATE(el%do1mapf)
-    IF(ASSOCIATED(el%do1mapb))DEALLOCATE(el%do1mapb)
-    IF(ASSOCIATED(el%usef))DEALLOCATE(el%usef)
-    IF(ASSOCIATED(el%useb))DEALLOCATE(el%useb)
 
        IF(ASSOCIATED(EL%ramp))        then
           el%ramp=-1     !USER DEFINED MAGNET
@@ -3239,10 +3223,7 @@ nullify(EL%filef,el%fileb);
        ALLOCATE(EL%even);EL%even=MY_false;
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
        ALLOCATE(EL%filef,el%fileb);
-       ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=0;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=0  ;
-       ALLOCATE(el%do1mapf);   el%do1mapf=.false. ;   ALLOCATE(el%do1mapb);el%do1mapb=.false.  ;
-  ALLOCATE(el%usef);   el%usef=.false. ;   ALLOCATE(el%useb);el%useb=.false.  ;
-
+ 
        EL%NAME=' ';EL%NAME=TRIM(ADJUSTL(EL%NAME));
        EL%VORNAME=' ';EL%VORNAME=TRIM(ADJUSTL(EL%VORNAME));el%filef=' ';el%fileb=' ';
        EL%electric=solve_electric
@@ -3410,23 +3391,9 @@ nullify(EL%filef,el%fileb);
           DEALLOCATE(EL%WI)
        ENDIF
 
-       IF(ASSOCIATED(EL%forward))        then
-          call kill(EL%forward)     
-          DEALLOCATE(EL%forward)
-       ENDIF
+ 
 
-       IF(ASSOCIATED(EL%backWARD))        then
-          call kill(EL%backWARD)     
-          DEALLOCATE(EL%backWARD)
-       ENDIF
-
-    IF(ASSOCIATED(EL%skip_ptc_f))DEALLOCATE(EL%skip_ptc_f)
-    IF(ASSOCIATED(EL%skip_ptc_b))DEALLOCATE(EL%skip_ptc_b)    
-    IF(ASSOCIATED(el%do1mapb))DEALLOCATE(el%do1mapb)
-    IF(ASSOCIATED(el%do1mapf))DEALLOCATE(el%do1mapf)
-    IF(ASSOCIATED(el%usef))DEALLOCATE(el%usef)
-    IF(ASSOCIATED(el%useb))DEALLOCATE(el%useb)
-
+ 
        IF(ASSOCIATED(EL%ramp))        then
           el%ramp=-1     !USER DEFINED MAGNET
           DEALLOCATE(EL%ramp)
@@ -3530,9 +3497,7 @@ nullify(EL%filef,el%fileb);
        ALLOCATE(el%old_integrator); el%old_integrator=old_integrator_init;
 
        ALLOCATE(EL%NAME);ALLOCATE(EL%VORNAME);ALLOCATE(EL%electric);
-       ALLOCATE(EL%skip_ptc_f);   EL%skip_ptc_f=0 ;   ALLOCATE(EL%skip_ptc_b);EL%skip_ptc_b=0  ;
-       ALLOCATE(el%do1mapb);   el%do1mapb=.false. ;   ALLOCATE(el%do1mapf);el%do1mapf=.false.  ;
-  ALLOCATE(el%usef);   el%usef=.false. ;   ALLOCATE(el%useb);el%useb=.false.  ;
+
 
        EL%NAME=' ';EL%NAME=TRIM(ADJUSTL(EL%NAME));
        EL%VORNAME=' ';EL%VORNAME=TRIM(ADJUSTL(EL%VORNAME));
@@ -3981,39 +3946,8 @@ nullify(EL%filef,el%fileb);
     !    IF(ASSOCIATED(EL%PARENT_FIBRE))        then
     !       ELP%PARENT_FIBRE=>EL%PARENT_FIBRE
     !    ENDIF
+ 
 
-       IF(ASSOCIATED(EL%backWARD))        then
-         if(associated(elp%backWARD)) then
-          call kill(ELp%backWARD)     
-          DEALLOCATE(ELp%backWARD)
-         endif
-         allocate(ELp%backWARD(3))
-         do i=1,3
-         call alloc_tree(ELp%backWARD(i),EL%backWARD(i)%n,EL%backWARD(i)%np)
-         enddo
-         call COPY_TREE_N(EL%backWARD,ELp%backWARD)
-
-       ENDIF
-
-
-       IF(ASSOCIATED(EL%forward))        then
-         if(associated(elp%forward)) then
-          call kill(ELp%forward)     
-          DEALLOCATE(ELp%forward)
-         endif
-         allocate(elp%forward(3))
-         do i=1,3
-         call alloc_tree(elp%forward(i),el%forward(i)%n,el%forward(i)%np)
-         enddo
-         call COPY_TREE_N(EL%forward,ELp%forward)
-
-       ENDIF
-       ELp%skip_ptc_f=EL%skip_ptc_f
-       ELp%skip_ptc_b=EL%skip_ptc_b
-       elp%do1mapf=el%do1mapf
-       elp%do1mapb=el%do1mapb
-          ELp%usef= EL%usef
-          ELp%useb= EL%useb
   END SUBROUTINE copy_el_elp
 
 
@@ -4403,38 +4337,8 @@ nullify(EL%filef,el%fileb);
        CALL COPY(EL%ab,ELP%ab)
     ENDIF
 
-       IF(ASSOCIATED(EL%backWARD))        then
-         if(associated(elp%backWARD)) then
-          call kill(ELp%backWARD)     
-          DEALLOCATE(ELp%backWARD)
-         endif
-         allocate(ELp%backWARD(3))
-         do i=1,3
-         call alloc_tree(ELp%backWARD(i),EL%backWARD(i)%n,EL%backWARD(i)%np)
-         enddo
-         call COPY_TREE_N(EL%backWARD,ELp%backWARD)
- 
-       ENDIF
  
 
-       IF(ASSOCIATED(EL%forward))        then
-         if(associated(elp%forward)) then
-          call kill(ELp%forward)     
-          DEALLOCATE(ELp%forward)
-         endif
-         allocate(ELp%forward(3))
-         do i=1,3
-         call alloc_tree(ELp%forward(i),EL%forward(i)%n,EL%forward(i)%np)
-         enddo
-         call COPY_TREE_N(EL%forward,ELp%forward)
- 
-       ENDIF
-       ELp%skip_ptc_f=EL%skip_ptc_f
-       ELp%skip_ptc_b=EL%skip_ptc_b
-       elp%do1mapf=el%do1mapf
-       elp%do1mapb=el%do1mapb
-          ELp%usef= EL%usef
-          ELp%useb= EL%useb
   END SUBROUTINE copy_elp_el
 
 
@@ -4829,41 +4733,9 @@ nullify(EL%filef,el%fileb);
     !       ELP%PARENT_FIBRE=>EL%PARENT_FIBRE
     !    ENDIF
 
-
-       IF(ASSOCIATED(EL%backWARD))        then
-         if(associated(elp%backWARD)) then
-          call kill(ELp%backWARD)     
-          DEALLOCATE(ELp%backWARD)
-         endif
-         allocate(ELp%backWARD(3))
-         do i=1,3
-         call alloc_tree(ELp%backWARD(i),EL%backWARD(i)%n,EL%backWARD(i)%np)
-         enddo
-         call COPY_TREE_N(EL%backWARD,ELp%backWARD)
-
-       ENDIF
+ 
  
 
-       IF(ASSOCIATED(EL%forward))        then
-         if(associated(elp%forward)) then
-          call kill(ELp%forward)     
-          DEALLOCATE(ELp%forward)
-         endif
-         allocate(ELp%forward(3))
-         do i=1,3
-         call alloc_tree(ELp%forward(i),EL%forward(i)%n,EL%forward(i)%np)
-         enddo
-         call COPY_TREE_N(EL%forward,ELp%forward)
-
-       ENDIF
-
-
-       ELp%skip_ptc_f=EL%skip_ptc_f
-       ELp%skip_ptc_b=EL%skip_ptc_b
-       elp%do1mapf=el%do1mapf
-       elp%do1mapb=el%do1mapb
-          ELp%usef= EL%usef
-          ELp%useb= EL%useb
   END SUBROUTINE copy_el_el
 
 

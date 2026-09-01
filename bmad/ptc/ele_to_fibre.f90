@@ -1170,11 +1170,11 @@ if (key == taylor$ .or. key == match$) then
   ! as_is = .false. means partial inversion is used to have symplectic tracking (if 
   ! the map is symplectic to the order of truncation).
 
-  call fill_tree_element_line_zhe_outside_map(ptc_c_damap, as_is = (.not. ele%symplectify), &
+  call fill_tree_element_line_zhe_outside_map(ptc_c_damap, &
                                         stochprec = 1.d-8, TREE_ON_FIBRE = ptc_fibre%taylormap)  
 
-  ptc_fibre%usetaylormap=3    !  the map represents a single fibre and it is in BMAD units
-
+  ptc_fibre%usetaylormap=3    ! the map represents a single fibre and it is in BMAD units
+  ptc_fibre%taylormap(1)%usenonsymp = (.not. ele%symplectify)
   arbre => ptc_fibre%taylormap
   call mat_make_unit(arbre(1)%rad)    ! Radiation damping matrix. Unit matrix  => radiation off   
 !  arbre(1)%fix0(1:6) = ref0

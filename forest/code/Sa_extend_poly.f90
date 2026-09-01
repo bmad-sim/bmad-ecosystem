@@ -504,7 +504,22 @@ endif
       ds%e_ij=r%e_ij
      endif
     endif
+    if(c_%ndc>0.and.clean_ndc) then
+     if(ndpt_bmad==1) then
+      do i=1,6
+      do j=1,6
+       if(i==5.or.j==5) ds%e_ij(i,j)=0
+      enddo
+      enddo
+     else
+      do i=1,6
+      do j=1,6
+       if(i==6.or.j==6) ds%e_ij(i,j)=0
+      enddo
+      enddo
 
+     endif
+    endif
 !ds%damps=r%damps
 
 !ds%d_spin=r%d_spin

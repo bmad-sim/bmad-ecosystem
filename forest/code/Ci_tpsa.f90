@@ -23,7 +23,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
 
   public
  private ety2_fpp,etdiv_fpp,ety_fpp,etyt_fpp
- private checksympn
+ private checksympn,POWMAP_INV
 !integer,private,parameter::nmaxn=1000
   integer,private::nd2par,nd2part,nd2partt
   integer,private,target ::pos_of_delta  
@@ -55,7 +55,7 @@ INTERNAL_STATE_zhe=>INTERNAL_STATE,ALLOC_TREE_zhe=>ALLOC_TREE
   integer, target :: NP,NO,ND,ND2,NV,NDPT,ndptb,rf,ndc
   private nd_used
   integer nd_used
-  logical(lp):: do_linear_ac_longitudinal=.true.
+  logical(lp):: do_linear_ac_longitudinal=.true.,clean_ndc=.true.
   private old
 !private map_mul_vec
   logical(lp) :: old  
@@ -83,7 +83,7 @@ integer, private,target :: nd2t=6,ndt=3,ndc2t=2,ndct=1,nd2harm,ndharm
 !integer, private, parameter :: ndim2t=10
 logical(lp), private ::   c_similarity=my_false
 logical(lp) :: symp =my_false
-logical(lp) :: c_normal_auto=my_true,c_verbose=my_true
+logical(lp) :: c_normal_auto=my_true,c_verbose=.false.
 integer :: spin_def_tune=1   !, private 
 integer :: order_gofix=1
 logical(lp) :: time_lie_choice=my_false,courant_snyder_teng_edwards=my_true,dosymp=.true.
@@ -124,7 +124,7 @@ logical :: use_new_stochastic_normal_form=.true.
 logical :: qphase=.false.,qphasedef=.false.
   integer :: size_tree=15
   integer :: ind_spin0(3,3),ind_spin(3,3),k1_spin(9),k2_spin(9)
-logical :: hypercube_integration = .true.
+
 !private ip_mat,jp_mat,jt_mat
 real(dp) ip_mat(3,6,6),jp_mat(3,6,6),jt_mat(6,6)
 character(24)  formatlf(6)
@@ -161,6 +161,7 @@ logical :: correct_quaternion_field=.true.
  !logical,private :: unstable(NDIM2t/2) !,hyperbolic
  logical :: unstable_fpp(NDIM2t/2) !,hyperbolic
 logical :: lapack=.false.
+integer :: ci_debug=0
 !  These routines computes lattice functions a la Ripken-Forest-Wolski
 !type c_lattice_function
 ! real(dp) :: E(3,6,6) =0 ,K(3,6,6) =0 ! E : moments, K : Invariants
@@ -440,6 +441,7 @@ logical :: lapack=.false.
      MODULE PROCEDURE POWql    ! TL=AL**(n)  negative n OK  if map has inverse
      MODULE PROCEDURE powmap    ! T=A**(n)  negative n OK  if map has inverse
      MODULE PROCEDURE powmaps   ! S2=S1**(n)  negative n OK  if map has inverse  (c_spinmatrix)
+     MODULE PROCEDURE POWMAP_INV  ! partial inverter
   END INTERFACE
 
 
@@ -567,6 +569,25 @@ logical :: lapack=.false.
     INTERFACE checksymp
      MODULE PROCEDURE checksympn
   end INTERFACE checksymp
+
+ INTERFACE create_koopman_matrix_complex
+     MODULE PROCEDURE create_lie_map_matrix_complex
+  end INTERFACE create_koopman_matrix_complex
+
+ INTERFACE create_koopman_matrix 
+     MODULE PROCEDURE create_lie_map_matrix 
+  end INTERFACE create_koopman_matrix 
+
+  INTERFACE print_koopman_matrix_complex
+     MODULE PROCEDURE print_lie_map_matrix_complex
+  end INTERFACE print_koopman_matrix_complex
+
+  INTERFACE print_koopman_matrix
+     MODULE PROCEDURE print_lie_map_matrix 
+  end INTERFACE print_koopman_matrix
+
+
+
 
   INTERFACE q_part
      MODULE PROCEDURE qua_ql
@@ -11313,7 +11334,40 @@ FUNCTION c_real_spinmatrix(S1,S2) ! spin routine function
 
   END FUNCTION c_bra_v_dm
 
+ FUNCTION POWMAP_INV( S1, R2 )
+    implicit none
+    TYPE (c_damap) POWMAP_INV
+    TYPE (c_damap), INTENT (IN) :: S1
+    INTEGER, INTENT (IN) :: R2(:)
+    TYPE (c_damap) S11,s10
+    INTEGER I,jn(lnv)
+    integer localmaster
+    IF(.NOT.C_%STABLE_DA) RETURN
+    localmaster=c_master
 
+
+    do i=1,lnv
+       jn(i)=0
+    enddo
+    do i=1,nd2
+       jn(i)=R2(I)
+    enddo
+
+    call c_assmap(POWMAP_INV)
+
+    call alloc(s11,s10)
+s10=s1
+    call c_etpin(S10,S11,jn)
+
+    POWMAP_INV=s11
+
+
+    ! powmap=junk
+    call kill(s11,s10)
+
+    c_master=localmaster
+
+  END FUNCTION POWMAP_INV
 
   FUNCTION POWMAP( S1, R2 )
     implicit none
@@ -11364,44 +11418,7 @@ FUNCTION c_real_spinmatrix(S1,S2) ! spin routine function
 
   END FUNCTION POWMAP
 
-  FUNCTION POWMAP_INV( S1, R2 )
-    implicit none
-    TYPE (c_damap) POWMAP_INV
-    TYPE (c_damap), INTENT (IN) :: S1
-    INTEGER, INTENT (IN) :: R2(:)
-    TYPE (c_damap) S11
-    INTEGER I,jn(lnv)
-    integer localmaster
-    IF(.NOT.C_STABLE_DA) RETURN
-    localmaster=c_master
-
-
-stop 2353
-
-    do i=1,lnv
-       jn(i)=0
-    enddo
-    do i=1,nd2
-       jn(i)=R2(I)
-    enddo
-
-    call c_assmap(POWMAP_INV)
-
-    call alloc(s11)
-
-
-    call etpin(S1%V%i,S11%v%i,jn)
-
-
-    POWMAP_INV=s11
-
-
-    ! powmap=junk
-    call kill(s11)
-
-    c_master=localmaster
-
-  END FUNCTION POWMAP_INV
+ 
 
   FUNCTION pow_tpsaMAP( S1, R2 )
     implicit none
@@ -11610,7 +11627,7 @@ s11%x0=0
     implicit none
     type (c_damap),INTENT(inOUT)::S2
     type (c_damap),INTENT(IN)::S1
-    integer i
+    integer i,j
     IF(.NOT.C_STABLE_DA) RETURN
     
     call c_check_snake
@@ -11626,6 +11643,22 @@ s11%x0=0
     endif
      s2%e_ij=s1%e_ij
      s2%x0=s1%x0
+    if(c_%ndc>0.and.clean_ndc) then
+     if(ndpt_bmad==1) then
+      do i=1,6
+      do j=1,6
+       if(i==5.or.j==5) s2%e_ij(i,j)=0
+      enddo
+      enddo
+     else
+      do i=1,6
+      do j=1,6
+       if(i==6.or.j==6) s2%e_ij(i,j)=0
+      enddo
+      enddo
+
+     endif
+    endif
 !     s2%tpsa=s1%tpsa
    !  if(use_quaternion) then
 !       s2%sm=s1%sm
@@ -12191,8 +12224,7 @@ else
  endif
 endif
 
- 
-    if(.not.c_normal_auto) then
+     if(.not.c_normal_auto) then
 
 
       if(c_verbose) then
@@ -12210,8 +12242,10 @@ endif
 
 !###2   Trying to locate planes when almost mid-plane symmetric
  !if(ndc/=0) goto 1234
-if(ndc/=0)  then
+if(c_%ndc/=0)  then
+
       call c_locate_planes_ndc(vr,vi,reval,imval,a1)
+
 else
       call c_locate_planes(vr,vi,idef)
 endif
@@ -12241,7 +12275,8 @@ endif
 
 
 if(ndc/=0)  then
-      call c_locate_planes_ndc(vr,vi,reval,imval,a1)
+       call c_locate_planes_ndc(vr,vi,reval,imval,a1) 
+ 
 else
       call c_locate_planes(vr,vi,idef)
 endif
@@ -12342,7 +12377,7 @@ call alloc(s1)
  !!!!!  
 
     
-    if(ndpt/=0.and.c_%ndc==0) then
+    if(ndpt/=0.and.c_%ndc<=0) then
       fm=a1
       fm0(1:nd2,1:nd2)=matmul( fm(1:nd2,1:nd2),fmi(1:nd2,1:nd2))
       fm(1:nd2,1:nd2)=matmul( fmii(1:nd2,1:nd2),fm0(1:nd2,1:nd2))
@@ -12402,8 +12437,9 @@ vin=0
 revaln=0
 imvaln=0
 do i=1,nd2
-  if(imval(i)==0.0_dp) then
-     if(reval(i)==1.0_dp) then
+ 
+  if(abs(imval(i))<1.d-14) then
+     if(abs(reval(i)-1.0_dp)<1.d-14) then
        if(ndpt_bmad==1) idef2(i)=nd2-1
        if(ndpt_bmad==0) idef2(i)=nd2
        vrn(1:6,idef2(i))=vr( 1:6,I)
@@ -12418,8 +12454,8 @@ do i=1,nd2
      endif
   endif
 enddo
-!WRITE(6,*) idef2(1:6)
 
+ 
 
 
 do i=1,nd2
@@ -12473,13 +12509,16 @@ endif
 
 enddo
 
-!do k=1,nd2
-!write(6,*) " k " ,k
-! write(6,format2) revaln(k),imvaln(k)
-!write(6,*) " VVVVVVVVVVVVVVVVV"
-! write(6,format6) vrn(1:6,k)
-! write(6,format6) vin(1:6,k)
-!enddo
+if(.false.) then
+do k=1,nd2
+write(6,*) " k " ,k
+ write(6,format2) revaln(k),imvaln(k)
+write(6,*) " VVVVVVVVVVVVVVVVV"
+ write(6,format6) vrn(1:6,k)
+ write(6,format6) vin(1:6,k)
+enddo
+pause 4001
+endif
 
  reval(1:nd2)=revaln(1:nd2)
  imval(1:nd2)=imvaln(1:nd2)
@@ -13529,17 +13568,20 @@ alpha=2*atan2(q0%x(2),q0%x(0))
  
     n%s_ijr=0
     do i=1,c_%nd2 ; do j=1,c_%nd2;
+
+    ! if(eps_ndc==0.and.(i==c_%ndptb.and.j==c_%ndptb)) cycle
+
      n%s_ijr(i,j)= 1.0_dp/(1.0_dp- r(i,i)*r(j,j))*m1%e_ij(i,j)
     enddo ;enddo;
      do i=1,c_%nd
       n%emittance(i)=abs(n%s_ijr(2*i-1,2*i))/abs(n_cai)
      enddo
     else
-     r(c_%ndptb,c_%ndptb)=exp(-eps_ndc)*r(c_%ndptb,c_%ndptb)
 
     n%s_ijr=0
     do i=1,c_%nd2 ; do j=1,c_%nd2;
-     if(eps_ndc==0.and.(i==c_%ndptb.and.j==c_%ndptb)) cycle
+     if(i==c_%ndptb.or.j==c_%ndptb) cycle
+
      n%s_ijr(i,j)= 1.0_dp/(1.0_dp- r(i,i)*r(j,j))*m1%e_ij(i,j)
     enddo ;enddo;
         do i=1,c_%nd-1
@@ -13557,7 +13599,7 @@ alpha=2*atan2(q0%x(2),q0%x(0))
    n%s_ij0=m1%e_ij
      if(c_%ndc/=0) then
     do i=1,c_%nd2 ; do j=1,c_%nd2;
-     if(eps_ndc==0.and.(i==c_%ndptb.and.j==c_%ndptb)) n%s_ij0(i,j)=0
+     if(i==c_%ndptb.or.j==c_%ndptb) n%s_ij0(i,j)=0
          enddo ;enddo;
     endif
 
@@ -16217,6 +16259,7 @@ call DGEEV( 'N', 'Vectors', Nmat, mat, LDAmat, WR, WI, VL, LDVL, VR,LDVR, WERK, 
 
 
 if(c_verbose) write(6,*) " ier,nmat ", ier,nmat
+if(ier/=0) write(6,*) "Something wrong in DGEEV of Lapack"
 do i=1,nmat  !,-1
 reval(i)=WR(i)
 aieval(i)=WI(i)
@@ -18846,170 +18889,6 @@ end subroutine create_rotation_linear_field
 
 
 
-
-subroutine symplectify_for_sethna(m,ms,a1,a2,eps_and_norm)
-implicit none
-TYPE(c_damap),intent(inout):: m,ms
-TYPE(c_damap),optional,intent(inout):: a1,a2  ! to get phase advance
-real(dp),optional:: eps_and_norm
-TYPE(c_damap) mt,l,b1,b2
-type(damap) mm
-type(c_vector_field) f,fs
-complex(dp) v
-type(c_taylor) t,dt
-real(dp),allocatable::  mat(:,:), matt(:,:),S(:,:),id(:,:)
-integer i,j,k,n(11),nv,nd2,al,ii,a
-integer, allocatable :: je(:)
-real(dp) dm,norm,normb,norma
-
-call c_get_indices(n,0)
-nv=n(4)
-nd2=n(3)
-
-call alloc(mt,l,b1,b2);call alloc(f);call alloc(fs);
-call alloc(mm);call alloc(t,dt)
-
-b1=1
-b2=1
-if(present(a1)) b1=a1
-if(present(a2)) then
-b2=a2
-else
- b2=b1
-endif
-m=b2**(-1)*m*b1
-allocate(mat(m%n,m%n),matt(m%n,m%n),S(m%n,m%n),id(m%n,m%n))
-mat=0
-matt=0
-id=0
-S=0
-do i=1,nd2/2
- S(2*I-1,2*I)=1 ; S(2*I,2*I-1)=-1;
- Id(2*I-1,2*I-1)=1 ; id(2*I,2*I)=1;
-enddo
-
-
-if(nv-nd2==0) then
-mt=m
- call c_factor_map(mt,l,f,dir=-1)  
-mat=l
-else
-mat=m
-l=mat
-mt=l**(-1)*m
-f=log(mt)
-endif
-
-
-
-matt=transpose(mat)
-
-mm=l
-
-
-! constructing Furman's contracting matrix from my review sec.3.8.2
-
-
-call checksymp(mm,normb)
-
-do i=1,1000
-mat=matmul((1.5e0_dp*id+0.5e0_dp*matmul(mat,matmul(s,matmul(matt,S)))),mat)
-matt=transpose(mat)
-mm=matt
-call checksymp(mm,norm)
-if(norm>=normb) exit
- normb=norm
-enddo
-if(i>=999) then
- Write(6,*) "procedure did not converge in symplectify_for_sethna"
-stop 
-endif
-
-l=mat
-mm=l
-fs=0
-
-! Integrating a symplectic operator using the hypercube's diagonal
-
-allocate(je(nv))
-je=0
-do i=1,f%n
-
-       j=1
-
-        do while(.true.) 
-
-          call  c_cycle(f%v(i),j,v ,je); if(j==0) exit;
-         dm=1
-         do ii=1,nd2
-          dm=dm+je(ii)
-         enddo
-        t=v.cmono.je
-        do a=1,nd2
-         dt=t.d.a
-        do al=1,nd2
-        do k=1,nd2
-          fs%v(al)=fs%v(al)+s(a,al)*s(k,i)*(id(k,a)*t+(1.0_dp.cmono.k)*dt)/dm
-        enddo ! k
-        enddo ! al
-        enddo ! a
-        enddo
-
-enddo
-
-mt=exp(fs,l)
-
-
-if(present(eps_and_norm)) then
- m=m-(m.sub.0)
- 
- l=m-mt
- norma=0.0_dp
- k=0
-
-do i=1,l%n
-
-       j=1
-
-        do while(.true.) 
-
-          call  c_cycle(l%v(i),j,v ,je); if(j==0) exit;
-       
-          normb=abs(m%v(i).sub.je)
-          norm=abs(v)
-  !        if(norm>eps_and_norm) then
- !         norma=norm/normb+norma
-           norma=norm+norma
-      !    write(16,*) je
-      !    write(16,*) norma,norm,normb
-          k=k+1
-   !       endif
-
-
-        enddo
-
-enddo
-!write(6,*) k
-eps_and_norm=norma/k
-
-endif
-
-
-
-ms=mt
-
-
-ms=b2*ms*b1**(-1)
-m=b2*m*b1**(-1)
-
-
-deallocate(mat,matt,S,id)
-deallocate(je)
-call kill(mt,l,b1,b2); call kill(f);call kill(fs);
-call kill(mm);call kill(t,dt)
-
-end subroutine symplectify_for_sethna
-
 subroutine nth_root(m,mr,n)
 implicit none
 TYPE(c_damap) m,mr
@@ -19611,7 +19490,6 @@ END FUNCTION FindDet
     integer js(6)
     type(c_damap) L_r , N_r , N_s , L_s
     real(dp), allocatable::mat(:,:)
-
  
     allocate(mat(c_%nd2,c_%nd2))
 mat=0
@@ -19629,15 +19507,15 @@ mat=0
 
 !    np=ma%n+18
     if(ma%n/=6) then
-     write(6,*) " you needed a 6-d map in SET_TREE_G_complex for PTC "
+    if(c_verbose)  write(6,*) " you needed a 6-d map in SET_TREE_G_complex for PTC "
     ! stop
     endif
   !  np=size_tree
 nd2fill=c_%nd2
 ndfill=c_%nd
 
-size_treefill=c_%nd2+c_%nd**2
-    np=size_treefill
+size_treefill=c_%nd2+c_%nd**2+3    
+    np=size_treefill ! 4 for spin 
 ! initialized in ptc ini
     ind_spin(1,1)=1+nd2fill;ind_spin(1,2)=2+nd2fill;ind_spin(1,3)=5+nd2fill;
     ind_spin(2,1)=3+nd2fill;ind_spin(2,2)=4+nd2fill;ind_spin(2,3)=7+nd2fill;
@@ -19683,28 +19561,50 @@ else
      do i=1,L_r%n   ! dimension of phase space
       m(i)= 1.0_dp.mono.i
      enddo
+     do i=1,L_r%n   ! dimension of phase space
+      m(i)= ma%v(i)
+  if(c_verbose) then
+   write(6,*) "M(i)"  , i
+  call print(m(i),6)
+ endif
+     enddo
 
 endif
 
  
 if(use_quaternion) then
     call c_full_norm_quaternion(Ma%q,kq,norm)
-    if(kq==-1) then
+  if(c_verbose) then
+   write(6,*) "Norm c_full_norm_quaternion",norm
+ endif
+norm=abs(norm-1.0_dp)+1.d-15
+  !  if(kq==-1) then
+    if(norm/=0) then
       do i=0,3
-        m(ind_spin(1,1)+i)=ma%q%x(i)
+          if(c_verbose) then
+           write(6,*) " ind_spin(1,1)+i <= size(m)"
+           write(6,*)ind_spin(1,1)+i,size(m)
+           if(ind_spin(1,1)+i>size(m)) stop 666
+
+          endif
+ !       m(ind_spin(1,1)+i)=ma%q%x(i)
+        m(nd2fill+1+i)=ma%q%x(i)
       enddo
     elseif(kq/=-1) then
-      m(ind_spin(1,1))=1.0_dp
-      do i=ind_spin(1,1)+1,size_treefill
-        m(i)=0.0_dp
+ !     m(ind_spin(1,1))=
+!      do i=ind_spin(1,1)+1,size_treefill
+       m(nd2fill+1)=1.0_dp
+      do i=1,3
+          m(nd2fill+1+i)=0.0_dp
       enddo
     endif
 else
+ stop 565
     call c_full_norm_spin(Ma%s,k,norm)
 
     if(k==-1) then
-      do i=1,ndfill
-      do j=1,ndfill
+      do i=1,3  !ndfill
+      do j=1,3  !ndfill
         m(ind_spin(i,j))=ma%s%s(i,j)
       enddo
       enddo
@@ -19731,12 +19631,23 @@ endif
 
 
 
+if(c_verbose) then
 
-     ms=ms**js(1:nd2fill)
-!     do i=1,3
-!      mg(i)=ms%v(2*i-1)   !  q_i(q_f,p_i)
-!      mg(3+i)=ms%v(2*i)   !  p_f(q_f,p_i)
-!     enddo
+ write(6,*) "  Map in SET_TREE_G_complex_zhe" 
+ write(6,*) "  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  " 
+ call print(ms,6)
+endif
+
+ms=ms**js(1:nd2fill)
+ 
+if(c_verbose) then
+
+write(6,*) "  Partially inverted map in SET_TREE_G_complex_zhe" 
+call print(ms,6)
+write(6,*) "  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%  " 
+endif
+
+
      do i=1,nd2fill
       mg(i)=ms%v(i)
      enddo
@@ -19745,6 +19656,7 @@ endif
        mg(ind_spin(i,j))=ms%v(2*i-1).d.(2*j-1)  !   Jacobian for Newton search
      enddo
      enddo
+
      call kill(ms)  
 
      call SET_TREE_g(T(1),m(1:nd2fill))
@@ -19754,9 +19666,10 @@ endif
  !    do i=ma%n+1,6
  !     m(i)=0.0_dp
  !    enddo
-     call SET_TREE_g(T(2),m(nd2fill+1:size_treefill))
+ !    call SET_TREE_g(T(2),m(nd2fill+1:size_treefill))
+     call SET_TREE_g(T(2),m(nd2fill+1:np))
  
- !    call SET_TREE_g(T(2),m(1:size_tree))
+ 
      call SET_TREE_g(T(3),mg(1:size_treefill))
 
 
@@ -19803,115 +19716,12 @@ deallocate(mat)
   END SUBROUTINE SET_TREE_G_complex_zhe
 
 
-  SUBROUTINE SET_TREE_G_complex_zhe_as_is(T,Ma)
-    IMPLICIT NONE
-    TYPE(TREE_ELEMENT), INTENT(INOUT) :: T(:)
-    TYPE(c_damap), INTENT(INOUT) :: Ma
-    INTEGER N,NP,i,k,j,kq
- 
-    real(dp) norm,mat(6,6)
-    TYPE(taylor), ALLOCATABLE :: M(:), MG(:)
-    TYPE(damap) ms
-    integer js(6)
-    type(c_damap) L_ns , N_pure_ns , N_s , L_s
 
 
- 
-
-    call alloc(L_ns , N_pure_ns , N_s , L_s)
-    
-  !  call symplectify_for_zhe(ma,L_ns , N_pure_ns, L_s , N_s )
-
-!    np=ma%n+18
-    if(ma%n/=6) then
-     write(6,*) " you need a 6-d map in SET_TREE_G_complex for PTC "
-     stop
-    endif
-    np=size_tree
-
-
-    ALLOCATE(M(NP))
-    CALL ALLOC(M,NP)
-    ALLOCATE(Mg(NP))
-    CALL ALLOC(mg,NP)
-    do i=1,np
-     m(i)=0.e0_dp
-     mg(i)=0.e0_dp
-    enddo
-
-      
-      L_s=ma
-     do i=1,L_ns%n
-      m(i)=L_s%v(i)   ! orbital part full
-     enddo
-
-
-
-if(use_quaternion) then
-    call c_full_norm_quaternion(Ma%q,kq,norm)
-    if(kq==-1) then
-      do i=0,3
-        mg(ind_spin(1,1)+i)=ma%q%x(i)
-      enddo
-    elseif(kq/=-1) then
-      mg(ind_spin(1,1))=1.0_dp
-      do i=ind_spin(1,1)+1,size_tree
-        mg(i)=0.0_dp
-      enddo
-    endif
-else
-    call c_full_norm_spin(Ma%s,k,norm)
-    if(k==-1) then
-      do i=1,3
-      do j=1,3
-        mg(ind_spin(i,j))=ma%s%s(i,j)
-      enddo
-      enddo
-    else
-      do i=1,3
-        mg(ind_spin(i,i))=1.0e0_dp
-      enddo
-    endif
-endif
- 
-
-     call SET_TREE_g(T(1),m(1:6))
- !    do i=1,ma%n
- !     m(i)=1.0_dp.cmono.i
- !    enddo 
- !    do i=ma%n+1,6
- !     m(i)=0.0_dp
- !    enddo
-     call SET_TREE_g(T(2),mg(7:15))
- 
-    do i=1,np
-     mg(i)=0.e0_dp
-    enddo
-     call SET_TREE_g(T(3),mg(1:size_tree))
-
-!T(3)%ng=mul
-!     write(6,*) " mul ",mul
-      t(3)%rad=L_s   !linear
-
-
-       mat=ma**(-1)
-       t(1)%e_ij=ma%e_ij     !matmul(matmul(mat,ma%e_ij),transpose(mat))  not necessary I think
-
-  
-
-    call kill(m); call kill(mg);
-    deallocate(M);    deallocate(Mg);
-    call kill(L_ns , N_pure_ns , N_s , L_s)
-
-  END SUBROUTINE SET_TREE_G_complex_zhe_as_is
-
-
-subroutine fill_tree_element_line_zhe_outside_map(minput ,filef,fix0,as_is,stochprec,tree_zhe)   ! fix0 is the initial condition for the maps
+subroutine fill_tree_element_line_zhe_outside_map(minput ,filef,fix0,stochprec,tree_zhe,TREE_ON_FIBRE)   ! fix0 is the initial condition for the maps
 implicit none
-logical, optional :: as_is
 real(dp), optional :: fix0(6),stochprec
 complex(dp)v
-logical  as_is0
 integer no1
  
 real(dp) stoch,r2,coe
@@ -19921,20 +19731,29 @@ type(c_damap) m,minput
 type(c_taylor) t
 integer  i,inf,j !,mberz
 type(tree_element_zhe), optional :: tree_zhe(:)
+type(tree_element),  optional, target :: TREE_ON_FIBRE(:) 
 
+LOGICAL :: TREE_ON,tree_off
 character(255)  file_berz
 
 type(tree_element), pointer :: forward(:) =>null()
 character(*),optional :: filef
- 
-  as_is0=.false.
+ TREE_ON=.FALSE.
+ TREE_off=.true.
+ if(present(TREE_ON_FIBRE)) then
+    TREE_ON=.true.
+    TREE_off=.FALSE.
+ endif
+
 !file_berz="zhe1_berz"
 ! call kanalnummer(mberz,file_berz)
 
-if(present(as_is)) as_is0=as_is
   
+if(tree_off) then
   allocate(forward(3))
- 
+ else
+  forward=>TREE_ON_FIBRE
+endif
 allocate(fix(c_%nd2),mat(c_%nd2,c_%nd2) ,f0(c_%nd2) )
 
 mat=0
@@ -19962,13 +19781,9 @@ do i=1,c_%nd2
  m%v(i)=m%v(i)-(m%v(i).sub.0)
 enddo
 
- 
 
-if( as_is0)  then
- call SET_TREE_G_complex_zhe_as_is(forward,m)
-else
  call SET_TREE_G_complex_zhe(forward,m)
-endif
+
 
   stoch=-1.0_dp
 if(present(stochprec)) stoch=stochprec
@@ -19977,7 +19792,7 @@ if(stoch>=0) then
   call c_stochastic_kick(m,forward(2)%rad,forward(2)%fix0,stoch)
 endif
  
-forward(1)%usenonsymp=as_is0
+forward(1)%usenonsymp=.false.
 forward(1)%rad(1:c_%nd2,1:c_%nd2)=mat
 forward(1)%fix0(1:c_%nd2)=f0 ! entrance
 forward(1)%fixr(1:c_%nd2)=fix
@@ -19987,7 +19802,7 @@ forward(3)%fixr(1:c_%nd2)=fix
 forward(3)%fix(1:c_%nd2)=fix    ! exit
 
  forward(1)%ds=0.0_dp
- 
+ forward(1)%mati(1:c_%nd2,1:c_%nd2)=(minput.sub.1)**(-1)  
  
   forward(1)%ds=0
  
@@ -20005,10 +19820,11 @@ endif
   call kanalnummer(inf,filef)
     call print_tree_elements(forward,inf)
    close(inf)
-  call KILL(forward)
-  deallocate(forward)
-endif
-
+ endif
+ if(tree_off) then
+    call KILL(forward)
+    deallocate(forward)
+  endif
 !call print(minput)
  call kill(m) 
 !close(mberz)
@@ -20095,7 +19911,7 @@ if(present(prec)) preci=prec
 
 do i=1,size(mm,1)
 do j=1,size(mm,1)
-if(abs(mm(i,j))>prec) then
+if(abs(mm(i,j))>preci) then
 
  if(c_%nd==1) then
   write(mfi,"(2(i2,1x),a1,2(i2,1x),1(g23.16,1x))") in1(i),in2(i),"|",in1(j),in2(j),mm(i,j)
@@ -20130,7 +19946,7 @@ if(present(prec)) preci=prec
 
 do i=1,size(mm,1)
 do j=1,size(mm,1)
-if(abs(mm(i,j))>prec) then
+if(abs(mm(i,j))>preci) then
 
  if(c_%nd==1) then
   write(mfi,"(2(i2,1x),a1,2(i2,1x),2(g23.16,1x))") in1(i),in2(i),"|",in1(j),in2(j),mm(i,j)
@@ -20157,7 +19973,7 @@ implicit none
 complex(dp)v
 integer i1,i2,i3,i4,i5,i6,no1,je(6),k !,noo
  
-real(dpn),optional :: mm(:,:) 
+real(dpn),optional,allocatable :: mm(:,:) 
 
 
 real(dpn),  allocatable :: mi(:,:) 
@@ -20214,6 +20030,9 @@ if(.not.present(mm)) then
  allocate(mtotal%m(size(in1),size(in1)))
  mtotal%m=mi
 else
+ if(allocated(mm)) deallocate(mm)
+ allocate(mm(size(in1),size(in1)))
+
  mm=mi
 endif
 
@@ -20231,7 +20050,7 @@ implicit none
 complex(dp)v
 integer i1,i2,i3,i4,i5,i6,no1,je(6),k !,noo
  
-complex(dpn),optional  :: mm(:,:) 
+complex(dpn),optional,allocatable :: mm(:,:) 
 complex(dpn),  allocatable :: mi(:,:) 
 type(c_damap) m,mtotal
 type(c_taylor) t
@@ -20286,6 +20105,8 @@ if(.not.present(mm)) then
  allocate(mtotal%cm(size(in1),size(in1)))
  mtotal%cm=mi
 else
+ if(allocated(mm)) deallocate(mm)
+ allocate(mm(size(in1),size(in1)))
  mm=mi
 endif
 
@@ -21661,6 +21482,8 @@ integer i,mf
 
 end subroutine read_tree_elements
 
+
+
 subroutine symplectify_for_zhe(m,L_r , N_r , L_s, N_s )
 implicit none
 TYPE(c_damap),intent(inout):: m ,L_r , N_r , N_s , L_s
@@ -21678,6 +21501,7 @@ real(dp),allocatable::   S(:,:),id(:,:)
 ! d= = L_r o N_r
 ! ms= L_s o N_s
 
+write(6,*) "in symplectify_for "
 allocate(S(m%n,m%n),id(m%n,m%n))
 
 call c_get_indices(n,0)
@@ -21713,7 +21537,6 @@ endif
 
 
 
-if(hypercube_integration) then
   if(nv-nd2==0) then
   mat=m.sub.1
   else
@@ -21723,73 +21546,18 @@ if(hypercube_integration) then
 
  call furman_symp(mat)
  L_s=mat
-else
-  if(nv-nd2==0) then
-  mt=m.sub.1
-ids=1
-ids%v(5)=0.0_dp
-ids%v(6)=0.0_dp
-   m4=1
-  do i=1,4
-   m4%v(i)=mt%v(i)*ids
-  enddo
- mat=m4
- call furman_symp(mat)
- m4=mat
- mt=mt*m4**(-1)
- if(ndpt_bmad==0) then
-  h(1)= mt%v(2).sub.'000010'
-  h(2)= -mt%v(1).sub.'000010'
-  h(3)= mt%v(4).sub.'000010'
-  h(4)= -mt%v(3).sub.'000010'
-  ml=1
-  ml%v(1)=ml%v(1)-(h(2).cmono.5)
-  ml%v(2)=ml%v(2)+(h(1).cmono.5)
-  ml%v(3)=ml%v(3)-(h(4).cmono.5)
-  ml%v(4)=ml%v(4)+(h(3).cmono.5)
-  do i=1,4
-   ml%v(6)=ml%v(6)+(h(i).cmono.i)
-  enddo
-  else
-  h(1)= mt%v(2).sub.'000001'
-  h(2)=-mt%v(1).sub.'000001'
-  h(3)= mt%v(4).sub.'000001'
-  h(4)=-mt%v(3).sub.'000001'
-  ml=1
-  ml%v(1)=ml%v(1)-(h(2).cmono.6)
-  ml%v(2)=ml%v(2)+(h(1).cmono.6)
-  ml%v(3)=ml%v(3)-(h(4).cmono.6)
-  ml%v(4)=ml%v(4)+(h(3).cmono.6)
-  do i=1,4
-   ml%v(5)=ml%v(5)-(h(i).cmono.i)
-  enddo
- endif
+
  
- mt=mt*ml**(-1)
- mat=mt
- call furman_symp(mat)
- mt=mat
-L_s=mt*ml*m4
- 
-
-  else
-  write(6,*) " this map should not have parameters or modulated magnets " 
-   stop 445
- endif
-
-endif
-
 
 mt=m*L_s**(-1)
 L_r=mt.sub.1
 
 mt=L_r**(-1)*mt
 
-f=log(mt)
+f=ln(mt)
 
 fs=0
 
-if(hypercube_integration) then
 ! Integrating a symplectic operator using the hypercube's diagonal
 
 allocate(je(nv))
@@ -21818,85 +21586,7 @@ do i=1,f%n
 
 enddo
  
-else
 
-
-
-allocate(je(nv))
-
-do i=1,nd2
-ft%v(i)=f%v(i)
-enddo
-f%v(5)=0.0_dp
-f%v(6)=0.0_dp
-
- 
-!!! over the transverse
-je=0
-do i=1,f%n
-
-       j=1
-
-        do while(.true.)
-
-          call  c_cycle(f%v(i),j,v ,je); if(j==0) exit;
-         dm=1
-         do ii=1,nd2-2
-          dm=dm+je(ii)
-         enddo
-        t=v.cmono.je
-        do a=1,nd2
-         dt=t.d.a
-        do al=1,nd2
-        do k=1,nd2
-          fs%v(al)=fs%v(al)+s(a,al)*s(k,i)*(id(k,a)*t+(1.0_dp.cmono.k)*dt)/dm
-        enddo ! k
-        enddo ! al
-        enddo ! a
-        enddo
-
-enddo
- 
-do i=1,4
- f%v(i)=0.0_dp
-enddo
- f%v(5)=ft%v(5)
- f%v(6)=ft%v(6)
-ids=0
-ids%v(5)=1.0_dp.cmono.5
-ids%v(6)=1.0_dp.cmono.6
-
- f%v(5)= f%v(5)*ids
- f%v(6)= f%v(6)*ids
- 
-!!! over the logitudinal 
-je=0
-do i=1,f%n
-
-       j=1
-
-        do while(.true.)
-
-          call  c_cycle(f%v(i),j,v ,je); if(j==0) exit;
-         dm=1
-         do ii=5,6
-          dm=dm+je(ii)
-         enddo
-        t=v.cmono.je
-        do a=1,nd2
-         dt=t.d.a
-        do al=1,nd2
-        do k=1,nd2
-          fs%v(al)=fs%v(al)+s(a,al)*s(k,i)*(id(k,a)*t+(1.0_dp.cmono.k)*dt)/dm
-        enddo ! k
-        enddo ! al
-        enddo ! a
-        enddo
-
-enddo
-
-
-endif
 
 
 N_s=exp(fs)
@@ -21913,7 +21603,7 @@ deallocate(je);deallocate(s,id);
  call kill(f);call kill(fs);call kill(ft);
 call kill(t,dt);call kill(mt,ids,m4,ml);
 deallocate(mat)
-end subroutine symplectify_for_zhe
+end subroutine symplectify_for_zhe 
 
 
   SUBROUTINE furman_symp(r)
@@ -23687,7 +23377,7 @@ endif
     ! Does the the diagonalisation into a rotation
     call c_linear_a(m1,a2)  
  
-
+ 
     !!! Now the linear map is normalised
     m1=c_simil(a2,m1,-1)
   
@@ -23705,7 +23395,6 @@ endif
     ri%q=1.0_dp  ! make spin identity
  
  
-
     !!! The tunes are stored for the nonlinear normal form recursive algorithm
     do k=1,xy%n
       if(coast(k)) then
@@ -23719,7 +23408,7 @@ endif
          endif
        endif  
     enddo
- if(c_%ndc>0) then
+ if(c_%ndc/=0) then
         je=0
         je(c_%ndpt)=1
    eg(c_%ndpt)=ri%v(c_%ndpt).sub.je
@@ -23728,8 +23417,7 @@ endif
  !  write(6,*)  eg(k)
 ! enddo
  endif
- 
-    n%ker=0  ! In case reusing normal form
+     n%ker=0  ! In case reusing normal form
 
     do i=2,not
       if(lielib_print(13)/=0) then
@@ -23779,12 +23467,12 @@ endif
             lam=1.0_dp
             je(k)=je(k)-1
             do l=1,xy%n 
-              if(coast(l).and.c_%ndc==0) cycle 
+              if(coast(l).and.c_%ndc<=0) cycle 
               lam=lam*eg(l)**je(l)
             enddo
-            if(c_%ndc/=0) then
-             lam=lam*eg(l)**je(l)
-            endif
+ !           if(c_%ndc/=0) then     ! error 2026.8.11
+ !           lam=lam*eg(l)**je(l)
+ !           endif
             if(lielib_print(13)/=0) then
                  write(mdis,*) k
                  write(mdis,'(6(1x,i4))') je(1:nd2)
@@ -23875,7 +23563,7 @@ endif
         je(ndpt)=1
         lam=(ri%v(ndptb).sub.je) 
         n%ker%f(1)%v(ndptb)=n%ker%f(1)%v(ndptb)-(lam.cmono.je)
-         if(c_%ndc==0) then
+         if(c_%ndc<=0) then
             if(mod(ndpt,2)==0) then
               n%tune(ndpt/2)=-lam
             else
@@ -24222,7 +23910,7 @@ ENDIF  ! HYPERBOLIC
 enddo
 
 if(ncoast/=0) then
- if(c_%ndc==0) then
+ if(c_%ndc<=0) then
   n%H_l%v(c_%ndptb)=n%tune(c_%nd)*dz_c(c_%ndpt)
  else
    n%H_l%v(c_%ndpt)=-n%damping(c_%nd)*dz_c(c_%ndpt)

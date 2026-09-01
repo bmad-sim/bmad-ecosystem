@@ -196,7 +196,7 @@ c_map1 = pb8
 c_map1%x0(1:6) = orb   ! This may not be needed but cannot hurt 
 
 sagan_gen = logic_option(.true., create_symplectic_map)
-call fill_tree_element_line_zhe_outside_map(c_map1, as_is=.false., stochprec=1.d-10, tree_zhe=rad_map%sub_map) 
+call fill_tree_element_line_zhe_outside_map(c_map1, stochprec = 1.d-10, tree_zhe = rad_map%sub_map) 
 sagan_gen = .false.  ! Reset to False so wont affect other PTC calculations.
 
 !
@@ -226,13 +226,10 @@ end subroutine ptc_setup_map_with_radiation
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 !+
-! Subroutine ptc_track_map_with_radiation (orbit, rad_map, rad_damp, rad_fluct)
+! Subroutine ptc_track_map_with_radiation (orbit, rad_map, rad_fluct)
 !
 ! Routine to track through a map that includes radiation.
 ! 
-! NOTE! Tracking without damping when the map was made with radiation (and vice versa)
-! will not give good results. So avoid this situation unless testing.
-!
 ! To construct the map, use the routine ptc_setup_map_with_radiation.
 ! To cleanup memory after using, call ptc_kill_map_with_radiation.
 ! To save a map call ptc_write_map_with_radiation.
@@ -242,7 +239,6 @@ end subroutine ptc_setup_map_with_radiation
 ! Input:
 !   orbit            -- coord_struct: Starting orbit.
 !   rad_map          -- ptc_rad_map_struct: Map with radiation included.
-!   rad_damp         -- logical, optional: Override the setting of bmad_com%radiation_damping_on.
 !   rad_fluct        -- logical, optional: Override the setting of bmad_com%radiation_fluctuations_on
 !   
 ! Output:
@@ -250,34 +246,34 @@ end subroutine ptc_setup_map_with_radiation
 !     %state            -- Set to lost$ if there is a problem.
 !-
 
-subroutine ptc_track_map_with_radiation (orbit, rad_map, rad_damp, rad_fluct)
+subroutine ptc_track_map_with_radiation (orbit, rad_map,  rad_fluct)
 
 use rotation_3d_mod
-use duan_zhe_map, only: assignment(=), C_VERBOSE_ZHE
+use duan_zhe_map, only: assignment(=), C_VERBOSE_ZHE, internal_state
 
 implicit none
 
 type (coord_struct) orbit
 type (ptc_rad_map_struct) rad_map
 type (probe_zhe) z_probe
+type (internal_state) ptc_state
 
 real(rp) beta_new
 
-logical, optional :: rad_damp, rad_fluct
-logical damp, fluct, dummy
+logical, optional :: rad_fluct
+logical fluct, dummy
 
 !
 
-damp   = logic_option(bmad_com%radiation_damping_on, rad_damp)
-fluct = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
 C_VERBOSE_ZHE = .false.
-
-!
 
 z_probe = orbit%vec
 z_probe%q%x = [1, 0, 0, 0]
 
-call track_tree_probe_simple_zher_8_zhe (rad_map%sub_map, z_probe, bmad_com%spin_tracking_on, damp, fluct)
+ptc_state%spin        = bmad_com%spin_tracking_on
+ptc_state%stochastic  = logic_option(bmad_com%radiation_fluctuations_on, rad_fluct)
+
+call track_tree_probe_simple_zher_8_zhe (rad_map%sub_map, z_probe, ptc_state)
 if (z_probe%u) orbit%state = lost$   ! %u = T => "unstable".
 
 call convert_pc_to ((1 + z_probe%x(6)) * rad_map%p0c_end, orbit%species, beta = beta_new)

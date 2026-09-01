@@ -2911,8 +2911,8 @@ endif
 
 ! The "2" signifies version 2 of the map with radiation file storage format.
 
-write (string, '(2a,2l1,i0,l1,i0,l1,es12.3,2l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
-              bmad_com%radiation_damping_on , lttp%split_bends_for_stochastic_rad, lttp%map_order, lttp%rfcavity_on, &
+write (string, '(2a,3l1,i0,l1,i0,l1,es12.3,2l1)') trim(lttp%exclude_from_maps), trim(lttp%ele_start), &
+              bmad_com%radiation_damping_on, bmad_com%radiation_fluctuations_on, lttp%split_bends_for_stochastic_rad, lttp%map_order, lttp%rfcavity_on, &
               ptc_com%max_fringe_order, ptc_com%old_integrator, ptc_com%vertical_kick, ptc_com%exact_misalign, ptc_com%exact_model
 if (lttp%simulation_mode == 'CHECK') string = trim(string) // lttp%ele_stop
 
@@ -3251,7 +3251,7 @@ do i = 1, ubound(ltt_com%sec, 1)
   if (.not. associated(sec%ele)) exit
 
   if (allocated(sec%map)) then
-    call ptc_track_map_with_radiation (orbit, sec%map, rad_damp = bmad_com%radiation_damping_on, rad_fluct = map_fluct_on)
+    call ptc_track_map_with_radiation (orbit, sec%map)
     if (abs(orbit%vec(1)) > lttp%ptc_aperture(1) .or. abs(orbit%vec(3)) > lttp%ptc_aperture(2)) orbit%state = lost$
     ele => branch%ele(sec%map%ix_ele_end)
   elseif (sec%ele%name == 'RADIATION_POINT') then

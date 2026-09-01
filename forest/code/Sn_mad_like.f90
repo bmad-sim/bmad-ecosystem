@@ -2720,7 +2720,8 @@ lag1=lag1+phase0
        nullify(s22%CHART);nullify(s22%PATCH);
        allocate(s22%CHART);allocate(s22%PATCH);
        nullify(s22%dir);allocate(s22%dir);
-
+       nullify(s22%usetaylormap);allocate(s22%usetaylormap);
+s22%usetaylormap=0
        NULLIFY(S22%I)
        if(use_info) then
           allocate(s22%i);

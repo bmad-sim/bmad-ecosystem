@@ -2281,33 +2281,20 @@ ele0%recut_even_electric_MIS(1) = f%recut
 ele0%recut_even_electric_MIS(2) = f%even
 ele0%recut_even_electric_MIS(3) = f%electric
 ele0%recut_even_electric_MIS(4) = f%MIS
- ele0%usebf_do1bf(1)=f%useb
- ele0%usebf_do1bf(2)=f%usef 
- ele0%skipptcbf(1)=f%skip_ptc_b 
- ele0%skipptcbf(2)=f%skip_ptc_f 
- ele0%usebf_do1bf(3)=f%do1mapb 
- ele0%usebf_do1bf(4)=f%do1mapf
+! ele0%usebf_do1bf(1)=f%useb
+! ele0%usebf_do1bf(2)=f%usef 
+! ele0%skipptcbf(1)=f%skip_ptc_b 
+! ele0%skipptcbf(2)=f%skip_ptc_f 
+! ele0%usebf_do1bf(3)=f%do1mapb 
+! ele0%usebf_do1bf(4)=f%do1mapf
  ele0%filef=trim(f%filef)
  ele0%fileb=TRIM(f%fileb)
  
 
 
 
-if(associated(f%forward)) then
-
-  if(present(mf)) then
-   call kanalnummer(inf,f%filef)
-    call print_tree_elements(f%forward,inf)
-   close(inf)
- endif
-endif
-if(associated(f%backward)) then
- if(present(mf)) then
-   call kanalnummer(inf,f%fileb)
-    call print_tree_elements(f%backward,inf)
-   close(inf)
- endif
-endif
+ 
+ 
 
 
     if(present(mf)) then
@@ -2394,47 +2381,17 @@ endif
 !     logical(lp) usebf_do1bf(4)!
 !	 integer skipptcbf(2)
 
- f%useb=ele0%usebf_do1bf(1)
- f%usef=ele0%usebf_do1bf(2)
- f%skip_ptc_b=ele0%skipptcbf(1)
- f%skip_ptc_f=ele0%skipptcbf(2)
- f%do1mapb=ele0%usebf_do1bf(3) 
- f%do1mapf=ele0%usebf_do1bf(4)
+! f%useb=ele0%usebf_do1bf(1)
+! f%usef=ele0%usebf_do1bf(2)
+! f%skip_ptc_b=ele0%skipptcbf(1)
+! f%skip_ptc_f=ele0%skipptcbf(2)
+! f%do1mapb=ele0%usebf_do1bf(3) 
+! f%do1mapf=ele0%usebf_do1bf(4)
  f%fileb= ele0%fileb
  f%filef= ele0%filef
-if(ele0%filef/=' '.and.readingmaps) then
- if(.not.associated(f%forward)) then 
-  allocate(f%forward(3))
- endif
- call kanalnummer(inf,ele0%filef)
+ 
 
-  do i=1,3
-    read(inf,*) n,np,no
-    CALL ALLOC_TREE(f%forward(i),N,NP)
-    f%forward(i)%N=n
-    f%forward(i)%NP=np
-    f%forward(i)%no=no
-    call read_tree_element(f%forward(i),inf)
-  enddo
-close(inf)
-endif
-
-if(ele0%fileb/=' '.and.readingmaps) then
- if(.not.associated(f%backward)) then 
-  allocate(f%backward(3))
- endif
- call kanalnummer(inf,ele0%fileb)
-
-  do i=1,3
-    read(inf,*) n,np,no
-    CALL ALLOC_TREE(f%backward(i),N,NP)
-    f%backward(i)%N=n
-    f%backward(i)%NP=np
-    f%backward(i)%no=no
-    call read_tree_element(f%backward(i),inf)
-  enddo
-close(inf)
- endif
+ 
    
     if(f%kind==kind3.or.f%kind==kind5) then   
         IF(.not.ASSOCIATED(f%B_SOL)) ALLOCATE(f%B_SOL);
@@ -3377,8 +3334,8 @@ implicit none
     ele0%fint_hgap_h1_h2_va_vs=0
 	ele0%recut_even_electric_MIS=.false.
     ele0%slow_ac=0
-    ele0%usebf_do1bf=.false.
-    ele0%skipptcbf=0
+ !   ele0%usebf_do1bf=.false.
+!    ele0%skipptcbf=0
     ele0%filef=' '
     ele0%fileb=' '
 

@@ -5592,18 +5592,18 @@ contains
     k%kind=1
   end subroutine kill_knobc
 
-  SUBROUTINE  varck1(S2)
+  SUBROUTINE varck1(S2)
     implicit none
     type (complex_8)  S2
 
     if(knob) then
     !   if(nb_==0) then
+         if(knob_add) then
           varc1=(/S2%R,S2%S/).var.(/s2%i+npara_fpp,s2%j+npara_fpp/)
-     !  elseif(s2%nb==nb_) then
-     !     varc1=(/S2%R,S2%S/).var.(/s2%i+npara_fpp-s2%g+1,s2%j+npara_fpp-s2%g+1/)
-     !  else
-      !    varc1=S2%R
-     !  endif
+         else
+          varc1=S2%R*s2%s*((1.0_dp.mono.(s2%i+npara_fpp)) +i_*(1.0_dp.mono.(s2%j+npara_fpp)))
+         endif
+
     else ! Not a knob
        stop 3330   ! buggy never used
     !   varc1=(/S2%R,S2%S/).var.(/0,0/)
@@ -5611,19 +5611,18 @@ contains
 
   end SUBROUTINE  varck1
 
-  SUBROUTINE  varck2(S2)
+  SUBROUTINE varck2(S2)
     implicit none
     type (complex_8)  S2
 
 
     if(knob) then
-   !    if(nb_==0) then
+         if(knob_add) then
           varc2=(/S2%R,S2%S/).var.(/s2%i+npara_fpp,s2%j+npara_fpp/)
-    !   elseif(s2%nb==nb_) then
-    !      varc2=(/S2%R,S2%S/).var.(/s2%i+npara_fpp-s2%g+1,s2%j+npara_fpp-s2%g+1/)
-    !   else
-    !      varc2=S2%R
-    !   endif
+         else
+          varc2=S2%R*s2%s*((1.0_dp.mono.(s2%i+npara_fpp)) +i_*(1.0_dp.mono.(s2%j+npara_fpp)))
+         endif
+
     else ! Not a knob
        stop 3331   ! buggy never used
     !   varc2=(/S2%R,S2%S/).var.(/0,0/)

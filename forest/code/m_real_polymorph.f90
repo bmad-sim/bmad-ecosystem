@@ -62,7 +62,7 @@ module polymorphic_taylor
   ! PROBE_8 STUFF
   real(dp) :: sinhx_x_min=1e-4_dp
   real(dp) :: sinhx_x_minp=1.0_dp  !  1.e-9  !c_0_0001
- 
+   logical :: knob_add=.true.
 INTEGER, private, PARAMETER :: I4B = SELECTED_INT_KIND(9)
   private allocquaternion,allocquaternionn,A_OPT_quaternion
   private k_opt_quaternion,killquaternionn,killquaternion
@@ -6676,14 +6676,18 @@ end  function asin_coeff_set
 
 
 
-  SUBROUTINE  varfk1(S2)
+  SUBROUTINE varfk1(S2)
     implicit none
     !    type (real_8),INTENT(INOUT)::S2
     type (real_8),INTENT(IN)::  S2
 
     if(knob) then
     !   if(nb_==0) then
-          varf1=(/S2%R,S2%S/).var.(s2%i+npara_fpp)
+         if(knob_add) then
+           varf1=(/S2%R,S2%S/).var.(s2%i+npara_fpp)
+         else
+          varf1=(s2%s.mono.(s2%i+npara_fpp))*S2%R
+         endif
     !   elseif(s2%nb==nb_) then
     !      varf1=(/S2%R,S2%S/).var.(s2%i+npara_fpp-s2%g+1)
     !   else
@@ -6704,7 +6708,11 @@ end  function asin_coeff_set
 
     if(knob) then
   !     if(nb_==0) then
-          varf2=(/S2%R,S2%S/).var.(s2%i+npara_fpp)
+         if(knob_add) then
+           varf2=(/S2%R,S2%S/).var.(s2%i+npara_fpp)
+         else
+          varf2= (s2%s.mono.(s2%i+npara_fpp))*S2%R
+         endif
   !     elseif(s2%nb==nb_) then
   !        varf2=(/S2%R,S2%S/).var.(s2%i+npara_fpp-s2%g+1)
   !     else

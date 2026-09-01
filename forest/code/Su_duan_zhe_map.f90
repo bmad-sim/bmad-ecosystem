@@ -422,6 +422,7 @@ else
     S2%DELTA=       S1%DELTA
     S2%SPIN=       S1%SPIN
     S2%MODULATION=       S1%MODULATION
+    S2%DCCAV=       S1%DCCAV
 !    S2%FULL_WAY=       S1%FULL_WAY
     !    S2%spin_dim=       S1%spin_dim
   END SUBROUTINE EQUALt_zhe
@@ -872,7 +873,176 @@ end subroutine read_tree_elements
     RETURN
   END SUBROUTINE GRNF_zhe_sub
 
-SUBROUTINE track_TREE_probe_simple_zher_8_zhe(T,xs,spin,rad,stoch,linear)
+SUBROUTINE track_TREE_probe_simple_zher_8_zhe(T,xs,ks,linear)
+    use gauss_dis
+    IMPLICIT NONE
+    integer, parameter :: size_tree=15+3
+    TYPE(TREE_ELEMENT),target, INTENT(INout) :: T(3)
+ 
+    type(probe) xs
+    real(dp) x(size_tree),x0(size_tree),s0(3,3),r(3,3),dx6,beta,q(3),p(3),qg(3),qf(3)
+    real(dp) normb,norm,x0_begin(size_tree),xr(6),normbb,ranx,cut,y(6)
+    integer i,j,k,ier,is
+    logical, optional  ::  linear
+    logical  spin0,stoch0,rad0,doit,call_gen
+    integer no1,nrmax_used,nd,nd2,ntree
+    type(quaternion) qu
+    type(internal_state) ks
+  !  as_is0=t(1)%usenonsymp
+    spin0=.true.
+    stoch0=.true.
+    rad0=.true.
+    no1=t(1)%no
+    cut=6
+call_gen=.true.
+ nd2=t(1)%np
+ nd=t(1)%np/2
+ntree=nd2+nd**2
+    if(present(linear)) then
+     if(linear) no1=1
+    endif
+ !   if(present(spin)) spin0=spin
+ !   if(present(stoch)) stoch0=stoch
+ !   if(present(rad)) rad0=rad
+    spin0=ks%spin
+    stoch0=ks%stochastic
+    rad0=ks%radiation
+ 
+
+   ! if(as_is0) rad0=.true.
+    doit=rad0.or.stoch0
+    x=0
+    x0=0
+!    nrmax=1000
+if(.not.check_stable) return
+   check_stable_zhe=.true.
+   !    xs%u=.false.
+!!!! put stochastic kick in front per Sagan
+ if(stoch0) then 
+
+    do i=1,nd2
+      x(i)=xs%x(i)-t(1)%fix0(i)
+    enddo
+
+ 
+
+    xr=0.0_dp
+   do i=1,nd2
+    call GRNF(ranx,cut)
+     xr(i)=ranx*t(2)%fix0(i)  
+   enddo
+ 
+    xr =matmul(t(2)%rad,xr)
+
+    x(1:nd2)=x(1:nd2)+xr 
+
+    do i=1,nd2
+      xs%x(i)=x(i)+t(1)%fix0(i)
+    enddo
+ endif
+!!!!!!!!!!!!!!!!!!!
+    x=0.e0_dp
+    x0=0.e0_dp
+x0_begin=0.0_dp
+    do i=1,nd2
+      x(i)=xs%x(i)
+      x0(i)=xs%x(i)
+      x0_begin(i)=xs%x(i)
+    enddo
+ 
+
+     do i=1,nd2
+      x(i)=x(i)-t(1)%fix0(i)
+      x0(i)=x0(i)-t(1)%fix0(i)
+      x0_begin(i)=x0_begin(i)-t(1)%fix0(i)
+     enddo
+ 
+ 
+      x(nd2+1:2*nd2)=x(1:nd2)
+      x0_begin(nd2+1:2*nd2)= x0_begin(1:nd2)
+
+
+ 
+
+      x0(1:nd2)=x(1:nd2)
+      x(nd2+1:2*nd2)=x(1:nd2)
+y(1:nd2)=x(1:nd2)
+!if(no1>1.and.(.not.as_is0)) then
+
+if(T(1)%usenonsymp) then
+    call track_TREE_G_complex(T(1),x(1:nd2))
+else
+ if(no1>1) then
+ 
+
+call track_TREE_probe_gen_only(T,y)
+
+ if(.not.check_stable_zhe) then
+   xs%u=.true.
+ check_stable=.false.
+ return
+ endif 
+ endif
+       x(1:nd2)=matmul(t(3)%rad(1:nd2,1:nd2),y(1:nd2))
+
+endif
+!if(call_gen.and.no1>1.and.(.not.as_is0)) then
+!if(call_gen.and.no1>1 ) then
+!if( no1>1 ) then
+ 
+ 
+!endif
+
+!if(jumpnot) then
+    if(spin0) then  ! spin
+
+     if(xs%use_q) then
+!    call track_TREE_G_complex(T(2),x0_begin(nd2+1:ntree))
+    call track_TREE_G_complex(T(2),x0_begin(nd2+1:size_tree))
+
+       do k=0,3
+         qu%x(k)=x0_begin(nd2+1+k)
+       enddo 
+ 
+       xs%q=qu*xs%q
+      if(.not.T(1)%usenonsymp) xs%q%x=xs%q%x/sqrt(xs%q%x(1)**2+xs%q%x(2)**2+xs%q%x(3)**2+xs%q%x(0)**2)
+     else
+
+stop 48169
+ 
+    endif ! spin
+   
+ endif
+
+ norm=0
+do i=1,min(nd2,4)    !!!  changed from 6 2022.06.08
+ norm=norm+abs(x(i))
+enddo
+
+ if(norm>norm_zhe) then
+   if(c_verbose_zhe) write(6,*) " unstable " 
+   xs%u=.true.
+   check_stable_zhe=.false.
+check_stable=.false.
+
+  return
+ endif
+
+          do i=1,nd2
+           x(i)=x(i)+t(3)%fix(i)
+         enddo
+ 
+
+
+
+
+    do i=1,nd2
+      xs%x(i)=x(i)
+    enddo
+if(.not.check_stable_zhe) xs%u=.true.
+  end SUBROUTINE track_TREE_probe_simple_zher_8_zhe
+
+SUBROUTINE track_TREE_probe_simple_zher_8_zheold(T,xs,spin,rad,stoch,linear)
     use gauss_dis
     IMPLICIT NONE
     integer, parameter :: size_tree=15
@@ -1166,7 +1336,7 @@ enddo
       xs%x(i)=x(i)
     enddo
 
-  end SUBROUTINE track_TREE_probe_simple_zher_8_zhe
+  end SUBROUTINE track_TREE_probe_simple_zher_8_zheold
 
 SUBROUTINE track_TREE_probe_gen_only(T,y)
     IMPLICIT NONE

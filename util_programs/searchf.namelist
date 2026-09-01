@@ -17,28 +17,6 @@ controller_response_plot
 File: sad_to_bmad/sad_to_bmad_postprocess.f90
 sad_to_bmad_postprocess
 
-File: generalized_gradient_fit/generalized_gradient_fit.f90
-generalized_gradient_fit
-
-File: generalized_gradient_fit/gg_fit_mod.f90
-gg_fit_mod
-gg1_struct
-fit_info_struct
-b_fit_struct
-plot1_struct
-m_max
-read_field_table
-write_binary_field_table
-write_ascii_field_table
-fit_field
-sincos_name
-sym_score_calc
-write_gg_info
-write_gg_bmad
-read_gg
-merit_calc
-mrqmin_func
-
 File: ptc_profiler/ptc_profiler.f90
 ptc_profiler
 
@@ -57,6 +35,28 @@ create_plot
 
 File: bmad_to_csrtrack/bmad_to_csrtrack.f90
 bmad_to_csrtrack
+
+File: old_gg_fit/generalized_gradient_fit.f90
+generalized_gradient_fit
+
+File: old_gg_fit/gg_fit_mod.f90
+gg_fit_mod
+gg1_struct
+fit_info_struct
+b_fit_struct
+plot1_struct
+m_max
+read_field_table
+write_binary_field_table
+write_ascii_field_table
+fit_field
+sincos_name
+sym_score_calc
+write_gg_info
+write_gg_bmad
+read_gg
+merit_calc
+mrqmin_func
 
 File: compare_tracking_methods_text/compare_tracking_methods_text.f90
 compare_tracking_methods_text

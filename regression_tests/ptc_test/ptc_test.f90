@@ -82,7 +82,7 @@ orbit = start_orb
 call get_seed(seed0)
 call init_coord (start_orb, rad_map%ref0, lat%ele(0), upstream_end$)
 orbit = start_orb
-call ptc_track_map_with_radiation (orbit, rad_map, .true., .true.)
+call ptc_track_map_with_radiation (orbit, rad_map, .true.)
 
 call set_seed(seed0)
 do i = 1, 6
@@ -94,7 +94,7 @@ vec = vec + rad_map%ref1
 !write (1, '(a, 6es16.8)') '"Stoc-Track"      ABS 1E-13', orbit%vec
 !write (1, '(a, 6es16.8)') '"Diff-Stoc-Track" ABS 1E-20', orbit%vec - vec
 
-call ptc_track_map_with_radiation (orbit, rad_map, .true., .false.)
+call ptc_track_map_with_radiation (orbit, rad_map, .false.)
 end_orb%vec = start_orb%vec - rad_map%ref0
 end_orb%vec = matmul(rad_map%nodamp_mat, end_orb%vec)
 end_orb%vec = matmul(rad_map%damp_mat, end_orb%vec)
