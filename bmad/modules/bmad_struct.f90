@@ -1524,7 +1524,7 @@ type ele_struct
   logical :: offset_moves_aperture = .false.      ! element offsets affects aperture?
 contains
   procedure next_in_branch
-  !! final :: ele_finalizer
+  final :: ele_finalizer
 end type
 
 ! The lat_param_struct should be called the branch_param_struct [Present name is a historical artifact.]
@@ -2803,7 +2803,6 @@ end function pointer_to_slave
 ! Subroutine ele_finalizer(ele)
 !
 ! Finalizer routine for ele_struct instances.
-! NOTE: Not currently used.
 !
 ! Input:
 !   ele   -- ele_struct: Element to cleanup.
@@ -2816,7 +2815,14 @@ subroutine ele_finalizer(ele)
 
 type (ele_struct) ele
 
-!
+! Elements have %rad_map allocated "on-the-fly" by radiation_map_setup.
+! This can lead to memory leaks with slice slaves if not finalized.
+
+if (ele%slave_status == slice_slave$ .and. associated(ele%lord)) then
+  if (associated(ele%rad_map) .and. .not. associated(ele%rad_map, ele%lord%rad_map)) then
+    deallocate (ele%rad_map)
+  endif
+endif
 
 end subroutine ele_finalizer
 

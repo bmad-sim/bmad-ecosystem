@@ -52,7 +52,6 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%ptc_fibre)
   nullify (ele%mode3)
   nullify (ele%photon)
-  nullify (ele%rad_map)
   nullify (ele%rf)
   nullify (ele%high_energy_space_charge)
   nullify (ele%wake)
@@ -63,6 +62,17 @@ if (logic_option (.false., nullify_only)) then
   nullify (ele%a_pole_elec, ele%b_pole_elec)
   forall (i = 1:size(ele%taylor)) ele%taylor(i)%term => null()
   forall (i = 0:3) ele%spin_taylor(i)%term => null()
+
+  ! Elements have %rad_map allocated "on-the-fly" by radiation_map_setup.
+  ! This can lead to memory leaks with slice slaves if not finalized.
+  if (ele%slave_status == slice_slave$ .and. associated(ele%lord)) then
+    if (associated(ele%rad_map) .and. .not. associated(ele%rad_map, ele%lord%rad_map)) then
+      deallocate (ele%rad_map)
+    endif
+  endif
+
+  nullify (ele%rad_map)
+
   return
 endif
 

@@ -26,7 +26,7 @@ subroutine transfer_ele (ele1, ele2, nullify_pointers)
 ! Important! The use statement here is constructed to  avoid the use of 
 ! the overloaded equal sign for ele_structs in bmad_routine_interface.
 
-use bmad_routine_interface, only: ele_struct, deallocate_ele_pointers, logic_option
+use bmad_routine_interface, only: ele_struct, deallocate_ele_pointers, logic_option, slice_slave$
 
 implicit none
 
@@ -34,7 +34,13 @@ type (ele_struct), target :: ele1
 type (ele_struct) :: ele2
 logical, optional :: nullify_pointers
 
-!
+! Elements have %rad_map allocated "on-the-fly" by radiation_map_setup.
+! This can lead to memory leaks with slice slaves if not finalized.
+if (ele2%slave_status == slice_slave$ .and. associated(ele2%lord)) then
+  if (associated(ele2%rad_map) .and. .not. associated(ele2%rad_map, ele2%lord%rad_map)) then
+    deallocate (ele2%rad_map)
+  endif
+endif
 
 ele2 = ele1
 
