@@ -33,6 +33,7 @@ implicit none
 type (tao_universe_struct), pointer :: u
 type (ele_struct), pointer, optional :: dflt_ele
 type (tao_expression_info_struct), allocatable, optional :: info(:)
+type (ele_pointer_struct), allocatable :: eles(:)
 
 character(*) param_name
 character(*) dflt_source
@@ -135,17 +136,21 @@ if (use_dflt_ele) then
   endif
 
 else
+  ! Note: Use a local eles(:) array here and not the global scratch%eles. Reason is that a caller
+  ! (EG tao_curve_datum_calc) may be looping over scratch%eles when calling this routine and
+  ! reallocating scratch%eles here would invalidate the caller's array.
+
   do i = lbound(s%u, 1), ubound(s%u, 1)
     if (.not. this_u(i)) cycle
     u => s%u(i)
-    call tao_locate_elements (class_ele, u%ix_uni, scratch%eles, err)
+    call tao_locate_elements (class_ele, u%ix_uni, eles, err)
     if (err) return
-    call re_allocate (values, n_tot + size(scratch%eles))
-    if (present(info)) call tao_re_allocate_expression_info(info, n_tot+size(scratch%eles))
+    call re_allocate (values, n_tot + size(eles))
+    if (present(info)) call tao_re_allocate_expression_info(info, n_tot+size(eles))
 
-    do j = 1, size(scratch%eles)
-      call evaluate_this_parameter(scratch%eles(j)%ele, parameter, component, where, u, n_tot, values, err)
-      if (present(info)) info(n_tot)%ele => scratch%eles(j)%ele
+    do j = 1, size(eles)
+      call evaluate_this_parameter(eles(j)%ele, parameter, component, where, u, n_tot, values, err)
+      if (present(info)) info(n_tot)%ele => eles(j)%ele
       if (err) return
     enddo
   enddo
