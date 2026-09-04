@@ -1660,9 +1660,12 @@ if (attrib_word == 'GEN_GRADIENTS') then
     allocate(ele%gen_gradients(i_ptr))
     allocate(ele%gen_gradients(i_ptr)%curve(0))
     do i = 1, i_ptr-1
-      ele%gen_gradients(i) = ele0%gen_gradients(i)
+      ele%gen_gradients(i) = ele0%gen_gradients(i)   ! Note: This is a deep copy of %curve.
     enddo
-    deallocate(ele0%gen_gradients)
+    ! Note: unlink_fieldmap is used here, and not a simple deallocate, since gfortran does not
+    ! deallocate the allocatable components of the elements of a pointer array when the array
+    ! itself is deallocated.
+    call unlink_fieldmap (gen_gradients = ele0%gen_gradients)
   else
     allocate(ele%gen_gradients(1))
     allocate(ele%gen_gradients(1)%curve(0))
