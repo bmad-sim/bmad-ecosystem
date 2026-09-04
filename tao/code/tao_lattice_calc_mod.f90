@@ -699,6 +699,11 @@ enddo
 
 if (associated(ele%rad_map)) ele%rad_map = rad_map_save
 
+! slice_ele is a local temporary. Fortran does not deallocate the pointer components (EG %rad_map)
+! of a local variable so this must be done by hand to prevent a memory leak.
+
+call deallocate_ele_pointers (slice_ele)
+
 ! only post total lost if no extraction or extracting to a turned off lattice
 
 n_lost = 0

@@ -88,11 +88,18 @@ if (associated (ele%mode3))                     deallocate (ele%mode3)
 if (associated (ele%rf))                        deallocate (ele%rf)
 if (associated (ele%wake))                      deallocate (ele%wake)
 if (associated (ele%high_energy_space_charge))  deallocate (ele%high_energy_space_charge)
-if (associated (ele%gen_gradients))              deallocate (ele%gen_gradients)
 
 if (allocated (ele%multipole_cache))            deallocate (ele%multipole_cache)
 
 call unlink_wall3d (ele%wall3d)
+
+! Note: Do not use a simple "deallocate (ele%gen_gradients)" here. Gfortran does not deallocate the
+! allocatable components of the elements of a pointer array when the array itself is deallocated so
+! unlink_fieldmap, which deallocates %curve by hand, must be used to avoid a memory leak.
+
+if (associated (ele%gen_gradients)) then
+  call unlink_fieldmap (gen_gradients = ele%gen_gradients)
+endif
 
 if (associated (ele%cartesian_map)) then
   call unlink_fieldmap (cartesian_map = ele%cartesian_map)

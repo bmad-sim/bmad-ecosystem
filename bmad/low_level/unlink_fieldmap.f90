@@ -53,7 +53,7 @@ endif
 
 if (present(gen_gradients)) then
   do i = 1, size(gen_gradients)
-    deallocate (gen_gradients(i)%curve)
+    if (allocated(gen_gradients(i)%curve)) deallocate (gen_gradients(i)%curve)
   enddo
   deallocate (gen_gradients)
 endif

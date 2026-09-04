@@ -179,9 +179,12 @@ if (associated(tree%node)) then
   n_save = min(n, n_old)
   temp_tree%node => tree%node
   allocate (tree%node(n))
-  tree%node(1:n_save) = temp_tree%node(1:n_save)
+  tree%node(1:n_save) = temp_tree%node(1:n_save)   ! Note: This is a deep copy of the allocatable components.
   do in = n_save+1, n_old
     call tao_deallocate_tree(temp_tree%node(in))
+  enddo
+  do in = 1, n_old
+    call deallocate_node_components(temp_tree%node(in))
   enddo
   deallocate (temp_tree%node)  
 else
@@ -216,10 +219,42 @@ if (.not. associated(tree%node)) return
 
 do in = 1, size(tree%node)
   call tao_deallocate_tree(tree%node(in))
+  call deallocate_node_components(tree%node(in))
 enddo
 
 deallocate(tree%node)
 
 end subroutine 
+
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!-------------------------------------------------------------------------
+!+
+! Subroutine deallocate_node_components (node)
+!
+! Routine to deallocate the allocatable components of a tree node.
+!
+! Note: This is needed since gfortran does not deallocate the allocatable components of the
+! elements of a pointer array when the array itself is deallocated. Without this there is a
+! memory leak every time an expression is evaluated.
+!
+! Input:
+!   node      -- tao_eval_node_struct: Node to clean up.
+!
+! Output:
+!   node      -- tao_eval_node_struct: Node with allocatable components deallocated.
+!-
+
+subroutine deallocate_node_components (node)
+
+type (tao_eval_node_struct) node
+
+!
+
+if (allocated(node%value))     deallocate(node%value)
+if (allocated(node%info))      deallocate(node%info)
+if (allocated(node%value_ptr)) deallocate(node%value_ptr)
+
+end subroutine deallocate_node_components
 
 end module

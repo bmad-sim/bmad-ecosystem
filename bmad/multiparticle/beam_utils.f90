@@ -114,6 +114,7 @@ else
 
   if (err_flag) then
     if (global_com%exit_on_error) call err_exit
+    call deallocate_ele_pointers (half_ele)
     return
   endif
 
@@ -144,6 +145,7 @@ endif
 
 if (ele%value(l$) == 0) then
   bunch%charge_live = sum (bunch%particle(:)%charge, mask = (bunch%particle(:)%state == alive$))
+  call deallocate_ele_pointers (half_ele)
   return
 endif
 
@@ -168,6 +170,11 @@ if (bunch%charge_live == 0) then
 endif
 
 call save_a_bunch_step (ele, bunch, bunch_track, ele%value(l$))
+
+! half_ele is a local temporary. Fortran does not deallocate pointer components (EG %rad_map which
+! is allocated by radiation_map_setup) of a local variable so this must be done by hand.
+
+call deallocate_ele_pointers (half_ele)
 
 end subroutine track1_bunch_hom
 
