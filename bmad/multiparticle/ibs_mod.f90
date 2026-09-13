@@ -18,6 +18,7 @@ type ibs_sim_param_struct
   real(rp) :: inductance = 0.0d0      ! Inductive part of impedance for pwd calc.  
   character(4) :: formula = 'bjmt'     ! Which IBS formulation to use.  See subroutine ibs1 for a list.
   !real(rp) :: fake_3HC = -1   ! If greater than zero, divide growth rates by this factor.
+  logical :: bunched = .true.  ! if true, lambda = N/sig_z.  If false, lambda = 2sqrt(pi)*N/lat%param%total_length
 end type
 
 type ibs_lifetime_struct  ! Beam lifetime based on IBS.  Useful for linacs.  These quantities are populated with time
@@ -130,8 +131,10 @@ L_ratio = inmode%sig_z / inmode%sigE_E
 ibsmode%a%emittance = inmode%a%emittance * initial_blow_up(1)
 ibsmode%b%emittance = inmode%b%emittance * initial_blow_up(2)
 ibsmode%sigE_E = inmode%sigE_E * sqrt(initial_blow_up(3))
-ibsmode%sig_z = inmode%sig_z * sqrt(initial_blow_up(3))
-ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E
+if (ibs_sim_params%bunched) then
+  ibsmode%sig_z = inmode%sig_z * sqrt(initial_blow_up(3))
+  ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E
+endif
 
 do i=1, SIZE(running_emit_x)
   running_emit_x(i) = 0.0
@@ -147,16 +150,18 @@ do WHILE(.not.converged)
   do i=1, lat%n_ele_track
     lat%ele(i)%a%emit = ibsmode%a%emittance
     lat%ele(i)%b%emit = ibsmode%b%emittance
-    lat%ele(i)%z%sigma = ibsmode%sig_z
     lat%ele(i)%z%sigma_p = ibsmode%sigE_E
-    lat%ele(i)%z%emit = ibsmode%sig_z * ibsmode%sigE_E
+    if (ibs_sim_params%bunched) then
+      lat%ele(i)%z%emit = ibsmode%sig_z * ibsmode%sigE_E
+      lat%ele(i)%z%sigma = ibsmode%sig_z
+    endif
   enddo
 
   call ibs_rates1turn(lat,ibs_sim_params,rates,granularity)
 
   ratio_a = tau_a*rates%inv_Ta
   ratio_b = tau_b*rates%inv_Tb
-  ratio_z = tau_z*rates%inv_Tz
+  ratio_z = tau_z*rates%inv_Tp
 
   !Initial blow up must be such that the first time through this loop, the following conditional
   !will be false (i.e. the else will be taken).
@@ -214,8 +219,10 @@ do WHILE(.not.converged)
       ibsmode%a%emittance = emit_a
       ibsmode%b%emittance = emit_b
       ibsmode%sigE_E = sigE_E 
-      ibsmode%sig_z = L_ratio * ibsmode%sigE_E
-      ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
+      if (ibs_sim_params%bunched) then
+        ibsmode%sig_z = L_ratio * ibsmode%sigE_E
+        ibsmode%z%emittance = ibsmode%sig_z * ibsmode%sigE_E 
+      endif
     endif
   endif
 enddo
@@ -303,7 +310,7 @@ do WHILE(.not.converged)
 
   Ta = 1.0/rates%inv_Ta
   Tb = 1.0/rates%inv_Tb
-  Tz = 1.0/rates%inv_Tz
+  Tz = 1.0/rates%inv_Tp
   emit_a = ibsmode%a%emittance
   emit_b = ibsmode%b%emittance
   sigE_E = ibsmode%sigE_E
@@ -383,7 +390,7 @@ call ibs_rates1turn(lat, ibs_sim_params, rates, granularity)
 
 lifetime%Tlx = exp(Rx)/2/Rx/rates%inv_Ta
 lifetime%Tly = exp(Ry)/2/Ry/rates%inv_Tb
-lifetime%Tlp = exp(R_p)/2/R_p/rates%inv_Tz
+lifetime%Tlp = exp(R_p)/2/R_p/rates%inv_Tp
 end subroutine ibs_lifetime
 
 !-------------------------------------------------------------------------------------------------------------------
@@ -425,7 +432,7 @@ logical err_flag
 ele => lat%ele(ix)
 
 call ibs1(lat, ibs_sim_params, rates1ele, i=ix)
-if (present(delta_sigma_energy)) delta_sigma_energy = ele%value(l$)/c_light*rates1ele%inv_Tz*ele%z%sigma_p*ele%value(E_TOT$)
+if (present(delta_sigma_energy)) delta_sigma_energy = ele%value(l$)/c_light*rates1ele%inv_Tp*ele%z%sigma_p*ele%value(E_TOT$)
 if (present(delta_emit_a))       delta_emit_a     = 2*ele%value(l$)/c_light*rates1ele%inv_Ta*ele%a%emit
 if (present(delta_emit_b))       delta_emit_b     = 2*ele%value(l$)/c_light*rates1ele%inv_Tb*ele%b%emit
 end subroutine ibs_delta_calc
@@ -454,7 +461,7 @@ subroutine ibs_rates1turn(lat, ibs_sim_params, rates1turn, granularity)
 
 implicit none
 
-real(rp) sum_inv_Tz, sum_inv_Ta, sum_inv_Tb
+real(rp) sum_inv_Tp, sum_inv_Ta, sum_inv_Tb
 type(lat_struct) :: lat
 type(ibs_sim_param_struct) :: ibs_sim_params
 type(ibs_struct) :: rates1ele
@@ -466,7 +473,7 @@ real(rp), ALLOCATABLE :: steps(:)
 real(rp) step_size
 real(rp) length_multiplier
 
-sum_inv_Tz = 0.0
+sum_inv_Tp = 0.0
 sum_inv_Ta = 0.0
 sum_inv_Tb = 0.0
 
@@ -480,7 +487,7 @@ if( granularity .lt. 0.0 ) then
 
     !length_multiplier = lat%ele(i)%value(l$)/2.0 + lat%ele(i+1)%value(l$)/2.0
     length_multiplier = lat%ele(i)%value(l$)
-    sum_inv_Tz = sum_inv_Tz + rates1ele%inv_Tz * length_multiplier
+    sum_inv_Tp = sum_inv_Tp + rates1ele%inv_Tp * length_multiplier
     sum_inv_Ta = sum_inv_Ta + rates1ele%inv_Ta * length_multiplier
     sum_inv_Tb = sum_inv_Tb + rates1ele%inv_Tb * length_multiplier
   enddo
@@ -498,14 +505,14 @@ else
   do i=1,n_steps
     call ibs1(lat, ibs_sim_params, rates1ele, s=steps(i))
 
-    sum_inv_Tz = sum_inv_Tz + rates1ele%inv_Tz * step_size
+    sum_inv_Tp = sum_inv_Tp + rates1ele%inv_Tp * step_size
     sum_inv_Ta = sum_inv_Ta + rates1ele%inv_Ta * step_size
     sum_inv_Tb = sum_inv_Tb + rates1ele%inv_Tb * step_size
   enddo
   DEALLOCATE(steps)
 endif
 
-rates1turn%inv_Tz = sum_inv_Tz / lat%param%total_length
+rates1turn%inv_Tp = sum_inv_Tp / lat%param%total_length
 rates1turn%inv_Ta = sum_inv_Ta / lat%param%total_length
 rates1turn%inv_Tb = sum_inv_Tb / lat%param%total_length
 end subroutine ibs_rates1turn
@@ -548,7 +555,7 @@ do i=1,lat%n_ele_track
   if(delta_t .gt. 0.) then
     rates1ele%inv_Ta = 0.0_rp
     rates1ele%inv_Tb = 0.0_rp
-    rates1ele%inv_Tz = 0.0_rp
+    rates1ele%inv_Tp = 0.0_rp
 
     call ibs1(lat, ibs_sim_params, rates1ele, i=i)
 
@@ -558,7 +565,7 @@ do i=1,lat%n_ele_track
     pp = lat%ele(i)%value(p0c$)/lat%ele(i+1)%value(p0c$)
     lat%ele(i+1)%a%emit = lat%ele(i)%a%emit * (1 + 2.0*delta_t*rates1ele%inv_Ta) * gg
     lat%ele(i+1)%b%emit = lat%ele(i)%b%emit * (1 + 2.0*delta_t*rates1ele%inv_Tb) * gg
-    lat%ele(i+1)%z%sigma_p = lat%ele(i)%z%sigma_p * (1 + delta_t*rates1ele%inv_Tz) * pp
+    lat%ele(i+1)%z%sigma_p = lat%ele(i)%z%sigma_p * (1 + delta_t*rates1ele%inv_Tp) * pp
   else
     lat%ele(i+1)%a%emit = lat%ele(i)%a%emit 
     lat%ele(i+1)%b%emit = lat%ele(i)%b%emit 
@@ -601,8 +608,8 @@ end subroutine ibs_blowup1turn
 !
 ! Output:
 !   rates$inv_Ta              - real(rp): 1/Ta, where Ta is rise time of a betatron mode
-!   rates$inv_Tb              - real(rp): 1/Ta, where Ta is rise time of b betatron mode
-!   rates$inv_Tz              - real(rp): 1/Ta, where Ta is rise time of energy spread
+!   rates$inv_Tb              - real(rp): 1/Tb, where Tb is rise time of b betatron mode
+!   rates$inv_Tp              - real(rp): 1/Tp, where Tp is rise time of energy spread
 !-
 subroutine ibs1(lat, ibs_sim_params, rates, i, s)
 
@@ -617,13 +624,11 @@ real(rp), intent(in), OPTIONAL :: s
 type(ele_struct), pointer :: ele
 type(ele_struct), target :: stubele
 real(rp) coulomb_log
-real(rp) n_part
-
-n_part = lat%param%n_part
+real(rp) lambda
 
 if(PRESENT(i) .and. .not.PRESENT(s)) then
   if(lat%ele(i)%value(l$) .eq. 0.0) then
-    rates%inv_Tz = 0.0
+    rates%inv_Tp = 0.0
     rates%inv_Ta = 0.0
     rates%inv_Tb = 0.0
     return
@@ -638,23 +643,29 @@ else
   STOP
 endif
 
+if (ibs_sim_params%bunched) then
+  lambda = lat%param%n_part / ele%z%sigma
+else
+  lambda = 2.0*sqrt(pi) * lat%param%n_part / lat%param%total_length
+endif
+
 if( ibs_sim_params%set_dispersion ) then
   ele%b%eta = ibs_sim_params%eta_set
   ele%b%etap = ibs_sim_params%etap_set
 endif
 
-call multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
+call multi_coulomb_log(ibs_sim_params, ele, coulomb_log, lambda)
 
 if(ibs_sim_params%formula == 'cimp') then
-  call cimp1(ele, coulomb_log, rates, n_part)
+  call cimp1(ele, coulomb_log, rates, lambda)
 elseif(ibs_sim_params%formula == 'bjmt') then
-  call bjmt1(ele, coulomb_log, rates, n_part)
+  call bjmt1(ele, coulomb_log, rates, lambda)
 elseif(ibs_sim_params%formula == 'bane') then
-  call bane1(ele, coulomb_log, rates, n_part)
+  call bane1(ele, coulomb_log, rates, lambda)
 elseif(ibs_sim_params%formula == 'mpzt') then
-  call mpzt1(ele, coulomb_log, rates, n_part)
+  call mpzt1(ele, coulomb_log, rates, lambda)
 elseif(ibs_sim_params%formula == 'mpxx') then
-  call mpxx1(ele, coulomb_log, rates, n_part)
+  call mpxx1(ele, coulomb_log, rates, lambda)
 else
   write(*,*) "Invalid IBS formula selected ... terminating"
   write(*,*) "Valid IBS formulas are: cimp, bjmt, bane, mpzt, and mpxx"
@@ -664,7 +675,7 @@ endif
 !replaced by fake_3HC in driver ! IBS theory gives growth rates that go exactly as 1/sigma_z.  Simulate effect of 3rd harmonic
 !replaced by fake_3HC in driver ! cavity by dividing rates by some factor.
 !replaced by fake_3HC in driver if( ibs_sim_params%fake_3HC .gt. 0 ) then
-!replaced by fake_3HC in driver   rates%inv_Tz = rates%inv_Tz / ibs_sim_params%fake_3HC
+!replaced by fake_3HC in driver   rates%inv_Tp = rates%inv_Tp / ibs_sim_params%fake_3HC
 !replaced by fake_3HC in driver   rates%inv_Ta = rates%inv_Ta / ibs_sim_params%fake_3HC
 !replaced by fake_3HC in driver   rates%inv_Tb = rates%inv_Tb / ibs_sim_params%fake_3HC
 !replaced by fake_3HC in driver endif
@@ -674,7 +685,7 @@ end subroutine ibs1
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-! Subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
+! Subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, lambda)
 !
 ! Calculates the value of the Coulomb log using various methods.
 !
@@ -686,24 +697,24 @@ end subroutine ibs1
 ! Input:
 !   ibs_sim_params        - ibs_sim_params_struct: parameters for IBS calculation
 !   ele                   - ele_struct: populated with Twiss parameters
-!   n_part                - real(rp): number of particles in the bunch
+!   lambda                - real(rp): number of particles in the bunch
 ! Output:
 !   coulomb_log           - real(rp): Value of the Coulomb Logarithm
 !-
 
-subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, n_part)
+subroutine multi_coulomb_log(ibs_sim_params, ele, coulomb_log, lambda)
 type(ibs_sim_param_struct) :: ibs_sim_params
 real(rp) coulomb_log
 
 type(ele_struct) ele
 real(rp) gamma, energy, g2
-real(rp) sigma_a, sigma_b, sigma_z, sigma_p, sp2
+real(rp) sigma_a, sigma_b, sigma_p, sp2
 real(rp) sigma_a_beta, sigma_b_beta
 real(rp) emit_a, emit_b
 real(rp) beta_a, beta_b
 real(rp) alpha_a, alpha_b
 real(rp) Da, Db, Dap, Dbp
-real(rp) n_part
+real(rp) lambda
 real(rp) bminstar
 real(rp) bmax
 real(rp) gamma_a, gamma_b
@@ -727,7 +738,6 @@ energy = ele%value(E_TOT$)
 call convert_total_energy_to(energy, ele%branch%lat%param%particle, gamma=gamma)
 
 sigma_p = ele%z%sigma_p
-sigma_z = ele%z%sigma
 emit_a = ele%a%emit
 emit_b = ele%b%emit
 
@@ -774,22 +784,22 @@ elseif( ibs_sim_params%clog_to_use == 2 ) then
   call fgsl_function_free(integrand_ready)
   call fgsl_integration_workspace_free(integ_wk)
 
-  qmax = sqrt( ibs_sim_params%tau_a*n_part*c_light*classical_radius**2/4.0d0/pi/g2/emit_a/emit_b/sigma_z/sigma_p * integration_result )
+  qmax = sqrt( ibs_sim_params%tau_a*lambda*c_light*classical_radius**2/4.0d0/pi/g2/emit_a/emit_b/sigma_p * integration_result )
 
   coulomb_log = log(qmax/qmin)
 elseif( ibs_sim_params%clog_to_use == 3 ) then
   !Tail cut Bane form: SLAC-PUB-9227
-  vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*sigma_z*gamma
-  bminstar = sqrt(vol/n_part/pi/(ibs_sim_params%tau_a/gamma)) / sqrt(c_light*gamma*sqrt(emit_a/beta_a))
-  debye = (vol/n_part)**(1.0d0/3.0d0)
+  vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*gamma
+  bminstar = sqrt(vol/lambda/pi/(ibs_sim_params%tau_a/gamma)) / sqrt(c_light*gamma*sqrt(emit_a/beta_a))
+  debye = (vol/lambda)**(1.0d0/3.0d0)
   bmax = min(min(sigma_a,sigma_b),debye)
   coulomb_log = log(bmax/bminstar)
 elseif( ibs_sim_params%clog_to_use == 4) then
   !Tail cut Kubo, but using relative velocity in all 3 dims, rather than just horizontal
-  vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*sigma_z*gamma
+  vol = (4.0d0*pi)**(3.0d0/2.0d0)*sigma_a*sigma_b*gamma
   Bbar = sqrt( gamma_a*emit_a + gamma_b*emit_b + sigma_p*sigma_p/gamma/gamma)  !beta in the rest frame
-  bminstar = sqrt(vol/n_part/pi/(ibs_sim_params%tau_a/gamma)) / sqrt(c_light*gamma*Bbar)
-  debye = (vol/n_part)**(1.0d0/3.0d0)
+  bminstar = sqrt(vol/lambda/pi/(ibs_sim_params%tau_a/gamma)) / sqrt(c_light*gamma*Bbar)
+  debye = (vol/lambda)**(1.0d0/3.0d0)
   bmax = min(min(sigma_a,sigma_b),debye)
   coulomb_log = log(bmax/bminstar)
 endif
