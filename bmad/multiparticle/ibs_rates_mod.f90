@@ -8,7 +8,7 @@ type ibs_struct  !these are betatron growth rates.  To get emittance growth rate
                  ! demit_a/dt = 2.0*emit_*inv_Ta
   real(rp) inv_Ta
   real(rp) inv_Tb
-  real(rp) inv_Tz
+  real(rp) inv_Tp
 end type
 
 real(fgsl_double), parameter :: eps7 = 1.0d-7
@@ -20,7 +20,7 @@ contains
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-!  subroutine bjmt1(ele, coulomb_log, rates, n_part)
+!  subroutine bjmt1(ele, coulomb_log, rates, lambda)
 !
 !  This is an implementation of equations 1-9 from "Intrabeam
 !  scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
@@ -32,15 +32,15 @@ contains
 !  Input:
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    coulomb_log       - real(rp): Coulomb log value
-!    n_part            - real(rp): number of particles in the bunch.
+!    lambda            - real(rp): Linear density of particles.  Set to n_part / sigma_z for bunched beams.
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
-!         %inv_Tz      - real(rp): energy spread growth rate.
+!         %inv_Tp      - real(rp): energy spread growth rate.
 !-
 
-subroutine bjmt1(ele, coulomb_log, rates, n_part)
+subroutine bjmt1(ele, coulomb_log, rates, lambda)
 
   implicit none
 
@@ -48,9 +48,9 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   real(rp) coulomb_log
   type(ibs_struct), intent(out) :: rates
   type(ele_struct), target :: stubele
-  real(rp) n_part
+  real(rp) lambda
 
-  real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) sigma_p, emit_a, emit_b, energy
   real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_y
@@ -58,7 +58,7 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   real(rp) alpha_a, alpha_b
   real(rp) big_A
   real(rp) Hx, Hy
-  real(rp) inv_Tz, inv_Ta, inv_Tb
+  real(rp) inv_Tp, inv_Ta, inv_Tb
 
   real(rp) phi_h, phi_v
 
@@ -77,13 +77,12 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
-  sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
   classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
 
-  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -130,7 +129,7 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   mats(2,:,:) = Lp
   fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 100.0d0, eps7, eps7, &
                                      limit, 3, integ_wk, integration_result, abserr)
-  inv_Tz=4.0*pi*big_A*coulomb_log*integration_result
+  inv_Tp=4.0*pi*big_A*coulomb_log*integration_result
 
   mats(2,:,:) = Lh
   fgsl_status = fgsl_integration_qag(integrand_ready, 0.0d0, 100.0d0, eps7, eps7, &
@@ -145,7 +144,7 @@ subroutine bjmt1(ele, coulomb_log, rates, n_part)
   call fgsl_integration_workspace_free(integ_wk)
   call fgsl_function_free(integrand_ready)
 
-  rates%inv_Tz = inv_Tz
+  rates%inv_Tp = inv_Tp
   rates%inv_Ta = inv_Ta
   rates%inv_Tb = inv_Tb
 
@@ -205,7 +204,7 @@ end function bjmt_integrand
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-!  subroutine bane1(ele, coulomb_log, rates, n_part)
+!  subroutine bane1(ele, coulomb_log, rates, lambda)
 !
 !  This is an implementation of equations 10-15 from "Intrabeam
 !  scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
@@ -215,15 +214,15 @@ end function bjmt_integrand
 !  Input:
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    coulomb_log       - real(rp): Coulomb log
-!    n_part            - real(rp): number of particles in the bunch.
+!    lambda            - real(rp): number of particles in the bunch.
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
-!         %inv_Tz      - real(rp): energy spread growth rate.
+!         %inv_Tp      - real(rp): energy spread growth rate.
 !-
 
-subroutine bane1(ele, coulomb_log, rates, n_part)
+subroutine bane1(ele, coulomb_log, rates, lambda)
 
   implicit none
 
@@ -231,16 +230,16 @@ subroutine bane1(ele, coulomb_log, rates, n_part)
   real(rp) coulomb_log
   type(ibs_struct), intent(out) :: rates
 
-  real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) sigma_p, emit_a, emit_b, energy
   real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_b, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
   real(rp) alpha_a, alpha_b
   real(rp) a, b, g_bane
-  real(rp) n_part, big_A
+  real(rp) lambda, big_A
   real(rp) sigma_H, Ha, Hb
-  real(rp) inv_Tz, inv_Ta, inv_Tb
+  real(rp) inv_Tp, inv_Ta, inv_Tb
 
   real(fgsl_double), target :: Elpha
   type(fgsl_function) :: integrand_ready
@@ -254,13 +253,12 @@ subroutine bane1(ele, coulomb_log, rates, n_part)
   call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
-  sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
   classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
 
-  big_A=(classical_radius**2)*c_light*n_part/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/sigma_z/(sigma_p**3)
+  big_A=(classical_radius**2)*c_light*lambda/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/(sigma_p**3)
 
   beta_a = ele%a%beta
   beta_b = ele%b%beta
@@ -291,11 +289,11 @@ subroutine bane1(ele, coulomb_log, rates, n_part)
   call fgsl_function_free(integrand_ready)
   call fgsl_integration_workspace_free(integ_wk)
 
-  inv_Tz = big_A*coulomb_log*sigma_H*g_bane*((beta_a*beta_b)**(-1./4.))
-  inv_Ta = (sigma_p**2)*Ha/emit_a*inv_Tz
-  inv_Tb = (sigma_p**2)*Hb/emit_b*inv_Tz
+  inv_Tp = big_A*coulomb_log*sigma_H*g_bane*((beta_a*beta_b)**(-1./4.))
+  inv_Ta = (sigma_p**2)*Ha/emit_a*inv_Tp
+  inv_Tb = (sigma_p**2)*Hb/emit_b*inv_Tp
 
-  rates%inv_Tz = inv_Tz
+  rates%inv_Tp = inv_Tp
   rates%inv_Ta = inv_Ta
   rates%inv_Tb = inv_Tb
 
@@ -316,7 +314,7 @@ end function integrand
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-!  subroutine mpxx1(ele, coulomb_log, rates, n_part)
+!  subroutine mpxx1(ele, coulomb_log, rates, lambda)
 !
 !  Modified Piwinski, further modified to treat Coulomb Log
 !  in the same manner as Bjorken-Mtingwa, CIMP, Bane, Kubo & Oide, etc.
@@ -325,16 +323,16 @@ end function integrand
 !  Input:
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    coulomb_log       - real(rp): Coulomb log
-!    n_part            - real(rp): number of particles in the bunch.
+!    lambda            - real(rp): number of particles in the bunch.
 !
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
-!         %inv_Tz      - real(rp): energy spread growth rate.
+!         %inv_Tp      - real(rp): energy spread growth rate.
 !-
 
-subroutine mpxx1(ele, coulomb_log, rates, n_part)
+subroutine mpxx1(ele, coulomb_log, rates, lambda)
 
   implicit none
 
@@ -342,16 +340,16 @@ subroutine mpxx1(ele, coulomb_log, rates, n_part)
   real(rp) coulomb_log
   type(ibs_struct), intent(out) :: rates
 
-  real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) sigma_p, emit_a, emit_b, energy
   real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
   real(rp) alpha_a, alpha_b
   real(rp) a,b,q
-  real(rp) n_part, big_A
+  real(rp) lambda, big_A
   real(rp) sigma_H, Ha, Hb
-  real(rp) inv_Tz, inv_Ta, inv_Tb
+  real(rp) inv_Tp, inv_Ta, inv_Tb
   real(rp) fab, f1b, f1a
 
   real(fgsl_double), target :: args(1:2)
@@ -366,12 +364,11 @@ subroutine mpxx1(ele, coulomb_log, rates, n_part)
   call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
-  sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
   classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
-  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -418,11 +415,11 @@ subroutine mpxx1(ele, coulomb_log, rates, n_part)
   call fgsl_function_free(integrand_ready)
   !------------------------End calls to GSL integrator
 
-  inv_Tz = coulomb_log * big_A * sigma_H**2 / sigma_p**2 * fab
+  inv_Tp = coulomb_log * big_A * sigma_H**2 / sigma_p**2 * fab
   inv_Ta = coulomb_log * big_A * (f1b + Ha*sigma_H**2/emit_a*fab)
   inv_Tb = coulomb_log * big_A * (f1a + Hb*sigma_H**2/emit_b*fab)
 
-  rates%inv_Tz = inv_Tz
+  rates%inv_Tp = inv_Tp
   rates%inv_Ta = inv_Ta
   rates%inv_Tb = inv_Tb
 
@@ -451,7 +448,7 @@ end function mpxx_integrand
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-!  subroutine mpzt1(ele, coulomb_log, rates, n_part)
+!  subroutine mpzt1(ele, coulomb_log, rates, lambda)
 !
 !  Modified Piwinski with Zotter's integral.  This is Piwinski's original derivation,
 !  generalized to take the derivatives of the optics functions.  Also, Piwinski's
@@ -463,16 +460,16 @@ end function mpxx_integrand
 !  Input:
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    coulomb_log       - real(rp): Coulomb log
-!    n_part            - real(rp): number of particles in the bunch.
+!    lambda            - real(rp): number of particles in the bunch.
 !
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
-!         %inv_Tz      - real(rp): energy spread growth rate.
+!         %inv_Tp      - real(rp): energy spread growth rate.
 !-
 
-subroutine mpzt1(ele, coulomb_log, rates, n_part)
+subroutine mpzt1(ele, coulomb_log, rates, lambda)
 
   implicit none
 
@@ -480,16 +477,16 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
   real(rp) coulomb_log
   type(ibs_struct), intent(out) :: rates
 
-  real(rp) sigma_p, emit_a, emit_b, sigma_z, energy
+  real(rp) sigma_p, emit_a, emit_b, energy
   real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
   real(rp) alpha_a, alpha_b
   real(rp) a,b,q
-  real(rp) n_part, big_A
+  real(rp) lambda, big_A
   real(rp) sigma_H, Ha, Hb
-  real(rp) inv_Tz, inv_Ta, inv_Tb
+  real(rp) inv_Tp, inv_Ta, inv_Tb
   real(rp) fabq, f1bq, f1aq
 
   real(fgsl_double), target :: args(1:3)
@@ -504,12 +501,11 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
   call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
-  sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
   classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
-  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -558,11 +554,11 @@ subroutine mpzt1(ele, coulomb_log, rates, n_part)
   call fgsl_function_free(integrand_ready)
   !------------------------End calls to GSL integrator
 
-  inv_Tz = big_A * sigma_H**2 / sigma_p**2 * fabq
+  inv_Tp = big_A * sigma_H**2 / sigma_p**2 * fabq
   inv_Ta = big_A * (f1bq + Ha*sigma_H**2/emit_a*fabq)
   inv_Tb = big_A * (f1aq + Hb*sigma_H**2/emit_b*fabq)
 
-  rates%inv_Tz = inv_Tz
+  rates%inv_Tp = inv_Tp
   rates%inv_Ta = inv_Ta
   rates%inv_Tb = inv_Tb
 
@@ -605,7 +601,7 @@ end function zot_integrand
 !-------------------------------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------------------------------
 !+
-!  subroutine cimp1(ele, coulomb_log, rates, n_part)
+!  subroutine cimp1(ele, coulomb_log, rates, lambda)
 !
 !  This is an implementation of equations 34,38-40 from "Intrabeam
 !  scattering formulas for high energy beams" Kubo,Mtingwa,Wolski.
@@ -621,25 +617,25 @@ end function zot_integrand
 !  Input:
 !    ele               - ele_struct: contains Twiss parameters used in IBS formula
 !    coulomb_log       - real(rp): Coulomb log
-!    n_part            - real(rp): number of particles in the bunch.
+!    lambda            - real(rp): number of particles in the bunch.
 !
 !  Output:
 !    rates             - ibs_struct
 !         %inv_Ta      - real(rp): a-mode betatron growth rate.
 !         %inv_Tb      - real(rp): b-mode betatron growth rate.
-!         %inv_Tz      - real(rp): energy spread growth rate.
+!         %inv_Tp      - real(rp): energy spread growth rate.
 !-
 
-subroutine cimp1(ele, coulomb_log, rates, n_part)
+subroutine cimp1(ele, coulomb_log, rates, lambda)
 
   implicit none
 
   type(ele_struct) :: ele
   real(rp) coulomb_log
   type(ibs_struct), intent(out) :: rates
-  real(rp) element_length, E_TOT, n_part
+  real(rp) element_length, E_TOT, lambda
 
-  real(rp) sigma_p, emit_a, emit_b, sigma_z
+  real(rp) sigma_p, emit_a, emit_b
   real(rp) classical_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
@@ -648,7 +644,7 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
   real(rp) a, b
   real(rp) big_A
   real(rp) sigma_H, Hx, Hy
-  real(rp) inv_Tz, inv_Ta, inv_Tb
+  real(rp) inv_Tp, inv_Ta, inv_Tb
   real(rp) g_ab,g_ba
   real(rp) bminstar, bmax
   real(rp) energy
@@ -662,12 +658,11 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
   call convert_total_energy_to(energy, ele%branch%param%particle, gamma, KE, rbeta)
 
   sigma_p = ele%z%sigma_p
-  sigma_z = ele%z%sigma
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
   classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
-  big_A=(classical_radius**2)*c_light*n_part/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_z/sigma_p
+  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -693,7 +688,7 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
   g_ba = g(b/a)
   g_ab = g(a/b)
 
-  inv_Tz = 2.*(pi**(3./2.))*big_A*(sigma_H**2)/(sigma_p**2) * &
+  inv_Tp = 2.*(pi**(3./2.))*big_A*(sigma_H**2)/(sigma_p**2) * &
     coulomb_log * ( g_ba/a + g_ab/b ) 
   inv_Ta = 2.*(pi**(3./2.))*big_A*coulomb_log*&
     (-a*g_ba + Hx*(sigma_H**2)/emit_a* &
@@ -702,7 +697,7 @@ subroutine cimp1(ele, coulomb_log, rates, n_part)
     (-b*g_ab + Hy*(sigma_H**2)/emit_b* &
     ( g_ba/a + g_ab/b ) )
 
-  rates%inv_Tz = inv_Tz
+  rates%inv_Tp = inv_Tp
   rates%inv_Ta = inv_Ta
   rates%inv_Tb = inv_Tb
 
