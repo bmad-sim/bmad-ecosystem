@@ -42,7 +42,7 @@ character(20), parameter :: tao_set_target_names(33) = [character(20) :: 'branch
 
 ! "pipe <subcommand>" names. See tao_pipe_cmd.
 
-character(40), parameter :: tao_pipe_cmd_names(113) = [character(40) :: &
+character(40), parameter :: tao_pipe_cmd_names(114) = [character(40) :: &
           'beam', 'beam_init', 'branch1', 'bunch_comb', 'bunch_params', 'bunch1', 'bmad_com',&
           'building_wall_list', 'building_wall_graph', 'building_wall_point', 'building_wall_section', &
           'complete', 'constraints', 'da_params', 'da_aperture', &
@@ -52,7 +52,7 @@ character(40), parameter :: tao_pipe_cmd_names(113) = [character(40) :: &
           'ele:ac_kicker', 'ele:cartesian_map', 'ele:chamber_wall', 'ele:control_var', &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_gradients', &
           'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
-          'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', &
+          'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:shape', 'ele:spin_taylor', 'ele:taylor', &
           'ele:twiss', 'ele:wake', 'ele:wall3d', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
