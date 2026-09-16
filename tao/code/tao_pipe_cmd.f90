@@ -1133,14 +1133,15 @@ case ('building_wall_section')
 ! Notes
 ! -----
 ! Command syntax:
-!   pipe complete {line}
+!   pipe complete "{line}"
 !
 ! Where:
 !   {line} is the partial command line to complete, considered up to its end.
 !
-! Enclose {line} in double quotes to preserve trailing blanks and embedded
-! semicolons. For example, completing "sho" gives matching command names while
-! completing "show " (note the trailing blank) gives the possible show subcommands.
+! The double quotes around {line} preserve trailing blanks and embedded
+! semicolons and may be omitted when neither is present. For example,
+! completing "sho" gives matching command names while completing "show "
+! (note the trailing blank) gives the possible show subcommands.
 !
 ! The first line of output has the form:
 !   {word};{context}
