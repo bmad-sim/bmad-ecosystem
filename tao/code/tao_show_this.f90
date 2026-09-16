@@ -18,6 +18,7 @@ subroutine tao_show_this (what, result_id, lines, nl)
 use tao_top10_mod, dummy => tao_show_this
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch, tao_next_word
+use tao_command_names_mod, only: tao_show_what_names
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
@@ -248,14 +249,7 @@ if (ix_word > 2 .and. index('csr_param', what2(:ix_word)) == 1)        what2 = '
 if (ix_word > 3 .and. index('space_charge_com', what2(:ix_word)) == 1) what2 = 'global -space_charge_com ' // what2(ix_word+1:)
 if (ix_word > 2 .and. index('floor_plan', what2(:ix_word)) == 1)       what2 = 'plot -floor_plan ' // what2(ix_word+1:)
 
-call match_word (what2, [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
-        'chromaticity', 'constraints', 'control', 'curve', 'data', 'debug', &
-        'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', &
-        'history', 'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', &
-        'optimizer', 'orbit', 'particle', 'plot', 'ptc', 'radiation_integrals', 'rampers', 'spin', 'string', &
-        'symbolic_numbers', 'taylor_map',  'top10', &
-        'track', 'tune', 'twiss_and_orbit', 'universe', 'use', 'value', 'variables', 'version', &
-        'wake_elements', 'wall', 'wave'], ix, matched_name = show_what)
+call match_word (what2, tao_show_what_names, ix, matched_name = show_what)
 if (ix == 0) then
   nl=1; lines(1) = 'SHOW WHAT? WORD NOT RECOGNIZED: ' // what
   return
