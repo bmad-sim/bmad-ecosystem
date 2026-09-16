@@ -19,6 +19,7 @@ subroutine tao_command (command_line, err_flag, err_is_fatal)
 use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc, tao_change_tune, tao_change_z_tune
 use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch, tao_next_word
+use tao_command_names_mod, only: tao_command_names, tao_set_target_names
 use tao_scale_mod, only: tao_scale_cmd
 use tao_wave_mod, only: tao_wave_cmd
 use tao_x_scale_mod, only: tao_x_scale_cmd
@@ -46,13 +47,6 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(49) = [character(16):: &
-                      'alias', 'call', 'change', 'clear', 'clip', 'continue', 'create', 'cut_ring', 'derivative', &
-                      'end_file', 'exit', 'fixer', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
-                      'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'regression', 'reinitialize', 'reset', &
-                      'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
-                      'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale', &
-                      'debug', 'verbose', 'tree']
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
@@ -88,7 +82,7 @@ if (cmd_line(1:5) == 'quiet') then
   return
 endif
 
-call match_word (cmd_line, cmd_names, ix_cmd, .true., matched_name = cmd_name)
+call match_word (cmd_line, tao_command_names, ix_cmd, .true., matched_name = cmd_name)
 
 if (ix_cmd == 0) then  ! Accept old-style names with "-" instead of "_".
   call match_word (cmd_line, cmd_names_old, ix_cmd, .true., matched_name = cmd_name)
@@ -710,11 +704,7 @@ case ('set')
 
     if (set_word /= '') exit
 
-    call tao_next_switch (cmd_line, [character(20) :: 'branch', 'data', 'variable', 'lattice', &
-      'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
-      'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
-      'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag)
+    call tao_next_switch (cmd_line, tao_set_target_names, .true., switch, err_flag)
     if (err_flag) return
     set_word = switch
   enddo
