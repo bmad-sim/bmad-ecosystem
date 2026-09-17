@@ -70,12 +70,17 @@ character(40), parameter :: tao_pipe_cmd_names(113) = [character(40) :: &
           'wall3d_radius', 'wave']
 
 ! Switch (flag) lists per completion context, used by tao_completion_mod for tab
-! completion of "-switch" tokens. A context is a command name, or a command name
-! plus a resolved subcommand name; %switches holds its blank-separated flags.
-! Keep in sync with the switch parsing at:
-!   'set', 'change', 'place', 'pipe'  -- tao_command / tao_pipe_cmd
-!   'show'                            -- tao_show_cmd (pre-dispatch switches)
-!   'show <what>'                     -- the corresponding case in tao_show_this
+! completion of "-switch" tokens and, where identical, read directly by the
+! command parsers via tao_switches_for(). A context is a command name, or a
+! command name plus a resolved subcommand name.
+!
+! Shared with the parser (single source of truth via tao_switches_for):
+!   'show'         -- tao_show_cmd global switches
+!   'show <what>'  -- every tao_next_switch case in tao_show_this
+!   'pipe'         -- tao_pipe_cmd leading switches
+! Completion-only (parser list intentionally differs, so kept separate):
+!   'set'          -- parser also accepts the deprecated -lord_no_set
+!   'change'/'place' -- parsed by index() matching, not tao_next_switch
 
 integer, parameter :: tao_switch_name_len = 28
 
