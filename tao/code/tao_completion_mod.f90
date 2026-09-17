@@ -112,13 +112,6 @@ enddo
 token = ''
 if (word_start <= n_end) token = line(word_start:n_end)
 
-! Switch completion is not supported.
-
-if (token(1:1) == '-') then
-  allocate (matches(0))
-  return
-endif
-
 ! Gather the complete words before the token, dropping "-switch" words.
 
 n_words = 0
@@ -147,10 +140,12 @@ enddo
 ! First word: command names plus user defined aliases. Case sensitive.
 
 if (n_words == 0) then
-  call add_prefix_matches (tao_command_names, .true.)
-  do i = 1, s%com%n_alias
-    call add_match_if_prefix (s%com%alias(i)%name, .true.)
-  enddo
+  if (token(1:1) /= '-') then
+    call add_prefix_matches (tao_command_names, .true.)
+    do i = 1, s%com%n_alias
+      call add_match_if_prefix (s%com%alias(i)%name, .true.)
+    enddo
+  endif
   context = 'LIST'
   matches = cand(1:n_cand)
   return
@@ -164,6 +159,14 @@ if (ix <= 0) then
   return
 endif
 
+! A token starting with "-" is a switch: complete it from the switch context table.
+
+if (token(1:1) == '-') then
+  call add_switch_matches ()
+  matches = cand(1:n_cand)
+  return
+endif
+
 select case (cmd_name)
 
 case ('show')
@@ -172,104 +175,84 @@ case ('show')
     ! Pseudo names remapped at the top of tao_show_this.
     call add_prefix_matches ([character(20):: 'plot_page', 'bmad_com', 'ptc_com', &
                                               'space_charge_com', 'floor_plan'], .false.)
-    context = 'LIST'
   elseif (n_words == 2) then
     call match_word (words(2), tao_show_what_names, ix, matched_name = sub_name)
-    if (sub_name == 'element') then
-      call add_element_matches ()
-      context = 'LIST'
-    endif
+    select case (sub_name)
+    case ('element');            call add_element_matches ()
+    case ('data');               call add_data_matches ()
+    case ('variables');          call add_var_matches ()
+    case ('plot', 'graph', 'curve'); call add_plot_matches (.true., .true.)
+    end select
   endif
 
 case ('set')
   if (n_words == 1) then
     call add_prefix_matches (tao_set_target_names, .true.)
-    context = 'LIST'
-  else
+  elseif (n_words == 2) then
     call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
     select case (sub_name)
 
     ! These set targets work via a namelist read so a namelist write gives the component names.
     case ('global', 'beam_init', 'bmad_com', 'space_charge_com', 'geodesic_lm', &
           'opti_de_param', 'plot_page')
-      if (n_words == 2) then
-        call add_set_struct_matches (sub_name)
-        context = 'LIST'
-      endif
+      call add_set_struct_matches (sub_name)
 
     ! Set via select case in tao_set_ptc_com_cmd. Keep in sync.
     case ('ptc_com')
-      if (n_words == 2) then
-        call add_prefix_matches ([character(24):: 'vertical_kick', 'cut_factor', &
-              'max_fringe_order', 'old_integrator', 'exact_model', 'exact_misalign', &
-              'use_orientation_patches', 'print_info_messages', 'pancake_symplectic', &
-              'pancake_canonical'], .false.)
-        context = 'LIST'
-      endif
+      call add_prefix_matches ([character(24):: 'vertical_kick', 'cut_factor', &
+            'max_fringe_order', 'old_integrator', 'exact_model', 'exact_misalign', &
+            'use_orientation_patches', 'print_info_messages', 'pancake_symplectic', &
+            'pancake_canonical'], .false.)
 
     ! Set via select case in tao_set_beam_cmd. Keep in sync (deprecated aliases omitted).
     case ('beam')
-      if (n_words == 2) then
-        call add_prefix_matches ([character(24):: 'beginning', 'comb_ds_save', &
-              'always_reinit', 'track_start', 'track_end', 'beam_init_position_file', &
-              'dump_file', 'dump_at', 'saved_at', 'add_saved_at', 'subtract_saved_at'], .false.)
-        context = 'LIST'
-      endif
+      call add_prefix_matches ([character(24):: 'beginning', 'comb_ds_save', &
+            'always_reinit', 'track_start', 'track_end', 'beam_init_position_file', &
+            'dump_file', 'dump_at', 'saved_at', 'add_saved_at', 'subtract_saved_at'], .false.)
 
     case ('element')
-      if (n_words == 2) then
-        call add_element_matches ()
-        context = 'LIST'
-      elseif (n_words == 3) then
-        call add_attribute_matches (words(3))
-        context = 'LIST'
-      endif
+      call add_element_matches ()
     end select
+
+  elseif (n_words == 3) then
+    call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
+    if (sub_name == 'element') call add_attribute_matches (words(3))
   endif
 
 case ('pipe', 'python')
+  if (n_words == 1) call add_prefix_matches (tao_pipe_cmd_names, .false.)
+
+case ('place')
   if (n_words == 1) then
-    call add_prefix_matches (tao_pipe_cmd_names, .false.)
-    context = 'LIST'
+    call add_plot_matches (.true., .false.)
+  elseif (n_words == 2) then
+    call add_plot_matches (.false., .true.)
   endif
 
 case ('help')
   if (n_words == 1) then
     call add_prefix_matches (tao_command_names, .false.)
-    context = 'LIST'
   elseif (n_words == 2) then
     call match_word (words(2), [character(8):: 'pipe', 'python'], ix, matched_name = sub_name)
-    if (ix > 0) then
-      call add_prefix_matches (tao_pipe_cmd_names, .false.)
-      context = 'LIST'
-    endif
+    if (ix > 0) call add_prefix_matches (tao_pipe_cmd_names, .false.)
   endif
 
 case ('change')
   if (n_words == 1) then
     call add_prefix_matches ([character(20):: 'element', 'variable', 'tune', 'z_tune', &
                                               'particle_start'], .false.)
-    context = 'LIST'
   elseif (n_words == 2) then
-    if (words(2) /= '' .and. index('element', trim(words(2))) == 1) then
-      call add_element_matches ()
-      context = 'LIST'
-    endif
+    if (words(2) /= '' .and. index('element', trim(words(2))) == 1) call add_element_matches ()
   endif
 
 case ('use', 'veto', 'restore')
   if (n_words == 1) then
     call add_prefix_matches ([character(8):: 'data', 'variable'], .true.)
-    context = 'LIST'
   else
     call match_word (words(2), [character(8):: 'data', 'variable'], ix, .true., matched_name = sub_name)
     select case (sub_name)
-    case ('data')
-      call add_data_matches ()
-      context = 'LIST'
-    case ('variable')
-      call add_var_matches ()
-      context = 'LIST'
+    case ('data');      call add_data_matches ()
+    case ('variable');  call add_var_matches ()
     end select
   endif
 
@@ -283,12 +266,18 @@ matches = cand(1:n_cand)
 !------------------------------------------
 contains
 
+! The candidate-adding helpers below all mark the position as recognized by
+! setting context = 'LIST'. Thus a recognized position with no matching
+! candidate still reports 'LIST' (empty), distinct from 'NONE' (not a
+! completion position). Callers therefore never set context themselves.
+
 subroutine add_prefix_matches (names, exact_case)
 
 character(*) names(:)
 logical exact_case
 integer in
 
+context = 'LIST'
 do in = 1, size(names)
   call add_match_if_prefix (names(in), exact_case)
 enddo
@@ -328,6 +317,76 @@ cand(n_cand) = name
 end subroutine add_match_if_prefix
 
 !.................................
+! Switch ("-flag") candidates from the context table in tao_command_names_mod.
+! The context key is the command name, refined by the resolved subcommand for "show".
+
+subroutine add_switch_matches ()
+
+character(28) key
+character(400) list_str
+integer ik, lw
+
+context = 'LIST'
+
+select case (cmd_name)
+case ('show')
+  if (n_words == 1) then
+    key = 'show'
+  else
+    call match_word (words(2), tao_show_what_names, ik, matched_name = key)
+    if (ik <= 0) return
+    key = 'show ' // key
+  endif
+case ('place')
+  ! The -no_buffer switch must come first.
+  if (n_words > 1) return
+  key = cmd_name
+case default
+  key = cmd_name
+end select
+
+do ik = 1, n_tao_switch_contexts
+  if (tao_switch_context(ik) /= key) cycle
+  list_str = tao_switch_list(ik)
+  do
+    call string_trim (list_str, list_str, lw)
+    if (lw == 0) exit
+    call add_match_if_prefix (list_str(1:lw), .true.)
+    list_str = list_str(lw+1:)
+  enddo
+  return
+enddo
+
+end subroutine add_switch_matches
+
+!.................................
+! Plot region and/or template names, as used by "place" and plot name arguments.
+
+subroutine add_plot_matches (do_regions, do_templates)
+
+logical do_regions, do_templates
+integer ip
+
+context = 'LIST'
+
+if (do_regions .and. allocated(s%plot_page%region)) then
+  do ip = 1, size(s%plot_page%region)
+    if (s%plot_page%region(ip)%name == '') cycle
+    call add_match_if_prefix (s%plot_page%region(ip)%name, .false.)
+  enddo
+endif
+
+if (do_templates .and. allocated(s%plot_page%template)) then
+  do ip = 1, size(s%plot_page%template)
+    if (s%plot_page%template(ip)%phantom) cycle
+    if (s%plot_page%template(ip)%name == '' .or. s%plot_page%template(ip)%name == 'scratch') cycle
+    call add_match_if_prefix (s%plot_page%template(ip)%name, .false.)
+  enddo
+endif
+
+end subroutine add_plot_matches
+
+!.................................
 ! The "set" commands for these structs work by writing "<struct>%<component> = <value>"
 ! to a scratch file and doing a namelist read (see tao_set_mod). A namelist write of the
 ! same struct therefore enumerates exactly the component names that "set" accepts.
@@ -352,6 +411,8 @@ namelist / nml_space_charge_com / this_space_charge_com
 namelist / nml_geodesic_lm / this_geodesic_lm
 namelist / nml_opti_de_param / opti_de_param
 namelist / nml_plot_page / plot_page
+
+context = 'LIST'
 
 ! Scratch file I/O is safe here: only terminal output would corrupt the readline display.
 
@@ -405,6 +466,7 @@ character(*) ele_name
 character(60) name_up
 integer iuni, ib, ie, ia
 
+context = 'LIST'
 if (ele_name == '') return
 if (.not. allocated(s%u)) return
 iuni = s%global%default_universe
@@ -440,6 +502,7 @@ type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 integer iu, ib, ie
 
+context = 'LIST'
 if (.not. allocated(s%u)) return
 iu = s%global%default_universe
 if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) return
@@ -465,6 +528,7 @@ type (tao_d2_data_struct), pointer :: d2
 character(100) name
 integer iu, id, id1
 
+context = 'LIST'
 if (.not. allocated(s%u)) return
 iu = s%global%default_universe
 if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) return
@@ -489,6 +553,7 @@ subroutine add_var_matches ()
 
 integer iv
 
+context = 'LIST'
 if (.not. allocated(s%v1_var)) return
 do iv = 1, s%n_v1_var_used
   call add_match_if_prefix (s%v1_var(iv)%name, .true.)
