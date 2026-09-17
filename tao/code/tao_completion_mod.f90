@@ -19,6 +19,10 @@ module tao_completion_mod
 
 use tao_struct
 use tao_command_names_mod
+use tao_input_struct, only: tao_plot_page_input
+use attribute_mod, only: attribute_info, ele_attribute_struct
+use geodesic_lm, only: geodesic_lm_param_struct
+use opti_de_mod, only: opti_de_param
 use, intrinsic :: iso_c_binding
 
 implicit none
@@ -181,6 +185,46 @@ case ('set')
   if (n_words == 1) then
     call add_prefix_matches (tao_set_target_names, .true.)
     context = 'LIST'
+  else
+    call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
+    select case (sub_name)
+
+    ! These set targets work via a namelist read so a namelist write gives the component names.
+    case ('global', 'beam_init', 'bmad_com', 'space_charge_com', 'geodesic_lm', &
+          'opti_de_param', 'plot_page')
+      if (n_words == 2) then
+        call add_set_struct_matches (sub_name)
+        context = 'LIST'
+      endif
+
+    ! Set via select case in tao_set_ptc_com_cmd. Keep in sync.
+    case ('ptc_com')
+      if (n_words == 2) then
+        call add_prefix_matches ([character(24):: 'vertical_kick', 'cut_factor', &
+              'max_fringe_order', 'old_integrator', 'exact_model', 'exact_misalign', &
+              'use_orientation_patches', 'print_info_messages', 'pancake_symplectic', &
+              'pancake_canonical'], .false.)
+        context = 'LIST'
+      endif
+
+    ! Set via select case in tao_set_beam_cmd. Keep in sync (deprecated aliases omitted).
+    case ('beam')
+      if (n_words == 2) then
+        call add_prefix_matches ([character(24):: 'beginning', 'comb_ds_save', &
+              'always_reinit', 'track_start', 'track_end', 'beam_init_position_file', &
+              'dump_file', 'dump_at', 'saved_at', 'add_saved_at', 'subtract_saved_at'], .false.)
+        context = 'LIST'
+      endif
+
+    case ('element')
+      if (n_words == 2) then
+        call add_element_matches ()
+        context = 'LIST'
+      elseif (n_words == 3) then
+        call add_attribute_matches (words(3))
+        context = 'LIST'
+      endif
+    end select
   endif
 
 case ('pipe', 'python')
@@ -282,6 +326,111 @@ n_cand = n_cand + 1
 cand(n_cand) = name
 
 end subroutine add_match_if_prefix
+
+!.................................
+! The "set" commands for these structs work by writing "<struct>%<component> = <value>"
+! to a scratch file and doing a namelist read (see tao_set_mod). A namelist write of the
+! same struct therefore enumerates exactly the component names that "set" accepts.
+
+subroutine add_set_struct_matches (set_word)
+
+type (tao_global_struct) global
+type (beam_init_struct) beam_init
+type (bmad_common_struct) this_bmad_com
+type (space_charge_common_struct) this_space_charge_com
+type (geodesic_lm_param_struct) this_geodesic_lm
+type (tao_plot_page_input) plot_page
+
+character(*) set_word
+character(300) nml_line
+integer iu_nml, ios, ix1, ix2
+
+namelist / nml_global / global
+namelist / nml_beam_init / beam_init
+namelist / nml_bmad_com / this_bmad_com
+namelist / nml_space_charge_com / this_space_charge_com
+namelist / nml_geodesic_lm / this_geodesic_lm
+namelist / nml_opti_de_param / opti_de_param
+namelist / nml_plot_page / plot_page
+
+! Scratch file I/O is safe here: only terminal output would corrupt the readline display.
+
+open (newunit = iu_nml, status = 'scratch', iostat = ios)
+if (ios /= 0) return
+
+select case (set_word)
+case ('global');            write (iu_nml, nml = nml_global, iostat = ios)
+case ('beam_init');         write (iu_nml, nml = nml_beam_init, iostat = ios)
+case ('bmad_com');          write (iu_nml, nml = nml_bmad_com, iostat = ios)
+case ('space_charge_com');  write (iu_nml, nml = nml_space_charge_com, iostat = ios)
+case ('geodesic_lm');       write (iu_nml, nml = nml_geodesic_lm, iostat = ios)
+case ('opti_de_param');     write (iu_nml, nml = nml_opti_de_param, iostat = ios)
+case ('plot_page');         write (iu_nml, nml = nml_plot_page, iostat = ios)
+end select
+
+rewind (iu_nml)
+do
+  read (iu_nml, '(a)', iostat = ios) nml_line
+  if (ios /= 0) exit
+  nml_line = adjustl(nml_line)
+  ix1 = index(nml_line, '%')
+  ix2 = index(nml_line, '=')
+  if (ix1 == 0 .or. ix2 <= ix1 + 1) cycle
+  if (index(nml_line(1:ix2), ' ') /= 0 .or. index(nml_line(1:ix2), '"') /= 0) cycle
+  call add_match_if_prefix (downcase(nml_line(ix1+1:ix2-1)), .false.)
+enddo
+close (iu_nml)
+
+! Components handled as special cases before the namelist read.
+
+select case (set_word)
+case ('global');    call add_prefix_matches ([character(16):: 'phase_units', 'quiet'], .false.)
+case ('plot_page'); call add_prefix_matches ([character(16):: 'title', 'subtitle'], .false.)
+end select
+
+end subroutine add_set_struct_matches
+
+!.................................
+! Attribute names for "set element <name> <attrib>", from bmad's attribute table
+! for the first element matching <name> (wildcards allowed) in the default universe.
+
+subroutine add_attribute_matches (ele_name)
+
+type (tao_universe_struct), pointer :: u
+type (branch_struct), pointer :: branch
+type (ele_struct), pointer :: ele
+type (ele_attribute_struct) attrib
+
+character(*) ele_name
+character(60) name_up
+integer iuni, ib, ie, ia
+
+if (ele_name == '') return
+if (.not. allocated(s%u)) return
+iuni = s%global%default_universe
+if (iuni < lbound(s%u, 1) .or. iuni > ubound(s%u, 1)) return
+u => s%u(iuni)
+
+nullify(ele)
+name_up = upcase(ele_name)
+branch_loop: do ib = 0, ubound(u%model%lat%branch, 1)
+  branch => u%model%lat%branch(ib)
+  do ie = 1, branch%n_ele_max
+    if (.not. match_wild(branch%ele(ie)%name, trim(name_up))) cycle
+    ele => branch%ele(ie)
+    exit branch_loop
+  enddo
+enddo branch_loop
+if (.not. associated(ele)) return
+
+do ia = 1, num_ele_attrib$
+  attrib = attribute_info(ele, ia)
+  if (attrib%name == null_name$) cycle
+  if (attrib%state == private$) cycle
+  call add_match_if_prefix (downcase(attrib%name), .false.)
+enddo
+
+end subroutine add_attribute_matches
 
 !.................................
 

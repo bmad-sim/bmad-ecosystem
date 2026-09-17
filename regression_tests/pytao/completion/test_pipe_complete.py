@@ -101,6 +101,40 @@ def test_var_names(tao):
     assert matches
 
 
+def test_set_global_lists_struct_components(tao):
+    _, context, matches = complete(tao, "set global ")
+    assert context == "LIST"
+    assert "n_opti_cycles" in matches
+    assert "quiet" in matches
+    assert len(matches) > 30
+
+
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("set global track_t", "track_type"),
+        ("set global phase_u", "phase_units"),
+        ("set bmad_com max_aperture_l", "max_aperture_limit"),
+        ("set beam_init n_par", "n_particle"),
+        ("set space_charge_com ds_track_s", "ds_track_step"),
+        ("set ptc_com exact_mo", "exact_model"),
+        ("set beam track_s", "track_start"),
+        ("set plot_page tit", "title"),
+        ("set element Q01W k", "k1"),
+    ],
+)
+def test_set_component_names(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+def test_set_element_attributes_require_known_element(tao):
+    _, context, matches = complete(tao, "set element NO_SUCH_ELE ")
+    assert context == "LIST"
+    assert matches == []
+
+
 def test_call_completes_file_names(tao):
     word, context, matches = complete(tao, "call ")
     assert word == ""
