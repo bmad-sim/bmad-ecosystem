@@ -54,7 +54,7 @@ use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
-use tao_command_names_mod, only: tao_pipe_cmd_names
+use tao_command_names_mod, only: tao_pipe_cmd_names, tao_switches_for
 use tao_completion_mod, only: tao_complete
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
@@ -211,7 +211,7 @@ tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
 do
-  call tao_next_switch (line, [character(8):: '-append ', '-write', '-noprint'], .false., switch, err)
+  call tao_next_switch (line, tao_switches_for('pipe'), .false., switch, err)
   if (err) return
   if (switch == '') exit
 

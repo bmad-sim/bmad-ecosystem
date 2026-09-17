@@ -10,6 +10,7 @@
 subroutine tao_show_cmd (what)
 
 use tao_command_mod, dummy => tao_show_cmd
+use tao_command_names_mod, only: tao_switches_for
 
 implicit none
 
@@ -38,7 +39,7 @@ err_out = .true.
 ! See if the results need to be written to a file.
 
 do
-  call tao_next_switch (what2, [character(16):: '-append', '-write', '-noprint', '-no_err_out'], .false., switch, err)
+  call tao_next_switch (what2, tao_switches_for('show'), .false., switch, err)
   if (err) return
   if (switch == '') exit
 

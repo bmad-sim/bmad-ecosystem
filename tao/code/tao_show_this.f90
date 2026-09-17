@@ -289,7 +289,7 @@ case ('beam')
   zb = -1
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-lattice', '-comb', '-z'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show beam'), .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -700,7 +700,7 @@ case ('beam')
 case ('branch')
 
   do 
-    call tao_next_switch (what2, ['-universe'], .false., switch, err);  if (err) return
+    call tao_next_switch (what2, tao_switches_for('show branch'), .false., switch, err);  if (err) return
     if (switch == '') exit
 
     select case (switch)
@@ -808,7 +808,7 @@ case ('chromaticity')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-taylor'], .false., switch, err);  if (err) return
+    call tao_next_switch (what2, tao_switches_for('show chromaticity'), .false., switch, err);  if (err) return
     if (switch == '') exit
 
     select case (switch)
@@ -956,7 +956,7 @@ case ('curve')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-symbol', '-line', '-no_header'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show curve'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('');           exit
@@ -1468,7 +1468,7 @@ case ('derivative')
   word2 = ''    ! variables
 
   do
-    call tao_next_switch (what2, ['-derivative_recalc'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show derivative'), .true., switch, err)
 
     if (err) return
     if (switch == '') exit
@@ -1602,10 +1602,7 @@ case ('element')
   name = ''
 
   do
-    call tao_next_switch (what2, [character(16):: '-taylor', '-em_field', &
-                '-all', '-data', '-design', '-no_slaves', '-wall', '-base', &
-                '-field', '-floor_coords', '-xfer_mat', '-ptc', '-everything', &
-                '-attributes', '-no_super_slaves', '-radiation_kick', '-internal'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show element'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('');                  exit
@@ -1815,7 +1812,7 @@ case ('emittance')
   what_to_show = ''
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-element', '-xmatrix', '-sigma_matrix'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show emittance'), .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -1951,8 +1948,7 @@ case ('field')
   n_count = 0          ! Counter for non-switch args. 
 
   do
-    call tao_next_switch (what2, [character(16):: '-derivatives', '-grid_pt', '-percent_len', '-absolute_s'], &
-                                                                       .true., switch, err, .true.)
+    call tao_next_switch (what2, tao_switches_for('show field'), .true., switch, err, .true.)
     if (err) return
     select case (switch)
     case ('');               exit
@@ -2107,8 +2103,7 @@ case ('global')
   what_to_show = 'global'
 
   do
-    call tao_next_switch (what2, [character(20):: '-optimization', '-bmad_com', '-environment', &
-                    '-csr_param', '-space_charge_com', '-ran_state', '-ptc_com', '-internal'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show global'), .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -2362,7 +2357,7 @@ case ('graph')
   if (allocated(graph)) deallocate(graph)
 
   do
-    call tao_next_switch (what2, [character(8):: '-debug', '-rms'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show graph'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('')
@@ -2540,7 +2535,7 @@ case ('history')
   show_all = .false.
 
   do 
-    call tao_next_switch (what2, [character(8):: '-no_num', '-all', '-filed'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show history'), .true., switch, err)
 
     if (err) return
     if (switch == '') exit
@@ -2638,7 +2633,7 @@ case ('hom')
 
 case ('internal')
 
-  call tao_next_switch (what2, [character(16):: '-pipe', '-control'], .true., switch, err)
+  call tao_next_switch (what2, tao_switches_for('show internal'), .true., switch, err)
   select case (switch)
 
   ! Format: show -pipe_buffer
@@ -3899,7 +3894,7 @@ case ('particle')
   ix_p = 1
 
   do
-    call tao_next_switch (what2, [character(16):: '-element', '-particle', '-bunch', '-lost', '-all'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show particle'), .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4054,8 +4049,7 @@ case ('plot')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(16) :: '-floor_plan', '-lat_layout', '-templates', &
-                                     '-global', '-regions', '-plot_page', '-page'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show plot'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('') 
@@ -4275,7 +4269,7 @@ case ('ptc')
   what_to_show = ''
 
   do
-    call tao_next_switch (what2, [character(24):: '-emittance'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show ptc'), .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4309,7 +4303,7 @@ case ('radiation_integrals')
   b_name = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show radiation_integrals'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('')
@@ -4438,7 +4432,7 @@ case ('rampers')
   show_energy = .false.
 
   do 
-    call tao_next_switch (what2, [character(16):: '-universe', '-energy_show'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show rampers'), .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -4534,9 +4528,7 @@ case ('spin')
   veto = ''
 
   do
-    call tao_next_switch (what2, [character(24):: '-element', '-n_axis', '-l_axis', &
-                            '-g_map', '-flip_n_axis', '-x_zero', '-y_zero', &
-                            '-z_zero', '-ignore_kinetic', '-isf', '-spin_tune'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show spin'), .true., switch, err)
     if (err) return
 
     select case (switch)
@@ -4994,7 +4986,7 @@ case ('symbolic_numbers')
   what_to_show = 'tao'
 
   do
-    call tao_next_switch (what2, [character(24):: '-physical_constants', '-lattice_constants'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show symbolic_numbers'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('');           exit
@@ -5064,9 +5056,7 @@ case ('taylor_map', 'matrix')
   endif
 
   do
-    call tao_next_switch (what2, [character(20):: '-order', '-s', '-ptc', '-eigen_modes', '-elements', &
-              '-lattice_format', '-universe', '-angle_coordinates', '-number_format', '-inverse', &
-              '-radiation', '-scibmad', '-noclean'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show ' // trim(show_what)), .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -5479,10 +5469,7 @@ case ('track')
   lat_type = model$
 
   do 
-    call tao_next_switch (what2, [character(16):: '-e_field', '-b_field', '-velocity', '-momentum', &
-                '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', &
-                '-range', '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base', '-element'], &
-                .false., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show track'), .false., switch, err)
 
     if (err) return
     if (switch == '') exit
@@ -5671,7 +5658,7 @@ case ('twiss_and_orbit')
 
   do 
 
-    call tao_next_switch (what2, [character(16):: '-branch', '-universe', '-design', '-base'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show twiss_and_orbit'), .true., switch, err)
     if (err) return
     if (switch == '') exit
 
@@ -5809,7 +5796,7 @@ case ('universe')
   b_name = ''
 
   do
-    call tao_next_switch (what2, [character(20):: '-branch'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show universe'), .true., switch, err)
     if (err) return
     select case (switch)
     case ('')
@@ -6163,8 +6150,7 @@ case ('variables')
   attrib0 = ''
 
   do
-    call tao_next_switch (what2, [character(16):: '-bmad_format', '-good_opt_only', & 
-                                                   '-no_label_lines', '-universe'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show variables'), .true., switch, err)
     if (err) return
 
     select case (switch)  
@@ -6431,8 +6417,7 @@ case ('wall')
 
 
   do
-    call tao_next_switch (what2, [character(16):: '-section', '-element', &
-                                   '-angle', '-s', '-branch'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show wall'), .true., switch, err)
     if (err) return
     if (switch == '') exit
     select case (switch)
