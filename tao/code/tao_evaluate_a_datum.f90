@@ -2739,16 +2739,8 @@ case ('sigma.')
 
   case ('sigma.pz')  
     if (data_source == 'lat') then
-      if (lat%param%geometry == closed$) then
-        call tao_load_this_datum (tao_branch%lat_sigma%mat(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
-        datum_value = sqrt(datum_value)
-      else
-        if (ix_ele == -1) ix_ele = branch%n_ele_track
-        branch_ri => tao_lat%rad_int_by_ele_ri%branch(ix_branch)
-        datum_value = branch_ri%ele(ix_ele)%lin_sig_E / ele%value(E_tot$)
-        if (ix_ref > 0) datum_value = datum_value - branch_ri%ele(ix_ref)%lin_sig_E / ele_ref%value(E_tot$)
-        valid_value = .true.
-      endif
+      call tao_load_this_datum (tao_branch%lat_sigma%mat(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+      datum_value = sqrt(datum_value)
     else
       call tao_load_this_datum (bunch_params(:)%sigma(6,6), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid, bunch_params%twiss_valid)
       datum_value = sqrt(datum_value)
