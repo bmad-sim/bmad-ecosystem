@@ -129,6 +129,58 @@ def test_set_component_names(tao, line, expected_match):
     assert expected_match in matches
 
 
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("show -app", "-append"),
+        ("show lattice -orb", "-orbit"),
+        ("show lat -6d", "-6d_radiation_integrals"),
+        ("show element Q01W -floor", "-floor_coords"),
+        ("set -up", "-update"),
+        ("change -si", "-silent"),
+        ("place -no_b", "-no_buffer"),
+        ("pipe -nop", "-noprint"),
+    ],
+)
+def test_switch_completion(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+def test_unknown_switch_context_offers_nothing(tao):
+    _, context, matches = complete(tao, "show wave -")
+    assert matches == []
+
+
+def test_show_data_names(tao):
+    _, context, matches = complete(tao, "show data orbit.")
+    assert context == "LIST"
+    assert "orbit.x" in matches
+
+
+def test_show_var_names(tao):
+    _, context, matches = complete(tao, "show var quad")
+    assert context == "LIST"
+    assert "quad_k1" in matches
+
+
+def test_place_regions_then_templates(tao):
+    _, context, regions = complete(tao, "place ")
+    assert context == "LIST"
+    assert regions
+    _, context, templates = complete(tao, f"place {regions[0]} ")
+    assert context == "LIST"
+    assert templates
+    assert regions[0] not in templates
+
+
+def test_show_plot_names(tao):
+    _, context, matches = complete(tao, "show plot ")
+    assert context == "LIST"
+    assert matches
+
+
 def test_set_element_attributes_require_known_element(tao):
     _, context, matches = complete(tao, "set element NO_SUCH_ELE ")
     assert context == "LIST"
