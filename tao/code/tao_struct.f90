@@ -49,6 +49,8 @@ character(24), parameter :: tao_wave_data_name(27) = [character(40):: 'orbit.x',
 integer, parameter :: n_char_show = 1000
 integer, parameter :: n_file_max_len = 400   ! Max length of file names including path.
 
+integer, parameter :: tao_switch_name_len = 28
+
 logical, save, target :: forever_true$ = .true.  ! Used for pointer init.
 
 interface assignment (=)
