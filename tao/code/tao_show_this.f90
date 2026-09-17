@@ -18,7 +18,7 @@ subroutine tao_show_this (what, result_id, lines, nl)
 use tao_top10_mod, dummy => tao_show_this
 use tao_c_interface_mod, only: tao_c_interface_com
 use tao_command_mod, only: tao_next_switch, tao_next_word
-use tao_command_names_mod, only: tao_show_what_names
+use tao_command_names_mod, only: tao_show_what_names, tao_switches_for
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
@@ -2781,13 +2781,7 @@ case ('lattice')
   ! get command line switches
 
   do
-    call tao_next_switch (what2, [character(32):: &
-        '-branch', '-blank_replacement', '-lords', '-center', '-middle', &
-        '-tracking_elements', '-0undef', '-beginning', '-pipe', &
-        '-no_label_lines', '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', &
-        '-base', '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', &
-        '-spin', '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe', '-rms', &
-        '-6d_radiation_integrals', '-ri_radiation_integrals'], .true., switch, err)
+    call tao_next_switch (what2, tao_switches_for('show lattice'), .true., switch, err)
     if (err) return
     if (switch == '') exit
     select case (switch)
