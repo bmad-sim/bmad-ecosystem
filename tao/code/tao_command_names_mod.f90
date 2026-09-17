@@ -9,6 +9,8 @@
 
 module tao_command_names_mod
 
+use tao_struct, only: tao_switch_name_len
+
 implicit none
 
 ! Top level Tao commands. Matched case sensitively in tao_command.
@@ -81,8 +83,6 @@ character(40), parameter :: tao_pipe_cmd_names(114) = [character(40) :: &
 ! Completion-only (parser list intentionally differs, so kept separate):
 !   'set'          -- parser also accepts the deprecated -lord_no_set
 !   'change'/'place' -- parsed by index() matching, not tao_next_switch
-
-integer, parameter :: tao_switch_name_len = 28
 
 type tao_switch_set_struct
   character(tao_switch_name_len) :: context = ''
