@@ -345,9 +345,9 @@ case default
   key = cmd_name
 end select
 
-do ik = 1, n_tao_switch_contexts
-  if (tao_switch_context(ik) /= key) cycle
-  list_str = tao_switch_list(ik)
+do ik = 1, size(tao_switch_sets)
+  if (tao_switch_sets(ik)%context /= key) cycle
+  list_str = tao_switch_sets(ik)%switches
   do
     call string_trim (list_str, list_str, lw)
     if (lw == 0) exit
