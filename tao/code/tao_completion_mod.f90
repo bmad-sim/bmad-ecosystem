@@ -323,8 +323,8 @@ end subroutine add_match_if_prefix
 subroutine add_switch_matches ()
 
 character(28) key
-character(400) list_str
-integer ik, lw
+character(tao_switch_name_len), allocatable :: sw(:)
+integer ik
 
 context = 'LIST'
 
@@ -345,16 +345,9 @@ case default
   key = cmd_name
 end select
 
-do ik = 1, size(tao_switch_sets)
-  if (tao_switch_sets(ik)%context /= key) cycle
-  list_str = tao_switch_sets(ik)%switches
-  do
-    call string_trim (list_str, list_str, lw)
-    if (lw == 0) exit
-    call add_match_if_prefix (list_str(1:lw), .true.)
-    list_str = list_str(lw+1:)
-  enddo
-  return
+sw = tao_switches_for(key)
+do ik = 1, size(sw)
+  call add_match_if_prefix (sw(ik), .true.)
 enddo
 
 end subroutine add_switch_matches

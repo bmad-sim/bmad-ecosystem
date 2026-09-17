@@ -77,58 +77,124 @@ character(40), parameter :: tao_pipe_cmd_names(113) = [character(40) :: &
 !   'show'                            -- tao_show_cmd (pre-dispatch switches)
 !   'show <what>'                     -- the corresponding case in tao_show_this
 
+integer, parameter :: tao_switch_name_len = 28
+
 type tao_switch_set_struct
-  character(28) :: context = ''
-  character(400) :: switches = ''
+  character(tao_switch_name_len) :: context = ''
+  character(tao_switch_name_len), allocatable :: switches(:)
 end type
 
-type (tao_switch_set_struct), parameter :: tao_switch_sets(*) = [ &
-  tao_switch_set_struct('change',    '-silent -update -listing -branch -mask'), &
-  tao_switch_set_struct('pipe',      '-append -write -noprint'), &
-  tao_switch_set_struct('place',     '-no_buffer'), &
-  tao_switch_set_struct('set',       '-update -mask -branch -listing -silent'), &
-  tao_switch_set_struct('show',      '-append -write -noprint -no_err_out'), &
-  tao_switch_set_struct('show beam',         '-universe -lattice -comb -z'), &
-  tao_switch_set_struct('show branch',       '-universe'), &
-  tao_switch_set_struct('show chromaticity', '-universe -taylor'), &
-  tao_switch_set_struct('show curve',        '-symbol -line -no_header'), &
-  tao_switch_set_struct('show derivative',   '-derivative_recalc'), &
-  tao_switch_set_struct('show element',      '-taylor -em_field -all -data -design -no_slaves -wall &
-      &-base -field -floor_coords -xfer_mat -ptc -everything -attributes -no_super_slaves &
-      &-radiation_kick -internal'), &
-  tao_switch_set_struct('show emittance',    '-universe -element -xmatrix -sigma_matrix'), &
-  tao_switch_set_struct('show field',        '-derivatives -grid_pt -percent_len -absolute_s'), &
-  tao_switch_set_struct('show global',       '-optimization -bmad_com -environment -csr_param &
-      &-space_charge_com -ran_state -ptc_com -internal'), &
-  tao_switch_set_struct('show graph',        '-debug -rms'), &
-  tao_switch_set_struct('show history',      '-no_num -all -filed'), &
-  tao_switch_set_struct('show internal',     '-pipe -control'), &
-  tao_switch_set_struct('show lattice',      '-branch -blank_replacement -lords -center -middle &
-      &-tracking_elements -0undef -beginning -pipe -no_label_lines -no_tail_lines -custom -s &
-      &-radiation_integrals -remove_line_if_zero -base -design -floor_coords -orbit -attribute -all &
-      &-no_slaves -energy -spin -undef0 -no_super_slaves -sum_radiation_integrals -python -universe &
-      &-rms -6d_radiation_integrals -ri_radiation_integrals'), &
-  tao_switch_set_struct('show matrix',       '-order -s -ptc -eigen_modes -elements -lattice_format &
-      &-universe -angle_coordinates -number_format -inverse -radiation -scibmad -noclean'), &
-  tao_switch_set_struct('show merit',        '-derivative -merit_only'), &
-  tao_switch_set_struct('show particle',     '-element -particle -bunch -lost -all'), &
-  tao_switch_set_struct('show plot',         '-floor_plan -lat_layout -templates -global -regions &
-      &-plot_page -page'), &
-  tao_switch_set_struct('show ptc',          '-emittance'), &
-  tao_switch_set_struct('show radiation_integrals', '-branch'), &
-  tao_switch_set_struct('show rampers',      '-universe -energy_show'), &
-  tao_switch_set_struct('show spin',         '-element -n_axis -l_axis -g_map -flip_n_axis -x_zero &
-      &-y_zero -z_zero -ignore_kinetic -isf -spin_tune'), &
-  tao_switch_set_struct('show symbolic_numbers', '-physical_constants -lattice_constants'), &
-  tao_switch_set_struct('show taylor_map',   '-order -s -ptc -eigen_modes -elements -lattice_format &
-      &-universe -angle_coordinates -number_format -inverse -radiation -scibmad -noclean'), &
-  tao_switch_set_struct('show top10',        '-derivative -merit_only'), &
-  tao_switch_set_struct('show track',        '-e_field -b_field -velocity -momentum -energy -position &
-      &-no_label_lines -s -spin -points -time -range -twiss -dispersion -branch -universe -design &
-      &-base -element'), &
-  tao_switch_set_struct('show twiss_and_orbit', '-branch -universe -design -base'), &
-  tao_switch_set_struct('show universe',     '-branch'), &
-  tao_switch_set_struct('show variables',    '-bmad_format -good_opt_only -no_label_lines -universe'), &
-  tao_switch_set_struct('show wall',         '-section -element -angle -s -branch')]
+! Populated once by tao_switch_sets_init (below). Consumers should call
+! tao_switches_for(context), which returns the pre-split switch array directly.
+
+type (tao_switch_set_struct), allocatable, protected :: tao_switch_sets(:)
+
+private :: sw_row
+
+contains
+
+!------------------------------------------------------------------------------
+!+
+! Function tao_switches_for (context) result (switches)
+!
+! Return the switch (flag) name array for a completion/parsing context, or a
+! zero-length array if the context has no switches. The context is a command
+! name, or "show <subcommand>".
+!-
+
+function tao_switches_for (context) result (switches)
+
+character(*), intent(in) :: context
+character(tao_switch_name_len), allocatable :: switches(:)
+integer i
+
+call tao_switch_sets_init()
+
+do i = 1, size(tao_switch_sets)
+  if (tao_switch_sets(i)%context == context) then
+    switches = tao_switch_sets(i)%switches
+    return
+  endif
+enddo
+
+allocate (switches(0))
+
+end function tao_switches_for
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_switch_sets_init ()
+!
+! One-time build of the tao_switch_sets(:) table. Idempotent.
+!-
+
+subroutine tao_switch_sets_init ()
+
+if (allocated(tao_switch_sets)) return
+
+tao_switch_sets = [ &
+  sw_row('change', [character(tao_switch_name_len):: '-silent', '-update', '-listing', '-branch', '-mask']), &
+  sw_row('pipe',   [character(tao_switch_name_len):: '-append', '-write', '-noprint']), &
+  sw_row('place',  [character(tao_switch_name_len):: '-no_buffer']), &
+  sw_row('set',    [character(tao_switch_name_len):: '-update', '-mask', '-branch', '-listing', '-silent']), &
+  sw_row('show',   [character(tao_switch_name_len):: '-append', '-write', '-noprint', '-no_err_out']), &
+  sw_row('show beam', [character(tao_switch_name_len):: '-universe', '-lattice', '-comb', '-z']), &
+  sw_row('show branch', [character(tao_switch_name_len):: '-universe']), &
+  sw_row('show chromaticity', [character(tao_switch_name_len):: '-universe', '-taylor']), &
+  sw_row('show curve', [character(tao_switch_name_len):: '-symbol', '-line', '-no_header']), &
+  sw_row('show derivative', [character(tao_switch_name_len):: '-derivative_recalc']), &
+  sw_row('show element', [character(tao_switch_name_len):: '-taylor', '-em_field', '-all', '-data', &
+      '-design', '-no_slaves', '-wall', '-base', '-field', '-floor_coords', '-xfer_mat', '-ptc', &
+      '-everything', '-attributes', '-no_super_slaves', '-radiation_kick', '-internal']), &
+  sw_row('show emittance', [character(tao_switch_name_len):: '-universe', '-element', '-xmatrix', '-sigma_matrix']), &
+  sw_row('show field', [character(tao_switch_name_len):: '-derivatives', '-grid_pt', '-percent_len', '-absolute_s']), &
+  sw_row('show global', [character(tao_switch_name_len):: '-optimization', '-bmad_com', '-environment', &
+      '-csr_param', '-space_charge_com', '-ran_state', '-ptc_com', '-internal']), &
+  sw_row('show graph', [character(tao_switch_name_len):: '-debug', '-rms']), &
+  sw_row('show history', [character(tao_switch_name_len):: '-no_num', '-all', '-filed']), &
+  sw_row('show internal', [character(tao_switch_name_len):: '-pipe', '-control']), &
+  sw_row('show lattice', [character(tao_switch_name_len):: '-branch', '-blank_replacement', '-lords', &
+      '-center', '-middle', '-tracking_elements', '-0undef', '-beginning', '-pipe', '-no_label_lines', &
+      '-no_tail_lines', '-custom', '-s', '-radiation_integrals', '-remove_line_if_zero', '-base', &
+      '-design', '-floor_coords', '-orbit', '-attribute', '-all', '-no_slaves', '-energy', '-spin', &
+      '-undef0', '-no_super_slaves', '-sum_radiation_integrals', '-python', '-universe', '-rms', &
+      '-6d_radiation_integrals', '-ri_radiation_integrals']), &
+  sw_row('show matrix', [character(tao_switch_name_len):: '-order', '-s', '-ptc', '-eigen_modes', &
+      '-elements', '-lattice_format', '-universe', '-angle_coordinates', '-number_format', &
+      '-inverse', '-radiation', '-scibmad', '-noclean']), &
+  sw_row('show merit', [character(tao_switch_name_len):: '-derivative', '-merit_only']), &
+  sw_row('show particle', [character(tao_switch_name_len):: '-element', '-particle', '-bunch', '-lost', '-all']), &
+  sw_row('show plot', [character(tao_switch_name_len):: '-floor_plan', '-lat_layout', '-templates', &
+      '-global', '-regions', '-plot_page', '-page']), &
+  sw_row('show ptc', [character(tao_switch_name_len):: '-emittance']), &
+  sw_row('show radiation_integrals', [character(tao_switch_name_len):: '-branch']), &
+  sw_row('show rampers', [character(tao_switch_name_len):: '-universe', '-energy_show']), &
+  sw_row('show spin', [character(tao_switch_name_len):: '-element', '-n_axis', '-l_axis', '-g_map', &
+      '-flip_n_axis', '-x_zero', '-y_zero', '-z_zero', '-ignore_kinetic', '-isf', '-spin_tune']), &
+  sw_row('show symbolic_numbers', [character(tao_switch_name_len):: '-physical_constants', '-lattice_constants']), &
+  sw_row('show taylor_map', [character(tao_switch_name_len):: '-order', '-s', '-ptc', '-eigen_modes', &
+      '-elements', '-lattice_format', '-universe', '-angle_coordinates', '-number_format', &
+      '-inverse', '-radiation', '-scibmad', '-noclean']), &
+  sw_row('show top10', [character(tao_switch_name_len):: '-derivative', '-merit_only']), &
+  sw_row('show track', [character(tao_switch_name_len):: '-e_field', '-b_field', '-velocity', '-momentum', &
+      '-energy', '-position', '-no_label_lines', '-s', '-spin', '-points', '-time', '-range', &
+      '-twiss', '-dispersion', '-branch', '-universe', '-design', '-base', '-element']), &
+  sw_row('show twiss_and_orbit', [character(tao_switch_name_len):: '-branch', '-universe', '-design', '-base']), &
+  sw_row('show universe', [character(tao_switch_name_len):: '-branch']), &
+  sw_row('show variables', [character(tao_switch_name_len):: '-bmad_format', '-good_opt_only', &
+      '-no_label_lines', '-universe']), &
+  sw_row('show wall', [character(tao_switch_name_len):: '-section', '-element', '-angle', '-s', '-branch'])]
+
+end subroutine tao_switch_sets_init
+
+!------------------------------------------------------------------------------
+! Row constructor helper for tao_switch_sets_init, keeping each row on one line.
+
+function sw_row (context, switches) result (set)
+character(*), intent(in) :: context, switches(:)
+type (tao_switch_set_struct) :: set
+set%context = context
+set%switches = switches
+end function sw_row
 
 end module
