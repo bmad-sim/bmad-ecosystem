@@ -209,7 +209,7 @@ endif
 ! First see where we need to stop.
 
 section => ele%wall3d(1)%section
-ixc = bracket_index(vec(5), section%s, 1)
+ixc = wall3d_section_index(vec(5), ele%wall3d(1))
 
 if (vec(6) > 0) then   ! Forward going photon
   s_stop = section(ixc+1)%s

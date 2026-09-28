@@ -680,7 +680,7 @@ real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), p_sec1(3), p_sec2(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
 real(rp) s1, s2, r_p(3)
 
-integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2, status, n1, n2, n3
+integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2, status
 integer, optional :: ix_section, ix_wall
 
 logical, optional :: err_flag, no_wall_here
@@ -759,25 +759,7 @@ else
   ! Find the wall points (defined cross-sections) to either side of the particle.
   ! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
 
-  ! Bisection is done inline since passing the strided array wall3d%section%s to bracket_index
-  ! would force a temporary copy of the array on every call.
-  ! Invariant: section(n1)%s <= s_particle < section(n3)%s. Same result as bracket_index.
-
-  if (s_particle >= wall3d%section(n_sec)%s) then
-    ix_w = n_sec
-  else
-    n1 = 1
-    n3 = n_sec
-    do while (n3 > n1 + 1)
-      n2 = (n1 + n3) / 2
-      if (s_particle < wall3d%section(n2)%s) then
-        n3 = n2
-      else
-        n1 = n2
-      endif
-    enddo
-    ix_w = n1
-  endif
+  ix_w = wall3d_section_index (s_particle, wall3d)
   if (s_particle == wall3d%section(ix_w)%s .and. (position(6) > 0 .or. ix_w == size(wall3d%section))) ix_w = ix_w - 1
 
   ! sec1 and sec2 are the cross-sections to either side of the particle.
@@ -1081,6 +1063,98 @@ floor = coords_local_curvilinear_to_floor(local, ele, end_origin = upstream_end$
 end function this_coords_to_floor
 
 end function wall3d_d_radius
+
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!---------------------------------------------------------------------------
+!+
+! Function wall3d_section_index (s, wall3d, ix0) result (ix)
+!
+! Function to find the index ix so that wall3d%section(ix)%s <= s < wall3d%section(ix+1)%s.
+! Boundary cases:
+!   If s <  wall3d%section(1)%s     then ix = 0
+!   If s >= wall3d%section(n_sec)%s then ix = n_sec
+!   If there are no sections        then ix = 0
+! This is the same convention as bracket_index and bracket_index2.
+!
+! Use this routine instead of bracket_index(s, wall3d%section%s, 1) since passing the strided array
+! wall3d%section%s forces a temporary copy of the array which, with a large branch wall, dominates
+! the computation time.
+!
+! Input:
+!   s       -- real(rp): Longitudinal position.
+!   wall3d  -- wall3d_struct: Wall.
+!   ix0     -- integer, optional: Initial guess for ix. Using a good guess speeds up the search.
+!
+! Output:
+!   ix      -- integer: Section index.
+!-
+
+function wall3d_section_index (s, wall3d, ix0) result (ix)
+
+type (wall3d_struct) wall3d
+real(rp) s
+integer, optional :: ix0
+integer ix, n1, n2, n3, n_sec, n_del
+
+!
+
+n_sec = size(wall3d%section)
+
+if (n_sec == 0) then
+  ix = 0
+  return
+elseif (s < wall3d%section(1)%s) then
+  ix = 0
+  return
+elseif (s >= wall3d%section(n_sec)%s) then
+  ix = n_sec
+  return
+endif
+
+! Here section(1)%s <= s < section(n_sec)%s.
+! Find n1 and n3 such that section(n1)%s <= s < section(n3)%s.
+! If there is an initial guess, step out from the guess with doubling step size.
+
+n1 = 1
+n3 = n_sec
+
+if (present(ix0)) then
+  n2 = min(max(ix0, 1), n_sec)
+  n_del = 1
+  if (s < wall3d%section(n2)%s) then
+    n3 = n2
+    do
+      n1 = max(n3 - n_del, 1)
+      if (s >= wall3d%section(n1)%s) exit
+      n3 = n1
+      n_del = 2 * n_del
+    enddo
+  else
+    n1 = n2
+    do
+      n3 = min(n1 + n_del, n_sec)
+      if (s < wall3d%section(n3)%s) exit
+      n1 = n3
+      n_del = 2 * n_del
+    enddo
+  endif
+endif
+
+! Bisection
+
+do while (n3 > n1 + 1)
+  n2 = (n1 + n3) / 2
+  if (s < wall3d%section(n2)%s) then
+    n3 = n2
+  else
+    n1 = n2
+  endif
+enddo
+
+ix = n1
+
+end function wall3d_section_index
 
 !---------------------------------------------------------------------------
 !---------------------------------------------------------------------------
@@ -1584,8 +1658,8 @@ do iw = 1, size(branch%wall3d)
     s_max = max(patch%s_start, patch%s)
 
     ! Find the wall points (defined cross-sections) to either side of the patch.
-    ix1 = bracket_index(s_min, wall%section%s, 1)
-    ix2 = bracket_index(s_max, wall%section%s, 1)
+    ix1 = wall3d_section_index(s_min, wall)
+    ix2 = wall3d_section_index(s_max, wall)
 
     ! For open/closed lattices,
     ! if the wall section `s` falls in [s_min, s_max], the patch is in the region

@@ -21,7 +21,7 @@ use tao_command_mod, only: tao_next_switch, tao_next_word
 use location_encode_mod, only: location_encode
 use transfer_map_mod, only: transfer_map_from_s_to_s, mat6_from_s_to_s
 use opti_de_mod, only: opti_de_param
-use wall3d_mod, only: calc_wall_radius
+use wall3d_mod, only: calc_wall_radius, wall3d_section_index
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use ptc_spin, only: c_linear_map, assignment(=)
 use pointer_lattice, only: operator(.sub.), operator(**), operator(*), alloc, kill, print, ci_phasor, assignment(=)
@@ -6536,8 +6536,8 @@ case ('wall')
       return
     endif
 
-    ix1 = bracket_index (s1 - 1d-10, wall%section%s, 1)
-    ix2 = bracket_index (s2 + 1d-10, wall%section%s, 1) 
+    ix1 = wall3d_section_index (s1 - 1d-10, wall)
+    ix2 = wall3d_section_index (s2 + 1d-10, wall)
     ix1 = ix1 + 1
 
   elseif (attrib0 /= '') then
