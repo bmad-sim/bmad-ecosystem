@@ -509,7 +509,7 @@ endif
 ! Find wall section index such that when the photon stops it will be between ix_wall_section and ix_wall_section+1
 
 if (stop_at_check_pt) then
-  ixs = bracket_index2 (now_orb%s, photon%now%ix_wall_section, wall3d%section%s, 1)
+  ixs = wall3d_section_index (now_orb%s, wall3d, photon%now%ix_wall_section)
 
   if (now_orb%direction == 1) then
     if (wall3d%section(1)%s >= now_orb%s) then
