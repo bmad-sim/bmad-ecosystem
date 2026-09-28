@@ -680,7 +680,7 @@ real(rp) r(3), r0(3), rw(3), drw(3), dr0(3), p_sec1(3), p_sec2(3), drp(3)
 real(rp) dtheta_dphi, alpha, dalpha, beta, dx, dy, w_mat(3,3)
 real(rp) s1, s2, r_p(3)
 
-integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2, status
+integer i, ix_w, n_slice, n_sec, ix_vertex1, ix_vertex2, status, n1, n2, n3
 integer, optional :: ix_section, ix_wall
 
 logical, optional :: err_flag, no_wall_here
@@ -759,7 +759,25 @@ else
   ! Find the wall points (defined cross-sections) to either side of the particle.
   ! That is, the particle is in the interval [%section(ix_w)%s, %section(ix_w+1)%s].
 
-  ix_w = bracket_index (s_particle, wall3d%section%s, 1)
+  ! Bisection is done inline since passing the strided array wall3d%section%s to bracket_index
+  ! would force a temporary copy of the array on every call.
+  ! Invariant: section(n1)%s <= s_particle < section(n3)%s. Same result as bracket_index.
+
+  if (s_particle >= wall3d%section(n_sec)%s) then
+    ix_w = n_sec
+  else
+    n1 = 1
+    n3 = n_sec
+    do while (n3 > n1 + 1)
+      n2 = (n1 + n3) / 2
+      if (s_particle < wall3d%section(n2)%s) then
+        n3 = n2
+      else
+        n1 = n2
+      endif
+    enddo
+    ix_w = n1
+  endif
   if (s_particle == wall3d%section(ix_w)%s .and. (position(6) > 0 .or. ix_w == size(wall3d%section))) ix_w = ix_w - 1
 
   ! sec1 and sec2 are the cross-sections to either side of the particle.
