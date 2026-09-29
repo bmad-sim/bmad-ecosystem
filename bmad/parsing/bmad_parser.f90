@@ -1347,6 +1347,7 @@ subroutine parser_end_stuff (lat0, set_error_flag)
 
 type (lat_struct) lat0
 type (ele_struct), pointer :: ele
+type (random_state_struct), pointer :: ran_state
 
 logical, optional :: set_error_flag
 integer i, j, stat_b(24), stat, ierr
@@ -1402,6 +1403,13 @@ do i = 1, lat%n_ele_max
           '!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!' ])
   endif
 enddo
+
+! Make sure the random number generator is initialized. With OpenMP, if this is not done here, the
+! generator will be initialized on first use which may be inside a parallel region and ran_seed_put
+! does not work in a parallel region.
+
+ran_state => pointer_to_ran_state()
+if (ran_state%iy < 0) call ran_seed_put (bp_com%extra%ran_seed)
 
 call deallocate_lat_pointers(lat0)
 
