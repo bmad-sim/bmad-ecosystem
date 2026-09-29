@@ -389,6 +389,7 @@ if (found_it) then
   if (extra%undeterministic_ran_function_called) err_found = .true.  ! So lattice will be reparsed
 
   if (extra%ran_seed /= 0) then
+    call ran_seed_put (extra%ran_seed)                   ! Init all threads (ran_default_state only sets the current thread).
     call ran_default_state (set_state = extra%ran_state) ! Get random state.
   endif
 endif
