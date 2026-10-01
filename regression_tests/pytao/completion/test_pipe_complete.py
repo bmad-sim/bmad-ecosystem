@@ -1,0 +1,216 @@
+from pathlib import Path
+
+import pytest
+from pytao import SubprocessTao
+
+CESR_INIT = Path(__file__).resolve().parents[2] / "pipe_test" / "cesr" / "tao.init"
+
+
+@pytest.fixture(scope="module")
+def tao():
+    with SubprocessTao(init_file=str(CESR_INIT), noplot=True) as tao:
+        yield tao
+
+
+def complete(tao: SubprocessTao, line: str) -> tuple[str, str, list[str]]:
+    """
+    Run ``pipe complete`` on a partial command line.
+
+    Returns
+    -------
+    tuple[str, str, list[str]]
+        The partial word being completed, the context (LIST, FILE, or NONE),
+        and the candidate list.
+    """
+    out = tao.cmd(f'pipe complete "{line}"')
+    if isinstance(out, str):
+        out = [out]
+    word, context = out[0].split(";")
+    return word, context, out[1:]
+
+
+def test_empty_line_lists_all_commands(tao):
+    word, context, matches = complete(tao, "")
+    assert word == ""
+    assert context == "LIST"
+    assert "show" in matches
+    assert "set" in matches
+    assert len(matches) >= 49
+
+
+def test_unique_command_prefix(tao):
+    word, context, matches = complete(tao, "sho")
+    assert word == "sho"
+    assert context == "LIST"
+    assert matches == ["show"]
+
+
+def test_show_subcommands(tao):
+    word, context, matches = complete(tao, "show ")
+    assert word == ""
+    assert context == "LIST"
+    assert "element" in matches
+    assert "lattice" in matches
+
+
+@pytest.mark.parametrize(
+    ("line", "expected"),
+    [
+        ("set gl", ["global"]),
+        ("show el", ["element"]),
+    ],
+)
+def test_subcommand_prefix(tao, line, expected):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert matches == expected
+
+
+def test_pipe_subcommands(tao):
+    word, context, matches = complete(tao, "pipe lat_")
+    assert word == "lat_"
+    assert context == "LIST"
+    assert matches
+    assert all(m.startswith("lat_") for m in matches)
+    assert "lat_ele_list" in matches
+
+
+def test_help_pipe_subcommands(tao):
+    _, context, matches = complete(tao, "help pipe comp")
+    assert context == "LIST"
+    assert matches == ["complete"]
+
+
+def test_element_names(tao):
+    word, context, matches = complete(tao, "show element Q")
+    assert word == "Q"
+    assert context == "LIST"
+    assert matches
+    assert all(m.upper().startswith("Q") for m in matches)
+
+
+def test_data_names(tao):
+    _, context, matches = complete(tao, "use data ")
+    assert context == "LIST"
+    assert matches
+
+
+def test_var_names(tao):
+    _, context, matches = complete(tao, "veto var ")
+    assert context == "LIST"
+    assert matches
+
+
+def test_set_global_lists_struct_components(tao):
+    _, context, matches = complete(tao, "set global ")
+    assert context == "LIST"
+    assert "n_opti_cycles" in matches
+    assert "quiet" in matches
+    assert len(matches) > 30
+
+
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("set global track_t", "track_type"),
+        ("set global phase_u", "phase_units"),
+        ("set bmad_com max_aperture_l", "max_aperture_limit"),
+        ("set beam_init n_par", "n_particle"),
+        ("set space_charge_com ds_track_s", "ds_track_step"),
+        ("set ptc_com exact_mo", "exact_model"),
+        ("set beam track_s", "track_start"),
+        ("set plot_page tit", "title"),
+        ("set element Q01W k", "k1"),
+    ],
+)
+def test_set_component_names(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("show -app", "-append"),
+        ("show lattice -orb", "-orbit"),
+        ("show lat -6d", "-6d_radiation_integrals"),
+        ("show element Q01W -floor", "-floor_coords"),
+        ("set -up", "-update"),
+        ("change -si", "-silent"),
+        ("place -no_b", "-no_buffer"),
+        ("pipe -nop", "-noprint"),
+    ],
+)
+def test_switch_completion(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+def test_unknown_switch_context_offers_nothing(tao):
+    _, context, matches = complete(tao, "show wave -")
+    assert matches == []
+
+
+def test_show_data_names(tao):
+    _, context, matches = complete(tao, "show data orbit.")
+    assert context == "LIST"
+    assert "orbit.x" in matches
+
+
+def test_show_var_names(tao):
+    _, context, matches = complete(tao, "show var quad")
+    assert context == "LIST"
+    assert "quad_k1" in matches
+
+
+def test_place_regions_then_templates(tao):
+    _, context, regions = complete(tao, "place ")
+    assert context == "LIST"
+    assert regions
+    _, context, templates = complete(tao, f"place {regions[0]} ")
+    assert context == "LIST"
+    assert templates
+    assert regions[0] not in templates
+
+
+def test_show_plot_names(tao):
+    _, context, matches = complete(tao, "show plot ")
+    assert context == "LIST"
+    assert matches
+
+
+def test_set_element_attributes_require_known_element(tao):
+    _, context, matches = complete(tao, "set element NO_SUCH_ELE ")
+    assert context == "LIST"
+    assert matches == []
+
+
+def test_call_completes_file_names(tao):
+    word, context, matches = complete(tao, "call ")
+    assert word == ""
+    assert context == "FILE"
+    assert matches == []
+
+
+def test_unknown_context(tao):
+    _, context, matches = complete(tao, "xyzzy plugh ")
+    assert context == "NONE"
+    assert matches == []
+
+
+def test_trailing_blank_differs_from_no_blank(tao):
+    word_no_blank, _, matches_no_blank = complete(tao, "show")
+    word_blank, _, matches_blank = complete(tao, "show ")
+    assert word_no_blank == "show"
+    assert word_blank == ""
+    assert matches_no_blank == ["show"]
+    assert "element" in matches_blank
+
+
+def test_help_pipe_complete_documented(tao):
+    out = tao.cmd("help pipe complete")
+    if isinstance(out, str):
+        out = [out]
+    assert any("pipe complete" in line for line in out)
