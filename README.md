@@ -111,3 +111,46 @@ or simply a [clone](https://github.com/git-guides/git-clone).
 Note: The procedure for
 [creating a PR](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request)
 when using a fork is somewhat different than when using a clone.
+
+## Experimental: Direct CMake Build
+
+We are in the process of replacing the old build system with a direct cmake build. Currently this should work to build tao and the bsim applications, as well as being able to write your own applications linked against the Bmad libraries. Only plplot plotting is supported at the moment. The build assumes that you have the dependent packages built separately or installed on your system. This: <https://github.com/bmad-sim/bmad-dependencies-lean> should build the packages that are not commonly installed/available on most systems, and assumes that fftw, gsl, hdf5, and lapack development libraries are already installed on your system.
+
+A standard CMake build process involves a configuration step, followed by build and install steps. Furthermore, when you build with CMake, you build in a directory that is different from the one where the sources are. 
+
+First, start with the configuration step. You should have the dependencies built already. Go into the top-level directory for bmad-ecosystem, and type
+```
+mkdir build
+cd build
+```
+This creates the build directory and makes that the current directory. This directory could have been anywhere other than the source tree itself, so feel free to make a directory elsewhere. Now do the configuration step,
+```
+cmake -DCMAKE_INSTALL_PREFIX=$HOME/where/i/install/bmad -DCMAKE_PREFIX_PATH=$HOME/where/i/installed/the/packages ..
+```
+You can also add `-DCMAKE_BUILD_TYPE=Debug` to get a debug build, and `-DENABLE_OPENMP=ON` to enable OpenMP. The `..` at the end is really the path to the source tree, so if you want your build directory to be somewhere other than a subdirectory of the source tree, you need to replace `..` with the path to the source tree. Next, build and install:
+```
+cmake --build .
+cmake --install .
+```
+To run tao, you simply need to add `$HOME/where/i/install/bmad/bin` to your path. If you are using pytao, you will need to add `$HOME/where/i/install/bmad/lib` to the `LD_LIBRARY_PATH` environment variable or otherwise tell pytao where the library is.
+
+To build an application that uses the Bmad library, you simply build the application as you normally would with CMake, adding
+```
+find_package(Bmad REQUIRED)
+target_link_libraries(my_program Bmad::bmad)
+```
+and adding `-DCMAKE_PREFIX_PATH=$HOME/where/i/install/bmad` to the CMake configure step. An example `CMakeLists.txt` for a simple executable would be:
+```
+cmake_minimum_required(VERSION 3.14)
+project(my_project LANGUAGES Fortran)
+
+find_package(Bmad REQUIRED)
+add_executable(my_program my_program.f90)
+target_link_libraries(my_program Bmad::bmad)
+install(TARGETS my_program)
+```
+and you would configure with
+```
+cmake -DCMAKE_INSTALL_PREFIX=$HOME/where/my_program/goes -DCMAKE_PREFIX_PATH=$HOME/where/i/install/bmad ..
+```
+You can even avoid the install prefix for my_program if you like, skip the install step, and run the program out of the build tree.
