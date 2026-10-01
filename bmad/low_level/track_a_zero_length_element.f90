@@ -36,11 +36,15 @@ logical err_flag
 
 if (ele%key == gkicker$) then
   call track_a_gkicker(orbit, ele, param)
+  call set_location(orbit)
   return
 endif
 
+! Note: track1_bmad does not set orbit%location (track1 does) so must set it here.
+
 if (ele%key == rfcavity$ .or. ele%key == lcavity$) then
   call track1_bmad(orbit, ele, param, err_flag, track)
+  call set_location(orbit)
   return
 endif
 
@@ -81,9 +85,19 @@ endif
 
 !
 
+call set_location(orbit)
+
+!-------------------------------------------------------------------------
+contains
+
+subroutine set_location(orbit)
+type (coord_struct) orbit
+
 select case (orbit%direction*orbit%time_dir)
 case (1);   orbit%location = downstream_end$
 case (-1);  orbit%location = upstream_end$
 end select
+
+end subroutine set_location
 
 end subroutine
