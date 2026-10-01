@@ -591,21 +591,28 @@ real(rp) :: dt
 
 !
 
-sct_p0_ptr%time_dir = sign_of(s_target - sct_p0_ptr%s)
-sct_p_ptr%time_dir  = sign_of(s_target - sct_p0_ptr%s)
+! Note: s_target may be equal to p0%s (EG: when called by super_zbrent). In this case, time_dir is
+! set to 1 (not zero) and one_turn = F is used with track_from_s_to_s so that, with a closed lattice,
+! the particle is not tracked for a full turn.
+
+sct_p0_ptr%time_dir = sign_of(s_target - sct_p0_ptr%s, .false.)
+sct_p_ptr%time_dir  = sign_of(s_target - sct_p0_ptr%s, .false.)
 status = 0
 
 ! Can happen that particle needs to "drift" past the end of the branch.
 ! Track_from_s_to_s cannot handle such a case so use drift_particle_to_t instead.
 
 if (s_target < sct_s_begin .and. sct_p0_ptr%s >= sct_s_begin) then
-  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, sct_s_begin, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, track_state = track_state)
+  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, sct_s_begin, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, &
+                                                        track_state = track_state, one_turn = .false.)
   call drift_particle_to_s(sct_p_ptr, s_target, sct_branch_ptr)
 elseif (s_target > sct_s_end .and. sct_p0_ptr%s <= sct_s_end) then
-  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, sct_s_end, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, track_state = track_state)
+  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, sct_s_end, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, &
+                                                        track_state = track_state, one_turn = .false.)
   call drift_particle_to_s(sct_p_ptr, s_target, sct_branch_ptr)
 else
-  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, s_target, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, track_state = track_state)
+  call track_from_s_to_s (sct_branch_ptr%lat, sct_p0_ptr%s, s_target, sct_p0_ptr, sct_p_ptr, ix_branch = sct_p_ptr%ix_branch, &
+                                                        track_state = track_state, one_turn = .false.)
 endif
 
 if (track_state /= moving_forward$) then

@@ -59,6 +59,19 @@ if (ele%value(l$) == 0) then
   return
 endif
 
+! With a closed branch, particles at the end of the branch from the previous turn need to be
+! moved to the beginning of the branch.
+
+if (branch%param%geometry == closed$) then
+  do i = 1, size(bunch%particle)
+    p => bunch%particle(i)
+    if (p%state /= alive$ .or. p%s <= ele%s) cycle
+    p%s = p%s - branch%param%total_length
+    p%ix_ele = 0
+    p%location = downstream_end$
+  enddo
+endif
+
 ! Drift bunch to the same time
 if (bunch%t0 == real_garbage$) then
   charge = count(bunch%particle%state == alive$)

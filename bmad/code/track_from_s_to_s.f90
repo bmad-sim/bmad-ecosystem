@@ -1,5 +1,6 @@
 !+
-! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state, ix_ele_end)
+! Subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, 
+!                                                    ix_branch, track_state, ix_ele_end, one_turn)
 !
 ! Routine to track a particle between two s-positions.
 ! If the particle is lost in tracking, end_orb will hold the coordinates at the point of loss.
@@ -17,6 +18,9 @@
 !   orbit_start -- coord_struct: Starting coordinates.
 !   ix_branch   -- integer, optional: Lattice branch index. Default is 0 (main branch).
 !   ix_ele_end  -- integer, optional: If present, ignore s_end and track to in between ix_ele_end and ix_ele_end+1
+!   one_turn    -- logical, optional: Default True. Only relevant if lattice geometry is closed and s_start == s_end.
+!                    If False, no tracking is done. If True, the particle is tracked for one turn.
+!                    For an open geometry lattice with s_start == s_end, no tracking will always be done.
 !
 ! Output:
 !   orbit_end   -- coord_struct: Ending coordinates.
@@ -26,7 +30,8 @@
 !                     Otherwise: set to index of element where particle was lost.
 !-   
 
-subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, ix_branch, track_state, ix_ele_end)
+subroutine track_from_s_to_s (lat, s_start, s_end, orbit_start, orbit_end, all_orb, &
+                                                    ix_branch, track_state, ix_ele_end, one_turn)
 
 use bmad_interface, dummy => track_from_s_to_s
 
@@ -45,6 +50,7 @@ integer, optional :: ix_branch, track_state, ix_ele_end
 integer ix_start, ix_end, dir, ie_offset
 integer ix_ele
 
+logical, optional :: one_turn
 logical err
 
 character(40), parameter :: r_name = 'track_from_s_to_s'
@@ -58,7 +64,7 @@ if (dir == -1) ie_offset = -1
 branch => lat%branch(integer_option(0, ix_branch))
 if (present(track_state)) track_state = moving_forward$
 
-if (s_start == s_end .and. branch%param%geometry == open$) then
+if (s_start == s_end .and. (branch%param%geometry == open$ .or. .not. logic_option(.true., one_turn))) then
   orbit_end = orbit_start
   return
 endif
