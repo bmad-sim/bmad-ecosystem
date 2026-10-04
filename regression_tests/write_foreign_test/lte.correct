@@ -109,7 +109,7 @@ RBEND6: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
 SMULTIPOLE_27__1: mult, knl = 1.5000E-04, tilt = -6.8540E-01, order = 1
 S_KICKER_28: ekicker, vkick = -5.0000E-05
 SBEND7: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = 4.4282E-09, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = 4.4283E-09, r55 = 1.0000E+00, r66 = 1.0000E+00
 SEXTUPOLE1: ksext, malign_method = 2, k2 = 1.0000E+00, tilt = 5.2360E-01, &
      pitch = -1.0000E-03, dx = 4.3301E-02, dy = 2.5000E-02, dz = -2.5000E-05, &
      l = 6.0000E-01
