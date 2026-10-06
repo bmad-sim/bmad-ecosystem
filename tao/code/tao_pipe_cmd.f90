@@ -248,7 +248,7 @@ call match_word (cmd, [character(40) :: &
           'ele:ac_kicker', 'ele:cartesian_map', 'ele:chamber_wall', 'ele:control_var', &
           'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_gradients', &
           'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
-          'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:spin_taylor', 'ele:taylor', & 
+          'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:shape', 'ele:spin_taylor', 'ele:taylor', &
           'ele:twiss', 'ele:wake', 'ele:wall3d', &
           'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
           'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
@@ -3660,6 +3660,79 @@ case ('ele:photon')
       nl=incr(nl); write (li(nl), ramt) 'xy(' // int_str(i) // ',:);REAL_ARR;T', (';', ph%curvature%xy(i,j), j = 0, ubound(ph%curvature%xy, 1))
     enddo
   end select
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% ele:shape
+!
+! Output the shape(s) Tao uses to draw an element in a lat_layout or floor_plan graph.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe ele:shape {ele_id}|{which} {who}
+!
+! Where:
+!   {ele_id} is an element name or index.
+!   {which} is one of: "model", "base" or "design"
+!   {who} is one of: "lat_layout" or "floor_plan"
+!
+! Example:
+!   pipe ele:shape 3@1>>7|model lat_layout
+! This gives element number 7 in branch 1 of universe 3.
+!
+! Output lines have the form:
+!   ix_shape;shape;color;line_width;y1;y2;label_name;draw;multi
+! where ix_shape is the index of the matched shape in the "pipe shape_list {who}" output,
+! and y1, y2 are the vertical extents before the plot_page shape scale is applied.
+! Every matching shape is listed, up to and including the first with draw = T and multi = F.
+! Shapes with draw = F are listed but are not drawn by Tao, so the lines with draw = T are
+! exactly what Tao draws. Nothing is output if no shape matches the element.
+!
+! Parameters
+! ----------
+! ele_id
+! who
+! which : default=model
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/tao.init_shape
+!  args:
+!   ele_id: 1@0>>1
+!   which: model
+!   who: lat_layout
+
+case ('ele:shape')
+
+  u => point_to_uni(line, .true., err); if (err) return
+  tao_lat => point_to_tao_lat(line, u, err, which, tail_str); if (err) return
+  ele => point_to_ele(line, tao_lat%lat, err); if (err) return
+
+  select case (tail_str)
+  case ('lat_layout')
+    shapes => s%plot_page%lat_layout%ele_shape
+  case ('floor_plan')
+    shapes => s%plot_page%floor_plan%ele_shape
+  case default
+    call invalid ('Expected {who} to be one of "lat_layout" or "floor_plan"')
+    return
+  end select
+
+  ix_shape_min = 1
+  do
+    call tao_ele_shape_info (u%ix_uni, ele, shapes, shape, label_name, y1, y2, ix_shape_min, include_undrawn = .true.)
+    if (.not. associated(shape)) exit
+    nl=incr(nl); write (li(nl), '(i0, 5a, i0, 2(a, es14.6), 3a, l1, a, l1)') ix_shape_min - 1, ';', &
+              trim(shape%shape), ';', trim(shape%color), ';', shape%line_width, ';', y1, ';', y2, ';', &
+              trim(label_name), ';', shape%draw, ';', shape%multi
+    if (shape%draw .and. .not. shape%multi) exit
+  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------

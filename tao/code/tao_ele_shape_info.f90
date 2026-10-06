@@ -1,5 +1,5 @@
 !+
-! Subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
+! Subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min, include_undrawn)
 !
 ! Routine to return info on an ele shape for a particular element.
 ! y1 is shape size (positive number) on "left" side (to the left when facing forward).
@@ -10,6 +10,7 @@
 !   ele           -- ele_struct: Lattice element.
 !   ele_shapes(:) -- tao_ele_shape_struct: Array of shapes to search.
 !   ix_shape_min  -- integer, optional: Index of minimum ele_shape(:) index to start search from. Default is 1.
+!   include_undrawn -- logical, optional: If True, shapes with %draw = False are also considered. Default is False.
 !
 ! Output:
 !   e_shape       -- tao_ele_shape_struct, pointer: element shape. Will be nullified if no associated shape.
@@ -19,7 +20,7 @@
 !                       are associated with ele.
 !-
 
-subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
+subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min, include_undrawn)
 
 use tao_interface, dummy => tao_ele_shape_info
 
@@ -32,6 +33,7 @@ type (tao_ele_shape_struct), pointer :: e_shape
 
 real(rp) y1, y2, y, dat_var_value
 integer, optional :: ix_shape_min
+logical, optional :: include_undrawn
 integer ix_uni, ix_shape, ix
 
 character(*) label_name
@@ -41,7 +43,7 @@ character(*), parameter :: r_name = 'tao_ele_shape_info'
 !
 
 ix_shape = integer_option(1, ix_shape_min)
-e_shape => tao_pointer_to_ele_shape (ix_uni, ele, ele_shapes, dat_var_name, dat_var_value, ix_shape)
+e_shape => tao_pointer_to_ele_shape (ix_uni, ele, ele_shapes, dat_var_name, dat_var_value, ix_shape, include_undrawn)
 if (present(ix_shape_min)) ix_shape_min = ix_shape
 
 if (.not. associated(e_shape)) return

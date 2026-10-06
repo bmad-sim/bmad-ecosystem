@@ -231,7 +231,7 @@ subroutine tao_de_optimizer (abort)
   logical abort
 end subroutine
 
-subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min)
+subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1, y2, ix_shape_min, include_undrawn)
   import
   implicit none
   type (ele_struct) ele
@@ -240,6 +240,7 @@ subroutine tao_ele_shape_info (ix_uni, ele, ele_shapes, e_shape, label_name, y1,
   real(rp) y1, y2
   integer ix_uni
   integer, optional :: ix_shape_min
+  logical, optional :: include_undrawn
   character(*) label_name
 end subroutine
 
@@ -721,7 +722,7 @@ function tao_pointer_to_building_wall_shape (wall_name) result (e_shape)
   character(*) wall_name
 end function
 
-function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min) result (e_shape)
+function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var_value, ix_shape_min, include_undrawn) result (e_shape)
   import
   implicit none
   integer ix_uni
@@ -730,6 +731,7 @@ function tao_pointer_to_ele_shape (ix_uni, ele, ele_shape, dat_var_name, dat_var
   character(*), optional :: dat_var_name
   real(rp), optional :: dat_var_value
   integer, optional :: ix_shape_min
+  logical, optional :: include_undrawn
   type (tao_ele_shape_struct), pointer :: e_shape
 end function
 
