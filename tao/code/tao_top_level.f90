@@ -20,7 +20,6 @@ subroutine tao_top_level (command, errcode)
 
 use tao_command_mod, dummy => tao_top_level
 use tao_get_user_input_mod, only: tao_get_user_input
-use tao_completion_mod, only: tao_register_completion
 !use tao_mpi_mod
 
 implicit none
@@ -53,7 +52,6 @@ if (.not. s%initialized) then
   call tao_init (err)
   if (err) return
   s%initialized = .true.
-  call tao_register_completion()
   n_lev = s%com%cmd_file_level
   need_input = ((n_lev == 0 .or. s%com%cmd_file(n_lev)%paused) .and. .not. s%com%single_mode)
   if (present(command) .and. need_input) then

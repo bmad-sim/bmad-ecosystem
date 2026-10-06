@@ -13,6 +13,11 @@
 ! rl_completer_word_break_characters set in sim_utils/io/readline_completion.c
 ! so constructs like "2@q1", "orbit.x" and "-universe" complete as single words.
 ! Candidates are always full replacements for the token being completed.
+!
+! Known limitation: "-switch" words are dropped when locating the word position
+! but the values of value-taking switches (eg "-write file", "-universe 2") are
+! not, so completion after such a switch is off by one word. Fixing this needs
+! per-switch arity information in tao_switch_sets.
 !-
 
 module tao_completion_mod
@@ -33,7 +38,7 @@ contains
 
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_complete (line, cursor, word_start, context, matches)
+! Subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix)
 !
 ! Compute completion candidates for the whitespace-delimited token ending at
 ! line(cursor-1:cursor-1). Only text to the left of the cursor is considered.
@@ -53,31 +58,39 @@ contains
 !                    'FILE' = token is a file path (caller should do file name
 !                    completion), 'NONE' = nothing to offer here.
 !   matches(:)  -- character(100), allocatable: Candidate token replacements.
+!                    At most max_matches$ are returned.
+!   common_prefix -- character(*), optional: Longest common prefix of every
+!                    candidate that matched the token, computed over all matches
+!                    including any beyond the max_matches$ cap. This is what an
+!                    interactive front end may safely insert.
 !-
 
-subroutine tao_complete (line, cursor, word_start, context, matches)
+subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix)
 
 character(*), intent(in) :: line
 integer, intent(in) :: cursor
 integer, intent(out) :: word_start
 character(*), intent(out) :: context
 character(100), allocatable, intent(out) :: matches(:)
+character(*), optional, intent(out) :: common_prefix
 
 character(100) cand(max_matches$)
-character(100) token
+character(100) token, lcp
 character(40) words(8), cmd_name, sub_name
 character(1), parameter :: tab_char = achar(9)
 character(1) quote
-integer n_end, ix_semi, n_words, n_cand, i, j, ix
+integer n_end, ix_semi, n_words, n_cand, n_lcp_hits, i, j, ix
 
 !
 
 context = 'NONE'
 word_start = 1
 n_cand = 0
+n_lcp_hits = 0
+lcp = ''
 
 if (.not. s%initialized) then
-  allocate (matches(0))
+  call finish()
   return
 endif
 
@@ -141,13 +154,13 @@ enddo
 
 if (n_words == 0) then
   if (token(1:1) /= '-') then
-    call add_prefix_matches (tao_command_names, .true.)
+    call add_command_name_matches (.true.)
     do i = 1, s%com%n_alias
       call add_match_if_prefix (s%com%alias(i)%name, .true.)
     enddo
   endif
   context = 'LIST'
-  matches = cand(1:n_cand)
+  call finish()
   return
 endif
 
@@ -155,7 +168,7 @@ endif
 
 call match_word (words(1), tao_command_names, ix, .true., matched_name = cmd_name)
 if (ix <= 0) then
-  allocate (matches(0))
+  call finish()
   return
 endif
 
@@ -163,7 +176,7 @@ endif
 
 if (token(1:1) == '-') then
   call add_switch_matches ()
-  matches = cand(1:n_cand)
+  call finish()
   return
 endif
 
@@ -231,7 +244,7 @@ case ('place')
 
 case ('help')
   if (n_words == 1) then
-    call add_prefix_matches (tao_command_names, .false.)
+    call add_command_name_matches (.false.)
   elseif (n_words == 2) then
     call match_word (words(2), [character(8):: 'pipe', 'python'], ix, matched_name = sub_name)
     if (ix > 0) call add_prefix_matches (tao_pipe_cmd_names, .false.)
@@ -261,10 +274,17 @@ case ('call', 'read')
 
 end select
 
-matches = cand(1:n_cand)
+call finish()
 
 !------------------------------------------
 contains
+
+subroutine finish ()
+matches = cand(1:n_cand)
+if (present(common_prefix)) common_prefix = lcp
+end subroutine finish
+
+!.................................
 
 ! The candidate-adding helpers below all mark the position as recognized by
 ! setting context = 'LIST'. Thus a recognized position with no matching
@@ -307,6 +327,20 @@ if (lt > 0) then
   if (n1(1:lt) /= t1(1:lt)) return
 endif
 
+! Track the common prefix over every hit, including those beyond the candidate
+! cap, so the interactive front end never inserts text a truncated list would
+! not justify.
+
+if (n_lcp_hits == 0) then
+  lcp = name
+else
+  do im = 1, min(len_trim(lcp), len_trim(name))
+    if (lcp(im:im) /= name(im:im)) exit
+  enddo
+  lcp = lcp(1:im-1)
+endif
+n_lcp_hits = n_lcp_hits + 1
+
 if (n_cand >= max_matches$) return
 do im = 1, n_cand
   if (cand(im) == name) return
@@ -317,12 +351,29 @@ cand(n_cand) = name
 end subroutine add_match_if_prefix
 
 !.................................
+! Top level command names, omitting internal commands that are not documented.
+
+subroutine add_command_name_matches (exact_case)
+
+logical exact_case
+integer in
+
+context = 'LIST'
+do in = 1, size(tao_command_names)
+  if (any(tao_command_names(in) == tao_hidden_command_names)) cycle
+  call add_match_if_prefix (tao_command_names(in), exact_case)
+enddo
+
+end subroutine add_command_name_matches
+
+!.................................
 ! Switch ("-flag") candidates from the context table in tao_command_names_mod.
 ! The context key is the command name, refined by the resolved subcommand for "show".
 
 subroutine add_switch_matches ()
 
-character(28) key
+character(tao_switch_name_len) key
+character(20) what_name
 character(tao_switch_name_len), allocatable :: sw(:)
 integer ik
 
@@ -333,9 +384,9 @@ case ('show')
   if (n_words == 1) then
     key = 'show'
   else
-    call match_word (words(2), tao_show_what_names, ik, matched_name = key)
+    call match_word (words(2), tao_show_what_names, ik, matched_name = what_name)
     if (ik <= 0) return
-    key = 'show ' // key
+    key = 'show ' // trim(what_name)
   endif
 case ('place')
   ! The -no_buffer switch must come first.
@@ -395,6 +446,8 @@ type (tao_plot_page_input) plot_page
 
 character(*) set_word
 character(300) nml_line
+character(*), parameter :: name_chars = &
+          'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_%'
 integer iu_nml, ios, ix1, ix2
 
 namelist / nml_global / global
@@ -426,11 +479,20 @@ rewind (iu_nml)
 do
   read (iu_nml, '(a)', iostat = ios) nml_line
   if (ios /= 0) exit
+  ! A component line looks like "<struct>%<name>= value," (gfortran) or
+  ! "<struct>%<name> = value," (ifort). Take the name as the run of name
+  ! characters after the "%" and require an "=" after it, which also skips
+  ! continuation lines of array values.
   nml_line = adjustl(nml_line)
   ix1 = index(nml_line, '%')
-  ix2 = index(nml_line, '=')
-  if (ix1 == 0 .or. ix2 <= ix1 + 1) cycle
-  if (index(nml_line(1:ix2), ' ') /= 0 .or. index(nml_line(1:ix2), '"') /= 0) cycle
+  if (ix1 == 0) cycle
+  ix2 = ix1 + 1
+  do while (ix2 <= len(nml_line))
+    if (verify(nml_line(ix2:ix2), name_chars) /= 0) exit
+    ix2 = ix2 + 1
+  enddo
+  if (ix2 == ix1 + 1) cycle
+  if (index(nml_line(ix2:), '=') == 0) cycle
   call add_match_if_prefix (downcase(nml_line(ix1+1:ix2-1)), .false.)
 enddo
 close (iu_nml)
@@ -571,10 +633,13 @@ end subroutine tao_complete
 !   buf_size  -- integer(c_int): Size of the buffer at buf_c.
 !
 ! Output:
-!   buf_c     -- type(c_ptr): Buffer filled with newline separated candidates,
-!                  null terminated.
-!   n_cand    -- integer(c_int): Number of candidates, or -1 for "file path:
-!                  use readline's default file name completion".
+!   buf_c     -- type(c_ptr): Null terminated buffer. Line 1 is the common prefix
+!                  readline should insert; each following line is one candidate.
+!   n_cand    -- integer(c_int): Number of candidates (0 = recognized position
+!                  with nothing matching), or -1 meaning "not Tao's to complete:
+!                  use readline's default file name completion". The engine's
+!                  FILE and NONE contexts both map to -1 so the behavior before
+!                  Tao completion existed is preserved there.
 !-
 
 function tao_rl_complete_c (line_c, point, istart, iend, buf_c, buf_size) bind(c) result (n_cand)
@@ -585,9 +650,10 @@ integer(c_int) :: n_cand
 
 character(kind=c_char), pointer :: line_p(:), buf_p(:)
 character(4000) line_f
+character(100) lcp
 character(8) context
 character(100), allocatable :: matches(:)
-integer word_start, i, j, k, lt
+integer word_start, i, k, n
 
 !
 
@@ -595,16 +661,20 @@ n_cand = 0
 if (.not. s%initialized) return
 if (.not. c_associated(line_c) .or. .not. c_associated(buf_c)) return
 
-call c_f_pointer (line_c, line_p, [len(line_f)])
+! Only the text left of the cursor matters, and rl_point is exactly its length.
+
+n = min(int(point), len(line_f))
 line_f = ''
-do i = 1, len(line_f)
-  if (line_p(i) == c_null_char) exit
-  line_f(i:i) = line_p(i)
-enddo
+if (n > 0) then
+  call c_f_pointer (line_c, line_p, [n])
+  do i = 1, n
+    line_f(i:i) = line_p(i)
+  enddo
+endif
 
-call tao_complete (line_f, min(point, len(line_f)) + 1, word_start, context, matches)
+call tao_complete (line_f, n + 1, word_start, context, matches, lcp)
 
-if (context == 'FILE') then
+if (context /= 'LIST') then
   n_cand = -1
   return
 endif
@@ -616,19 +686,33 @@ if (word_start - 1 /= istart) return
 
 call c_f_pointer (buf_c, buf_p, [buf_size])
 k = 0
-do i = 1, size(matches)
-  lt = len_trim(matches(i))
-  if (k + lt + 2 > buf_size) exit
-  do j = 1, lt
-    k = k + 1
-    buf_p(k) = matches(i)(j:j)
+if (append_line(lcp)) then
+  do i = 1, size(matches)
+    if (.not. append_line(matches(i))) exit
+    n_cand = n_cand + 1
   enddo
+endif
+buf_p(k+1) = c_null_char
+
+!------------------------------------------
+contains
+
+! Append str plus a newline, always leaving room for the final null.
+
+function append_line (str) result (ok)
+character(*) str
+logical ok
+integer jj, lt
+lt = len_trim(str)
+ok = (k + lt + 2 <= buf_size)
+if (.not. ok) return
+do jj = 1, lt
   k = k + 1
-  buf_p(k) = c_new_line
-  n_cand = n_cand + 1
+  buf_p(k) = str(jj:jj)
 enddo
 k = k + 1
-buf_p(k) = c_null_char
+buf_p(k) = c_new_line
+end function append_line
 
 end function tao_rl_complete_c
 
@@ -636,9 +720,12 @@ end function tao_rl_complete_c
 !+
 ! Subroutine tao_register_completion ()
 !
-! Install tao_rl_complete_c as the readline tab completion callback.
-! Called once at startup (see tao_top_level). Only affects interactive
-! terminal input; command files and the pipe interface never enter readline.
+! Install tao_rl_complete_c as the readline tab completion callback. Idempotent.
+!
+! Called from tao_get_user_input immediately before a terminal line is read, so
+! it runs only when Tao itself owns the prompt. Embedders such as PyTao (which
+! drive Tao through tao_c_command) never reach that path and so never have the
+! process-wide readline completion state changed under them.
 !-
 
 subroutine tao_register_completion ()
@@ -650,8 +737,12 @@ interface
   end subroutine
 end interface
 
+logical, save :: registered = .false.
+
 !
 
+if (registered) return
+registered = .true.
 call readline_set_completion_fn (c_funloc(tao_rl_complete_c))
 
 end subroutine tao_register_completion

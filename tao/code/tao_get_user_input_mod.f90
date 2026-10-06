@@ -2,6 +2,7 @@ module tao_get_user_input_mod
 
 use tao_interface
 use input_mod
+use tao_completion_mod, only: tao_register_completion
 
 character(5), parameter, private :: sub_str(9) = ['[[1]]', '[[2]]', '[[3]]', '[[4]]', '[[5]]', &
                             '[[6]]', '[[7]]', '[[8]]', '[[9]]']
@@ -240,6 +241,9 @@ if (cmd_out == '') then
     s%com%cmd_from_cmd_file = .false.
     boldit = (s%global%prompt_color /= '' .and. s%global%prompt_color /= 'DEFAULT')
     if (s%global%blank_line_between_commands) call out_io (s_blank$, r_name, '')
+    ! Registering here, rather than at init, keeps readline's process-wide completion
+    ! state untouched for embedders like PyTao that never read from the terminal.
+    call tao_register_completion()
     call read_a_line (trim(prompt_string) // '> ', cmd_out, prompt_color = s%global%prompt_color, &
                             prompt_bold = boldit, history_file = s%global%history_file)
     if (cmd_out == achar(24)) cmd_out = 'exit'   ! Cntl-D pressed
