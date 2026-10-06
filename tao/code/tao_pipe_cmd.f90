@@ -1143,14 +1143,21 @@ case ('building_wall_section')
 ! completing "sho" gives matching command names while completing "show "
 ! (note the trailing blank) gives the possible show subcommands.
 !
-! The first line of output has the form:
-!   {word};{context}
+! Output is in parameter list form:
+!   word;STR;F;{word}
+!   context;STR;F;{context}
+!   match[1];STR;F;{candidate_1}
+!   match[2];STR;F;{candidate_2}
+!   ...
 ! where {word} is the (possibly empty) token being completed (the trailing
 ! whitespace-delimited word of {line}) and {context} is one of:
-!   LIST -- The lines that follow are the completion candidates. Each candidate
+!   LIST -- The match[i] lines are the completion candidates. Each candidate
 !           is a full replacement for {word}.
 !   FILE -- {word} is a file name. The caller should do file name completion.
 !   NONE -- Completion is not supported at this point in the command line.
+!
+! Known limitation: words following value-taking switches (eg "-write file")
+! are counted as command words, so completion after such a switch is off by one.
 !
 ! Parameters
 ! ----------
@@ -1179,9 +1186,10 @@ case ('complete')
 
   call tao_complete (line, n + 1, ix, complete_context, match_arr)
 
-  nl=incr(nl); write (li(nl), '(3a)') line(ix:n), ';', trim(complete_context)
+  nl=incr(nl); write (li(nl), '(2a)') 'word;STR;F;', line(ix:n)
+  nl=incr(nl); write (li(nl), '(2a)') 'context;STR;F;', trim(complete_context)
   do i = 1, size(match_arr)
-    nl=incr(nl); li(nl) = match_arr(i)
+    nl=incr(nl); write (li(nl), '(a, i0, 2a)') 'match[', i, '];STR;F;', trim(match_arr(i))
   enddo
 
 !------------------------------------------------------------------------------------------------

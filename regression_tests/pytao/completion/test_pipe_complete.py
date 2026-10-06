@@ -25,8 +25,28 @@ def complete(tao: SubprocessTao, line: str) -> tuple[str, str, list[str]]:
     out = tao.cmd(f'pipe complete "{line}"')
     if isinstance(out, str):
         out = [out]
-    word, context = out[0].split(";")
-    return word, context, out[1:]
+    fields: dict[str, str] = {}
+    matches: list[str] = []
+    for item in out:
+        name, _type, _settable, value = item.split(";", 3)
+        if name.startswith("match["):
+            matches.append(value)
+        else:
+            fields[name] = value
+    return fields["word"], fields["context"], matches
+
+
+def test_output_parses_with_generic_parameter_list_parser(tao):
+    """
+    The output must parse with PyTao's generic parser so that bindings regenerated
+    against a PyTao without a dedicated ``parse_complete`` still work.
+    """
+    from pytao.util.parsers import parse_tao_python_data
+
+    data = parse_tao_python_data(tao.cmd('pipe complete "sho"'), clean_key=False)
+    assert data["word"] == "sho"
+    assert data["context"] == "LIST"
+    assert data["match[1]"] == "show"
 
 
 def test_empty_line_lists_all_commands(tao):
@@ -35,7 +55,9 @@ def test_empty_line_lists_all_commands(tao):
     assert context == "LIST"
     assert "show" in matches
     assert "set" in matches
-    assert len(matches) >= 49
+    assert len(matches) >= 46
+    # Undocumented internal commands are accepted by the parser but not offered.
+    assert "debug" not in matches
 
 
 def test_unique_command_prefix(tao):
