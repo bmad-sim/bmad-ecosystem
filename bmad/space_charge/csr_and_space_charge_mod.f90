@@ -328,7 +328,7 @@ do i_step = 0, n_step
   ! Assume a linear energy gain in a cavity
 
   f1 = s0_step / ele%value(l$)
-  e_tot = f1 * branch%ele(ele%ix_ele-1)%value(e_tot$) + (1 - f1) * ele%value(e_tot$)
+  e_tot = (1 - f1) * branch%ele(ele%ix_ele-1)%value(e_tot$) + f1 * ele%value(e_tot$)
   call convert_total_energy_to (e_tot, branch%param%particle, csr%gamma, beta = csr%beta)
   csr%gamma2 = csr%gamma**2
   csr%rel_mass = mass_of(branch%param%particle) / m_electron 
