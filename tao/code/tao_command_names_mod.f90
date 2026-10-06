@@ -23,6 +23,11 @@ character(16), parameter :: tao_command_names(49) = [character(16):: &
                       'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale', &
                       'debug', 'verbose', 'tree']
 
+! Commands accepted by the parser but not documented in command-list.tex.
+! Tab completion omits these; the parser list above must still include them.
+
+character(16), parameter :: tao_hidden_command_names(3) = [character(16):: 'debug', 'verbose', 'tree']
+
 ! "show <what>" names. See tao_show_this.
 
 character(20), parameter :: tao_show_what_names(48) = [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
@@ -83,6 +88,7 @@ character(40), parameter :: tao_pipe_cmd_names(114) = [character(40) :: &
 ! Completion-only (parser list intentionally differs, so kept separate):
 !   'set'          -- parser also accepts the deprecated -lord_no_set
 !   'change'/'place' -- parsed by index() matching, not tao_next_switch
+!   'show merit'/'show top10' -- parsed by index() matching in tao_show_this
 
 type tao_switch_set_struct
   character(tao_switch_name_len) :: context = ''
