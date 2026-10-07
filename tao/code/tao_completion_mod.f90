@@ -25,7 +25,7 @@ module tao_completion_mod
 use tao_struct
 use tao_command_names_mod
 use tao_input_struct, only: tao_plot_page_input
-use attribute_mod, only: attribute_info, ele_attribute_struct
+use attribute_mod, only: attribute_info, ele_attribute_struct, attribute_type
 use geodesic_lm, only: geodesic_lm_param_struct
 use opti_de_mod, only: opti_de_param
 use, intrinsic :: iso_c_binding
@@ -75,7 +75,8 @@ character(100), allocatable, intent(out) :: matches(:)
 character(*), optional, intent(out) :: common_prefix
 
 character(100) cand(max_matches$)
-character(100) token, lcp
+character(100) token, lcp, prepend
+character(60) attrib_name
 character(40) words(8), cmd_name, sub_name
 character(1), parameter :: tab_char = achar(9)
 character(1) quote
@@ -88,6 +89,7 @@ word_start = 1
 n_cand = 0
 n_lcp_hits = 0
 lcp = ''
+prepend = ''
 
 if (.not. s%initialized) then
   call finish()
@@ -199,7 +201,17 @@ case ('show')
   endif
 
 case ('set')
-  if (n_words == 1) then
+  if (at_set_value(attrib_name)) then
+    call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
+    select case (sub_name)
+    case ('element')
+      if (n_words >= 3) call add_attribute_value_matches (words(3), attrib_name)
+    case ('global', 'beam_init', 'bmad_com', 'space_charge_com', 'geodesic_lm', &
+          'opti_de_param', 'plot_page', 'ptc_com')
+      call add_struct_value_matches (sub_name, attrib_name)
+    end select
+
+  elseif (n_words == 1) then
     call add_prefix_matches (tao_set_target_names, .true.)
   elseif (n_words == 2) then
     call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
@@ -281,7 +293,7 @@ contains
 
 subroutine finish ()
 matches = cand(1:n_cand)
-if (present(common_prefix)) common_prefix = lcp
+if (present(common_prefix)) common_prefix = trim(prepend) // lcp
 end subroutine finish
 
 !.................................
@@ -310,7 +322,7 @@ subroutine add_match_if_prefix (name, exact_case)
 
 character(*) name
 logical exact_case
-character(100) n1, t1
+character(100) n1, t1, full
 integer im, lt
 
 if (name == '') return
@@ -342,11 +354,12 @@ endif
 n_lcp_hits = n_lcp_hits + 1
 
 if (n_cand >= max_matches$) return
+full = trim(prepend) // name
 do im = 1, n_cand
-  if (cand(im) == name) return
+  if (cand(im) == full) return
 enddo
 n_cand = n_cand + 1
-cand(n_cand) = name
+cand(n_cand) = full
 
 end subroutine add_match_if_prefix
 
@@ -437,63 +450,21 @@ end subroutine add_plot_matches
 
 subroutine add_set_struct_matches (set_word)
 
-type (tao_global_struct) global
-type (beam_init_struct) beam_init
-type (bmad_common_struct) this_bmad_com
-type (space_charge_common_struct) this_space_charge_com
-type (geodesic_lm_param_struct) this_geodesic_lm
-type (tao_plot_page_input) plot_page
-
 character(*) set_word
 character(300) nml_line
-character(*), parameter :: name_chars = &
-          'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_%'
-integer iu_nml, ios, ix1, ix2
-
-namelist / nml_global / global
-namelist / nml_beam_init / beam_init
-namelist / nml_bmad_com / this_bmad_com
-namelist / nml_space_charge_com / this_space_charge_com
-namelist / nml_geodesic_lm / this_geodesic_lm
-namelist / nml_opti_de_param / opti_de_param
-namelist / nml_plot_page / plot_page
+character(60) comp_name
+integer iu_nml, ios
+logical ok
 
 context = 'LIST'
 
-! Scratch file I/O is safe here: only terminal output would corrupt the readline display.
-
-open (newunit = iu_nml, status = 'scratch', iostat = ios)
-if (ios /= 0) return
-
-select case (set_word)
-case ('global');            write (iu_nml, nml = nml_global, iostat = ios)
-case ('beam_init');         write (iu_nml, nml = nml_beam_init, iostat = ios)
-case ('bmad_com');          write (iu_nml, nml = nml_bmad_com, iostat = ios)
-case ('space_charge_com');  write (iu_nml, nml = nml_space_charge_com, iostat = ios)
-case ('geodesic_lm');       write (iu_nml, nml = nml_geodesic_lm, iostat = ios)
-case ('opti_de_param');     write (iu_nml, nml = nml_opti_de_param, iostat = ios)
-case ('plot_page');         write (iu_nml, nml = nml_plot_page, iostat = ios)
-end select
-
-rewind (iu_nml)
+iu_nml = struct_namelist_unit (set_word, ok)
+if (.not. ok) return
 do
   read (iu_nml, '(a)', iostat = ios) nml_line
   if (ios /= 0) exit
-  ! A component line looks like "<struct>%<name>= value," (gfortran) or
-  ! "<struct>%<name> = value," (ifort). Take the name as the run of name
-  ! characters after the "%" and require an "=" after it, which also skips
-  ! continuation lines of array values.
-  nml_line = adjustl(nml_line)
-  ix1 = index(nml_line, '%')
-  if (ix1 == 0) cycle
-  ix2 = ix1 + 1
-  do while (ix2 <= len(nml_line))
-    if (verify(nml_line(ix2:ix2), name_chars) /= 0) exit
-    ix2 = ix2 + 1
-  enddo
-  if (ix2 == ix1 + 1) cycle
-  if (index(nml_line(ix2:), '=') == 0) cycle
-  call add_match_if_prefix (downcase(nml_line(ix1+1:ix2-1)), .false.)
+  call parse_namelist_line (nml_line, comp_name)
+  if (comp_name /= '') call add_match_if_prefix (comp_name, .false.)
 enddo
 close (iu_nml)
 
@@ -507,28 +478,180 @@ end select
 end subroutine add_set_struct_matches
 
 !.................................
-! Attribute names for "set element <name> <attrib>", from bmad's attribute table
-! for the first element matching <name> (wildcards allowed) in the default universe.
+! Write the namelist for a "set" struct to a scratch file and return its unit
+! (rewound, ready to read). ok is False if the file could not be opened. Scratch
+! file I/O is safe inside the readline callback: only terminal output would
+! corrupt the display.
 
-subroutine add_attribute_matches (ele_name)
+function struct_namelist_unit (set_word, ok) result (iu_nml)
+
+type (tao_global_struct) global
+type (beam_init_struct) beam_init
+type (bmad_common_struct) this_bmad_com
+type (space_charge_common_struct) this_space_charge_com
+type (geodesic_lm_param_struct) this_geodesic_lm
+type (tao_plot_page_input) plot_page
+
+character(*) set_word
+integer iu_nml, ios
+logical ok
+
+namelist / nml_global / global
+namelist / nml_beam_init / beam_init
+namelist / nml_bmad_com / this_bmad_com
+namelist / nml_space_charge_com / this_space_charge_com
+namelist / nml_geodesic_lm / this_geodesic_lm
+namelist / nml_opti_de_param / opti_de_param
+namelist / nml_plot_page / plot_page
+
+open (newunit = iu_nml, status = 'scratch', iostat = ios)
+ok = (ios == 0)
+if (.not. ok) return
+
+select case (set_word)
+case ('global');            write (iu_nml, nml = nml_global, iostat = ios)
+case ('beam_init');         write (iu_nml, nml = nml_beam_init, iostat = ios)
+case ('bmad_com');          write (iu_nml, nml = nml_bmad_com, iostat = ios)
+case ('space_charge_com');  write (iu_nml, nml = nml_space_charge_com, iostat = ios)
+case ('geodesic_lm');       write (iu_nml, nml = nml_geodesic_lm, iostat = ios)
+case ('opti_de_param');     write (iu_nml, nml = nml_opti_de_param, iostat = ios)
+case ('plot_page');         write (iu_nml, nml = nml_plot_page, iostat = ios)
+end select
+
+rewind (iu_nml)
+
+end function struct_namelist_unit
+
+!.................................
+! Split one namelist output line into its component name (downcased, '' if the
+! line is not a component line) and its value text. A component line looks like
+! "<struct>%<name>= value," (gfortran) or "<struct>%<name> = value," (ifort).
+! Continuation lines of array values have no "<name>=" and give comp_name = ''.
+
+subroutine parse_namelist_line (nml_line, comp_name, value_str)
+
+character(*) nml_line, comp_name
+character(*), optional :: value_str
+character(*), parameter :: name_chars = &
+          'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_%'
+character(len(nml_line)) rest
+integer ix1, ix2, ieq, iend
+
+comp_name = ''
+if (present(value_str)) value_str = ''
+
+nml_line = adjustl(nml_line)
+ix1 = index(nml_line, '%')
+if (ix1 == 0) return
+ix2 = ix1 + 1
+do while (ix2 <= len(nml_line))
+  if (verify(nml_line(ix2:ix2), name_chars) /= 0) exit
+  ix2 = ix2 + 1
+enddo
+if (ix2 == ix1 + 1) return
+ieq = index(nml_line(ix2:), '=')
+if (ieq == 0) return
+
+comp_name = downcase(nml_line(ix1+1:ix2-1))
+
+if (present(value_str)) then
+  rest = adjustl(nml_line(ix2+ieq:))
+  iend = scan(rest, ', ')
+  if (iend == 0) iend = len_trim(rest) + 1
+  value_str = rest(1:iend-1)
+  if (value_str(1:1) == '"' .or. value_str(1:1) == "'") value_str = value_str(2:len_trim(value_str)-1)
+endif
+
+end subroutine parse_namelist_line
+
+!.................................
+! Current value text of one component from a "set" struct's namelist dump.
+
+function struct_component_value (set_word, comp) result (value_str)
+
+character(*) set_word, comp
+character(100) value_str
+character(300) nml_line
+character(60) comp_name
+character(60) comp_lc
+integer iu_nml, ios
+logical ok
+
+value_str = ''
+comp_lc = downcase(comp)
+
+iu_nml = struct_namelist_unit (set_word, ok)
+if (.not. ok) return
+do
+  read (iu_nml, '(a)', iostat = ios) nml_line
+  if (ios /= 0) exit
+  call parse_namelist_line (nml_line, comp_name, value_str)
+  if (comp_name == comp_lc) exit
+  value_str = ''
+enddo
+close (iu_nml)
+
+end function struct_component_value
+
+!.................................
+! True if the token is the value in "set <target> ... <attrib> = <value>".
+! Handles "attrib = val", "attrib =val" and the glued "attrib=val". On return
+! attrib holds the attribute or component name, token holds only the value
+! prefix, and prepend holds any "attrib=" text that candidates must keep in front.
+
+function at_set_value (attrib) result (is_value)
+
+character(*) attrib
+logical is_value
+integer ie, lw
+
+is_value = .false.
+attrib = ''
+
+ie = index(token, '=')
+if (ie > 0) then
+  if (ie > 1) then
+    attrib = token(1:ie-1)
+  elseif (n_words >= 1) then
+    attrib = words(n_words)
+  endif
+  prepend = token(1:ie)
+  token = token(ie+1:)
+  is_value = .true.
+
+elseif (n_words >= 3) then
+  lw = len_trim(words(n_words))
+  if (words(n_words) == '=') then
+    attrib = words(n_words-1)
+    is_value = .true.
+  elseif (lw > 1 .and. words(n_words)(lw:lw) == '=') then
+    attrib = words(n_words)(1:lw-1)
+    is_value = .true.
+  endif
+endif
+
+end function at_set_value
+
+!.................................
+! First element matching ele_name (wildcards allowed) in the default universe.
+
+function find_element (ele_name) result (ele)
 
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
-type (ele_attribute_struct) attrib
 
 character(*) ele_name
 character(60) name_up
-integer iuni, ib, ie, ia
+integer iuni, ib, ie
 
-context = 'LIST'
+nullify(ele)
 if (ele_name == '') return
 if (.not. allocated(s%u)) return
 iuni = s%global%default_universe
 if (iuni < lbound(s%u, 1) .or. iuni > ubound(s%u, 1)) return
 u => s%u(iuni)
 
-nullify(ele)
 name_up = upcase(ele_name)
 branch_loop: do ib = 0, ubound(u%model%lat%branch, 1)
   branch => u%model%lat%branch(ib)
@@ -538,6 +661,80 @@ branch_loop: do ib = 0, ubound(u%model%lat%branch, 1)
     exit branch_loop
   enddo
 enddo branch_loop
+
+end function find_element
+
+!.................................
+! Values for "set element <name> <attrib> = <value>": the values valid for this
+! element's switch attributes (via tao_enum_value_names) or T/F for logicals.
+
+subroutine add_attribute_value_matches (ele_name, attrib)
+
+type (ele_struct), pointer :: ele
+character(*) ele_name, attrib
+character(40), allocatable :: names(:)
+integer, allocatable :: ixs(:)
+integer in
+
+context = 'LIST'
+ele => find_element(ele_name)
+if (.not. associated(ele)) return
+
+select case (attribute_type(upcase(attrib), ele))
+case (is_logical$)
+  call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
+case (is_switch$)
+  call tao_enum_value_names (attrib, names, ixs, ele)
+  if (.not. allocated(names)) return
+  do in = 1, size(names)
+    call add_match_if_prefix (downcase(names(in)), .false.)
+  enddo
+end select
+
+end subroutine add_attribute_value_matches
+
+!.................................
+! Values for "set <struct> <component> = <value>": enumerated components share
+! their names with "pipe enum" (track_type, optimizer, ...); otherwise a component
+! whose namelist dump value is T or F is a logical.
+
+subroutine add_struct_value_matches (set_word, comp)
+
+character(*) set_word, comp
+character(40), allocatable :: names(:)
+integer, allocatable :: ixs(:)
+character(100) value_str
+integer in
+
+context = 'LIST'
+
+call tao_enum_value_names (downcase(comp), names, ixs, switch_attribs = .false.)
+if (allocated(names)) then
+  do in = 1, size(names)
+    call add_match_if_prefix (names(in), .false.)
+  enddo
+  return
+endif
+
+value_str = struct_component_value (set_word, comp)
+if (value_str == 'T' .or. value_str == 'F') call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
+
+end subroutine add_struct_value_matches
+
+!.................................
+! Attribute names for "set element <name> <attrib>", from bmad's attribute table
+! for the first element matching <name> (wildcards allowed) in the default universe.
+
+subroutine add_attribute_matches (ele_name)
+
+type (ele_struct), pointer :: ele
+type (ele_attribute_struct) attrib
+
+character(*) ele_name
+integer ia
+
+context = 'LIST'
+ele => find_element(ele_name)
 if (.not. associated(ele)) return
 
 do ia = 1, num_ele_attrib$

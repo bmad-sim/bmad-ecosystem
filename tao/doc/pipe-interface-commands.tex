@@ -263,6 +263,11 @@ whitespace-delimited word of {line}) and {context} is one of:
   FILE -- {word} is a file name. The caller should do file name completion.
   NONE -- Completion is not supported at this point in the command line.
 
+Values of "set" commands are completed after an "=": enumerated element
+attributes (eg "set element q1 tracking_method = ") offer the values valid for
+that element, logical attributes and struct components offer T/F, and
+enumerated struct components (eg "set global track_type = ") offer their values.
+
 Known limitation: words following value-taking switches (eg "-write file")
 are counted as command words, so completion after such a switch is off by one.
 \end{verbatim}

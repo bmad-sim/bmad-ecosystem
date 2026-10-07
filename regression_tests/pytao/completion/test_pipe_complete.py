@@ -203,6 +203,40 @@ def test_show_plot_names(tao):
     assert matches
 
 
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("set element Q01W tracking_method = ", "runge_kutta"),
+        ("set element Q01W tracking_method = run", "runge_kutta"),
+        ("set element Q01W tracking_method=r", "tracking_method=runge_kutta"),
+        ("set element Q01W tracking_method =b", "=bmad_standard"),
+        ("set element Q01W field_master = ", "T"),
+        ("set global track_type = ", "beam"),
+        ("set global rf_on = ", "F"),
+        ("set bmad_com radiation_damping_on = ", "T"),
+        ("set beam_init random_engine = q", "quasi"),
+    ],
+)
+def test_set_value_completion(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+def test_set_value_glued_form_keeps_attribute_prefix(tao):
+    word, context, matches = complete(tao, "set element Q01W tracking_method=r")
+    assert word == "tracking_method=r"
+    assert context == "LIST"
+    assert matches
+    assert all(match.startswith("tracking_method=") for match in matches)
+
+
+def test_set_numeric_attribute_has_no_value_candidates(tao):
+    _, context, matches = complete(tao, "set element Q01W k1 = ")
+    assert context == "LIST"
+    assert matches == []
+
+
 def test_set_element_attributes_require_known_element(tao):
     _, context, matches = complete(tao, "set element NO_SUCH_ELE ")
     assert context == "LIST"

@@ -54,7 +54,7 @@ use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
-use tao_command_names_mod, only: tao_pipe_cmd_names, tao_switches_for
+use tao_command_names_mod, only: tao_pipe_cmd_names, tao_switches_for, tao_enum_value_names, no_enum_index$
 use tao_completion_mod, only: tao_complete
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
@@ -1155,6 +1155,11 @@ case ('building_wall_section')
 !           is a full replacement for {word}.
 !   FILE -- {word} is a file name. The caller should do file name completion.
 !   NONE -- Completion is not supported at this point in the command line.
+!
+! Values of "set" commands are completed after an "=": enumerated element
+! attributes (eg "set element q1 tracking_method = ") offer the values valid for
+! that element, logical attributes and struct components offer T/F, and
+! enumerated struct components (eg "set global track_type = ") offer their values.
 !
 ! Known limitation: words following value-taking switches (eg "-write file")
 ! are counted as command words, so completion after such a switch is off by one.
@@ -4328,171 +4333,20 @@ case ('em_field')
 
 case ('enum')
 
-  if (index(line, 'color') /= 0) then
-    do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
-    enddo
-    call end_stuff(li, nl)
+  ! Shared with tab completion; see tao_enum_value_names.
+  call tao_enum_value_names (line, name_list, int_arr)
+  if (.not. allocated(name_list)) then
+    call invalid ('Not a valid switch name.')
     return
   endif
 
-  select case (line)
-  case ('axis^type')
-    nl=incr(nl); write(li(nl), '(a)') '1;LINEAR'
-    nl=incr(nl); write(li(nl), '(a)') '2;LOG'
-
-  case ('bounds')
-    nl=incr(nl); write(li(nl), '(a)') '1;GENERAL'
-    nl=incr(nl); write(li(nl), '(a)') '2;ZERO_AT_END'
-    nl=incr(nl); write(li(nl), '(a)') '3;ZERO_SYMMETRIC'
-
-  case ('building^constraint')
-    nl=incr(nl); write(li(nl), '(a)') '1;none'
-    nl=incr(nl); write(li(nl), '(a)') '2;left_side'
-    nl=incr(nl); write(li(nl), '(a)') '3;right_side'
-
-  case ('data^merit_type')
-    do i = 1, size(tao_data_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_merit_type_name(i))
-    enddo
-
-  case ('data_source')
-    do i = 1, size(tao_data_source_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_source_name(i))
-    enddo
-
-  case ('distribution_type')
-    do i = 1, size(beam_distribution_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(beam_distribution_type_name(i))
-    enddo
-
-  case ('floor_plan_view_name')
-    do i = 1, size(tao_floor_plan_view_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_floor_plan_view_name(i))
-    enddo
-
-  case ('graph^type')
-    do i = 1, size(tao_graph_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_graph_type_name(i))
-    enddo
-
-  case ('line^pattern', 'orbit_pattern')
-    do i = 1, size(qp_line_pattern_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
-    enddo
-
-  case ('lord_status')
-    nl=incr(nl); li(nl) = '4;Group_Lord'
-    nl=incr(nl); li(nl) = '5;Super_Lord' 
-    nl=incr(nl); li(nl) = '6;Overlay_Lord' 
-    nl=incr(nl); li(nl) = '7;Girder_Lord' 
-    nl=incr(nl); li(nl) = '8;Multipass_Lord'
-    nl=incr(nl); li(nl) = '10;Not_a_Lord' 
-    nl=incr(nl); li(nl) = '12;Control_Lord' 
-    nl=incr(nl); li(nl) = '13;Ramper_Lord'
-
-  case ('optimizer')
-    do i = 1, size(tao_optimizer_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_optimizer_name(i))
-    enddo
-
-  case ('orbit_lattice')
-    nl=incr(nl); li(nl) = '1;model'
-    nl=incr(nl); li(nl) = '2;design'
-    nl=incr(nl); li(nl) = '3;base'
-
-  case ('photon_type')
-    do i = 1, size(photon_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(photon_type_name(i))
-    enddo
-
-  case ('plot^type')
-    nl=incr(nl); li(nl) = '1;normal'
-    nl=incr(nl); li(nl) = '2;wave'
-
-  case ('random_engine')
-    nl=incr(nl); li(nl) = '1;pseudo'
-    nl=incr(nl); li(nl) = '2;quasi'
-
-  case ('random_gauss_converter')
-    nl=incr(nl); li(nl) = '1;exact'
-    nl=incr(nl); li(nl) = '2;quick'
-
-  case ('shape^label')
-    do i = 1, size(tao_shape_label_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_label_name(i))
-    enddo
-
-  case ('shape^shape')
-    do i = 1, size(tao_shape_shape_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
-    enddo
-
-  case ('slave_status')
-    nl=incr(nl); li(nl) = '1;Minor_Slave'
-    nl=incr(nl); li(nl) = '2;Super_Slave' 
-    nl=incr(nl); li(nl) = '3;Free' 
-    nl=incr(nl); li(nl) = '9;Multipass_Slave' 
-    nl=incr(nl); li(nl) = '11;Slice_Slave' 
-
-  case ('fill_pattern')
-    do i = 1, size(qp_symbol_fill_pattern_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
-    enddo
-
-  case ('symbol^type')
-    do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
-    enddo
-
-  case ('track_type')
-    nl=incr(nl); li(nl) = 'single'
-    nl=incr(nl); li(nl) = 'beam'
-
-  case ('var^merit_type')
-    do i = 1, size(tao_var_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_var_merit_type_name(i))
-    enddo
-
-  case ('view')
-    nl=incr(nl); li(nl) = 'zx'
-    nl=incr(nl); li(nl) = 'xz'
-    nl=incr(nl); li(nl) = 'xy'
-    nl=incr(nl); li(nl) = 'yx'
-    nl=incr(nl); li(nl) = 'zy'
-    nl=incr(nl); li(nl) = 'yz'
-
-  case ('wave_data_type')
-    do i = 1, size(tao_wave_data_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_wave_data_name(i))
-    enddo
-
-  case ('x_axis_type')
-    do i = 1, size(tao_x_axis_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_x_axis_type_name(i))
-    enddo
-
-  case ('data_type_z')
-    do i = 1, size(tao_data_type_z_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_type_z_name(i))
-    enddo
-
-  case default
-
-    name = upcase(line)
-    if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheat since data%eval_point is not recognized by switch_attrib_value_name
-
-    a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
-    if (.not. allocated(name_list)) then
-      call invalid ('Not a valid switch name.')
-      return
+  do i = 1, size(name_list)
+    if (int_arr(i) == no_enum_index$) then
+      nl=incr(nl); li(nl) = name_list(i)
+    else
+      nl=incr(nl); write(li(nl), '(i0, 2a)') int_arr(i), ';', trim(name_list(i))
     endif
-
-    do i = lbound(name_list, 1), ubound(name_list, 1)
-      if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
-    enddo
-  end select
+  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
