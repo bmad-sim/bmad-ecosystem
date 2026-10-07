@@ -1184,8 +1184,7 @@ case ('building_wall_section')
 
 case ('complete')
 
-  ! Strip one layer of double quotes by hand: the quoted content length must be
-  ! recorded before any trimming or a significant trailing blank would be lost.
+  ! Quotes are stripped by hand so a significant trailing blank survives.
   n = len_trim(line)
   if (n >= 2 .and. line(1:1) == '"' .and. line(n:n) == '"') then
     line = line(2:n-1)
@@ -4336,7 +4335,6 @@ case ('em_field')
 
 case ('enum')
 
-  ! Shared with tab completion; see tao_enum_value_names.
   call tao_enum_value_names (line, name_list, int_arr)
   if (.not. allocated(name_list)) then
     call invalid ('Not a valid switch name.')

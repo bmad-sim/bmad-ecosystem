@@ -9,15 +9,8 @@
 !   - The "pipe complete" command (see tao_pipe_cmd) used by PyTao and other
 !     external programs.
 !
-! Completion tokens break on space/tab only. This must agree with
-! rl_completer_word_break_characters set in sim_utils/io/readline_completion.c
-! so constructs like "2@q1", "orbit.x" and "-universe" complete as single words.
-! Candidates are always full replacements for the token being completed.
-!
-! Known limitation: "-switch" words are dropped when locating the word position
-! but the values of value-taking switches (eg "-write file", "-universe 2") are
-! not, so completion after such a switch is off by one word. Fixing this needs
-! per-switch arity information in tao_switch_sets.
+! Tokens break on blanks and tabs only (matching readline_completion.c) and each
+! candidate is a full replacement for the token being completed.
 !-
 
 module tao_completion_mod
@@ -57,15 +50,10 @@ contains
 !   word_start  -- integer: 1-based index in line of the start of the token
 !                    being completed.
 !   context     -- character(*): 'LIST' = matches(:) holds the candidates (possibly
-!                    none: a recognized command never wants file names unless it
-!                    says so), 'FILE' = token is a file path (caller should do file
-!                    name completion), 'NONE' = command not recognized.
-!   matches(:)  -- character(100), allocatable: Candidate token replacements.
-!                    At most max_matches$ are returned.
-!   common_prefix -- character(*), optional: Longest common prefix of every
-!                    candidate that matched the token, computed over all matches
-!                    including any beyond the max_matches$ cap. This is what an
-!                    interactive front end may safely insert.
+!                    none), 'FILE' = token is a file path, 'NONE' = command not recognized.
+!   matches(:)  -- character(100), allocatable: Candidates, at most max_matches$.
+!   common_prefix -- character(*), optional: Longest common prefix of all candidates,
+!                    including any beyond the max_matches$ cap.
 !-
 
 subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix)
@@ -81,7 +69,7 @@ character(100) cand(max_matches$)
 character(100) token, lcp, prepend
 character(60) attrib_name
 character(40) words(8), cmd_name, sub_name
-character(1), parameter :: tab_char = achar(9)
+character(2), parameter :: blanks = ' ' // achar(9)
 character(1) quote
 integer n_end, ix_semi, n_words, n_cand, n_lcp_hits, i, j, ix
 
@@ -117,39 +105,28 @@ do i = 1, n_end
   endif
 enddo
 
-! word_start = start of the trailing (possibly empty) token.
+! The token is the trailing (possibly empty) word. The words before it, minus any
+! "-switch" words, give the context.
 
-word_start = ix_semi + 1
-do i = n_end, ix_semi+1, -1
-  if (line(i:i) == ' ' .or. line(i:i) == tab_char) then
-    word_start = i + 1
-    exit
-  endif
-enddo
-
+word_start = ix_semi + 1 + scan(line(ix_semi+1:n_end), blanks, back = .true.)
 token = ''
 if (word_start <= n_end) token = line(word_start:n_end)
 
-! Gather the complete words before the token, dropping "-switch" words.
-
 n_words = 0
 i = ix_semi + 1
-do while (i < word_start)
-  do while (i < word_start)
-    if (line(i:i) /= ' ' .and. line(i:i) /= tab_char) exit
-    i = i + 1
-  enddo
-  if (i >= word_start) exit
-  j = i
-  do while (j < word_start)
-    if (line(j:j) == ' ' .or. line(j:j) == tab_char) exit
-    j = j + 1
-  enddo
-  if (line(i:i) /= '-' .or. n_words == 0) then
-    if (n_words < size(words)) then
-      n_words = n_words + 1
-      words(n_words) = line(i:j-1)
-    endif
+do
+  ix = verify(line(i:word_start-1), blanks)
+  if (ix == 0) exit
+  i = i + ix - 1
+  j = scan(line(i:word_start-1), blanks)
+  if (j == 0) then
+    j = word_start
+  else
+    j = i + j - 1
+  endif
+  if ((line(i:i) /= '-' .or. n_words == 0) .and. n_words < size(words)) then
+    n_words = n_words + 1
+    words(n_words) = line(i:j-1)
   endif
   i = j
 enddo
@@ -159,7 +136,7 @@ enddo
 
 if (n_words == 0) then
   if (token(1:1) /= '-') then
-    call add_command_name_matches (.true.)
+    call add_prefix_matches (tao_visible_command_names, .true.)
     do i = 1, s%com%n_alias
       call add_match_if_prefix (s%com%alias(i)%name, .true.)
     enddo
@@ -179,6 +156,7 @@ endif
 
 ! From here on the command is known, so an unhandled position is an empty list
 ! rather than NONE: file names are offered only where a command takes a file.
+! The add_* helpers below set context = 'LIST' themselves.
 
 context = 'LIST'
 
@@ -209,8 +187,10 @@ case ('show')
   endif
 
 case ('set')
+  sub_name = ''
+  if (n_words >= 2) call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
+
   if (at_set_value(attrib_name)) then
-    call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
     select case (sub_name)
     case ('element')
       if (n_words >= 3) call add_attribute_value_matches (words(3), attrib_name)
@@ -222,10 +202,7 @@ case ('set')
   elseif (n_words == 1) then
     call add_prefix_matches (tao_set_target_names, .true.)
   elseif (n_words == 2) then
-    call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
     select case (sub_name)
-
-    ! These set targets work via a namelist read so a namelist write gives the component names.
     case ('global', 'beam_init', 'bmad_com', 'space_charge_com', 'geodesic_lm', &
           'opti_de_param', 'plot_page')
       call add_set_struct_matches (sub_name)
@@ -248,7 +225,6 @@ case ('set')
     end select
 
   elseif (n_words == 3) then
-    call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
     if (sub_name == 'element') call add_attribute_matches (words(3))
   endif
 
@@ -264,7 +240,7 @@ case ('place')
 
 case ('help')
   if (n_words == 1) then
-    call add_command_name_matches (.false.)
+    call add_prefix_matches (tao_visible_command_names, .false.)
   elseif (n_words == 2) then
     call match_word (words(2), [character(8):: 'pipe', 'python'], ix, matched_name = sub_name)
     if (ix > 0) call add_prefix_matches (tao_pipe_cmd_names, .false.)
@@ -316,11 +292,6 @@ end subroutine finish
 
 !.................................
 
-! The candidate-adding helpers below all mark the position as recognized by
-! setting context = 'LIST'. Thus a recognized position with no matching
-! candidate still reports 'LIST' (empty), distinct from 'NONE' (not a
-! completion position). Callers therefore never set context themselves.
-
 subroutine add_prefix_matches (names, exact_case)
 
 character(*) names(:)
@@ -357,9 +328,7 @@ if (lt > 0) then
   if (n1(1:lt) /= t1(1:lt)) return
 endif
 
-! Track the common prefix over every hit, including those beyond the candidate
-! cap, so the interactive front end never inserts text a truncated list would
-! not justify.
+! The common prefix counts hits beyond the candidate cap too.
 
 if (n_lcp_hits == 0) then
   lcp = name
@@ -382,24 +351,6 @@ cand(n_cand) = full
 end subroutine add_match_if_prefix
 
 !.................................
-! Top level command names, omitting internal commands that are not documented.
-
-subroutine add_command_name_matches (exact_case)
-
-logical exact_case
-integer in
-
-context = 'LIST'
-do in = 1, size(tao_command_names)
-  if (any(tao_command_names(in) == tao_hidden_command_names)) cycle
-  call add_match_if_prefix (tao_command_names(in), exact_case)
-enddo
-
-end subroutine add_command_name_matches
-
-!.................................
-! Switch ("-flag") candidates from the context table in tao_command_names_mod.
-! The context key is the command name, refined by the resolved subcommand for "show".
 
 subroutine add_switch_matches ()
 
@@ -409,23 +360,15 @@ character(tao_switch_name_len), allocatable :: sw(:)
 integer ik
 
 context = 'LIST'
+key = cmd_name
 
-select case (cmd_name)
-case ('show')
-  if (n_words == 1) then
-    key = 'show'
-  else
-    call match_word (words(2), tao_show_what_names, ik, matched_name = what_name)
-    if (ik <= 0) return
-    key = 'show ' // trim(what_name)
-  endif
-case ('place')
-  ! The -no_buffer switch must come first.
-  if (n_words > 1) return
-  key = cmd_name
-case default
-  key = cmd_name
-end select
+if (cmd_name == 'place' .and. n_words > 1) return   ! -no_buffer must come first.
+
+if (cmd_name == 'show' .and. n_words > 1) then
+  call match_word (words(2), tao_show_what_names, ik, matched_name = what_name)
+  if (ik <= 0) return
+  key = 'show ' // trim(what_name)
+endif
 
 sw = tao_switches_for(key)
 do ik = 1, size(sw)
@@ -462,9 +405,8 @@ endif
 end subroutine add_plot_matches
 
 !.................................
-! The "set" commands for these structs work by writing "<struct>%<component> = <value>"
-! to a scratch file and doing a namelist read (see tao_set_mod). A namelist write of the
-! same struct therefore enumerates exactly the component names that "set" accepts.
+! "set <struct> <component> = <value>" works via a namelist read (see tao_set_mod),
+! so a namelist write of the struct lists exactly the component names set accepts.
 
 subroutine add_set_struct_matches (set_word)
 
@@ -496,10 +438,7 @@ end select
 end subroutine add_set_struct_matches
 
 !.................................
-! Write the namelist for a "set" struct to a scratch file and return its unit
-! (rewound, ready to read). ok is False if the file could not be opened. Scratch
-! file I/O is safe inside the readline callback: only terminal output would
-! corrupt the display.
+! Namelist dump of a "set" struct in a rewound scratch file.
 
 function struct_namelist_unit (set_word, ok) result (iu_nml)
 
@@ -541,10 +480,8 @@ rewind (iu_nml)
 end function struct_namelist_unit
 
 !.................................
-! Split one namelist output line into its component name (downcased, '' if the
-! line is not a component line) and its value text. A component line looks like
-! "<struct>%<name>= value," (gfortran) or "<struct>%<name> = value," (ifort).
-! Continuation lines of array values have no "<name>=" and give comp_name = ''.
+! Component name (downcased, '' for a continuation line) and value from one line
+! of a namelist dump: "<struct>%<name>= value," (gfortran) or "%<name> = value," (ifort).
 
 subroutine parse_namelist_line (nml_line, comp_name, value_str)
 
@@ -583,7 +520,6 @@ endif
 end subroutine parse_namelist_line
 
 !.................................
-! Current value text of one component from a "set" struct's namelist dump.
 
 function struct_component_value (set_word, comp) result (value_str)
 
@@ -651,10 +587,32 @@ endif
 end function at_set_value
 
 !.................................
-! Elements matching a Tao element selector ("Q01W", "quad::*", "1:10", "b>>q*",
-! "2@q1", ...) via lat_ele_locator. Its error messages are suppressed: a selector
-! that is still being typed is expected here and nothing may be printed from
-! inside the readline callback.
+! Universe named by an optional "n@" prefix, which is stripped from sel. Null if
+! the index is bad.
+
+function selector_universe (sel) result (u)
+
+type (tao_universe_struct), pointer :: u
+character(*) sel
+integer ia, iu, ios
+
+nullify (u)
+iu = s%global%default_universe
+ia = index(sel, '@')
+if (ia > 1) then
+  read (sel(1:ia-1), *, iostat = ios) iu
+  if (ios /= 0) return
+  sel = sel(ia+1:)
+endif
+if (.not. allocated(s%u)) return
+if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) return
+u => s%u(iu)
+
+end function selector_universe
+
+!.................................
+! Elements matching a Tao selector ("quad::*", "1:10", "2@q1", ...). lat_ele_locator
+! errors are expected for a half-typed selector and must not print inside readline.
 
 subroutine locate_elements (selector, eles, n_loc)
 
@@ -664,23 +622,13 @@ type (tao_universe_struct), pointer :: u
 
 character(*) selector
 character(len(selector)) sel
-integer n_loc, iuni, ia, ios
+integer n_loc
 logical err
 
 n_loc = 0
-if (.not. allocated(s%u)) return
-
 sel = selector
-iuni = s%global%default_universe
-ia = index(sel, '@')
-if (ia > 1) then
-  read (sel(1:ia-1), *, iostat = ios) iuni
-  if (ios /= 0) return
-  sel = sel(ia+1:)
-endif
-if (iuni < lbound(s%u, 1) .or. iuni > ubound(s%u, 1)) return
-if (sel == '') return
-u => s%u(iuni)
+u => selector_universe(sel)
+if (.not. associated(u) .or. sel == '') return
 
 call output_direct (get = out_state)
 call output_direct (print_and_capture = .false.)
@@ -803,15 +751,12 @@ context = 'LIST'
 call locate_elements (ele_name, eles, n_loc)
 if (n_loc == 0) return
 
-! Attributes of the first matched element, then keep only those that every
-! other matched element also has, since "set" applies to all of them.
+! Attributes of the first matched element (the extended range includes switches
+! and logicals), intersected with every other matched element since set applies to all.
 
 ie0 = first_settable(eles, n_loc)
 if (ie0 == 0) return
 ie = ie0
-
-! The extended range holds the non-value attributes: method switches such as
-! tracking_method and space_charge_method, apertures, and logicals like field_master.
 
 n_attr = 0
 do ia = 1, num_ele_attrib_extended$
@@ -833,12 +778,8 @@ do ie = ie+1, min(n_loc, max_ele_scan$)
   n_attr = i2
 enddo
 
-! Offer only what "set element" can actually set. It goes through bmad's
-! set_ele_attribute, which resolves the attribute with pointer_to_attribute and
-! then requires attribute_free (dependent_attribs_free = .true., so an attribute
-! like b1_gradient that depends on field_master still counts). This drops
-! lattice-file-only constructs such as superimpose, unallocated components, and
-! computed values such as p0c or tilt_tot.
+! Offer only what set_ele_attribute can set: resolvable by pointer_to_attribute and
+! free (dependent attributes allowed, so b1_gradient counts even with field_master).
 
 do ia = 1, n_attr
   call pointer_to_attribute (eles(ie0)%ele, attrib_names(ia), .false., a_ptr, err, err_print_flag = .false.)
@@ -850,34 +791,25 @@ enddo
 end subroutine add_attribute_matches
 
 !.................................
-
-! Element selector completion. Besides element names this understands the "n@"
-! universe prefix and the "key::" element-type prefix of Tao's selector syntax:
-! "quad::Q0" completes to the quadrupoles starting with Q0, and without a "::"
-! the element types present in the lattice ("quadrupole::", ...) are offered too.
+! Element names, plus the "n@" and "key::" selector prefixes: "quad::Q0" completes
+! to quadrupoles starting with Q0, and without a "::" the element types present in
+! the lattice ("quadrupole::", ...) are offered too.
 
 subroutine add_element_matches ()
 
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 character(100) sel
-integer iu, ib, ie, ia, ic, ik, ix_key, ios
+integer ib, ie, ia, ic, ik, ix_key
 logical key_present(n_key$)
 
 context = 'LIST'
-if (.not. allocated(s%u)) return
 
 sel = token
-iu = s%global%default_universe
 ia = index(sel, '@')
-if (ia > 1) then
-  read (sel(1:ia-1), *, iostat = ios) iu
-  if (ios /= 0) return
-  prepend = trim(prepend) // sel(1:ia)
-  sel = sel(ia+1:)
-endif
-if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) return
-u => s%u(iu)
+u => selector_universe(sel)
+if (.not. associated(u)) return
+if (ia > 1) prepend = trim(prepend) // token(1:ia)
 
 ix_key = 0
 ic = index(sel, '::')
@@ -890,8 +822,7 @@ if (ic > 0) then
 endif
 token = sel
 
-! Element types present in the lattice go first so that a big lattice filling the
-! candidate cap with element names cannot crowd them out.
+! Element types go first so a big lattice cannot crowd them out of the capped list.
 
 if (ix_key == 0) then
   key_present = .false.
@@ -911,7 +842,6 @@ do ib = 0, ubound(u%model%lat%branch, 1)
   branch => u%model%lat%branch(ib)
   do ie = 1, branch%n_ele_max
     if (ix_key > 0 .and. branch%ele(ie)%key /= ix_key) cycle
-    ! Element names are stored upcased so match case insensitively.
     call add_match_if_prefix (branch%ele(ie)%name, .false.)
   enddo
 enddo
@@ -979,11 +909,9 @@ end subroutine tao_complete
 ! Output:
 !   buf_c     -- type(c_ptr): Null terminated buffer. Line 1 is the common prefix
 !                  readline should insert; each following line is one candidate.
-!   n_cand    -- integer(c_int): Number of candidates (0 = recognized position
-!                  with nothing matching), or -1 meaning "not Tao's to complete:
-!                  use readline's default file name completion". The engine's
-!                  FILE and NONE contexts both map to -1 so the behavior before
-!                  Tao completion existed is preserved there.
+!   n_cand    -- integer(c_int): Number of candidates (0 = recognized position with
+!                  nothing matching), or -1 = use readline's file name completion
+!                  (the engine's FILE and NONE contexts).
 !-
 
 function tao_rl_complete_c (line_c, point, istart, iend, buf_c, buf_size) bind(c) result (n_cand)
@@ -1065,11 +993,6 @@ end function tao_rl_complete_c
 ! Subroutine tao_register_completion ()
 !
 ! Install tao_rl_complete_c as the readline tab completion callback. Idempotent.
-!
-! Called from tao_get_user_input immediately before a terminal line is read, so
-! it runs only when Tao itself owns the prompt. Embedders such as PyTao (which
-! drive Tao through tao_c_command) never reach that path and so never have the
-! process-wide readline completion state changed under them.
 !-
 
 subroutine tao_register_completion ()

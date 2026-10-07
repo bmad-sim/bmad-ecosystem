@@ -67,14 +67,6 @@ def test_unique_command_prefix(tao):
     assert matches == ["show"]
 
 
-def test_show_subcommands(tao):
-    word, context, matches = complete(tao, "show ")
-    assert word == ""
-    assert context == "LIST"
-    assert "element" in matches
-    assert "lattice" in matches
-
-
 @pytest.mark.parametrize(
     ("line", "expected"),
     [
@@ -111,16 +103,21 @@ def test_element_names(tao):
     assert all(m.upper().startswith("Q") for m in matches)
 
 
-def test_data_names(tao):
-    _, context, matches = complete(tao, "use data ")
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("show ", "element"),
+        ("show ", "lattice"),
+        ("use data ", "orbit.x"),
+        ("veto var ", "quad_k1"),
+        ("show data orbit.", "orbit.x"),
+        ("show var quad", "quad_k1"),
+    ],
+)
+def test_candidate_offered(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
     assert context == "LIST"
-    assert matches
-
-
-def test_var_names(tao):
-    _, context, matches = complete(tao, "veto var ")
-    assert context == "LIST"
-    assert matches
+    assert expected_match in matches
 
 
 def test_set_global_lists_struct_components(tao):
@@ -146,7 +143,6 @@ def test_set_global_lists_struct_components(tao):
         ("set element Q01W space_charge", "space_charge_method"),
         ("set element Q01W tracking_m", "tracking_method"),
         ("set element Q01W field_m", "field_master"),
-        ("set element Q01W space_charge_method = ", "fft_3d"),
     ],
 )
 def test_set_component_names(tao, line, expected_match):
@@ -179,18 +175,6 @@ def test_unknown_switch_context_offers_nothing(tao):
     assert matches == []
 
 
-def test_show_data_names(tao):
-    _, context, matches = complete(tao, "show data orbit.")
-    assert context == "LIST"
-    assert "orbit.x" in matches
-
-
-def test_show_var_names(tao):
-    _, context, matches = complete(tao, "show var quad")
-    assert context == "LIST"
-    assert "quad_k1" in matches
-
-
 def test_place_regions_then_templates(tao):
     _, context, regions = complete(tao, "place ")
     assert context == "LIST"
@@ -214,6 +198,7 @@ def test_show_plot_names(tao):
         ("set element Q01W tracking_method = run", "runge_kutta"),
         ("set element Q01W tracking_method=r", "tracking_method=runge_kutta"),
         ("set element Q01W tracking_method =b", "=bmad_standard"),
+        ("set element Q01W space_charge_method = ", "fft_3d"),
         ("set element Q01W field_master = ", "T"),
         ("set global track_type = ", "beam"),
         ("set global rf_on = ", "F"),
