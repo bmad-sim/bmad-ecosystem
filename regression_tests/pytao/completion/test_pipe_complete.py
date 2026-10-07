@@ -275,6 +275,14 @@ def test_element_types_offered_as_selectors(tao):
     assert "quadrupole::" in matches
 
 
+def test_only_element_types_present_in_lattice_are_offered(tao):
+    _, _, matches = complete(tao, "set element ")
+    types = [match for match in matches if match.endswith("::")]
+    assert "quadrupole::" in types
+    assert "crystal::" not in types
+    assert "beginning_ele::" not in types
+
+
 def test_universe_prefix_kept_on_element_candidates(tao):
     _, context, matches = complete(tao, "set element 1@Q0")
     assert context == "LIST"

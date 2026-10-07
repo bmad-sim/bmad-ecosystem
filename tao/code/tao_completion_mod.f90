@@ -820,7 +820,7 @@ end subroutine add_attribute_matches
 ! Element selector completion. Besides element names this understands the "n@"
 ! universe prefix and the "key::" element-type prefix of Tao's selector syntax:
 ! "quad::Q0" completes to the quadrupoles starting with Q0, and without a "::"
-! the element types themselves ("quadrupole::", ...) are offered too.
+! the element types present in the lattice ("quadrupole::", ...) are offered too.
 
 subroutine add_element_matches ()
 
@@ -828,6 +828,7 @@ type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 character(100) sel
 integer iu, ib, ie, ia, ic, ik, ix_key, ios
+logical key_present(n_key$)
 
 context = 'LIST'
 if (.not. allocated(s%u)) return
@@ -855,6 +856,23 @@ if (ic > 0) then
 endif
 token = sel
 
+! Element types present in the lattice go first so that a big lattice filling the
+! candidate cap with element names cannot crowd them out.
+
+if (ix_key == 0) then
+  key_present = .false.
+  do ib = 0, ubound(u%model%lat%branch, 1)
+    branch => u%model%lat%branch(ib)
+    do ie = 1, branch%n_ele_max
+      key_present(branch%ele(ie)%key) = .true.
+    enddo
+  enddo
+  do ik = 1, size(key_name)
+    if (.not. key_present(ik) .or. key_name(ik)(1:1) == '!') cycle
+    call add_match_if_prefix (trim(downcase(key_name(ik))) // '::', .false.)
+  enddo
+endif
+
 do ib = 0, ubound(u%model%lat%branch, 1)
   branch => u%model%lat%branch(ib)
   do ie = 1, branch%n_ele_max
@@ -863,13 +881,6 @@ do ib = 0, ubound(u%model%lat%branch, 1)
     call add_match_if_prefix (branch%ele(ie)%name, .false.)
   enddo
 enddo
-
-if (ix_key == 0) then
-  do ik = 1, size(key_name)
-    if (key_name(ik)(1:1) == '!') cycle
-    call add_match_if_prefix (trim(downcase(key_name(ik))) // '::', .false.)
-  enddo
-endif
 
 end subroutine add_element_matches
 
