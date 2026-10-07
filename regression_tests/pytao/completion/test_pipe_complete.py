@@ -237,6 +237,50 @@ def test_set_numeric_attribute_has_no_value_candidates(tao):
     assert matches == []
 
 
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("set element quad::* ", "k1"),
+        ("set element quad::* spin_fringe_on = ", "T"),
+        ("set element quad::* tracking_method = ", "runge_kutta"),
+        ("set element Q0*W fringe_t", "fringe_type"),
+        ("set element 1:10 ", "l"),
+        ("set element 1@Q01W k", "k1"),
+    ],
+)
+def test_element_selector_syntax(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+def test_mixed_selector_offers_only_common_attributes(tao):
+    _, context, matches = complete(tao, "set element * ")
+    assert context == "LIST"
+    assert "l" in matches
+    assert "k1" not in matches
+
+
+def test_key_prefix_completes_elements_of_that_type(tao):
+    word, context, matches = complete(tao, "set element quad::Q0")
+    assert word == "quad::Q0"
+    assert context == "LIST"
+    assert "quad::Q01W" in matches
+    assert all(match.startswith("quad::Q0") for match in matches)
+
+
+def test_element_types_offered_as_selectors(tao):
+    _, context, matches = complete(tao, "set element qu")
+    assert context == "LIST"
+    assert "quadrupole::" in matches
+
+
+def test_universe_prefix_kept_on_element_candidates(tao):
+    _, context, matches = complete(tao, "set element 1@Q0")
+    assert context == "LIST"
+    assert "1@Q01W" in matches
+
+
 def test_set_element_attributes_require_known_element(tao):
     _, context, matches = complete(tao, "set element NO_SUCH_ELE ")
     assert context == "LIST"

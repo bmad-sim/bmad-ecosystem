@@ -151,6 +151,8 @@ integer itmp(300), n, i
 
 !
 
+if (allocated(names)) deallocate (names)
+if (allocated(ix_names)) deallocate (ix_names)
 n = 0
 
 if (index(who, 'color') /= 0) then

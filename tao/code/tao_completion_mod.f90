@@ -25,7 +25,7 @@ module tao_completion_mod
 use tao_struct
 use tao_command_names_mod
 use tao_input_struct, only: tao_plot_page_input
-use attribute_mod, only: attribute_info, ele_attribute_struct, attribute_type
+use attribute_mod, only: attribute_info, ele_attribute_struct, attribute_type, attribute_index
 use geodesic_lm, only: geodesic_lm_param_struct
 use opti_de_mod, only: opti_de_param
 use, intrinsic :: iso_c_binding
@@ -33,6 +33,7 @@ use, intrinsic :: iso_c_binding
 implicit none
 
 integer, parameter, private :: max_matches$ = 200
+integer, parameter, private :: max_ele_scan$ = 100   ! Elements examined for attribute intersection/value union.
 
 contains
 
@@ -633,36 +634,74 @@ endif
 end function at_set_value
 
 !.................................
-! First element matching ele_name (wildcards allowed) in the default universe.
+! Elements matching a Tao element selector ("Q01W", "quad::*", "1:10", "b>>q*",
+! "2@q1", ...) via lat_ele_locator. Its error messages are suppressed: a selector
+! that is still being typed is expected here and nothing may be printed from
+! inside the readline callback.
 
-function find_element (ele_name) result (ele)
+subroutine locate_elements (selector, eles, n_loc)
 
+type (ele_pointer_struct), allocatable :: eles(:)
+type (out_io_output_direct_struct) out_state
 type (tao_universe_struct), pointer :: u
-type (branch_struct), pointer :: branch
-type (ele_struct), pointer :: ele
 
-character(*) ele_name
-character(60) name_up
-integer iuni, ib, ie
+character(*) selector
+character(len(selector)) sel
+integer n_loc, iuni, ia, ios
+logical err
 
-nullify(ele)
-if (ele_name == '') return
+n_loc = 0
 if (.not. allocated(s%u)) return
+
+sel = selector
 iuni = s%global%default_universe
+ia = index(sel, '@')
+if (ia > 1) then
+  read (sel(1:ia-1), *, iostat = ios) iuni
+  if (ios /= 0) return
+  sel = sel(ia+1:)
+endif
 if (iuni < lbound(s%u, 1) .or. iuni > ubound(s%u, 1)) return
+if (sel == '') return
 u => s%u(iuni)
 
-name_up = upcase(ele_name)
-branch_loop: do ib = 0, ubound(u%model%lat%branch, 1)
-  branch => u%model%lat%branch(ib)
-  do ie = 1, branch%n_ele_max
-    if (.not. match_wild(branch%ele(ie)%name, trim(name_up))) cycle
-    ele => branch%ele(ie)
-    exit branch_loop
-  enddo
-enddo branch_loop
+call output_direct (get = out_state)
+call output_direct (print_and_capture = .false.)
+call lat_ele_locator (sel, u%model%lat, eles, n_loc, err)
+call output_direct (set = out_state)
+if (err) n_loc = 0
 
-end function find_element
+end subroutine locate_elements
+
+!.................................
+! The beginning element and control lords (overlays, groups, girders, rampers)
+! have attribute tables unlike any real element. When a selector matches several
+! elements they are left out of the attribute intersection and value union.
+
+function has_fixed_attributes (ele) result (is_fixed)
+type (ele_struct) ele
+logical is_fixed
+select case (ele%key)
+case (beginning_ele$, overlay$, group$, girder$, ramper$); is_fixed = .false.
+case default;                                              is_fixed = .true.
+end select
+end function has_fixed_attributes
+
+! Index of the first matched element to use as the attribute reference: for a
+! single match that element itself, otherwise the first with fixed attributes.
+
+function first_settable (eles, n_loc) result (ie)
+type (ele_pointer_struct) eles(:)
+integer n_loc, ie
+if (n_loc == 1) then
+  ie = 1
+  return
+endif
+do ie = 1, min(n_loc, max_ele_scan$)
+  if (has_fixed_attributes(eles(ie)%ele)) return
+enddo
+ie = 0
+end function first_settable
 
 !.................................
 ! Values for "set element <name> <attrib> = <value>": the values valid for this
@@ -670,24 +709,31 @@ end function find_element
 
 subroutine add_attribute_value_matches (ele_name, attrib)
 
-type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
 character(*) ele_name, attrib
 character(40), allocatable :: names(:)
 integer, allocatable :: ixs(:)
-integer in
+integer n_loc, ie, in
 
 context = 'LIST'
-ele => find_element(ele_name)
-if (.not. associated(ele)) return
+call locate_elements (ele_name, eles, n_loc)
+if (n_loc == 0) return
 
-select case (attribute_type(upcase(attrib), ele))
+ie = first_settable(eles, n_loc)
+if (ie == 0) return
+
+select case (attribute_type(upcase(attrib), eles(ie)%ele))
 case (is_logical$)
   call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
 case (is_switch$)
-  call tao_enum_value_names (attrib, names, ixs, ele)
-  if (.not. allocated(names)) return
-  do in = 1, size(names)
-    call add_match_if_prefix (downcase(names(in)), .false.)
+  ! Union of the values valid for the matched elements.
+  do ie = ie, min(n_loc, max_ele_scan$)
+    if (.not. has_fixed_attributes(eles(ie)%ele)) cycle
+    call tao_enum_value_names (attrib, names, ixs, eles(ie)%ele)
+    if (.not. allocated(names)) cycle
+    do in = 1, size(names)
+      call add_match_if_prefix (downcase(names(in)), .false.)
+    enddo
   enddo
 end select
 
@@ -727,47 +773,103 @@ end subroutine add_struct_value_matches
 
 subroutine add_attribute_matches (ele_name)
 
-type (ele_struct), pointer :: ele
+type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_attribute_struct) attrib
 
 character(*) ele_name
-integer ia
+character(40) attrib_names(num_ele_attrib$)
+integer n_loc, n_attr, ia, ie, i2
 
 context = 'LIST'
-ele => find_element(ele_name)
-if (.not. associated(ele)) return
+call locate_elements (ele_name, eles, n_loc)
+if (n_loc == 0) return
 
+! Attributes of the first matched element, then keep only those that every
+! other matched element also has, since "set" applies to all of them.
+
+ie = first_settable(eles, n_loc)
+if (ie == 0) return
+
+n_attr = 0
 do ia = 1, num_ele_attrib$
-  attrib = attribute_info(ele, ia)
-  if (attrib%name == null_name$) cycle
-  if (attrib%state == private$) cycle
-  call add_match_if_prefix (downcase(attrib%name), .false.)
+  attrib = attribute_info(eles(ie)%ele, ia)
+  if (attrib%name == null_name$ .or. attrib%state == private$) cycle
+  n_attr = n_attr + 1
+  attrib_names(n_attr) = attrib%name
+enddo
+
+do ie = ie+1, min(n_loc, max_ele_scan$)
+  if (.not. has_fixed_attributes(eles(ie)%ele)) cycle
+  i2 = 0
+  do ia = 1, n_attr
+    if (attribute_index(eles(ie)%ele, attrib_names(ia), print_error = .false.) == 0) cycle
+    i2 = i2 + 1
+    attrib_names(i2) = attrib_names(ia)
+  enddo
+  n_attr = i2
+enddo
+
+do ia = 1, n_attr
+  call add_match_if_prefix (downcase(attrib_names(ia)), .false.)
 enddo
 
 end subroutine add_attribute_matches
 
 !.................................
 
+! Element selector completion. Besides element names this understands the "n@"
+! universe prefix and the "key::" element-type prefix of Tao's selector syntax:
+! "quad::Q0" completes to the quadrupoles starting with Q0, and without a "::"
+! the element types themselves ("quadrupole::", ...) are offered too.
+
 subroutine add_element_matches ()
 
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
-integer iu, ib, ie
+character(100) sel
+integer iu, ib, ie, ia, ic, ik, ix_key, ios
 
 context = 'LIST'
 if (.not. allocated(s%u)) return
+
+sel = token
 iu = s%global%default_universe
+ia = index(sel, '@')
+if (ia > 1) then
+  read (sel(1:ia-1), *, iostat = ios) iu
+  if (ios /= 0) return
+  prepend = trim(prepend) // sel(1:ia)
+  sel = sel(ia+1:)
+endif
 if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) return
 u => s%u(iu)
+
+ix_key = 0
+ic = index(sel, '::')
+if (ic > 0) then
+  if (ic == 1) return
+  call match_word (sel(1:ic-1), key_name, ix_key)
+  if (ix_key <= 0) return
+  prepend = trim(prepend) // sel(1:ic+1)
+  sel = sel(ic+2:)
+endif
+token = sel
 
 do ib = 0, ubound(u%model%lat%branch, 1)
   branch => u%model%lat%branch(ib)
   do ie = 1, branch%n_ele_max
+    if (ix_key > 0 .and. branch%ele(ie)%key /= ix_key) cycle
     ! Element names are stored upcased so match case insensitively.
     call add_match_if_prefix (branch%ele(ie)%name, .false.)
-    if (n_cand >= max_matches$) return
   enddo
 enddo
+
+if (ix_key == 0) then
+  do ik = 1, size(key_name)
+    if (key_name(ik)(1:1) == '!') cycle
+    call add_match_if_prefix (trim(downcase(key_name(ik))) // '::', .false.)
+  enddo
+endif
 
 end subroutine add_element_matches
 
