@@ -143,6 +143,10 @@ def test_set_global_lists_struct_components(tao):
         ("set beam track_s", "track_start"),
         ("set plot_page tit", "title"),
         ("set element Q01W k", "k1"),
+        ("set element Q01W space_charge", "space_charge_method"),
+        ("set element Q01W tracking_m", "tracking_method"),
+        ("set element Q01W field_m", "field_master"),
+        ("set element Q01W space_charge_method = ", "fft_3d"),
     ],
 )
 def test_set_component_names(tao, line, expected_match):

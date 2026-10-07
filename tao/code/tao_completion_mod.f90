@@ -26,6 +26,7 @@ use tao_struct
 use tao_command_names_mod
 use tao_input_struct, only: tao_plot_page_input
 use attribute_mod, only: attribute_info, ele_attribute_struct, attribute_type, attribute_index
+use bmad_routine_interface, only: pointer_to_attribute
 use geodesic_lm, only: geodesic_lm_param_struct
 use opti_de_mod, only: opti_de_param
 use, intrinsic :: iso_c_binding
@@ -775,10 +776,12 @@ subroutine add_attribute_matches (ele_name)
 
 type (ele_pointer_struct), allocatable :: eles(:)
 type (ele_attribute_struct) attrib
+type (all_pointer_struct) a_ptr
 
 character(*) ele_name
-character(40) attrib_names(num_ele_attrib$)
-integer n_loc, n_attr, ia, ie, i2
+character(40) attrib_names(num_ele_attrib_extended$)
+integer n_loc, n_attr, ia, ie, ie0, i2
+logical err
 
 context = 'LIST'
 call locate_elements (ele_name, eles, n_loc)
@@ -787,13 +790,18 @@ if (n_loc == 0) return
 ! Attributes of the first matched element, then keep only those that every
 ! other matched element also has, since "set" applies to all of them.
 
-ie = first_settable(eles, n_loc)
-if (ie == 0) return
+ie0 = first_settable(eles, n_loc)
+if (ie0 == 0) return
+ie = ie0
+
+! The extended range holds the non-value attributes: method switches such as
+! tracking_method and space_charge_method, apertures, and logicals like field_master.
 
 n_attr = 0
-do ia = 1, num_ele_attrib$
+do ia = 1, num_ele_attrib_extended$
   attrib = attribute_info(eles(ie)%ele, ia)
-  if (attrib%name == null_name$ .or. attrib%state == private$) cycle
+  if (attrib%name == '' .or. attrib%name == null_name$ .or. attrib%name(1:1) == '!') cycle
+  if (attrib%state == does_not_exist$ .or. attrib%state == private$) cycle
   n_attr = n_attr + 1
   attrib_names(n_attr) = attrib%name
 enddo
@@ -809,7 +817,13 @@ do ie = ie+1, min(n_loc, max_ele_scan$)
   n_attr = i2
 enddo
 
+! Offer only what "set element" can actually set, which it resolves with
+! pointer_to_attribute (see tao_set_mod). This drops lattice-file-only constructs
+! such as superimpose or wall, and components not currently allocated.
+
 do ia = 1, n_attr
+  call pointer_to_attribute (eles(ie0)%ele, attrib_names(ia), .false., a_ptr, err, err_print_flag = .false.)
+  if (err) cycle
   call add_match_if_prefix (downcase(attrib_names(ia)), .false.)
 enddo
 
