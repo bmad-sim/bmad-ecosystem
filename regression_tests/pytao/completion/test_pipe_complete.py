@@ -308,10 +308,30 @@ def test_set_element_attributes_require_known_element(tao):
     assert matches == []
 
 
-def test_call_completes_file_names(tao):
-    word, context, matches = complete(tao, "call ")
+@pytest.mark.parametrize(
+    "line",
+    ["call ", "read ", "ls ", "spawn ", "write bmad_lattice ", "read -silent "],
+)
+def test_file_positions(tao, line):
+    word, context, matches = complete(tao, line)
     assert word == ""
     assert context == "FILE"
+    assert matches == []
+
+
+def test_write_actions(tao):
+    _, context, matches = complete(tao, "write bm")
+    assert context == "LIST"
+    assert matches == ["bmad"]
+
+
+@pytest.mark.parametrize(
+    "line",
+    ["show lattice ", "show global ", "set data orbit.x ", "pipe lat_list ", "set element Q01W k1 = "],
+)
+def test_known_non_file_positions_do_not_fall_back_to_files(tao, line):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
     assert matches == []
 
 

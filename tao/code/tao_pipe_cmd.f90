@@ -1151,10 +1151,10 @@ case ('building_wall_section')
 !   ...
 ! where {word} is the (possibly empty) token being completed (the trailing
 ! whitespace-delimited word of {line}) and {context} is one of:
-!   LIST -- The match[i] lines are the completion candidates. Each candidate
-!           is a full replacement for {word}.
+!   LIST -- The match[i] lines are the completion candidates (possibly none).
+!           Each candidate is a full replacement for {word}.
 !   FILE -- {word} is a file name. The caller should do file name completion.
-!   NONE -- Completion is not supported at this point in the command line.
+!   NONE -- The command is not recognized.
 !
 ! Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
 ! finding attributes and values, and the "n@" and "key::" prefixes are completed.

@@ -30,6 +30,15 @@ character(16), parameter :: tao_command_names(49) = [character(16):: &
 
 character(16), parameter :: tao_hidden_command_names(3) = [character(16):: 'debug', 'verbose', 'tree']
 
+! "write <action>" names. See tao_write_cmd.
+
+character(20), parameter :: tao_write_action_names(34) = [character(20):: &
+              '3d_model', 'beam', 'bmad', 'blender', 'bunch_comb', 'covariance_matrix', 'curve', &
+              'derivative_matrix', 'digested', 'elegant', 'field', &
+              'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
+              'namelist', 'opal', 'pals', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
+              'sad', 'scibmad', 'spin_mat8', 'tao', 'variable', 'xsif']
+
 ! "show <what>" names. See tao_show_this.
 
 character(20), parameter :: tao_show_what_names(48) = [character(20):: 'alias', 'beam', 'branch', 'building_wall', &

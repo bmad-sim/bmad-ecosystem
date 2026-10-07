@@ -56,9 +56,10 @@ contains
 ! Output:
 !   word_start  -- integer: 1-based index in line of the start of the token
 !                    being completed.
-!   context     -- character(*): 'LIST' = matches(:) holds the candidates,
-!                    'FILE' = token is a file path (caller should do file name
-!                    completion), 'NONE' = nothing to offer here.
+!   context     -- character(*): 'LIST' = matches(:) holds the candidates (possibly
+!                    none: a recognized command never wants file names unless it
+!                    says so), 'FILE' = token is a file path (caller should do file
+!                    name completion), 'NONE' = command not recognized.
 !   matches(:)  -- character(100), allocatable: Candidate token replacements.
 !                    At most max_matches$ are returned.
 !   common_prefix -- character(*), optional: Longest common prefix of every
@@ -176,6 +177,11 @@ if (ix <= 0) then
   return
 endif
 
+! From here on the command is known, so an unhandled position is an empty list
+! rather than NONE: file names are offered only where a command takes a file.
+
+context = 'LIST'
+
 ! A token starting with "-" is a switch: complete it from the switch context table.
 
 if (token(1:1) == '-') then
@@ -283,8 +289,18 @@ case ('use', 'veto', 'restore')
     end select
   endif
 
-case ('call', 'read')
+case ('call')
   if (n_words == 1) context = 'FILE'
+
+case ('read', 'ls', 'spawn')
+  context = 'FILE'
+
+case ('write')
+  if (n_words == 1) then
+    call add_prefix_matches (tao_write_action_names, .true.)
+  else
+    context = 'FILE'
+  endif
 
 end select
 
