@@ -81,6 +81,16 @@ static char** sim_rl_attempted_completion(const char* text, int start, int end) 
   }
 
   matches[n_filled] = NULL;
+
+  // A sole candidate ending in a prefix character (eg "quadrupole::" or "2@") is
+  // meant to be typed onward, so do not append the usual trailing space.
+  if (n_filled == 2) {
+    size_t len = strlen(matches[1]);
+    if (len > 0 && (matches[1][len-1] == ':' || matches[1][len-1] == '@')) {
+      rl_completion_suppress_append = 1;
+    }
+  }
+
   return matches;
 }
 
