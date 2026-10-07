@@ -25,7 +25,7 @@ module tao_completion_mod
 use tao_struct
 use tao_command_names_mod
 use tao_input_struct, only: tao_plot_page_input
-use attribute_mod, only: attribute_info, ele_attribute_struct, attribute_type, attribute_index
+use attribute_mod, only: attribute_info, ele_attribute_struct, attribute_type, attribute_index, attribute_free
 use bmad_routine_interface, only: pointer_to_attribute
 use geodesic_lm, only: geodesic_lm_param_struct
 use opti_de_mod, only: opti_de_param
@@ -817,13 +817,17 @@ do ie = ie+1, min(n_loc, max_ele_scan$)
   n_attr = i2
 enddo
 
-! Offer only what "set element" can actually set, which it resolves with
-! pointer_to_attribute (see tao_set_mod). This drops lattice-file-only constructs
-! such as superimpose or wall, and components not currently allocated.
+! Offer only what "set element" can actually set. It goes through bmad's
+! set_ele_attribute, which resolves the attribute with pointer_to_attribute and
+! then requires attribute_free (dependent_attribs_free = .true., so an attribute
+! like b1_gradient that depends on field_master still counts). This drops
+! lattice-file-only constructs such as superimpose, unallocated components, and
+! computed values such as p0c or tilt_tot.
 
 do ia = 1, n_attr
   call pointer_to_attribute (eles(ie0)%ele, attrib_names(ia), .false., a_ptr, err, err_print_flag = .false.)
   if (err) cycle
+  if (.not. attribute_free (eles(ie0)%ele, attrib_names(ia), .false., dependent_attribs_free = .true.)) cycle
   call add_match_if_prefix (downcase(attrib_names(ia)), .false.)
 enddo
 

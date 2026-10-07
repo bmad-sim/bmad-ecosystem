@@ -248,7 +248,7 @@ def test_set_numeric_attribute_has_no_value_candidates(tao):
         ("set element quad::* spin_fringe_on = ", "T"),
         ("set element quad::* tracking_method = ", "runge_kutta"),
         ("set element Q0*W fringe_t", "fringe_type"),
-        ("set element 1:10 ", "l"),
+        ("set element 1:10 ", "x_offset"),
         ("set element 1@Q01W k", "k1"),
     ],
 )
@@ -261,8 +261,17 @@ def test_element_selector_syntax(tao, line, expected_match):
 def test_mixed_selector_offers_only_common_attributes(tao):
     _, context, matches = complete(tao, "set element * ")
     assert context == "LIST"
-    assert "l" in matches
+    assert "x_offset" in matches
     assert "k1" not in matches
+
+
+def test_only_settable_attributes_offered(tao):
+    _, _, matches = complete(tao, "set element Q01W ")
+    # Computed values are not free to vary; superimpose is a lattice-file construct.
+    for name in ("p0c", "e_tot", "tilt_tot", "delta_ref_time", "superimpose"):
+        assert name not in matches
+    # Dependent on field_master but settable, as set_ele_attribute allows.
+    assert "b1_gradient" in matches
 
 
 def test_key_prefix_completes_elements_of_that_type(tao):
