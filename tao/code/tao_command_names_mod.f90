@@ -9,7 +9,9 @@
 
 module tao_command_names_mod
 
-use tao_struct, only: tao_switch_name_len
+use tao_struct
+use quick_plot
+use attribute_mod, only: switch_attrib_value_name
 
 implicit none
 
@@ -102,7 +104,171 @@ type (tao_switch_set_struct), allocatable, protected :: tao_switch_sets(:)
 
 private :: sw_row
 
+! Marker in tao_enum_value_names' ix_names(:) for enum values that have no index.
+
+integer, parameter :: no_enum_index$ = -999999
+
 contains
+
+!------------------------------------------------------------------------------
+!+
+! Subroutine tao_enum_value_names (who, names, ix_names, ele)
+!
+! Allowed values of an enumerated Tao or Bmad parameter. This is the single
+! source for both "pipe enum" and tab completion of "set ... = <value>".
+!
+! Input:
+!   who         -- character(*): Enum name as accepted by "pipe enum": a Tao name
+!                    like "track_type" or "symbol^type", anything containing "color",
+!                    or a Bmad switch attribute name like "tracking_method".
+!   ele         -- ele_struct, optional: For switch attributes, the element being
+!                    set. Restricts the values to those valid for that element.
+!   switch_attribs -- logical, optional: If False, do not consult Bmad's switch
+!                    attribute table for names not in the Tao list. Default True.
+!                    (The Bmad lookup reports unknown names, which is unwanted
+!                    when the name is known to be a Tao struct component.)
+!
+! Output:
+!   names(:)    -- character(*), allocatable: Value names. Not allocated if who is
+!                    not a known enum.
+!   ix_names(:) -- integer, allocatable: Index of each value, or no_enum_index$ for
+!                    enums whose values have no index.
+!-
+
+subroutine tao_enum_value_names (who, names, ix_names, ele, switch_attribs)
+
+type (ele_struct), optional, target :: ele
+logical, optional :: switch_attribs
+type (ele_struct), target :: dummy_ele
+
+character(*) who
+character(*), allocatable :: names(:)
+integer, allocatable :: ix_names(:)
+
+character(40), allocatable :: name_list(:)
+character(40) tmp(300), nm
+integer itmp(300), n, i
+
+!
+
+n = 0
+
+if (index(who, 'color') /= 0) then
+  do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
+    call add (qp_color_name(i), i)
+  enddo
+  call done
+  return
+endif
+
+select case (who)
+case ('axis^type')
+  call add ('LINEAR', 1); call add ('LOG', 2)
+case ('bounds')
+  call add ('GENERAL', 1); call add ('ZERO_AT_END', 2); call add ('ZERO_SYMMETRIC', 3)
+case ('building^constraint')
+  call add ('none', 1); call add ('left_side', 2); call add ('right_side', 3)
+case ('data^merit_type')
+  call add_array (tao_data_merit_type_name)
+case ('data_source')
+  call add_array (tao_data_source_name)
+case ('distribution_type')
+  call add_array (beam_distribution_type_name)
+case ('floor_plan_view_name')
+  call add_array (tao_floor_plan_view_name)
+case ('graph^type')
+  call add_array (tao_graph_type_name)
+case ('line^pattern', 'orbit_pattern')
+  call add_array (qp_line_pattern_name)
+case ('lord_status')
+  call add ('Group_Lord', 4);     call add ('Super_Lord', 5);      call add ('Overlay_Lord', 6)
+  call add ('Girder_Lord', 7);    call add ('Multipass_Lord', 8);  call add ('Not_a_Lord', 10)
+  call add ('Control_Lord', 12);  call add ('Ramper_Lord', 13)
+case ('optimizer')
+  call add_array (tao_optimizer_name)
+case ('orbit_lattice')
+  call add ('model', 1); call add ('design', 2); call add ('base', 3)
+case ('photon_type')
+  call add_array (photon_type_name)
+case ('plot^type')
+  call add ('normal', 1); call add ('wave', 2)
+case ('random_engine')
+  call add ('pseudo', 1); call add ('quasi', 2)
+case ('random_gauss_converter')
+  call add ('exact', 1); call add ('quick', 2)
+case ('shape^label')
+  call add_array (tao_shape_label_name)
+case ('shape^shape')
+  call add_array (tao_shape_shape_name)
+case ('slave_status')
+  call add ('Minor_Slave', 1);  call add ('Super_Slave', 2);  call add ('Free', 3)
+  call add ('Multipass_Slave', 9);  call add ('Slice_Slave', 11)
+case ('fill_pattern')
+  call add_array (qp_symbol_fill_pattern_name)
+case ('symbol^type')
+  call add_array (qp_symbol_type_name)
+case ('track_type')
+  call add ('single', no_enum_index$); call add ('beam', no_enum_index$)
+case ('var^merit_type')
+  call add_array (tao_var_merit_type_name)
+case ('view')
+  call add ('zx', no_enum_index$); call add ('xz', no_enum_index$); call add ('xy', no_enum_index$)
+  call add ('yx', no_enum_index$); call add ('zy', no_enum_index$); call add ('yz', no_enum_index$)
+case ('wave_data_type')
+  call add_array (tao_wave_data_name)
+case ('x_axis_type')
+  call add_array (tao_x_axis_type_name)
+case ('data_type_z')
+  call add_array (tao_data_type_z_name)
+
+case default
+  ! A Bmad switch attribute.
+  if (present(switch_attribs)) then
+    if (.not. switch_attribs) return
+  endif
+  nm = upcase(who)
+  if (nm == 'EVAL_POINT') nm = 'ELE_ORIGIN'  ! data%eval_point is not recognized by switch_attrib_value_name
+  if (present(ele)) then
+    nm = switch_attrib_value_name(nm, 1.0_rp, ele, name_list = name_list)
+  else
+    nm = switch_attrib_value_name(nm, 1.0_rp, dummy_ele, name_list = name_list)
+  endif
+  if (.not. allocated(name_list)) return   ! Unknown enum: names left unallocated.
+  do i = lbound(name_list, 1), ubound(name_list, 1)
+    if (name_list(i) == '' .or. index(name_list(i), '!') /= 0) cycle
+    call add (name_list(i), i)
+  enddo
+end select
+
+call done
+
+!------------------------------------------
+contains
+
+subroutine add (name, ix)
+character(*) name
+integer ix
+if (n >= size(tmp)) return
+n = n + 1
+tmp(n) = name
+itmp(n) = ix
+end subroutine add
+
+subroutine add_array (arr)
+character(*) arr(:)
+integer ia
+do ia = lbound(arr, 1), ubound(arr, 1)
+  call add (arr(ia), ia)
+enddo
+end subroutine add_array
+
+subroutine done
+allocate (names(n), ix_names(n))
+names = tmp(1:n)
+ix_names = itmp(1:n)
+end subroutine done
+
+end subroutine tao_enum_value_names
 
 !------------------------------------------------------------------------------
 !+
