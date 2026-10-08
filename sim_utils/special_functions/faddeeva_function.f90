@@ -6,8 +6,6 @@
 !   w(z) = exp(-z^2) * erfc(-i*z)
 ! where erfc is the complementary error function.
 !
-! The faddeeva function is also called the "complex error function" in the literature.
-!
 ! Input:
 !   z(2)        -- real(rp): z = (x,y) vector to evaluate the Faddeeva function at.
 !
