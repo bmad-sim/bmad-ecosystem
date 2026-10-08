@@ -94,20 +94,21 @@ orb%vec(5) = orb%vec(5) + rel_z_vel * dz
 if (logic_option(.false., make_matrix)) then
   call mat_make_unit(matd)
   rel_len = length / (rel_pc * ps_rel)
-  matd(1,2) =  rel_len * (px_rel**2 / ps_rel**2 + 1)
-  matd(3,4) =  rel_len * (py_rel**2 / ps_rel**2 + 1)
-  matd(1,4) =  rel_len * px_rel*py_rel / ps_rel**2
-  matd(3,2) =  rel_len * px_rel*py_rel / ps_rel**2
+  matd(1,2) =  rel_z_vel * rel_len * (px_rel**2 / ps_rel**2 + 1)
+  matd(3,4) =  rel_z_vel * rel_len * (py_rel**2 / ps_rel**2 + 1)
+  matd(1,4) =  rel_z_vel * rel_len * px_rel*py_rel / ps_rel**2
+  matd(3,2) =  rel_z_vel * rel_len * px_rel*py_rel / ps_rel**2
   matd(1,6) = -rel_len * px_rel / ps_rel**2
   matd(3,6) = -rel_len * py_rel / ps_rel**2
   matd(5,2) = -rel_len * px_rel / ps_rel**2 
   matd(5,4) = -rel_len * py_rel / ps_rel**2
-  if (logic_option(.true., include_ref_motion)) then
+  if (logic_option(.true., include_ref_motion) .and. orb%beta > 0) then
     e_tot_ref = sqrt(orb%p0c**2 + mass_of(orb%species)**2)
     e_particle = orb%p0c * (1 + orb%vec(6)) / orb%beta
-    matd(5,6) =  rel_len * (px_rel**2 + py_rel**2) / ps_rel**2 + length * mass_of(orb%species)**2 * e_tot_ref / e_particle**3
+    matd(5,6) =  rel_z_vel * (rel_len * (px_rel**2 + py_rel**2) / ps_rel**2 + &
+                          orb%direction * length * mass_of(orb%species)**2 * e_tot_ref / e_particle**3)
   else
-    matd(5,6) =  rel_len * (px_rel**2 + py_rel**2) / ps_rel**2
+    matd(5,6) =  rel_z_vel * rel_len * (px_rel**2 + py_rel**2) / ps_rel**2
   endif
 
   mat6 = matmul(matd, mat6)

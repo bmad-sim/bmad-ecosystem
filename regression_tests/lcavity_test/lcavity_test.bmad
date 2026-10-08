@@ -1,0 +1,37 @@
+! Lattice for lcavity_test.
+! The reversed elements (after the reflection patch) are used to test tracking and
+! the transfer matrix through reversed lcavity elements.
+
+parameter[particle] = electron
+parameter[p0c] = 5e6
+parameter[geometry] = open
+
+particle_start[x]  =  1e-3
+particle_start[px] = -2e-3
+particle_start[y]  =  1.5e-3
+particle_start[py] =  1e-3
+particle_start[z]  =  3e-2
+particle_start[pz] =  3e-3
+
+sw: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 15e6, phi0 = 0.13, n_rf_steps = 4
+tw: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 15e6, phi0 = 0.13, n_rf_steps = 4, cavity_type = traveling_wave
+sol: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 15e6, phi0 = 0.13, n_rf_steps = 4, ks = 0.3
+cp: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 15e6, phi0 = 0.13, n_rf_steps = 4, 
+                coupler_strength = 0.05, coupler_angle = 0.1, coupler_phase = 0.2, coupler_at = both_ends
+mp: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 15e6, phi0 = 0.13, n_rf_steps = 4, 
+                a2 = 0.3, b1 = 0.01, b2_elec = 1e4, x_offset = 1e-3, y_pitch = 1e-3, tilt = 0.1
+v0: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 0, n_rf_steps = 4, cavity_type = traveling_wave
+d0: drift, l = 1.0
+
+! Decelerating cavity used to test that a particle whose energy would fall below the rest mass is lost.
+! The reference particle (phi0 = 0) is accelerated. A particle half an RF wavelength 
+! (c / (2 * rf_frequency) = 0.1153 m) away from the reference is decelerated.
+
+decel: lcavity, l = 1.0, rf_frequency = 1.3e9, voltage = 20e6, n_rf_steps = 4, cavity_type = traveling_wave
+
+pt: patch, x_pitch = pi
+
+ln: line = (sw, tw, sol, cp, mp, v0, d0, pt, --sw, --tw, --sol, --cp, --mp, --v0, --d0)
+decel_line: line = (decel)
+
+use, ln, decel_line

@@ -89,6 +89,7 @@ if (ele%value(l$) == 0) then
   phase = this_rf_phase(orbit, ele, lord, step1)
   call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
   call this_energy_kick(orbit, lord, step1, body_dir, mat6, make_mat)
+  if (orbit%state /= alive$) return
   call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
   call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_mat)
   return
@@ -123,18 +124,21 @@ if (s_dir == 1) then
       s_now = step%s
     endif
     call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
+    if (orbit%state /= alive$) return
 
     ! Entrence fringe?
     if (ix_step == 0 .and. s_now == step%s .and. fringe_here(lord, orbit, first_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(0))
       call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
       call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+      if (orbit%state /= alive$) return
     endif
 
     ! Stair step kick
     if (ix_step /= ix_step_end) then
       call this_pondermotive_transverse_kick(orbit, lord, step, upstream_end$, body_dir, mat6, make_mat)
       call this_energy_kick(orbit, lord, step, body_dir, mat6, make_mat)
+      if (orbit%state /= alive$) return
       call this_pondermotive_transverse_kick(orbit, lord, step, downstream_end$, body_dir, mat6, make_mat)
     endif
 
@@ -142,6 +146,7 @@ if (s_dir == 1) then
     if (ix_step == n_steps .and. s_now == step%s .and. fringe_here(lord, orbit, second_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(n_steps))
       call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
+      if (orbit%state /= alive$) return
       call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
     endif
   enddo
@@ -162,12 +167,14 @@ if (s_dir == -1) then
       s_now = step%s0
     endif
     call step_drift(orbit, ds, step, lord, param, mat6, make_mat)
+    if (orbit%state /= alive$) return
 
     ! Entrence fringe?
     if (ix_step == n_steps+1 .and. s_now == step%s0 .and. fringe_here(ele, orbit, first_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(n_steps))
       call rf_coupler_kick (ele, param, first_track_edge$, phase, orbit, mat6, make_mat)
       call fringe_kick(orbit, lord, +1, phase, body_dir, mc2, mat6, make_mat)
+      if (orbit%state /= alive$) return
     endif
 
     ! Stair step kick
@@ -175,6 +182,7 @@ if (s_dir == -1) then
       step0 => lord%rf%steps(ix_step-1)
       call this_pondermotive_transverse_kick(orbit, lord, step0, downstream_end$, body_dir, mat6, make_mat)
       call this_energy_kick(orbit, lord, step0, body_dir, mat6, make_mat)
+      if (orbit%state /= alive$) return
       call this_pondermotive_transverse_kick(orbit, lord, step0, upstream_end$, body_dir, mat6, make_mat)
     endif
 
@@ -182,6 +190,7 @@ if (s_dir == -1) then
     if (ix_step == 1 .and. s_now == step%s0 .and. fringe_here(ele, orbit, second_track_edge$)) then
       phase = this_rf_phase(orbit, ele, lord, lord%rf%steps(0))
       call fringe_kick(orbit, lord, -1, phase, body_dir, mc2, mat6, make_mat)
+      if (orbit%state /= alive$) return
       call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
     endif
   enddo
@@ -202,25 +211,28 @@ type (lat_param_struct) param
 type (rf_stair_step_struct) :: step
 type (em_field_struct) field
 
-real(rp) ds, ks_rel, s_omega(3)
+real(rp) ds, ks_rel, s_omega(3), length
 real(rp), optional :: mat6(6,6)
 logical make_mat
 
-!
+! ds is the change in s and so has the sign of s_dir. The drift and solenoid routines want
+! a length that is positive for forward time tracking independent of orbit%direction.
+
+length = ds * orbit%direction
 
 if (lord%value(ks$) == 0) then
-  call track_a_drift(orbit, ds, mat6, make_mat, lord%orientation)
+  call track_a_drift(orbit, length, mat6, make_mat)
 else
   if (track_spin) then
     field = em_field_struct()
     field%b(3) = 0.5_rp * ds * lord%value(bs_field$)
     s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
     call rotate_spin(s_omega, orbit%spin)
-    call solenoid_track_and_mat (lord, ds, param, orbit, orbit, mat6, make_mat)
+    call solenoid_track_and_mat (lord, length, param, orbit, orbit, mat6, make_mat)
     s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
     call rotate_spin(s_omega, orbit%spin)
   else
-    call solenoid_track_and_mat (lord, ds, param, orbit, orbit, mat6, make_mat)
+    call solenoid_track_and_mat (lord, length, param, orbit, orbit, mat6, make_mat)
   endif
 endif
 
@@ -258,6 +270,13 @@ ez_field = gradient_tot * cos(phase)
 rf_omega = twopi * ele%value(rf_frequency$) / c_light
 dez_dz_field = gradient_tot * sin(phase) * rf_omega
 dE = -ff * 0.5_rp * dez_dz_field * (orbit%vec(1)**2 + orbit%vec(3)**2)
+
+! Particle is lost if the kick would take the energy at or below the rest mass.
+if (sqrt(pc**2 + mc2**2) + dE <= mc2) then
+  orbit%state = lost_pz$
+  return
+endif
+
 pz_end = orbit%vec(6) + dpc_given_dE(pc, mc2, dE) / orbit%p0c
 
 ! Spin
@@ -281,7 +300,7 @@ if (make_mat) then
   kmat(4,5) = -f * dez_dz_field * orbit%vec(3)
   kmat(6,1) = -ff * dez_dz_field * orbit%vec(1) / orbit%p0c
   kmat(6,3) = -ff * dez_dz_field * orbit%vec(3) / orbit%p0c
-  kmat(6,5) = -ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * rf_omega**2 / orbit%p0c
+  kmat(6,5) =  ff * 0.5_rp * ez_field * (orbit%vec(1)**2 + orbit%vec(3)**2) * rf_omega**2 / orbit%p0c
   mat6 = matmul(kmat, mat6)
 endif
 
@@ -342,6 +361,13 @@ dE = dE_amp * cos(phase)
 rel_p = 1 + orbit%vec(6)
 pc_start = rel_p * orbit%p0c
 mc2 = mass_of(orbit%species)
+
+! Particle is lost if the kick would take the energy at or below the rest mass.
+if (sqrt(pc_start**2 + mc2**2) + dE <= mc2) then
+  orbit%state = lost_pz$
+  return
+endif
+
 pz_end = orbit%vec(6) + dpc_given_dE(orbit%p0c*rel_p, mc2, dE) / orbit%p0c
 pc_end = (1 + pz_end) * orbit%p0c
 

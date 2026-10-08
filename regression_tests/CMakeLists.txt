@@ -32,6 +32,7 @@ set (EXE_SPECS
   cmake_files/cmake.geometry_test
   cmake_files/cmake.girder_test
   cmake_files/cmake.hdf5_test
+  cmake_files/cmake.lcavity_test
   cmake_files/cmake.mad_to_bmad_test
   cmake_files/cmake.mat6_calc_method_test
   cmake_files/cmake.match_test

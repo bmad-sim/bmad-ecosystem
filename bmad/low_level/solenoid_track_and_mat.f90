@@ -166,7 +166,7 @@ xmat(6,6) = 1
 ! xmat(5,6) 
 
 e_tot = end_orb%p0c * (1 + vec0(6)) / start_orb%beta
-xmat(5,6) = length * (mass_of(start_orb%species)**2 * end_orb%p0c/ (ref_beta * e_tot**3) - 1/pz + (rel_p/pz)**2 / pz)
+xmat(5,6) = length * (start_orb%direction * mass_of(start_orb%species)**2 * end_orb%p0c/ (ref_beta * e_tot**3) - 1/pz + (rel_p/pz)**2 / pz)
 
 mat6 = matmul(xmat, mat6)
 
