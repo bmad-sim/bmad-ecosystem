@@ -1,3 +1,4 @@
+# Translated using Bmad based Bmad-to-SciBmad translation code.
 # Translated from Bmad lattice file: /nfs/acc/user/dcs16/bmad-ecosystem/regression_tests/write_foreign_test/write_foreign_test.bmad
 
 using Beamlines
@@ -157,6 +158,7 @@ function map_taylor1(v, q)
 end
 
 @elements begin
+  begin_b1 = Marker(pc_ref =   8.5958E+05, species_ref = Species("positron"))
   ab_multipole1 = Multipole(Ks2L =   2.0000E+02, Kn2L =   2.0000E+02, tilt =   1.0000E-01)
   ac_kicker0123456789 = Marker(L =   3.0000E-01, Kn0 =  -3.3333E-02)
   ac_kicker2 = Marker(L =   4.0000E-01, Ks0 =   2.5000E-02)
@@ -269,25 +271,32 @@ end
      tilt =   1.0000E-01, voltage =   5.0450E+03, phi0 =  -1.9000E-01,
      tracking_method = SaganCavity(n_cells = 10, L_active =   4.4969E+00             ),
      traveling_wave = true)
-  end_b0 = Marker()
+  end_b1 = Marker()
 end    # @elements
 #---------------------------------------------------------------------------------------
 # Overlay and Group elements
 
-OV_KICK_xk =   1.0000000000000000E-03
-sbend1.Kn0 = DefExpr(() ->   1.6639E-05              +  -1.6583E+00              * (OV_KICK_xk))
-sbend1.Ks0 = DefExpr(() ->  -1.6583E-04              +  -1.6639E-01              * (OV_KICK_xk))
-hkicker1.Kn0 = DefExpr(() ->  -2.2222E-01              * (OV_KICK_xk))
-kicker1.Ks0 = DefExpr(() ->   2.2222E-01              * (OV_KICK_xk))
-elseparator1.En0 = DefExpr(() ->  -1.9102E+05              * (OV_KICK_xk))
-OV_KICK2_xk2 =   2.0000000000000000E-03
-quadrupole1.Kn0 = DefExpr(() ->  -1.1785E+00              * (2*OV_KICK_xk) +  -1.1785E+00              * (OV_KICK2_xk2) +  -1.1785E+00              * (3*OV_KICK2_xk2))
-quadrupole1.Ks0 = DefExpr(() ->   1.0000E-02              +  -1.1785E+00              * (2*OV_KICK_xk) +  -1.1785E+00              * (OV_KICK2_xk2) +   1.1785E+00              * (3*OV_KICK2_xk2))
+c1 = Context(
+      ov_kick_xk =   1.0000000000000000E-03,
+      ov_kick2_xk2 =   2.0000000000000000E-03,
+      )
 
-l1 = Beamline([ ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
+quadrupole1.Kn0 = DefExpr(c ->  -1.1785E+00              * ((2*c.ov_kick_xk) + (c.ov_kick2_xk2)))
+quadrupole1.Ks0 = DefExpr(c ->  -1.1785E+00              * ((2*c.ov_kick_xk) + (c.ov_kick2_xk2)))
+sbend1.Kn0 = DefExpr(c ->  -1.6583E+00              * ((c.ov_kick_xk)))
+sbend1.Ks0 = DefExpr(c ->  -1.6639E-01              * ((c.ov_kick_xk)))
+hkicker1.Kn0 = DefExpr(c ->  -2.2222E-01              * ((c.ov_kick_xk)))
+kicker1.Ks0 = DefExpr(c ->   2.2222E-01              * ((c.ov_kick_xk)))
+elseparator1.En0 = DefExpr(c ->  -1.9102E+05              * ((c.ov_kick_xk)))
+quadrupole1.Kn0 = DefExpr(c ->  -1.1785E+00              * ((3*c.ov_kick2_xk2)))
+quadrupole1.Ks0 = DefExpr(c ->   1.1785E+00              * ((3*c.ov_kick2_xk2)))
+
+l1 = Branch([ begin_b1, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
      crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1,
      gkicker1, hkicker1, instrument1, kicker1, match1, monitor1, multipole1, octupole1, patch1, quadrupole1,
      quadrupole2, quadrupole3, quadrupole4, quadrupole5, rcollimator1, rfcavity1, rfcavity2, rfcavity3,
      sad_mult1, sad_mult2, sbend1, rbend2, sbend3, rbend4, sbend5, rbend6, sbend7, sextupole1, solenoid1,
      solenoid2, sol_quad1, sol_quad2, thick_multipole1, taylor1, vkicker1, lcavity1, lcavity2, lcavity3,
-     end_b0]; pc_ref =   8.5958E+05, species_ref = Species("positron"))
+     end_b1]; name = "l1")
+
+lat = Lattice([l1], context = c1)

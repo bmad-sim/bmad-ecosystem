@@ -9,24 +9,20 @@
 ! the number "n" is substituted for "?".
 ! 
 ! For example: If suffix is "_?" and the following elements are in the lattice:
-!				QA    QB    QX    QA    QB     QB
+!        QA    QB    QX    QA    QB     QB
 ! then after the suffix is applied the elements will have names:
-!				QA_1  QB_1  QX    QA_2  QB_2   QB_3
+!        QA_1  QB_1  QX    QA_2  QB_2   QB_3
 ! Notice that the suffix is not applied to any element with a unique name.
 !
-! The key argument is for restricting what elements can get their names modified. 
-! For example, if key = quadrupole$ then only quadrupole elements will be looked at. 
-! key = 0 means that all elements will be considered.
-!
-! Also see the routine: lat_ele_unique_name.
+! Also see the routine: ele_unique_name.
 !
 ! Input:
-!	  lat    -- Lat_struct: Lattice holding the elements.
-!	  key    -- Integer: Class key of elements to consider.
-!	  suffix -- Character(*): Suffix string. Must have a single "?" character.
+!   lat           -- lat_struct: Lattice holding the elements.
+!   key           -- integer: Class key of elements to consider. 0 => all elements will be considered.
+!   suffix        -- character(*): Suffix string. Must have a single "?" character.
 !
 ! Output:
-!		lat    -- Lat_struct: Lattice with names made unique.
+!   lat           -- lat_struct: Lattice with names made unique.
 !-
 
 subroutine create_unique_ele_names (lat, key, suffix)
@@ -52,8 +48,8 @@ character(40) :: r_name = 'create_unique_ele_names'
 
 ix_p = index(suffix, '?')
 if (ix_p == 0) then
-	call out_io (s_error$, r_name, 'SUFFIX DOES NOT HAVE A "?" CHARACTER: ' // suffix)
-	return
+  call out_io (s_error$, r_name, 'SUFFIX DOES NOT HAVE A "?" CHARACTER: ' // suffix)
+  return
 endif
 
 suff = suffix
@@ -76,21 +72,24 @@ do ib = 0, ubound(lat%branch, 1)
   ! Find repeated names
 
   do i = 1, n_max
-  	ele => branch%ele(i)
+    ele => branch%ele(i)
 
-  	if (key /= 0 .and. ele%key /= key) cycle
-  	call find_index (ele%name, original_name, name_indexx, n_max, ix, ixx)
-  	if (ixx == n_max) cycle  ! Name is unique
-  	j = name_indexx(ixx+1)
-  	if (original_name(j) /= ele%name) cycle ! Name is unique
+    if (key /= 0 .and. ele%key /= key) cycle
+    call find_index (ele%name, original_name, name_indexx, n_max, ix, ixx)
+    if (ixx == n_max) cycle  ! Name is unique
+    j = name_indexx(ixx+1)
+    if (original_name(j) /= ele%name) cycle ! Name is unique
 
-  	! Now add the suffix
+    ! Now add the suffix
 
-  	branch%ele(ix)%ixx = branch%ele(ix)%ixx + 1
-  	write (ele%name, '(2a, i0, a)') trim(ele%name), suff(1:ix_p-1), branch%ele(ix)%ixx, trim(suff(ix_p+1:))
+    branch%ele(ix)%ixx = branch%ele(ix)%ixx + 1
+    write (ele%name, '(2a, i0, a)') trim(ele%name), suff(1:ix_p-1), branch%ele(ix)%ixx, trim(suff(ix_p+1:))
   enddo
 enddo
 
 call create_lat_ele_nametable(lat, lat%nametable)
 
 end subroutine
+
+!   suffix_clones -- logical, optional: Default True. Add suffixes if all the elements of a given name have
+!                      the same parameter values? Note: only ele%value(:) and multipoles are checked.

@@ -2160,6 +2160,7 @@ type aperture_param_struct
   real(rp) :: rel_accuracy = 1e-2_rp  ! Relative resolution of bracketed aperture.
   real(rp) :: abs_accuracy = 1e-5_rp  ! Absolute resolution of bracketed aperture (meters).
   character(40) :: start_ele = ''     ! Element to start tracking at.
+  logical :: debug = .false.          ! Used for code debugging.
 end type
 
 ! Structure for a single dynamic aperture scan over a set of angles.

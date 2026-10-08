@@ -164,13 +164,13 @@ do ns = 1, size(pz_start)
   !$OMP section
 
   call set_branch_and_ele_for_omp(1, ele0_loc, lats, lat, branch, ele0)
-  call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, 0.0_rp, ap_param, x_point, .false.)
+  call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, 0.0_rp, ap_param, x_point, -2, .false.)
   ap_param%x_init = x_point%x
 
   !$OMP section
 
   call set_branch_and_ele_for_omp(2, ele0_loc, lats, lat, branch, ele0)
-  call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, pi/2, ap_param, y_point, .false.)
+  call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, pi/2, ap_param, y_point, -1, .false.)
   ap_param%y_init = y_point%y
 
   !$OMP end parallel sections
@@ -190,7 +190,7 @@ do ns = 1, size(pz_start)
     elseif (abs(angle_list(i) - pi/2) < 1d-6) then
       ap_points(i) = y_point
     else
-      call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, angle_list(i), ap_param, ap_points(i))
+      call dynamic_aperture_point (branch, ele0, ap_scan%ref_orb, angle_list(i), ap_param, ap_points(i), i)
     endif
   end do
   !$OMP end parallel do
@@ -261,7 +261,7 @@ end subroutine set_branch_and_ele_for_omp
 !----------------------------------------------------------------------
 !----------------------------------------------------------------------
 !+
-! Subroutine dynamic_aperture_point (branch, ele0, orb0, theta_xy, ap_param, ap_point, check_xy_init)
+! Subroutine dynamic_aperture_point (branch, ele0, orb0, theta_xy, ap_param, ap_point, ix_angle, check_xy_init)
 !
 ! Subroutine to determine one dynamic aperture point by tracking.
 ! This routine works by determining where on a radial line y = const * x the aperture is.
@@ -270,10 +270,11 @@ end subroutine set_branch_and_ele_for_omp
 ! Input:
 !   branch          -- branch_struct: Lattice branch to track through.
 !   ele0            -- ele_struct: Lattice element at start of tracking
-!   orb0            -- Coord_struct: reference orbit at the start of tracking.
+!   orb0            -- coord_struct: reference orbit at the start of tracking.
 !   theta_xy        -- Real(rp): Angle of radial line (in radians) in x-y space.
 !                         Angle is "normalized" by %x_init, %y_init.
 !   ap_param        -- aperture_param_struct: Structure holding the input data:
+!   ix_angle        -- integer: Angle index. Used for printing.
 !   check_xy_init   -- logical, optional: If True, do not check that aperture_param%x_init 
 !                         and %y_init are non-zero. Default is True.
 !
@@ -281,7 +282,7 @@ end subroutine set_branch_and_ele_for_omp
 !     ap_point      -- aperture_point_struct:
 !-
 
-subroutine dynamic_aperture_point (branch, ele0, orb0, theta_xy, ap_param, ap_point, check_xy_init)
+subroutine dynamic_aperture_point (branch, ele0, orb0, theta_xy, ap_param, ap_point, ix_angle, check_xy_init)
 
 type (branch_struct)  branch
 type (ele_struct) ele0
@@ -291,9 +292,9 @@ type (aperture_point_struct)  ap_point
 type (aperture_param_struct)  ap_param
 type (bmad_common_struct) bmad_com_save
 
-real(rp) theta_xy, x0, x1, x2, y0, y1, y2, r
+real(rp) theta_xy, x0, x1, x2, y0, y1, y2, r, time0, time2
 
-integer n, it, turn_lost, track_state, n_search
+integer ix_angle,  n, it, turn_lost, track_state, n_search
 
 character(*), parameter :: r_name = 'dynamic_aperture_point'
 
@@ -320,6 +321,7 @@ bmad_com%spin_tracking_on  = .false.
 bmad_com%aperture_limit_on = .true.
 
 call reallocate_coord (orbit, branch%n_ele_max)
+call run_timer('ABS', time0)
 
 ! Find starting point
 
@@ -394,6 +396,11 @@ ap_point%y = y1
 ap_point%i_turn = turn_lost
 
 bmad_com = bmad_com_save
+
+call run_timer('ABS', time2)
+if (ap_param%debug) call out_io (s_blank$, r_name, '       Finished 1D scan #' // int_str(ix_angle) // '. Number of points sampled: ' // int_str(n_search), &
+                                                   '                        1D scan time (min): ' // real_str((time2 - time0) / 60, n_decimal = 2))
+
 
 end subroutine dynamic_aperture_point
 

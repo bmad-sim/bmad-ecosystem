@@ -1128,6 +1128,8 @@ the dispersion in a region.
   %----------------------
   \item[dpx_dx, dpy_dy, etc.] \Newline \hlabel{dpx.dx}
 Bunch sigma matrix ratios, <x px> / <$x^2$> \& Etc.
+With the datum \vn{data_source} set to \vn{lat}, See \sref{s:lat.sig.init} for details on how the
+lattice sigma matrix is calculated.
 
   %----------------------
   \item[dynamic_aperture.$N$, $N = 1, 2, 3 \ldots$] \Newline \hlabel{da}
@@ -1757,6 +1759,9 @@ calculated from the Twiss parameters if the \vn{data_source} is set to \vn{lat} 
 Irregardless of the setting of \vn{data_source}, the beam emittance and longitudinal sigma
 values will be taken from the \vn{beam_init} structure (\sref{s:beam.init}) and {\em not}
 any emittances or longitudinal sigma values specified in the lattice file.
+
+With the datum \vn{data_source} set to \vn{lat}, See \sref{s:lat.sig.init} for details on how the
+lattice sigma matrix is calculated.
 
   %----------------------
   \item[slip_factor_ptc.$N$, $N = 1, 2, 3, \ldots$] \Newline \hlabel{slip.ptc}

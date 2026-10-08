@@ -76,6 +76,26 @@ Note that the resulting model will not have the vertical cubic nonlinearity that
 has.
 
 %-----------------------------------------------------------------------------
+\section{SciBmad Conversion}
+\label{s:to.scibmad}
+
+Converting from \bmad to SciBmad can be done via the \tao program using the \vn{write scibmad} command.
+notes:
+\begin{itemize}
+\item All element names are made lowercase.
+%
+\item A superposition slave has a \bmad name ending in \vn{\#N} where $N$ is an integer. 
+The SciBmad will replace this suffix with \vn{_sN}.
+%
+\item If there are multiple elements with the same name but differing parameter values, 
+the SciBmad name appends a \vn{_nN} suffix where $N$ is a unique integer.
+%
+\item To give the beginning element of a branches a unique name, the SciBmad beginning name is
+set to \vn{begin_bN} where $N$ is the branch index plus one (so the first (zeroth) branch
+gets $N = 1$.
+\end{itemize}
+
+%-----------------------------------------------------------------------------
 \section{Convert to PTC}
 \label{s:to.ptc}
 

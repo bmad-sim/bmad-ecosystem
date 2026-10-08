@@ -99,6 +99,7 @@ end interface
 ! Routine to return a pointer to an element.
 ! pointer_to_ele is an overloaded name for:
 !     Function pointer_to_ele1 (lat, ix_ele, ix_branch) result (ele_ptr)
+!     Function pointer_to_ele1 (lat, ix_nametable) result (ele_ptr)
 !     Function pointer_to_ele2 (lat, ele_loc) result (ele_ptr)
 !     Function pointer_to_ele3 (lat, ele_name) result (ele_ptr)
 !     Function pointer_to_ele4 (lat, foreign_ele) result (ele_ptr)
@@ -118,7 +119,7 @@ end interface
 ! Input:
 !   lat           -- lat_struct: Lattice.
 !   ix_ele        -- integer: Index of element in lat%branch(ix_branch).
-!   ix_branch     -- integer: Index of the lat%branch(:) containing the element.
+!   ix_branch     -- integer, optional: Index of the lat%branch(:) containing the element.
 !   ix_nametable  -- integer: Nametable index. See above
 !   ele_loc       -- lat_ele_loc_struct: Location identification.
 !   ele_name      -- character(*): Name or index of element.
