@@ -27,7 +27,11 @@ that
 \end{equation}
 Here the subscript ``\vn{h}'' has been added so as to not confuse these parameters with the magnetic
 multipole coefficients $K_1$, $K_2$, etc. Note: Hwang and Lee do not present an equation for the
-change in the longitudinal phase space $z$ coordinate in their paper.
+change in the longitudinal phase space $z$ coordinate in their paper. Also, the $y^2 \, K_{2h}$ term
+in their Eq.~(35) has an extra factor of $1/\rho$. The generators below use the correct form, which
+is consistent with their Eq.~(43). The term in $\Delta p_x$ proportional to $f_{int} \, h_{gap} \, y^2$
+comes from the second order term $\colon\Omega_M\colon \, \colon\Omega_M\colon / 2$ in
+\Eq{e:hwang.exp} and is not present in Hwang and Lee's transport equations.
 
 The generator used by \bmad for the entrance fringe is:
 \begin{align}
@@ -49,38 +53,85 @@ The generator for the exit fringe is
   + \frac{y^2 \, p_x \, g_\tot \, \sec^2 (e_2)}{2 \, (1 + p_z)} \nonumber
 \end{align}
 
-The map $\cal M$ is obtained from the equation $\Cal M = \exp[\colon\Omega_M\colon]$. To second order in the
-transverse coordinates the map can be obtained by expanding the exponential to second order
+The map $\cal M$ is obtained from the equation $\Cal M = \exp[\colon\Omega_M\colon]$. To evaluate
+this, the generator is split into a part $K$ that is independent of the transverse momenta and a part
+$B$ that is linear in them
+\begin{align}
+  \Omega_M &= K + B \CRNO
+  K &= \frac{(x^2 - y^2) \, g_\tot \, \tan (e)}{2} 
+    + \frac{c_{y2} \, y^2 + c_{x3} \, x^3 + c_{xy2} \, x \, y^2}{1 + p_z} \\
+  B &= B_1 + B_2 + B_3 = b \, \tan^2 (e) \, x^2 \, p_x - b \, \sec^2 (e) \, y^2 \, p_x 
+    - 2 \, b \, \tan^2 (e) \, x \, y \, p_y \nonumber
+\end{align}
+where $e$ is $e_1$ for the entrance fringe and $e_2$ for the exit fringe, and
+\begin{align}
+  c_{y2} &= g_\tot^2 \, \sec^3 (e) \, [1 + \sin^2 (e)] \, f_{int} \, h_{gap}, \qquad
+  c_{x3} = \frac{4 \, K_1 \, \tan (e) - g_\tot^2 \, \tan^3 (e)}{12}, \CRNO
+  c_{xy2} &= \frac{-4 \, K_1 \, \tan (e) + g_\tot^2 \, \tan (e) \, \sec^2 (e)}{4}, \qquad
+  b = \pm \frac{g_\tot}{2 \, (1 + p_z)}
+\end{align}
+with the $+$ sign for the entrance fringe and the $-$ sign for the exit fringe.
+\bmad uses the symplectic approximation
 \begin{equation}
+  \Cal M \simeq \exp[\colon K/2 \colon] \, \exp[\colon B_1 \colon] \, \exp[\colon B_2 \colon] \, 
+    \exp[\colon B_3 \colon] \, \exp[\colon K/2 \colon]
+\end{equation}
+where each factor is evaluated exactly. Since $\{K, \{K, B\}\} = 0$, this agrees with
+$\exp[\colon\Omega_M\colon]$ through second order in the transverse coordinates. The particle is
+tracked through the factors in the order written. The factors are ($p_z$ is unchanged):
+\begin{description}
+  \item[{$\exp[\colon K/2 \colon]$:}] $\Delta p_x = \frac{1}{2} \, \partial K / \partial x$, 
+    $\Delta p_y = \frac{1}{2} \, \partial K / \partial y$, $\Delta z = -\frac{1}{2} \, \partial K / \partial p_z$.
+  \item[{$\exp[\colon B_1 \colon]$:}] With $u = 1 + b \, \tan^2 (e) \, x$: 
+    $x \rightarrow x / u$, $p_x \rightarrow p_x \, u^2$, 
+    $\Delta z = b \, \tan^2 (e) \, x^2 \, p_x / (1 + p_z)$.
+    The particle is lost if $u \le 0$.
+  \item[{$\exp[\colon B_2 \colon]$:}] $\Delta x = b \, \sec^2 (e) \, y^2$, 
+    $\Delta p_y = -2 \, b \, \sec^2 (e) \, y \, p_x$, 
+    $\Delta z = -b \, \sec^2 (e) \, y^2 \, p_x / (1 + p_z)$.
+  \item[{$\exp[\colon B_3 \colon]$:}] $\Delta p_x = -2 \, b \, \tan^2 (e) \, y \, p_y$,
+    $y \rightarrow y \, \exp[2 \, b \, \tan^2 (e) \, x]$, $p_y \rightarrow p_y \, \exp[-2 \, b \, \tan^2 (e) \, x]$,
+    $\Delta z = -2 \, b \, \tan^2 (e) \, x \, y \, p_y / (1 + p_z)$.
+\end{description}
+In the above, the right hand sides are evaluated using the coordinates at the start of each
+factor. The transfer matrix is the product of the Jacobians of the factors. With backwards time
+tracking (\vn{%time_dir} = -1, \sref{c:tracking}), the exact inverse map is used which is the product of the inverse factors,
+obtained by changing the sign of each generator, in reverse order.
+
+To second order in the transverse coordinates, the map is equivalent to expanding the exponential
+\begin{equation}
+  \label{e:hwang.exp}
   \Cal M \simeq 1 + \colon\Omega_M\colon + \frac{1}{2} \, \colon\Omega_M\colon \, \colon\Omega_M\colon
 \end{equation}
-The transport for the entrance fringe is then
+The transport for the entrance fringe to second order is then
 \begin{align}
   \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ -x^2 \, \tan^2 (e_1) + y^2 \sec^2 (e_1) \right] \CRNO
   \Delta p_x &= x \, g_\tot \, \tan (e_1)
     + \frac{y^2 \, g_\tot^2 \, [ \tan (e_1) + 2 \, \tan^3 (e_1) ]}{2 \, (1 + p_z)} \CRNO
     &\qquad\qquad + \frac{(x^2 - y^2) \, K_1 \tan (e_1)}{1 + p_z}
     + \frac{(x \, p_x - y \, p_y) \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \CRNO
+    &\qquad\qquad - \frac{y^2 \, g_\tot^3 \, \tan^2 (e_1) \, \sec^3 (e_1) \, [1 + \sin^2 (e_1)] \, f_{int} \, h_{gap}}{(1 + p_z)^2} \CRNO
   \Delta y &= \frac{x \, y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} \\
   \Delta p_y &= y \left[ -g_\tot \, \tan (e_1)
     + \frac{2 \, g^2_\tot \, [1 + \sin^2 (e_1)] \, \sec^3 (e_1)}{1 + p_z} \, f_{int} \,  h_{gap} \right] \CRNO
-    &\qquad\qquad - \frac{(x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
+    &\qquad\qquad - \frac{x \, p_y \, g_\tot \, \tan^2 (e_1)}{1 + p_z} 
     - \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_1)]}{1 + p_z} 
     - \frac{2 \, x \, y \, K_1 \tan (e_1)}{(1 + p_z)} \CRNO
   \Delta z &= \frac{\Omega_{M1} - (x^2 - y^2) \, g_\tot \, \tan (e_1)/2}{1 + p_z} \nonumber
 \end{align}
-The transport for the exit fringe is
+The transport for the exit fringe to second order is
 \begin{align}
   \Delta x &= \frac{g_\tot}{2 \, (1 + p_z)} \, \left[ x^2 \, \tan^2 (e_2) - y^2 \sec^2 (e_2) \right] \CRNO
   \Delta p_x &= x \, g_\tot \, \tan (e_2)
     - \frac{(x^2 + y^2) \, g_\tot^2 \, \tan^3 (e_2)}{2 \, (1 + p_z)} \CRNO
     &\qquad\qquad + \frac{(x^2 - y^2) \, K_1 \tan (e_2)}{1 + p_z}
     + \frac{(-x \, p_x + y \, p_y) \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \CRNO
+    &\qquad\qquad + \frac{y^2 \, g_\tot^3 \, \tan^2 (e_2) \, \sec^3 (e_2) \, [1 + \sin^2 (e_2)] \, f_{int} \, h_{gap}}{(1 + p_z)^2} \CRNO
   \Delta y &= -\frac{x \, y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} \\
   \Delta p_y &= y \left[ -g_\tot \, \tan (e_2)
     + \frac{2\, g^2_\tot \, [1 + \sin^2 (e_2)] \, \sec^3 (e_2)}{1 + p_z} \, f_{int} \,  h_{gap} \right]
     + \frac{x \, y \, g^2_\tot \, \sec^2 (e_2) \, \tan (e_2)}{1 + p_z} \CRNO
-    &\qquad\qquad + \frac{(x \, p_y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} 
+    &\qquad\qquad + \frac{x \, p_y \, g_\tot \, \tan^2 (e_2)}{1 + p_z} 
     + \frac{y \, p_x \, g_\tot \, [1 + \tan^2 (e_2)]}{1 + p_z} 
     - \frac{2 \, x \, y \, K_1 \tan (e_2)}{(1 + p_z)} \CRNO
   \Delta z &= \frac{\Omega_{M2} - (x^2 - y^2) \, g_\tot \, \tan (e_2)/2}{1 + p_z} \nonumber

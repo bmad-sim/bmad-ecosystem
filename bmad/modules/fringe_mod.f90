@@ -218,12 +218,18 @@ end subroutine linear_bend_edge_kick
 !+
 ! Subroutine hwang_bend_edge_kick (ele, param, particle_at, orb, mat6, make_matrix)
 !
-! Subroutine to track through the edge field of an sbend using a 2nd order map.
+! Subroutine to track through the edge field of an sbend using a symplectic 2nd order map.
 ! Adapted from:
-!   Hwang and S. Y. Lee, 
+!   K. Hwang and S. Y. Lee, 
 !   "Dipole Fringe Field Thin Map for Compact Synchrotrons",
-!   Phys. Rev. ST Accel. Beams, 12, 122401, (2015).
+!   Phys. Rev. ST Accel. Beams, 18, 122401, (2015).
 ! See the Bmad manual for details.
+!
+! The Lie generator is Omega = K + B where K is independent of the transverse momenta and
+! B = B1 + B2 + B3 is linear in them. The map is the product
+!   exp(:K/2:) exp(:B1:) exp(:B2:) exp(:B3:) exp(:K/2:)
+! where each factor is evaluated exactly. Since {K, {K, B}} = 0, this agrees with exp(:Omega:)
+! through second order and is exactly symplectic. Backwards time tracking uses the exact inverse map.
 !
 ! Input:
 !   orb         -- Coord_struct: Starting coords.
@@ -247,26 +253,25 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) e, g_tot, fint_gap, gt, cos_e, sin_e, tan_e, sec_e, v(6), w(6), k1_tane
-real(rp) gt2, gs2, c_dir, k1, kmat(6,6), e_factor, fg_factor
-real(rp) dx, dpx, dy, dpy, dz, td
+real(rp) e, g_tot, fint_gap, cos_e, sin_e, tan_e, sec_e, v(6), kmat(6,6)
+real(rp) c_dir, k1, td, b_sign, rel_p, f, c_y2, c_x3, c_xy2, c_b
 integer particle_at, element_end, fringe_type
+logical make_mat, ok
 
 logical, optional :: make_matrix
 character(*), parameter :: r_name = 'hwang_bend_edge_kick'
 
-! Track through the entrence face. 
-! See MAD physics guide for writeup. Note that MAD does not have a dg.
+!
 
 c_dir = rel_tracking_charge_to_mass(orb, param%particle) * ele%orientation * orb%direction
 element_end = physical_ele_end(particle_at, orb, ele%orientation)
 fringe_type = nint(ele%value(fringe_type$))
-e_factor = 1 / (1 + orb%vec(6))
 td = rp8(orb%time_dir)
+make_mat = logic_option(.false., make_matrix)
 
 if (ele%is_on) then
   g_tot = (ele%value(g$) + ele%value(dg$)) * c_dir
-  k1 = ele%value(k1$)
+  k1 = ele%value(k1$) * c_dir
 else
   g_tot = 0
   k1 = 0
@@ -280,141 +285,176 @@ endif
 
 if (fringe_type == hard_edge_only$ .or. fringe_type == sad_full$) fint_gap = 0
 
+if (entering_element(orb, particle_at)) then
+  b_sign = 1
+else
+  b_sign = -1
+endif
+
+! K = f * (x^2 - y^2) / 2 + (c_y2 * y^2 + c_x3 * x^3 + c_xy2 * x * y^2) / (1 + pz)
+! B = c_b * (tan_e^2 * (x^2 * px - 2 * x * y * py) - sec_e^2 * y^2 * px) / (1 + pz)
+
 cos_e = cos(e); sin_e = sin(e); tan_e = sin_e / cos_e; sec_e = 1 / cos_e
-gt = g_tot * tan_e
-gt2 = g_tot * tan_e**2
-gs2 = g_tot * sec_e**2
-k1_tane = k1 * tan_e * c_dir
-fg_factor = 2 * fint_gap * gs2 * g_tot * sec_e * (1 + sin_e**2)
+f = g_tot * tan_e
+c_y2 = fint_gap * g_tot**2 * sec_e**3 * (1 + sin_e**2)
+c_x3 = (4 * k1 * tan_e - g_tot**2 * tan_e**3) / 12
+c_xy2 = (-4 * k1 * tan_e + g_tot**2 * tan_e * sec_e**2) / 4
+c_b = b_sign * g_tot / 2
 
 v = orb%vec
+rel_p = 1 + v(6)
+call mat_make_unit (kmat)
 
-if (entering_element(orb, particle_at)) then
-  dx  = (-gt2 * v(1)**2 + gs2 * v(3)**2) * e_factor / 2
-  dpx = (gt * g_tot * (1 + 2 * tan_e**2) * v(3)**2 / 2 + gt2 * (v(1) * v(2) - v(3) * v(4)) + k1_tane * (v(1)**2 - v(3)**2)) * e_factor
-  dy  = gt2 * v(1) * v(3) * e_factor
-  dpy = (fg_factor * v(3) - gt2 * v(1) * v(4) - (g_tot + gt2) * v(2) * v(3) - 2 * k1_tane * v(1) * v(3)) * e_factor
-  dz = e_factor**2 * 0.5_rp * (v(3)**2 * fg_factor &
-            + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
-            + (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 - v(2)*v(3)**2 * gs2)
+! The inverse map is the product of the inverse factors in reverse order.
 
-  ! With backwards time tracking, to be correct, the equations for dx, etc. would need to be inverted. 
-  ! This would be extremely messy (would need to solve simultaneous quadratic equations).
-  ! So instead, the assumption is made that the changes are small enough so that a first order perturbation 
-  ! correction is accurate enough.
-  ! Note: matrices are always constructed using forward time tracking.
-  w = v
-  if (td == -1) then
-    w(1) = v(1) + td * dx
-    w(2) = v(2) + td * (dpx + gt * v(1))
-    w(3) = v(3) + td * dy
-    w(4) = v(4) + td * (dpy - gt * v(3))
-    w(5) = v(5) + td * dz
-
-    dx  = (-gt2 * w(1)**2 + gs2 * w(3)**2) * e_factor / 2
-    dpx = (gt * g_tot * (1 + 2 * tan_e**2) * w(3)**2 / 2 + gt2 * (w(1) * w(2) - w(3) * w(4)) + k1_tane * (w(1)**2 - w(3)**2)) * e_factor
-    dy  = gt2 * w(1) * w(3) * e_factor
-    dpy = (fg_factor * w(3) - gt2 * w(1) * w(4) - (g_tot + gt2) * w(2) * w(3) - 2 * k1_tane * w(1) * w(3)) * e_factor
-    dz = e_factor**2 * 0.5_rp * (w(3)**2 * fg_factor &
-              + w(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * w(1)*w(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
-              + (w(1)**2*w(2) - 2.0_rp * w(1)*w(3)*w(4)) * gt2 - w(2)*w(3)**2 * gs2)
-  endif
-
-  orb%vec(1) = v(1) + td * dx
-  orb%vec(2) = v(2) + td * (dpx + gt * w(1))
-  orb%vec(3) = v(3) + td * dy
-  orb%vec(4) = v(4) + td * (dpy - gt * w(3))
-  orb%vec(5) = v(5) + td * dz
-
-  if (logic_option(.false., make_matrix)) then
-    call mat_make_unit (kmat)
-    kmat(1,1) = 1 - gt2 * v(1) * e_factor
-    kmat(1,3) = gs2 * v(3) * e_factor
-    kmat(2,1) = gt + (gt2 * v(2) + 2 * k1_tane * v(1)) * e_factor
-    kmat(2,2) = 1 + (gt2 * v(1)) * e_factor
-    kmat(2,3) = (-gt2 * v(4) - 2 * k1_tane * v(3) + gt * g_tot * (1 + 2 * tan_e**2) * v(3)) * e_factor
-    kmat(2,4) = (-gt2 * v(3)) * e_factor
-    kmat(3,1) = gt2 * v(3) * e_factor
-    kmat(3,3) = 1 +  gt2 * v(1) * e_factor
-    kmat(4,1) = (-gt2 * v(4) - 2 * k1_tane * v(3)) * e_factor
-    kmat(4,2) = -(g_tot + gt2) * v(3) * e_factor
-    kmat(4,3) = -gt + (fg_factor - (g_tot + gt2) * v(2) - 2 * k1_tane * v(1)) * e_factor
-    kmat(4,4) = 1 - gt2 * v(1) * e_factor
-    kmat(5,6) = (fg_factor * v(3)**2 / 2 + (4*k1_tane - gt*gt2) * v(1)**3 / 12 + (-4*k1_tane + gt*gs2) * v(1) * v(3)**2 /4 + &
-                  gt2 * (v(1)**2 * v(2) - 2 * v(1) * v(3) * v(4)) / 2 - (g_tot + gt2) * v(2) * v(3)**2 / 2) * e_factor**2
-  end if
-
+if (td == 1) then
+  call k_kick(0.5_rp)
+  call b1_flow(c_b * tan_e**2, ok);   if (.not. ok) return
+  call b2_flow(-c_b * sec_e**2)
+  call b3_flow(-2 * c_b * tan_e**2)
+  call k_kick(0.5_rp)
 else
-  dx  = (gt2 * v(1)**2 - gs2 * v(3)**2) * e_factor / 2
-  dpx = (gt2 * (v(3) * v(4) - v(1) * v(2)) + k1_tane * (v(1)**2 - v(3)**2) - gt * gt2 * (v(1)**2 + v(3)**2) / 2) * e_factor
-  dy  = -gt2 * v(1) * v(3) * e_factor
-  dpy = (fg_factor * v(3) + gt2 * v(1) * v(4) + (g_tot + gt2) * v(2) * v(3) + (gt * gs2 - 2 * k1_tane) * v(1) * v(3)) * e_factor
-  dz = e_factor**2 * 0.5_rp * (v(3)**2 * fg_factor &
-            + v(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * v(1)*v(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
-            - (v(1)**2*v(2) - 2.0_rp * v(1)*v(3)*v(4)) * gt2 + v(2)*v(3)**2 * gs2)
-
-  ! With backwards time tracking, to be correct, the equations for dx, etc. would need to be inverted. 
-  ! This would be extremely messy (would need to solve simultaneous quadratic equations).
-  ! So instead, the assumption is made that the changes are small enough so that a first order perturbation 
-  ! correction is accurate enough.
-  ! Note: matrices are always constructed using forward time tracking.
-  w = v
-  if (td == -1) then
-    w(1) = v(1) + td * dx
-    w(2) = v(2) + td * (dpx + gt * w(1))
-    w(3) = v(3) + td * dy
-    w(4) = v(4) + td * (dpy - gt * w(3))
-    w(5) = v(5) + td * dz
-
-    dx  = (gt2 * w(1)**2 - gs2 * w(3)**2) * e_factor / 2
-    dpx = (gt2 * (w(3) * w(4) - w(1) * w(2)) + k1_tane * (w(1)**2 - w(3)**2) - gt * gt2 * (w(1)**2 + w(3)**2) / 2) * e_factor
-    dy  = -gt2 * w(1) * w(3) * e_factor
-    dpy = (fg_factor * w(3) + gt2 * w(1) * w(4) + (g_tot + gt2) * w(2) * w(3) + (gt * gs2 - 2 * k1_tane) * w(1) * w(3)) * e_factor
-    dz = e_factor**2 * 0.5_rp * (w(3)**2 * fg_factor &
-              + w(1)**3 * (4.0_rp * k1_tane - gt * gt2) / 6.0_rp + 0.5_rp * w(1)*w(3)**2 * (-4.0_rp * k1_tane + gt * gs2) &
-              - (w(1)**2*w(2) - 2.0_rp * w(1)*w(3)*w(4)) * gt2 + w(2)*w(3)**2 * gs2)
-  endif
-
-  orb%vec(1) = v(1) + td * dx
-  orb%vec(2) = v(2) + td * (dpx + gt * w(1))
-  orb%vec(3) = v(3) + td * dy
-  orb%vec(4) = v(4) + td * (dpy - gt * w(3))
-  orb%vec(5) = v(5) + td * dz
-
-  if (logic_option(.false., make_matrix)) then
-    call mat_make_unit (kmat)
-    kmat(1,1) = 1 + gt2 * v(1) * e_factor
-    kmat(1,3) = -gs2 * v(3) * e_factor
-    kmat(2,1) = gt + (-gt2 * v(2) + 2 * k1_tane * v(1) - gt * gt2 * v(1)) * e_factor
-    kmat(2,2) = 1 - gt2 * v(1) * e_factor
-    kmat(2,3) = (gt2 * v(4) - 2 * k1_tane * v(3) - gt * gt2 * v(3)) * e_factor
-    kmat(2,4) = gt2 * v(3) * e_factor
-    kmat(3,1) = -gt2 * v(3) * e_factor
-    kmat(3,3) = 1 -  gt2 * v(1) * e_factor
-    kmat(4,1) = (gt2 * v(4) + (gt * gs2 - 2 * k1_tane) * v(3)) * e_factor
-    kmat(4,2) = (g_tot + gt2) * v(3) * e_factor
-    kmat(4,3) = -gt + (fg_factor + (g_tot + gt2) * v(2) + (gt * gs2 - 2 * k1_tane) * v(1)) * e_factor
-    kmat(4,4) = 1 + gt2 * v(1) * e_factor
-    kmat(5,6) = (fg_factor * v(3)**2 / 2 + (4*k1_tane - gt*gt2) * v(1)**3 / 12 + (-4*k1_tane + gt*gs2) * v(1) * v(3)**2 /4 + &
-                  gt2 * (-v(1)**2 * v(2) + 2 * v(1) * v(3) * v(4)) / 2 + (g_tot + gt2) * v(2) * v(3)**2 / 2) * e_factor**2
-  end if
+  call k_kick(-0.5_rp)
+  call b3_flow(2 * c_b * tan_e**2)
+  call b2_flow(c_b * sec_e**2)
+  call b1_flow(-c_b * tan_e**2, ok);  if (.not. ok) return
+  call k_kick(-0.5_rp)
 endif
 
-!
+orb%vec = v
+if (make_mat) mat6 = matmul (kmat, mat6)
 
-if (logic_option(.false., make_matrix)) then
-  kmat(1,6) = -dx  * e_factor
-  kmat(2,6) = -dpx * e_factor
-  kmat(3,6) = -dy  * e_factor
-  kmat(4,6) = -dpy * e_factor
-  ! The m(5,x) terms follow from the symplectic condition.
-  kmat(5,1) = -kmat(2,6)*kmat(1,1) + kmat(1,6)*kmat(2,1) - kmat(4,6)*kmat(3,1) + kmat(3,6)*kmat(4,1)
-  kmat(5,2) = -kmat(2,6)*kmat(1,2) + kmat(1,6)*kmat(2,2) - kmat(4,6)*kmat(3,2) + kmat(3,6)*kmat(4,2)
-  kmat(5,3) = -kmat(2,6)*kmat(1,3) + kmat(1,6)*kmat(2,3) - kmat(4,6)*kmat(3,3) + kmat(3,6)*kmat(4,3)
-  kmat(5,4) = -kmat(2,6)*kmat(1,4) + kmat(1,6)*kmat(2,4) - kmat(4,6)*kmat(3,4) + kmat(3,6)*kmat(4,4)
-  if (td == -1) call mat_inverse(kmat, kmat)
-  mat6 = matmul (kmat, mat6)
+!-------------------------------------------------------------------------
+contains
+
+! Apply the factor exp(:a*K:) to v and its Jacobian to kmat.
+
+subroutine k_kick(a)
+
+real(rp) a, x, y, q, qx, qy, m(6,6)
+
+x = v(1); y = v(3)
+q  = c_y2 * y**2 + c_x3 * x**3 + c_xy2 * x * y**2
+qx = 3 * c_x3 * x**2 + c_xy2 * y**2
+qy = 2 * c_y2 * y + 2 * c_xy2 * x * y
+
+v(2) = v(2) + a * (f * x + qx / rel_p)
+v(4) = v(4) + a * (-f * y + qy / rel_p)
+v(5) = v(5) + a * q / rel_p**2
+
+if (.not. make_mat) return
+call mat_make_unit (m)
+m(2,1) = a * (f + 6 * c_x3 * x / rel_p)
+m(2,3) = a * 2 * c_xy2 * y / rel_p
+m(2,6) = -a * qx / rel_p**2
+m(4,1) = a * 2 * c_xy2 * y / rel_p
+m(4,3) = a * (-f + (2 * c_y2 + 2 * c_xy2 * x) / rel_p)
+m(4,6) = -a * qy / rel_p**2
+m(5,1) = a * qx / rel_p**2
+m(5,3) = a * qy / rel_p**2
+m(5,6) = -2 * a * q / rel_p**3
+kmat = matmul(m, kmat)
+
+end subroutine k_kick
+
+!-------------------------------------------------------------------------
+! Apply the factor exp(:c * x^2 * px / (1 + pz):) to v and its Jacobian to kmat.
+! ok is False and the particle is marked lost if the flow does not exist.
+
+subroutine b1_flow(c, ok)
+
+real(rp) c, b, u, x, px, m(6,6)
+logical ok
+
+b = c / rel_p
+x = v(1); px = v(2)
+u = 1 + b * x
+ok = (u > 0)
+if (.not. ok) then
+  orb%state = lost$
+  return
 endif
+
+v(1) = x / u
+v(2) = px * u**2
+v(5) = v(5) + b * x**2 * px / rel_p
+
+if (.not. make_mat) return
+call mat_make_unit (m)
+m(1,1) = 1 / u**2
+m(1,6) = b * x**2 / (rel_p * u**2)
+m(2,1) = 2 * b * px * u
+m(2,2) = u**2
+m(2,6) = -2 * b * x * px * u / rel_p
+m(5,1) = 2 * b * x * px / rel_p
+m(5,2) = b * x**2 / rel_p
+m(5,6) = -2 * b * x**2 * px / rel_p**2
+kmat = matmul(m, kmat)
+
+end subroutine b1_flow
+
+!-------------------------------------------------------------------------
+! Apply the factor exp(:c * y^2 * px / (1 + pz):) to v and its Jacobian to kmat.
+
+subroutine b2_flow(c)
+
+real(rp) c, b, y, px, m(6,6)
+
+b = c / rel_p
+y = v(3); px = v(2)
+
+v(1) = v(1) - b * y**2
+v(4) = v(4) + 2 * b * y * px
+v(5) = v(5) + b * y**2 * px / rel_p
+
+if (.not. make_mat) return
+call mat_make_unit (m)
+m(1,3) = -2 * b * y
+m(1,6) = b * y**2 / rel_p
+m(4,2) = 2 * b * y
+m(4,3) = 2 * b * px
+m(4,6) = -2 * b * y * px / rel_p
+m(5,2) = b * y**2 / rel_p
+m(5,3) = 2 * b * y * px / rel_p
+m(5,6) = -2 * b * y**2 * px / rel_p**2
+kmat = matmul(m, kmat)
+
+end subroutine b2_flow
+
+!-------------------------------------------------------------------------
+! Apply the factor exp(:c * x * y * py / (1 + pz):) to v and its Jacobian to kmat.
+
+subroutine b3_flow(c)
+
+real(rp) c, b, ex, x, y, py, m(6,6)
+
+b = c / rel_p
+x = v(1); y = v(3); py = v(4)
+ex = exp(-b * x)
+
+v(2) = v(2) + b * y * py
+v(3) = y * ex
+v(4) = py / ex
+v(5) = v(5) + b * x * y * py / rel_p
+
+if (.not. make_mat) return
+call mat_make_unit (m)
+m(2,3) = b * py
+m(2,4) = b * y
+m(2,6) = -b * y * py / rel_p
+m(3,1) = -b * y * ex
+m(3,3) = ex
+m(3,6) = b * x * y * ex / rel_p
+m(4,1) = b * py / ex
+m(4,4) = 1 / ex
+m(4,6) = -b * x * py / (rel_p * ex)
+m(5,1) = b * y * py / rel_p
+m(5,3) = b * x * py / rel_p
+m(5,4) = b * x * y / rel_p
+m(5,6) = -2 * b * x * y * py / rel_p**2
+kmat = matmul(m, kmat)
+
+end subroutine b3_flow
 
 end subroutine hwang_bend_edge_kick
 

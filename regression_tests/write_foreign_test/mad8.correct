@@ -126,7 +126,7 @@ SMULTIPOLE_27: multipole, K0L = 3.0000E-05, T0 = -1.4708E+00, &
 S_KICKER_28: kicker, l =   0.0000E+00, vkick = -5.0000E-05
 SBEND7: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, rm(3, &
     3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = 4.4282E-09, rm(6,6) = 1.0000E+00
+     kick(5) = 4.4283E-09, rm(6,6) = 1.0000E+00
 SEXTUPOLE1: sextupole, l =   6.0000E-01, k2 = 1.0000E+00, tilt = 5.2360E-01
 SOLENOID1: solenoid, l =   2.6000E+00, ks = 1.0000E+00
 SOLENOID2: solenoid, l =   2.6000E+00, ks = 1.0000E-12
