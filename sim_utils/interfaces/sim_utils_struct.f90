@@ -102,7 +102,12 @@ character(*), parameter :: yellow_color = achar(27) // '[33m'
 character(*), parameter :: blue_color = achar(27) // '[34m' 
 character(*), parameter :: magenta_color = achar(27) // '[35m' 
 character(*), parameter :: cyan_color = achar(27) // '[36m' 
-character(*), parameter :: gray_color = achar(27) // '[37m' 
+character(*), parameter :: gray_color = achar(27) // '[37m'
+
+! Color names accepted by the prompt_color argument of read_a_line (input_mod).
+
+character(8), parameter :: terminal_color_name(9) = [character(8):: 'BLACK', 'RED', 'GREEN', 'YELLOW', &
+                                                      'BLUE', 'MAGENTA', 'CYAN', 'GRAY', 'DEFAULT']
 
 
 character(*), parameter :: dark_gray_color = achar(27) // '[90m' 

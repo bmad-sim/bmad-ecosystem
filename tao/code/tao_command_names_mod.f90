@@ -55,6 +55,37 @@ character(20), parameter :: tao_set_target_names(33) = [character(20) :: 'branch
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
       'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune']
 
+! "set ptc_com <component>" names. tao_set_ptc_com_cmd validates against the full list
+! before its select case; completion offers T/F for the logical ones.
+
+character(24), parameter :: tao_set_ptc_com_logical_names(6) = [character(24):: 'exact_model', 'exact_misalign', &
+          'use_orientation_patches', 'print_info_messages', 'pancake_symplectic', 'pancake_canonical']
+
+character(24), parameter :: tao_set_ptc_com_names(10) = [character(24):: 'vertical_kick', 'cut_factor', &
+          'max_fringe_order', 'old_integrator', tao_set_ptc_com_logical_names]
+
+! "set beam <parameter>" names. See tao_set_beam_cmd, which accepts the deprecated
+! names too (tao_set_beam_all_names); completion offers only the current ones.
+
+character(24), parameter :: tao_set_beam_names(11) = [character(24):: 'beginning', 'comb_ds_save', 'always_reinit', &
+          'track_start', 'track_end', 'beam_init_position_file', 'dump_file', 'dump_at', 'saved_at', &
+          'add_saved_at', 'subtract_saved_at']
+
+character(24), parameter :: tao_set_beam_deprecated_names(6) = [character(24):: 'beam_track_start', 'beam_track_end', &
+          'beam_init_file_name', 'beam_saved_at', 'beam_dump_at', 'beam_dump_file']
+
+character(24), parameter :: tao_set_beam_all_names(17) = [tao_set_beam_names, tao_set_beam_deprecated_names]
+
+! "change <what>" names. The change case in tao_command matches these by abbreviation
+! ("particle_start" may carry an "n@" prefix).
+
+character(16), parameter :: tao_change_what_names(5) = [character(16):: 'element', 'variable', 'tune', 'z_tune', &
+                                                                        'particle_start']
+
+! "read <what>" names. See tao_read_cmd.
+
+character(8), parameter :: tao_read_what_names(2) = [character(8):: 'lattice', 'ptc']
+
 ! "pipe <subcommand>" names. See tao_pipe_cmd.
 
 character(40), parameter :: tao_pipe_cmd_names(114) = [character(40) :: &
@@ -103,8 +134,9 @@ contains
 !
 ! Input:
 !   who         -- character(*): Enum name as accepted by "pipe enum": a Tao name
-!                    like "track_type" or "symbol^type", anything containing "color",
-!                    or a Bmad switch attribute name like "tracking_method".
+!                    like "track_type" or "symbol^type", "prompt_color" (terminal colors),
+!                    anything else containing "color" (plot colors), or a Bmad switch
+!                    attribute name like "tracking_method".
 !   ele         -- ele_struct, optional: For switch attributes, the element being
 !                    set. Restricts the values to those valid for that element.
 !   switch_attribs -- logical, optional: If False, do not consult Bmad's switch
@@ -138,6 +170,16 @@ integer itmp(300), n, i
 if (allocated(names)) deallocate (names)
 if (allocated(ix_names)) deallocate (ix_names)
 n = 0
+
+! The prompt takes terminal colors, not plot colors, so this must precede the generic test.
+
+if (who == 'prompt_color') then
+  do i = 1, size(terminal_color_name)
+    call add (terminal_color_name(i), no_enum_index$)
+  enddo
+  call done
+  return
+endif
 
 if (index(who, 'color') /= 0) then
   do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
@@ -259,9 +301,10 @@ end subroutine tao_enum_value_names
 ! Function tao_switches_for (context) result (switches)
 !
 ! Switch names for a command, or for "show <subcommand>". Zero-length if none.
-! Shared by the parsers (tao_show_cmd, tao_show_this, tao_pipe_cmd) and by tab
-! completion. The 'set', 'change', 'place', 'show merit' and 'show top10' lists
-! are completion-only since those parsers accept a different or deprecated set.
+! Shared by the parsers (tao_command, tao_show_cmd, tao_show_this, tao_pipe_cmd) and
+! by tab completion. The 'place', 'show merit' and 'show top10' lists are
+! completion-only since those parsers accept a different set. The set parser also
+! accepts the deprecated '-lord_no_set', which is deliberately left out of 'set'.
 !-
 
 function tao_switches_for (context) result (switches)
@@ -274,6 +317,7 @@ select case (context)
 case ('change');                    switches = [character(c):: '-silent', '-update', '-listing', '-branch', '-mask']
 case ('pipe');                      switches = [character(c):: '-append', '-write', '-noprint']
 case ('place');                     switches = [character(c):: '-no_buffer']
+case ('read');                      switches = [character(c):: '-universe', '-silent']
 case ('set');                       switches = [character(c):: '-update', '-mask', '-branch', '-listing', '-silent']
 case ('show');                      switches = [character(c):: '-append', '-write', '-noprint', '-no_err_out']
 case ('show beam');                 switches = [character(c):: '-universe', '-lattice', '-comb', '-z']

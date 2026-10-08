@@ -13,6 +13,7 @@
 subroutine tao_read_cmd (who, unis, file_name, silent)
 
 use tao_interface, dummy => tao_read_cmd
+use tao_command_names_mod, only: tao_read_what_names
 use madx_ptc_module, only: m_u, m_t, read_universe_pointed
 
 implicit none
@@ -22,7 +23,6 @@ type (tao_var_struct), pointer :: var
 
 character(*) who, unis, file_name
 character(20) action
-character(20) :: names(2) = ['lattice', 'ptc    ']
 character(*), parameter :: r_name = 'tao_read_cmd'
 
 integer i, j, iv, is, ix, iu, nd, ii
@@ -32,7 +32,7 @@ logical, allocatable :: u_pick(:)
 !
 
 call string_trim (who, action, ix)
-call match_word (action, names, ix)
+call match_word (action, tao_read_what_names, ix)
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)
   return
@@ -40,7 +40,7 @@ elseif (ix < 0) then
   call out_io (s_error$, r_name, 'AMBIGUOUS "WHAT": ' // action)
   return
 endif
-action = names(ix)
+action = tao_read_what_names(ix)
 
 select case (action)
 

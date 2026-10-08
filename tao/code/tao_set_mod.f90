@@ -1,6 +1,7 @@
 module tao_set_mod
 
 use tao_interface
+use tao_command_names_mod, only: tao_set_ptc_com_names, tao_set_beam_all_names
 
 implicit none
 
@@ -536,7 +537,7 @@ iu = tao_open_scratch_file (err);  if (err) return
 ios = 0
 
 select case (who)
-case ('random_engine', 'random_gauss_converter', 'track_type', 'quiet', 'prompt_color'&
+case ('random_engine', 'random_gauss_converter', 'track_type', 'quiet', 'prompt_color', &
       'prompt_string', 'optimizer', 'print_command', 'var_out_file', 'history_file')
   val = quote(value_str)
 
@@ -791,7 +792,12 @@ character(*), parameter :: r_name = 'tao_set_ptc_com_cmd'
 
 logical err
 
-!
+! Validating against the shared list first keeps it from drifting from the select case.
+
+if (all(tao_set_ptc_com_names /= who)) then
+  call out_io (s_error$, r_name, 'BAD PTC_COM COMPONENT: ' // who)
+  return
+endif
 
 select case (who)
 case ('vertical_kick');           call tao_set_real_value (ptc_com%vertical_kick, who, value_str, err)
@@ -998,18 +1004,14 @@ logical, allocatable :: this_u(:)
 logical err, logic, always_reinit
 
 character(*) who, value_str, branch_str
-character(20) switch, who2
+character(32) switch, who2
 character(*), parameter :: r_name = 'tao_set_beam_cmd'
 
 !
 
 call tao_pick_universe (unquote(who), who2, this_u, err); if (err) return
 
-call match_word (who2, [character(32):: 'track_start', 'track_end', 'saved_at', 'comb_ds_save', &
-                    'beam_track_start', 'beam_track_end', 'beam_init_file_name', 'beam_saved_at', &
-                    'beginning', 'add_saved_at', 'subtract_saved_at', 'beam_init_position_file', &
-                    'beam_dump_at', 'beam_dump_file', 'dump_at', 'dump_file', &
-                    'always_reinit'], ix, matched_name=switch)
+call match_word (who2, tao_set_beam_all_names, ix, matched_name=switch)
 
 do iu = lbound(s%u, 1), ubound(s%u, 1)
   if (.not. this_u(iu)) cycle

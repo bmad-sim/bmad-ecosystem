@@ -10,7 +10,9 @@
 !     external programs.
 !
 ! Tokens break on blanks and tabs only (matching readline_completion.c) and each
-! candidate is a full replacement for the token being completed.
+! candidate is a full replacement for the token being completed. At the prompt
+! that break set also governs readline's file name fallback, so a file name glued
+! to shell syntax ("spawn cat <./di") is taken as one word; quoted names work.
 !-
 
 module tao_completion_mod
@@ -52,8 +54,10 @@ contains
 !   context     -- character(*): 'LIST' = matches(:) holds the candidates (possibly
 !                    none), 'FILE' = token is a file path, 'NONE' = command not recognized.
 !   matches(:)  -- character(100), allocatable: Candidates, at most max_matches$.
-!   common_prefix -- character(*), optional: Longest common prefix of all candidates,
-!                    including any beyond the max_matches$ cap.
+!   common_prefix -- character(*), optional: Text to replace the token with right away:
+!                    the sole candidate when there is just one, otherwise the token as
+!                    typed followed by whatever all candidates (including any beyond
+!                    the max_matches$ cap) agree on. Never shorter than the token.
 !-
 
 subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix)
@@ -66,7 +70,7 @@ character(100), allocatable, intent(out) :: matches(:)
 character(*), optional, intent(out) :: common_prefix
 
 character(100) cand(max_matches$)
-character(100) token, lcp, prepend
+character(100) token, lcp, lcp_fold, prepend
 character(60) attrib_name
 character(40) words(8), cmd_name, sub_name
 character(2), parameter :: blanks = ' ' // achar(9)
@@ -80,6 +84,7 @@ word_start = 1
 n_cand = 0
 n_lcp_hits = 0
 lcp = ''
+lcp_fold = ''
 prepend = ''
 
 if (.not. s%initialized) then
@@ -206,20 +211,8 @@ case ('set')
     case ('global', 'beam_init', 'bmad_com', 'space_charge_com', 'geodesic_lm', &
           'opti_de_param', 'plot_page')
       call add_set_struct_matches (sub_name)
-
-    ! Set via select case in tao_set_ptc_com_cmd. Keep in sync.
-    case ('ptc_com')
-      call add_prefix_matches ([character(24):: 'vertical_kick', 'cut_factor', &
-            'max_fringe_order', 'old_integrator', 'exact_model', 'exact_misalign', &
-            'use_orientation_patches', 'print_info_messages', 'pancake_symplectic', &
-            'pancake_canonical'], .false.)
-
-    ! Set via select case in tao_set_beam_cmd. Keep in sync (deprecated aliases omitted).
-    case ('beam')
-      call add_prefix_matches ([character(24):: 'beginning', 'comb_ds_save', &
-            'always_reinit', 'track_start', 'track_end', 'beam_init_position_file', &
-            'dump_file', 'dump_at', 'saved_at', 'add_saved_at', 'subtract_saved_at'], .false.)
-
+    case ('ptc_com');  call add_prefix_matches (tao_set_ptc_com_names, .false.)
+    case ('beam');     call add_prefix_matches (tao_set_beam_names, .false.)
     case ('element')
       call add_element_matches ()
     end select
@@ -248,8 +241,7 @@ case ('help')
 
 case ('change')
   if (n_words == 1) then
-    call add_prefix_matches ([character(20):: 'element', 'variable', 'tune', 'z_tune', &
-                                              'particle_start'], .false.)
+    call add_prefix_matches (tao_change_what_names, .false.)
   elseif (n_words == 2) then
     if (words(2) /= '' .and. index('element', trim(words(2))) == 1) call add_element_matches ()
   endif
@@ -268,7 +260,14 @@ case ('use', 'veto', 'restore')
 case ('call')
   if (n_words == 1) context = 'FILE'
 
-case ('read', 'ls', 'spawn')
+case ('read')
+  if (n_words == 1) then
+    call add_prefix_matches (tao_read_what_names, .false.)
+  else
+    context = 'FILE'
+  endif
+
+case ('ls', 'spawn')
   context = 'FILE'
 
 case ('write')
@@ -286,8 +285,20 @@ call finish()
 contains
 
 subroutine finish ()
+integer lt
 matches = cand(1:n_cand)
-if (present(common_prefix)) common_prefix = trim(prepend) // lcp
+if (.not. present(common_prefix)) return
+! Readline replaces the whole token with this, so it must never be shorter than
+! what was typed, and the typed characters keep the user's case. A sole candidate
+! is returned as is so readline sees it as a single match.
+lt = len_trim(token)
+if (n_cand == 1) then
+  common_prefix = cand(1)
+elseif (len_trim(lcp) > lt) then
+  common_prefix = trim(prepend) // token(1:lt) // lcp(lt+1:)
+else
+  common_prefix = trim(prepend) // token
+endif
 end subroutine finish
 
 !.................................
@@ -318,25 +329,27 @@ if (name == '') return
 lt = len_trim(token)
 if (lt > len_trim(name)) return
 
+n1 = name
+if (.not. exact_case) call str_upcase (n1, n1)
+
 if (lt > 0) then
-  n1 = name
   t1 = token
-  if (.not. exact_case) then
-    call str_upcase (n1, n1)
-    call str_upcase (t1, t1)
-  endif
+  if (.not. exact_case) call str_upcase (t1, t1)
   if (n1(1:lt) /= t1(1:lt)) return
 endif
 
-! The common prefix counts hits beyond the candidate cap too.
+! The common prefix is compared the same way the token is (case folded unless
+! exact_case) but spelled as in the first hit. It counts hits beyond the candidate cap too.
 
 if (n_lcp_hits == 0) then
   lcp = name
+  lcp_fold = n1
 else
-  do im = 1, min(len_trim(lcp), len_trim(name))
-    if (lcp(im:im) /= name(im:im)) exit
+  do im = 1, min(len_trim(lcp_fold), len_trim(n1))
+    if (lcp_fold(im:im) /= n1(im:im)) exit
   enddo
   lcp = lcp(1:im-1)
+  lcp_fold = lcp_fold(1:im-1)
 endif
 n_lcp_hits = n_lcp_hits + 1
 
@@ -641,7 +654,8 @@ end subroutine locate_elements
 !.................................
 ! The beginning element and control lords (overlays, groups, girders, rampers)
 ! have attribute tables unlike any real element. When a selector matches several
-! elements they are left out of the attribute intersection and value union.
+! elements they are left out of the attribute intersection and value union; a
+! single match is always used.
 
 function has_fixed_attributes (ele) result (is_fixed)
 type (ele_struct) ele
@@ -678,22 +692,23 @@ type (ele_pointer_struct), allocatable :: eles(:)
 character(*) ele_name, attrib
 character(40), allocatable :: names(:)
 integer, allocatable :: ixs(:)
-integer n_loc, ie, in
+integer n_loc, ie, ie0, in
 
 context = 'LIST'
 call locate_elements (ele_name, eles, n_loc)
 if (n_loc == 0) return
 
-ie = first_settable(eles, n_loc)
-if (ie == 0) return
+ie0 = first_settable(eles, n_loc)
+if (ie0 == 0) return
 
-select case (attribute_type(upcase(attrib), eles(ie)%ele))
+select case (attribute_type(upcase(attrib), eles(ie0)%ele))
 case (is_logical$)
   call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
 case (is_switch$)
-  ! Union of the values valid for the matched elements.
-  do ie = ie, min(n_loc, max_ele_scan$)
-    if (.not. has_fixed_attributes(eles(ie)%ele)) cycle
+  ! Union of the values valid for the matched elements. The reference element is
+  ! always included: with a single match it may be a control lord.
+  do ie = ie0, min(n_loc, max_ele_scan$)
+    if (ie /= ie0 .and. .not. has_fixed_attributes(eles(ie)%ele)) cycle
     call tao_enum_value_names (attrib, names, ixs, eles(ie)%ele)
     if (.not. allocated(names)) cycle
     do in = 1, size(names)
@@ -724,6 +739,13 @@ if (allocated(names)) then
   do in = 1, size(names)
     call add_match_if_prefix (names(in), .false.)
   enddo
+  return
+endif
+
+! ptc_common_struct has pointer components so there is no namelist dump to consult.
+
+if (set_word == 'ptc_com') then
+  if (any(tao_set_ptc_com_logical_names == downcase(comp))) call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
   return
 endif
 
@@ -805,11 +827,17 @@ logical key_present(n_key$)
 
 context = 'LIST'
 
+! prepend // token must always equal the text typed, so token tracks sel as
+! each prefix moves to prepend.
+
 sel = token
 ia = index(sel, '@')
 u => selector_universe(sel)
 if (.not. associated(u)) return
-if (ia > 1) prepend = trim(prepend) // token(1:ia)
+if (ia > 1) then
+  prepend = trim(prepend) // token(1:ia)
+  token = sel
+endif
 
 ix_key = 0
 ic = index(sel, '::')
@@ -819,8 +847,8 @@ if (ic > 0) then
   if (ix_key <= 0) return
   prepend = trim(prepend) // sel(1:ic+1)
   sel = sel(ic+2:)
+  token = sel
 endif
-token = sel
 
 ! Element types go first so a big lattice cannot crowd them out of the capped list.
 

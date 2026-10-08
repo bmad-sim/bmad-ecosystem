@@ -253,6 +253,7 @@ completing "sho" gives matching command names while completing "show "
 Output is in parameter list form:
   word;STR;F;{word}
   context;STR;F;{context}
+  prefix;STR;F;{prefix}
   match[1];STR;F;{candidate_1}
   match[2];STR;F;{candidate_2}
   ...
@@ -262,6 +263,9 @@ whitespace-delimited word of {line}) and {context} is one of:
           Each candidate is a full replacement for {word}.
   FILE -- {word} is a file name. The caller should do file name completion.
   NONE -- The command is not recognized.
+{prefix} is what {word} can be replaced with immediately: the sole candidate, or
+{word} followed by whatever all candidates agree on. It is never shorter than
+{word} and is meaningful only for LIST.
 
 Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
 finding attributes and values, and the "n@" and "key::" prefixes are completed.

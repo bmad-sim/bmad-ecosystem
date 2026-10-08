@@ -199,6 +199,7 @@ character(40) cmd, which, v_str, head, tail
 character(40) switch, color, shape_shape
 character(100), allocatable :: match_arr(:)
 character(8) complete_context
+character(100) complete_prefix
 character(1) :: mode(3) = ['a', 'b', 'c']
 character(*), parameter :: r_name = 'tao_pipe_cmd'
 
@@ -1146,6 +1147,7 @@ case ('building_wall_section')
 ! Output is in parameter list form:
 !   word;STR;F;{word}
 !   context;STR;F;{context}
+!   prefix;STR;F;{prefix}
 !   match[1];STR;F;{candidate_1}
 !   match[2];STR;F;{candidate_2}
 !   ...
@@ -1155,6 +1157,9 @@ case ('building_wall_section')
 !           Each candidate is a full replacement for {word}.
 !   FILE -- {word} is a file name. The caller should do file name completion.
 !   NONE -- The command is not recognized.
+! {prefix} is what {word} can be replaced with immediately: the sole candidate, or
+! {word} followed by whatever all candidates agree on. It is never shorter than
+! {word} and is meaningful only for LIST.
 !
 ! Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
 ! finding attributes and values, and the "n@" and "key::" prefixes are completed.
@@ -1191,10 +1196,11 @@ case ('complete')
     n = n - 2
   endif
 
-  call tao_complete (line, n + 1, ix, complete_context, match_arr)
+  call tao_complete (line, n + 1, ix, complete_context, match_arr, complete_prefix)
 
   nl=incr(nl); write (li(nl), '(2a)') 'word;STR;F;', line(ix:n)
   nl=incr(nl); write (li(nl), '(2a)') 'context;STR;F;', trim(complete_context)
+  nl=incr(nl); write (li(nl), '(2a)') 'prefix;STR;F;', trim(complete_prefix)
   do i = 1, size(match_arr)
     nl=incr(nl); write (li(nl), '(a, i0, 2a)') 'match[', i, '];STR;F;', trim(match_arr(i))
   enddo

@@ -21,6 +21,12 @@
 // Registration saves the previous readline completion settings so an embedder can
 // restore them with readline_clear_completion_fn. If no callback is registered,
 // readline behaves as before.
+//
+// Limitation: words break on blanks and tabs only (see readline_set_completion_fn),
+// and that break set also governs the file name fallback. A file name glued to
+// shell syntax, as in "spawn cat <./di<TAB>", is completed as the whole word "<./di"
+// and finds nothing; put a blank before the name. Quoted names such as
+// read "my dir/fi<TAB> do complete since the word starts after the quote.
 //-
 
 typedef int (*sim_rl_complete_fn)(const char* line, int point, int start, int end,
@@ -31,6 +37,7 @@ static sim_rl_complete_fn completion_fn = NULL;
 static int saved_state = 0;
 static rl_completion_func_t* prev_completion_function = NULL;
 static const char* prev_word_break_characters = NULL;
+static const char* prev_completer_quote_characters = NULL;
 
 #define SIM_RL_BUF_SIZE 65536
 static char candidate_buf[SIM_RL_BUF_SIZE];
@@ -107,6 +114,7 @@ void readline_set_completion_fn(sim_rl_complete_fn fn) {
   if (!saved_state) {
     prev_completion_function = rl_attempted_completion_function;
     prev_word_break_characters = rl_completer_word_break_characters;
+    prev_completer_quote_characters = rl_completer_quote_characters;
     saved_state = 1;
   }
   completion_fn = fn;
@@ -114,6 +122,10 @@ void readline_set_completion_fn(sim_rl_complete_fn fn) {
   // Tokens break on whitespace only so constructs like "2@q1", "orbit.x", and
   // "-universe" complete as single words. Must agree with the Fortran engine.
   rl_completer_word_break_characters = " \t";
+  // Inside an unclosed quote the word starts after the quote, so quoted file names
+  // with blanks complete on the fallback path. Program tokens are never quoted: the
+  // engine sees the word start differ from its own and offers nothing, as before.
+  rl_completer_quote_characters = "\"'";
 }
 
 //----------------------------------------------------------------------------
@@ -130,5 +142,6 @@ void readline_clear_completion_fn(void) {
     rl_attempted_completion_function = prev_completion_function;
     // Cast: the header declares this char* in some readline versions, const char* in others.
     rl_completer_word_break_characters = (char*) prev_word_break_characters;
+    rl_completer_quote_characters = (char*) prev_completer_quote_characters;
   }
 }
