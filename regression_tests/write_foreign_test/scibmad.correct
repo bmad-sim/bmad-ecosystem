@@ -281,15 +281,13 @@ c1 = Context(
       ov_kick2_xk2 =   2.0000000000000000E-03,
       )
 
-quadrupole1.Kn0 = DefExpr(c ->  -1.1785E+00              * ((2*c.ov_kick_xk) + (c.ov_kick2_xk2)))
-quadrupole1.Ks0 = DefExpr(c ->  -1.1785E+00              * ((2*c.ov_kick_xk) + (c.ov_kick2_xk2)))
-sbend1.Kn0 = DefExpr(c ->  -1.6583E+00              * ((c.ov_kick_xk)))
-sbend1.Ks0 = DefExpr(c ->  -1.6639E-01              * ((c.ov_kick_xk)))
-hkicker1.Kn0 = DefExpr(c ->  -2.2222E-01              * ((c.ov_kick_xk)))
-kicker1.Ks0 = DefExpr(c ->   2.2222E-01              * ((c.ov_kick_xk)))
-elseparator1.En0 = DefExpr(c ->  -1.9102E+05              * ((c.ov_kick_xk)))
-quadrupole1.Kn0 = DefExpr(c ->  -1.1785E+00              * ((3*c.ov_kick2_xk2)))
-quadrupole1.Ks0 = DefExpr(c ->   1.1785E+00              * ((3*c.ov_kick2_xk2)))
+quadrupole1.Kn0 = DefExpr(c ->  -1.1785E+00              * (2*c.ov_kick_xk) +  -1.1785E+00              * (c.ov_kick2_xk2) +  -1.1785E+00              * (3*c.ov_kick2_xk2))
+quadrupole1.Ks0 = DefExpr(c ->   1.0000E-02              +  -1.1785E+00              * (2*c.ov_kick_xk) +  -1.1785E+00              * (c.ov_kick2_xk2) +   1.1785E+00              * (3*c.ov_kick2_xk2))
+sbend1.Kn0 = DefExpr(c ->   1.6639E-05              +  -1.6583E+00              * (c.ov_kick_xk))
+sbend1.Ks0 = DefExpr(c ->  -1.6583E-04              +  -1.6639E-01              * (c.ov_kick_xk))
+hkicker1.Kn0 = DefExpr(c ->  -2.2222E-01              * (c.ov_kick_xk))
+kicker1.Ks0 = DefExpr(c ->   2.2222E-01              * (c.ov_kick_xk))
+elseparator1.En0 = DefExpr(c ->  -1.9102E+05              * (c.ov_kick_xk))
 
 l1 = Branch([ begin_b1, ab_multipole1, ac_kicker0123456789, ac_kicker0123456789, ac_kicker2, beambeam1,
      crab_cavity1, ecollimator1, elseparator1, elseparator2, em_field1, em_field2, fiducial1, floor_shift1,

@@ -90,6 +90,3 @@ enddo
 call create_lat_ele_nametable(lat, lat%nametable)
 
 end subroutine
-
-!   suffix_clones -- logical, optional: Default True. Add suffixes if all the elements of a given name have
-!                      the same parameter values? Note: only ele%value(:) and multipoles are checked.
