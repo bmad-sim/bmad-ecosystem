@@ -1020,7 +1020,8 @@ end function tao_rl_complete_c
 !+
 ! Subroutine tao_register_completion ()
 !
-! Install tao_rl_complete_c as the readline tab completion callback. Idempotent.
+! Install tao_rl_complete_c as the readline tab completion callback and name the
+! application "Tao" for inputrc "$if Tao" blocks. Idempotent.
 !-
 
 subroutine tao_register_completion ()
@@ -1030,6 +1031,10 @@ interface
     import :: c_funptr
     type(c_funptr), value :: fn
   end subroutine
+  subroutine readline_set_app_name (name) bind(c, name = 'readline_set_app_name')
+    import :: c_char
+    character(kind=c_char) :: name(*)
+  end subroutine
 end interface
 
 logical, save :: registered = .false.
@@ -1038,6 +1043,8 @@ logical, save :: registered = .false.
 
 if (registered) return
 registered = .true.
+! Lets users put Tao-only readline settings in ~/.inputrc inside "$if Tao ... $endif".
+call readline_set_app_name ('Tao' // c_null_char)
 call readline_set_completion_fn (c_funloc(tao_rl_complete_c))
 
 end subroutine tao_register_completion

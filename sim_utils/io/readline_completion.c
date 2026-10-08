@@ -126,6 +126,25 @@ void readline_set_completion_fn(sim_rl_complete_fn fn) {
   // with blanks complete on the fallback path. Program tokens are never quoted: the
   // engine sees the word start differ from its own and offers nothing, as before.
   rl_completer_quote_characters = "\"'";
+  // Highlight the already-typed prefix in completion listings. The user's inputrc
+  // is read later, at the first readline() call, so it can still override this.
+  rl_variable_bind("colored-completion-prefix", "on");
+}
+
+//----------------------------------------------------------------------------
+//+
+// Routine readline_set_app_name (const char* name)
+//
+// Set the application name readline uses for conditional "$if <name>" blocks in
+// the user's inputrc, so settings can be made for this program only. Must be
+// called before the first readline() call, which is when inputrc is parsed.
+//-
+
+void readline_set_app_name(const char* name) {
+  static char* stored_name = NULL;
+  if (stored_name) free(stored_name);
+  stored_name = strdup(name);
+  rl_readline_name = stored_name;
 }
 
 //----------------------------------------------------------------------------
