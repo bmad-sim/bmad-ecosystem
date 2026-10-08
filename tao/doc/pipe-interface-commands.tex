@@ -965,6 +965,36 @@ Example:
 This gives element number 7 in branch 1 of universe 3.
 \end{verbatim}
 
+%% pipe ele:shape ------------------------------------
+\subsection{pipe ele:shape}
+\index{pipe!ele:shape}
+\label{p:ele:shape}
+
+
+Output the shape(s) Tao uses to draw an element in a lat_layout or floor_plan graph.
+
+\begin{example}
+   pipe ele:shape \{ele_id\}|\{which\} \{who\}
+\end{example}
+\begin{verbatim}
+Where:
+  {ele_id} is an element name or index.
+  {which} is one of: "model", "base" or "design"
+  {who} is one of: "lat_layout" or "floor_plan"
+
+Example:
+  pipe ele:shape 3@1>>7|model lat_layout
+This gives element number 7 in branch 1 of universe 3.
+
+Output lines have the form:
+  ix_shape;shape;color;line_width;y1;y2;label_name;draw;multi
+where ix_shape is the index of the matched shape in the "pipe shape_list {who}" output,
+and y1, y2 are the vertical extents before the plot_page shape scale is applied.
+Every matching shape is listed, up to and including the first with draw = T and multi = F.
+Shapes with draw = F are listed but are not drawn by Tao, so the lines with draw = T are
+exactly what Tao draws. Nothing is output if no shape matches the element.
+\end{verbatim}
+
 %% pipe ele:spin_taylor ------------------------------------
 \subsection{pipe ele:spin_taylor}
 \index{pipe!ele:spin_taylor}
