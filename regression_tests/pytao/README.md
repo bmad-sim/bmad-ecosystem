@@ -4,6 +4,7 @@ The python module `pytest` is used to run tests and test discovery follows its c
 
 ## Organization
 - `bookkeeping`: Tests related to lattice bookkeeping status flags
+- `completion`: Tests of the `pipe complete` tab completion command
 - `lcavity`: Tests related to lcavity element
 - `smoke_tests`: Add lattices here to confirm they at least load with `tao` without errors
 - `sr_wakes`: Tests related to wake

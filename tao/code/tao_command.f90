@@ -19,6 +19,7 @@ subroutine tao_command (command_line, err_flag, err_is_fatal)
 use tao_set_mod, dummy2 => tao_command
 use tao_change_mod, only: tao_change_var, tao_change_ele, tao_dmodel_dvar_calc, tao_change_tune, tao_change_z_tune
 use tao_command_mod, only: tao_cmd_split, tao_re_execute, tao_next_switch, tao_next_word
+use tao_command_names_mod, only: tao_command_names, tao_set_target_names, tao_switches_for, tao_switch_name_len
 use tao_scale_mod, only: tao_scale_cmd
 use tao_wave_mod, only: tao_wave_cmd
 use tao_x_scale_mod, only: tao_x_scale_cmd
@@ -46,13 +47,6 @@ character(200) list, mask
 character(40) gang_str, switch, word, except, branch_str, what
 character(16) cmd_name, set_word, axis_name
 
-character(16) :: cmd_names(49) = [character(16):: &
-                      'alias', 'call', 'change', 'clear', 'clip', 'continue', 'create', 'cut_ring', 'derivative', &
-                      'end_file', 'exit', 'fixer', 'flatten', 'help', 'json', 'ls', 'misalign', 'pause', 'pipe', 'place', &
-                      'plot', 'ptc', 'python', 'quit', 're_execute', 'read', 'regression', 'reinitialize', 'reset', &
-                      'restore', 'run_optimizer', 'scale', 'set', 'show', 'single_mode', 'spawn', 'taper', &
-                      'timer', 'use', 'veto', 'view', 'wave', 'write', 'x_axis', 'x_scale', 'xy_scale', &
-                      'debug', 'verbose', 'tree']
 character(16) :: cmd_names_old(6) = [&
     'x-scale      ', 'xy-scale     ', 'single-mode  ', 'x-axis       ', 'end-file     ', &
     'output       ']
@@ -88,7 +82,7 @@ if (cmd_line(1:5) == 'quiet') then
   return
 endif
 
-call match_word (cmd_line, cmd_names, ix_cmd, .true., matched_name = cmd_name)
+call match_word (cmd_line, tao_command_names, ix_cmd, .true., matched_name = cmd_name)
 
 if (ix_cmd == 0) then  ! Accept old-style names with "-" instead of "_".
   call match_word (cmd_line, cmd_names_old, ix_cmd, .true., matched_name = cmd_name)
@@ -155,29 +149,19 @@ case ('change')
   listing = .false.
   n = size(cmd_word)
 
+  ! Unknown or ambiguous "-" words (eg a negative number) are left in place.
+
   do i = 2, 8
-    if (len_trim(cmd_word(i)) < 2) cycle
+    if (cmd_word(i)(1:1) /= '-' .or. len_trim(cmd_word(i)) < 2) cycle
+    call match_word (cmd_word(i), tao_switches_for('change'), ix, .true., matched_name = switch)
 
-    if (index('-silent', trim(cmd_word(i))) == 1) then
-      silent = .true.
-      cmd_word(i:n-1) = cmd_word(i+1:n)
-
-    elseif (index('-update', trim(cmd_word(i))) == 1) then
-      update = .true.
-      cmd_word(i:n-1) = cmd_word(i+1:n)
-
-    elseif (index('-listing', trim(cmd_word(i))) == 1) then
-      listing = .true.
-      cmd_word(i:n-1) = cmd_word(i+1:n)
-
-    elseif (index('-branch', trim(cmd_word(i))) == 1) then
-      branch_str = cmd_word(i+1)
-      cmd_word(i:n-2) = cmd_word(i+2:n)      
-
-    elseif (index('-mask', trim(cmd_word(i))) == 1) then
-      mask = cmd_word(i+1)
-      cmd_word(i:n-2) = cmd_word(i+2:n)      
-    endif
+    select case (switch)
+    case ('-silent');   silent = .true.;   cmd_word(i:n-1) = cmd_word(i+1:n)
+    case ('-update');   update = .true.;   cmd_word(i:n-1) = cmd_word(i+1:n)
+    case ('-listing');  listing = .true.;  cmd_word(i:n-1) = cmd_word(i+1:n)
+    case ('-branch');   branch_str = cmd_word(i+1);  cmd_word(i:n-2) = cmd_word(i+2:n)
+    case ('-mask');     mask = cmd_word(i+1);        cmd_word(i:n-2) = cmd_word(i+2:n)
+    end select
   enddo
 
   cmd_word(4) = cmd_word(4)//cmd_word(5)//cmd_word(6)//cmd_word(7)//cmd_word(8)
@@ -545,7 +529,7 @@ case ('read')
   word = ''
   do i = 1, 5
     if (cmd_word(i) == '') exit
-    call match_word (cmd_word(i), [character(16):: '-universe', '-silent'], ix, .true., matched_name=switch)
+    call match_word (cmd_word(i), tao_switches_for('read'), ix, .true., matched_name=switch)
     select case (switch)
     case ('-silent')
       silent = .true.
@@ -688,8 +672,8 @@ case ('set')
   do
     ! "-1" is a universe index and not a switch.
     if (cmd_line(1:1) == '-' .and. cmd_line(1:2) /= '-1') then
-      call tao_next_switch (cmd_line, [character(20) :: '-update', '-lord_no_set', '-mask', &
-                                    '-branch', '-listing', '-silent'], .true., switch, err_flag)
+      call tao_next_switch (cmd_line, [character(tao_switch_name_len):: tao_switches_for('set'), '-lord_no_set'], &
+                                                                                          .true., switch, err_flag)
       if (err_flag) return
       select case (switch)
       case ('-update')
@@ -710,11 +694,7 @@ case ('set')
 
     if (set_word /= '') exit
 
-    call tao_next_switch (cmd_line, [character(20) :: 'branch', 'data', 'variable', 'lattice', &
-      'universe', 'curve', 'graph', 'beam_init', 'wave', 'plot', 'bmad_com', 'element', 'opti_de_param', &
-      'csr_param', 'floor_plan', 'lat_layout', 'geodesic_lm', 'default', 'key', 'particle_start', &
-      'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
-      'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune'], .true., switch, err_flag)
+    call tao_next_switch (cmd_line, tao_set_target_names, .true., switch, err_flag)
     if (err_flag) return
     set_word = switch
   enddo

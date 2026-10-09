@@ -54,6 +54,8 @@ use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
 use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
+use tao_command_names_mod, only: tao_pipe_cmd_names, tao_switches_for, tao_enum_value_names, no_enum_index$
+use tao_completion_mod, only: tao_complete
 use tao_init_data_mod, only: tao_point_d1_to_data
 use tao_init_variables_mod, only: tao_point_v1_to_var, tao_var_stuffit2
 use tao_c_interface_mod, only: tao_c_interface_com, re_allocate_c_double
@@ -195,6 +197,9 @@ character(40), allocatable :: str_arr(:)
 character(40), allocatable :: name_list(:)
 character(40) cmd, which, v_str, head, tail
 character(40) switch, color, shape_shape
+character(100), allocatable :: match_arr(:)
+character(8) complete_context
+character(100) complete_prefix
 character(1) :: mode(3) = ['a', 'b', 'c']
 character(*), parameter :: r_name = 'tao_pipe_cmd'
 
@@ -207,7 +212,7 @@ tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
 do
-  call tao_next_switch (line, [character(8):: '-append ', '-write', '-noprint'], .false., switch, err)
+  call tao_next_switch (line, tao_switches_for('pipe'), .false., switch, err)
   if (err) return
   if (switch == '') exit
 
@@ -238,32 +243,7 @@ call string_trim(line(ix+1:), line, ix_line)
 !   HOM
 !   x_axis_type (variable parameter)
 
-call match_word (cmd, [character(40) :: &
-          'beam', 'beam_init', 'branch1', 'bunch_comb', 'bunch_params', 'bunch1', 'bmad_com',&
-          'building_wall_list', 'building_wall_graph', 'building_wall_point', 'building_wall_section', &
-          'constraints', 'da_params', 'da_aperture', &
-          'data', 'data_d2_create', 'data_d2_destroy', 'data_d_array', 'data_d1_array', &
-          'data_d2', 'data_d2_array', 'data_set_design_value', 'data_parameter', &
-          'datum_create', 'datum_has_ele', 'derivative', &
-          'ele:ac_kicker', 'ele:cartesian_map', 'ele:chamber_wall', 'ele:control_var', &
-          'ele:cylindrical_map', 'ele:elec_multipoles', 'ele:floor', 'ele:gen_attribs', 'ele:gen_gradients', &
-          'ele:grid_field', 'ele:head', 'ele:lord_slave', 'ele:mat6', 'ele:methods', &
-          'ele:multipoles', 'ele:orbit', 'ele:param', 'ele:photon', 'ele:shape', 'ele:spin_taylor', 'ele:taylor', &
-          'ele:twiss', 'ele:wake', 'ele:wall3d', &
-          'em_field', 'enum', 'evaluate', 'floor_plan', 'floor_orbit', &
-          'global', 'global:opti_de', 'global:optimization', 'global:ran_state', 'help', 'inum', &
-          'lat_branch_list', 'lat_calc_done', 'lat_ele_list', 'lat_header', 'lat_list', 'lat_param_units', 'lord_control', &
-          'matrix', 'merit', 'orbit_at_s', 'place_buffer', &
-          'plot_curve', 'plot_curve_manage', 'plot_graph', 'plot_graph_manage', 'plot_histogram', &
-          'plot_lat_layout', 'plot_line', 'plot_list', &
-          'plot_symbol', 'plot_template_manage', 'plot_transfer', 'plot1', &
-          'ptc_com', 'ring_general', &
-          'shape_list', 'shape_manage', 'shape_pattern_list', 'shape_pattern_manage', 'shape_pattern_point_manage', 'shape_set', &
-          'show', 'slave_control', 'space_charge_com', 'species_to_int', 'species_to_str', &
-          'spin_invariant', 'spin_polarization', 'spin_resonance', 'super_universe', &
-          'taylor_map', 'twiss_at_s', 'universe', &
-          'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
-          'wall3d_radius', 'wave'], ix, matched_name = command)
+call match_word (cmd, tao_pipe_cmd_names, ix, matched_name = command)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'pipe what? ' // quote(cmd) // ' is not recognized.')
@@ -1144,6 +1124,86 @@ case ('building_wall_section')
     bws%name       = name1(2)
     bws%constraint = name1(3)
   end select
+
+!------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------------------------
+!%% complete
+!
+! Output tab completion candidates for a partially typed Tao command line.
+!
+! Notes
+! -----
+! Command syntax:
+!   pipe complete "{line}"
+!
+! Where:
+!   {line} is the partial command line to complete, considered up to its end.
+!
+! The double quotes around {line} preserve trailing blanks and embedded
+! semicolons and may be omitted when neither is present. For example,
+! completing "sho" gives matching command names while completing "show "
+! (note the trailing blank) gives the possible show subcommands.
+!
+! Output is in parameter list form:
+!   word;STR;F;{word}
+!   context;STR;F;{context}
+!   prefix;STR;F;{prefix}
+!   match[1];STR;F;{candidate_1}
+!   match[2];STR;F;{candidate_2}
+!   ...
+! where {word} is the (possibly empty) token being completed (the trailing
+! whitespace-delimited word of {line}) and {context} is one of:
+!   LIST -- The match[i] lines are the completion candidates (possibly none).
+!           Each candidate is a full replacement for {word}.
+!   FILE -- {word} is a file name. The caller should do file name completion.
+!   NONE -- The command is not recognized.
+! {prefix} is what {word} can be replaced with immediately: the sole candidate, or
+! {word} followed by whatever all candidates agree on. It is never shorter than
+! {word} and is meaningful only for LIST.
+!
+! Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
+! finding attributes and values, and the "n@" and "key::" prefixes are completed.
+!
+! Values of "set" commands are completed after an "=": enumerated element
+! attributes (eg "set element q1 tracking_method = ") offer the values valid for
+! that element, logical attributes and struct components offer T/F, and
+! enumerated struct components (eg "set global track_type = ") offer their values.
+!
+! Known limitation: words following value-taking switches (eg "-write file")
+! are counted as command words, so completion after such a switch is off by one.
+!
+! Parameters
+! ----------
+! line : ""
+!
+! Returns
+! -------
+! string_list
+!
+! Examples
+! --------
+! Example: 1
+!  init: -init $ACC_ROOT_DIR/regression_tests/pipe_test/cesr/tao.init
+!  args:
+!    line: sho
+
+case ('complete')
+
+  ! Quotes are stripped by hand so a significant trailing blank survives.
+  n = len_trim(line)
+  if (n >= 2 .and. line(1:1) == '"' .and. line(n:n) == '"') then
+    line = line(2:n-1)
+    n = n - 2
+  endif
+
+  call tao_complete (line, n + 1, ix, complete_context, match_arr, complete_prefix)
+
+  nl=incr(nl); write (li(nl), '(2a)') 'word;STR;F;', line(ix:n)
+  nl=incr(nl); write (li(nl), '(2a)') 'context;STR;F;', trim(complete_context)
+  nl=incr(nl); write (li(nl), '(2a)') 'prefix;STR;F;', trim(complete_prefix)
+  do i = 1, size(match_arr)
+    nl=incr(nl); write (li(nl), '(a, i0, 2a)') 'match[', i, '];STR;F;', trim(match_arr(i))
+  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------
@@ -4281,171 +4341,19 @@ case ('em_field')
 
 case ('enum')
 
-  if (index(line, 'color') /= 0) then
-    do i = lbound(qp_color_name, 1), ubound(qp_color_name, 1)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_color_name(i))
-    enddo
-    call end_stuff(li, nl)
+  call tao_enum_value_names (line, name_list, int_arr)
+  if (.not. allocated(name_list)) then
+    call invalid ('Not a valid switch name.')
     return
   endif
 
-  select case (line)
-  case ('axis^type')
-    nl=incr(nl); write(li(nl), '(a)') '1;LINEAR'
-    nl=incr(nl); write(li(nl), '(a)') '2;LOG'
-
-  case ('bounds')
-    nl=incr(nl); write(li(nl), '(a)') '1;GENERAL'
-    nl=incr(nl); write(li(nl), '(a)') '2;ZERO_AT_END'
-    nl=incr(nl); write(li(nl), '(a)') '3;ZERO_SYMMETRIC'
-
-  case ('building^constraint')
-    nl=incr(nl); write(li(nl), '(a)') '1;none'
-    nl=incr(nl); write(li(nl), '(a)') '2;left_side'
-    nl=incr(nl); write(li(nl), '(a)') '3;right_side'
-
-  case ('data^merit_type')
-    do i = 1, size(tao_data_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_merit_type_name(i))
-    enddo
-
-  case ('data_source')
-    do i = 1, size(tao_data_source_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_source_name(i))
-    enddo
-
-  case ('distribution_type')
-    do i = 1, size(beam_distribution_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(beam_distribution_type_name(i))
-    enddo
-
-  case ('floor_plan_view_name')
-    do i = 1, size(tao_floor_plan_view_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_floor_plan_view_name(i))
-    enddo
-
-  case ('graph^type')
-    do i = 1, size(tao_graph_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_graph_type_name(i))
-    enddo
-
-  case ('line^pattern', 'orbit_pattern')
-    do i = 1, size(qp_line_pattern_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_line_pattern_name(i))
-    enddo
-
-  case ('lord_status')
-    nl=incr(nl); li(nl) = '4;Group_Lord'
-    nl=incr(nl); li(nl) = '5;Super_Lord' 
-    nl=incr(nl); li(nl) = '6;Overlay_Lord' 
-    nl=incr(nl); li(nl) = '7;Girder_Lord' 
-    nl=incr(nl); li(nl) = '8;Multipass_Lord'
-    nl=incr(nl); li(nl) = '10;Not_a_Lord' 
-    nl=incr(nl); li(nl) = '12;Control_Lord' 
-    nl=incr(nl); li(nl) = '13;Ramper_Lord'
-
-  case ('optimizer')
-    do i = 1, size(tao_optimizer_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_optimizer_name(i))
-    enddo
-
-  case ('orbit_lattice')
-    nl=incr(nl); li(nl) = '1;model'
-    nl=incr(nl); li(nl) = '2;design'
-    nl=incr(nl); li(nl) = '3;base'
-
-  case ('photon_type')
-    do i = 1, size(photon_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(photon_type_name(i))
-    enddo
-
-  case ('plot^type')
-    nl=incr(nl); li(nl) = '1;normal'
-    nl=incr(nl); li(nl) = '2;wave'
-
-  case ('random_engine')
-    nl=incr(nl); li(nl) = '1;pseudo'
-    nl=incr(nl); li(nl) = '2;quasi'
-
-  case ('random_gauss_converter')
-    nl=incr(nl); li(nl) = '1;exact'
-    nl=incr(nl); li(nl) = '2;quick'
-
-  case ('shape^label')
-    do i = 1, size(tao_shape_label_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_label_name(i))
-    enddo
-
-  case ('shape^shape')
-    do i = 1, size(tao_shape_shape_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_shape_shape_name(i))
-    enddo
-
-  case ('slave_status')
-    nl=incr(nl); li(nl) = '1;Minor_Slave'
-    nl=incr(nl); li(nl) = '2;Super_Slave' 
-    nl=incr(nl); li(nl) = '3;Free' 
-    nl=incr(nl); li(nl) = '9;Multipass_Slave' 
-    nl=incr(nl); li(nl) = '11;Slice_Slave' 
-
-  case ('fill_pattern')
-    do i = 1, size(qp_symbol_fill_pattern_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_fill_pattern_name(i))
-    enddo
-
-  case ('symbol^type')
-    do i = lbound(qp_symbol_type_name, 1), ubound(qp_symbol_type_name, 1)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(qp_symbol_type_name(i))
-    enddo
-
-  case ('track_type')
-    nl=incr(nl); li(nl) = 'single'
-    nl=incr(nl); li(nl) = 'beam'
-
-  case ('var^merit_type')
-    do i = 1, size(tao_var_merit_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_var_merit_type_name(i))
-    enddo
-
-  case ('view')
-    nl=incr(nl); li(nl) = 'zx'
-    nl=incr(nl); li(nl) = 'xz'
-    nl=incr(nl); li(nl) = 'xy'
-    nl=incr(nl); li(nl) = 'yx'
-    nl=incr(nl); li(nl) = 'zy'
-    nl=incr(nl); li(nl) = 'yz'
-
-  case ('wave_data_type')
-    do i = 1, size(tao_wave_data_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_wave_data_name(i))
-    enddo
-
-  case ('x_axis_type')
-    do i = 1, size(tao_x_axis_type_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_x_axis_type_name(i))
-    enddo
-
-  case ('data_type_z')
-    do i = 1, size(tao_data_type_z_name)
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(tao_data_type_z_name(i))
-    enddo
-
-  case default
-
-    name = upcase(line)
-    if (name == 'EVAL_POINT') name = 'ELE_ORIGIN'  ! Cheat since data%eval_point is not recognized by switch_attrib_value_name
-
-    a_name = switch_attrib_value_name(name, 1.0_rp, this_ele, name_list = name_list)
-    if (.not. allocated(name_list)) then
-      call invalid ('Not a valid switch name.')
-      return
+  do i = 1, size(name_list)
+    if (int_arr(i) == no_enum_index$) then
+      nl=incr(nl); li(nl) = name_list(i)
+    else
+      nl=incr(nl); write(li(nl), '(i0, 2a)') int_arr(i), ';', trim(name_list(i))
     endif
-
-    do i = lbound(name_list, 1), ubound(name_list, 1)
-      if (index(name_list(i), '!') /= 0 .or. name_list(i) == '') cycle
-      nl=incr(nl); write(li(nl), '(i0, 2a)') i, ';', trim(name_list(i))
-    enddo
-  end select
+  enddo
 
 !------------------------------------------------------------------------------------------------
 !------------------------------------------------------------------------------------------------

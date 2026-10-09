@@ -230,6 +230,55 @@ Where:
       right_side
 \end{verbatim}
 
+%% pipe complete ------------------------------------
+\subsection{pipe complete}
+\index{pipe!complete}
+\label{p:complete}
+
+
+Output tab completion candidates for a partially typed Tao command line.
+
+\begin{example}
+   pipe complete "\{line\}"
+\end{example}
+\begin{verbatim}
+Where:
+  {line} is the partial command line to complete, considered up to its end.
+
+The double quotes around {line} preserve trailing blanks and embedded
+semicolons and may be omitted when neither is present. For example,
+completing "sho" gives matching command names while completing "show "
+(note the trailing blank) gives the possible show subcommands.
+
+Output is in parameter list form:
+  word;STR;F;{word}
+  context;STR;F;{context}
+  prefix;STR;F;{prefix}
+  match[1];STR;F;{candidate_1}
+  match[2];STR;F;{candidate_2}
+  ...
+where {word} is the (possibly empty) token being completed (the trailing
+whitespace-delimited word of {line}) and {context} is one of:
+  LIST -- The match[i] lines are the completion candidates (possibly none).
+          Each candidate is a full replacement for {word}.
+  FILE -- {word} is a file name. The caller should do file name completion.
+  NONE -- The command is not recognized.
+{prefix} is what {word} can be replaced with immediately: the sole candidate, or
+{word} followed by whatever all candidates agree on. It is never shorter than
+{word} and is meaningful only for LIST.
+
+Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
+finding attributes and values, and the "n@" and "key::" prefixes are completed.
+
+Values of "set" commands are completed after an "=": enumerated element
+attributes (eg "set element q1 tracking_method = ") offer the values valid for
+that element, logical attributes and struct components offer T/F, and
+enumerated struct components (eg "set global track_type = ") offer their values.
+
+Known limitation: words following value-taking switches (eg "-write file")
+are counted as command words, so completion after such a switch is off by one.
+\end{verbatim}
+
 %% pipe constraints ------------------------------------
 \subsection{pipe constraints}
 \index{pipe!constraints}

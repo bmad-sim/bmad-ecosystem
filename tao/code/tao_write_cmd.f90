@@ -11,6 +11,7 @@ subroutine tao_write_cmd (what)
 
 use tao_interface, dummy => tao_write_cmd
 use tao_command_mod, only: tao_cmd_split, tao_next_switch, tao_next_word
+use tao_command_names_mod, only: tao_write_action_names
 use tao_plot_mod, only: tao_draw_plots
 use tao_top10_mod, only: tao_var_write
 
@@ -81,13 +82,7 @@ call string_trim(what2(ix+1:), what2, ix_w2)
 call tao_cmd_split (what2, size(word), word, .true., err, ',')
 if (err) return
 
-call match_word (action, [character(20):: &
-              '3d_model', 'beam', 'bmad', 'blender', 'bunch_comb', 'covariance_matrix', 'curve', &
-              'derivative_matrix', 'digested', 'elegant', 'field', &
-              'gif', 'gif-l', 'hard', 'hard-l', 'mad', 'mad8', 'madx', 'matrix', &
-              'namelist', 'opal', 'pals', 'pdf', 'pdf-l', 'plot_commands', 'ps', 'ps-l', 'ptc', &
-              'sad', 'scibmad', 'spin_mat8', 'tao', 'variable', 'xsif'], &
-              ix, .true., matched_name = action)
+call match_word (action, tao_write_action_names, ix, .true., matched_name = action)
 
 if (ix == 0) then
   call out_io (s_error$, r_name, 'UNRECOGNIZED "WHAT": ' // action)

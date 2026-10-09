@@ -370,6 +370,13 @@ character(1) quote_mark, switch_start_char
 
 err = .false.
 switch = ''
+
+if (size(switch_list) == 0) then
+  call out_io (s_error$, r_name, 'INTERNAL ERROR: EMPTY SWITCH LIST. BAD tao_switches_for CONTEXT KEY?')
+  err = .true.
+  return
+endif
+
 if (switch_list(1)(1:1) == '-' .or. switch_list(1)(1:1) == '#') then
   switch_start_char = switch_list(1)(1:1) 
 else
