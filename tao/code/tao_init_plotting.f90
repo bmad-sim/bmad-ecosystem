@@ -1755,7 +1755,7 @@ endif
 !---------------
 ! deta/ds dispersion derivative plot
 
-if (all(s%plot_page%template%name /= 'deta_ds_dispersion')) then
+if (all(s%plot_page%template%name /= 'deta_ds')) then
   call default_plot_init (np, plt, default_plot_g1c2)
   plt%name           = 'deta_ds'
   plt%description    = 'deta/ds dispersion derivatives'
@@ -1801,6 +1801,58 @@ if (all(s%plot_page%template%name /= 'etap_dispersion')) then
   crv%name         = 'y'
   crv%g => grph
   crv%data_type = 'etap.y'
+  crv%legend_text  = 'etap_y'
+endif
+
+!---------------
+! Nonlocal dispersion plot
+
+if (all(s%plot_page%template%name /= 'nonloc_dispersion')) then
+  call default_plot_init (np, plt, default_plot_g1c2)
+  plt%name           = 'nonloc_dispersion'
+  plt%description    = 'X & Y Nonlocal Dispersion (relative to pz at start)'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Nonlocal Dispersion'
+  grph%y%label       = '\gy\fn\dX\u, \gy\fn\dY\u [m]'
+
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'eta_nonloc.x'
+  crv%legend_text  = '\gy\fn\dX\u'
+
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type = 'eta_nonloc.y'
+  crv%legend_text  = '\gy\fn\dY\u'
+endif
+
+!---------------
+! Nonlocal etap dispersion derivative plot
+
+if (all(s%plot_page%template%name /= 'nonloc_etap_dispersion')) then
+  call default_plot_init (np, plt, default_plot_g1c2)
+  plt%name           = 'nonloc_etap_dispersion'
+  plt%description    = 'Nonlocal Momentum dispersion (relative to pz at start)'
+
+  grph => plt%graph(1)
+  grph%p => plt
+  grph%title         = 'Nonlocal Momentum Dispersion'
+  grph%y%label       = 'dp\dx\u/dp\dz0\u, dp\dy\u/dp\dz0\u'
+
+  crv => grph%curve(1)
+  crv%name         = 'x'
+  crv%g => grph
+  crv%data_type    = 'etap_nonloc.x'
+  crv%legend_text  = 'etap_x'
+
+  crv => grph%curve(2)
+  crv%name         = 'y'
+  crv%g => grph
+  crv%data_type = 'etap_nonloc.y'
   crv%legend_text  = 'etap_y'
 endif
 

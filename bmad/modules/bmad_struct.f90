@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 363
+integer, parameter :: bmad_inc_version$ = 364
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1814,7 +1814,7 @@ integer, parameter :: sig_y$ = 15, graze_angle_in$ = 15, r0_elec$ = 15, rf_frequ
 integer, parameter :: sig_z$ = 16, graze_angle_out$ = 16, r0_mag$ = 16, rf_wavelength$ = 16
 integer, parameter :: sig_vx$ = 17
 ! longitudinal_mode$ is near to rf_wavelength$ for type_ele to print rf_bucket_length near rf_wavelength$
-integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, ks$ = 18
+integer, parameter :: sig_vy$ = 18, constant_ref_energy$ = 18, ks$ = 18, ref_tilt_tot$ = 18
 integer, parameter :: sig_e$ = 19, sig_pz$ = 19, autoscale_amplitude$ = 19
 integer, parameter :: d1_thickness$ = 20, default_tracking_species$ = 20, autoscale_phase$ = 20, &
                       n_slice$ = 20, y_gain_calib$ = 20, sig_e2$ = 20
@@ -1881,7 +1881,7 @@ integer, parameter :: x_offset_tot$ = 57
 integer, parameter :: y_offset_tot$ = 58
 integer, parameter :: z_offset_tot$ = 59
 integer, parameter :: tilt_tot$ = 60, roll_tot$ = 60  ! Important: tilt_tot$ = roll_tot$
-integer, parameter :: ref_tilt_tot$ = 61
+integer, parameter :: dpz_ele_dpz_start$ = 61
 integer, parameter :: multipass_ref_energy$ = 62
 integer, parameter :: dispatch$ = 63
 integer, parameter :: ref_time_start$ = 64

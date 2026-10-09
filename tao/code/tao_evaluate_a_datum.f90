@@ -221,6 +221,7 @@ if (.not. twiss_at_ele .or. (.not. tao_branch%twiss_valid .and. data_source == '
   select case (head_data_type)
   case ('alpha.', 'apparent_emit.', 'norm_apparent_emit.', 'beta.', 'bpm_eta.', 'bpm_phase.', 'cbar.', 'chrom.', &
         'chrom_ptc.', 'curly_h.', 'damp.', 'deta_ds.', 'emit.', 'norm_emit.', 'eta.', 'etap.', 'gamma.', &
+        'eta_nonloc.', 'etap_nonloc.', &
         'phase.', 'phase_frac.', 'phase_frac_diff', 'ping_a.', 'ping_b.', 'rad_int.', 'srdt.', 'tune.')
     call tao_set_invalid (datum, 'UNSTABLE 1-TURN MATRIX', why_invalid, print_err = print_err)
     return
@@ -1450,6 +1451,43 @@ case ('etap.')
     call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true., print_err = print_err)
     return
 
+  end select
+
+!-----------
+! Nonlocal dispersion = d(x, px, etc.)/dpz where pz is the momentum deviation at the start of the Twiss propagation
+! (the beginning element or active fixer). Also see twiss_propagate1.
+
+case ('eta_nonloc.', 'etap_nonloc.')
+
+  if (data_source /= 'lat') then
+    call tao_set_invalid (datum, 'DATA_SOURCE: ' // trim(data_source) // ' INVALID WITH: ' // trim(data_type) // ' DATA_TYPE', why_invalid, .true., print_err = print_err)
+    return
+  endif
+
+  select case (data_type)
+  case ('eta_nonloc.a')
+    call tao_load_this_datum (branch%ele(:)%a%eta * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('eta_nonloc.b')
+    call tao_load_this_datum (branch%ele(:)%b%eta * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('eta_nonloc.x')
+    call tao_load_this_datum (branch%ele(:)%x%eta * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('eta_nonloc.y')
+    call tao_load_this_datum (branch%ele(:)%y%eta * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('eta_nonloc.z', 'eta_nonloc.c')
+    call tao_load_this_datum (branch%ele(:)%z%eta * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('etap_nonloc.a')
+    call tao_load_this_datum (branch%ele(:)%a%etap * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('etap_nonloc.b')
+    call tao_load_this_datum (branch%ele(:)%b%etap * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('etap_nonloc.x')
+    call tao_load_this_datum (branch%ele(:)%x%etap * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('etap_nonloc.y')
+    call tao_load_this_datum (branch%ele(:)%y%etap * branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case ('etap_nonloc.z', 'etap_nonloc.c')    ! z%etap = 1 by definition.
+    call tao_load_this_datum (branch%ele(:)%value(dpz_ele_dpz_start$), ele_ref, ele_start, ele, datum_value, valid_value, datum, branch, why_invalid)
+  case default
+    call tao_set_invalid (datum, 'DATA_TYPE = "' // trim(data_type) // '" IS NOT VALID', why_invalid, .true., print_err = print_err)
+    return
   end select
 
 !-----------

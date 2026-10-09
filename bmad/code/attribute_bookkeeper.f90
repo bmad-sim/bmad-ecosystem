@@ -929,6 +929,7 @@ dval_change(E_tot$)       = (dval(E_tot$)       > (1d-3 + bmad_com%rel_tol_adapt
 ! delta_ref_time can have relatively large changes since this is computed 
 ! as an absolute time difference. Also it is a dependent attribute.
 dval_change(delta_ref_time$) = .false.  
+dval_change(dpz_ele_dpz_start$) = .false.  ! Computed by twiss_propagate1.
 
 if (has_orientation_attributes(ele)) then
   ! non_offset_changed is used to determine if maps should be killed.

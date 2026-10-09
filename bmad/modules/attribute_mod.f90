@@ -644,6 +644,7 @@ do i = 1, n_key$
     call init_attribute_name1 (is_ok, i, p0c_start$,              'p0c_start', private$)
   end select
 
+  call init_attribute_name1 (is_ok, i, dpz_ele_dpz_start$,      'dpz_ele_dpz_start', private$)
   call init_attribute_name1 (is_ok, i, delta_ref_time$,         'DELTA_REF_TIME', dependent$)
   call init_attribute_name1 (is_ok, i, ref_time_start$,         'REF_TIME_START', dependent$)
 
