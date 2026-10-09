@@ -724,6 +724,8 @@ describes in detail these data types.
   \pref{eta.a}            & eta.a, .b                           & Normal-mode dispersions                   & lat, beam   & Yes \\ \hline 
   \pref{etap.x}           & etap.x, .y                          & Momentum dispersions                      & lat, beam   & Yes \\ \hline 
   \pref{etap.a}           & etap.a, .b                          & Momentum dispersions                      & lat, beam   & Yes \\ \hline 
+  \pref{eta.nonloc}       & eta_nonloc.x, .y, .z, .a, .b, .c    & Nonlocal dispersions                      & lat         & Yes \\ \hline 
+  \pref{eta.nonloc}       & etap_nonloc.x, .y, .z, .a, .b, .c   & Nonlocal momentum dispersions             & lat         & Yes \\ \hline 
   \pref{expression}       & expression:<expression>             & See text above                            & lat         & No  \\ \hline 
   \pref{floor}            & \begin{tabular}{@{}l}   
                               floor.x, .y, .z, \\             
@@ -1211,6 +1213,24 @@ results.
 
 See also the \vn{norm_emit.}, \vn{apparent_emit.}, and
 \vn{norm_apparent_emit.} data types.
+
+  %----------------------
+  \item[eta_nonloc.x, .y, .z, .a, .b, .c, etap_nonloc.x, .y, .z, .a, .b, .c] \Newline \hlabel{eta.nonloc}
+Nonlocal dispersion. The standard (local) dispersion, for example \vn{eta.x}, is the derivative 
+of $x$ with respect to $p_z$ where $p_z$ is evaluated at the same point as $x$. The nonlocal 
+dispersion is the derivative with respect to $p_z$ evaluated at the start of the Twiss propagation 
+(the beginning element or an active \vn{fixer} element). The two are related by
+\begin{equation}
+  \eta_{x,nonloc} = \eta_x \, \frac{dp_z}{dp_{z0}}
+\end{equation}
+where $dp_z/dp_{z0}$ is the change in $p_z$ per unit change in $p_z$ at the start. This is 
+stored in the element attribute \vn{dpz_ele_dpz_start}. Note that \vn{etap_nonloc.z} is
+just $dp_z/dp_{z0}$. The \vn{.c} variants are the same as the \vn{.z} variants.
+
+The local dispersion is singular at points where $dp_z/dp_{z0}$ is zero which can happen,
+for example, in an off-crest \vn{lcavity} downstream of a bunch compressor. The nonlocal dispersion
+does not have this problem. The default plots \vn{nonloc_dispersion} and \vn{nonloc_etap_dispersion}
+plot the $x$ and $y$ nonlocal dispersions.
 
   %----------------------
   \item[eta.a, .b] \Newline \hlabel{eta.a}

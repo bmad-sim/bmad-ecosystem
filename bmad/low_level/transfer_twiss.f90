@@ -3,7 +3,7 @@
 !
 ! Routine to transfer the Twiss, coupling, and dispersion parameters from one element to another.
 !
-! Note: %map_ref_orb_out is transferred.
+! Note: %map_ref_orb_out and %value(dpz_ele_dpz_start$) are transferred.
 !
 ! Input:
 !   ele_in   -- ele_struct: Element with existing Twiss parameters.
@@ -34,6 +34,7 @@ ele_out%c_mat     = ele_in%c_mat
 ele_out%gamma_c   = ele_in%gamma_c
 ele_out%mode_flip = ele_in%mode_flip
 ele_out%map_ref_orb_out = ele_in%map_ref_orb_out
+ele_out%value(dpz_ele_dpz_start$) = ele_in%value(dpz_ele_dpz_start$)
 
 if (logic_option(.false., reverse)) then
   ele_out%x%etap    = -ele_in%x%etap
