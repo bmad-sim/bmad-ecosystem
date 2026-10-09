@@ -1755,7 +1755,7 @@ endif
 !---------------
 ! deta/ds dispersion derivative plot
 
-if (all(s%plot_page%template%name /= 'deta_ds_dispersion')) then
+if (all(s%plot_page%template%name /= 'deta_ds')) then
   call default_plot_init (np, plt, default_plot_g1c2)
   plt%name           = 'deta_ds'
   plt%description    = 'deta/ds dispersion derivatives'
