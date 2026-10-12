@@ -72,6 +72,7 @@ end type
 interface hdf5_read_dataset_int
   module procedure hdf5_read_dataset_int_rank0
   module procedure hdf5_read_dataset_int_rank1
+  module procedure hdf5_read_dataset_int64_rank1
   module procedure hdf5_read_dataset_int_rank2
   module procedure hdf5_read_dataset_int_rank3
 end interface
@@ -1363,17 +1364,15 @@ subroutine hdf5_write_dataset_real_rank0 (root_id, dataset_name, value, error)
 
 integer(hid_t) root_id, v_size(1)
 integer h5_err
-real(rp) value
+real(rp), intent(in) :: value
 real(rp) vector(1)
 logical error
 character(*) dataset_name
 
-!
-
 error = .true.
 v_size = 1
+vector(1) = value
 call H5LTmake_dataset_double_f(root_id, dataset_name, 1, [v_size], vector, h5_err);  if (h5_err < 0) return
-value = vector(1)
 error = .false.
 
 end subroutine hdf5_write_dataset_real_rank0
@@ -1497,17 +1496,15 @@ subroutine hdf5_write_dataset_int_rank0 (root_id, dataset_name, value, error)
 
 integer(hid_t) root_id, v_size(1)
 integer h5_err
-integer value
+integer, intent(in) :: value
 integer vector(1)
 logical error
 character(*) dataset_name
 
-!
-
 error = .true.
 v_size = 1
+vector(1) = value
 call H5LTmake_dataset_int_f(root_id, dataset_name, 1, v_size, vector, h5_err);  if (h5_err < 0) return
-value = vector(1)
 error = .false.
 
 end subroutine hdf5_write_dataset_int_rank0
@@ -1866,6 +1863,32 @@ SUBROUTINE hdf5_read_dataset_int_rank1(loc_id, dset_name, buf, error, err_str)
   if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
   buf = temp_buf
 END SUBROUTINE hdf5_read_dataset_int_rank1
+
+!------------------------------------------------------------------------------------------
+! As hdf5_read_dataset_int_rank1, into a 64-bit integer buffer.
+
+SUBROUTINE hdf5_read_dataset_int64_rank1(loc_id, dset_name, buf, error, err_str)
+  IMPLICIT NONE
+  INTEGER(hid_t)  , INTENT(IN) :: loc_id
+  CHARACTER(LEN=*), INTENT(IN) :: dset_name
+  INTEGER(KIND=int64), INTENT(INout), TARGET :: buf(:)
+  INTEGER(KIND=int64), target :: temp_buf(size(buf))
+  INTEGER :: h5_err 
+  TYPE(C_PTR) :: f_ptr
+  INTEGER(size_t) :: namelen
+  INTEGER(hid_t) :: type_id
+  logical error
+  character(*), optional :: err_str
+  character(*), parameter :: r_name = 'hdf5_read_dataset_int64_rank1'
+  !
+  f_ptr = C_LOC(temp_buf(1))
+  namelen = LEN(dset_name)
+  type_id = h5kind_to_type(KIND(buf(1)), H5_INTEGER_KIND)
+  h5_err = h5ltread_dataset_c(loc_id, namelen, dset_name, type_id, f_ptr)
+  error = (h5_err < 0)
+  if (error .and. present(err_str)) call out_io (s_error$, r_name, 'CANNOT READ: ' // err_str)
+  buf = temp_buf
+END SUBROUTINE hdf5_read_dataset_int64_rank1
 
 !------------------------------------------------------------------------------------------
 ! Adapted from h5ltread_dataset_int_kind_4_rank2

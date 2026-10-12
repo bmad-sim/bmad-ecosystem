@@ -9,7 +9,7 @@ use hdf5_openpmd_mod
 implicit none
 
 type (lat_struct) lat
-type (bunch_struct), target :: bunch1, bunch2
+type (bunch_struct), target :: bunch1, bunch2, bunches(3)
 type (coord_struct), pointer :: p
 type (beam_struct) beam, beam2
 type (beam_init_struct) beam_init
@@ -19,7 +19,11 @@ type (pmd_unit_struct) unit
 
 integer i, j, n_part
 integer h5_err
-integer(HID_T) f_id, r_id, complex_t
+integer(HID_T) f_id, r_id, z_id, complex_t
+type (hdf5_info_struct) info
+character(40) sname
+real(rp) q_tot, q_live
+integer(int64) id8(20)
 
 complex(rp) c1_in(2), c1_out(2), c2_in(2,3), c2_out(2,3), c3_in(2,3,4), c3_out(2,3,4)
 
@@ -157,6 +161,92 @@ enddo
 
 write (1, '(a, 10l1, a)') '"ASCII-Bunch1" STR "', good1, '"'
 write (1, '(a, 10l1, a)') '"ASCII-Bunch2" STR "', good2, '"'
+
+!---------------------
+! Patches: three bunches as one species record. The middle bunch holds no particles, the
+! first has two lost particles that alive_only drops and a pre_born one it keeps, and every
+! particle carries a label in ix_user that must come back.
+
+bunches(1) = bunch1
+bunches(2) = bunch1
+call reallocate_bunch (bunches(2), 0)
+bunches(3) = bunch1
+do i = 1, n_part
+  bunches(1)%particle(i)%ix_user = 100 + i
+  bunches(3)%particle(i)%ix_user = 300 + i
+enddo
+bunches(1)%particle(2)%state = lost$
+bunches(1)%particle(5)%state = lost$
+bunches(1)%particle(7)%state = pre_born$
+
+call hdf5_write_beam ('patches.h5', bunches, .false., error, alive_only = .true., as_patches = .true.)
+call hdf5_read_beam ('patches.h5', beam, error)
+
+write (1, '(a, 4i6)') '"Patches-counts" ABS 0 ', size(beam%bunch), size(beam%bunch(1)%particle), &
+                                                 size(beam%bunch(2)%particle), size(beam%bunch(3)%particle)
+j = 0
+good1 = .true.
+do i = 1, n_part
+  if (bunches(1)%particle(i)%state == lost$) cycle
+  j = j + 1
+  good1(j) = coord_is_equal(bunches(1)%particle(i), beam%bunch(1)%particle(j)) .and. &
+                                                   (beam%bunch(1)%particle(j)%ix_user == 100 + i)
+enddo
+good1(n_part-1:n_part) = (j == n_part - 2)
+do i = 1, n_part
+  good2(i) = coord_is_equal(bunches(3)%particle(i), beam%bunch(3)%particle(i)) .and. &
+                                                   (beam%bunch(3)%particle(i)%ix_user == 300 + i)
+enddo
+write (1, '(a, 10l1, a)') '"Patches-Bunch1" STR "', good1, '"'
+write (1, '(a, 10l1, a)') '"Patches-Bunch3" STR "', good2, '"'
+
+! Without the writer's mark the patches are another code's partition and the species is
+! one bunch.
+
+call hdf5_open_file ('patches.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, 'data/00001/particles', error, .true.)
+call hdf5_get_object_by_index (z_id, 0, sname, info, error)
+r_id = hdf5_open_group (z_id, trim(sname), error, .true.)
+call hdf5_read_attribute_real (r_id, 'totalCharge', q_tot, error, .true.)
+call hdf5_read_attribute_real (r_id, 'chargeLive', q_live, error, .true.)
+call H5Gclose_f (r_id, h5_err)
+write (1, '(a, l1, a)') '"Patches-totalCharge-is-live" STR "', abs(q_tot - q_live) <= 1d-12 * abs(q_live), '"'
+r_id = hdf5_open_group (z_id, trim(sname) // '/particlePatches', error, .true.)
+call H5Adelete_f (r_id, 'patchesAreBunches', h5_err)
+call H5Gclose_f (r_id, h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('patches.h5', beam, error)
+write (1, '(a, 2i6)') '"Patches-unmarked" ABS 0 ', size(beam%bunch), size(beam%bunch(1)%particle)
+
+! An ion beam whose bunches hold two charge states of one species is one species record,
+! each particle's charge state in chargeState.
+
+bunches(1)%particle%state = alive$
+bunches(1)%particle%species = species_id('He+')
+bunches(3)%particle%species = species_id('He++')
+call hdf5_write_beam ('patches_ion.h5', bunches, .false., error, as_patches = .true.)
+write (1, '(a, l1, a)') '"Patches-ion-written" STR "', .not. error, '"'
+call hdf5_read_beam ('patches_ion.h5', beam, error)
+write (1, '(a, 3i6)') '"Patches-ion-counts" ABS 0 ', size(beam%bunch(1)%particle), &
+                                     size(beam%bunch(2)%particle), size(beam%bunch(3)%particle)
+write (1, '(a, l1, l1, a)') '"Patches-ion-species" STR "', all(beam%bunch(1)%particle%species == species_id('He+')), &
+                                     all(beam%bunch(3)%particle%species == species_id('He++')), '"'
+
+! An id beyond the default-integer ix_user, as a 64-bit writer may store it, is clamped
+! with a warning.
+
+call hdf5_open_file ('patches_ion.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, 'data/00001/particles/He', error, .true.)
+call H5Ldelete_f (z_id, 'id', h5_err)
+id8 = [(int(i, int64), i = 1, 20)]
+id8(5) = 2_int64**40
+call h5ltmake_dataset_f (z_id, 'id', 1, [20_hsize_t], h5kind_to_type(int64, H5_INTEGER_KIND), id8, h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('patches_ion.h5', beam, error)
+write (1, '(a, 3i12)') '"Patches-id64" ABS 0 ', beam%bunch(1)%particle(4)%ix_user, &
+                                     beam%bunch(1)%particle(5)%ix_user, beam%bunch(1)%particle(6)%ix_user
 
 !---------------------
 ! Grid_Field Read/Write

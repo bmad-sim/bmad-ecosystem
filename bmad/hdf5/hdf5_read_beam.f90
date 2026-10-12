@@ -53,7 +53,7 @@ integer(size_t) g_size
 integer i, j, ik, ib, ix, is, it, nn, nt
 integer state, h5_err, n_bunch, storage_type, n_links, max_corder, h5_stat
 integer h_err
-integer, allocatable :: ivec(:)
+integer, allocatable :: ivec(:), pat_n(:)
 
 character(*) file_name
 character(*), parameter :: r_name = 'hdf5_read_beam'
@@ -88,7 +88,12 @@ it = index(pmd_head%basePath, '%T')
 if (it == 0) then  ! No "%T" means only one bunch present
   z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.);  if (err) return
   call reallocate_beam (beam, 1)
-  call hdf5_read_bunch(z_id, '.', beam%bunch(1), error, pmd_head, ele)
+  call hdf5_read_bunch(z_id, '.', beam%bunch(1), error, pmd_head, ele, pat_n)
+  if (.not. error .and. allocated(pat_n)) then
+    n_bunch = 1
+    call split_bunch_into_patches (beam, n_bunch, pat_n, error)
+    deallocate (pat_n)
+  endif
   call H5Gclose_f(z_id, h5_err)
   call H5Fclose_f(f_id, h5_err)
   return
@@ -135,7 +140,13 @@ do idx = 0, n_links-1
   name = trim(name) // sub_dir
   n_bunch = n_bunch + 1
   call reallocate_beam (beam, n_bunch, 0, extend = .true.)
-  call hdf5_read_bunch(z_id, name, beam%bunch(n_bunch), error, pmd_head, ele)
+  call hdf5_read_bunch(z_id, name, beam%bunch(n_bunch), error, pmd_head, ele, pat_n)
+  if (error) return
+  if (allocated(pat_n)) then
+    call split_bunch_into_patches (beam, n_bunch, pat_n, error)
+    if (error) return
+    deallocate (pat_n)
+  endif
 enddo
 
 if (n_bunch == 0) then
@@ -151,10 +162,72 @@ call H5Fclose_f(f_id, h5_err)
 !------------------------------------------------------------------------------------------
 contains
 
-subroutine hdf5_read_bunch (root_id, bunch_obj_name, bunch, error, pmd_head, ele)
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine split_bunch_into_patches (beam, n_bunch, pat_n, error)
+!
+! Routine to turn the bunch just read into one bunch per particlePatch. The patches
+! partition the species' records in order, so patch k takes the next pat_n(k) particles.
+! A zero-count patch gives an empty bunch, which is how an empty bunch survives a format
+! whose species name comes from its first particle.
+!
+! Input:
+!   beam      -- beam_struct: Beam whose bunch n_bunch holds the whole species.
+!   n_bunch   -- integer: Index of that bunch. Set to the last bunch written on exit.
+!   pat_n(:)  -- integer: Particles per patch.
+!
+! Output:
+!   beam      -- beam_struct: Bunches n_bunch through n_bunch+size(pat_n)-1.
+!   error     -- logical: Set True if the patches do not account for every particle.
+!-
+
+subroutine split_bunch_into_patches (beam, n_bunch, pat_n, error)
+
+type (beam_struct), target :: beam
+type (bunch_struct) whole
+integer n_bunch, pat_n(:)
+integer ib0, k, ip, n_pat, ic
+logical error
+
+!
+
+error = .true.
+ib0 = n_bunch
+n_pat = size(pat_n)
+whole = beam%bunch(ib0)
+
+if (sum(pat_n) /= size(whole%particle)) then
+  call out_io (s_error$, r_name, 'THE particlePatches DO NOT ACCOUNT FOR EVERY PARTICLE: \i0\ VS \i0\ ', &
+               'FILE: ' // file_name, i_array = [sum(pat_n), size(whole%particle)])
+  return
+endif
+
+call reallocate_beam (beam, ib0 + n_pat - 1, 0, extend = .true.)
+
+ic = 0
+do k = 1, n_pat
+  call reallocate_bunch (beam%bunch(ib0+k-1), pat_n(k))
+  do ip = 1, pat_n(k)
+    ic = ic + 1
+    beam%bunch(ib0+k-1)%particle(ip) = whole%particle(ic)
+  enddo
+  beam%bunch(ib0+k-1)%n_live = count(beam%bunch(ib0+k-1)%particle%state == alive$)
+  beam%bunch(ib0+k-1)%charge_live = sum(beam%bunch(ib0+k-1)%particle%charge, &
+                                        mask = (beam%bunch(ib0+k-1)%particle%state == alive$))
+  beam%bunch(ib0+k-1)%charge_tot = sum(beam%bunch(ib0+k-1)%particle%charge)
+enddo
+
+n_bunch = ib0 + n_pat - 1
+error = .false.
+
+end subroutine split_bunch_into_patches
+
+subroutine hdf5_read_bunch (root_id, bunch_obj_name, bunch, error, pmd_head, ele, pat_n)
 
 type (pmd_header_struct) pmd_head
 type (ele_struct), optional :: ele
+integer, allocatable, optional :: pat_n(:)
+type (hdf5_info_struct) info
 type(H5O_info_t) :: infobuf 
 type(bunch_struct), target :: bunch
 type (coord_struct), pointer :: p
@@ -164,7 +237,9 @@ real(rp), allocatable :: dt(:), t0(:), tot_mom(:), mom_x_off(:), mom_y_off(:), m
 real(rp), allocatable :: pos_x_off(:), pos_y_off(:), pos_z_off(:)
 
 integer(hid_t), value :: root_id
-integer(hid_t) g_id, g1_id, g2_id, g3_id, a_id
+integer(hid_t) g_id, g1_id, g2_id, g3_id, a_id, p_id
+integer is_bunches, ishape(1), n_pat
+logical err
 integer(hsize_t) idx
 integer(size_t) g_size
 integer n, stat, h5_stat, ia, ip, species, h5_err, storage_type, n_links, max_corder
@@ -328,6 +403,8 @@ do idx = 0, n_links-1
     call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%state, error)
   case ('chargeState')
     call pmd_read_int_dataset(g2_id, name, 1.0_rp, charge_state, error)
+  case ('id')
+    call read_id (g2_id, name, bunch, error)
   case ('branchIndex')
     if (.not. present(ele)) call pmd_read_int_dataset(g2_id, name, 1.0_rp, bunch%particle%ix_branch, error)
   case ('elementIndex')
@@ -348,6 +425,44 @@ do idx = 0, n_links-1
 
   if (error) exit
 enddo
+
+! particlePatches, when the file has them and hdf5_write_beam marked them as bunches
+! (pmd_write_particle_patches). The caller then turns each patch into a bunch. Patches
+! from another writer, which commonly divide a species between processors, carry no such
+! mark and the species is read as one bunch.
+
+if (present(pat_n) .and. .not. error) then
+  if (hdf5_exists(g2_id, 'particlePatches', err, .false.)) then
+    g3_id = hdf5_open_group(g2_id, 'particlePatches', error, .true.)
+    if (.not. error) then
+      call hdf5_read_attribute_int(g3_id, 'patchesAreBunches', is_bunches, err, .false., dflt_value = 0)
+      if (is_bunches == 1) then
+        ! numParticles may be a dataset or, from a writer whose patches all hold the same
+        ! count, a constant record component, whose shape attribute gives the patch count.
+        info = hdf5_object_info(g3_id, 'numParticles', error, .true.)
+        if (.not. error) then
+          if (info%element_type == H5O_TYPE_GROUP_F) then
+            p_id = hdf5_open_group(g3_id, 'numParticles', error, .true.)
+            if (.not. error) call hdf5_read_attribute_int(p_id, 'shape', ishape, error, .true.)
+            if (p_id >= 0) call H5Gclose_f(p_id, h5_err)
+            n_pat = ishape(1)
+          else
+            n_pat = info%data_dim(1)
+          endif
+        endif
+        if (.not. error) then
+          call re_allocate (pat_n, n_pat)
+          call pmd_read_int_dataset (g3_id, 'numParticles', 1.0_rp, pat_n, error)
+        endif
+      endif
+      call H5Gclose_f(g3_id, h5_err)
+    endif
+    if (error) then
+      call out_io (s_error$, r_name, 'CANNOT READ THE particlePatches GROUP OF: ' // file_name)
+      return
+    endif
+  endif
+endif
 
 ! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
 
@@ -451,6 +566,47 @@ do ip = 1, size(bunch%particle)
 enddo
 
 end subroutine  hdf5_read_bunch
+
+!------------------------------------------------------------------------------------------
+!+
+! Subroutine read_id (g_id, name, bunch, error)
+!
+! Routine to read the openPMD id record into each particle's ix_user. Other codes write id
+! as a 64-bit integer, so a dataset is read through a 64-bit buffer, and a value outside the
+! range of the default integer ix_user is clamped with a warning giving how many were.
+!-
+
+subroutine read_id (g_id, name, bunch, error)
+
+type (bunch_struct) bunch
+type (hdf5_info_struct) id_info
+integer(hid_t) g_id
+integer(int64), allocatable :: id8(:)
+integer n_out
+logical error
+character(*) name
+
+!
+
+id_info = hdf5_object_info(g_id, name, error, .true.)
+if (error) return
+
+if (id_info%element_type /= H5O_TYPE_DATASET_F) then
+  call pmd_read_int_dataset(g_id, name, 1.0_rp, bunch%particle%ix_user, error)
+  return
+endif
+
+allocate (id8(size(bunch%particle)))
+call hdf5_read_dataset_int(g_id, name, id8, error)
+if (error) return
+
+n_out = count(id8 > huge(0) .or. id8 < -huge(0) - 1)
+if (n_out > 0) call out_io (s_warn$, r_name, &
+          '\i0\ PARTICLE IDS ARE OUTSIDE THE RANGE OF ix_user AND ARE CLAMPED, SO THEY NO LONGER', &
+          'IDENTIFY THEIR PARTICLES. FILE: ' // file_name, i_array = [n_out])
+bunch%particle%ix_user = int(max(min(id8, int(huge(0), int64)), int(-huge(0) - 1, int64)))
+
+end subroutine read_id
 
 !------------------------------------------------------------------------------------------
 ! contains

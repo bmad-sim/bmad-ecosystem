@@ -10,7 +10,7 @@ contains
 !-----------------------------------------------------------------------------
 !-----------------------------------------------------------------------------
 !+
-! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat, alive_only)
+! Subroutine write_beam_file (file_name, beam, new_file, file_format, lat, alive_only, as_patches)
 !
 ! Routine to write a beam file.
 !
@@ -24,9 +24,11 @@ contains
 !   file_format   -- logical, optional: ascii$, or hdf5$ (default). old_ascii$ (deprecated) is still accepted.
 !   lat           -- lat_struct, optional: If present, lattice info will be writen to hdf5 files.
 !   alive_only    -- logical, optional: Only write live (includes pre_born) particles to the file? Default is False.
+!   as_patches    -- logical, optional: For hdf5$ format, write the bunches as particlePatches of one
+!                       species record (see hdf5_write_beam). Ignored for ascii$. Default is False.
 !-
 
-subroutine write_beam_file (file_name, beam, new_file, file_format, lat, alive_only)
+subroutine write_beam_file (file_name, beam, new_file, file_format, lat, alive_only, as_patches)
 
 type (beam_struct), target :: beam
 type (bunch_struct), pointer :: bunch
@@ -40,7 +42,7 @@ character(*) file_name
 character(200) full_name
 character(*), parameter :: r_name = 'write_beam_file'
 
-logical, optional :: new_file, alive_only
+logical, optional :: new_file, alive_only, as_patches
 logical error, append
 
 !
@@ -70,7 +72,7 @@ if (integer_option(hdf5$, format) == hdf5$) then
   if (full_name(n-2:n) /= '.h5' .and. full_name(n-4:n) /= '.hdf5') full_name = trim(full_name) // '.h5'
 
   append = .not. logic_option(.true., new_file)
-  call hdf5_write_beam(full_name, beam%bunch, append, error, lat, alive_only)
+  call hdf5_write_beam(full_name, beam%bunch, append, error, lat, alive_only, as_patches)
   return
 endif
 
@@ -158,7 +160,7 @@ tdir0 = .true.; charge0 = .true.; species0 = .true.; s0 = .true.; t0 = .true.; p
 do ib = 1, size(beam%bunch)
   bunch => beam%bunch(ib)
   p => bunch%particle(1)
-  if (logic_option(alive_only, .false.) .and. p%state /= alive$ .and. p%state /= pre_born$) cycle
+  if (logic_option(.false., alive_only) .and. p%state /= alive$ .and. p%state /= pre_born$) cycle
   if (any(bunch%particle%spin(1) /= 0))              spin0 = .false.
   if (any(bunch%particle%spin(2) /= 0))              spin0 = .false.
   if (any(bunch%particle%spin(3) /= 0))              spin0 = .false.
@@ -246,7 +248,7 @@ do ib = 1, size(beam%bunch)
 
   do ip = 1, size(bunch%particle)
     p => bunch%particle(ip)
-    if (logic_option(alive_only, .false.) .and. p%state /= alive$ .and. p%state /= pre_born$) cycle
+    if (logic_option(.false., alive_only) .and. p%state /= alive$ .and. p%state /= pre_born$) cycle
     line = ''
     do ic = 1, size(colvec)
       col = colvec(ic)
