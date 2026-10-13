@@ -551,7 +551,7 @@ case ('lm_opt_deriv_reinit', 'de_lm_step_ratio', 'de_var_to_population_factor', 
       'lmdif_negligible_merit', 'svd_cutoff', 'unstable_penalty', 'merit_stop_value', &
       'dmerit_stop_value', 'random_sigma_cutoff', 'delta_e_chrom')
   call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
-  write (val, '(es24.16)', iostat = ios) set_val(1)
+  write (val, '(es25.16e3)', iostat = ios) set_val(1)
 
 case default
   val = value_str
@@ -685,7 +685,7 @@ case ('diagnostic_output_file')
 
 case ('ds_track_step', 'beam_chamber_height', 'sigma_cutoff', 'mesh_growth_factor', 'mesh_shrink_factor')
   call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
-  write (val, '(es24.16)', iostat = ios) set_val(1)
+  write (val, '(es25.16e3)', iostat = ios) set_val(1)
 
 case ('n_bin', 'particle_bin_span', 'n_shield_images', 'sc_min_in_bin')
   call tao_evaluate_expression (value_str, 1, .false., set_val, err); if (err) return
@@ -1248,7 +1248,7 @@ else
     if (eval_err) then
       write (iu, '(a)') ' beam_init%' // trim(who2) // ' = 0'  ! For a test
     else
-      write (iu, '(a, es23.15)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
+      write (iu, '(a, es25.16e3)') ' beam_init%' // trim(who2) // ' = ', set_val(1)
     endif
   end select
 endif

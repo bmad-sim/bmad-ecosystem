@@ -698,7 +698,7 @@ if (n_line+1 >= size(str)) call re_allocate (str, 2*(n_line+1))
 ! Tao "set" format.
 
 if (logic_option(.false., tao_format)) then
-  n_line=n_line+1; write (str(n_line), '(3a, i0, a, es22.15)') 'set var ', trim(var%v1%name), '[', var%ix_v1, ']|model =', var%model_value
+  n_line=n_line+1; write (str(n_line), '(3a, i0, a, es25.17e3)') 'set var ', trim(var%v1%name), '[', var%ix_v1, ']|model =', var%model_value
 
 ! Controlling non-element parameter.
 
