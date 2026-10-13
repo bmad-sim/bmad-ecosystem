@@ -9065,7 +9065,7 @@ end function rstr
 function real_part_str(z) result (str)
 
 complex(rp) z
-character(23) str
+character(25) str
 
 write (str, '(a, es24.15e3)') ';', real(z)
 
@@ -9077,7 +9077,7 @@ end function real_part_str
 function cmplx_str(z) result (str)
 
 complex(rp) z
-character(46) str
+character(50) str
 
 write (str, '(2(a, es24.15e3))') ';', real(z), ';', aimag(z)
 
