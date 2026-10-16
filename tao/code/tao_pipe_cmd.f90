@@ -971,7 +971,7 @@ case ('building_wall_graph')
     bwp => s%building_wall%section(ib)%point
     do j = 1, size(bwp)
       call tao_floor_to_screen (g, [bwp(j)%x, 0.0_rp, bwp(j)%z], end1%r(1), end1%r(2))
-      nl=incr(nl); write (li(nl), '(2(i0,a), 3(es14.6, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', bwp(j)%radius
+      nl=incr(nl); write (li(nl), '(2(i0,a), 3(es16.6e3, a))') ib, ';', j, ';', end1%r(1), ';', end1%r(2), ';', bwp(j)%radius
     enddo
   enddo
 
@@ -1339,7 +1339,7 @@ case ('da_aperture')
 
   do i = 1, size(da%scan)
     do j = 1, size(da%scan(i)%point)
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es14.6, a))') i, ';', j, ';', &
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es16.6e3, a))') i, ';', j, ';', &
                                                        da%scan(i)%point(j)%x, ';', da%scan(i)%point(j)%y
     enddo
   enddo
@@ -2553,7 +2553,7 @@ case ('ele:chamber_wall')
       return
     end select
 
-    nl=incr(nl); write (li(nl), '(i0, 3(a, es14.6))') i, ';', wall3d%section(i)%s, ';', z1, ';', -z2
+    nl=incr(nl); write (li(nl), '(i0, 3(a, es16.6e3))') i, ';', wall3d%section(i)%s, ';', z1, ';', -z2
   enddo
 
 !------------------------------------------------------------------------------------------------
@@ -3788,7 +3788,7 @@ case ('ele:shape')
   do
     call tao_ele_shape_info (u%ix_uni, ele, shapes, shape, label_name, y1, y2, ix_shape_min, include_undrawn = .true.)
     if (.not. associated(shape)) exit
-    nl=incr(nl); write (li(nl), '(i0, 5a, i0, 2(a, es14.6), 3a, l1, a, l1)') ix_shape_min - 1, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 5a, i0, 2(a, es16.6e3), 3a, l1, a, l1)') ix_shape_min - 1, ';', &
               trim(shape%shape), ';', trim(shape%color), ';', shape%line_width, ';', y1, ';', y2, ';', &
               trim(label_name), ';', shape%draw, ';', shape%multi
     if (shape%draw .and. .not. shape%multi) exit
@@ -4048,7 +4048,7 @@ case ('ele:wake')
   case ('sr_long_table')
     do i = 1, size(wake%sr%long)
       wsr => wake%sr%long(i)
-      nl=incr(nl); write (li(nl), '(4(es16.8, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
+      nl=incr(nl); write (li(nl), '(4(es18.8e3, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
           sr_longitudinal_position_dep_name(wsr%position_dependence)
     enddo
 
@@ -4058,7 +4058,7 @@ case ('ele:wake')
   case ('sr_trans_table')
     do i = 1, size(wake%sr%trans)
       wsr => wake%sr%trans(i)
-      nl=incr(nl); write (li(nl), '(4(es16.8, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
+      nl=incr(nl); write (li(nl), '(4(es18.8e3, a), 4a)') wsr%amp, ';', wsr%damp, ';', wsr%k, ';', wsr%phi, ';', &
           sr_transverse_polarization_name(wsr%polarization), ';', sr_transverse_position_dep_name(wsr%position_dependence)
     enddo
 
@@ -4074,7 +4074,7 @@ case ('ele:wake')
   case ('sr_z_long_table')
     do i = 1, n
       z = -srz%z0 + (i-1) * srz%dz
-      nl=incr(nl); write (li(nl), '(es16.8, a, es16.8)') z, ';', srz%w(i)
+      nl=incr(nl); write (li(nl), '(es18.8e3, a, es18.8e3)') z, ';', srz%w(i)
     enddo
 
   case ('lr_mode_table')
@@ -4515,8 +4515,8 @@ case ('floor_orbit')
         do ix = 0, 100
           i0 = 50*ix
           i1 = min(50*(ix+1), n_bend)
-          nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';x', (';', dx_orbit(i), i = i0, i1)
-          nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';y', (';', dy_orbit(i), i = i0, i1)
+          nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es16.6e3))') ib, ';', ie, ';x', (';', dx_orbit(i), i = i0, i1)
+          nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es16.6e3))') ib, ';', ie, ';y', (';', dy_orbit(i), i = i0, i1)
           if (i1 == n_bend) exit
         enddo
 
@@ -4550,8 +4550,8 @@ case ('floor_orbit')
           dy_orbit(ic) = f_orb%r(2)
         enddo
 
-        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';x', (';', dx_orbit(i), i = 0, n)
-        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es14.6))') ib, ';', ie, ';y', (';', dy_orbit(i), i = 0, n)
+        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es16.6e3))') ib, ';', ie, ';x', (';', dx_orbit(i), i = 0, n)
+        nl=incr(nl); write (li(nl), '(2(i0, a), 1000(a, es16.6e3))') ib, ';', ie, ';y', (';', dy_orbit(i), i = 0, n)
       endif
     enddo
   enddo
@@ -5838,7 +5838,7 @@ case ('plot_lat_layout')
       if (.not. shape%draw) cycle
       y1 = y1 * s%plot_page%lat_layout_shape_scale
       y2 = y2 * s%plot_page%lat_layout_shape_scale
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.15e3, a), (i0, a), 2a, 2(es10.2, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.15e3, a), (i0, a), 2a, 2(es12.2e3, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
                 ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', trim(shape%shape), ';', &
                 y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
     enddo
@@ -5857,7 +5857,7 @@ case ('plot_lat_layout')
       if (.not. shape%draw) cycle
       y1 = y1 * s%plot_page%lat_layout_shape_scale
       y2 = y2 * s%plot_page%lat_layout_shape_scale
-      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.15e3, a), (i0, a), 2a, 2(es10.2, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
+      nl=incr(nl); write (li(nl), '(2(i0, a), 2(es24.15e3, a), (i0, a), 2a, 2(es12.2e3, a), 4a)') ele%ix_branch, ';', ele%ix_ele, &
                 ';', ele%s_start, ';', ele%s, ';', shape%line_width, ';', trim(shape%shape), ';', &
                 y1, ';', y2, ';', trim(shape%color), ';', trim(label_name)
     enddo
@@ -6655,7 +6655,7 @@ case ('shape_list')
   do i = 1, size(shapes)
     shape => shapes(i)
     if (shape%ele_id == '') cycle
-    nl=incr(nl); write (li(nl), '(i0, 7a, es12.4, 3a, 2(l1, a), 2a)') i, ';', &
+    nl=incr(nl); write (li(nl), '(i0, 7a, es14.4e3, 3a, 2(l1, a), 2a)') i, ';', &
           trim(shape%ele_id), ';', trim(shape%shape), ';', trim(shape%color), ';', shape%size, ';', &
           trim(shape%label), ';', shape%draw, ';', shape%multi, ';', int_str(shape%line_width)
   enddo
@@ -8359,7 +8359,7 @@ case ('wave')
 
     c => g%curve(1)
     do i = 1, size(c%x_symb)
-      nl=incr(nl); write (li(nl), '(i0, 2(a, es14.6))') i, ';', c%x_symb(i), ';', c%y_symb(i)
+      nl=incr(nl); write (li(nl), '(i0, 2(a, es16.6e3))') i, ';', c%x_symb(i), ';', c%y_symb(i)
     enddo
 
   case default
@@ -9718,14 +9718,14 @@ call tao_floor_to_screen_coords (graph, floor1, end1)
 call tao_floor_to_screen_coords (graph, floor2, end2)
 
 if (ele%key == sbend$) then
-  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a, 4(es14.7, a))') &
+  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es16.7e3, a), (i0, a), 2a, 2(es12.2e3, a), 4a, 4(es16.7e3, a))') &
               ele%ix_branch, ';', ele%ix_ele, ';', &
               trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
               end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
               line_width, ';', trim(shape_shape), ';', off1, ';', off2, ';', trim(color), ';', trim(label_name), ';', &
               ele%value(l$), ';', ele%value(angle$), ';', ele%value(e1$), ';', ele%value(e2$)
 else
-  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es14.7, a), (i0, a), 2a, 2(es10.2, a), 4a)') &
+  nl=incr(nl); write (li(nl), '(2(i0, a), 2a, 6(es16.7e3, a), (i0, a), 2a, 2(es12.2e3, a), 4a)') &
               ele%ix_branch, ';', ele%ix_ele, ';', &
               trim(key_name(ele%key)), ';', end1%r(1), ';', end1%r(2), ';', end1%theta, ';', &
               end2%r(1), ';', end2%r(2), ';', end2%theta, ';', &
