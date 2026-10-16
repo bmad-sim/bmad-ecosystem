@@ -1820,6 +1820,7 @@ call init_attribute_name1 (is_ok, wiggler$, ptc_canonical_coords$,         'PTC_
 call init_attribute_name1 (is_ok, wiggler$, osc_amplitude$,                'OSC_AMPLITUDE', dependent$)
 call init_attribute_name1 (is_ok, wiggler$, delta_ref_time_user_set$,      'DELTA_REF_TIME_USER_SET')
 call init_attribute_name1 (is_ok, wiggler$, delta_ref_time$,               'DELTA_REF_TIME', override = .true.)
+call init_attribute_name1 (is_ok, wiggler$, fel_method$,                   'FEL_METHOD')
 
 attrib_array(undulator$, :) = attrib_array(wiggler$, :)
 
@@ -2087,6 +2088,7 @@ case ('APERTURE_AT', 'APERTURE_TYPE', 'COUPLER_AT', 'FIELD_CALC', 'EXACT_MULTIPO
       'TRACKING_METHOD', 'REF_ORBIT_FOLLOWS', 'REF_COORDS', 'MODE', 'CAVITY_TYPE', 'FIELD_TYPE', &
       'SPATIAL_DISTRIBUTION', 'ENERGY_DISTRIBUTION', 'VELOCITY_DISTRIBUTION', 'KEY', 'SLAVE_STATUS', &
       'LORD_STATUS', 'PHOTON_TYPE', 'ELE_ORIGIN', 'REF_ORIGIN', 'CSR_METHOD', 'SPACE_CHARGE_METHOD', &
+      'FEL_METHOD', &
       'MULTIPASS_REF_ENERGY', 'DISTRIBUTION', 'LATTICE_TYPE', &
       'SCATTER_METHOD', 'FIDUCIAL_PT', 'K0L_STATUS')
   attrib_type = is_switch$
@@ -2647,6 +2649,12 @@ case ('SLAVE_STATUS')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, control_name, lbound(control_name, 1), name_list)
   if (present(is_default)) is_default = .false.
   
+case ('FEL_METHOD')
+  call get_this_attrib_name (attrib_val_name, ix_attrib_val, fel_method_name, lbound(fel_method_name, 1), name_list)
+  if (present(is_default)) then
+    is_default = (ix_attrib_val == off$)
+  endif
+
 case ('SPACE_CHARGE_METHOD')
   call get_this_attrib_name (attrib_val_name, ix_attrib_val, space_charge_method_name, lbound(space_charge_method_name, 1), name_list)
   if (present(is_default)) then

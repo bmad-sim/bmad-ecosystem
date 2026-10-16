@@ -351,6 +351,7 @@ case (wiggler$, undulator$)
   ele%field_calc = int_garbage$
   ele%value(polarity$) = 1.0
   ele%value(delta_ref_time_user_set$) = false$
+  ele%value(fel_method$) = off$
 
 end select
 
