@@ -329,7 +329,7 @@ case ('bunch_comb')
 
 
   if (file_name == '') file_name = 'bunch_comb.' // which(2:)
-  open (iu, file = file_name, recl = 500)
+  open (iu, file = file_name, recl = n_char_show)
 
   select case (which)
   case ('-sigma')
@@ -583,7 +583,7 @@ case ('field')
 
   !
 
-  open (iu, file = file_name, recl = 200)
+  open (iu, file = file_name, recl = n_char_show)
   write (iu, '(9a)') '# ele = ', quote(ele%name) 
   write (iu, '(9a)') '# nx = [', int_str(n_min(1)), ', ', int_str(n_max(1)), ']' 
   write (iu, '(9a)') '# ny = [', int_str(n_min(2)), ', ', int_str(n_max(2)), ']' 

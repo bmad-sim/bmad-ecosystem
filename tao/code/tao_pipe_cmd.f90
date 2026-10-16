@@ -225,9 +225,9 @@ do
     iu_write = lunget()
 
     if (switch == '-append') then
-      open (iu_write, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = 500)
+      open (iu_write, file = file_name, position = 'APPEND', status = 'UNKNOWN', recl = n_char_show)
     else
-      open (iu_write, file = file_name, status = 'REPLACE', recl = 500)
+      open (iu_write, file = file_name, status = 'REPLACE', recl = n_char_show)
     endif
 
     opened = .true.

@@ -35,7 +35,7 @@ type out_io_mod_com_struct
   logical :: print_on = .true.
   logical :: capture_lines_null_terminated = .true.
   integer :: n_buffer_lines = 0
-  character(300), allocatable :: buffer(:)
+  character(1000), allocatable :: buffer(:)
   character(16) :: capture_state = 'OFF'          ! See out_io_print_and_capture_setup
 end type
 
@@ -881,7 +881,7 @@ end function out_io_buffer_num_lines
 function out_io_buffer_get_line(ix_line) result (line)
 
 integer ix_line
-character(300) line
+character(1000) line
 
 if (ix_line < 0 .or. out_io_com%n_buffer_lines < ix_line) then
   line = 'Garbage!'
