@@ -62,6 +62,7 @@ if (i_fixer < i_start .or. i_fixer > i_end) then
   return
 endif
 
+ele%value(dpz_ele_dpz_start$) = 1  ! Start of the nonlocal dispersion calc.
 if (ele%a%beta /= 0) ele%a%gamma = (1 + ele%a%alpha**2) / ele%a%beta
 if (ele%b%beta /= 0) ele%b%gamma = (1 + ele%b%alpha**2) / ele%b%beta
 

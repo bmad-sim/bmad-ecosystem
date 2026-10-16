@@ -6,6 +6,8 @@
 ! The Twiss propagation always uses the matrix of ele2 but the starting and ending Twiss is dependent 
 ! on the direciton of propagation.
 !
+! Also propagated is ele%value(dpz_ele_dpz_start$) which is used to compute the "nonlocal" dispersion.
+!
 ! Input:
 !   ele1        -- ele_struct: Element holding the starting Twiss parameters for forwards propagation.
 !   ele2        -- ele_struct: Element holding the transfer matrix and, if backwards propagation, the starting Twiss.
@@ -38,7 +40,7 @@ real(rp) :: mat6(6,6)
 real(rp) det, mat2_a(2,2), mat2_b(2,2)
 real(rp) big_M(2,2), small_m(2,2), big_N(2,2), small_n(2,2)
 real(rp) c_conj_mat(2,2), E_inv_mat(2,2), F_inv_mat(2,2)
-real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p, rel_p2
+real(rp) mat2(2,2), eta1_vec(6), eta_vec(6), vec(6), dpz2_dpz1, rel_p1, rel_p, rel_p2, mat6_fwd(6,6)
 real(rp) det_factor, deriv_rel, gamma2_c, df, ele_len
 
 logical error, fwrd
@@ -52,6 +54,7 @@ fwrd = logic_option(.true., forward)
 
 if (fwrd .and. ele1%key == beginning_ele$) then
   ele1%map_ref_orb_out = ele2%map_ref_orb_in
+  if (ele1%value(dpz_ele_dpz_start$) == 0) ele1%value(dpz_ele_dpz_start$) = 1
   rel_p = 1 + ele1%map_ref_orb_out%vec(6)
   if (rel_p > 1e-3_rp) then
     if (is_true(ele1%value(deta_ds_master$))) then
@@ -141,6 +144,7 @@ if (ele2%key /= e_gun$) then   ! Energy change normalization is not applied to a
   rel_p1 = 1
 endif
 
+mat6_fwd = mat6
 if (.not. fwrd) mat6 = mat_symp_conj(mat6)
 
 !---------------------------------------------------------------------
@@ -260,6 +264,21 @@ else
 endif
 
 eta_vec(1:5) = matmul (mat6(1:5,:), eta1_vec) / dpz2_dpz1
+
+! dpz_ele_dpz_start is the change in pz at ele_out per unit change in pz at the start of the
+! Twiss propagation. Multiplying the dispersion by this gives the "nonlocal" dispersion which is
+! well behaved where dpz2_dpz1 passes through zero (which can happen in an off-crest lcavity).
+
+! For backwards propagation, mat_symp_conj(mat6) is not the inverse of mat6 if mat6 is not symplectic 
+! (for example, with acceleration the determinant is not one). The resulting scale error cancels out for 
+! the local dispersion but not for dpz_ele_dpz_start so use the forward matrix here.
+
+if (fwrd) then
+  ele_out%value(dpz_ele_dpz_start$) = ele_in%value(dpz_ele_dpz_start$) * dpz2_dpz1
+else
+  eta_vec(6) = 1
+  ele_out%value(dpz_ele_dpz_start$) = ele_in%value(dpz_ele_dpz_start$) / dot_product(mat6_fwd(6,:), eta_vec)
+endif
 
 ele_out%x%eta     = eta_vec(1)
 ele_out%x%etap    = eta_vec(2)

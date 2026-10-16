@@ -366,6 +366,25 @@ case ('etap')
     if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
   end select
 
+case ('eta_nonloc', 'etap_nonloc')
+  select case (d_type)
+  case ('eta_nonloc.a');     value = ele_to_s%a%eta
+  case ('eta_nonloc.b');     value = ele_to_s%b%eta
+  case ('eta_nonloc.x');     value = ele_to_s%x%eta
+  case ('eta_nonloc.y');     value = ele_to_s%y%eta
+  case ('eta_nonloc.z', 'eta_nonloc.c');   value = ele_to_s%z%eta
+  case ('etap_nonloc.a');    value = ele_to_s%a%etap
+  case ('etap_nonloc.b');    value = ele_to_s%b%etap
+  case ('etap_nonloc.x');    value = ele_to_s%x%etap
+  case ('etap_nonloc.y');    value = ele_to_s%y%etap
+  case ('etap_nonloc.z', 'etap_nonloc.c');  value = 1  ! z%etap = 1 by definition.
+  case default
+    err_flag = .true.
+    if (present(bad_datum)) bad_datum = .true.
+    if (present(why_invalid)) why_invalid = 'INVALID DATA_TYPE: ' // quote(data_type)
+  end select
+  value = value * ele_to_s%value(dpz_ele_dpz_start$)
+
 case ('floor')
   select case (d_type)
   case ('floor.x');          value = ele_to_s%floor%r(1)
