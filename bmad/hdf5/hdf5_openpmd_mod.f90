@@ -873,8 +873,17 @@ endif
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim /= [int(size(array), hsize_t), 0_hsize_t, 0_hsize_t])) then
-    call out_io (s_error$, r_name, 'STORED DATA ARRAY SHAPE DOES NOT MATCH THE EXPECTED SHAPE! FOR DATA: ' // name)
+  if (info%data_dim(2) /= 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+    error = .true.
+    call hdf5_close_object(obj_id, info)
+    return
+  endif
+
+  if (info%data_dim(1) /= size(array)) then
+    call out_io (s_error$, r_name, 'STORED DATA LENGTH OF \i0\ DOES NOT MATCH THE EXPECTED LENGTH OF \i0\ FOR DATA: ' // name, &
+                 '(FOR A BEAM RECORD, THE EXPECTED LENGTH IS THE numParticles ATTRIBUTE OF THE SPECIES.)', &
+                 i_array = [int(info%data_dim(1)), size(array)])
     error = .true.
     call hdf5_close_object(obj_id, info)
     return
@@ -1086,8 +1095,17 @@ endif
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (any(info%data_dim /= [int(size(array), hsize_t), 0_hsize_t, 0_hsize_t])) then
-    call out_io (s_error$, r_name, 'STORED DATA ARRAY SHAPE DOES NOT MATCH THE EXPECTED SHAPE! FOR DATA: ' // name)
+  if (info%data_dim(2) /= 0) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+    error = .true.
+    call hdf5_close_object(obj_id, info)
+    return
+  endif
+
+  if (info%data_dim(1) /= size(array)) then
+    call out_io (s_error$, r_name, 'STORED DATA LENGTH OF \i0\ DOES NOT MATCH THE EXPECTED LENGTH OF \i0\ FOR DATA: ' // name, &
+                 '(FOR A BEAM RECORD, THE EXPECTED LENGTH IS THE numParticles ATTRIBUTE OF THE SPECIES.)', &
+                 i_array = [int(info%data_dim(1)), size(array)])
     error = .true.
     call hdf5_close_object(obj_id, info)
     return

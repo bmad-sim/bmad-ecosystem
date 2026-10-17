@@ -151,6 +151,8 @@ enddo
 
 if (n_bunch == 0) then
   call out_io (s_error$, r_name, 'UNABLE TO LOCATE BEAM DATA IN FILE: ' // file_name)
+  call H5Gclose_f(z_id, h5_err)
+  call H5Fclose_f(f_id, h5_err)
   return
 endif
 
