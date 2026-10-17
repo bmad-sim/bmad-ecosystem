@@ -873,13 +873,14 @@ endif
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (info%data_dim(2) /= 0) then
-    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+  if (any(info%data_dim /= [int(size(array), hsize_t), 0_hsize_t, 0_hsize_t])) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY SHAPE DOES NOT MATCH THE EXPECTED SHAPE! FOR DATA: ' // name)
+    error = .true.
     call hdf5_close_object(obj_id, info)
     return
   endif
 
-  call hdf5_read_dataset_int(root_id, name, array, err)
+  if (size(array) > 0) call hdf5_read_dataset_int(root_id, name, array, error)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_int(obj_id, 'value', c_val, error, .true., name)
@@ -1085,13 +1086,14 @@ endif
 !
 
 if (info%element_type == H5O_TYPE_DATASET_F) then
-  if (info%data_dim(2) /= 0) then
-    call out_io (s_error$, r_name, 'STORED DATA ARRAY IS NOT ONE-DIMENSIONAL! FOR DATA: ' // name)
+  if (any(info%data_dim /= [int(size(array), hsize_t), 0_hsize_t, 0_hsize_t])) then
+    call out_io (s_error$, r_name, 'STORED DATA ARRAY SHAPE DOES NOT MATCH THE EXPECTED SHAPE! FOR DATA: ' // name)
+    error = .true.
     call hdf5_close_object(obj_id, info)
     return
   endif
 
-  call hdf5_read_dataset_real(root_id, name, array, err)
+  if (size(array) > 0) call hdf5_read_dataset_real(root_id, name, array, error)
 
 else  ! Must be a "constant record component" as defined by the openPMD standard
   call hdf5_read_attribute_real(obj_id, 'value', c_val, error, .true., name)
@@ -1576,7 +1578,7 @@ subroutine pmd_write_particle_patches (species_id, pat_n, pat_off, pat_lo, pat_h
 
 integer(hid_t) species_id, g_id, o_id, e_id
 integer pat_n(:), pat_off(:)
-real(rp) pat_lo(:,:), pat_hi(:,:)
+real(rp) pat_lo(:,:), pat_hi(:,:), extent(size(pat_n), 3)
 integer h5_err
 logical error, err
 character(*), parameter :: r_name = 'pmd_write_particle_patches'
@@ -1623,9 +1625,10 @@ if (h5_err < 0) then
   call out_io (s_error$, r_name, 'CANNOT CREATE THE particlePatches/extent GROUP.')
   e_id = -1;  call close_patches();  return
 endif
-call write_real_patch_record (e_id, 'x', pat_hi(:,1) - pat_lo(:,1), err)
-if (.not. err) call write_real_patch_record (e_id, 'y', pat_hi(:,2) - pat_lo(:,2), err)
-if (.not. err) call write_real_patch_record (e_id, 'z', pat_hi(:,3) - pat_lo(:,3), err)
+extent = pat_hi - pat_lo + 8 * epsilon(1.0_rp) * max(1.0_rp, abs(pat_lo), abs(pat_hi))
+call write_real_patch_record (e_id, 'x', extent(:,1), err)
+if (.not. err) call write_real_patch_record (e_id, 'y', extent(:,2), err)
+if (.not. err) call write_real_patch_record (e_id, 'z', extent(:,3), err)
 if (err) then
   call close_patches();  return
 endif
@@ -1666,7 +1669,6 @@ v_shape = shape(array)
 call H5LTmake_dataset_int_f (id, name, 1, v_shape, array, her)
 if (her < 0) then
   call out_io (s_error$, r_name, 'CANNOT WRITE THE particlePatches DATASET: ' // name)
-  err_flag = .true.
   return
 endif
 
@@ -1696,7 +1698,6 @@ v_shape = shape(array)
 call H5LTmake_dataset_double_f (id, name, 1, v_shape, array, her)
 if (her < 0) then
   call out_io (s_error$, r_name, 'CANNOT WRITE THE particlePatches DATASET: ' // name)
-  err_flag = .true.
   return
 endif
 

@@ -1364,10 +1364,12 @@ subroutine hdf5_write_dataset_real_rank0 (root_id, dataset_name, value, error)
 
 integer(hid_t) root_id, v_size(1)
 integer h5_err
-real(rp), intent(in) :: value
+real(rp) value
 real(rp) vector(1)
 logical error
 character(*) dataset_name
+
+!
 
 error = .true.
 v_size = 1
@@ -1496,10 +1498,12 @@ subroutine hdf5_write_dataset_int_rank0 (root_id, dataset_name, value, error)
 
 integer(hid_t) root_id, v_size(1)
 integer h5_err
-integer, intent(in) :: value
+integer value
 integer vector(1)
 logical error
 character(*) dataset_name
+
+!
 
 error = .true.
 v_size = 1

@@ -51,9 +51,13 @@ the attribute \vn{patchesAreBunches = 1}, and \Hyperref{r:hdf5.read.beam}{hdf5_r
 one bunch per patch only when that attribute is present: other codes use patches to divide a
 species between processors, and such a file is read as one bunch.
 
+When patches are restored as bunches, each bunch's \vn{charge_tot} is recomputed from its particle charges, and \vn{charge_live} from particles with \vn{state = alive}.
+The file stores only species-wide charge totals, so per-bunch totals set independently of the particle charges cannot be recovered in patch mode.
+Use separate species records (\vn{as_patches = False}) to preserve independently assigned bunch totals.
+
 Each particle's \vn{%ix_user} is stored in the \vn{openPMD} \vn{id} record and restored on reading, so a
-program can follow a particle from one file to the next. A file written by a program that does not
-set \vn{%ix_user} holds \vn{-1} for every particle.
+program can follow a particle from one file to the next.
+The \vn{id} record is omitted when every written particle has the default \vn{%ix_user = -1}; reading a file without \vn{id} leaves these labels at \vn{-1}.
 
 The \vn{SpeciesType} syntax defined by the \vn{SpeciesType} extension to the \vn{openPMD} standard
 is similar to the \bmad standard (\sref{s:param}) but there are differences. For one, the

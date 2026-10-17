@@ -266,11 +266,9 @@ do ib = 1, size(blist)
   call pmd_write_int_to_dataset(b2_id, 'branchIndex', 'ix_branch', unit_1, p(:)%ix_branch, err)
   call pmd_write_int_to_dataset(b2_id, 'elementIndex', 'ix_ele', unit_1, p(:)%ix_ele, err)
 
-  ! openPMD's own id record. Bmad does not use coord_struct%ix_user, so a program that
-  ! wants to follow a particle from one file to the next puts its label there and gets
-  ! it back on read. A file written by a program that does not is all -1.
-
-  call pmd_write_int_to_dataset(b2_id, 'id', 'ix_user', unit_1, p(:)%ix_user, err)
+  if (any(p%ix_user /= -1)) then
+    call pmd_write_int_to_dataset(b2_id, 'id', 'ix_user', unit_1, p(:)%ix_user, err)
+  endif
 
   do i = 1, size(p)
     select case (p(i)%location)
@@ -303,7 +301,7 @@ contains
 
 !------------------------------------------------------------------------------------------
 !+
-! Subroutine pmd_concat_bunches (bunches, alive_only, cat, pat_n, pat_off, pat_lo, pat_hi)
+! Subroutine pmd_concat_bunches (bunches, alive_only, cat, pat_n, pat_off, pat_lo, pat_hi, species, err_flag)
 !
 ! Routine to concatenate an array of bunches into one bunch, recording where each bunch
 ! landed so it can be written as an openPMD particlePatch. The particles keep their
@@ -322,8 +320,8 @@ contains
 !   pat_lo(:,:) -- real(rp), allocatable: Lower position bound (x, y, z) of each patch.
 !   pat_hi(:,:) -- real(rp), allocatable: Upper position bound of each patch.
 !   species     -- integer: The species of the particles with the charge state removed, taken
-!                    from the first particle of any bunch whether or not it is written. Particles
-!                    of one species in different charge states share the record.
+!                    from the first retained particle, or any particle if none are retained.
+!                    Particles of one species in different charge states share the record.
 !   err_flag    -- logical: Set True if no bunch holds a particle to take the species from,
 !                    or if the particles written are not all of one species.
 !-
@@ -350,11 +348,22 @@ call re_allocate2d (pat_hi, n_bun, 3)
 
 found = .false.
 do ib = 1, n_bun
-  if (size(bunches(ib)%particle) == 0) cycle
-  species = set_species_charge(bunches(ib)%particle(1)%species, 0)
-  found = .true.
-  exit
+  do ip = 1, size(bunches(ib)%particle)
+    if (.not. keep(bunches(ib)%particle(ip), alive_only)) cycle
+    species = set_species_charge(bunches(ib)%particle(ip)%species, 0)
+    found = .true.
+    exit
+  enddo
+  if (found) exit
 enddo
+if (.not. found) then
+  do ib = 1, n_bun
+    if (size(bunches(ib)%particle) == 0) cycle
+    species = set_species_charge(bunches(ib)%particle(1)%species, 0)
+    found = .true.
+    exit
+  enddo
+endif
 if (.not. found) then
   call out_io (s_error$, r_name, 'NO BUNCH HOLDS A PARTICLE, SO THERE IS NO SPECIES TO NAME THE RECORD FOR.')
   return

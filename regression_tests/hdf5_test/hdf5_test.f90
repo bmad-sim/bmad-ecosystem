@@ -23,7 +23,9 @@ integer(HID_T) f_id, r_id, z_id, complex_t
 type (hdf5_info_struct) info
 character(40) sname
 real(rp) q_tot, q_live
+real(rp) patch_lo(4,3), patch_hi(4,3), patch_offset(4), patch_extent(4)
 integer(int64) id8(20)
+character(1), parameter :: axes(3) = ['x', 'y', 'z']
 
 complex(rp) c1_in(2), c1_out(2), c2_in(2,3), c2_out(2,3), c3_in(2,3,4), c3_out(2,3,4)
 
@@ -44,6 +46,15 @@ call pmd_init_compound_complex(complex_t)
 call H5Gcreate_f(f_id, '/data', r_id, h5_err) 
 
 call hdf5_write_attribute_string(r_id, 'attrib_name', [character(8):: 'Val1', 'Bval2', 'X'], error)
+
+call hdf5_write_dataset_real(r_id, 'scalar_real', 1.25_rp, error)
+call hdf5_write_dataset_int(r_id, 'scalar_int', 17, error)
+patch_lo(:,1) = [-2.0_rp, 1.0e8_rp, 0.0_rp, 0.0_rp]
+patch_lo(:,2) = [-1.0e8_rp, -1.0_rp, 0.0_rp, 0.0_rp]
+patch_lo(:,3) = [-3.0_rp, 4.0_rp, 0.0_rp, 0.0_rp]
+patch_hi = patch_lo
+patch_hi(1,:) = [2.0_rp, 1.0e8_rp, 3.0_rp]
+call pmd_write_particle_patches(r_id, [2, 1, 1, 0], [0, 2, 3, 4], patch_lo, patch_hi, error)
 
 c1_in = [cmplx(1.0_rp, 2.0_rp), cmplx(3.0_rp, 4.0_rp)]
 do i = 1, ubound(c2_in,2)
@@ -70,6 +81,17 @@ call hdf5_read_attribute_string(r_id, 'attrib_name', strs, error, .true.)
 call pmd_read_complex_dataset(r_id, 'complex_rank3', complex_t, 1.0_rp, '', c3_out, error)
 call pmd_read_complex_dataset(r_id, 'complex_rank2', complex_t, 1.0_rp, '', c2_out, error)
 call pmd_read_complex_dataset(r_id, 'complex_rank1', complex_t, 1.0_rp, c1_out, error)
+
+call hdf5_read_dataset_real(r_id, 'scalar_real', q_tot, error)
+call hdf5_read_dataset_int(r_id, 'scalar_int', n_part, error)
+write (1, '(a, 2l1, a)') '"Scalar-datasets" STR "', q_tot == 1.25_rp, n_part == 17, '"'
+do i = 1, 3
+  call pmd_read_real_dataset(r_id, 'particlePatches/offset/' // axes(i), 1.0_rp, patch_offset, error)
+  call pmd_read_real_dataset(r_id, 'particlePatches/extent/' // axes(i), 1.0_rp, patch_extent, error)
+  good1(i) = .not. error .and. all(patch_offset == patch_lo(:,i)) .and. &
+                 all(patch_extent > 0) .and. all(patch_offset + patch_extent > patch_hi(:,i))
+enddo
+write (1, '(a, 3l1, a)') '"Patches-half-open-bounds" STR "', good1(1:3), '"'
 
 call H5Gclose_f(r_id, h5_err)
 call H5fclose_f(f_id, h5_err)
@@ -247,6 +269,89 @@ call H5Fclose_f (f_id, h5_err)
 call hdf5_read_beam ('patches_ion.h5', beam, error)
 write (1, '(a, 3i12)') '"Patches-id64" ABS 0 ', beam%bunch(1)%particle(4)%ix_user, &
                                      beam%bunch(1)%particle(5)%ix_user, beam%bunch(1)%particle(6)%ix_user
+
+bunches(1) = bunch1
+bunches(1)%particle%state = alive$
+bunches(1)%particle%ix_user = -1
+call hdf5_write_beam ('ids.h5', [bunches(1)], .false., error)
+call hdf5_open_file ('ids.h5', 'APPEND', f_id, error)
+sname = openpmd_species_name(set_species_charge(bunch1%particle(1)%species, 0))
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname), error, .true.)
+g1 = hdf5_exists(z_id, 'id', error, .false.)
+write (1, '(a, l1, a)') '"Unset-id-omitted" STR "', .not. g1, '"'
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('ids.h5', beam, error)
+write (1, '(a, l1, a)') '"Absent-id-default" STR "', &
+               .not. error .and. all(beam%bunch(1)%particle%ix_user == -1), '"'
+
+call hdf5_open_file ('ids.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname), error, .true.)
+call pmd_write_int_to_dataset(z_id, 'id', 'ix_user', unit_1, [(42, i = 1, n_part)], error)
+r_id = hdf5_open_group (z_id, 'id', error, .true.)
+call H5Adelete_f (r_id, 'unitSI', h5_err)
+call H5Gclose_f (r_id, h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('ids.h5', beam, error)
+write (1, '(a, l1, a)') '"Constant-id-without-unitSI" STR "', &
+               .not. error .and. all(beam%bunch(1)%particle%ix_user == 42), '"'
+
+call hdf5_open_file ('ids.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname), error, .true.)
+r_id = hdf5_open_group (z_id, 'id', error, .true.)
+call hdf5_write_attribute_int(r_id, 'shape', [n_part - 1], error)
+call H5Gclose_f (r_id, h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('ids.h5', beam, error)
+write (1, '(a, l1, a)') '"Constant-id-bad-shape" STR "', error, '"'
+
+call hdf5_open_file ('ids.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname), error, .true.)
+call H5Ldelete_f (z_id, 'id', h5_err)
+call h5ltmake_dataset_f (z_id, 'id', 1, [9_hsize_t], h5kind_to_type(int64, H5_INTEGER_KIND), id8(1:9), h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('ids.h5', beam, error)
+write (1, '(a, l1, a)') '"Short-id-rejected" STR "', error, '"'
+
+bunches(1)%particle(1)%state = lost$
+bunches(1)%particle(1)%species = photon$
+call hdf5_write_beam ('filtered.h5', [bunches(1)], .false., error, alive_only = .true., as_patches = .true.)
+write (1, '(a, l1, a)') '"Patches-filtered-species-written" STR "', .not. error, '"'
+call hdf5_read_beam ('filtered.h5', beam, error)
+write (1, '(a, l1, a)') '"Patches-filtered-species-read" STR "', .not. error .and. &
+  size(beam%bunch(1)%particle) == n_part - 1 .and. &
+  all(beam%bunch(1)%particle%species == bunch1%particle(1)%species), '"'
+
+bunches(1)%particle%state = lost$
+call hdf5_write_beam ('filtered.h5', [bunches(1)], .false., error, alive_only = .true., as_patches = .true.)
+write (1, '(a, l1, a)') '"Patches-all-filtered-written" STR "', .not. error, '"'
+call hdf5_read_beam ('filtered.h5', beam, error)
+write (1, '(a, l1, a)') '"Patches-all-filtered-read" STR "', &
+               .not. error .and. size(beam%bunch(1)%particle) == 0, '"'
+
+bunches = bunch1
+call hdf5_write_beam ('constant_patches.h5', bunches, .false., error, as_patches = .true.)
+call hdf5_open_file ('constant_patches.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname) // '/particlePatches', error, .true.)
+call H5Ldelete_f (z_id, 'numParticles', h5_err)
+call pmd_write_int_to_dataset(z_id, 'numParticles', 'count', unit_1, [n_part, n_part, n_part], error)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('constant_patches.h5', beam, error)
+write (1, '(a, l1, a)') '"Patches-constant-counts" STR "', .not. error .and. size(beam%bunch) == 3 .and. &
+               all([(size(beam%bunch(i)%particle) == n_part, i = 1, 3)]), '"'
+
+call hdf5_open_file ('constant_patches.h5', 'APPEND', f_id, error)
+z_id = hdf5_open_group (f_id, &
+  'data/00001/particles/' // trim(sname) // '/particlePatches/numParticles', error, .true.)
+call H5Adelete_f (z_id, 'shape', h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call hdf5_read_beam ('constant_patches.h5', beam, error)
+write (1, '(a, l1, a)') '"Patches-missing-shape" STR "', error, '"'
 
 !---------------------
 ! Grid_Field Read/Write
