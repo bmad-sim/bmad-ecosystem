@@ -1439,13 +1439,13 @@ subroutine hdf5_read_grid_field (file_name, ele, g_field, err_flag, pmd_header, 
   character(*) file_name
 end subroutine
 
-subroutine hdf5_write_beam (file_name, bunches, append, error, lat, alive_only)
+subroutine hdf5_write_beam (file_name, bunches, append, error, lat, alive_only, as_patches)
   import
   implicit none
   type (bunch_struct), target :: bunches(:)
   type (lat_struct), optional :: lat
   logical error, append
-  logical, optional :: alive_only
+  logical, optional :: alive_only, as_patches
   character(*) file_name
 end subroutine
 
