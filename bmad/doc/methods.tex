@@ -657,35 +657,6 @@ Example:
 Also see the \vn{space_charge_com} structure (\sref{s:sc.com}) which contains parameters used in
 space charge and CSR calculations.
 
-%-----------------------------------------------------------------
-\section{Free Electron Laser Method}
-\label{s:fel.meth}
-\index{fel method}\index{fel_method}
-
-A \vn{wiggler} or \vn{undulator} element can carry a free electron laser (FEL) method, which
-names the multiparticle physics a program is to apply within the element:
-\begin{example}
-  fel_method          = <Switch>   ! FEL method
-\end{example}
-
-The possible settings are
-\begin{example}
-  off             ! No FEL interaction. Default.
-  averaged        ! Wiggle-averaged model.
-  unaveraged      ! Direct integration of the undulator field.
-\end{example}
-
-\bmad itself carries the switch and does not act on it, and does not define what
-\vn{averaged} and \vn{unaveraged} mean. The FEL program that reads the switch defines them.
-The setting leaves the single particle \vn{tracking_method} alone, as \vn{space_charge_method}
-does, and every program that does not compute FEL physics tracks the element as the plain
-periodic wiggler its field attributes describe.
-
-Example:
-\begin{example}
-  u1: undulator, l = 3.42, l_period = 0.03, b_max = 1.25, fel_method = averaged, ...
-\end{example}
-
 Note: There is also high energy space charge calculation that can be used with single particle
 tracking and is discussed in \sref{s:he.space.charge}.
 
@@ -861,6 +832,35 @@ PTC does not implement \vn{matrix_kick} tracking for elements with an electric f
 the setting of \vn{ptc_integration_type} is ignored and tracking will be \vn{drift_kick}. Thus, if
 an electric field is introduced into an element, more integration steps may be required to get the
 correct tune.
+
+%-----------------------------------------------------------------
+\section{Free Electron Laser Method}
+\label{s:fel.meth}
+\index{fel method}\index{fel_method}
+
+A \vn{wiggler} or \vn{undulator} element can carry a free electron laser (FEL) method, which
+names the multiparticle physics a program is to apply within the element:
+\begin{example}
+  fel_method          = <Switch>   ! FEL method
+\end{example}
+
+The possible settings are
+\begin{example}
+  off             ! No FEL interaction. Default.
+  averaged        ! Wiggle-averaged model.
+  unaveraged      ! Direct integration of the undulator field.
+\end{example}
+
+\bmad itself carries the switch and does not act on it, and does not define what
+\vn{averaged} and \vn{unaveraged} mean. The FEL program that reads the switch defines them.
+The setting leaves the single particle \vn{tracking_method} alone, as \vn{space_charge_method}
+does, and every program that does not compute FEL physics tracks the element as the plain
+periodic wiggler its field attributes describe.
+
+Example:
+\begin{example}
+  u1: undulator, l = 3.42, l_period = 0.03, b_max = 1.25, fel_method = averaged, ...
+\end{example}
 
 %-----------------------------------------------------------------
 \section{Symplectic Versus Non-Symplectic Tracking}
