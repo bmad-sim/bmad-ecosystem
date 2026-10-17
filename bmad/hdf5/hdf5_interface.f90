@@ -196,12 +196,17 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_alloc_string_rank0'
 !
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+if (error) then
+  string = ''
+  return
+endif
+error = .true.
 
 if (info%data_class_type /= H5T_STRING_F) then
   if (print_error) then
     call out_io (s_error$, r_name, 'ATTRIBUTE: ' // string_option(attrib_name, err_str), 'IS NOT A STRING!')
   endif
-  allocate(character(0) :: string)
+  string = ''
   return
 endif
 
@@ -258,6 +263,8 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_string'
 string = ''
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+if (error) return
+error = .true.
 
 if (info%data_class_type /= H5T_STRING_F) then
   if (print_error) then
@@ -323,6 +330,8 @@ logical error, print_error
 error = .true.
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+if (error) return
+error = .true.
 
 if (info%data_class_type /= H5T_STRING_F) then
   if (print_error) then
@@ -1233,6 +1242,8 @@ character(*), parameter :: r_name = 'hdf5_read_attribute_int_rank1'
 attrib_value = integer_option(0, dflt_value)
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
+if (error) return
+error = .true.
 
 if (info%data_class_type == H5T_INTEGER_F) then
   call H5LTget_attribute_int_f(root_id, '.', attrib_name, attrib_value, h5_err)
@@ -1332,6 +1343,7 @@ error = .true.
 
 info = hdf5_attribute_info(root_id, attrib_name, error, print_error)
 if (error) return
+error = .true.
 
 if (info%data_class_type == H5T_INTEGER_F .or. info%data_class_type == H5T_FLOAT_F) then
   call H5LTget_attribute_double_f(root_id, '.', attrib_name, attrib_value, h5_err)

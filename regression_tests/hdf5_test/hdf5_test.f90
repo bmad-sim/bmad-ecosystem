@@ -354,6 +354,48 @@ call hdf5_read_beam ('constant_patches.h5', beam, error)
 write (1, '(a, l1, a)') '"Patches-missing-shape" STR "', error, '"'
 
 !---------------------
+! A failed read must close the file. Each case corrupts a fresh file, reads it, and reopens it.
+
+sname = openpmd_species_name(set_species_charge(bunch1%particle(1)%species, 0))
+
+call leak_file_setup ('leak1.h5')
+call H5Adelete_f (f_id, 'basePath', h5_err)
+call H5Fclose_f (f_id, h5_err)
+call leak_check ('leak1.h5', 'Leak-header')
+
+call leak_file_setup ('leak2.h5')
+call H5Ldelete_f (f_id, 'data', h5_err)
+call H5Fclose_f (f_id, h5_err)
+call leak_check ('leak2.h5', 'Leak-base-group')
+
+call leak_file_setup ('leak3.h5')
+call H5Adelete_f (f_id, 'basePath', h5_err)
+call hdf5_write_attribute_string (f_id, 'basePath', '/missing/', error)
+call H5Fclose_f (f_id, h5_err)
+call leak_check ('leak3.h5', 'Leak-single-bunch-group')
+
+call leak_file_setup ('leak4.h5')
+call H5Adelete_f (f_id, 'particlesPath', h5_err)
+call hdf5_write_attribute_string (f_id, 'particlesPath', 'missing/', error)
+call H5Fclose_f (f_id, h5_err)
+call leak_check ('leak4.h5', 'Leak-particles-group')
+
+call leak_file_setup ('leak5.h5')
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname), error, .true.)
+call H5Adelete_f (z_id, 'numParticles', h5_err)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call leak_check ('leak5.h5', 'Leak-no-species')
+
+call leak_file_setup ('leak6.h5')
+z_id = hdf5_open_group (f_id, 'data/00001/particles/' // trim(sname), error, .true.)
+call H5Adelete_f (z_id, 'totalCharge', h5_err)
+call hdf5_write_attribute_string (z_id, 'totalCharge', 'bad', error)
+call H5Gclose_f (z_id, h5_err)
+call H5Fclose_f (f_id, h5_err)
+call leak_check ('leak6.h5', 'Leak-species-attribute')
+
+!---------------------
 ! Grid_Field Read/Write
 
 ele%key = sbend$
@@ -385,6 +427,26 @@ close (1)
 
 !-----------------------------------------
 contains
+
+subroutine leak_file_setup (file)
+character(*) file
+call hdf5_write_beam (file, [bunch1], .false., error)
+call hdf5_open_file (file, 'APPEND', f_id, error)
+end subroutine leak_file_setup
+
+!-----------------------------------------
+
+subroutine leak_check (file, label)
+character(*) file, label
+integer(HID_T) fid
+logical read_err, open_err
+call hdf5_read_beam (file, beam, read_err)
+call hdf5_open_file (file, 'APPEND', fid, open_err)
+if (.not. open_err) call H5Fclose_f (fid, h5_err)
+write (1, '(3a, 2l1, a)') '"', label, '" STR "', read_err, .not. open_err, '"'
+end subroutine leak_check
+
+!-----------------------------------------
 
 function coord_is_equal(p1, p2, ignore_beta) result (equal)
 

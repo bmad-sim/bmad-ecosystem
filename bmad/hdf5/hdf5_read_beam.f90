@@ -69,10 +69,14 @@ call hdf5_open_file (file_name, 'READ', f_id, err);  if (err) return
 
 ! Get header info
 
-call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_head%openPMD, err, .true.);                    if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_head%openPMDextension, err, .true.);  if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'basePath', pmd_head%basePath, err, .true.);                  if (err) return
-call hdf5_read_attribute_alloc_string (f_id, 'particlesPath', pmd_head%particlesPath, err, .true.);        if (err) return
+call hdf5_read_attribute_alloc_string (f_id, 'openPMD', pmd_head%openPMD, err, .true.)
+if (.not. err) call hdf5_read_attribute_alloc_string (f_id, 'openPMDextension', pmd_head%openPMDextension, err, .true.)
+if (.not. err) call hdf5_read_attribute_alloc_string (f_id, 'basePath', pmd_head%basePath, err, .true.)
+if (.not. err) call hdf5_read_attribute_alloc_string (f_id, 'particlesPath', pmd_head%particlesPath, err, .true.)
+if (err) then
+  call H5Fclose_f(f_id, h5_err)
+  return
+endif
 ! It is not an error if any of the following is missing
 call hdf5_read_attribute_alloc_string (f_id, 'software', pmd_head%software, err, .false.)
 call hdf5_read_attribute_alloc_string (f_id, 'softwareVersion', pmd_head%softwareVersion, err, .false.)
@@ -86,7 +90,11 @@ if (present(pmd_header)) pmd_header = pmd_head
 
 it = index(pmd_head%basePath, '%T')
 if (it == 0) then  ! No "%T" means only one bunch present
-  z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.);  if (err) return
+  z_id = hdf5_open_group(f_id, pmd_head%basePath, err, .true.)
+  if (err) then
+    call H5Fclose_f(f_id, h5_err)
+    return
+  endif
   call reallocate_beam (beam, 1)
   call hdf5_read_bunch(z_id, '.', beam%bunch(1), error, pmd_head, ele, pat_n)
   if (.not. error .and. allocated(pat_n)) then
@@ -103,7 +111,11 @@ endif
 ! basePath could be something like "abc/zzz%Txxx/yyy"
 
 is = index(pmd_head%basePath(1:it), '/', back = .true.)
-z_id = hdf5_open_group(f_id, pmd_head%basePath(1:is), err, .true.);  if (err) return
+z_id = hdf5_open_group(f_id, pmd_head%basePath(1:is), err, .true.)
+if (err) then
+  call H5Fclose_f(f_id, h5_err)
+  return
+endif
 t_match = pmd_head%basePath
 t_match = t_match(is+1:)
 i = len_trim(t_match)
@@ -259,7 +271,11 @@ logical error, momentum_warning_printed
 ! General note: There is no way to check names for misspellings since any name may just be an extension standard.
 
 g_id = hdf5_open_group(root_id, bunch_obj_name, error, .true.);  if (error) return
-g1_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.);  if (error) return
+g1_id = hdf5_open_group(g_id, pmd_head%particlesPath, error, .true.)
+if (error) then
+  if (g_id /= root_id) call H5Gclose_f(g_id, h5_err)
+  return
+endif
 g2_id = g1_id    ! Assume old style
 
 call hdf5_read_attribute_int(g1_id, 'numParticles', n, error, .false.)
@@ -283,6 +299,7 @@ if (error) then   ! Is new style.
 
   if (g2_id == g1_id) then ! Not found
     call hdf5_read_attribute_int(g2_id, 'numParticles', n, error, .true.)  ! Generate error message
+    call close_bunch_groups(root_id, g_id, g1_id, g2_id)
     return
   endif
 endif
@@ -323,18 +340,23 @@ do ia = 1, hdf5_num_attributes (g2_id)
   call hdf5_get_attribute_by_index(g2_id, ia, a_id, a_name)
   select case (a_name)
   case ('speciesType')
-    call hdf5_read_attribute_alloc_string(g2_id, a_name, string, error, .true.);  if (error) return
+    call hdf5_read_attribute_alloc_string(g2_id, a_name, string, error, .true.);  if (error) exit
     species = species_id_from_openpmd(string, 0)
   case ('numParticles')
     ! Nothing to be done
   case ('totalCharge')
-    call hdf5_read_attribute_real(g2_id, a_name, bunch%charge_tot, error, .true.);  if (error) return
+    call hdf5_read_attribute_real(g2_id, a_name, bunch%charge_tot, error, .true.);  if (error) exit
   case ('chargeLive')
-    call hdf5_read_attribute_real(g2_id, a_name, bunch%charge_live, error, .true.);  if (error) return
+    call hdf5_read_attribute_real(g2_id, a_name, bunch%charge_live, error, .true.);  if (error) exit
   case ('chargeUnitSI')
-    call hdf5_read_attribute_real(g2_id, a_name, charge_factor, error, .true.);  if (error) return
+    call hdf5_read_attribute_real(g2_id, a_name, charge_factor, error, .true.);  if (error) exit
   end select
 enddo
+
+if (error) then
+  call close_bunch_groups(root_id, g_id, g1_id, g2_id)
+  return
+endif
 
 if (charge_factor == 0 .and. (bunch%charge_live /= 0 .or. bunch%charge_tot /= 0)) then
   call out_io (s_error$, r_name, 'chargeUnitSI is not set for bunch')
@@ -465,11 +487,7 @@ if (present(pat_n) .and. .not. error) then
   endif
 endif
 
-! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
-
-if (g2_id /= root_id)                     call H5Gclose_f(g2_id, h5_err)
-if (g_id /= g2_id .and. g_id /= root_id)  call H5Gclose_f(g_id, h5_err)
-if (g1_id /= g2_id)                       call H5Gclose_f(g1_id, h5_err)
+call close_bunch_groups(root_id, g_id, g1_id, g2_id)
 
 if (error) then
   call out_io (s_error$, r_name, 'ERROR READING BEAM DATA FROM: ' // file_name, 'ABORTING READ...')
@@ -567,6 +585,20 @@ do ip = 1, size(bunch%particle)
 enddo
 
 end subroutine  hdf5_read_bunch
+
+!------------------------------------------------------------------------------------------
+! g_id = g2_id when pmd_head%particlesPath = "./". In this case both refer to the same group.
+
+subroutine close_bunch_groups (root_id, g_id, g1_id, g2_id)
+
+integer(hid_t) root_id, g_id, g1_id, g2_id
+integer c_err
+
+if (g2_id /= root_id)                     call H5Gclose_f(g2_id, c_err)
+if (g_id /= g2_id .and. g_id /= root_id)  call H5Gclose_f(g_id, c_err)
+if (g1_id /= g2_id)                       call H5Gclose_f(g1_id, c_err)
+
+end subroutine close_bunch_groups
 
 !------------------------------------------------------------------------------------------
 !+
