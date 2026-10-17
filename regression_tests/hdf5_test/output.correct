@@ -1,3 +1,5 @@
+"Scalar-datasets" STR "TT"
+"Patches-half-open-bounds" STR "TTT"
 "Strs" STR  "Val1" "Bval2"     "X"
 "Bunch1-vec"    REL 1e-10  1.6387488057E-03 -2.9985054496E-06  1.8144481648E-03 -7.8926417700E-05 -1.5942344121E-04  5.2241291487E-04
 "Bunch1-other"  REL 1e-10  0.0000000000E+00  5.3177942856E-13  1.5555555556E-10  9.9999986944E+08  9.9999986958E-01
@@ -13,6 +15,32 @@
 "Old-Bunch2" STR "TTTTTTTTTT"
 "ASCII-Bunch1" STR "TTTTTTTTTT"
 "ASCII-Bunch2" STR "TTTTTTTTTT"
+"Patches-counts" ABS 0      3     8     0    10
+"Patches-Bunch1" STR "TTTTTTTTTT"
+"Patches-Bunch3" STR "TTTTTTTTTT"
+"Patches-totalCharge-is-live" STR "T"
+"Patches-unmarked" ABS 0      1    18
+"Patches-ion-written" STR "T"
+"Patches-ion-counts" ABS 0     10     0    10
+"Patches-ion-species" STR "TT"
+"Patches-id64" ABS 0            4  2147483647           6
+"Unset-id-omitted" STR "T"
+"Absent-id-default" STR "T"
+"Constant-id-without-unitSI" STR "T"
+"Constant-id-bad-shape" STR "T"
+"Short-id-rejected" STR "T"
+"Patches-filtered-species-written" STR "T"
+"Patches-filtered-species-read" STR "T"
+"Patches-all-filtered-written" STR "T"
+"Patches-all-filtered-read" STR "T"
+"Patches-constant-counts" STR "T"
+"Patches-missing-shape" STR "T"
+"Leak-header" STR "TT"
+"Leak-base-group" STR "TT"
+"Leak-single-bunch-group" STR "TT"
+"Leak-particles-group" STR "TT"
+"Leak-no-species" STR "TT"
+"Leak-species-attribute" STR "TT"
 "Grid1" STR "T"
 "Grid2" STR "T"
 "Old-Grid1" STR "T"

@@ -1709,7 +1709,9 @@ if (charge < -127 .or. charge > 127) then
 endif
 
 sp = abs(species_in)
-species_charged = sign_of(charge) * (sp + int(z'1000000') * (abs(charge) - sp / int(z'1000000')))
+! A neutral species keeps a positive ID: sign_of(0) is 0, which would make every neutral
+! atom or molecule the photon, whose ID is 0.
+species_charged = sign_of(charge, zero_is_zero = .false.) * (sp + int(z'1000000') * (abs(charge) - sp / int(z'1000000')))
 
 end function set_species_charge
 

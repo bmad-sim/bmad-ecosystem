@@ -41,6 +41,24 @@ For any bunch, parameters (``attributes'') stored in the bunch root group are:
   chargeLive      ! Charge of live particles.
   numParticles    ! Number of particles.
 \end{example}
+A beam may instead be written as one species record holding every bunch, partitioned by the
+\vn{openPMD} \vn{particlePatches} sub-group with one patch per bunch in bunch order: the
+\vn{as_patches} argument of \Hyperref{r:hdf5.write.beam}{hdf5_write_beam} and
+\Hyperref{r:write.beam.file}{write_beam_file}. A bunch with no particles is then a patch of zero
+particles, where a species record of its own could not be written since the record is named for
+its first particle. All the bunches must be of one species. The \vn{particlePatches} group carries
+the attribute \vn{patchesAreBunches = 1}, and \Hyperref{r:hdf5.read.beam}{hdf5_read_beam} restores
+one bunch per patch only when that attribute is present: other codes use patches to divide a
+species between processors, and such a file is read as one bunch.
+
+When patches are restored as bunches, each bunch's \vn{charge_tot} is recomputed from its particle charges, and \vn{charge_live} from particles with \vn{state = alive}.
+The file stores only species-wide charge totals, so per-bunch totals set independently of the particle charges cannot be recovered in patch mode.
+Use separate species records (\vn{as_patches = False}) to preserve independently assigned bunch totals.
+
+Each particle's \vn{%ix_user} is stored in the \vn{openPMD} \vn{id} record and restored on reading, so a
+program can follow a particle from one file to the next.
+The \vn{id} record is omitted when every written particle has the default \vn{%ix_user = -1}; reading a file without \vn{id} leaves these labels at \vn{-1}.
+
 The \vn{SpeciesType} syntax defined by the \vn{SpeciesType} extension to the \vn{openPMD} standard
 is similar to the \bmad standard (\sref{s:param}) but there are differences. For one, the
 \vn{SpeciesType} standard does not have an encoding for the charge state of atoms and
