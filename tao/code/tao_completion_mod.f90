@@ -35,7 +35,7 @@ contains
 
 !------------------------------------------------------------------------------
 !+
-! Subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix)
+! Subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix, no_append)
 !
 ! Compute completion candidates for the whitespace-delimited token ending at
 ! line(cursor-1:cursor-1). Only text to the left of the cursor is considered.
@@ -58,9 +58,11 @@ contains
 !                    the sole candidate when there is just one, otherwise the token as
 !                    typed followed by whatever all candidates (including any beyond
 !                    the max_matches$ cap) agree on. Never shorter than the token.
+!   no_append   -- logical, optional: True if a completed candidate is not a whole word,
+!                    so no blank should follow it (eg "set data orbit.x" before "|").
 !-
 
-subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix)
+subroutine tao_complete (line, cursor, word_start, context, matches, common_prefix, no_append)
 
 character(*), intent(in) :: line
 integer, intent(in) :: cursor
@@ -68,6 +70,7 @@ integer, intent(out) :: word_start
 character(*), intent(out) :: context
 character(100), allocatable, intent(out) :: matches(:)
 character(*), optional, intent(out) :: common_prefix
+logical, optional, intent(out) :: no_append
 
 character(100) cand(max_matches$)
 character(100) token, lcp, lcp_fold, prepend
@@ -76,12 +79,13 @@ character(40) words(8), cmd_name, sub_name
 character(2), parameter :: blanks = ' ' // achar(9)
 character(1) quote
 integer n_end, ix_semi, n_words, n_cand, n_lcp_hits, i, j, ix
-logical file_arg
+logical file_arg, partial_word
 
 !
 
 context = 'NONE'
 file_arg = .false.
+partial_word = .false.
 word_start = 1
 n_cand = 0
 n_lcp_hits = 0
@@ -314,6 +318,7 @@ contains
 subroutine finish ()
 integer lt
 matches = cand(1:n_cand)
+if (present(no_append)) no_append = partial_word
 if (.not. present(common_prefix)) return
 ! Readline replaces the whole token with this, so it must never be shorter than
 ! what was typed, and the typed characters keep the user's case. A sole candidate
@@ -1019,7 +1024,10 @@ integer ib
 context = 'LIST'
 ib = index(token, '|', back = .true.)
 
+! A name is always followed by "[" or "|", never a blank.
+
 if (ib == 0) then
+  partial_word = .true.
   if (is_data) then
     call add_data_matches ()
   else
@@ -1126,6 +1134,12 @@ character(100) lcp
 character(8) context
 character(100), allocatable :: matches(:)
 integer word_start, i, k, n
+logical no_append
+
+interface
+  subroutine readline_suppress_append () bind(c, name = 'readline_suppress_append')
+  end subroutine
+end interface
 
 !
 
@@ -1144,7 +1158,7 @@ if (n > 0) then
   enddo
 endif
 
-call tao_complete (line_f, n + 1, word_start, context, matches, lcp)
+call tao_complete (line_f, n + 1, word_start, context, matches, lcp, no_append)
 
 if (context /= 'LIST') then
   n_cand = -1
@@ -1155,6 +1169,8 @@ endif
 ! (for example a ";" inside the token), do not offer anything.
 
 if (word_start - 1 /= istart) return
+
+if (no_append) call readline_suppress_append ()
 
 call c_f_pointer (buf_c, buf_p, [buf_size])
 k = 0

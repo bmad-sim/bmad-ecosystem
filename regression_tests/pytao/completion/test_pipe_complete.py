@@ -59,6 +59,7 @@ def test_output_parses_with_generic_parameter_list_parser(tao):
     assert data["word"] == "sho"
     assert data["context"] == "LIST"
     assert data["prefix"] == "show"
+    assert data["no_append"] is False
     assert data["match[1]"] == "show"
 
 
@@ -182,6 +183,24 @@ def test_set_datum_element_value_offers_no_element_types(tao):
     _, _, matches = complete(tao, "set data orbit.x|ele_name = ")
     assert matches
     assert not any(match.endswith("::") for match in matches)
+
+
+@pytest.mark.parametrize(
+    ("line", "no_append"),
+    [
+        # A datum or variable name is followed by "[" or "|", not a blank.
+        ("set data orbit.", "T"),
+        ("set var quad_k", "T"),
+        ("set data 1@orbit.", "T"),
+        ("set data orbit.x|me", "F"),
+        ("set data orbit.x|good_user = ", "F"),
+        ("show data orbit.", "F"),
+        ("sho", "F"),
+    ],
+)
+def test_no_append(tao, line, no_append):
+    fields, _ = _run(tao, line)
+    assert fields["no_append"] == no_append
 
 
 def test_set_global_lists_struct_components(tao):
