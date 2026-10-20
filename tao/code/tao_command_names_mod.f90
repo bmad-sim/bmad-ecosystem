@@ -55,6 +55,20 @@ character(20), parameter :: tao_set_target_names(33) = [character(20) :: 'branch
       'plot_page', 'ran_state', 'symbolic_number', 'beam', 'beam_start', 'dynamic_aperture', &
       'global', 'region', 'calculate', 'space_charge_com', 'ptc_com', 'tune', 'z_tune']
 
+! "set data <datum>|<component>" and "set variable <var>|<component>" names: the
+! components of tao_find_data / tao_find_var that tao_set_data_cmd / tao_set_var_cmd
+! do not reject as not settable. Aliases like "meas_value" are left out.
+
+character(16), parameter :: tao_set_data_component_names(22) = [character(16):: &
+              'meas', 'ref', 'weight', 's_offset', 'ref_s_offset', 'error_rms', &
+              'good_meas', 'good_ref', 'good_user', 'good_opt', 'good_plot', &
+              'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'ix_uni', 'eval_point', &
+              'merit_type', 'ele_name', 'ele_start_name', 'ele_ref_name', 'data_type', 'data_source']
+
+character(16), parameter :: tao_set_var_component_names(13) = [character(16):: &
+              'model', 'meas', 'ref', 'step', 'weight', 'high_lim', 'low_lim', 'key_delta', &
+              'good_user', 'good_opt', 'good_plot', 'key_bound', 'merit_type']
+
 ! "set ptc_com <component>" names. tao_set_ptc_com_cmd validates against the full list
 ! before its select case; completion offers T/F for the logical ones.
 

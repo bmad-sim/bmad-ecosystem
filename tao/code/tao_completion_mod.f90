@@ -222,6 +222,8 @@ case ('set')
     case ('global', 'beam_init', 'bmad_com', 'space_charge_com', 'geodesic_lm', &
           'opti_de_param', 'plot_page', 'ptc_com')
       call add_struct_value_matches (sub_name, attrib_name)
+    case ('data', 'variable')
+      call add_who_value_matches (sub_name == 'data', attrib_name)
     end select
 
   elseif (n_words == 1) then
@@ -235,6 +237,8 @@ case ('set')
     case ('beam');     call add_prefix_matches (tao_set_beam_names, .false.)
     case ('element')
       call add_element_matches ()
+    case ('data', 'variable')
+      call add_who_matches (sub_name == 'data')
     end select
 
   elseif (n_words == 3) then
@@ -893,15 +897,16 @@ end subroutine add_attribute_matches
 !.................................
 ! Element names, plus the "n@" and "key::" selector prefixes: "quad::Q0" completes
 ! to quadrupoles starting with Q0, and without a "::" the element types present in
-! the lattice ("quadrupole::", ...) are offered too.
+! the lattice ("quadrupole::", ...) are offered too unless with_types is False.
 
-subroutine add_element_matches ()
+subroutine add_element_matches (with_types)
 
 type (tao_universe_struct), pointer :: u
 type (branch_struct), pointer :: branch
 character(100) sel
 integer ib, ie, ia, ic, ik, ix_key
 logical key_present(n_key$)
+logical, optional :: with_types
 
 context = 'LIST'
 
@@ -930,7 +935,7 @@ endif
 
 ! Element types go first so a big lattice cannot crowd them out of the capped list.
 
-if (ix_key == 0) then
+if (ix_key == 0 .and. logic_option(.true., with_types)) then
   key_present = .false.
   do ib = 0, ubound(u%model%lat%branch, 1)
     branch => u%model%lat%branch(ib)
@@ -955,19 +960,25 @@ enddo
 end subroutine add_element_matches
 
 !.................................
+! d2 and d2.d1 data names, in the universe named by an optional "n@" prefix.
 
 subroutine add_data_matches ()
 
 type (tao_universe_struct), pointer :: u
 type (tao_d2_data_struct), pointer :: d2
-character(100) name
-integer iu, id, id1
+character(100) name, sel
+integer ia, id, id1
 
 context = 'LIST'
-if (.not. allocated(s%u)) return
-iu = s%global%default_universe
-if (iu < lbound(s%u, 1) .or. iu > ubound(s%u, 1)) return
-u => s%u(iu)
+
+sel = token
+ia = index(sel, '@')
+u => selector_universe(sel)
+if (.not. associated(u)) return
+if (ia > 1) then
+  prepend = trim(prepend) // token(1:ia)
+  token = sel
+endif
 
 do id = 1, u%n_d2_data_used
   d2 => u%d2_data(id)
@@ -995,6 +1006,89 @@ do iv = 1, s%n_v1_var_used
 enddo
 
 end subroutine add_var_matches
+
+!.................................
+! "set data <datum>|<component>" and "set variable <var>|<component>": data or
+! variable names, then after the "|" the components that can be set.
+
+subroutine add_who_matches (is_data)
+
+logical is_data
+integer ib
+
+context = 'LIST'
+ib = index(token, '|', back = .true.)
+
+if (ib == 0) then
+  if (is_data) then
+    call add_data_matches ()
+  else
+    call add_var_matches ()
+  endif
+  return
+endif
+
+prepend = trim(prepend) // token(1:ib)
+token = token(ib+1:)
+if (is_data) then
+  call add_prefix_matches (tao_set_data_component_names, .false.)
+else
+  call add_prefix_matches (tao_set_var_component_names, .false.)
+endif
+
+end subroutine add_who_matches
+
+!.................................
+! Values for "set data <datum>|<component> = <value>" and the variable equivalent:
+! T/F for logicals, the enumerated names for merit_type, data_source and eval_point,
+! and element names for the datum element components.
+
+subroutine add_who_value_matches (is_data, who)
+
+logical is_data
+character(*) who
+character(40), allocatable :: names(:)
+integer, allocatable :: ixs(:)
+character(20) comp
+integer ib, in
+
+context = 'LIST'
+ib = index(who, '|', back = .true.)
+if (ib == 0) return
+comp = downcase(who(ib+1:))
+
+if (is_data) then
+  select case (comp)
+  case ('good_meas', 'good_ref', 'good_user', 'good_opt', 'good_plot')
+    call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
+  case ('merit_type')
+    call tao_enum_value_names ('data^merit_type', names, ixs)
+  case ('data_source')
+    call tao_enum_value_names ('data_source', names, ixs)
+  case ('eval_point')
+    do in = 1, ubound(anchor_pt_name, 1)   ! Index 0 is a placeholder.
+      call add_match_if_prefix (downcase(anchor_pt_name(in)), .false.)
+    enddo
+  case ('ele_name', 'ele_start_name', 'ele_ref_name')
+    call add_element_matches (with_types = .false.)
+  end select
+
+else
+  select case (comp)
+  case ('good_user', 'good_opt', 'good_plot', 'key_bound')
+    call add_prefix_matches ([character(8):: 'T', 'F'], .false.)
+  case ('merit_type')
+    call tao_enum_value_names ('var^merit_type', names, ixs)
+  end select
+endif
+
+if (allocated(names)) then
+  do in = 1, size(names)
+    call add_match_if_prefix (names(in), .false.)
+  enddo
+endif
+
+end subroutine add_who_value_matches
 
 end subroutine tao_complete
 
