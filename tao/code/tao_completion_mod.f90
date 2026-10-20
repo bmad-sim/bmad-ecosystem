@@ -76,10 +76,12 @@ character(40) words(8), cmd_name, sub_name
 character(2), parameter :: blanks = ' ' // achar(9)
 character(1) quote
 integer n_end, ix_semi, n_words, n_cand, n_lcp_hits, i, j, ix
+logical file_arg
 
 !
 
 context = 'NONE'
+file_arg = .false.
 word_start = 1
 n_cand = 0
 n_lcp_hits = 0
@@ -111,7 +113,7 @@ do i = 1, n_end
 enddo
 
 ! The token is the trailing (possibly empty) word. The words before it, minus any
-! "-switch" words, give the context.
+! "-switch" words and the file names following "-write" and "-append", give the context.
 
 word_start = ix_semi + 1 + scan(line(ix_semi+1:n_end), blanks, back = .true.)
 token = ''
@@ -129,12 +131,24 @@ do
   else
     j = i + j - 1
   endif
-  if ((line(i:i) /= '-' .or. n_words == 0) .and. n_words < size(words)) then
+  if (file_arg) then
+    file_arg = .false.   ! File name argument of the preceding switch.
+  elseif (line(i:i) == '-' .and. n_words > 0) then
+    file_arg = takes_file_arg(line(i:j-1))
+  elseif (n_words < size(words)) then
     n_words = n_words + 1
     words(n_words) = line(i:j-1)
   endif
   i = j
 enddo
+
+! The token is the file name argument of a switch like "show -write".
+
+if (file_arg) then
+  context = 'FILE'
+  call finish()
+  return
+endif
 
 !------------------------------------------
 ! First word: command names plus user defined aliases. Case sensitive.
@@ -196,6 +210,12 @@ case ('set')
   if (n_words >= 2) call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
 
   if (at_set_value(attrib_name)) then
+    if (sub_name /= 'element' .and. is_file_param(attrib_name)) then
+      context = 'FILE'
+      call finish()
+      return
+    endif
+
     select case (sub_name)
     case ('element')
       if (n_words >= 3) call add_attribute_value_matches (words(3), attrib_name)
@@ -260,6 +280,9 @@ case ('use', 'veto', 'restore')
 case ('call')
   if (n_words == 1) context = 'FILE'
 
+case ('fixer')
+  if (n_words == 3 .and. words(2) == 'write') context = 'FILE'   ! fixer write <fixer> <file>
+
 case ('read')
   if (n_words == 1) then
     call add_prefix_matches (tao_read_what_names, .false.)
@@ -300,6 +323,61 @@ else
   common_prefix = trim(prepend) // token
 endif
 end subroutine finish
+
+!.................................
+! True if switch (possibly abbreviated) is followed by a file name, as with
+! "show -write <file>", "show lattice -custom <file>" and "reinitialize tao -init_file <file>".
+! The switch is resolved against the full switch list the command parser uses.
+
+function takes_file_arg (switch) result (is_file)
+
+character(*) switch
+character(46) cmd, what, sw_name
+integer ixc
+logical is_file
+
+is_file = .false.
+call match_word (words(1), tao_command_names, ixc, .true., matched_name = cmd)
+if (cmd == 'python') cmd = 'pipe'
+
+select case (cmd)
+case ('show', 'pipe')
+  if (cmd == 'show' .and. n_words > 1) then
+    call match_word (words(2), tao_show_what_names, ixc, matched_name = what)
+    if (ixc <= 0) return
+    call match_word (switch, tao_switches_for('show ' // what), ixc, .true., matched_name = sw_name)
+    is_file = (what == 'lattice' .and. sw_name == '-custom')
+  else
+    call match_word (switch, tao_switches_for(cmd), ixc, .true., matched_name = sw_name)
+    is_file = (sw_name == '-write' .or. sw_name == '-append')
+  endif
+
+case ('reinitialize')
+  if (n_words < 2) return
+  call match_word (words(2), [character(8):: 'data', 'tao', 'beam'], ixc, .true., matched_name = what)
+  if (what /= 'tao') return
+  call match_word (switch, tao_init_switch_names, ixc, .true., matched_name = sw_name)
+  is_file = (ixc > 0 .and. any(tao_init_file_switch_names == sw_name))
+end select
+
+end function takes_file_arg
+
+!.................................
+! True if a "set" component or parameter holds a file name, like beam_init's
+! position_file or global's history_file.
+
+function is_file_param (name) result (is_file)
+
+character(*) name
+character(60) nm
+integer n
+logical is_file
+
+nm = downcase(name)
+n = len_trim(nm)
+is_file = (n >= 5 .and. nm(max(1,n-4):n) == '_file') .or. (n >= 9 .and. nm(max(1,n-8):n) == 'file_name')
+
+end function is_file_param
 
 !.................................
 

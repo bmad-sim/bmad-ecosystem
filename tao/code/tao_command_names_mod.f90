@@ -115,6 +115,25 @@ character(40), parameter :: tao_pipe_cmd_names(114) = [character(40) :: &
           'var_v1_create', 'var_v1_destroy', 'var_create', 'var_general', 'var_v1_array', 'var_v_array', 'var', &
           'wall3d_radius', 'wave']
 
+! Tao startup switches, given on the command line or after "reinitialize tao".
+! See tao_parse_command_args.
+
+character(46), parameter :: tao_init_switch_names(40) = [character(46):: '-?', 'help', &
+                    '-beam0', '-beam_file', '-beam_init_file_name', '-beam_init_position_file', '-beam_position0', &
+                    '-building_wall_file', '-clear', '-color_prompt', '-command', '-data_file', '-debug', &
+                    '-disable_smooth_line_calc', '-external_plotting', '-geometry', '-help', '-hook_init_file', &
+                    '-init_file', '-lattice_file', '-log_startup', '-no_rad_int', '-no_stopping', '-noinit', &
+                    '-noplot', '-nostartup', '-plot_file', '-prompt_color', '-quiet', '-reverse', '-rf_on', &
+                    '-silent_run', '-slice_lattice', '-start_branch_at', '-startup_file', '-symbol_import', &
+                    '-tree', '-var_file', '-verbose', '-version']
+
+! The startup switches that are followed by a file name.
+
+character(46), parameter :: tao_init_file_switch_names(13) = [character(46):: &
+                    '-beam0', '-beam_file', '-beam_init_file_name', '-beam_init_position_file', '-beam_position0', &
+                    '-building_wall_file', '-data_file', '-hook_init_file', '-init_file', '-lattice_file', &
+                    '-plot_file', '-startup_file', '-var_file']
+
 ! Switch lists are in tao_switches_for (below). Switch names are character(28).
 
 integer, parameter :: tao_switch_name_len = 28

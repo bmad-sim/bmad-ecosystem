@@ -14,6 +14,7 @@ subroutine tao_parse_command_args (error, cmd_line)
 
 use tao_interface, dummy => tao_parse_command_args
 use tao_command_mod, only: tao_cmd_split
+use tao_command_names_mod, only: tao_init_switch_names
 use tao_set_mod, only: tao_set_openmp_n_threads
 use bmad_version_mod
 
@@ -83,14 +84,7 @@ do
     negate = .false.
   endif
 
-  call match_word (arg1, [character(46):: '-?', 'help', &
-                    '-beam0', '-beam_file', '-beam_init_file_name', '-beam_init_position_file', '-beam_position0', &
-                    '-building_wall_file', '-clear', '-color_prompt', '-command', '-data_file', '-debug', &
-                    '-disable_smooth_line_calc', '-external_plotting', '-geometry', '-help', '-hook_init_file', &
-                    '-init_file', '-lattice_file', '-log_startup', '-no_rad_int', '-no_stopping', '-noinit', &
-                    '-noplot', '-nostartup', '-plot_file', '-prompt_color', '-quiet', '-reverse', '-rf_on', &
-                    '-silent_run', '-slice_lattice', '-start_branch_at', '-startup_file', '-symbol_import', &
-                    '-tree', '-var_file', '-verbose', '-version'], ix, .true., matched_name=switch)
+  call match_word (arg1, tao_init_switch_names, ix, .true., matched_name=switch)
 
   if (negate) switch = '-' // switch
 
