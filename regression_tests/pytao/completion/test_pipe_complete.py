@@ -59,6 +59,7 @@ def test_output_parses_with_generic_parameter_list_parser(tao):
     assert data["word"] == "sho"
     assert data["context"] == "LIST"
     assert data["prefix"] == "show"
+    assert data["no_append"] is False
     assert data["match[1]"] == "show"
 
 
@@ -128,6 +129,7 @@ def test_element_names(tao):
         ("veto var ", "quad_k1"),
         ("show data orbit.", "orbit.x"),
         ("show var quad", "quad_k1"),
+        ("show data 1@orbit.", "1@orbit.x"),
         ("read ", "ptc"),
         ("change ", "particle_start"),
     ],
@@ -136,6 +138,69 @@ def test_candidate_offered(tao, line, expected_match):
     _, context, matches = complete(tao, line)
     assert context == "LIST"
     assert expected_match in matches
+
+
+@pytest.mark.parametrize(
+    ("line", "expected_match"),
+    [
+        ("set data ", "orbit.x"),
+        ("set data 1@orb", "1@orbit.x"),
+        ("set -silent data orbit.", "orbit.y"),
+        ("set var ", "quad_k1"),
+        ("set data orbit.x|", "orbit.x|meas"),
+        ("set data orbit.x[3]|good_u", "orbit.x[3]|good_user"),
+        ("set variable quad_k1|", "quad_k1|model"),
+        ("set var quad_k1[1:3]|key_", "quad_k1[1:3]|key_bound"),
+        ("set data orbit.x|good_user = ", "T"),
+        ("set data orbit.x|merit_type = ", "target"),
+        ("set data orbit.x|data_source = ", "lat"),
+        ("set data orbit.x|eval_point = ", "center"),
+        ("set data orbit.x|ele_name = Q0", "Q01W"),
+        ("set var quad_k1|key_bound = ", "F"),
+        ("set var quad_k1|merit_type = ", "limit"),
+    ],
+)
+def test_set_data_and_variable(tao, line, expected_match):
+    _, context, matches = complete(tao, line)
+    assert context == "LIST"
+    assert expected_match in matches
+
+
+@pytest.mark.parametrize(
+    ("line", "not_settable"),
+    [
+        ("set data orbit.x|", ["orbit.x|model", "orbit.x|design", "orbit.x|merit", "orbit.x|exists"]),
+        ("set var quad_k1|", ["quad_k1|base", "quad_k1|design", "quad_k1|ele_name", "quad_k1|useit_opt"]),
+    ],
+)
+def test_set_data_and_variable_omit_unsettable_components(tao, line, not_settable):
+    _, _, matches = complete(tao, line)
+    assert matches
+    assert not set(not_settable) & set(matches)
+
+
+def test_set_datum_element_value_offers_no_element_types(tao):
+    _, _, matches = complete(tao, "set data orbit.x|ele_name = ")
+    assert matches
+    assert not any(match.endswith("::") for match in matches)
+
+
+@pytest.mark.parametrize(
+    ("line", "no_append"),
+    [
+        # A datum or variable name is followed by "[" or "|", not a blank.
+        ("set data orbit.", "T"),
+        ("set var quad_k", "T"),
+        ("set data 1@orbit.", "T"),
+        ("set data orbit.x|me", "F"),
+        ("set data orbit.x|good_user = ", "F"),
+        ("show data orbit.", "F"),
+        ("sho", "F"),
+    ],
+)
+def test_no_append(tao, line, no_append):
+    fields, _ = _run(tao, line)
+    assert fields["no_append"] == no_append
 
 
 def test_set_global_lists_struct_components(tao):

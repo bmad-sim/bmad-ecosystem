@@ -133,6 +133,19 @@ void readline_set_completion_fn(sim_rl_complete_fn fn) {
 
 //----------------------------------------------------------------------------
 //+
+// Routine readline_suppress_append ()
+//
+// Called from within a completion callback: do not append the usual trailing space
+// to a sole candidate, since more of the word is expected (eg "orbit.x" is followed
+// by "[" or "|"). readline resets this before each completion attempt.
+//-
+
+void readline_suppress_append(void) {
+  rl_completion_suppress_append = 1;
+}
+
+//----------------------------------------------------------------------------
+//+
 // Routine readline_set_app_name (const char* name)
 //
 // Set the application name readline uses for conditional "$if <name>" blocks in

@@ -181,7 +181,7 @@ integer, target :: nl
 integer, pointer :: nl_ptr
 
 logical :: err, print_flag, opened, doprint, free, matched, track_only, use_real_array_buffer, can_vary
-logical first_time, found_one, calc_ok, no_slaves, index_order, ok, not
+logical first_time, found_one, calc_ok, no_slaves, index_order, ok, not, complete_no_append
 logical, allocatable :: picked(:), logic_arr(:)
 
 character(*) input_str
@@ -1148,6 +1148,7 @@ case ('building_wall_section')
 !   word;STR;F;{word}
 !   context;STR;F;{context}
 !   prefix;STR;F;{prefix}
+!   no_append;LOGIC;F;{no_append}
 !   match[1];STR;F;{candidate_1}
 !   match[2];STR;F;{candidate_2}
 !   ...
@@ -1159,7 +1160,9 @@ case ('building_wall_section')
 !   NONE -- The command is not recognized.
 ! {prefix} is what {word} can be replaced with immediately: the sole candidate, or
 ! {word} followed by whatever all candidates agree on. It is never shorter than
-! {word} and is meaningful only for LIST.
+! {word} and is meaningful only for LIST. {no_append} is T when a completed
+! candidate is not a whole word, so no blank should be added after it (eg a
+! "set data" datum name, which is followed by "[" or "|").
 !
 ! Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
 ! finding attributes and values, and the "n@" and "key::" prefixes are completed.
@@ -1168,9 +1171,6 @@ case ('building_wall_section')
 ! attributes (eg "set element q1 tracking_method = ") offer the values valid for
 ! that element, logical attributes and struct components offer T/F, and
 ! enumerated struct components (eg "set global track_type = ") offer their values.
-!
-! Known limitation: words following value-taking switches (eg "-write file")
-! are counted as command words, so completion after such a switch is off by one.
 !
 ! Parameters
 ! ----------
@@ -1196,11 +1196,12 @@ case ('complete')
     n = n - 2
   endif
 
-  call tao_complete (line, n + 1, ix, complete_context, match_arr, complete_prefix)
+  call tao_complete (line, n + 1, ix, complete_context, match_arr, complete_prefix, complete_no_append)
 
   nl=incr(nl); write (li(nl), '(2a)') 'word;STR;F;', line(ix:n)
   nl=incr(nl); write (li(nl), '(2a)') 'context;STR;F;', trim(complete_context)
   nl=incr(nl); write (li(nl), '(2a)') 'prefix;STR;F;', trim(complete_prefix)
+  nl=incr(nl); write (li(nl), lmt) 'no_append;LOGIC;F;', complete_no_append
   do i = 1, size(match_arr)
     nl=incr(nl); write (li(nl), '(a, i0, 2a)') 'match[', i, '];STR;F;', trim(match_arr(i))
   enddo
