@@ -10,6 +10,9 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-10-20 Added: The long_term_tracking program now accepts `ltt%ele_write_at` without extraction
+  tracking. In `BEAM` mode with `BMAD` tracking, beam files are written at matching ring elements on
+  the same turns that end-of-turn beam files are written.
 - 2026-08-11 Fixed: Reference energy calculation for an lcavity whose field overlaps other elements.
   In the overlap regions the super_slave is an em_field element and such a slave was given the full
   energy gain of the lcavity lord instead of its share. This resulted in a wrong reference energy

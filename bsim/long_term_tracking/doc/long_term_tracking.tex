@@ -739,7 +739,7 @@ Example:
   ltt%tracking_method                 = "BMAD"
   ltt%ele_start                       = ""
   ltt%ele_stop                        = ""  ! Used for "CHECK" simulation_mode.
-  ltt%ele_write_at                    = ""  ! Used with extraction lines.
+  ltt%ele_write_at                    = ""  ! Elements to write beam files at.
   ltt%n_turns                         = 1000
   ltt%ix_turn_start                   = 0
   ltt%ix_turn_end                     = -1
@@ -892,8 +892,19 @@ point for tracking to be the downstream edge of the element. Also see \vn{ltt%el
 if not set or set to a blank string is for \vn{ltt%ele_stop} to be equal to \vn{tll%ele_start}.
 %
 \item[ltt\%ele_write_at] \Newline
-List of elements to write beam distributions at when doing extraction tracking (\sref{s:extract}).
-See the section in the Bmad manual ``Matching to Lattice Element Names'' for details of how elements
+List of elements to write beam distributions at. When doing extraction tracking (\sref{s:extract}),
+beam files are written at matching elements as the beam is tracked through the extraction line.
+When not doing extraction tracking (\vn{ltt%extraction_method} set to blank), beam files are written
+at matching elements in the ring. In this case, \vn{ltt%simulation_mode} must be \vn{"BEAM"},
+\vn{ltt%tracking_method} must be \vn{"BMAD"}, and MPI cannot be used. Beam files at the matching
+elements are written on the same turns that end-of-turn beam files are written (see
+\vn{ltt%beam_output_file} and \vn{ltt%beam_output_every_n_turns}). The beam file name in this case has the form
+\begin{code}
+  <ix_branch>.<ix_ele>_<ele_name>-<file_name>
+\end{code}
+where \vn{<file_name>} is the end-of-turn beam file name (which includes the turn number). Note: If
+\vn{ltt%split_bends_for_stochastic_rad} is set True, element indexes will be those of the tracking lattice
+which has extra elements inserted. See the section in the Bmad manual ``Matching to Lattice Element Names'' for details of how elements
 are matched to match strings. For example, the string "\vn{q*, marker::*}" will match to all
 elements whose name begins with ``\vn{Q}'' and all \vn{marker} elements.
 %
@@ -1053,6 +1064,7 @@ present. When doing extraction tracking, the created_beam file name will have th
   name = <ix_branch>.<ix_ele>_<ele_name>-lttp%beam_output_file
 \end{code}
 where \vn{<ix_branch>} is the element branch index and \vn{<ix_ele>} is the element index.
+Beam files can also be written at elements in the ring. See \vn{ltt%ele_write_at}.
 
 If \vn{ltt%beam_output_file} has a "\vn{.h5}" or "\vn{.hdf5}" suffix, the beam file will have a
 binary format for minimal file size.  Otherwise the format is ASCII. To translate existing files

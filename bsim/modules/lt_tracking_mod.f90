@@ -130,6 +130,7 @@ type ltt_com_struct
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_struct), pointer :: ele_start_ptr            ! Pointer to start ele in original (not tracking) lattice.
+  type (ele_pointer_struct), allocatable :: ele_write_at(:) ! Ring elements to write beam files at (non-extraction BEAM mode).
   type (beam_init_struct) beam_init
   type (beam_init_struct) beam_init_used
   type (random_state_struct) ramper_ran_state
@@ -670,6 +671,27 @@ endif
 
 lttp%ramping_on = ramping_on 
 
+! Writing beam files at elements in the ring (as opposed to an extraction line).
+
+if (lttp%simulation_mode == 'BEAM' .and. lttp%extraction_method == '' .and. lttp%ele_write_at /= '') then
+  if (lttp%tracking_method /= 'BMAD') then
+    call out_io (s_fatal$, r_name, 'LTT%ELE_WRITE_AT (WITHOUT EXTRACTION) CAN ONLY BE USED WITH LTT%TRACKING_METHOD = "BMAD".')
+    stop
+  endif
+
+  if (ltt_com%using_mpi) then
+    call out_io (s_fatal$, r_name, 'LTT%ELE_WRITE_AT (WITHOUT EXTRACTION) CANNOT BE USED WITH MPI.')
+    stop
+  endif
+
+  call lat_ele_locator(lttp%ele_write_at, lat, ltt_com%ele_write_at, n, err, .true., ix_dflt_branch = ltt_com%ix_branch)
+  if (err .or. n == 0) then
+    call out_io (s_fatal$, r_name, 'NO ELEMENTS MATCH LTT%ELE_WRITE_AT: ' // quote(lttp%ele_write_at))
+    stop
+  endif
+  ltt_com%ele_write_at = ltt_com%ele_write_at(1:n)
+endif
+
 ! Beam setup
 
 if (present(beam) .and. (lttp%simulation_mode == 'INDIVIDUAL' .or. lttp%simulation_mode == 'BEAM')) then
@@ -886,6 +908,8 @@ call ltt_write_line('# ltt%ele_start                             = ' // quote(lt
 call ltt_write_line('# ltt%extraction_method                     = ' // quote(lttp%extraction_method), lttp, iu, print_this)
 if (lttp%extraction_method /= '') then
   call ltt_write_line('# ltt%ele_extract                           = ' // quote(lttp%ele_extract), lttp, iu, print_this)
+endif
+if (lttp%extraction_method /= '' .or. lttp%ele_write_at /= '') then
   call ltt_write_line('# ltt%ele_write_at                          = ' // quote(lttp%ele_write_at), lttp, iu, print_this)
 endif
 
@@ -1587,7 +1611,7 @@ integer ix_start_turn, ix_end_turn
 integer n, n_print_dead_loss, i_turn, ie, n_part_tot
 integer ip, ib, n_live_old, n_live, ix_branch
 
-logical err_flag
+logical err_flag, write_at
 
 character(16) prefix_str
 character(200) file_name
@@ -1604,6 +1628,9 @@ ix_branch = ltt_com%ix_branch
 branch => lat%branch(ix_branch)
 call ltt_pointer_to_map_ends(lttp, lat, ele_start)
 call ltt_write_per_particle_file_header(lttp, ltt_com, beam)
+
+write_at = .false.
+if (allocated(ltt_com%ele_write_at)) write_at = (size(ltt_com%ele_write_at) > 0)
 
 if (ltt_com%using_mpi) then
   prefix_str = 'Thread ' // int_str(ltt_com%mpi_rank) // ':'
@@ -1629,9 +1656,10 @@ endif
 !
 
 do i_turn = ix_start_turn, ix_end_turn-1
+  beam%bunch%ix_turn = i_turn   ! Turn index before tracking this turn
+
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
-    bunch%ix_turn = i_turn   ! Turn index before tracking this turn
 
     select case (lttp%tracking_method)
     case ('MAP')
@@ -1642,7 +1670,11 @@ do i_turn = ix_start_turn, ix_end_turn-1
       enddo
 
     case ('BMAD')
-      call ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
+      if (write_at) then
+        if (ib == 1) call ltt_track_bmad_beam (lttp, ltt_com, ele_start, beam, i_turn)  ! Tracks all bunches.
+      else
+        call ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
+      endif
 
     case ('PTC')
       dref_time = branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
@@ -2269,18 +2301,31 @@ end subroutine ltt_write_custom
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_beam_file (lttp, ltt_com, i_turn, beam)
+subroutine ltt_write_beam_file (lttp, ltt_com, i_turn, beam, ele)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
+type (ele_struct), optional :: ele
 
-integer i_turn, iu, ios, nt, ix, n
+integer i_turn, iu, ios, nt, ix, n, i
+logical found
 character(200) file
 
 !
 
 if (lttp%beam_output_file == '') return
+
+! If ele is present, only write if ele is one of the ltt%ele_write_at elements.
+
+if (present(ele)) then
+  found = .false.
+  do i = 1, size(ltt_com%ele_write_at)
+    if (ltt_com%ele_write_at(i)%ele%ix_ele == ele%ix_ele .and. &
+                                 ltt_com%ele_write_at(i)%ele%ix_branch == ele%ix_branch) found = .true.
+  enddo
+  if (.not. found) return
+endif
 
 nt = lttp%beam_output_every_n_turns
 if (nt > 0 .and. lttp%output_only_last_turns > 0 .and. &
@@ -2294,6 +2339,11 @@ if (ix == 0) then
   file = trim(file) // '-' // int_str(i_turn, n)
 else
   file = file(:ix-1) // '-' // int_str(i_turn, n) // file(ix:)
+endif
+
+if (present(ele)) then
+  ix = str_last_in_set(file, '/')
+  file = file(:ix) // int_str(ele%ix_branch) //  '.' // int_str(ele%ix_ele) // '_' // trim(ele%name) // '-' // file(ix+1:)
 endif
 
 call fullfilename(file, file)
@@ -3222,6 +3272,66 @@ else
 endif
 
 end subroutine ltt_track_bmad_bunch
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Subroutine ltt_track_bmad_beam (lttp, ltt_com, ele_start, beam, i_turn)
+!
+! Track all bunches of a beam one turn element-by-element using Bmad tracking.
+! Beam files are written at the ltt_com%ele_write_at elements.
+!
+! Input:
+!   lttp        -- ltt_params_struct: Parameters.
+!   ltt_com     -- ltt_com_struct: Common vars.
+!   ele_start   -- ele_struct: Turn start and stop element.
+!   beam        -- beam_struct: Beam at start of turn.
+!   i_turn      -- integer: Turn index before tracking this turn.
+!
+! Output:
+!   beam        -- beam_struct: Beam at end of turn.
+!-
+
+subroutine ltt_track_bmad_beam (lttp, ltt_com, ele_start, beam, i_turn)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct), target :: ltt_com
+type (beam_struct), target :: beam
+type (ele_struct), target :: ele_start
+type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
+
+integer i_turn, i, ie, ib, ip
+logical err_flag, rad_fluct
+
+!
+
+branch => ele_start%branch
+if (lttp%split_bends_for_stochastic_rad) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
+
+ie = ele_start%ix_ele
+do i = 1, branch%n_ele_track
+  ie = ie + 1
+  if (ie > branch%n_ele_track) ie = 1
+  ele => branch%ele(ie)
+
+  do ib = 1, size(beam%bunch)
+    if (lttp%split_bends_for_stochastic_rad .and. ele%name == 'RADIATION_POINT') then
+      do ip = 1, size(beam%bunch(ib)%particle)
+        call ltt_track1_radiation_center(beam%bunch(ib)%particle(ip), ele, .false., rad_fluct)
+      enddo
+    else
+      call track1_bunch (beam%bunch(ib), ele, err_flag)
+    endif
+  enddo
+
+  call ltt_write_beam_file(lttp, ltt_com, i_turn+1, beam, ele)
+enddo
+
+if (lttp%split_bends_for_stochastic_rad) bmad_com%radiation_fluctuations_on = rad_fluct
+
+end subroutine ltt_track_bmad_beam
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
