@@ -76,10 +76,12 @@ character(40) words(8), cmd_name, sub_name
 character(2), parameter :: blanks = ' ' // achar(9)
 character(1) quote
 integer n_end, ix_semi, n_words, n_cand, n_lcp_hits, i, j, ix
+logical file_arg
 
 !
 
 context = 'NONE'
+file_arg = .false.
 word_start = 1
 n_cand = 0
 n_lcp_hits = 0
@@ -111,7 +113,7 @@ do i = 1, n_end
 enddo
 
 ! The token is the trailing (possibly empty) word. The words before it, minus any
-! "-switch" words, give the context.
+! "-switch" words and the file names following "-write" and "-append", give the context.
 
 word_start = ix_semi + 1 + scan(line(ix_semi+1:n_end), blanks, back = .true.)
 token = ''
@@ -129,12 +131,24 @@ do
   else
     j = i + j - 1
   endif
-  if ((line(i:i) /= '-' .or. n_words == 0) .and. n_words < size(words)) then
+  if (file_arg) then
+    file_arg = .false.   ! File name argument of the preceding switch.
+  elseif (line(i:i) == '-' .and. n_words > 0) then
+    file_arg = takes_file_arg(line(i:j-1))
+  elseif (n_words < size(words)) then
     n_words = n_words + 1
     words(n_words) = line(i:j-1)
   endif
   i = j
 enddo
+
+! The token is the file name argument of a switch like "show -write".
+
+if (file_arg) then
+  context = 'FILE'
+  call finish()
+  return
+endif
 
 !------------------------------------------
 ! First word: command names plus user defined aliases. Case sensitive.
@@ -300,6 +314,29 @@ else
   common_prefix = trim(prepend) // token
 endif
 end subroutine finish
+
+!.................................
+! True if switch (possibly abbreviated) is followed by a file name, as with
+! "show -write <file>" and "pipe -append <file>".
+
+function takes_file_arg (switch) result (is_file)
+
+character(*) switch
+character(40) cmd, sw_name
+integer ixc
+logical is_file
+
+is_file = .false.
+call match_word (words(1), tao_command_names, ixc, .true., matched_name = cmd)
+if (cmd == 'python') cmd = 'pipe'
+
+select case (cmd)
+case ('show', 'pipe')
+  call match_word (switch, tao_switches_for(cmd), ixc, .true., matched_name = sw_name)
+  is_file = (sw_name == '-write' .or. sw_name == '-append')
+end select
+
+end function takes_file_arg
 
 !.................................
 
