@@ -210,6 +210,12 @@ case ('set')
   if (n_words >= 2) call match_word (words(2), tao_set_target_names, ix, .true., matched_name = sub_name)
 
   if (at_set_value(attrib_name)) then
+    if (sub_name /= 'element' .and. is_file_param(attrib_name)) then
+      context = 'FILE'
+      call finish()
+      return
+    endif
+
     select case (sub_name)
     case ('element')
       if (n_words >= 3) call add_attribute_value_matches (words(3), attrib_name)
@@ -274,6 +280,9 @@ case ('use', 'veto', 'restore')
 case ('call')
   if (n_words == 1) context = 'FILE'
 
+case ('fixer')
+  if (n_words == 3 .and. words(2) == 'write') context = 'FILE'   ! fixer write <fixer> <file>
+
 case ('read')
   if (n_words == 1) then
     call add_prefix_matches (tao_read_what_names, .false.)
@@ -317,12 +326,13 @@ end subroutine finish
 
 !.................................
 ! True if switch (possibly abbreviated) is followed by a file name, as with
-! "show -write <file>" and "pipe -append <file>".
+! "show -write <file>", "show lattice -custom <file>" and "reinitialize tao -init_file <file>".
+! The switch is resolved against the full switch list the command parser uses.
 
 function takes_file_arg (switch) result (is_file)
 
 character(*) switch
-character(40) cmd, sw_name
+character(46) cmd, what, sw_name
 integer ixc
 logical is_file
 
@@ -332,11 +342,42 @@ if (cmd == 'python') cmd = 'pipe'
 
 select case (cmd)
 case ('show', 'pipe')
-  call match_word (switch, tao_switches_for(cmd), ixc, .true., matched_name = sw_name)
-  is_file = (sw_name == '-write' .or. sw_name == '-append')
+  if (cmd == 'show' .and. n_words > 1) then
+    call match_word (words(2), tao_show_what_names, ixc, matched_name = what)
+    if (ixc <= 0) return
+    call match_word (switch, tao_switches_for('show ' // what), ixc, .true., matched_name = sw_name)
+    is_file = (what == 'lattice' .and. sw_name == '-custom')
+  else
+    call match_word (switch, tao_switches_for(cmd), ixc, .true., matched_name = sw_name)
+    is_file = (sw_name == '-write' .or. sw_name == '-append')
+  endif
+
+case ('reinitialize')
+  if (n_words < 2) return
+  call match_word (words(2), [character(8):: 'data', 'tao', 'beam'], ixc, .true., matched_name = what)
+  if (what /= 'tao') return
+  call match_word (switch, tao_init_switch_names, ixc, .true., matched_name = sw_name)
+  is_file = (ixc > 0 .and. any(tao_init_file_switch_names == sw_name))
 end select
 
 end function takes_file_arg
+
+!.................................
+! True if a "set" component or parameter holds a file name, like beam_init's
+! position_file or global's history_file.
+
+function is_file_param (name) result (is_file)
+
+character(*) name
+character(60) nm
+integer n
+logical is_file
+
+nm = downcase(name)
+n = len_trim(nm)
+is_file = (n >= 5 .and. nm(max(1,n-4):n) == '_file') .or. (n >= 9 .and. nm(max(1,n-8):n) == 'file_name')
+
+end function is_file_param
 
 !.................................
 

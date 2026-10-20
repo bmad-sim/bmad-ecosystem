@@ -404,6 +404,20 @@ def test_set_element_attributes_require_known_element(tao):
         "spawn ",
         "write bmad_lattice ",
         "read -silent lattice ",
+        # Switches and set parameters that take a file name.
+        "show -write ",
+        "show -ap ",
+        "pipe -append ",
+        "python -write ",
+        "show lattice -custom ",
+        "show -write out.txt lattice -custom ",
+        "reinitialize tao -init_file ",
+        "reinit tao -noplot -lat ",
+        "fixer write fx ",
+        "set beam_init position_file = ",
+        "set global history_file = ",
+        "set beam beam_init_position_file = ",
+        "set space_charge_com diagnostic_output_file = ",
     ],
 )
 def test_file_positions(tao, line):
@@ -411,6 +425,14 @@ def test_file_positions(tao, line):
     assert word == ""
     assert context == "FILE"
     assert matches == []
+
+
+def test_file_argument_is_not_a_command_word(tao):
+    _, context, matches = complete(tao, "show -write out.txt lat")
+    assert context == "LIST"
+    assert "lattice" in matches
+    _, context, matches = complete(tao, "pipe -write out.txt lat_l")
+    assert matches == ["lat_list"]
 
 
 def test_write_actions(tao):
@@ -428,6 +450,9 @@ def test_write_actions(tao):
         "pipe lat_list ",
         "set element Q01W k1 = ",
         "set ptc_com cut_factor = ",
+        "show lattice -middle ",
+        "reinit tao -noplot ",
+        "fixer save fx ",
         # Deprecated switch: accepted by the parser, never offered.
         "set -lo",
     ],
