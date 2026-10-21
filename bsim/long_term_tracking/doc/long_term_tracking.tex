@@ -895,10 +895,13 @@ if not set or set to a blank string is for \vn{ltt%ele_stop} to be equal to \vn{
 List of elements to write beam distributions at. When doing extraction tracking (\sref{s:extract}),
 beam files are written at matching elements as the beam is tracked through the extraction line.
 When not doing extraction tracking (\vn{ltt%extraction_method} set to blank), beam files are written
-at matching elements in the ring. In this case, \vn{ltt%simulation_mode} must be \vn{"BEAM"},
-\vn{ltt%tracking_method} must be \vn{"BMAD"}, and MPI cannot be used. Beam files at the matching
+at matching elements in the ring. In this case, \vn{ltt%simulation_mode} must be \vn{"BEAM"} and
+\vn{ltt%tracking_method} must be \vn{"BMAD"}. MPI may be used. Beam files at the matching
 elements are written on the same turns that end-of-turn beam files are written (see
-\vn{ltt%beam_output_file} and \vn{ltt%beam_output_every_n_turns}). The beam file name in this case has the form
+\vn{ltt%beam_output_file} and \vn{ltt%beam_output_every_n_turns}). On these turns, the beam
+at each matching element is held in memory until the end of the turn, so memory use scales with
+the number of matching elements. If a matching element is a \vn{super_lord}, the beam is written
+at the end of its last \vn{super_slave}. The beam file name in this case has the form
 \begin{code}
   <ix_branch>.<ix_ele>_<ele_name>-<file_name>
 \end{code}
