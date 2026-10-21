@@ -685,13 +685,14 @@ def sad_ele_to_bmad (sad_ele, bmad_ele, sol_status, bz, reversed):
     yo = eval(bmad_ele.param.get('y_offset', '0'))
     yp = eval(bmad_ele.param.get('y_pitch', '0'))
 
+    # 2026/10/21: The offset conversion expressions are a reversion to 2017 in consultation with Demin Zhou.
     if xp != 0 and xo != 0:
-      bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - xo * math.sin(xp))
-      bmad_ele.param['x_offset'] = str(zo * math.sin(xp) + xo * math.cos(xp))
+      bmad_ele.param['z_offset'] = str(zo - xo * math.sin(xp))
+      bmad_ele.param['x_offset'] = str(xo * math.cos(xp))
       zo = eval(bmad_ele.param.get('z_offset', '0'))
     if yp != 0 and yo != 0:
-      bmad_ele.param['z_offset'] = str(zo * math.cos(xp) - yo * math.sin(yp))
-      bmad_ele.param['y_offset'] = str(zo * math.sin(xp) + yo * math.cos(yp))
+      bmad_ele.param['z_offset'] = str(zo - yo * math.sin(yp))
+      bmad_ele.param['y_offset'] = str(yo * math.cos(yp))
 
   # Fringe 
 
