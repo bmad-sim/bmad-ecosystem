@@ -46,9 +46,9 @@ real(rp) :: zlist(5), zlist_off(5), xoff(5), yoff(5), q
 real(rp) :: dpz_mode(5), dpz_tab(5), dpz_tab_ss(5)
 real(rp) :: dpz_mode_xl(5), dpz_tab_xl(5), dpz_mode_yl(5), dpz_tab_yl(5)
 real(rp) :: diff(5), diff_ss(5), diff_xl(5), diff_yl(5)
-real(rp) :: dpz_tab_sm(5), sum_diff_sm, kern_err(-4:4), f_sm
+real(rp) :: dpz_tab_sm(5), sum_diff_sm, kern_err(-8:8), kern_sum_err, f_sm
 complex(rp), allocatable :: kern(:)
-integer :: i, n, nargs, ic
+integer :: i, n, nargs, ic, ns_sm
 
 character(200) :: lat_file
 
@@ -171,15 +171,20 @@ enddo
 ! Equal charges, so the total energy loss is proportional to the sum of dpz.
 sum_diff_sm = sum(dpz_tab_sm) - sum(dpz_tab)
 
-! Real-space smoothed kernel of p_delta_sm, normalized to its peak at z = -100 um.
+! Real-space smoothed kernel of p_delta_sm, normalized to its peak at z = -80 um.
+! Checked past the window edge (|i| > ns) where it must vanish.
 
 kern = ele_delta_sm%wake%sr%z_long%fw
 call fft_1d(kern, 1)
-ic = (size(kern) + 1) / 2 - 10
+kern = kern / size(kern)
+ic = (size(kern) + 1) / 2 - 8
 f_sm = ele_delta_sm%wake%sr%z_long%smoothing_sigma / ele_delta_sm%wake%sr%z_long%dz
-do i = -4, 4
-  kern_err(i) = real(kern(ic+i)) / real(kern(ic)) - exp(-0.5_rp * (i / f_sm)**2)
+ns_sm = nint(3 * f_sm)
+do i = -8, 8
+  kern_err(i) = real(kern(ic+i)) / real(kern(ic))
+  if (abs(i) <= ns_sm) kern_err(i) = kern_err(i) - exp(-0.5_rp * (i / f_sm)**2)
 enddo
+kern_sum_err = sum(real(kern)) / 1e15_rp - 1
 
 ! Echo to stdout for human reading.
 
@@ -208,6 +213,7 @@ do i = 1, n
 enddo
 print '(a, es14.6)', 'sum(dpz_sm) - sum(dpz) = ', sum_diff_sm
 print '(a, es14.6)', 'max |kernel - gaussian| = ', maxval(abs(kern_err))
+print '(a, es14.6)', 'kernel sum error = ', kern_sum_err
 
 ! Regression test output.
 
@@ -239,9 +245,10 @@ do i = 1, n
 enddo
 write (1, '(a, es20.10)') '"sum-diff-sm" ABS 1E-15  ', sum_diff_sm
 
-do i = -4, 4
+do i = -8, 8
   write (1, '(a, sp, i0, ss, a, es20.10)') '"kern-err', i, '" ABS 1E-12  ', kern_err(i)
 enddo
+write (1, '(a, es20.10)') '"kern-sum-err" ABS 1E-12  ', kern_sum_err
 
 close (1)
 

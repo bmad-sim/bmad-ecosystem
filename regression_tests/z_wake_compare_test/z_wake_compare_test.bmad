@@ -162,9 +162,9 @@ p_tab_sm: pipe, L = 1, sr_wake = {
   }
 }
 
-! Single nonzero point at z = -100 um, far enough from the table edges that the
-! smoothing window (ns = 6) is never truncated near it. The smoothed kernel
-! must be a Gaussian of rms width smoothing_sigma centred on that point.
+! Single nonzero point at z = -80 um, 2*ns = 12 bins from the -200 um table end, so no
+! smoothing window that reaches it is truncated. The smoothed kernel must be a
+! normalized Gaussian of rms width smoothing_sigma centred on that point.
 p_delta_sm: pipe, L = 1, sr_wake = {
   amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
   z_max = 1.0,
@@ -183,9 +183,9 @@ p_delta_sm: pipe, L = 1, sr_wake = {
       -130e-6 0,
       -120e-6 0,
       -110e-6 0,
-      -100e-6 1e15,
+      -100e-6 0,
        -90e-6 0,
-       -80e-6 0,
+       -80e-6 1e15,
        -70e-6 0,
        -60e-6 0,
        -50e-6 0,

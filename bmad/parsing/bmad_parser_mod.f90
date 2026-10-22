@@ -1628,9 +1628,9 @@ if (allocated(srz%w)) then
   ! W(0) = (W(0-) + W(0+))/2 = W(0-)/2,  since W(0+) = 0.
   ! Halving the z=0 entry of the convolution kernel ensures that the self-bin
   ! contribution from the FFT convolution matches the pseudomode sr
-  ! longitudinal wake. This must be done before any smoothing: smoothing
-  ! preserves the sum of the kernel, so smoothing the unhalved table would
-  ! keep the full W(0-)*dz self-bin weight.
+  ! longitudinal wake. This must be done before any smoothing: away from the
+  ! table ends smoothing preserves the sum of the kernel, so smoothing the
+  ! unhalved table would keep the full W(0-)*dz self-bin weight.
 
   w_half = srz%w
   w_half(nn+1) = 0.5_rp * w_half(nn+1)
