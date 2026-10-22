@@ -136,5 +136,67 @@ p_tab_yl: pipe, L = 1, sr_wake = {
   }
 }
 
-lat: line = (p_mode, p_tab, p_tab_small_sig, p_mode_xl, p_tab_xl, p_mode_yl, p_tab_yl)
+! Same constant wake as p_tab but with real smoothing: ns = nint(3*20/10) = 6.
+! For a symmetric kernel applied after the z = 0 halving, W_s(d) + W_s(-d) = A,
+! so the total bunch energy loss must equal the unsmoothed p_tab result.
+p_tab_sm: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 20e-6,
+    position_dependence = none,
+    w = {
+      -100e-6 1e15,
+       -90e-6 1e15,
+       -80e-6 1e15,
+       -70e-6 1e15,
+       -60e-6 1e15,
+       -50e-6 1e15,
+       -40e-6 1e15,
+       -30e-6 1e15,
+       -20e-6 1e15,
+       -10e-6 1e15,
+         0e-6 1e15,
+    }
+  }
+}
+
+! Single nonzero point at z = -100 um, far enough from the table edges that the
+! smoothing window (ns = 6) is never truncated near it. The smoothed kernel
+! must be a Gaussian of rms width smoothing_sigma centred on that point.
+p_delta_sm: pipe, L = 1, sr_wake = {
+  amp_scale = 1.0,  z_scale = 1.0,  scale_with_length = F,
+  z_max = 1.0,
+  z_long = {
+    time_based = F,
+    smoothing_sigma = 20e-6,
+    position_dependence = none,
+    w = {
+      -200e-6 0,
+      -190e-6 0,
+      -180e-6 0,
+      -170e-6 0,
+      -160e-6 0,
+      -150e-6 0,
+      -140e-6 0,
+      -130e-6 0,
+      -120e-6 0,
+      -110e-6 0,
+      -100e-6 1e15,
+       -90e-6 0,
+       -80e-6 0,
+       -70e-6 0,
+       -60e-6 0,
+       -50e-6 0,
+       -40e-6 0,
+       -30e-6 0,
+       -20e-6 0,
+       -10e-6 0,
+         0e-6 0,
+    }
+  }
+}
+
+lat: line = (p_mode, p_tab, p_tab_small_sig, p_mode_xl, p_tab_xl, p_mode_yl, p_tab_yl, p_tab_sm, p_delta_sm)
 use, lat

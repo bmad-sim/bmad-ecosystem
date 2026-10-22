@@ -1459,7 +1459,7 @@ type (wake_sr_z_long_struct), pointer :: srz
 type (wake_sr_struct), pointer :: wake_sr
 
 real(rp) f, esum, val
-real(rp), allocatable :: table(:,:), gauss(:)
+real(rp), allocatable :: table(:,:), gauss(:), w_half(:)
 integer i, j, itrans, ilong, iz, ipt, ix_word, n0, n1, nn, nt, ns
 
 logical delim_found, err_flag, err
@@ -1622,40 +1622,40 @@ if (allocated(srz%w)) then
     srz%smoothing_sigma = c_light * srz%smoothing_sigma
   endif
 
+  ! Fundamental theorem of beam loading: for a causal wake (W(z) = 0 for z > 0,
+  ! W(z) finite for z <= 0), a source particle samples only half of its own
+  ! induced wake at z = 0. Treating the step at z = 0 symmetrically gives
+  ! W(0) = (W(0-) + W(0+))/2 = W(0-)/2,  since W(0+) = 0.
+  ! Halving the z=0 entry of the convolution kernel ensures that the self-bin
+  ! contribution from the FFT convolution matches the pseudomode sr
+  ! longitudinal wake. This must be done before any smoothing: smoothing
+  ! preserves the sum of the kernel, so smoothing the unhalved table would
+  ! keep the full W(0-)*dz self-bin weight.
+
+  w_half = srz%w
+  w_half(nn+1) = 0.5_rp * w_half(nn+1)
+
   f = srz%smoothing_sigma / srz%dz
   ns = nint(3.0_rp * f)
 
   if (ns /= 0) then
     allocate (gauss(-ns:ns))
     do i = -ns, ns
-      gauss(i) = exp(-0.5_rp * i / f**2)
+      gauss(i) = exp(-0.5_rp * (i / f)**2)
     enddo
 
     srz%fw = 0
     do i = 1, nt
       esum = 0
       do j = max(1, i - ns), min(nt, i + ns)
-        srz%fw(i) = srz%fw(i) + gauss(j-i) * srz%w(j)
+        srz%fw(i) = srz%fw(i) + gauss(j-i) * w_half(j)
         esum = esum + gauss(j-i)
       enddo
       srz%fw(i) = srz%fw(i) / esum
     enddo
     
   else
-    ! Fundamental theorem of beam loading: for a causal wake (W(z) = 0 for z > 0,
-    ! W(z) finite for z <= 0), a source particle samples only half of its own
-    ! induced wake at z = 0. Treating the step at z = 0 symmetrically gives
-    ! W(0) = (W(0-) + W(0+))/2 = W(0-)/2,  since W(0+) = 0.
-    ! Halving the z=0 entry of the convolution kernel ensures that the self-bin
-    ! contribution from the FFT convolution matches the pseudomode sr
-    ! longitudinal wake. With a Gaussian smoothing window of half-width ns >= 1
-    ! the average across the step already produces W(0-)/2, so the correction
-    ! is only applied when no actual smoothing occurs (ns == 0). This includes
-    ! both smoothing_sigma == 0 and small nonzero smoothing_sigma for which
-    ! nint(3*smoothing_sigma/dz) rounds to zero.
-
-    srz%fw = srz%w
-    srz%fw(nn+1) = 0.5_rp * srz%fw(nn+1)
+    srz%fw = w_half
   endif
 
   call fft_1d(srz%fw, -1)
