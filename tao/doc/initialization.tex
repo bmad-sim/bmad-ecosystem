@@ -967,9 +967,11 @@ The \vn{bmad_com_struct} holds bmad global variables.
     integer runge_kutta_order = 4               ! Runge Kutta order.
     integer default_integ_order = 2             ! PTC integration order.
     integer ptc_max_fringe_order = 2            ! PTC max fringe order (2  = > Quadrupole !).
-    integer max_num_runge_kutta_step = 10000    ! Maximum number of RK steps before particle is considered lost.
+    integer max_num_runge_kutta_step = 10000    ! Maximum number of RK steps before particle 
+                                                !   is considered lost.
 
-    logical rf_phase_below_transition_ref = F   ! Autoscale uses below transition stable point for rfcavities?
+    logical rf_phase_below_transition_ref = F   ! Autoscale takes rfcavities phi0 as relative
+                                                !   to the below transition stable point for?
     logical sr_wakes_on = T                     ! Short range wakefields?
     logical lr_wakes_on = T                     ! Long range wakefields
     logical mat6_track_symmetric = T            ! symmetric offsets
@@ -977,12 +979,14 @@ The \vn{bmad_com_struct} holds bmad global variables.
     logical csr_and_space_charge_on = F         ! Space charge switch
     logical spin_tracking_on = F                ! spin tracking?
     logical backwards_time_tracking_on = F      ! Track backwards in time?
-    logical spin_sokolov_ternov_flipping_on = F ! Spin flipping during synchrotron radiation emission?
+    logical spin_sokolov_ternov_flipping_on = F ! Not currently implemented.
     logical radiation_damping_on = F            ! Damping toggle.
     logical radiation_fluctuations_on = F       ! Fluctuations toggle.
-    logical conserve_taylor_maps = T            ! Enable bookkeeper to set ele%taylor_map_includes_offsets = F?
+    logical conserve_taylor_maps = T            ! Enable bookkeeper to set 
+                                                !    ele%taylor_map_includes_offsets = F?
     logical absolute_time_tracking_default = F  ! Default for lat%absolute_time_tracking
-    logical convert_to_kinetic_momentum = F     ! Cancel finite vector potential edge kicks with symplectic tracking?
+    logical convert_to_kinetic_momentum = F     ! Cancel finite vector potential edge kicks 
+                                                !    with symplectic tracking?
     logical aperture_limit_on = T               ! use apertures in tracking?
     logical ptc_print_info_messages = F         ! Allow PTC to print informational messages?
     logical debug = F                           ! Used for code debugging.
