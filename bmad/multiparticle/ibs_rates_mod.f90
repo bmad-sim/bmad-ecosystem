@@ -51,7 +51,7 @@ subroutine bjmt1(ele, coulomb_log, rates, lambda)
   real(rp) lambda
 
   real(rp) sigma_p, emit_a, emit_b, energy
-  real(rp) classical_radius
+  real(rp) c_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_y
   real(rp) Dx, Dy, Dxp, Dyp
@@ -80,9 +80,9 @@ subroutine bjmt1(ele, coulomb_log, rates, lambda)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
+  c_radius = classical_radius(ele%branch%param%particle)
 
-  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
+  big_A=(c_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -231,7 +231,7 @@ subroutine bane1(ele, coulomb_log, rates, lambda)
   type(ibs_struct), intent(out) :: rates
 
   real(rp) sigma_p, emit_a, emit_b, energy
-  real(rp) classical_radius
+  real(rp) c_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_b, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
@@ -256,9 +256,9 @@ subroutine bane1(ele, coulomb_log, rates, lambda)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
+  c_radius = classical_radius(ele%branch%param%particle)
 
-  big_A=(classical_radius**2)*c_light*lambda/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/(sigma_p**3)
+  big_A=(c_radius**2)*c_light*lambda/16.0/(gamma**3)/(emit_a**(3./4.))/(emit_b**(3./4.))/(sigma_p**3)
 
   beta_a = ele%a%beta
   beta_b = ele%b%beta
@@ -341,7 +341,7 @@ subroutine mpxx1(ele, coulomb_log, rates, lambda)
   type(ibs_struct), intent(out) :: rates
 
   real(rp) sigma_p, emit_a, emit_b, energy
-  real(rp) classical_radius
+  real(rp) c_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
@@ -367,8 +367,8 @@ subroutine mpxx1(ele, coulomb_log, rates, lambda)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
-  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
+  c_radius = classical_radius(ele%branch%param%particle)
+  big_A=(c_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -478,7 +478,7 @@ subroutine mpzt1(ele, coulomb_log, rates, lambda)
   type(ibs_struct), intent(out) :: rates
 
   real(rp) sigma_p, emit_a, emit_b, energy
-  real(rp) classical_radius
+  real(rp) c_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_a, sigma_b, sigma_a_beta, sigma_b_beta
   real(rp) Da, Db, Dap, Dbp
@@ -504,8 +504,8 @@ subroutine mpzt1(ele, coulomb_log, rates, lambda)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
-  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
+  c_radius = classical_radius(ele%branch%param%particle)
+  big_A=(c_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
@@ -527,7 +527,7 @@ subroutine mpzt1(ele, coulomb_log, rates, lambda)
 
   a = sigma_H/gamma*sqrt(beta_a/emit_a)
   b = sigma_H/gamma*sqrt(beta_b/emit_b)
-  q = sigma_H*rbeta*sqrt(2.0_rp*sigma_b/classical_radius)
+  q = sigma_H*rbeta*sqrt(2.0_rp*sigma_b/c_radius)
   !---- q = (gamma**2)*sigma_b*emit_a/classical_radius/beta_a  !effective coulomb log 
 
   !------------------------Begin calls to GSL integrator
@@ -636,7 +636,7 @@ subroutine cimp1(ele, coulomb_log, rates, lambda)
   real(rp) element_length, E_TOT, lambda
 
   real(rp) sigma_p, emit_a, emit_b
-  real(rp) classical_radius
+  real(rp) c_radius
   real(rp) gamma, KE, rbeta, beta_a, beta_b
   real(rp) sigma_x, sigma_y, sigma_x_beta, sigma_y_beta
   real(rp) Dx, Dy, Dxp, Dyp
@@ -661,8 +661,8 @@ subroutine cimp1(ele, coulomb_log, rates, lambda)
   emit_a = ele%a%emit
   emit_b = ele%b%emit
 
-  classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%param%particle))/mass_of(ele%branch%param%particle)
-  big_A=(classical_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
+  c_radius = classical_radius(ele%branch%param%particle)
+  big_A=(c_radius**2)*c_light*lambda/64.0/(pi**2)/(rbeta**3)/(gamma**4)/emit_a/emit_b/sigma_p
 
   alpha_a = ele%a%alpha
   alpha_b = ele%b%alpha
