@@ -21,6 +21,12 @@ program z_wake_compare_test
 ! bin is already occupied. With a constant wake the kicks depend only on
 ! the z ordering, so the expected values match the simple leading-sum
 ! formula regardless of spacing.
+!
+! The smoothing_sigma checks use p_tab_sm (constant wake, ns = 6) and
+! p_delta_sm (a single nonzero table point). The smoothed kernel must be a
+! Gaussian centred on the unsmoothed point, and since the z = 0 halving is
+! done before smoothing, the total bunch energy loss in a constant wake must
+! be unchanged by smoothing.
 
 use beam_mod
 use bmad
@@ -31,7 +37,8 @@ implicit none
 type (lat_struct), target :: lat
 type (ele_struct), pointer :: ele_mode, ele_tab, ele_tab_ss
 type (ele_struct), pointer :: ele_mode_xl, ele_tab_xl, ele_mode_yl, ele_tab_yl
-type (bunch_struct), target :: bunch_mode, bunch_tab, bunch_tab_ss
+type (ele_struct), pointer :: ele_tab_sm, ele_delta_sm
+type (bunch_struct), target :: bunch_mode, bunch_tab, bunch_tab_ss, bunch_tab_sm
 type (bunch_struct), target :: bunch_mode_xl, bunch_tab_xl, bunch_mode_yl, bunch_tab_yl
 type (coord_struct), pointer :: p
 
@@ -39,7 +46,9 @@ real(rp) :: zlist(5), zlist_off(5), xoff(5), yoff(5), q
 real(rp) :: dpz_mode(5), dpz_tab(5), dpz_tab_ss(5)
 real(rp) :: dpz_mode_xl(5), dpz_tab_xl(5), dpz_mode_yl(5), dpz_tab_yl(5)
 real(rp) :: diff(5), diff_ss(5), diff_xl(5), diff_yl(5)
-integer :: i, n, nargs
+real(rp) :: dpz_tab_sm(5), sum_diff_sm, kern_err(-8:8), kern_sum_err, f_sm
+complex(rp), allocatable :: kern(:)
+integer :: i, n, nargs, ic, ns_sm
 
 character(200) :: lat_file
 
@@ -58,6 +67,8 @@ ele_mode_xl => lat%ele(4)
 ele_tab_xl  => lat%ele(5)
 ele_mode_yl => lat%ele(6)
 ele_tab_yl  => lat%ele(7)
+ele_tab_sm  => lat%ele(8)
+ele_delta_sm => lat%ele(9)
 
 q = 1.0e-12_rp
 
@@ -80,6 +91,7 @@ yoff = [-0.9e-3_rp, 0.6e-3_rp, 1.3e-3_rp, -0.2e-3_rp,  0.8e-3_rp]
 call reallocate_bunch(bunch_mode,   n)
 call reallocate_bunch(bunch_tab,    n)
 call reallocate_bunch(bunch_tab_ss, n)
+call reallocate_bunch(bunch_tab_sm, n)
 call reallocate_bunch(bunch_mode_xl, n)
 call reallocate_bunch(bunch_tab_xl,  n)
 call reallocate_bunch(bunch_mode_yl, n)
@@ -91,6 +103,7 @@ do i = 1, n
   bunch_mode%particle(i)%charge = q
   bunch_tab%particle(i)    = bunch_mode%particle(i)
   bunch_tab_ss%particle(i) = bunch_mode%particle(i)
+  bunch_tab_sm%particle(i) = bunch_mode%particle(i)
 
   call init_coord(bunch_mode_xl%particle(i), [xoff(i), 0.0_rp, yoff(i), 0.0_rp, zlist_off(i), 0.0_rp], &
                   lat%ele(0), element_end = downstream_end$)
@@ -102,12 +115,15 @@ enddo
 bunch_mode%n_live   = n
 bunch_tab%n_live    = n
 bunch_tab_ss%n_live = n
+bunch_tab_sm%n_live = n
 bunch_mode%charge_live   = n*q
 bunch_tab%charge_live    = n*q
 bunch_tab_ss%charge_live = n*q
+bunch_tab_sm%charge_live = n*q
 bunch_mode%ix_z   = 0
 bunch_tab%ix_z    = 0
 bunch_tab_ss%ix_z = 0
+bunch_tab_sm%ix_z = 0
 bunch_mode_xl%n_live = n;  bunch_mode_xl%charge_live = n*q;  bunch_mode_xl%ix_z = 0
 bunch_tab_xl%n_live  = n;  bunch_tab_xl%charge_live  = n*q;  bunch_tab_xl%ix_z  = 0
 bunch_mode_yl%n_live = n;  bunch_mode_yl%charge_live = n*q;  bunch_mode_yl%ix_z = 0
@@ -116,6 +132,7 @@ bunch_tab_yl%n_live  = n;  bunch_tab_yl%charge_live  = n*q;  bunch_tab_yl%ix_z  
 call order_particles_in_z(bunch_mode)
 call order_particles_in_z(bunch_tab)
 call order_particles_in_z(bunch_tab_ss)
+call order_particles_in_z(bunch_tab_sm)
 call order_particles_in_z(bunch_mode_xl)
 call order_particles_in_z(bunch_tab_xl)
 call order_particles_in_z(bunch_mode_yl)
@@ -128,6 +145,7 @@ bmad_com%sr_wakes_on = .true.
 call track1_sr_wake(bunch_mode,   ele_mode)
 call track1_sr_wake(bunch_tab,    ele_tab)
 call track1_sr_wake(bunch_tab_ss, ele_tab_ss)
+call track1_sr_wake(bunch_tab_sm, ele_tab_sm)
 call track1_sr_wake(bunch_mode_xl, ele_mode_xl)
 call track1_sr_wake(bunch_tab_xl,  ele_tab_xl)
 call track1_sr_wake(bunch_mode_yl, ele_mode_yl)
@@ -146,7 +164,27 @@ do i = 1, n
   p => bunch_tab_yl%particle(i);  dpz_tab_yl(i)  = p%vec(6)
   diff_xl(i) = dpz_tab_xl(i) - dpz_mode_xl(i)
   diff_yl(i) = dpz_tab_yl(i) - dpz_mode_yl(i)
+
+  p => bunch_tab_sm%particle(i); dpz_tab_sm(i) = p%vec(6)
 enddo
+
+! Equal charges, so the total energy loss is proportional to the sum of dpz.
+sum_diff_sm = sum(dpz_tab_sm) - sum(dpz_tab)
+
+! Real-space smoothed kernel of p_delta_sm, normalized to its peak at z = -80 um.
+! Checked past the window edge (|i| > ns) where it must vanish.
+
+kern = ele_delta_sm%wake%sr%z_long%fw
+call fft_1d(kern, 1)
+kern = kern / size(kern)
+ic = (size(kern) + 1) / 2 - 8
+f_sm = ele_delta_sm%wake%sr%z_long%smoothing_sigma / ele_delta_sm%wake%sr%z_long%dz
+ns_sm = nint(3 * f_sm)
+do i = -8, 8
+  kern_err(i) = real(kern(ic+i)) / real(kern(ic))
+  if (abs(i) <= ns_sm) kern_err(i) = kern_err(i) - exp(-0.5_rp * (i / f_sm)**2)
+enddo
+kern_sum_err = sum(real(kern)) / 1e15_rp - 1
 
 ! Echo to stdout for human reading.
 
@@ -167,6 +205,15 @@ do i = 1, n
 enddo
 print '(a, es14.6)', 'max |diff_xl| = ', maxval(abs(diff_xl))
 print '(a, es14.6)', 'max |diff_yl| = ', maxval(abs(diff_yl))
+
+print '(a)', ' '
+print '(a)', '   i     z [m]        z_long dpz       z_long dpz (smoothed)'
+do i = 1, n
+  print '(i4, es14.6, 2es20.10)', i, zlist(i), dpz_tab(i), dpz_tab_sm(i)
+enddo
+print '(a, es14.6)', 'sum(dpz_sm) - sum(dpz) = ', sum_diff_sm
+print '(a, es14.6)', 'max |kernel - gaussian| = ', maxval(abs(kern_err))
+print '(a, es14.6)', 'kernel sum error = ', kern_sum_err
 
 ! Regression test output.
 
@@ -192,6 +239,16 @@ do i = 1, n
   write (1, '(a, i0, a, es20.10)') '"diff-xl-', i, '" ABS 1E-15  ', diff_xl(i)
   write (1, '(a, i0, a, es20.10)') '"diff-yl-', i, '" ABS 1E-15  ', diff_yl(i)
 enddo
+
+do i = 1, n
+  write (1, '(a, i0, a, es20.10)') '"dpz-tab-sm-', i, '" REL 1E-10  ', dpz_tab_sm(i)
+enddo
+write (1, '(a, es20.10)') '"sum-diff-sm" ABS 1E-15  ', sum_diff_sm
+
+do i = -8, 8
+  write (1, '(a, sp, i0, ss, a, es20.10)') '"kern-err', i, '" ABS 1E-12  ', kern_err(i)
+enddo
+write (1, '(a, es20.10)') '"kern-sum-err" ABS 1E-12  ', kern_sum_err
 
 close (1)
 
