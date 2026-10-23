@@ -742,7 +742,8 @@ if (csr%y_source == 0) then
 
     kick1%s_chord_source = s_source_calc(kick1, csr, err_flag, dr_match)
     if (err_flag) return
-    call I_csr (kick1, i, csr)
+    call I_csr (kick1, i, csr, err_flag)
+    if (err_flag) return
   enddo
 
 else
@@ -764,10 +765,10 @@ else
   enddo
 endif
 
-!
+! Note: classical_radius(species) already contains the factor of 1/rel_mass.
 
 coef = csr%actual_track_step * classical_radius(csr%species) / &
-                              (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+                              (e_charge * abs(charge_of(csr%species)) * csr%gamma)
 n_bin = space_charge_com%n_bin
 
 ! CSR & Image charge kick
@@ -948,13 +949,17 @@ do
   ddz0 = ddz_calc_csr(0.0_rp, status)
   ddz1 = ddz_calc_csr(einfo_s%L_chord, status)
 
+  ! Note: ddz_calc_csr is called to make sure kick1 holds the geometry of the source point.
+
   if (last_step == -1 .and. ddz1 > 0) then  ! Roundoff error is causing ddz1 to be positive.
-    s_source = ddz_calc_csr(einfo_s%L_chord, status)
+    s_source = einfo_s%L_chord
+    ddz1 = ddz_calc_csr(s_source, status)
     return
   endif
 
   if (last_step == 1 .and. ddz0 < 0) then  ! Roundoff error is causing ddz0 to be negative.
-    s_source = ddz_calc_csr(0.0_rp, status)
+    s_source = 0
+    ddz0 = ddz_calc_csr(s_source, status)
     return
   endif
 
@@ -989,7 +994,11 @@ do
 
   ! Only possibility left is that root is bracketed.
 
+  ! ddz_calc_csr stores the source geometry in kick1 as a side effect. The last evaluation in super_zbrent
+  ! is not, in general, at the returned root so reevaluate at the root.
+
   s_source = super_zbrent (ddz_calc_csr, 0.0_rp, einfo_s%L_chord, 1e-12_rp, 1e-8_rp, status)
+  ddz0 = ddz_calc_csr(s_source, status)
   return
     
 enddo
@@ -1050,11 +1059,16 @@ s1 = csr_csr_ptr%s_chord_kick
 
 if (csr_kick1_ptr%ix_ele_source == csr_csr_ptr%ix_ele_kick) then
   ds = s1 - s0
-  ! dtheta_L = angle of L line in centroid chord ref frame
-  dtheta_L = csr_einfo_s_ptr%spline%coef(1) + csr_einfo_s_ptr%spline%coef(2) * (2*s0 + ds) + csr_einfo_s_ptr%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2)
+  ! dtheta_L = angle of L line in centroid chord ref frame = atan(secant slope).
+  ! This equals theta_L - theta_chord (modulo pi) and, unlike theta_L, is well defined as ds -> 0.
+  ! Note: The angle and not the secant slope must be used to be consistent with the multi-element case below.
+  dtheta_L = atan(csr_einfo_s_ptr%spline%coef(1) + csr_einfo_s_ptr%spline%coef(2) * (2*s0 + ds) + &
+                                         csr_einfo_s_ptr%spline%coef(3) * (3*s0**2 + 3*s0*ds + ds**2))
   dL = dspline_len(s0, s1, csr_einfo_s_ptr%spline, dtheta_L) ! = Ls - L
   ! Ls is negative if the source pt is ahead of the kick pt (ds < 0). But L is always positive.
-  if (ds < 0) dL = dL + 2 * ds    ! Correct for L always being positive.
+  ! Correct for L always being positive. Here L is the length in the horizontal plane.
+  ! The y_source correction is applied below.
+  if (ds < 0) dL = dL - 2 * sqrt(csr_kick1_ptr%L_vec(1)**2 + csr_kick1_ptr%L_vec(3)**2)
   csr_kick1_ptr%theta_sl = spline1(csr_einfo_s_ptr%spline, s0, 1) - dtheta_L
   csr_kick1_ptr%theta_lk = dtheta_L - spline1(csr_einfo_s_ptr%spline, s1, 1)
 
@@ -1074,13 +1088,19 @@ else
   csr_kick1_ptr%theta_lk = modulo2(theta_L - (spline1(ce%spline, s1, 1) + ce%theta_chord), pi/2)
 endif
 
-csr_kick1_ptr%floor_s%theta = csr_kick1_ptr%theta_sl + csr_kick1_ptr%theta_L
+! Direction of motion of the source particle.
+! Note: Do not use theta_sl + theta_L since theta_L is reversed (off by pi) for source pts ahead of the kick pt.
+! If the centroid moves backwards in the element, the chord direction is anti-parallel to the direction of motion.
+
+csr_kick1_ptr%floor_s%theta = spline1(csr_einfo_s_ptr%spline, s0, 1) + csr_einfo_s_ptr%theta_chord
+if (csr_einfo_s_ptr%L_chord < 0) csr_kick1_ptr%floor_s%theta = csr_kick1_ptr%floor_s%theta + pi
 
 ! The above calc for dL neglected csr%y_source. So must correct for this.
 
 if (csr_csr_ptr%y_source /= 0) dL = dL - (csr_kick1_ptr%L - sqrt(csr_kick1_ptr%L_vec(1)**2 + csr_kick1_ptr%L_vec(3)**2))
 csr_kick1_ptr%dL = dL
-ddz_this = csr_kick1_ptr%L / (2 * csr_csr_ptr%gamma2) + dL
+! ddz = Ls - beta * L - dz_particles = L * (1 - beta) + dL - dz_particles
+ddz_this = csr_kick1_ptr%L / (csr_csr_ptr%gamma2 * (1 + csr_csr_ptr%beta)) + dL
 ddz_this = ddz_this - csr_kick1_ptr%dz_particles
 
 end function ddz_calc_csr
@@ -1138,8 +1158,9 @@ if (ele%space_charge_method /= slice$) return
 
 n_bin = space_charge_com%n_bin
 
+! Note: classical_radius(species) already contains the factor of 1/rel_mass.
 factor = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / &
-                              (csr%rel_mass * e_charge * abs(charge_of(csr%species)) * csr%gamma)
+                              (e_charge * abs(charge_of(csr%species)) * csr%gamma)
 
 c_val = csr%gamma**2
 dz_half = csr%dz_slice / 2
@@ -1350,33 +1371,38 @@ end subroutine lsc_kick_params_calc
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 !+
-! Subroutine I_csr (kick1, i_bin, csr) 
+! Subroutine I_csr (kick1, i_bin, csr, err_flag) 
 !
 ! Routine to calculate the CSR kick integral (at y = 0)
 !
 ! Input:
 !   kick1      -- csr_kick1_struct: 
 !   i_bin      -- integer: Bin index.
-!   csr    -- csr_struct:
+!   csr        -- csr_struct:
 !
 ! Output:
 !   kick1     -- csr_kick1_struct: 
 !     %I_csr     -- real(rp): CSR kick integral.
 !     %I_int_csr -- real(rp): Integral of I_csr. Only calculated for i_bin = 1 since it is not needed otherwise.
+!   err_flag  -- logical: Set True if there is an error. Untouched otherwise.
 !-
 
-subroutine I_csr (kick1, i_bin, csr)
+subroutine I_csr (kick1, i_bin, csr, err_flag)
 
 implicit none
 
 type (csr_kick1_struct), target :: kick1
 type (csr_struct), target :: csr
 type (csr_kick1_struct), pointer :: k
+type (csr_kick1_struct), target :: k2
 type (csr_ele_info_struct), pointer :: eleinfo
 type (spline_struct), pointer :: spl
 
-real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick
-integer i_bin, ix_ele_kick
+real(rp) g_bend, z, zz, Ls, L, dtheta_L, dL, s_chord_kick, x1, u0, u1, u, du, dr_match(3), s_source
+real(rp), parameter :: gl_x(4) = [-0.8611363115940526_rp, -0.3399810435848563_rp, 0.3399810435848563_rp, 0.8611363115940526_rp]
+real(rp), parameter :: gl_w(4) = [ 0.3478548451374538_rp,  0.6521451548625461_rp, 0.6521451548625461_rp, 0.3478548451374538_rp]
+integer i_bin, ix_ele_kick, i, j
+logical err_flag
 
 !
 
@@ -1391,7 +1417,7 @@ if (z <= 0) return
 !
 
 k => kick1
-k%I_csr = -csr%kick_factor * 2 * (k%dL / z + csr%gamma2 * k%theta_sl * k%theta_lk / (1 + csr%gamma2 * k%theta_sl**2)) / k%L
+k%I_csr = I_csr_point(k, csr)
 
 ! I_csr Integral 
 
@@ -1408,21 +1434,47 @@ if (i_bin == 1) then
   spl => csr%eleinfo(ix_ele_kick)%spline
   g_bend = -spline1(spl, s_chord_kick, 2) / sqrt(1 + spline1(spl, s_chord_kick, 1)**2)**3
 
-  if (k%ix_ele_source == ix_ele_kick) then
+  ! zz is the particle separation for a source point at the entrance end of the element containing the kick point.
+  ! This is computed in the same way as in ddz_calc_csr so the source point search and the integral split are consistent.
+  ! Note: The spline is zero at the element entrance.
+
+  eleinfo => csr%eleinfo(ix_ele_kick)
+  x1 = spline1(eleinfo%spline, s_chord_kick)
+  L = sqrt(s_chord_kick**2 + x1**2)
+  dtheta_L = atan(x1 / s_chord_kick)
+  dL = dspline_len(0.0_rp, s_chord_kick, eleinfo%spline, dtheta_L) ! = Ls - L
+  zz = L / (csr%gamma2 * (1 + csr%beta)) + dL
+
+  if (k%ix_ele_source == ix_ele_kick .or. z <= zz) then
     Ls = k%L + k%dL
     k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * z / Ls) / csr%gamma2)  
+
   else
     ! Since source pt is in another element, split integral into pieces.
     ! First integrate over element containing the kick point.
-    L = s_chord_kick
-    eleinfo => csr%eleinfo(ix_ele_kick)
-    dtheta_L = eleinfo%spline%coef(1) + eleinfo%spline%coef(2) * L + eleinfo%spline%coef(3) * L**2
-    dL = dspline_len(0.0_rp, L, eleinfo%spline, dtheta_L) ! = Ls - L
     Ls = L + dL
-    zz = L / (2 * csr%gamma2) + dL
     k%I_int_csr = -csr%kick_factor * ((g_bend * Ls/2)**2 - log(2 * csr%gamma2 * zz / Ls) / csr%gamma2)
-    ! Now add on rest of integral
-    k%I_int_csr = k%I_int_csr + k%I_csr * (z - zz)
+
+    ! Now add on rest of integral from zz to z. I_csr varies strongly over this range so use quadrature.
+    ! The integration variable is u = dz^(1/3) which makes the integrand smooth in the steady state where I_csr ~ dz^(-1/3).
+    ! Gauss-Legendre is used so that I_csr is not evaluated at the element boundary.
+
+    u0 = zz**(1.0_rp/3)
+    u1 = z**(1.0_rp/3)
+    du = (u1 - u0) / 2
+    k2 = kick1
+
+    do i = 1, 2
+      do j = 1, 4
+        u = u0 + (i - 0.5_rp + gl_x(j) / 2) * du
+        k2%dz_particles = u**3
+        k2%ix_ele_source = csr%ix_ele_kick
+        dr_match = 0
+        s_source = s_source_calc(k2, csr, err_flag, dr_match)
+        if (err_flag) return
+        k%I_int_csr = k%I_int_csr + gl_w(j) * (du / 2) * 3 * u**2 * I_csr_point(k2, csr)
+      enddo
+    enddo
   endif
 
 else
@@ -1430,6 +1482,38 @@ else
 endif
 
 end subroutine I_csr
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+!+
+! Function I_csr_point (kick1, csr) result (I_point)
+!
+! Routine to calculate the CSR kick integrand for a given source point (at y = 0).
+! Called by I_csr.
+!
+! Input:
+!   kick1     -- csr_kick1_struct: Source and kick point info.
+!   csr       -- csr_struct:
+!
+! Output:
+!   I_point   -- real(rp): CSR kick integrand.
+!-
+
+function I_csr_point (kick1, csr) result (I_point)
+
+implicit none
+
+type (csr_kick1_struct) kick1
+type (csr_struct) csr
+real(rp) I_point
+
+!
+
+I_point = -csr%kick_factor * 2 * (kick1%dL / kick1%dz_particles + &
+           csr%gamma2 * kick1%theta_sl * kick1%theta_lk / (1 + csr%gamma2 * kick1%theta_sl**2)) / kick1%L
+
+end function I_csr_point
 
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
@@ -1606,8 +1690,9 @@ if (ele%csr_method == one_dim$ .or. ele%space_charge_method == slice$) then
     ! in the same direction longitudinally. In this case, the kicks due to the electric and magnetic fields
     ! tend to cancel instead of add as in the bbi case.
 
+    ! Note: classical_radius(species) already contains the factor of 1/rel_mass.
     f0 = csr%kick_factor * csr%actual_track_step * classical_radius(csr%species) / (twopi * &
-             csr%dz_slice * csr%rel_mass * e_charge * abs(charge_of(p%species)) * (1 + p%vec(6)) * csr%gamma**3)
+             csr%dz_slice * e_charge * abs(charge_of(p%species)) * (1 + p%vec(6)) * csr%gamma**3)
 
     dpx = 0;  dpy = 0
 
@@ -1753,8 +1838,18 @@ end subroutine apply_fft_3d_kicks
 !+
 ! Function dspline_len (s_chord0, s_chord1, spline, dtheta_ref) result (dlen)
 !
-! Routine to calculate the difference in length between the spline curve length and a referece line.
+! Routine to calculate the difference in length between the spline curve length and the projection of 
+! the spline curve onto a referece line.
 ! Referece line is centroid chord (referece system of the spline) rotated by dtheta_ref.
+!
+! The projection of the curve onto the reference line is Integral: cos(theta(s) - dtheta_ref) ds_arc
+! where theta(s) = atan(x'). The difference is thus exactly:
+!   dlen = Integral: x'^2 / (1 + sqrt(1 + x'^2)) ds + 2 * sin^2(dtheta_ref/2) * ds - sin(dtheta_ref) * dx
+! where ds = s_chord1 - s_chord0 and dx = x(s_chord1) - x(s_chord0).
+! The integral is evaluated using 4-point Gauss-Legendre quadrature.
+!
+! Note: The small angle approximation of this is Integral: (x' - dtheta_ref)^2 / 2 ds which 
+! is not accurate enough when dtheta_ref is not small (EG: for image charges far from the kick point).
 !
 ! Input:
 !   s_chord0    -- real(rp): Start position along centroid chord.
@@ -1764,7 +1859,7 @@ end subroutine apply_fft_3d_kicks
 !                    Default is 0.
 !
 ! Output:
-!   dlen -- real(rp): L_spline - L_chord
+!   dlen -- real(rp): L_spline - L_projection
 !-
 
 function dspline_len (s_chord0, s_chord1, spline, dtheta_ref) result (dlen)
@@ -1775,26 +1870,27 @@ type (spline_struct) spline
 
 real(rp) s_chord0, s_chord1, dlen
 real(rp), optional :: dtheta_ref
-real(rp) c(0:3), s0, ds
+real(rp) s_mid, ds, xp, dth
+real(rp), parameter :: gl_x(4) = [-0.8611363115940526_rp, -0.3399810435848563_rp, 0.3399810435848563_rp, 0.8611363115940526_rp]
+real(rp), parameter :: gl_w(4) = [ 0.3478548451374538_rp,  0.6521451548625461_rp, 0.6521451548625461_rp, 0.3478548451374538_rp]
+integer i
 
-! x' = c(1) + 2*c2*s + 3*c3*s^2
-! dlen = Integral: x'^2/2 ds
+!
 
-c = spline%coef
-s0 = s_chord0
+s_mid = (s_chord0 + s_chord1) / 2
 ds = s_chord1 - s_chord0
 
-if (present(dtheta_ref)) then
-  c(1) = c(1) - dtheta_ref
-endif
+dlen = 0
+do i = 1, 4
+  xp = spline1(spline, s_mid + gl_x(i) * ds / 2, 1)
+  dlen = dlen + gl_w(i) * xp**2 / (1 + sqrt(1 + xp**2))
+enddo
+dlen = dlen * ds / 2
 
-dlen = (ds / 2) * ( &
-        c(1)**2 + &
-        (2*s0 + ds) * 2*c(1)*c(2) + &
-        (3*s0*s0 + 3*s0*ds + ds*ds) * (6*c(1)*c(3) + 4*c(2)**2) / 3 + &
-        (4*s0**3 + 6*s0*s0*ds + 4*s0*ds*ds + ds**3) * 3*c(2)*c(3) + &
-        (5*s0**4 + 10*s0**3*ds + 10*s0*s0*ds*ds + 5*s0*ds**3 + ds**4) * 9*c(3)**2 &
-       )
+if (present(dtheta_ref)) then
+  dth = dtheta_ref
+  dlen = dlen + 2 * sin(dth/2)**2 * ds - sin(dth) * (spline1(spline, s_chord1) - spline1(spline, s_chord0))
+endif
 
 end function dspline_len
 
@@ -1806,9 +1902,12 @@ end function dspline_len
 !
 ! Routine to calculate s_chord given s_ref.
 !
+! For a bend, s_chord is the chord coordinate where the centroid spline crosses the plane that is 
+! normal to the reference orbit at s_ref. This is solved for using Newton's method.
+!
 ! Input:
 !   s_ref     -- real(rp): s-position along element ref coords.
-!   eleinfo     -- csr_ele_info_struct: Element info
+!   eleinfo   -- csr_ele_info_struct: Element info
 !
 ! Output:
 !   s_chord   -- real(rp): s-position along centroid chord.
@@ -1820,23 +1919,40 @@ implicit none
 
 type (csr_ele_info_struct), target :: eleinfo
 type (ele_struct), pointer :: ele
+type (floor_position_struct) local, ref
 
-real(rp) s_ref, s_chord, dtheta, dr(3), x, g, t
+real(rp) s_ref, s_chord, g, x, xp, c, sn, t_vec(2), dr(2), f, df, ds
+integer i
 
 !
 
 ele => eleinfo%ele
 g = ele%value(g$)
+s_chord = s_ref * eleinfo%L_chord /ele%value(l$)
 
-if ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. abs(g) > 1d-5) then
-  dtheta = eleinfo%floor0%theta - eleinfo%ref_floor0%theta
-  dr = eleinfo%ref_floor0%r - eleinfo%floor0%r
-  t = eleinfo%ref_floor0%theta + pi/2
-  x = dr(1) * cos(t) + dr(3) * sin(t)
-  s_chord = abs(ele%value(rho$)) * atan2(s_ref * cos(dtheta), abs(ele%value(rho$) + x + s_ref * sin(dtheta)))
+! The ends are handled exactly since I_csr checks for s_chord == 0.
 
-else
-  s_chord = s_ref * eleinfo%L_chord /ele%value(l$)
+if (s_ref == 0) then
+  s_chord = 0
+elseif (s_ref == ele%value(l$)) then
+  s_chord = eleinfo%L_chord
+elseif ((ele%key == sbend$ .or. ele%key == rf_bend$) .and. abs(g) > 1d-5) then
+  local%r = [0.0_rp, 0.0_rp, s_ref]
+  ref = coords_local_curvilinear_to_floor (local, ele)
+  t_vec = [sin(ref%theta), cos(ref%theta)]  ! Reference orbit direction in the (x, z) floor plane.
+  c = cos(eleinfo%theta_chord)
+  sn = sin(eleinfo%theta_chord)
+
+  do i = 1, 20
+    x = spline1(eleinfo%spline, s_chord)
+    xp = spline1(eleinfo%spline, s_chord, 1)
+    dr = [x*c + s_chord*sn, -x*sn + s_chord*c] + [eleinfo%floor0%r(1), eleinfo%floor0%r(3)] - [ref%r(1), ref%r(3)]
+    f = dot_product(dr, t_vec)
+    df = dot_product([xp*c + sn, -xp*sn + c], t_vec)
+    ds = -f / df
+    s_chord = s_chord + ds
+    if (abs(ds) < 1d-14 * abs(eleinfo%L_chord) + 1d-15) exit
+  enddo
 endif
 
 end function s_ref_to_s_chord
