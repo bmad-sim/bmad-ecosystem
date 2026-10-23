@@ -254,6 +254,7 @@ Output is in parameter list form:
   word;STR;F;{word}
   context;STR;F;{context}
   prefix;STR;F;{prefix}
+  no_append;LOGIC;F;{no_append}
   match[1];STR;F;{candidate_1}
   match[2];STR;F;{candidate_2}
   ...
@@ -265,7 +266,9 @@ whitespace-delimited word of {line}) and {context} is one of:
   NONE -- The command is not recognized.
 {prefix} is what {word} can be replaced with immediately: the sole candidate, or
 {word} followed by whatever all candidates agree on. It is never shorter than
-{word} and is meaningful only for LIST.
+{word} and is meaningful only for LIST. {no_append} is T when a completed
+candidate is not a whole word, so no blank should be added after it (eg a
+"set data" datum name, which is followed by "[" or "|").
 
 Element selectors use Tao's full syntax ("quad::*", "1:10", "2@q1", ...) when
 finding attributes and values, and the "n@" and "key::" prefixes are completed.
@@ -274,9 +277,6 @@ Values of "set" commands are completed after an "=": enumerated element
 attributes (eg "set element q1 tracking_method = ") offer the values valid for
 that element, logical attributes and struct components offer T/F, and
 enumerated struct components (eg "set global track_type = ") offer their values.
-
-Known limitation: words following value-taking switches (eg "-write file")
-are counted as command words, so completion after such a switch is off by one.
 \end{verbatim}
 
 %% pipe constraints ------------------------------------
@@ -847,9 +847,10 @@ This gives element number 7 in branch 1 of universe 3.
 
 Output: Various element parameters. See the code for the list of what is returned.
 
-Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the element are never set.
-If the element used in this command is a super_slave with exactly one super_lord, what will be returned
-for these three parameters is the values stored in the super_lord. This is done for convenience sake.
+Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the 
+element are never set. If the element used in this command is a super_slave with exactly 
+one super_lord, what will be returned for these three parameters is the values stored 
+in the super_lord. This is done for convenience sake.
 \end{verbatim}
 
 %% pipe ele:lord_slave ------------------------------------
@@ -1039,9 +1040,9 @@ Output lines have the form:
   ix_shape;shape;color;line_width;y1;y2;label_name;draw;multi
 where ix_shape is the index of the matched shape in the "pipe shape_list {who}" output,
 and y1, y2 are the vertical extents before the plot_page shape scale is applied.
-Every matching shape is listed, up to and including the first with draw = T and multi = F.
-Shapes with draw = F are listed but are not drawn by Tao, so the lines with draw = T are
-exactly what Tao draws. Nothing is output if no shape matches the element.
+Every matching shape is listed, up to and including the first with draw = T and 
+multi = F. Shapes with draw = F are listed but are not drawn by Tao, so the lines with 
+draw = T are exactly what Tao draws. Nothing is output if no shape matches the element.
 \end{verbatim}
 
 %% pipe ele:spin_taylor ------------------------------------

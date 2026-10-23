@@ -3129,9 +3129,10 @@ case ('ele:grid_field')
 !
 ! Output: Various element parameters. See the code for the list of what is returned.
 !
-! Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the element are never set.
-! If the element used in this command is a super_slave with exactly one super_lord, what will be returned
-! for these three parameters is the values stored in the super_lord. This is done for convenience sake.
+! Note: For super_slave elements, the "type", "descrip", and "alias" parameters of the 
+! element are never set. If the element used in this command is a super_slave with exactly 
+! one super_lord, what will be returned for these three parameters is the values stored 
+! in the super_lord. This is done for convenience sake.
 !
 ! Parameters
 ! ----------
@@ -3746,9 +3747,9 @@ case ('ele:photon')
 !   ix_shape;shape;color;line_width;y1;y2;label_name;draw;multi
 ! where ix_shape is the index of the matched shape in the "pipe shape_list {who}" output,
 ! and y1, y2 are the vertical extents before the plot_page shape scale is applied.
-! Every matching shape is listed, up to and including the first with draw = T and multi = F.
-! Shapes with draw = F are listed but are not drawn by Tao, so the lines with draw = T are
-! exactly what Tao draws. Nothing is output if no shape matches the element.
+! Every matching shape is listed, up to and including the first with draw = T and 
+! multi = F. Shapes with draw = F are listed but are not drawn by Tao, so the lines with 
+! draw = T are exactly what Tao draws. Nothing is output if no shape matches the element.
 !
 ! Parameters
 ! ----------
