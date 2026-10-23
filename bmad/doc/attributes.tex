@@ -3123,7 +3123,20 @@ of the bunch particles. See \sref{s:sr.wake.syntax} for details. The default is 
 The wake is applied to a bunch by convoluting the bunch distribution with the wake.  The optional
 \vn{smoothing_sigma} component, if set non-zero, applies a Gaussian smoothing filter to the
 convolution. The value of \vn{smoothing_sigma} is in meters if \vn{time_based} is False or seconds
-otherwise.
+otherwise. The Gaussian has an rms width of \vn{smoothing_sigma} and is truncated at $\pm
+n_s$ table points where $n_s$ is $3 \, \sigma / dz$ rounded to the nearest integer with $\sigma$
+being \vn{smoothing_sigma} (converted to meters if \vn{time_based} is True) and $dz$ being the table
+spacing. If $n_s$ is zero, no smoothing is done. Near the ends of the symmetrized table, where the
+Gaussian window is truncated, the Gaussian weights are renormalized.
+
+Before any smoothing is done, the $z = 0$ entry of the table is halved. This follows from the
+fundamental theorem of beam loading: for a causal wake, which is zero for $z > 0$ and finite for $z
+\le 0$, a particle sees only half of its own induced wake. Halving the $z = 0$ entry gives
+$W(0) = (W(0^-) + W(0^+))/2 = W(0^-)/2$. This assumes that the wake is causal. If the wake
+is non-zero for $z > 0$, the halving is still done, so to get $W(0) = (W(0^-) + W(0^+))/2$ the
+$z = 0$ table entry should be set to $W(0^-) + W(0^+)$. The halving is applied only to the
+internal copy of the wake used for tracking. The \vn{w} table itself is not modified so lattice
+output shows the table as given.
 
 The \vn{z_scale} and \vn{amp_scale} parameters of the \vn{sr_wake} structure (\sref{s:sr.wake.syntax})
 are used with \vn{z_long}.
