@@ -3123,7 +3123,31 @@ of the bunch particles. See \sref{s:sr.wake.syntax} for details. The default is 
 The wake is applied to a bunch by convoluting the bunch distribution with the wake.  The optional
 \vn{smoothing_sigma} component, if set non-zero, applies a Gaussian smoothing filter to the
 convolution. The value of \vn{smoothing_sigma} is in meters if \vn{time_based} is False or seconds
-otherwise.
+otherwise. The Gaussian has an rms width of \vn{smoothing_sigma} and is truncated at $\pm
+n_s$ table points where $n_s$ is $3 \, \sigma / dz$ rounded to the nearest integer with $\sigma$
+being \vn{smoothing_sigma} and $dz$ being the table
+spacing. If $n_s$ is zero, no smoothing is done. The smoothed wake $W_s$ at table point $i$ is a
+weighted average of the table values $W_j$:
+\begin{equation}
+  W_s(i) = \frac{\sum_j g_{j-i} \, W_j}{\sum_j g_{j-i}}, \qquad
+  g_k = \exp\left( -\frac{1}{2} \left( \frac{k \, dz}{\sigma} \right)^2 \right)
+\end{equation}
+where the sums run over the points $j$ with $|j - i| \le n_s$ that lie within the symmetrized
+table. Away from the table ends, the denominator is the same for all $i$, so smoothing does not
+change the sum of the table values. Within $n_s$ points of either end, the Gaussian window extends past
+the table and the missing points are left out of both sums. The denominator is then smaller, so
+$W_s$ is still a properly normalized average. As a result, the smoothing is not exactly
+symmetric there and the sum of the table values is not exactly preserved. If this matters, extend the table
+so that its ends are well away from the region where the wake is significant.
+
+Before any smoothing is done, the $z = 0$ entry of the table is halved. This follows from the
+fundamental theorem of beam loading: for a causal wake, which is zero for $z > 0$ and finite for $z
+\le 0$, a particle sees only half of its own induced wake. Halving the $z = 0$ entry gives
+$W(0) = (W(0^-) + W(0^+))/2 = W(0^-)/2$. This assumes that the wake is causal. If the wake
+is non-zero for $z > 0$, the halving is still done, so to get $W(0) = (W(0^-) + W(0^+))/2$ the
+$z = 0$ table entry should be set to $W(0^-) + W(0^+)$. The halving is applied only to the
+internal copy of the wake used for tracking. The \vn{w} table itself is not modified so lattice
+output shows the table as given.
 
 The \vn{z_scale} and \vn{amp_scale} parameters of the \vn{sr_wake} structure (\sref{s:sr.wake.syntax})
 are used with \vn{z_long}.
