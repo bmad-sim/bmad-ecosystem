@@ -12,6 +12,9 @@
 !   the energy of the reference particle is changing.
 ! This means that the resulting matrix will NOT be symplectic.
 !
+! If the element is turned off, the particle drifts but its coordinates are still
+!   renormalized to the reference momentum at each RF step.
+!
 ! Input:
 !   orbit       -- Coord_struct: Starting position.
 !   ele         -- ele_struct: Thick multipole element.
@@ -220,7 +223,7 @@ logical make_mat
 
 length = ds * orbit%direction
 
-if (lord%value(ks$) == 0) then
+if (lord%value(ks$) == 0 .or. .not. ele%is_on) then
   call track_a_drift(orbit, length, mat6, make_mat)
 else
   if (track_spin) then
@@ -259,6 +262,7 @@ logical make_mat
 
 if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == -1) return
 if (lord%value(l_active$) == 0) return
+if (.not. ele%is_on) return
 
 ! Init
 
@@ -356,6 +360,7 @@ endif
 phase = this_rf_phase(orbit, ele, lord, step)
 
 dE_amp = s_dir * (lord%value(voltage$) + lord%value(voltage_err$)) * step%scale * lord%value(field_autoscale$) ! Amplitude of RF field
+if (.not. ele%is_on) dE_amp = 0  ! No field but the reference energy still steps.
 dE = dE_amp * cos(phase)
 
 rel_p = 1 + orbit%vec(6)
@@ -437,6 +442,7 @@ logical make_mat
 
 if (nint(lord%value(cavity_type$)) == traveling_wave$ .and. body_dir == 1) return
 if (lord%value(l_active$) == 0) return
+if (.not. ele%is_on) return
 !
 
 n_step = nint(lord%value(n_rf_steps$))
