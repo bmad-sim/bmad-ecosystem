@@ -83,6 +83,10 @@ regression_tests/hdf5_test/bunch.h5
 regression_tests/hdf5_test/grid_field.h5
 regression_tests/hdf5_test/bunch.ascii
 regression_tests/hdf5_test/general.h5
+regression_tests/hdf5_test/leak*.h5
+regression_tests/hdf5_test/*patches*.h5
+regression_tests/hdf5_test/filtered.h5
+regression_tests/hdf5_test/ids.h5
 regression_tests/multipass_test/lat_out.bmad
 regression_tests/multipass_test/lat_out1.bmad
 regression_tests/multipass_test/lat_out2.bmad

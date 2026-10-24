@@ -8,7 +8,7 @@ implicit none
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
-type (beam_struct), target :: beam, beam2
+type (beam_struct), target :: beam, beam2, beam3
 type (bunch_struct), pointer :: bunch
 type (coord_struct) orb
 type (coord_struct), pointer :: particle
@@ -17,10 +17,11 @@ real(rp) particles_per_thread, now_time
 
 integer num_slaves, slave_rank, stat(MPI_STATUS_SIZE)
 integer i, n, nn, nb, ib, ix, ierr, rc, leng, bd_size, storage_size, dat_size, ix_stage
-integer ip, ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed
+integer ip, ip0, ip1, nt0, nt1, mpi_n_proc, iu, ios, n_particle, i_turn, n_part_tot, seed, iw, ir
 integer, allocatable :: ix_stop_turn(:), ixp_slave(:)
 
 integer, parameter :: base_tag$  = 1000
+integer, parameter :: write_at_tag$  = base_tag$ - 2  ! For beams saved at ltt%ele_write_at elements.
 
 logical am_i_done, err_flag, ok, too_many_dead
 logical, allocatable :: stop_here(:), slave_working(:)
@@ -312,6 +313,13 @@ case default
   enddo
 end select
 
+! Beam files are written by the Master so the beam must be gathered at beam output turns.
+! This includes beams saved at the ltt%ele_write_at elements which are saved on the last turn of a stage.
+
+do i = 1, lttp%n_turns
+  if (ltt_beam_output_turn(lttp, i + lttp%ix_turn_start)) stop_here(i) = .true.
+enddo
+
 n = count(stop_here)
 allocate (ix_stop_turn(0:n))
 ix_stop_turn(0) = lttp%ix_turn_start
@@ -406,6 +414,36 @@ if (ltt_com%mpi_rank == master_rank$) then
     call ltt_write_averages_data (lttp, i_turn, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn, beam = beam)
     call ltt_write_beam_file(lttp, ltt_com, i_turn, beam)
+
+    ! Gather and write the beams saved at the ltt%ele_write_at elements.
+
+    if (ltt_write_at_turn(lttp, ltt_com, i_turn)) then
+      beam3 = beam
+      do iw = 1, size(ltt_com%ele_write_at)
+        do nb = 1, size(beam3%bunch)
+          beam3%bunch(nb)%particle(1:ixp_slave(0)) = ltt_com%write_at_beam(iw)%bunch(nb)%particle
+          beam3%bunch(nb)%ix_ele = ltt_com%write_at_beam(iw)%bunch(nb)%ix_ele
+        enddo
+
+        do ir = 1, num_slaves
+          ip0 = ixp_slave(ir-1)+1; ip1 = ixp_slave(ir)
+          n = ip1 + 1 - ip0
+          dat_size = n * storage_size(beam3%bunch(1)%particle(1)) / 8
+          do nb = 1, size(beam3%bunch)
+            call mpi_recv(beam3%bunch(nb)%particle(ip0:ip1), dat_size, MPI_BYTE, ir, write_at_tag$, MPI_COMM_WORLD, stat, ierr)
+            if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+          enddo
+        enddo
+
+        do nb = 1, size(beam3%bunch)
+          beam3%bunch(nb)%n_live = count(beam3%bunch(nb)%particle%state == alive$)
+          beam3%bunch(nb)%charge_live = sum(beam3%bunch(nb)%particle%charge, beam3%bunch(nb)%particle%state == alive$)
+        enddo
+
+        call ltt_write_beam_file(lttp, ltt_com, i_turn, beam3, ltt_com%ele_write_at(iw)%ele)
+      enddo
+    endif
+
     call ltt_space_charge_emit_calc(lttp, ltt_com, i_turn, beam)
   enddo
 
@@ -456,6 +494,16 @@ else  ! BEAM slave
       call mpi_send (beam2%bunch(nb)%particle, dat_size, MPI_BYTE, master_rank$, base_tag$+ix_stage, MPI_COMM_WORLD, ierr)
       if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
     enddo
+
+    ! Send beams saved at the ltt%ele_write_at elements.
+    if (ltt_write_at_turn(lttp, ltt_com, nt1)) then
+      do iw = 1, size(ltt_com%ele_write_at)
+        do nb = 1, size(beam2%bunch)
+          call mpi_send (ltt_com%write_at_beam(iw)%bunch(nb)%particle, dat_size, MPI_BYTE, master_rank$, write_at_tag$, MPI_COMM_WORLD, ierr)
+          if (ierr /= MPI_SUCCESS) call ltt_print_mpi_info (lttp, ltt_com, 'MPI ERROR!', .true.)
+        enddo
+      enddo
+    endif
   enddo
 
   call ltt_print_mpi_info (lttp, ltt_com, 'Slave: All done!', .true.)

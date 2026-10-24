@@ -130,6 +130,9 @@ type ltt_com_struct
   type (normal_modes_struct) modes
   type (ltt_section_struct), allocatable :: sec(:)   ! Array of sections indexed from 0. The first one marks the beginning.
   type (ele_struct), pointer :: ele_start_ptr            ! Pointer to start ele in original (not tracking) lattice.
+  type (ele_pointer_struct), allocatable :: ele_write_at(:) ! Ring elements to write beam files at (non-extraction BEAM mode).
+  type (beam_struct), allocatable :: write_at_beam(:)       ! Beam saved at the ele_write_at(:) elements.
+  integer, allocatable :: ix_write_at(:)                    ! Tracking branch ele index -> ele_write_at index. 0 => Not saved.
   type (beam_init_struct) beam_init
   type (beam_init_struct) beam_init_used
   type (random_state_struct) ramper_ran_state
@@ -519,6 +522,7 @@ type (lat_struct), pointer :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
 type (rad_map_ele_struct), pointer :: ri
+type (ele_pointer_struct), allocatable :: eles(:)
 
 real(rp) closed_orb(6), f_tol, time, ff
 
@@ -669,6 +673,41 @@ if (lttp%simulation_mode == 'CHECK' .or. lttp%tracking_method == 'MAP') then
 endif
 
 lttp%ramping_on = ramping_on 
+
+! Writing beam files at elements in the ring (as opposed to an extraction line).
+
+if (lttp%simulation_mode == 'BEAM' .and. lttp%extraction_method == '' .and. lttp%ele_write_at /= '') then
+  if (lttp%tracking_method /= 'BMAD') then
+    call out_io (s_fatal$, r_name, 'LTT%ELE_WRITE_AT (WITHOUT EXTRACTION) CAN ONLY BE USED WITH LTT%TRACKING_METHOD = "BMAD".')
+    stop
+  endif
+
+  call lat_ele_locator(lttp%ele_write_at, lat, eles, n, err, .true., ix_dflt_branch = ltt_com%ix_branch)
+  branch => lat%branch(ltt_com%ix_branch)
+  allocate (ltt_com%ele_write_at(n), ltt_com%write_at_beam(n), ltt_com%ix_write_at(0:branch%n_ele_track))
+  ltt_com%ix_write_at = 0
+
+  ! A super_lord is written at its last slave. Elements not in the tracking part of the branch are ignored.
+  i = 0
+  do ie = 1, n
+    ele => eles(ie)%ele
+    if (ele%lord_status == super_lord$) ele => pointer_to_slave(ele, ele%n_slave)
+    if (ele%ix_branch /= branch%ix_branch .or. ele%ix_ele > branch%n_ele_track) cycle
+    if (ltt_com%ix_write_at(ele%ix_ele) /= 0) cycle
+    i = i + 1
+    ltt_com%ele_write_at(i)%ele => ele
+    ltt_com%ix_write_at(ele%ix_ele) = i
+  enddo
+
+  if (err .or. i == 0) then
+    call out_io (s_fatal$, r_name, 'NO ELEMENTS IN THE TRACKING BRANCH MATCH LTT%ELE_WRITE_AT: ' // quote(lttp%ele_write_at))
+    stop
+  endif
+
+  ltt_com%ele_write_at = ltt_com%ele_write_at(1:i)
+  deallocate (ltt_com%write_at_beam)
+  allocate (ltt_com%write_at_beam(i))
+endif
 
 ! Beam setup
 
@@ -886,6 +925,8 @@ call ltt_write_line('# ltt%ele_start                             = ' // quote(lt
 call ltt_write_line('# ltt%extraction_method                     = ' // quote(lttp%extraction_method), lttp, iu, print_this)
 if (lttp%extraction_method /= '') then
   call ltt_write_line('# ltt%ele_extract                           = ' // quote(lttp%ele_extract), lttp, iu, print_this)
+endif
+if (lttp%extraction_method /= '' .or. lttp%ele_write_at /= '') then
   call ltt_write_line('# ltt%ele_write_at                          = ' // quote(lttp%ele_write_at), lttp, iu, print_this)
 endif
 
@@ -1585,9 +1626,9 @@ real(rp) time0, time1, time_now, dref_time, beta_new
 
 integer ix_start_turn, ix_end_turn
 integer n, n_print_dead_loss, i_turn, ie, n_part_tot
-integer ip, ib, n_live_old, n_live, ix_branch
+integer ip, ib, n_live_old, n_live, ix_branch, iw, ix_save
 
-logical err_flag
+logical err_flag, write_at
 
 character(16) prefix_str
 character(200) file_name
@@ -1629,6 +1670,18 @@ endif
 !
 
 do i_turn = ix_start_turn, ix_end_turn-1
+  ! Is the beam to be saved at the ltt%ele_write_at elements this turn?
+  write_at = ltt_write_at_turn(lttp, ltt_com, i_turn+1)
+  if (write_at) then
+    do iw = 1, size(ltt_com%write_at_beam)
+      if (allocated(ltt_com%write_at_beam(iw)%bunch)) then
+        if (size(ltt_com%write_at_beam(iw)%bunch) == size(beam%bunch)) cycle
+        deallocate (ltt_com%write_at_beam(iw)%bunch)
+      endif
+      allocate (ltt_com%write_at_beam(iw)%bunch(size(beam%bunch)))
+    enddo
+  endif
+
   do ib = 1, size(beam%bunch)
     bunch => beam%bunch(ib)
     bunch%ix_turn = i_turn   ! Turn index before tracking this turn
@@ -1642,7 +1695,9 @@ do i_turn = ix_start_turn, ix_end_turn-1
       enddo
 
     case ('BMAD')
-      call ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
+      ix_save = 0
+      if (write_at) ix_save = ib
+      call ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch, ix_save)
 
     case ('PTC')
       dref_time = branch%ele(branch%n_ele_track)%ref_time - branch%ele(0)%ref_time
@@ -1708,6 +1763,11 @@ do i_turn = ix_start_turn, ix_end_turn-1
     call ltt_write_averages_data(lttp, i_turn+1, beam)
     call ltt_write_custom (lttp, ltt_com, i_turn+1, beam = beam)
     call ltt_write_beam_file(lttp, ltt_com, i_turn+1, beam)
+    if (write_at) then
+      do iw = 1, size(ltt_com%ele_write_at)
+        call ltt_write_beam_file(lttp, ltt_com, i_turn+1, ltt_com%write_at_beam(iw), ltt_com%ele_write_at(iw)%ele)
+      enddo
+    endif
     call ltt_space_charge_emit_calc(lttp, ltt_com, i_turn+1, beam)
   endif
 end do
@@ -2269,23 +2329,33 @@ end subroutine ltt_write_custom
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_write_beam_file (lttp, ltt_com, i_turn, beam)
+!+
+! Subroutine ltt_write_beam_file (lttp, ltt_com, i_turn, beam, ele)
+!
+! Write a beam file if i_turn is a beam output turn.
+!
+! Input:
+!   lttp      -- ltt_params_struct: Parameters.
+!   ltt_com   -- ltt_com_struct: Common vars.
+!   i_turn    -- integer: Turn index.
+!   beam      -- beam_struct: Beam to write.
+!   ele       -- ele_struct, optional: If present, the beam is at this element (ltt%ele_write_at) and
+!                  the file name is prefixed with "<ix_branch>.<ix_ele>_<ele_name>-".
+!-
+
+subroutine ltt_write_beam_file (lttp, ltt_com, i_turn, beam, ele)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (beam_struct), target :: beam
+type (ele_struct), optional :: ele
 
-integer i_turn, iu, ios, nt, ix, n
+integer i_turn, iu, ios, ix, n
 character(200) file
 
 !
 
-if (lttp%beam_output_file == '') return
-
-nt = lttp%beam_output_every_n_turns
-if (nt > 0 .and. lttp%output_only_last_turns > 0 .and. &
-                                        lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
-if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
+if (.not. ltt_beam_output_turn(lttp, i_turn)) return
 
 file = lttp%beam_output_file
 ix = str_last_in_set(file, '.')
@@ -2294,6 +2364,11 @@ if (ix == 0) then
   file = trim(file) // '-' // int_str(i_turn, n)
 else
   file = file(:ix-1) // '-' // int_str(i_turn, n) // file(ix:)
+endif
+
+if (present(ele)) then
+  ix = str_last_in_set(file, '/')
+  file = file(:ix) // int_str(ele%ix_branch) //  '.' // int_str(ele%ix_ele) // '_' // trim(ele%name) // '-' // file(ix+1:)
 endif
 
 call fullfilename(file, file)
@@ -2309,6 +2384,75 @@ call write_beam_file (file, beam)
 !ltt_com%last_beam_output_file = file
 
 end subroutine ltt_write_beam_file
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function ltt_beam_output_turn (lttp, i_turn) result (is_output_turn)
+!
+! Routine to determine if a beam file is to be written at the end of turn i_turn.
+!
+! Input:
+!   lttp            -- ltt_params_struct: Parameters.
+!   i_turn          -- integer: Turn index.
+!
+! Output:
+!   is_output_turn  -- logical: True if beam files are to be written.
+!-
+
+function ltt_beam_output_turn (lttp, i_turn) result (is_output_turn)
+
+type (ltt_params_struct) lttp
+integer i_turn, nt
+logical is_output_turn
+
+!
+
+is_output_turn = .false.
+if (lttp%beam_output_file == '') return
+
+nt = lttp%beam_output_every_n_turns
+if (nt > 0 .and. lttp%output_only_last_turns > 0 .and. &
+                                        lttp%n_turns - i_turn >= lttp%output_only_last_turns) return
+if ((nt < 0 .or. mod(i_turn, nt) /= 0) .and. i_turn /= lttp%n_turns) return
+
+is_output_turn = .true.
+
+end function ltt_beam_output_turn
+
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!-------------------------------------------------------------------------------------------
+!+
+! Function ltt_write_at_turn (lttp, ltt_com, i_turn) result (is_write_at_turn)
+!
+! Routine to determine if the beam is to be saved at the ltt%ele_write_at elements while tracking
+! the turn that ends with turn index i_turn. Only used when not doing extraction tracking.
+!
+! Input:
+!   lttp              -- ltt_params_struct: Parameters.
+!   ltt_com           -- ltt_com_struct: Common vars.
+!   i_turn            -- integer: Turn index at the end of the turn.
+!
+! Output:
+!   is_write_at_turn  -- logical: True if the beam is to be saved.
+!-
+
+function ltt_write_at_turn (lttp, ltt_com, i_turn) result (is_write_at_turn)
+
+type (ltt_params_struct) lttp
+type (ltt_com_struct) ltt_com
+integer i_turn
+logical is_write_at_turn
+
+!
+
+is_write_at_turn = .false.
+if (.not. allocated(ltt_com%ele_write_at)) return
+is_write_at_turn = ltt_beam_output_turn(lttp, i_turn)
+
+end function ltt_write_at_turn
 
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
@@ -3186,40 +3330,72 @@ end subroutine ltt_track_bmad_single
 !-------------------------------------------------------------------------------------------
 !-------------------------------------------------------------------------------------------
 
-subroutine ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch)
+!+
+! Subroutine ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch, ix_save)
+!
+! Track a bunch one turn using Bmad tracking.
+!
+! If ix_save > 0, the bunch is saved in ltt_com%write_at_beam(:)%bunch(ix_save) at the ltt_com%ele_write_at(:) elements.
+!
+! Input:
+!   lttp          -- ltt_params_struct: Parameters.
+!   ltt_com       -- ltt_com_struct: Common vars.
+!   ele_start     -- ele_struct: Turn start and stop element.
+!   bunch         -- bunch_struct: Bunch at start of turn.
+!   ix_save       -- integer: Bunch index in ltt_com%write_at_beam(:) to save to. 0 => Do not save.
+!
+! Output:
+!   ltt_com       -- ltt_com_struct: ltt_com%write_at_beam(:)%bunch(ix_save) set if ix_save > 0.
+!   bunch         -- bunch_struct: Bunch at end of turn.
+!-
+
+subroutine ltt_track_bmad_bunch (lttp, ltt_com, ele_start, bunch, ix_save)
 
 type (ltt_params_struct) lttp
 type (ltt_com_struct), target :: ltt_com
 type (bunch_struct) bunch
 type (ele_struct), target :: ele_start
 type (ele_struct), pointer :: ele
+type (branch_struct), pointer :: branch
 
-integer i
+integer ix_save, i, ip, ie, iw
 logical err_flag, rad_fluct
 
 !
 
-if (lttp%split_bends_for_stochastic_rad) then
-  rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
-  ele => ele_start
+branch => ele_start%branch
+if (lttp%split_bends_for_stochastic_rad) rad_fluct = set_parameter (bmad_com%radiation_fluctuations_on, .false.)
 
-  do
-    ele => pointer_to_next_ele(ele)
-    if (ele%name == 'RADIATION_POINT') then
-      do i = 1, size(bunch%particle)
-        call ltt_track1_radiation_center(bunch%particle(i), ele, .false., rad_fluct)
+! Loop over elements in the same order as track_bunch.
+! If there is a tracking error, tracking stops. But if saving, continue the loop so that 
+! all the ltt_com%write_at_beam(:) bunches get set.
+
+err_flag = .false.
+ie = ele_start%ix_ele
+do i = 1, branch%n_ele_track
+  ie = ie + 1
+  if (ie > branch%n_ele_track) ie = 1
+  ele => branch%ele(ie)
+
+  if (.not. err_flag) then
+    if (lttp%split_bends_for_stochastic_rad .and. ele%name == 'RADIATION_POINT') then
+      do ip = 1, size(bunch%particle)
+        call ltt_track1_radiation_center(bunch%particle(ip), ele, .false., rad_fluct)
       enddo
     else
       call track1_bunch (bunch, ele, err_flag)
     endif
-    if (ele%ix_ele == ele_start%ix_ele) exit
-  enddo
+  endif
 
-  bmad_com%radiation_fluctuations_on = rad_fluct
+  if (ix_save > 0) then
+    iw = ltt_com%ix_write_at(ie)
+    if (iw /= 0) ltt_com%write_at_beam(iw)%bunch(ix_save) = bunch
+  elseif (err_flag) then
+    exit
+  endif
+enddo
 
-else
-  call track_bunch (ele_start%branch%lat, bunch, ele_start, ele_start, err_flag)
-endif
+if (lttp%split_bends_for_stochastic_rad) bmad_com%radiation_fluctuations_on = rad_fluct
 
 end subroutine ltt_track_bmad_bunch
 
