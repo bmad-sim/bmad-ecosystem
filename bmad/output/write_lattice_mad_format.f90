@@ -957,7 +957,7 @@ do
         if (abs(a_pole(i)) < 1d-12 * abs(b_pole(i))) a_pole(i) = 0  ! Round to zero insignificant value
         if (abs(b_pole(i)) < 1d-12 * abs(a_pole(i))) b_pole(i) = 0  ! Round to zero insignificant value
         call value_to_line (knl_str,  rel_p0c*b_pole(i) * factorial(i), '', 'R', .false.)
-        call value_to_line (ksl_str, -rel_p0c*a_pole(i) * factorial(i), '', 'R', .false.)
+        call value_to_line (ksl_str,  rel_p0c*a_pole(i) * factorial(i), '', 'R', .false.)
       enddo
       if (any(b_pole /= 0)) line_out = trim(line_out) // ', knl = {' // trim(knl_str(3:)) // '}'
       if (any(a_pole /= 0)) line_out = trim(line_out) // ', ksl = {' // trim(ksl_str(3:)) // '}'

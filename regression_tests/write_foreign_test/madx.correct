@@ -4,7 +4,7 @@
 beam_def: Beam, Particle = Positron, Energy =   1.0000E-03             , Npart = 
       1.0000E+10             ;;
 
-AB_MULTIPOLE1: multipole, knl = {0, 0, 2.5017E+02}, ksl = {0, 0, -1.3196E+02};
+AB_MULTIPOLE1: multipole, knl = {0, 0, 2.5017E+02}, ksl = {0, 0, 1.3196E+02};
 A_KICKER_1: kicker, l =   0.0000E+00, hkick = 5.0000E-03;
 AC_KICKER011001: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00,
      rm44 = 1.0000E+00, rm55 = 1.0000E+00, kick5 = 1.4506E-04, rm66 = 1.0000E+00;
@@ -33,7 +33,7 @@ FLOOR_SHIFT1: drift, l =   0.0000E+00;
 GKICKER1: drift, l =   0.0000E+00;
 HKICKER1: hkicker, l =   4.5000E+00, kick = 1.0000E-03, tilt = 1.0000E-01;
 INSTRUMENT1: drift, l =   4.5000E+00;
-KMULTIPOLE_7: multipole, knl = {9.9500E-07}, ksl = {9.9833E-08};
+KMULTIPOLE_7: multipole, knl = {9.9500E-07}, ksl = {-9.9833E-08};
 KICKER1: kicker, l =   4.5000E+00, vkick = 1.0000E-03, tilt = 1.0000E-01;
 MATCH1: matrix, rm11 = 1.5650E+00, rm12 = -7.3485E-02, rm13 = 3.5194E-01, rm14 = -3.8271E-02,
      rm21 = 7.3485E-02, rm22 = 6.8042E-01, rm23 = 3.3143E-02, rm24 = -2.0320E-01,
@@ -41,30 +41,30 @@ MATCH1: matrix, rm11 = 1.5650E+00, rm12 = -7.3485E-02, rm13 = 3.5194E-01, rm14 =
      rm41 = 3.8271E-02, rm42 = -2.0320E-01, rm43 = 5.6569E-02, rm44 = 8.8940E-01,
      kick5 = -2.5770E-01, rm55 = 1.0000E+00, rm56 = -6.7290E-02, rm66 = 1.0000E+00;
 MONITOR1: drift, l =   4.5000E+00;
-MULTIPOLE1: multipole, knl = {0, 0, 0, -3.2804E+00}, ksl = {0, 1.0000E+00, 0, -3.0805E+00};
+MULTIPOLE1: multipole, knl = {0, 0, 0, -3.2804E+00}, ksl = {0, -1.0000E+00, 0, 3.0805E+00};
 OCTUPOLE1: octupole, l =   4.5000E+00, k3 = 1.0000E+03, tilt = 3.9270E-01;
 DRIFT_PATCH1: drift, l =   4.0000E-03;
 PATCH1__t: translation, dx = 1.0000E-03, dy = 2.0000E-03;
 PATCH1__y: yrotation, angle =  -1.0000E-03;
 PATCH1__x: xrotation, angle =  -2.0000E-03;
 PATCH1__s: srotation, angle =   2.0000E+00;
-QMULTIPOLE_8: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {-2.1213E-03, 0};
+QMULTIPOLE_8: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {2.1213E-03, 0};
 Q_KICKER_9: kicker, l =   0.0000E+00, hkick = 2.0000E-03, vkick = 3.0000E-03;
 QUADRUPOLE1: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = -9.0976E-05, rm66 = 1.0000E+00;
-QMULTIPOLE_10: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {2.1213E-03, 0};
+QMULTIPOLE_10: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {-2.1213E-03, 0};
 Q_KICKER_11: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE2: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = -2.7907E-05, rm66 = 1.0000E+00;
-QMULTIPOLE_12: multipole, knl = {2.1213E-23, 3.0000E-22}, ksl = {-2.1213E-23, 0};
+QMULTIPOLE_12: multipole, knl = {2.1213E-23, 3.0000E-22}, ksl = {2.1213E-23, 0};
 Q_KICKER_13: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE3: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = -3.2471E-08, rm66 = 1.0000E+00;
-QMULTIPOLE_14: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {-2.1213E-03, 0};
+QMULTIPOLE_14: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {2.1213E-03, 0};
 Q_KICKER_15: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE4: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = -2.7121E-05, rm66 = 1.0000E+00;
-QMULTIPOLE_16: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {2.1213E-03, 0};
+QMULTIPOLE_16: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {-2.1213E-03, 0};
 Q_KICKER_17: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE5: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
      rm55 = 1.0000E+00, kick5 = -2.7990E-05, rm66 = 1.0000E+00;
@@ -78,17 +78,17 @@ SBEND1: sbend, l =   6.0000E-01, k1 = 3.0000E-01, tilt = 1.0000E-01, k0 = -1.641
 RBEND2: sbend, l =   6.0000E-01, tilt = 1.0000E-01, k0 = 1.6639E-05, k0s = -1.6583E-04;
 SBEND3: sbend, l =   6.0000E-01, k1 = 3.0000E-01, tilt = 1.0000E-01, k0 = 1.6639E-05,
      k0s = -1.6583E-04;
-SMULTIPOLE_18: multipole, knl = {2.9950E-08, 2.9800E-07}, ksl = {-2.9850E-07, -1.4701E-06};
+SMULTIPOLE_18: multipole, knl = {2.9950E-08, 2.9800E-07}, ksl = {2.9850E-07, 1.4701E-06};
 RBEND4: sbend, l =   6.0000E-01, angle = 6.0000E-03, e1 = 1.0300E-01, e2 = 2.0300E-01,
      tilt = 1.0000E-01, k0 = -1.9783E-02, k0s = -1.6583E-04;
-SMULTIPOLE_19: multipole, knl = {2.9950E-06, 2.9800E-05}, ksl = {-2.9850E-05, -1.4701E-04};
+SMULTIPOLE_19: multipole, knl = {2.9950E-06, 2.9800E-05}, ksl = {2.9850E-05, 1.4701E-04};
 SBEND5: sbend, l =   6.0000E-01, angle = 6.0000E-03, e1 = 1.0000E-01, e2 = 2.0000E-01,
      tilt = 1.0000E-01, fint = 7.0000E-01, fintx = 7.0000E-01, hgap = 2.0000E+00,
      k0 = 1.6639E-05, k0s = -1.6583E-04;
-SMULTIPOLE_20: multipole, knl = {2.9950E-11, 2.9800E-10}, ksl = {-2.9850E-10, -1.4701E-09};
+SMULTIPOLE_20: multipole, knl = {2.9950E-11, 2.9800E-10}, ksl = {2.9850E-10, 1.4701E-09};
 RBEND6: sbend, l =   6.0000E-01, angle = 6.0000E-03, e1 = 1.0300E-01, e2 = 2.0300E-01,
      tilt = 1.0000E-01, k0 = -1.9983E-02, k0s = -1.6583E-04;
-SMULTIPOLE_21: multipole, knl = {2.9950E-06, 2.9800E-05}, ksl = {-2.9850E-05, -1.4701E-04};
+SMULTIPOLE_21: multipole, knl = {2.9950E-06, 2.9800E-05}, ksl = {2.9850E-05, 1.4701E-04};
 SBEND7: sbend, l =   6.0000E-01, angle = 6.0000E-03, e1 = 1.0000E-01, e2 = 2.0000E-01,
      tilt = 1.0000E-01, k0 = 1.6639E-05, k0s = -1.6583E-04;
 SEXTUPOLE1: sextupole, l =   6.0000E-01, k2 = 1.0000E+00, tilt = 5.2360E-01;
@@ -110,8 +110,8 @@ SOL_QUAD2: matrix, rm11 = 2.3908E-01, rm12 = 1.1166E-01, rm13 = 8.6124E-01, rm14
      -8.6127E-01, rm43 = -1.2887E-01, rm44 = 2.3910E-01, rm46 = 1.6289E-02, rm51 = 3.1459E-02,
      rm52 = -4.0729E-02, rm53 = 8.3116E-05, rm54 = -6.3024E-02, rm55 = 1.0000E+00,
      rm56 = 1.5073E-03, rm66 = 1.0000E+00;
-TMULTIPOLE_24: multipole, knl = {0, 0, 2.9552E-01, 5.5264E+01}, ksl = {0, 0, -9.5534E-01,
-     2.3365E+01};
+TMULTIPOLE_24: multipole, knl = {0, 0, 2.9552E-01, 5.5264E+01}, ksl = {0, 0, 9.5534E-01,
+     -2.3365E+01};
 THICK_MULTIPOLE1: drift, l =   4.5000E+00;
 TAYLOR1: matrix, l = 5.0000E-01, rm11 = 1.0045E+00, kick1 = -9.5488E-03, rm12 = 8.8121E+00,
      rm13 = 3.1589E-06, rm14 = 6.2474E-07, rm15 = -7.9443E-04, rm16 = -1.5990E-03,
