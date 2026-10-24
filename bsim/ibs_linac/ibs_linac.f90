@@ -131,7 +131,7 @@ if (verbose) print *, 'Bunch initialized'
 call set_ele(lat%ele(0), bunch_params, energy_spread_eV)
 
 ! Set 
-lat%param%n_part = bunch_params%charge_live / e_charge
+lat%param%n_part = bunch_params%charge_live / (e_charge * abs(charge_of(lat%param%particle)))
 write (*, '(a)')           'Beginning bunch:'
 write (*, '(a, f15.7, a)') '      energy            : ', 1e-6_rp*ele%value(e_tot$), ' MeV'
 write (*, '(a, f15.7, a)') '      charge            : ', 1e12_rp*bunch_params%charge_live, ' pC'

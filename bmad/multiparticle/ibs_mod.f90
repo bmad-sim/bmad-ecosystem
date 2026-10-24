@@ -723,7 +723,7 @@ real(rp) Bbar
 real(rp) u, v, w  !used for Raubenheimer's calculation
 real(rp) qmin, qmax
 real(rp) vol, debye
-real(rp) classical_radius
+real(rp) c_radius
 
 !fgsl variables
 type(c_ptr) :: ptr
@@ -756,11 +756,11 @@ Dbp = ele%b%etap
 sigma_a = sqrt(sigma_a_beta**2 + (Da**2)*(sigma_p**2))
 sigma_b = sqrt(sigma_b_beta**2 + (Db**2)*(sigma_p**2))
 
-classical_radius = c_light*c_light*e_charge*1.0d-7*abs(charge_of(ele%branch%lat%param%particle))/mass_of(ele%branch%lat%param%particle)
+c_radius = classical_radius(ele%branch%lat%param%particle)
 
 if( ibs_sim_params%clog_to_use == 1 ) then
   !Classic Coulomb Log.
-  coulomb_log = log( (gamma**2)*sigma_b*emit_a/classical_radius/beta_a )
+  coulomb_log = log( (gamma**2)*sigma_b*emit_a/c_radius/beta_a )
 elseif( ibs_sim_params%clog_to_use == 2 ) then
   !Tail cut Raubenheimer gstar (ignores vertical dispersion !)
   Ha = ( Da**2 + (beta_a*Dap + alpha_a*Da)**2 ) / beta_a
@@ -771,7 +771,7 @@ elseif( ibs_sim_params%clog_to_use == 2 ) then
   w = g2*( Da*Da*beta_b/emit_a/emit_a/emit_b + beta_a*beta_b/sp2/emit_a/emit_b )
 
   Bbar = gamma*sqrt( gamma_a*emit_a + gamma_b*emit_b + sp2/g2)
-  qmin = 2.0 * classical_radius / sigma_b / Bbar
+  qmin = 2.0 * c_radius / sigma_b / Bbar
 
   !FGSL integration
   ptr = c_loc(args)
@@ -784,7 +784,7 @@ elseif( ibs_sim_params%clog_to_use == 2 ) then
   call fgsl_function_free(integrand_ready)
   call fgsl_integration_workspace_free(integ_wk)
 
-  qmax = sqrt( ibs_sim_params%tau_a*lambda*c_light*classical_radius**2/4.0d0/pi/g2/emit_a/emit_b/sigma_p * integration_result )
+  qmax = sqrt( ibs_sim_params%tau_a*lambda*c_light*c_radius**2/4.0d0/pi/g2/emit_a/emit_b/sigma_p * integration_result )
 
   coulomb_log = log(qmax/qmin)
 elseif( ibs_sim_params%clog_to_use == 3 ) then
