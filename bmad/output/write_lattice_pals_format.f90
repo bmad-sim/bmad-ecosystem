@@ -398,11 +398,7 @@ do ib = 0, ubound(lat%branch, 1)
     if (has_attribute(ele, 'RF_FREQUENCY')) then
       header_needed = .true.
 
-      if (is_true(ele%value(harmon_master$))) then
-        call write_real_dict(id2, 'RFP', 'rf_frequency', ele%value(rf_frequency$), header_needed)
-      else
-        call write_real_dict(id2, 'RFP', 'rf_frequency', ele%value(rf_frequency$), header_needed)
-      endif
+      call write_real_dict(id2, 'RFP', 'frequency', ele%value(rf_frequency$), header_needed)
 
       if (ele%key == lcavity$) then
         if (ele%field_master) then
@@ -963,19 +959,20 @@ if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. n >= 7 .and. bmad_n
   endif
 
   pals_name(1) = trim(pals_name(1)) // bmad_name(2:n-5)
-  factor(1) = factorial(ix)
+  factor(1) = factorial(ix) * pals_ab_scale(ele, ix, electric$)
   return
 endif
 
 !
 
 if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_name(2:), ix)) then
+  ! With field_master = T, the Bmad multipole is in field units so no conversion is needed for the PALS
+  ! Bn/Bs field. Otherwise the multipole is normalized as is the PALS Kn/Ks.
+
   if (ele%field_master) then
     pals_name(1) = 'MagneticMultipoleP.B'
-    factor(1) = ele%value(p0c$) / (charge_of(ele%ref_species) * c_light)
   else
     pals_name(1) = 'MagneticMultipoleP.K'
-    factor(1) = 1
   endif
 
   if (bmad_name(1:1) == 'A') then
@@ -985,7 +982,7 @@ if ((bmad_name(1:1) == 'A' .or. bmad_name(1:1) == 'B') .and. is_integer(bmad_nam
   endif
 
   pals_name(1) = trim(pals_name(1)) // bmad_name(2:)
-  factor(1) = factor(1) * factorial(ix)
+  factor(1) = factorial(ix) * pals_ab_scale(ele, ix, magnetic$)
 
   ! Note: The element definition writes the integrated multipole (with an "L" suffix) only if the
   ! element has zero length. Otherwise the length normalized multipole is written.
@@ -1031,7 +1028,7 @@ case ('Y1_LIMIT');      pals_name(1) = 'ApertureP.y_min'
 case ('Y2_LIMIT');      pals_name(1) = 'ApertureP.y_max'; factor(1) = -1
 
 case ('VOLTAGE');       pals_name(1) = 'RFP.voltage'
-case ('GRADINET');      pals_name(1) = 'RFP.gradient'
+case ('GRADIENT');      pals_name(1) = 'RFP.gradient'
 case ('PHASE');         pals_name(1) = 'RFP.phase'
 case ('RF_FREQUENCY');  pals_name(1) = 'RFP.frequency'
 
@@ -1204,11 +1201,13 @@ type (ele_struct) slave, lord
 type (ele_struct), pointer :: this_lord
 type (control_struct), pointer :: this_ctl
 
+type (all_pointer_struct) a_ptr
+
 real(rp) resid, tot, sum_ctl, fact(2)
-integer ix1, il, kk, np, n_done, ix_done(40)
+integer ix1, il, kk, np, n_done
 character(*) pals_name
-character(40) nam(2)
-logical is_mult, is_new, contributes
+character(40) nam(2), name_done(40)
+logical is_mult, is_new, contributes, err
 
 !
 
@@ -1227,26 +1226,30 @@ ix1 = 0
 do il = 1, slave%n_lord
   this_lord => pointer_to_lord(slave, il, this_ctl)
   if (this_lord%key /= overlay$) cycle
-  if (this_ctl%ix_attrib < 1 .or. this_ctl%ix_attrib > num_ele_attrib$) cycle
   call pals_attrib_name(this_ctl%attribute, slave, np, nam, fact, no_print = .true.)
 
   is_new = .true.
   do kk = 1, n_done
-    if (ix_done(kk) == this_ctl%ix_attrib) is_new = .false.
+    if (name_done(kk) == this_ctl%attribute) is_new = .false.
   enddo
+
+  ! Note: Multipole attributes (A0, B1, etc.) are not stored in slave%value so use pointer_to_attribute.
 
   contributes = .false.
   do kk = 1, np
     if (nam(kk) /= pals_name) cycle
     contributes = .true.
-    if (is_new) sum_ctl = sum_ctl + fact(kk) * slave%value(this_ctl%ix_attrib)
+    if (.not. is_new) cycle
+    call pointer_to_attribute(slave, this_ctl%attribute, .false., a_ptr, err, .false.)
+    if (err .or. .not. associated(a_ptr%r)) cycle
+    sum_ctl = sum_ctl + fact(kk) * a_ptr%r
   enddo
 
   if (.not. contributes) cycle
   if (ix1 == 0) ix1 = this_lord%ix_ele    ! First controller of this component.
-  if (is_new .and. n_done < size(ix_done)) then
+  if (is_new .and. n_done < size(name_done)) then
     n_done = n_done + 1
-    ix_done(n_done) = this_ctl%ix_attrib
+    name_done(n_done) = this_ctl%attribute
   endif
 enddo
 
@@ -1256,6 +1259,44 @@ if (ix1 /= lord%ix_ele) return
 if (abs(tot - sum_ctl) > 1e-14_rp * max(abs(tot), abs(sum_ctl))) resid = tot - sum_ctl
 
 end function pals_control_residual
+
+!------------------------------------------------------
+! contains
+
+! Return the factor that converts a Bmad An, Bn (or An_elec, Bn_elec) multipole of order n to the
+! corresponding a(n), b(n) used when writing the element definition (see multipole_ele_to_ab).
+! This is unity unless the element has scale_multipoles = T in which case the multipole is scaled
+! by the element's reference strength and the measurement radius.
+! Note: Any field_master conversion is not included here since it is undone when writing B-type PALS values.
+
+function pals_ab_scale(ele, n, pole_type) result (scale)
+
+type (ele_struct) ele
+type (ele_struct) ele2
+
+real(rp) scale, a_p(0:n_pole_maxx), b_p(0:n_pole_maxx)
+real(rp), pointer :: a0(:), b0(:), ksl0(:)
+integer n, pole_type, ixp
+
+!
+
+scale = 1
+if (.not. ele%scale_multipoles) return
+
+ele2 = ele
+ele2%slave_status = free$
+ele2%field_master = .false.
+ele2%is_on = .true.
+ele2%multipoles_on = .true.
+call multipole_init(ele2, pole_type, zero = .true.)
+call pointer_to_ele_multipole(ele2, a0, b0, ksl0, pole_type)
+b0(n) = 1
+
+call multipole_ele_to_ab(ele2, .false., ixp, a_p, b_p, pole_type)
+scale = b_p(n)
+call deallocate_ele_pointers(ele2)
+
+end function pals_ab_scale
 
 !------------------------------------------------------
 ! contains
