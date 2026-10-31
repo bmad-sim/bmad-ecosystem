@@ -3,7 +3,7 @@ name: bmad-build
 channels:
   - conda-forge
 dependencies:
-  - compilers
+  - compilers >=2   # Unpinned, the solver can fall back to clang 14 which cannot handle newer macOS SDK headers.
   - cmake
   - autoconf
   - automake
