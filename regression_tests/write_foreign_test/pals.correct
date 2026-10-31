@@ -76,7 +76,7 @@ PALS:
         kind: CrabCavity
         length:   2.0000E-01             
         RFP:
-          rf_frequency:   1.0000E+08             
+          frequency:   1.0000E+08             
           voltage:   1.0000E+03             
           phi0:  -2.0000E-01             
           zero_phase: ABOVE_TRANSITION
@@ -337,7 +337,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         RFP:
-          rf_frequency:   5.0000E+08             
+          frequency:   5.0000E+08             
           voltage:   1.0000E+05             
           phi0:   1.0000E-01             
           zero_phase: ABOVE_TRANSITION
@@ -351,7 +351,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         RFP:
-          rf_frequency:   5.0000E+08             
+          frequency:   5.0000E+08             
           voltage:   1.0000E+05             
           phi0:   1.0000E-01             
           zero_phase: ABOVE_TRANSITION
@@ -364,7 +364,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         RFP:
-          rf_frequency:   5.0000E+08             
+          frequency:   5.0000E+08             
           voltage:   1.0000E+05             
           phi0:   1.0000E-01             
           zero_phase: ABOVE_TRANSITION
@@ -628,7 +628,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         RFP:
-          rf_frequency:   5.0000E+08             
+          frequency:   5.0000E+08             
           voltage:   5.0000E+03             
           phi0:  -1.9000E-01             
           num_cells:   1.0000E+01             
@@ -645,7 +645,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         RFP:
-          rf_frequency:   5.0000E+08             
+          frequency:   5.0000E+08             
           voltage:   5.0000E+00             
           phi0:  -1.9000E-01             
           num_cells:   1.0000E+01             
@@ -662,7 +662,7 @@ PALS:
           x_rot:  -1.0000E-03             
           z_rot:   1.0000E-01             
         RFP:
-          rf_frequency:   5.0000E+08             
+          frequency:   5.0000E+08             
           voltage:   5.0450E+03             
           phi0:  -1.9000E-01             
           num_cells:   1.0000E+01             
