@@ -398,7 +398,8 @@ do ib = 0, ubound(lat%branch, 1)
     if (has_attribute(ele, 'RF_FREQUENCY')) then
       header_needed = .true.
 
-      if (is_true(ele%value(harmon_master$))) then
+      ! harmon_master$ shares its index with gradient_tot$ so only check where it is a valid attribute.
+      if (has_attribute(ele, 'HARMON_MASTER') .and. is_true(ele%value(harmon_master$))) then
         call write_real_dict(id2, 'RFP', 'harmonic_number', ele%value(harmon$), header_needed)
       else
         call write_real_dict(id2, 'RFP', 'frequency', ele%value(rf_frequency$), header_needed)
