@@ -336,9 +336,9 @@ with the \vn{multi} structure component for \vn{ele_shape(3)}.
 \index{Initialization!beginning}
 \label{s:init.begin} 
 
-\index{tao_start}\index{tao.init}\index{lattice_file}
+\index{tao_start}\index{tao.init}
 \index{data_file}\index{var_file}\index{plot_file}
-\index{single_mode_file}\index{startup_file}\index{startup_single_mode}
+\index{startup_file}
 \index{beam_file}\index{hook_init_file}
 The initialization starts with the \vn{root} \tao initialization file. The default name for this
 file is \vn{tao.init} but this default may be overridden when \tao is started using the \vn{-init_file}
@@ -353,7 +353,6 @@ namelist contains the variables:
     var_file           = "<file_name>"  ! Default = Tao root init file.
     plot_file          = "<file_name1> \{<file_name2>\} ..."  
                                         ! Default = Tao root init file.
-    single_mode_file   = "<file_name>"  ! Default = Tao root init file.
     startup_file       = "<file_name>"  ! Default = "tao.startup"
     hook_init_file     = "<file_name>"  ! Default = "tao_hook.init"
     init_name          = "<init_name>"  ! Default = "Tao"
@@ -428,10 +427,10 @@ first file on the list. All files, however, can contain \vn{tao_template_plot} a
 \section{Lattice Initialization}\index{initialization!lattice}
 \label{s:init.lat} 
 
-In the \vn{tao_start} namelist (\sref{s:init.begin}), the \vn{lattice_file} variable gives the name
-of the file that contains the \vn{tao_design_lattice} namelist. The default, if \vn{lattice_file} is
-not present is to look in the \tao root initialization file. The \vn{tao_design_lattice} namelist
-defines where the lattice input files are. The variables that are set in the \vn{tao_design_lattice}
+The \vn{tao_design_lattice} namelist is read from the \tao root initialization file
+(\sref{s:init.begin}). This namelist defines where the lattice input files are. If the lattice is
+specified on the command line using the \vn{-lattice_file} switch (\sref{s:command.line}), the
+\vn{tao_design_lattice} namelist is not needed. The variables that are set in the \vn{tao_design_lattice}
 namelist are:
 \index{tao_design_lattice}\index{design_lattice}\index{design_lattice!file}
 \index{design_lattice!parser}\index{n_universes}
