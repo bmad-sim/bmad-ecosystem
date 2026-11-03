@@ -1682,9 +1682,24 @@ do i = 1, slave%n_lord
     endif
 
     ! Use the cached attribute index to avoid re-resolving control%attribute by name every bookkeep.
-    ! Only normal %value attributes take the fast path; the rest fall back to the name-based lookup.
-    if (control%ix_attrib > 0 .and. control%ix_attrib <= num_ele_attrib$) then
-      a_ptr%r => slave%value(control%ix_attrib)
+    ! Normal %value attributes and already-allocated multipoles take the fast path (mirroring
+    ! pointer_to_attribute); the rest fall back to the name-based lookup.
+    ! Photon elements reuse the a0$:b21$ indices for surface curvature, so they never take the fast path.
+    ix = control%ix_attrib
+    if (ix > 0 .and. ix <= num_ele_attrib$) then
+      a_ptr%r => slave%value(ix)
+    elseif (ix >= a0$ .and. ix <= b21$ .and. associated(slave%a_pole) .and. .not. associated(slave%photon)) then
+      if (ix >= b0$) then
+        a_ptr%r => slave%b_pole(ix-b0$)
+      else
+        a_ptr%r => slave%a_pole(ix-a0$)
+      endif
+    elseif (ix >= a0_elec$ .and. ix <= b21_elec$ .and. associated(slave%a_pole_elec)) then
+      if (ix >= b0_elec$) then
+        a_ptr%r => slave%b_pole_elec(ix-b0_elec$)
+      else
+        a_ptr%r => slave%a_pole_elec(ix-a0_elec$)
+      endif
     else
       call pointer_to_attribute (slave, control%attribute, .true., a_ptr, err_flag, do_unlink = .true.)
       if (err_flag) then
