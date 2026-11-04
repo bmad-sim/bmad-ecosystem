@@ -59,7 +59,7 @@ ix_pole_max = -1
 a = 0;  b = 0
 if (present(b1)) b1 = 0
 
-if (.not. ele%is_on .or. ele%key == pipe$) return
+if (.not. ele%is_on) return
 
 ! Use cache if possible. 
 

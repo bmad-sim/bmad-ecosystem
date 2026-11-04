@@ -77,9 +77,9 @@ body_dir = orbit%direction * ele%orientation    ! Forward time direction of trav
 call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-!
+! h/vkicks are included in the multipoles so offset_particle must not apply them.
 
-call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_mat)
+call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_mat)
 
 ! Zero length.
 ! Note: Electric fields do not make sense in this case
@@ -94,7 +94,7 @@ if (ele%value(l$) == 0) then
   call this_energy_kick(orbit, lord, step1, body_dir, mat6, make_mat)
   if (orbit%state /= alive$) return
   call rf_coupler_kick (ele, param, second_track_edge$, phase, orbit, mat6, make_mat)
-  call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_mat)
+  call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_mat)
   return
 endif
 
@@ -201,7 +201,7 @@ endif
 
 !
 
-call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_mat)
+call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_mat)
 
 !---------------------------------------------------------------------------------------
 contains

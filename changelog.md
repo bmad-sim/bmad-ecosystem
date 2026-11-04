@@ -10,6 +10,11 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-11-03 Fixed: `hkick` and `vkick` were applied twice by bmad_standard tracking through wiggler
+  (planar and helical models), rfcavity, lcavity and crab_cavity elements, and not at all by
+  runge_kutta tracking through planar and helical model wigglers. Also fixed: runge_kutta applied only
+  the fraction l_active/l of the kick in rfcavity and lcavity elements, bmad_standard applied half
+  the kick in a zero length quadrupole, and pipe elements ignored their kicks and multipoles.
 - 2026-10-20 Added: The long_term_tracking program now accepts `ltt%ele_write_at` without extraction
   tracking. In `BEAM` mode with `BMAD` tracking, beam files are written at matching ring elements on
   the same turns that end-of-turn beam files are written. This works with and without MPI.
