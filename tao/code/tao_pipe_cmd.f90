@@ -808,12 +808,17 @@ case ('bunch_params')
 !   {ele_id} is an element name or index.
 !   {which} is one of: "model", "base" or "design"
 !   {ix_bunch} is the bunch index.
-!   {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", 
-!                                                                 "state", "ix_ele"
+!   {coordinate} is one of:
+!     Real:    "x", "px", "y", "py", "z", "pz", "s", "t", "charge", "p0c", "beta", "dt_ref",
+!              "spin_x", "spin_y", "spin_z", "field_x", "field_y", "phase_x", "phase_y"
+!     Integer: "state", "ix_ele", "ix_branch", "ix_turn", "ix_user", "direction",
+!              "time_dir", "location", "charge_state"
 !
 ! For example, if {coordinate} = "px", the phase space px coordinate of each particle
 ! of the bunch is displayed. The "state" of a particle is an integer. 
 ! A value of 1 means alive and any other value means the particle has been lost.
+! The "location" is 1 = upstream_end, 2 = downstream_end, 3 = inside.
+! The "charge_state" is the charge of the particle species in units of e.
 !
 ! Parameters
 ! ----------
@@ -825,9 +830,9 @@ case ('bunch_params')
 ! Returns
 ! -------
 ! real_array
-!   if coordinate in ['x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c']
+!   if coordinate in ['x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'beta', 'dt_ref', 'spin_x', 'spin_y', 'spin_z', 'field_x', 'field_y', 'phase_x', 'phase_y']
 ! integer_array
-!   if coordinate in ['state', 'ix_ele']
+!   if coordinate in ['state', 'ix_ele', 'ix_branch', 'ix_turn', 'ix_user', 'direction', 'time_dir', 'location', 'charge_state']
 !
 ! Examples
 ! --------
@@ -8715,43 +8720,55 @@ end subroutine orbit_out
 subroutine coord_out(bunch, coordinate)
 type (bunch_struct) :: bunch
 character(40) coordinate
-integer :: i_vec, n
+integer :: i, n
 
-! Allocate scratch
 n = size(bunch%particle)
-call reallocate_c_real_scratch(n)
 
-! Add data
 select case (coordinate)
-case ('x')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(1)
-case ('px')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(2)
-case ('y')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(3)
-case ('py')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(4)
-case ('z')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(5)
-case ('pz')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(6)
-case ('s')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%s
-case ('t')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%t
-case ('charge')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%charge
-case ('p0c')
-  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%p0c
-case ('state')
+case ('x', 'px', 'y', 'py', 'z', 'pz', 's', 't', 'charge', 'p0c', 'beta', 'dt_ref', &
+      'spin_x', 'spin_y', 'spin_z', 'field_x', 'field_y', 'phase_x', 'phase_y')
+  call reallocate_c_real_scratch(n)
+case ('state', 'ix_ele', 'ix_branch', 'ix_turn', 'ix_user', 'direction', 'time_dir', &
+      'location', 'charge_state')
   call reallocate_c_integer_scratch(n)
-  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%state
-case ('ix_ele')
-  call reallocate_c_integer_scratch(n)
-  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_ele
 case default
   call invalid ('coordinate not "x", "px", etc. ')
   return
+end select
+
+select case (coordinate)
+case ('x');       tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(1)
+case ('px');      tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(2)
+case ('y');       tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(3)
+case ('py');      tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(4)
+case ('z');       tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(5)
+case ('pz');      tao_c_interface_com%c_real(1:n) = bunch%particle(:)%vec(6)
+case ('s');       tao_c_interface_com%c_real(1:n) = bunch%particle(:)%s
+case ('t');       tao_c_interface_com%c_real(1:n) = bunch%particle(:)%t
+case ('charge');  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%charge
+case ('p0c');     tao_c_interface_com%c_real(1:n) = bunch%particle(:)%p0c
+case ('beta');    tao_c_interface_com%c_real(1:n) = bunch%particle(:)%beta
+case ('dt_ref');  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%dt_ref
+case ('spin_x');  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%spin(1)
+case ('spin_y');  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%spin(2)
+case ('spin_z');  tao_c_interface_com%c_real(1:n) = bunch%particle(:)%spin(3)
+case ('field_x'); tao_c_interface_com%c_real(1:n) = bunch%particle(:)%field(1)
+case ('field_y'); tao_c_interface_com%c_real(1:n) = bunch%particle(:)%field(2)
+case ('phase_x'); tao_c_interface_com%c_real(1:n) = bunch%particle(:)%phase(1)
+case ('phase_y'); tao_c_interface_com%c_real(1:n) = bunch%particle(:)%phase(2)
+
+case ('state');     tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%state
+case ('ix_ele');    tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_ele
+case ('ix_branch'); tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_branch
+case ('ix_turn');   tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_turn
+case ('ix_user');   tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%ix_user
+case ('direction'); tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%direction
+case ('time_dir');  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%time_dir
+case ('location');  tao_c_interface_com%c_integer(1:n) = bunch%particle(:)%location
+case ('charge_state')
+  do i = 1, n
+    tao_c_interface_com%c_integer(i) = charge_of(bunch%particle(i)%species, 0)
+  enddo
 end select
 
 end subroutine coord_out
