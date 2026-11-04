@@ -15,6 +15,12 @@ Types of entries:
   runge_kutta tracking through planar and helical model wigglers. Also fixed: runge_kutta applied only
   the fraction l_active/l of the kick in rfcavity and lcavity elements, bmad_standard applied half
   the kick in a zero length quadrupole, and pipe elements ignored their kicks and multipoles.
+- 2026-11-04 Fixed: A crab_cavity with a magnetic multipole gave NaN with runge_kutta tracking and hung
+  time_runge_kutta tracking, since the field was divided by `l_active`, which a crab_cavity does not
+  have. With the default `scale_multipoles = T` the multipoles also triggered a fatal "CONFUSION!" error.
+- 2026-11-04 Added: Regression test `pytao/kicks/test_small_kicks.py` which checks the first order kick
+  from every kick and multipole attribute of every element type against the formulas in the manual, for
+  every tracking method. Known discrepancies are recorded in the test as expected failures.
 - 2026-10-20 Added: The long_term_tracking program now accepts `ltt%ele_write_at` without extraction
   tracking. In `BEAM` mode with `BMAD` tracking, beam files are written at matching ring elements on
   the same turns that end-of-turn beam files are written. This works with and without MPI.

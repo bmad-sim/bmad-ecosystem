@@ -665,7 +665,7 @@ case (bmad_standard$)
 
       ! Note: The spin_integration routine assumes that the field is zero outside of the active region.
       select case (ele%key)
-      case (lcavity$, rfcavity$, crab_cavity$)
+      case (lcavity$, rfcavity$)
         length = ele%value(l_active$)
       case default
         length = ele%value(l$)
