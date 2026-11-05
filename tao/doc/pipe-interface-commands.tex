@@ -141,12 +141,17 @@ Where:
   {ele_id} is an element name or index.
   {which} is one of: "model", "base" or "design"
   {ix_bunch} is the bunch index.
-  {coordinate} is one of: x, px, y, py, z, pz, "s", "t", "charge", "p0c", 
-                                                                "state", "ix_ele"
+  {coordinate} is one of:
+    Real:    "x", "px", "y", "py", "z", "pz", "s", "t", "charge", "p0c", "beta", "dt_ref",
+             "spin_x", "spin_y", "spin_z", "field_x", "field_y", "phase_x", "phase_y"
+    Integer: "state", "ix_ele", "ix_branch", "ix_turn", "ix_user", "direction",
+             "time_dir", "location", "charge_state"
 
 For example, if {coordinate} = "px", the phase space px coordinate of each particle
 of the bunch is displayed. The "state" of a particle is an integer. 
 A value of 1 means alive and any other value means the particle has been lost.
+The "location" is 1 = upstream_end, 2 = downstream_end, 3 = inside.
+The "charge_state" is the charge of the particle species in units of e.
 \end{verbatim}
 
 %% pipe building_wall_list ------------------------------------
