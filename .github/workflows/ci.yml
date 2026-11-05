@@ -45,6 +45,12 @@ jobs:
         os: [ubuntu-latest]
         shared: ["Y"]
         openmp_mpi: ["N", "Y"]
+        plot_package: ["pgplot"]
+        include:
+          - os: ubuntu-latest
+            shared: "Y"
+            openmp_mpi: "N"
+            plot_package: cairo
 
     steps:
       # Check out the code from GitHub
@@ -54,12 +60,22 @@ jobs:
         with:
           external-packages-version: ${{ env.EXTERNAL_PACKAGES_VERSION }}
 
+      - name: Install Cairo plotting dependencies
+        if: ${{ matrix.plot_package == 'cairo' }}
+        run: sudo apt-get install -y libcairo2-dev libsdl2-dev pkg-config
+
       - name: Build Bmad
         env:
           USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
+          PLOT_PACKAGE: ${{ matrix.plot_package }}
         run: .github/scripts/install_bmad.sh
 
       - name: Run Tests
         shell: bash -eo pipefail -l {0}
         run: .github/scripts/run_tests.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Cairo plotting smoke test
+        if: ${{ matrix.plot_package == 'cairo' }}
+        shell: bash -eo pipefail -l {0}
+        run: .github/scripts/cairo_smoke_test.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"

@@ -31,6 +31,16 @@ jobs:
             os: ubuntu-latest
             shared: Y
             openmp_mpi: Y
+          - name: ubuntu-cairo
+            os: ubuntu-latest
+            shared: Y
+            openmp_mpi: N
+            plot_package: cairo
+          - name: macos-cairo
+            os: macos-latest
+            shared: Y
+            openmp_mpi: N
+            plot_package: cairo
 
     steps:
       - uses: actions/checkout@v6
@@ -41,6 +51,12 @@ jobs:
         run: |
           echo '  - libacl' >> .github/bmad-build-env.yaml
           echo '  - libgomp' >> .github/bmad-build-env.yaml
+
+      - name: Include Cairo plotting requirements
+        if: ${{ matrix.plot_package == 'cairo' }}
+        shell: bash -eo pipefail -l {0}
+        run: |
+          echo '  - sdl2' >> .github/bmad-build-env.yaml
 
       - name: Setup miniconda
         uses: conda-incubator/setup-miniconda@v3
@@ -63,9 +79,15 @@ jobs:
           USE_MPI: ${{ matrix.openmp_mpi }}
           SHARED: ${{ matrix.shared }}
           USE_CONDA: 1
+          PLOT_PACKAGE: ${{ matrix.plot_package || 'pgplot' }}
         shell: bash -eo pipefail -l {0}
         run: .github/scripts/install_bmad.sh
 
       - name: Run Tests
         shell: bash -eo pipefail -l {0}
         run: .github/scripts/run_tests.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
+
+      - name: Cairo plotting smoke test
+        if: ${{ matrix.plot_package == 'cairo' }}
+        shell: bash -eo pipefail -l {0}
+        run: .github/scripts/cairo_smoke_test.sh 2>&1 | tee -a "$GITHUB_STEP_SUMMARY"
