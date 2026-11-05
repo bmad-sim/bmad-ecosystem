@@ -42,7 +42,7 @@ jobs:
       matrix:
         # Future Ideas:
         # add macOS - check if GH Actions can make intel and arm
-        os: [ubuntu-latest]
+        os: [ubuntu-24.04]
         shared: ["Y"]
         openmp_mpi: ["N", "Y"]
 

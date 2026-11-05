@@ -21,7 +21,7 @@ jobs:
           shell: bash
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-24.04]
     steps:
       # Mint a short-lived (1 hour) installation token from the release
       # GitHub App. The App's private key never expires, so there is no
