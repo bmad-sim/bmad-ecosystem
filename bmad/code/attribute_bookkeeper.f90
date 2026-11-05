@@ -73,8 +73,15 @@ character(20) ::  r_name = 'attribute_bookkeeper'
 logical, optional :: force_bookkeeping
 logical err_flag, set_l, field_bookkeeping_doable
 logical non_offset_changed, offset_changed, offset_nonzero, is_on
-logical :: v_mask(num_ele_attrib$), vv_mask(num_ele_attrib$), offset_mask(num_ele_attrib$)
 logical :: dval_change(num_ele_attrib$)
+
+! Constant masks, so they are not rebuilt on every call.
+integer, parameter :: offset_attribs(12) = [x_offset$, y_offset$, z_offset$, &
+            tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, z_offset_tot$, &
+            tilt_tot$, x_pitch_tot$, y_pitch_tot$]
+logical, parameter :: offset_mask(num_ele_attrib$) = [(any(i == offset_attribs), i = 1, num_ele_attrib$)]
+logical, parameter :: v_mask(num_ele_attrib$) = [(.not. offset_mask(i) .and. &
+            all(i /= [x1_limit$, x2_limit$, y1_limit$, y2_limit$]), i = 1, num_ele_attrib$)]
 
 ! Note: If the dependent attributes are changed then attribute_free must be modified.
 
@@ -910,13 +917,6 @@ end select
 ! The factor of 1d-15 is to avoid negligible changes which can be caused if the digested 
 ! file was created on a different machine from the machine where the code is run.
 
-v_mask = .true.
-v_mask([x_offset$, y_offset$, z_offset$, &
-            tilt$, x_pitch$, y_pitch$, x_offset_tot$, y_offset_tot$, z_offset_tot$, &
-            tilt_tot$, x_pitch_tot$, y_pitch_tot$]) = .false.
-offset_mask = .not. v_mask
-v_mask( [x1_limit$, x2_limit$, y1_limit$, y2_limit$] ) = .false.
-
 ! With runge_kutta tracking, must use a less stringent tolerance for what is a significant change.
 
 dval = abs(val - ele%old_value)
@@ -934,10 +934,9 @@ dval_change(dpz_ele_dpz_start$) = .false.  ! Computed by twiss_propagate1.
 if (has_orientation_attributes(ele)) then
   ! non_offset_changed is used to determine if maps should be killed.
   ! Since maps do not depend upon custom attributes, veto them in the mask.
-  vv_mask = v_mask
   non_offset_changed = (any(dval_change .and. v_mask))
-  offset_changed =  (any(dval_change .and. offset_mask))
-  offset_nonzero = (any(val /= 0 .and. offset_mask))
+  offset_changed =  (any(dval_change(offset_attribs)))
+  offset_nonzero = (any(val(offset_attribs) /= 0))
 else
   non_offset_changed = (any(dval_change))
   offset_changed = .false.
@@ -958,7 +957,7 @@ if (ele%tracking_method == taylor$ .and. ele%taylor_map_includes_offsets .and. &
       lord%taylor_map_includes_offsets = .false.
     enddo
   endif
-  if (any(ele%old_value /= 0 .and. offset_mask)) non_offset_changed = .true.  ! To trigger kill_taylor below
+  if (any(ele%old_value(offset_attribs) /= 0)) non_offset_changed = .true.  ! To trigger kill_taylor below
   call out_io (s_info$, r_name, &
       'Note: bmad_com%conserve_taylor_maps = True (this is the default)', &
       'But: Element has just been offset: ' // ele%name, &
@@ -987,15 +986,18 @@ if (allocated(ele%multipole_cache)) then
 endif
 
 ! Set old_value = value
+! non_offset_changed is True whenever any (dval_change .and. v_mask) is, so it guards the scan.
 
-do i = 1, num_ele_attrib$
-  if (.not. dval_change(i) .or. .not. v_mask(i)) cycle
-  if (i == check_sum$) then
-    if (ele%key /= sad_mult$)   call set_flags_for_changed_attribute (ele, ele%tracking_method, .false.)
-  else
-    call set_flags_for_changed_attribute (ele, ele%value(i), .false.)
-  endif
-enddo
+if (non_offset_changed) then
+  do i = 1, num_ele_attrib$
+    if (.not. dval_change(i) .or. .not. v_mask(i)) cycle
+    if (i == check_sum$) then
+      if (ele%key /= sad_mult$)   call set_flags_for_changed_attribute (ele, ele%tracking_method, .false.)
+    else
+      call set_flags_for_changed_attribute (ele, ele%value(i), .false.)
+    endif
+  enddo
+endif
  
 ele%bookkeeping_state%attributes = ok$
 ele%old_value = val

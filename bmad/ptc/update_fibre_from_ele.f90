@@ -53,6 +53,9 @@ magp => fib%magp
 mp => mag%p
 mpp => magp%p
 
+! work has no default initialization and "ptc_work = fib" reads ptc_work%power,
+! so zero it first (no rescaling of the fibre's multipoles).
+ptc_work = 0
 ptc_work = fib
 ptc_work = 1e-9_rp * val(p0c$) - mp%p0c 
 fib = ptc_work
