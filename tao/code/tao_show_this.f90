@@ -280,6 +280,105 @@ case ('alias')
   enddo
 
 !----------------------------------------------------------------------
+! attribute
+! Output is in Bmad lattice file format. EG: "Q1[K1] = 1.2345...E-001"
+
+case ('attribute')
+
+  s_fmt = 'es25.17e3'
+  line = ''
+
+  do
+    call tao_next_switch (what2, [character(20):: '#format'], .true., switch, err, print_err = .false.)
+    if (err) return
+    select case (switch)
+    case ('#format')
+      call tao_next_word(what2, s_fmt)
+    case ('')
+      exit
+    case default
+      line = trim(line) // ' ' // trim(switch)
+    end select
+    if (what2 == '') exit
+  enddo
+
+  ! Syntax is either "<ele_list> <attrib>" or "<ele_list>[<attrib>]".
+
+  call string_trim(line, line, ix)
+  n = len_trim(line)
+  ix = index(line, '[', .true.)
+  if (n > 0 .and. line(n:n) == ']' .and. ix > 1) then
+    attrib = line(ix+1:n-1)
+    line = line(:ix-1)
+  else
+    ix = index(line(1:n), ' ', .true.)
+    if (ix == 0) then
+      nl=1; lines(1) = 'SYNTAX IS: "show attribute {#format <fmt>} <ele_list> <attribute>"'
+      return
+    endif
+    attrib = line(ix+1:n)
+    line = line(:ix-1)
+  endif
+  call str_upcase(attrib, attrib)
+  call string_trim(attrib, attrib, ix)
+
+  call tao_pick_universe (line, line, picked_uni, err, ix_u)
+  if (err) return
+  call tao_locate_elements (line, ix_u, eles, err)
+  if (err) return
+
+  call re_allocate (lines, nl+size(eles)+10, .false.)
+  nl0 = nl
+  found = .false.
+
+  do i = 1, size(eles)
+    ele => eles(i)%ele
+    ! Slave names like "Q1#2" or "Q1\2" are not valid in a lattice file.
+    if (ele%slave_status == super_slave$ .or. ele%slave_status == multipass_slave$) cycle
+    call pointer_to_attribute (ele, attrib, .false., a_ptr, err_flag, .false.)
+    if (err_flag) cycle
+
+    a_type = attribute_type(attrib, ele)
+    if (associated(a_ptr%r)) then
+      val = a_ptr%r
+    elseif (associated(a_ptr%i)) then
+      val = a_ptr%i
+    endif
+
+    if (a_type == is_switch$ .or. a_type == is_species$) then
+      if (.not. associated(a_ptr%r) .and. .not. associated(a_ptr%i)) cycle
+      str = switch_attrib_value_name(attrib, val, ele)
+    elseif (associated(a_ptr%l)) then
+      if (a_ptr%l) then
+        str = 'T'
+      else
+        str = 'F'
+      endif
+    elseif (associated(a_ptr%i) .or. (associated(a_ptr%r) .and. a_type == is_integer$)) then
+      write (str, '(i0)') nint(val)
+    elseif (associated(a_ptr%r)) then
+      write (str, '(' // trim(s_fmt) // ')', iostat = ios) val
+      ! For some funny reason ios can be zero on a bad format so check for a star in the string.
+      if (ios /= 0 .or. index(str, '*') /= 0) then
+        nl=1; lines(1) = 'BAD FORMAT OR VALUE/FORMAT MISMATCH: ' // s_fmt
+        return
+      endif
+    else
+      cycle   ! Not a printable attribute.
+    endif
+
+    found = .true.
+    line1 = trim(ele%name) // '[' // trim(attrib) // '] = ' // trim(adjustl(str))
+    if (any(lines(nl0+1:nl) == line1)) cycle   ! Avoid duplicates when there are multiple elements with the same name.
+    nl=nl+1; lines(nl) = line1
+  enddo
+
+  if (.not. found) then
+    nl=1; lines(1) = 'NO (NON-SLAVE) ELEMENTS FOUND WITH PRINTABLE ATTRIBUTE: ' // attrib
+    return
+  endif
+
+!----------------------------------------------------------------------
 ! beam
 
 case ('beam')
