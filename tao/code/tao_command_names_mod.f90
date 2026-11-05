@@ -38,7 +38,7 @@ character(20), parameter :: tao_write_action_names(34) = [character(20):: &
 
 ! "show <what>" names. See tao_show_this.
 
-character(20), parameter :: tao_show_what_names(48) = [character(20):: 'alias', 'beam', 'branch', 'building_wall', &
+character(20), parameter :: tao_show_what_names(49) = [character(20):: 'alias', 'attribute', 'beam', 'branch', 'building_wall', &
         'chromaticity', 'constraints', 'control', 'curve', 'data', 'debug', &
         'derivative', 'dynamic_aperture', 'element', 'emittance', 'field', 'global', 'graph', &
         'history', 'hom', 'internal', 'key_bindings', 'lattice', 'matrix', 'merit', 'normal_form', &

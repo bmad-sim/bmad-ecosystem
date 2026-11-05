@@ -2015,6 +2015,7 @@ Format:
 \vn{<subcommand>} subcommands may be one of:
 \begin{example}
   show alias                   ! Show aliases \sref{s:show.alias}.
+  show attribute ...           ! Show element attributes in Bmad lattice format \sref{s:show.attribute}.
   show beam ...                ! Show beam info \sref{s:show.beam}.
   show bmad_com                ! Old syntax for \vn{show global -bmad_com} \sref{s:show.global}.
   show branch ...              ! Show lattice branch info \sref{s:show.branch}.
@@ -2111,6 +2112,42 @@ Syntax:
 \end{example}
 
 Shows a list of defined aliases. See the \vn{alias} command for more details.
+
+%% show attribute --------------------------------------------------------------
+
+\subsection{show attribute}
+\label{s:show.attribute}
+
+Syntax:
+\begin{example}
+  show attribute \{#format <format-string>\} <ele_list> <attribute>
+  show attribute \{#format <format-string>\} <ele_list>[<attribute>]
+\end{example}
+
+Shows the value of an element attribute for a set of elements. The output is in Bmad lattice file
+format so, for example, the output can be written to a file using the \vn{show -append} or
+\vn{show -write} switches (\sref{s:show}) and this file can then be used as part of a Bmad lattice file.
+
+The \vn{<ele_list>} argument is a list of elements (\sref{s:ele.list.format}). Elements
+that do not have the given attribute are ignored. Super slave and multipass slave elements are
+also ignored since their names are not valid in a lattice file. If multiple elements with the same
+name have the same attribute value, only one line is printed for that name.
+
+The \vn{\#format} switch can be used to set the number format for real valued attributes. The
+default format is \vn{es25.17e3} which gives full precision. See \vn{show value}
+(\sref{s:show.value}) for more details on format strings.
+
+Examples:
+\begin{example}
+  show attribute q1*pr k1         ! Show K1 of all elements matching "q1*pr"
+  show attribute 2@quad::*[k1]    ! Show K1 of all quadrupoles in universe 2.
+  show -append k1.bmad attrib #format es16.8 q1*pr k1  ! Append the output to file k1.bmad
+\end{example}
+Example output:
+\begin{example}
+  Q1APR[K1] = -9.15525365584607400E-002
+  Q1BPR[K1] = -7.96727590873939630E-002
+\end{example}
 
 %% show beam --------------------------------------------------------------
 
