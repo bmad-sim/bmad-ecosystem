@@ -81,9 +81,9 @@ else
   k1y = -factor * ky2 / kz**2
 endif
 
-!
+! h/vkicks are included in the multipoles so offset_particle must not apply them.
 
-call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, step_len/2, mat6, make_matrix)
@@ -194,7 +194,7 @@ do i = 1, n_step
   endif
 enddo
 
-call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 ! Add in term to take care of the fact that the particle's motion undulates
 

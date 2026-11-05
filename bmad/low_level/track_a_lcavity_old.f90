@@ -455,7 +455,8 @@ iss%step_len = length / n_step
 call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
-call offset_particle (ele, set$, orbit, mat6 = mat6, make_matrix = make_matrix)
+! h/vkicks are included in the multipoles so offset_particle must not apply them.
+call offset_particle (ele, set$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*iss%step_len, mat6, make_matrix)
@@ -620,7 +621,7 @@ orbit%phase(1) = modulo2(phase, 0.5_rp)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, 0.5_rp*iss%step_len, mat6, make_matrix)
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 0.5_rp*r_step,   mat6, make_matrix)
 
-call offset_particle (ele, unset$, orbit, mat6 = mat6, make_matrix = make_matrix)
+call offset_particle (ele, unset$, orbit, set_hvkicks = .false., mat6 = mat6, make_matrix = make_matrix)
 
 !---------------------------------------------------------------------------------------------
 end subroutine track_a_lcavity_old

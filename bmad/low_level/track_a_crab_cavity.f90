@@ -51,7 +51,8 @@ field = em_field_struct()
 
 !
 
-call offset_particle (ele, set$, orbit, set_spin = .true., mat6 = mat6, make_matrix = make_matrix, spin_qrot = qrot)
+! h/vkicks are included in the multipoles so offset_particle must not apply them.
+call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = .true., mat6 = mat6, make_matrix = make_matrix, spin_qrot = qrot)
 if (logic_option(.false., make_matrix)) then
   ele%spin_q = 0
   ele%spin_q(:,0) = qrot
@@ -143,7 +144,7 @@ orbit%phase(1) = modulo2(phase, 0.5_rp)
 if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, 1.0_rp/2,   mat6, make_matrix)
 if (ix_elec_max > -1) call ab_multipole_kicks (an_elec, bn_elec, ix_elec_max, ele, orbit, electric$, ele%value(l$)/2, mat6, make_matrix)
 
-call offset_particle (ele, unset$, orbit, set_spin = .true., mat6 = mat6, make_matrix = make_matrix, spin_qrot = qrot)
+call offset_particle (ele, unset$, orbit, set_hvkicks = .false., set_spin = .true., mat6 = mat6, make_matrix = make_matrix, spin_qrot = qrot)
 if (bmad_com%spin_tracking_on) then
   ele%spin_q(:,0) = quat_mul(qrot, ele%spin_q(:,0))
 endif

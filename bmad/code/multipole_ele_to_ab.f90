@@ -59,7 +59,7 @@ ix_pole_max = -1
 a = 0;  b = 0
 if (present(b1)) b1 = 0
 
-if (.not. ele%is_on .or. ele%key == pipe$) return
+if (.not. ele%is_on) return
 
 ! Use cache if possible. 
 
@@ -572,7 +572,7 @@ case (octupole$)
   const = this_ele%value(k3$) * this_ele%value(l$)
   ref_exp = 3
   
-case (ab_multipole$, sad_mult$, thick_multipole$, rfcavity$, lcavity$) ! multipoles do not scale
+case (ab_multipole$, sad_mult$, thick_multipole$, rfcavity$, lcavity$, crab_cavity$) ! multipoles do not scale
   return
 
 case default

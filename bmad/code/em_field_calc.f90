@@ -665,7 +665,7 @@ case (bmad_standard$)
 
       ! Note: The spin_integration routine assumes that the field is zero outside of the active region.
       select case (ele%key)
-      case (lcavity$, rfcavity$, crab_cavity$)
+      case (lcavity$, rfcavity$)
         length = ele%value(l_active$)
       case default
         length = ele%value(l$)
@@ -702,27 +702,7 @@ case (bmad_standard$)
 
   endif
 
-  !-------------------------------
-  ! Add kicks. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
-
-  if (add_kicks .and. has_hkick_attributes(ele%key) .and. (ele%value(hkick$) /= 0 .or. ele%value(vkick$) /= 0)) then
-    select case (ele%key)
-    ! Kickers and elsep handled above
-    case (ac_kicker$, kicker$, hkicker$, vkicker$, elseparator$)  
-    ! Everything else...
-    case default
-      if (.not. local_ref_frame .or. ele%value(tilt_tot$) == 0) then
-        field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / ele%value(l$)
-        field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c / ele%value(l$)
-      else
-        ! Rotate from lab to local
-        tilt = ele%value(tilt_tot$)
-        if (ele%key == sbend$) tilt = ele%value(ref_tilt_tot$)
-        field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c / ele%value(l$)
-        field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) + ele%value(vkick$) * sin(tilt)) * f_p0c / ele%value(l$)
-      endif
-    end select
-  endif
+  if (add_kicks) call add_hvkick_field()
 
 !----------------------------------------------------------------------------------------------
 ! planar_model
@@ -761,6 +741,8 @@ case(planar_model$)
     field%db(3,3) = -kz * by * c_x * ch_y * c_z
   endif
 
+  call add_hvkick_field()
+
 !----------------------------------------------------------------------------------------------
 ! helical_model
 
@@ -788,6 +770,8 @@ case(helical_model$)
     field%db(3,2) = -kz * ele%value(b_max$) * ch_y * s_z
     field%db(3,3) =  kz * ele%value(b_max$) * (sh_x * s_z - sh_y * c_z)
   endif
+
+  call add_hvkick_field()
 
 !----------------------------------------------------------------------------------------------
 ! FieldMap
@@ -1520,6 +1504,48 @@ if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., f
 !----------------------------------------------------------------------------
 !----------------------------------------------------------------------------
 contains
+
+! Add the uniform field of hkick/vkick. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
+
+subroutine add_hvkick_field()
+
+real(rp) kick_len
+
+!
+
+if (.not. has_hkick_attributes(ele%key) .or. (ele%value(hkick$) == 0 .and. ele%value(vkick$) == 0)) return
+
+! The field is zero outside the active region of a cavity so the kick is spread over l_active.
+select case (ele%key)
+case (lcavity$, rfcavity$)
+  kick_len = ele%value(l_active$)
+case default
+  kick_len = ele%value(l$)
+end select
+if (kick_len == 0) return
+
+select case (ele%key)
+! Kickers and elsep handled in the bmad_standard field calc
+case (ac_kicker$, kicker$, hkicker$, vkicker$, elseparator$)  
+! Everything else...
+case default
+  if (.not. local_ref_frame .or. ele%value(tilt_tot$) == 0) then
+    field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / kick_len
+    field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c / kick_len
+  else
+    ! Rotate from lab to local
+    tilt = ele%value(tilt_tot$)
+    if (ele%key == sbend$) tilt = ele%value(ref_tilt_tot$)
+    field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c / kick_len
+    field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) + ele%value(vkick$) * sin(tilt)) * f_p0c / kick_len
+  endif
+end select
+
+end subroutine add_hvkick_field
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
 
 ! restore_curvilinear_field(field_a, field_b)
 !

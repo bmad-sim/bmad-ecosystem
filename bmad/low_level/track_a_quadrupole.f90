@@ -130,6 +130,12 @@ do i = 1, n_step
 
 enddo
 
+! Zero length: the body loop is skipped so the second half of the multipole kick is applied here.
+
+if (n_step == 0) then
+  if (ix_mag_max > -1)  call ab_multipole_kicks (an,      bn,      ix_mag_max,  ele, orbit, magnetic$, r_step/2,   mat6, make_matrix)
+endif
+
 ! Exit edge
 
 if (fringe_info%has_fringe) then
