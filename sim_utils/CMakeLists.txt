@@ -41,3 +41,8 @@ SET (SHARED_DEPS
 )
 
 include($ENV{ACC_BUILD_SYSTEM}/Master.cmake)
+
+# Plot window program for the Cairo quick_plot backend.
+IF ("$ENV{ACC_PLOT_PACKAGE}" MATCHES "cairo")
+  add_subdirectory(plot/cairo_viewer ${CMAKE_BINARY_DIR}/cairo_viewer)
+ENDIF ()

@@ -43,6 +43,9 @@ export DIST_F90_REQUEST="gfortran"
 # Supported options are:
 #   "plplot"         # Only PLPLOT is built
 #   "pgplot"         # Only PGPLOT is built
+#   "cairo"          # Experimental: Use the system Cairo library (no plot library
+#                      is built). The plot window is the qp_cairo_viewer program
+#                      which needs SDL2. Works on Linux, macOS, and Windows.
 #   "none"           # No Plot Libraries are built. For cases
 #                      where plot lib building is problematical.
 #-----------------------------------------------------------

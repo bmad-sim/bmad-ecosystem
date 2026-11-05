@@ -7,6 +7,9 @@
 if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
     export PLOT_LINK_LIBS="plplotfortran;plplot;csirocsa;qsastime"
     export PLOT_LINK_FLAGS="-lplplotfortran -lplplot -lcsirocsa -lqsastime -lpthread"
+elif [ "${ACC_PLOT_PACKAGE}" == "cairo" ] ; then
+    export PLOT_LINK_LIBS="cairo"
+    export PLOT_LINK_FLAGS="-lcairo"
 else
     export PLOT_LINK_LIBS="pgplot"
     export PLOT_LINK_FLAGS="-lpgplot"

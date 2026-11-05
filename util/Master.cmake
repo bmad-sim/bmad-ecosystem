@@ -236,6 +236,17 @@ ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
     SET (PLOT_LINK_FLAGS "-lX11")
   ENDIF ()
 
+ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "cairo")
+  # quick_plot Cairo backend: Cairo draws everything. The on-screen window is the separate
+  # qp_cairo_viewer program (sim_utils/plot/cairo_viewer) which also needs SDL2.
+  # The cairo library itself is linked via PLOT_LINK_LIBS (set in util/build_flags_config) like
+  # the other plot packages. Only the include and library directories are needed here.
+  SET (PLOT_LIBRARY_FLAG "-DCESR_CAIRO")
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(QP_CAIRO REQUIRED cairo)
+  SET (ACC_PLOT_INC_DIRS ${QP_CAIRO_INCLUDE_DIRS})
+  SET (PLOT_LINK_FLAGS)
+
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "none")
   SET (PLOT_LIBRARY_FLAG "-DCESR_NOPLOT")
   SET (PLOT_LINK_LIBS)
@@ -245,6 +256,10 @@ ENDIF ()
 
 IF (${CMAKE_SYSTEM_NAME} MATCHES "Linux" AND NOT $ENV{ACC_PLOT_PACKAGE} MATCHES "none")
   SET (ACC_PLOT_LIB_DIRS /usr/lib64)
+ENDIF ()
+
+IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "cairo")
+  SET (ACC_PLOT_LIB_DIRS ${ACC_PLOT_LIB_DIRS} ${QP_CAIRO_LIBRARY_DIRS})
 ENDIF ()
 
 IF (${CMAKE_Fortran_COMPILER} STREQUAL "ifort" AND "$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")

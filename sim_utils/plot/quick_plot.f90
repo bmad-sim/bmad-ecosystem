@@ -218,6 +218,9 @@ use output_mod
 #if defined (CESR_PLPLOT)
   use plplot_interface
   character(*), parameter :: qp_base_library = 'PLPLOT'
+#elif defined (CESR_CAIRO)
+  use cairo_interface
+  character(*), parameter :: qp_base_library = 'CAIRO'
 #elif defined (CESR_NOPLOT)
   use noplot_interface
   character(*), parameter :: qp_base_library = 'NOPLOT'
