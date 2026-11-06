@@ -26,6 +26,19 @@ void display_size_and_res(int ix_screen, double* x_size, double* y_size, double*
   *y_res = 0;
 }
 
+// GTK case (ACC_PLOT_DISPLAY_TYPE = "GTK"): No X11 needed ---------------------
+
+#elif defined (CESR_GTK)
+
+#include "qp_gtk_window.h"
+
+void display_size_and_res(int ix_screen, double* x_size, double* y_size, double* x_res, double* y_res)
+{
+  int scale;
+  // GDK resolution is in logical pixels, the units of the GTK plot window.
+  qpg_display_info(x_size, y_size, x_res, y_res, &scale);
+}
+
 // Have X11 case --------------------------------------------------------------
 
 #else

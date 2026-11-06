@@ -60,6 +60,11 @@ export ACC_PLOT_PACKAGE="plplot"
 #
 # NOTE: "QT" is automatically set for Windows builds.
 #
+# "GTK" (experimental, PLplot only): The plot window is a GTK 3 window drawn by
+# the same Cairo code as PDF/PNG output, and no X11 server (XQuartz) is needed.
+# Needs GTK 3 (MacPorts: glib2 +quartz and gtk3 +quartz; Debian: libgtk-3-dev).
+# Changing this setting requires rebuilding PLplot: run util/dist_clean first.
+#
 # For a list of supported options, please see the qp_open_page
 # documentation in the file sim_utils/plot/quick_plot.f90
 #-----------------------------------------------------------
