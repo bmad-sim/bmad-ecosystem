@@ -2,7 +2,10 @@
 ! Subroutine display_size_and_resolution (ix_screen, x_size, y_size, x_res, y_res)
 !
 ! Routine to return the size and resolution of a display screen.
-! Note: All output numbers will be set to zero if there is a problem obtaining the display information.
+! Note: x_size and y_size will be set to zero if there is a problem obtaining the display information.
+! If the display does not report a plausible physical size (for example, under WSL), the resolution
+! is set to the standard 96 pixels / inch.
+! The environment variable ACC_DPI_RESOLUTION, if set, overrides the resolution (in pixels / inch).
 ! 
 ! Input:
 !    ix_screen -- Screen index. Generally this should be 0.
@@ -37,6 +40,12 @@ character(*), parameter :: r_name = 'display_size_and_resolution'
 !
 
 call display_size_and_res(ix_screen, x_size, y_size, x_res, y_res)
+
+! Some displays report a physical size of zero or nonsense. Use 96 pixels / inch.
+if (x_res < 50/25.4_rp .or. x_res > 400/25.4_rp .or. y_res < 50/25.4_rp .or. y_res > 400/25.4_rp) then
+  x_res = 96 / 25.4_rp
+  y_res = x_res
+endif
 
 call get_environment_variable('ACC_DPI_RESOLUTION', length=l, status=s)
 if (s == 0) then
