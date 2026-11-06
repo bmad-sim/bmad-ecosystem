@@ -202,12 +202,15 @@ int qpg_display_info (double *width_mm, double *height_mm, double *x_res, double
   wmm = gdk_monitor_get_width_mm(mon);
   hmm = gdk_monitor_get_height_mm(mon);
   *scale = gdk_monitor_get_scale_factor(mon);
-  if (wmm <= 0 || hmm <= 0) return -1;
-
+  if (wmm <= 0 || hmm <= 0) {
+    hmm = 250.4;
+    wmm = geom.width*hmm/geom.height;
+  }
   *width_mm = wmm;
   *height_mm = hmm;
   *x_res = (double)geom.width / wmm;
   *y_res = (double)geom.height / hmm;
+
   return 0;
 }
 
