@@ -8,6 +8,8 @@
 #include <sys/fcntl.h>  
 #include <sys/ioctl.h> 
 #include <unistd.h>
+#include <poll.h>
+#include <readline/readline.h>
 
 static int oldf; 
 static struct termios torig, tnocanon; 
@@ -37,6 +39,14 @@ void get_tty_char_c_(int* ii, int* block, int* flush) {
       fcntl(0, F_SETFL, oldf | O_NONBLOCK); 
    } 
    tcsetattr(0, TCSANOW, &tnocanon); 
+
+/* While blocking, call readline's event hook (if set) every 20 ms so that, for example,
+   a GTK plot window keeps repainting while waiting for a key (Tao single mode). */
+
+   if (*block && rl_event_hook) {
+      struct pollfd pfd = {0, POLLIN, 0};
+      while (poll(&pfd, 1, 20) == 0 && rl_event_hook) rl_event_hook();
+   }
 
 /* EWOULDBLOCK means no characters waiting to be read */ 
 
