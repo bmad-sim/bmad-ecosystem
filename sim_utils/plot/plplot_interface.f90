@@ -166,7 +166,9 @@ logical uniform_size
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
       
-h = height * pl_com%page_scale / 3  ! 3 => conversion from points to mm.
+! 76.2 = 3 * 25.4: height (points) / 3 => mm when PLplot mm are real mm (72 dpi page).
+! x_inch_to_mm accounts for the actual PLplot mm (which scale with the display resolution) and page_scale.
+h = height * pl_com%x_inch_to_mm / 76.2
 
 if (uniform_size) then
 
@@ -440,7 +442,7 @@ function qp_text_len_basic (text) result (t_len)
 
 implicit none
 
-real(rp) t_len, d, h
+real(rp) t_len, d, h, f
 integer i, n_text
 character(*) text
 
@@ -453,7 +455,13 @@ do i = 1, len_trim(text)
   if (text(i:i) == '\') n_text = n_text - 1    !'
 enddo
 
-t_len = 0.8 * 0.03937 * n_text * h  
+! h is in PLplot mm, which scale with the display resolution. Convert to inches.
+! Before a page is open, assume real mm.
+f = 25.4_rp
+if (i_save > 0) then
+  if (pl_com%x_inch_to_mm > 0) f = pl_com%x_inch_to_mm
+endif
+t_len = 0.8 * n_text * h / f
 
 end function
 
