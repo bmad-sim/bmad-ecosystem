@@ -1487,7 +1487,7 @@ case ('data')
   nl=incr(nl); write (li(nl), rmt) 'invalid_value;REAL;T;',                   d_ptr%invalid_value
   nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           d_ptr%merit
   nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               d_ptr%s
-  nl=incr(nl); write (li(nl), rmt) 's_offset;REAL;F;',                        d_ptr%s_offset
+  nl=incr(nl); write (li(nl), rmt) 's_offset;REAL;T;',                        d_ptr%s_offset
   nl=incr(nl); write (li(nl), lmt) 'exists;LOGIC;F;',                         d_ptr%exists
   nl=incr(nl); write (li(nl), lmt) 'good_model;LOGIC;F;',                     d_ptr%good_model
   nl=incr(nl); write (li(nl), lmt) 'good_base;LOGIC;F;',                      d_ptr%good_base
@@ -1495,7 +1495,7 @@ case ('data')
   nl=incr(nl); write (li(nl), lmt) 'good_meas;LOGIC;T;',                      d_ptr%good_meas
   nl=incr(nl); write (li(nl), lmt) 'good_ref;LOGIC;T;',                       d_ptr%good_ref
   nl=incr(nl); write (li(nl), lmt) 'good_user;LOGIC;T;',                      d_ptr%good_user
-  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;F;',                       d_ptr%good_opt
+  nl=incr(nl); write (li(nl), lmt) 'good_opt;LOGIC;T;',                       d_ptr%good_opt
   nl=incr(nl); write (li(nl), lmt) 'good_plot;LOGIC;T;',                      d_ptr%good_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_plot;LOGIC;F;',                     d_ptr%useit_plot
   nl=incr(nl); write (li(nl), lmt) 'useit_opt;LOGIC;F;',                      d_ptr%useit_opt
@@ -7772,7 +7772,7 @@ case ('var')
   select case (line)
   case ('')
     nl=incr(nl); write (li(nl), rmt)  'model_value;REAL;T;',          v_ptr%model_value
-    nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;T;',           v_ptr%base_value
+    nl=incr(nl); write (li(nl), rmt)  'base_value;REAL;F;',           v_ptr%base_value
 
     nl=incr(nl); write (li(nl), amt) 'ele_name;STR;F;',                         trim(v_ptr%ele_name)
     nl=incr(nl); write (li(nl), amt) 'attrib_name;STR;F;',                      trim(v_ptr%attrib_name)
@@ -7780,7 +7780,7 @@ case ('var')
     nl=incr(nl); write (li(nl), imt) 'ix_var;INT;F;',                           v_ptr%ix_var
     nl=incr(nl); write (li(nl), imt) 'ix_dvar;INT;F;',                          v_ptr%ix_dvar
     nl=incr(nl); write (li(nl), imt) 'ix_attrib;INT;F;',                        v_ptr%ix_attrib
-    nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;T;',                     v_ptr%ix_key_table
+    nl=incr(nl); write (li(nl), imt) 'ix_key_table;INT;F;',                     v_ptr%ix_key_table
     nl=incr(nl); write (li(nl), rmt) 'design_value;REAL;F;',                    v_ptr%design_value
     nl=incr(nl); write (li(nl), rmt) 'scratch_value;REAL;F;',                   v_ptr%scratch_value
     nl=incr(nl); write (li(nl), rmt) 'old_value;REAL;F;',                       v_ptr%old_value
