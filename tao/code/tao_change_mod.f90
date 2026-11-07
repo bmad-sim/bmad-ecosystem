@@ -152,7 +152,7 @@ do i = 1, size(v_array)
   elseif (abs_or_rel == 'd') then
     call tao_set_var_model_value (var, var%design_value + change_number(i))
   elseif (abs_or_rel == '%') then
-    call tao_set_var_model_value (var, var%model_value * (1 + 0.01 * change_number(i)))
+    call tao_set_var_model_value (var, var%model_value * (1 + 0.01_rp * change_number(i)))
   else
     call tao_set_var_model_value (var, var%model_value + change_number(i))
   endif
@@ -339,7 +339,7 @@ do iu = lbound(s%u, 1), ubound(s%u, 1)
     elseif (abs_or_rel == 'd') then
       call set_all_ptr(m_ptr(i), design_value + change_number(i), value_set = new_value)
     elseif (abs_or_rel == '%') then
-      call set_all_ptr(m_ptr(i), old_value(i) * (1 + 0.01 * change_number(i)), value_set = new_value)
+      call set_all_ptr(m_ptr(i), old_value(i) * (1 + 0.01_rp * change_number(i)), value_set = new_value)
     else
       call set_all_ptr(m_ptr(i), change_number(i), delta = .true., value_set = new_value)
     endif

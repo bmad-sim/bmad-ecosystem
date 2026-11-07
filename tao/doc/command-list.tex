@@ -208,6 +208,9 @@ If \vn{<prefix>} is present, it may be one of
   d       final_model_value = design_value + <number>
   \%       final_model_value = initial_model_value * (1 + <number> / 100)
 \end{example}
+The prefix may be separated from \vn{<number>} by a space or not. For example, \vn{d 1.2e-2} and
+\vn{d1.2e-2} are equivalent. The switches (\vn{-update}, \vn{-silent}, etc.) may be placed either
+before or after the subcommand word (\vn{element}, \vn{variable}, etc.).
 
 Element list format (\sref{s:ele.list.format}), without any embedded blanks, is used for
 the \vn{<element_list>} argument.
@@ -1948,6 +1951,7 @@ For \vn{set var}, the \vn{<parameter>}s that can be set are:
   merit_type  ! How merit contribution is calculated.
   key_bound   ! Model value can be modified using keyboard?
   key_delta   ! Change in model value when key is pressed.
+  key_val0    ! Saved model value used by single mode "= <arrow>" keys.
 \end{example}
 
 Example:

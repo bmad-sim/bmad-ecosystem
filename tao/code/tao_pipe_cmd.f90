@@ -7794,7 +7794,7 @@ case ('var')
     nl=incr(nl); write (li(nl), rmt) 'delta_merit;REAL;F;',                     v_ptr%delta_merit
     nl=incr(nl); write (li(nl), rmt) 'merit;REAL;F;',                           v_ptr%merit
     nl=incr(nl); write (li(nl), rmt) 'dmerit_dvar;REAL;F;',                     v_ptr%dMerit_dVar
-    nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;F;',                        v_ptr%key_val0
+    nl=incr(nl); write (li(nl), rmt) 'key_val0;REAL;T;',                        v_ptr%key_val0
     nl=incr(nl); write (li(nl), rmt) 'key_delta;REAL;T;',                       v_ptr%key_delta
     nl=incr(nl); write (li(nl), rmt) 's;REAL;F;',                               v_ptr%s
     nl=incr(nl); write (li(nl), amt) 'var^merit_type;ENUM;T;',                  trim(v_ptr%merit_type)
