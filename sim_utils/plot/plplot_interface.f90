@@ -204,7 +204,7 @@ endif
 
 ! Set symbol size and save this state.
 
-if (pl_com%xwin .or. pl_com%page_type(1:2) == 'PS') then
+if (pl_com%xwin) then
   h = h * 0.5
 endif
 
@@ -391,12 +391,6 @@ real(rp) height, d, h
 
 ! call plschr(pl_com%default_cs, height)
 h = height
-if (pl_com%xwin) then
-  !do nothing. Old: h = h ! !0.7
-elseif (pl_com%page_type(1:2) == 'PS') then
-  h = h * 0.85
-endif
-
 call plschr(0.0_rp, h)  ! Set
 call plgchr(d,h)        ! Get
 
@@ -496,12 +490,7 @@ text2 = text
 do
   ix = index(text2, '\A')
   if (ix == 0) exit
-  ! PS does not backspace properly so leave off the "o"
-  if (pl_com%page_type(1:2) == 'PS') then
-    text2 = text2(1:ix-1) // 'A' // text2(ix+2:)
-  else
-    text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
-  endif
+  text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
 enddo
 
 do
@@ -909,8 +898,11 @@ case ('X', 'GTK')
 #endif
 
 case ('PS', 'PS-L')
-  call plsori(0)   ! portrait mode
-  call plsdev ('epscairo')
+  ! The cairo PS driver draws rotated by 90 deg. Rotate back, and let the rotated
+  ! drawing fill the page (freeaspect). See also plspage below.
+  call plsori(1)
+  stat = plsetopt('freeaspect', '1')
+  call plsdev ('pscairo')
 
 case ('GIF', 'GIF-L')
   call plsori(0)   ! portrait mode
@@ -949,7 +941,13 @@ call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.
 call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
 ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
 iy_len = nint(y_res * y_len * 25.4)
-call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+if (page_type(1:2) == 'PS') then
+  ! The cairo PS driver makes a page of size (ylength, xlength) and rotates the drawing.
+  ! Swap the lengths here (with plsori(1) above) to get an upright page of the right size.
+  call plspage (0.0_rp, 0.0_rp, iy_len, ix_len, 0, 0)
+else
+  call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+endif
 point_to_mm_conv = 0.25 * x_res * 25.4 / 72
 
 ! Initialize plplot
