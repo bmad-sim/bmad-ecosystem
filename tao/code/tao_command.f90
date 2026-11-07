@@ -160,13 +160,14 @@ case ('change')
     call match_word (cmd_word(i), tao_switches_for('change'), ix, .true., matched_name = switch)
 
     select case (switch)
-    case ('-silent');   silent = .true.;   cmd_word(i:n-1) = cmd_word(i+1:n)
-    case ('-update');   update = .true.;   cmd_word(i:n-1) = cmd_word(i+1:n)
-    case ('-listing');  listing = .true.;  cmd_word(i:n-1) = cmd_word(i+1:n)
-    case ('-branch');   branch_str = cmd_word(i+1);  cmd_word(i:n-2) = cmd_word(i+2:n)
-    case ('-mask');     mask = cmd_word(i+1);        cmd_word(i:n-2) = cmd_word(i+2:n)
+    case ('-silent');   silent = .true.;   cmd_word(i:n-1) = cmd_word(i+1:n);  cmd_word(n) = ''
+    case ('-update');   update = .true.;   cmd_word(i:n-1) = cmd_word(i+1:n);  cmd_word(n) = ''
+    case ('-listing');  listing = .true.;  cmd_word(i:n-1) = cmd_word(i+1:n);  cmd_word(n) = ''
+    case ('-branch');   branch_str = cmd_word(i+1);  cmd_word(i:n-2) = cmd_word(i+2:n);  cmd_word(n-1:n) = ''
+    case ('-mask');     mask = cmd_word(i+1);        cmd_word(i:n-2) = cmd_word(i+2:n);  cmd_word(n-1:n) = ''
     case default;       cycle
     end select
+    ! The vacated tail words are blanked above so a switch is never duplicated and found again.
     i = i - 1   ! Recheck word i since the words after the switch have been shifted down.
   enddo
 

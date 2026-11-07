@@ -151,3 +151,26 @@ def test_key_val0_settable(tao):
     settable, value = var_param(tao, "key_val0")
     assert settable == "T"
     assert float(value) == pytest.approx(0.123, abs=1e-15)
+
+
+# A switch in the last of the 8 command words (or "-mask <list>" as the last two) must not
+# be found again after the switch removal shifts the words down. A hang here fails via the timeout.
+
+
+@pytest.mark.parametrize(
+    "cmd",
+    [
+        "change element qf k1 0.01 -update -update -update -silent",
+        "change -silent -update -update element qf k1 0.01 -update",
+        "change tune 0 0.01 -listing -listing -listing -mask XX*",
+        "change tune 0 0.01 -listing -listing -listing -branch 0",
+    ],
+)
+def test_switch_in_last_word_terminates(tao, cmd):
+    set_k1(tao, 0.3)
+    with tao.timeout(30):
+        tao.cmd(cmd)
+    if "element" in cmd:
+        assert qf_k1(tao) == pytest.approx(0.31, abs=1e-14)
+    else:
+        assert qf_k1(tao) != pytest.approx(0.3, abs=1e-6)
