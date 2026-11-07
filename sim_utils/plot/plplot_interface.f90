@@ -659,24 +659,6 @@ end subroutine qp_restore_state_basic
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! Text size scale for the GTK screen page relative to hardcopy (PDF, PNG, etc.) output.
-! The old xwin window used 0.6. The environment variable QP_SCREEN_TEXT_SCALE overrides
-! the default (for tuning).
-
-function gtk_screen_text_scale() result (f)
-real(rp) f, v
-integer stat, ios
-character(40) str
-f = 0.85_rp
-call get_environment_variable('QP_SCREEN_TEXT_SCALE', str, status = stat)
-if (stat /= 0) return
-read (str, *, iostat = ios) v
-if (ios == 0 .and. v > 0) f = v
-end function gtk_screen_text_scale
-
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
-!-----------------------------------------------------------------------
 ! Flush the plot buffer. A GTK screen page is also updated on screen.
 
 subroutine pl_flush()
@@ -993,10 +975,10 @@ call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
 ! Get page size info.
 call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
+! The xwin driver draws text with its own, larger fonts. The GTK window draws with the same
+! Cairo code as hardcopy (PDF, etc.), so it uses the same text size.
 if (screen .and. .not. use_gtk) then
   call plschr(0.60 * point_to_mm_conv, 1.0_rp)		
-elseif (screen) then
-  call plschr(gtk_screen_text_scale() * point_to_mm_conv, 1.0_rp)
 else		
   call plschr(point_to_mm_conv, 1.0_rp)		
 endif		
