@@ -65,9 +65,9 @@ character(16), parameter :: tao_set_data_component_names(22) = [character(16):: 
               'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'ix_uni', 'eval_point', &
               'merit_type', 'ele_name', 'ele_start_name', 'ele_ref_name', 'data_type', 'data_source']
 
-character(16), parameter :: tao_set_var_component_names(13) = [character(16):: &
+character(16), parameter :: tao_set_var_component_names(14) = [character(16):: &
               'model', 'meas', 'ref', 'step', 'weight', 'high_lim', 'low_lim', 'key_delta', &
-              'good_user', 'good_opt', 'good_plot', 'key_bound', 'merit_type']
+              'key_val0', 'good_user', 'good_opt', 'good_plot', 'key_bound', 'merit_type']
 
 ! "set ptc_com <component>" names. tao_set_ptc_com_cmd validates against the full list
 ! before its select case; completion offers T/F for the logical ones.

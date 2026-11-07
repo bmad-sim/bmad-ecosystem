@@ -149,9 +149,13 @@ case ('change')
   listing = .false.
   n = size(cmd_word)
 
+  ! Switches may come before or after the subcommand word (EG: "change -silent var ..." or "change var -silent ...").
   ! Unknown or ambiguous "-" words (eg a negative number) are left in place.
 
-  do i = 2, 8
+  i = 0
+  do
+    i = i + 1
+    if (i > 8) exit
     if (cmd_word(i)(1:1) /= '-' .or. len_trim(cmd_word(i)) < 2) cycle
     call match_word (cmd_word(i), tao_switches_for('change'), ix, .true., matched_name = switch)
 
@@ -161,26 +165,31 @@ case ('change')
     case ('-listing');  listing = .true.;  cmd_word(i:n-1) = cmd_word(i+1:n)
     case ('-branch');   branch_str = cmd_word(i+1);  cmd_word(i:n-2) = cmd_word(i+2:n)
     case ('-mask');     mask = cmd_word(i+1);        cmd_word(i:n-2) = cmd_word(i+2:n)
+    case default;       cycle
     end select
+    i = i - 1   ! Recheck word i since the words after the switch have been shifted down.
   enddo
 
-  cmd_word(4) = cmd_word(4)//cmd_word(5)//cmd_word(6)//cmd_word(7)//cmd_word(8)
+  ! Join the trailing words so that, EG, "d 0.02" or "% 50" (with a space) is the same as "d0.02" or "%50".
+  ! Note: trim is needed since cmd_word(4)//cmd_word(5) would otherwise be truncated to just cmd_word(4).
+
+  cmd_word(4) = trim(cmd_word(4)) // trim(cmd_word(5)) // trim(cmd_word(6)) // trim(cmd_word(7)) // trim(cmd_word(8))
 
   if (index ('variable', trim(cmd_word(1))) == 1) then
-    call tao_change_var (cmd_word(2), cmd_word(3)//cmd_word(4), silent, err_flag)
+    call tao_change_var (cmd_word(2), trim(cmd_word(3))//cmd_word(4), silent, err_flag)
 
   elseif (index('element', trim(cmd_word(1))) == 1) then
     call tao_change_ele (cmd_word(2), cmd_word(3), cmd_word(4), update, err_flag)
 
   elseif (index('tune', trim(cmd_word(1))) == 1) then
-    call tao_change_tune (branch_str, mask, listing, cmd_word(2), cmd_word(3)//cmd_word(4), err_flag)
+    call tao_change_tune (branch_str, mask, listing, cmd_word(2), trim(cmd_word(3))//cmd_word(4), err_flag)
 
   elseif (index('z_tune', trim(cmd_word(1))) == 1) then
-    call tao_change_z_tune (branch_str, cmd_word(2)//cmd_word(3)//cmd_word(4), err_flag)
+    call tao_change_z_tune (branch_str, trim(cmd_word(2))//trim(cmd_word(3))//cmd_word(4), err_flag)
 
   elseif (index(trim(cmd_word(1)), 'particle_start') /= 0) then     ! Could be "2@particle_start"
     word = cmd_word(1)
-    call tao_change_ele (word, cmd_word(2), cmd_word(3)//cmd_word(4), .false., err_flag)
+    call tao_change_ele (word, cmd_word(2), trim(cmd_word(3))//cmd_word(4), .false., err_flag)
 
   else
     call out_io (s_error$, r_name, 'Change who? (should be: "element", "particle_start", or "variable")')

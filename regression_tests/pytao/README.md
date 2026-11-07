@@ -4,6 +4,7 @@ The python module `pytest` is used to run tests and test discovery follows its c
 
 ## Organization
 - `bookkeeping`: Tests related to lattice bookkeeping status flags
+- `change_cmd`: Tests of the `change` command switches and `@`, `d`, `%` prefixes
 - `completion`: Tests of the `pipe complete` tab completion command
 - `kicks`: Small kick and multipole response of every element type compared with the first order formulas
 - `lcavity`: Tests related to lcavity element

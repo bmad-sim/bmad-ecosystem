@@ -1,0 +1,13 @@
+! Small FODO ring for the change command tests.
+parameter[geometry] = closed
+parameter[particle] = electron
+parameter[e_tot] = 1e9
+
+qf: quadrupole, l = 0.5, k1 = 0.3
+qd: quadrupole, l = 0.5, k1 = -0.3
+d: drift, l = 2.0
+b: sbend, l = 2.0, angle = pi/8
+
+cell: line = (qf, d, b, d, qd, d, b, d)
+ring: line = (8*cell)
+use, ring
