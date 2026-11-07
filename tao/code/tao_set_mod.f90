@@ -2252,7 +2252,7 @@ elseif (size(s_var) /= 0) then
 
     else
       call tao_find_var (err, value_str, str_array=s_set)
-      if (size(l_set) /= size(l_var)) then
+      if (size(s_set) /= size(s_var)) then
         call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
         return
       endif
@@ -2422,18 +2422,19 @@ type (tao_string_array_struct), allocatable :: s_dat(:), s_value(:)
 type (tao_universe_struct), pointer :: u
 type (tao_data_struct), pointer :: d
 type (branch_struct), pointer :: branch
-type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_pointer_struct), allocatable :: eles(:), ele_new(:)
+type (ele_struct), pointer :: ele
+type (var_length_string_struct), allocatable :: s_new(:)
 
 real(rp), allocatable :: r_value(:)
 
-integer i, ix, i1, n_loc, ib, ie
-integer, allocatable :: int_save(:)
+integer i, ix, i1, n_loc, ie
+integer, allocatable :: int_new(:)
 
 character(*) who_str, value_str
 character(20) component
 character(*), parameter :: r_name = 'tao_set_data_cmd'
 character(100) :: why_invalid, tmpstr
-character, allocatable :: s_save(:)
 character(16), parameter :: datum_char_params(6) = [character(16):: 'ele_name', 'ele_start_name', &
                                     'ele_ref_name', 'data_type', 'merit_type', 'data_source']  
 logical, optional :: silent
@@ -2448,7 +2449,7 @@ if (err) return
 
 select case (component)
   case ('model', 'base', 'design', 'old', 'model_value', 'base_value', 'design_value', &
-             'old_value', 'invalid', 'delta_merit', 'merit', 'exists', 'good_base ', &
+             'old_value', 'delta_merit', 'merit', 'exists', 'good_base ', &
              'useit_opt ', 'useit_plot', 'ix_d1', 'good_model', 'good_design')
   call out_io (s_error$, r_name, 'DATUM ATTRIBUTE NOT SETTABLE: ' // component)
   return
@@ -2481,17 +2482,15 @@ if (size(l_dat) /= 0) then
 
 !------------------------
 ! An integer value_str is either an integer or an array of datum values.
+! All new values are computed and checked before any datum is modified so that an error leaves the data unchanged.
 
 elseif (size(int_dat) /= 0) then
 
-  allocate (int_save(size(int_dat)))  ! Used to save old values in case of error
+  allocate (int_new(size(int_dat)))
 
   if (is_integer(value_str)) then
     read (value_str, *) i1
-    do i = 1, size(int_dat)
-      int_save(i) = int_dat(i)%i
-      int_dat(i)%i = i1
-    enddo
+    int_new = i1
 
   elseif (component == 'eval_point' .and. index(value_str, '|') == 0) then
     call match_word (value_str, anchor_pt_name(1:), i1, can_abbreviate = .false.)
@@ -2499,81 +2498,94 @@ elseif (size(int_dat) /= 0) then
       call out_io (s_error$, r_name, 'eval_point setting is "beginning", "center", or "end".')
       return
     endif
-    do i = 1, size(int_dat)
-      int_save(i) = int_dat(i)%i
-      int_dat(i)%i = i1
-    enddo
+    int_new = i1
 
   else
     call tao_find_data (err, value_str, int_array=int_value)
-    if (size(int_value) /= size(int_dat) .and. size(int_dat) /= 1) then
+    if (size(int_value) /= size(int_dat) .and. size(int_value) /= 1) then
       call out_io (s_error$, r_name, 'ARRAY SIZES ARE NOT THE SAME')
       return
     endif
     do i = 1, size(int_dat)
-      if (size(int_dat) == 1) then
-        int_save(i) = int_dat(1)%i
-        int_dat(i)%i = int_value(1)%i
+      if (size(int_value) == 1) then
+        int_new(i) = int_value(1)%i
       else
-        int_save(i) = int_dat(i)%i
-        int_dat(i)%i = int_value(i)%i
+        int_new(i) = int_value(i)%i
       endif
     enddo
   endif
 
-  if (component == 'ix_ele' .or. component == 'ix_ele_start' .or. component == 'ix_ele_ref') then
-    do i = 1, size(int_dat)
-      u => s%u(d_dat(i)%d%d1%d2%ix_universe)
+  ! Check
+
+  do i = 1, size(int_dat)
+    u => s%u(d_dat(i)%d%d1%d2%ix_universe)
+    select case (component)
+    case ('ix_ele', 'ix_ele_start', 'ix_ele_ref')
       branch => u%design%lat%branch(d_dat(i)%d%ix_branch)
-      ie = int_dat(i)%i
+      if (int_new(i) > branch%n_ele_max) then
+        call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
+        return
+      endif
+    case ('ix_branch')
+      if (int_new(i) < 0 .or. int_new(i) > ubound(u%design%lat%branch, 1)) then
+        call out_io (s_error$, r_name, 'BRANCH INDEX OUT OF RANGE.')
+        return
+      endif
+    case ('eval_point')
+      if (int_new(i) < 1 .or. int_new(i) > ubound(anchor_pt_name, 1)) then
+        call out_io (s_error$, r_name, 'eval_point setting is "beginning", "center", or "end".')
+        return
+      endif
+    end select
+  enddo
+
+  ! Set
+
+  do i = 1, size(int_dat)
+    d => d_dat(i)%d
+    ie = int_new(i)
+
+    select case (component)
+    case ('ix_ele', 'ix_ele_start', 'ix_ele_ref')
+      u => s%u(d%d1%d2%ix_universe)
+      branch => u%design%lat%branch(d%ix_branch)
       if (ie < 0) ie = -1
       tmpstr = ''
-
-      if (ie > branch%n_ele_max) then
-        int_dat(i)%i = int_save(i)
-        call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
-        return
-      endif
+      if (ie > -1) tmpstr = branch%ele(ie)%name
 
       if (component == 'ix_ele') then
-        if (ie > -1) tmpstr = branch%ele(ie)%name
-        d_dat(i)%d%ele_name = upcase(tmpstr)   ! Use temp due to bug on Windows
-        d_dat(i)%d%ix_ele = ie
+        d%ele_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d%ix_ele = ie
       elseif (component == 'ix_ele_start') then
-        if (ie > -1) tmpstr = branch%ele(ie)%name
-        d_dat(i)%d%ele_start_name = upcase(tmpstr)   ! Use temp due to bug on Windows
-        d_dat(i)%d%ix_ele_start = ie
+        d%ele_start_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d%ix_ele_start = ie
       else
-        if (ie > -1) tmpstr = branch%ele(ie)%name
-        d_dat(i)%d%ele_ref_name = upcase(tmpstr)   ! Use temp due to bug on Windows
-        d_dat(i)%d%ix_ele_ref = ie
+        d%ele_ref_name = upcase(tmpstr)   ! Use temp due to bug on Windows
+        d%ix_ele_ref = ie
       endif
-    enddo
 
-  elseif (component == 'ix_branch') then
-    do i = 1, size(int_dat)
-      u => s%u(d_dat(i)%d%d1%d2%ix_universe)
-      ib = int_dat(i)%i
-      if (ib < 0 .or. ib > ubound(u%design%lat%branch, 1)) then
-        int_dat(i)%i = int_save(i)
-        call out_io (s_error$, r_name, 'ELEMENT INDEX OUT OF RANGE.')
-        return
-      endif
-      d_dat(i)%d%ele_name = ''
-      d_dat(i)%d%ix_ele = -1
-      d_dat(i)%d%ele_ref_name = ''
-      d_dat(i)%d%ix_ele_ref = -1
-      d_dat(i)%d%ele_start_name = ''
-      d_dat(i)%d%ix_ele_start = -1
-    enddo
-  endif
+    case ('ix_branch')
+      if (ie == d%ix_branch) cycle  ! No change. Keep element names.
+      d%ix_branch = ie
+      d%ele_name = ''
+      d%ix_ele = -1
+      d%ele_ref_name = ''
+      d%ix_ele_ref = -1
+      d%ele_start_name = ''
+      d%ix_ele_start = -1
+
+    case default
+      int_dat(i)%i = ie
+    end select
+  enddo
 
 !------------------------
 ! A string:
+! As with integers, all new values are computed and checked before any datum is modified.
 
 elseif (size(s_dat) /= 0) then
 
-  allocate (s_save(size(s_dat)))  ! Used to save old values in case of error
+  allocate (s_new(size(s_dat)), ele_new(size(s_dat)))
 
   ! If value_string has "|XXX" at the end and XXX is a datum string parameter then it must be a datum array.
 
@@ -2586,9 +2598,11 @@ elseif (size(s_dat) /= 0) then
     endif
 
     do i = 1, size(s_dat)
-      tmpstr = s_value(i)%s
-      s_save(i) = tmpstr
-      s_dat(i)%s = tmpstr   ! Use temp due to bug on Windows
+      if (size(s_value) == 1) then
+        s_new(i)%str = s_value(1)%s
+      else
+        s_new(i)%str = s_value(i)%s
+      endif
     enddo
 
   else
@@ -2598,81 +2612,92 @@ elseif (size(s_dat) /= 0) then
     endif
 
     do i = 1, size(s_dat)
-      s_save(i) = value_str
-      ! Setting s_data(i)%s for %data_type does not work since %data_type is a var length string.
-      select case (component)
-      case ('data_type');       d_dat(i)%d%data_type = value_str
-      case default;             s_dat(i)%s = value_str
-      end select
+      s_new(i)%str = value_str
     enddo
   endif
 
-  !
+  ! Check element names.
 
   if (component == 'ele_name' .or. component == 'ele_start_name' .or. component == 'ele_ref_name') then
     do i = 1, size(d_dat)
+      call upcase_string (s_new(i)%str)
+      ele_new(i)%ele => null()
+      if (s_new(i)%str == '') cycle
+
       u => s%u(d_dat(i)%d%d1%d2%ix_universe)
-      call upcase_string (s_dat(i)%s)
-      if (s_dat(i)%s /= '') then
-        call lat_ele_locator (s_dat(i)%s, u%design%lat, eles, n_loc)
-        if (n_loc == 0) then
-          call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_dat(i)%s)
-          s_dat(i)%s = s_save(i)
-          return
-        endif
-        if (n_loc > 1) then
-          call out_io (s_error$, r_name, 'MULTIPLE ELEMENT OF THE SAME NAME EXIST: ' // s_dat(i)%s)
-          s_dat(i)%s = s_save(i)
-          return
-        endif
+      call lat_ele_locator (s_new(i)%str, u%design%lat, eles, n_loc)
+      if (n_loc == 0) then
+        call out_io (s_error$, r_name, 'ELEMENT NOT LOCATED: ' // s_new(i)%str)
+        return
+      endif
+      if (n_loc > 1) then
+        call out_io (s_error$, r_name, 'MULTIPLE ELEMENT OF THE SAME NAME EXIST: ' // s_new(i)%str)
+        return
       endif
 
-      if (component == 'ele_name') then
-        if (s_dat(i)%s == '') then
-          d_dat(i)%d%ix_ele = -1
-          d_dat(i)%d%ele_name = ''
-        else
-          d_dat(i)%d%ix_ele    = eles(1)%ele%ix_ele
-          d_dat(i)%d%ele_name  = eles(1)%ele%name
-          if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
-            d_dat(i)%d%ele_ref_name = ''
-            d_dat(i)%d%ix_ele_ref = -1
-            d_dat(i)%d%ele_start_name = ''
-            d_dat(i)%d%ix_ele_start = -1
-          endif
-          d_dat(i)%d%ix_branch = eles(1)%ele%ix_branch
-        endif
-
-      elseif (component == 'ele_start_name') then
-        if (s_dat(i)%s == '') then
-          d_dat(i)%d%ix_ele_start = -1
-          d_dat(i)%d%ele_start_name = ''
-        else
-          if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
-            s_dat(i)%s = s_save(i)
-            call out_io (s_error$, r_name, 'START_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
-            return
-          endif
-          d_dat(i)%d%ix_ele_start   = eles(1)%ele%ix_ele
-          d_dat(i)%d%ele_start_name = eles(1)%ele%name
-        endif
-
-      else
-        if (s_dat(i)%s == '') then
-          d_dat(i)%d%ix_ele_ref = -1
-          d_dat(i)%d%ele_ref_name = ''
-        else
-          if (d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
-            s_dat(i)%s = s_save(i)
-            call out_io (s_error$, r_name, 'REF_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
-            return
-          endif
-          d_dat(i)%d%ix_ele_ref   = eles(1)%ele%ix_ele
-          d_dat(i)%d%ele_ref_name = eles(1)%ele%name
-        endif
+      if (component == 'ele_start_name' .and. d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+        call out_io (s_error$, r_name, 'START_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
+        return
       endif
+
+      if (component == 'ele_ref_name' .and. d_dat(i)%d%ix_branch /= eles(1)%ele%ix_branch) then
+        call out_io (s_error$, r_name, 'REF_ELEMENT IS IN DIFFERENT BRANCH FROM ELEMENT.')
+        return
+      endif
+
+      ele_new(i)%ele => eles(1)%ele
     enddo
   endif
+
+  ! Set
+
+  do i = 1, size(s_dat)
+    d => d_dat(i)%d
+    ele => ele_new(i)%ele
+
+    select case (component)
+    ! Setting s_data(i)%s for %data_type does not work since %data_type is a var length string.
+    case ('data_type')
+      d%data_type = s_new(i)%str
+
+    case ('ele_name')
+      if (.not. associated(ele)) then
+        d%ix_ele = -1
+        d%ele_name = ''
+      else
+        d%ix_ele    = ele%ix_ele
+        d%ele_name  = ele%name
+        if (d%ix_branch /= ele%ix_branch) then
+          d%ele_ref_name = ''
+          d%ix_ele_ref = -1
+          d%ele_start_name = ''
+          d%ix_ele_start = -1
+        endif
+        d%ix_branch = ele%ix_branch
+      endif
+
+    case ('ele_start_name')
+      if (.not. associated(ele)) then
+        d%ix_ele_start = -1
+        d%ele_start_name = ''
+      else
+        d%ix_ele_start   = ele%ix_ele
+        d%ele_start_name = ele%name
+      endif
+
+    case ('ele_ref_name')
+      if (.not. associated(ele)) then
+        d%ix_ele_ref = -1
+        d%ele_ref_name = ''
+      else
+        d%ix_ele_ref   = ele%ix_ele
+        d%ele_ref_name = ele%name
+      endif
+
+    case default
+      s_dat(i)%s = s_new(i)%str
+    end select
+  enddo
 
 !------------------------
 ! Only possibility left is real. The value_str might be a number or it might 
@@ -2702,7 +2727,7 @@ endif
 
 select case (component)
 case ('ele_name', 'ele_start_name', 'ele_ref_name', 'data_type', 'data_source', 'ix_uni', &
-      'ix_branch', 'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'eval_point', 'exists')
+      'ix_branch', 'ix_bunch', 'ix_ele', 'ix_ele_start', 'ix_ele_ref', 'eval_point', 'exists')
   do i = 1, size(d_dat)
     d => d_dat(i)%d
     if (component == 'exists' .and. .not. d%exists) cycle

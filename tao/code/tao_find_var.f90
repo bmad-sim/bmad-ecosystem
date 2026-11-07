@@ -391,8 +391,8 @@ if (present(str_array) .and. any(component_name == string_components)) then
     j = j + 1
     select case (component_name)
     case ('merit_type');    str_array(j)%s => v1%v(i)%merit_type
-    case ('ele_name');      str_array(j)%s => v1%v(i)%merit_type
-    case ('attrib_name');   str_array(j)%s => v1%v(i)%merit_type
+    case ('ele_name');      str_array(j)%s => v1%v(i)%ele_name
+    case ('attrib_name');   str_array(j)%s => v1%v(i)%attrib_name
     case default
       call out_io (s_fatal$, r_name, "INTERNAL ERROR: STRING VAR")
       this_err = .true.
