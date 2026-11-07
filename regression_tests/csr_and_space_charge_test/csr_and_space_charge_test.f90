@@ -98,4 +98,36 @@ call track1_bunch(bunch, ele, err, centroid)
 p => bunch%particle(10)
 write (1, '(a, 6es16.8)') '"Space_Charge"    ABS 1e-14', p%vec - p0%vec
 
+! Branch 2: Planar-model wiggler with 1D CSR. The CSR calculation internally subdivides the wiggler
+! into chord sub-segments (issue #63) so the user does not have to split it by hand. NOTE: the
+! reference values below are a self-generated behavior-lock baseline (they catch unintended changes
+! to the subdivision machinery); they are NOT an independent physics validation of wiggler CSR.
+
+branch => lat%branch(2)
+call ran_seed_put(1)
+beam_init%n_particle = 1000
+beam_init%a_norm_emit = 1.0e-6
+beam_init%b_norm_emit = 1.0e-6
+beam_init%dPz_dz = 0.0
+beam_init%bunch_charge = 77.0e-12
+beam_init%sig_pz = 0e-9
+beam_init%sig_z = 0.000899377
+call init_bunch_distribution (branch%ele(0), branch%param, beam_init, 0, bunch_init)
+
+call reallocate_coord(centroid, lat, branch%ix_branch)
+call init_coord (centroid(0), lat%particle_start, branch%ele(0), downstream_end$)
+call track_all (lat, centroid, branch%ix_branch)
+
+ele => branch%ele(1)   ! wig01
+bunch0 = bunch_init
+ele%csr_method = off$
+call track1_bunch(bunch0, ele, err, centroid)
+p0 => bunch0%particle(10)
+
+ele%csr_method = one_dim$
+bunch = bunch_init
+call track1_bunch(bunch, ele, err, centroid)
+p => bunch%particle(10)
+write (1, '(a, 6es16.8)') '"Wiggler-CSR"     ABS 1e-14', p%vec - p0%vec
+
 end program
