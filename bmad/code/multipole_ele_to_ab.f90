@@ -49,7 +49,7 @@ integer, optional :: pole_type, include_kicks
 integer i, nn, p_type, include_kck, ix_kick_max
 
 logical, optional :: original
-logical use_ele_tilt, can_use_cache, is_set
+logical use_ele_tilt, can_use_cache, is_set, has_poles
 
 character(*), parameter :: r_name = 'multipole_ele_to_ab'
 
@@ -217,11 +217,14 @@ endif
 ! Not a slave
 
 call pointer_to_ele_multipole (ele, a_pole, b_pole, ksl_pole, pole_type)
-if (ele%multipoles_on .and. associated(a_pole)) then
-  call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
-endif
+has_poles = (ele%multipoles_on .and. associated(a_pole))
+if (has_poles) call convert_this_ab (ele, p_type, a_pole, b_pole, a, b)
 
-if (.not. logic_option(.false., original)) call this_ele_non_multipoles (ele, a_kick, b_kick)
+! The kicks are only needed if they are to be added in or are to be cached.
+
+a_kick = 0;  b_kick = 0
+if (.not. logic_option(.false., original) .and. (include_kck == include_kicks$ .or. can_use_cache)) &
+                                                          call this_ele_non_multipoles (ele, a_kick, b_kick)
 if (can_use_cache) call load_this_cache(cache, p_type, a, b, a_kick, b_kick)
 
 if (include_kck == include_kicks$) then
@@ -229,7 +232,13 @@ if (include_kck == include_kicks$) then
   b(0:3) = b(0:3) + b_kick
 endif
 
-ix_pole_max = max_nonzero(0, a, b)
+! Without multipoles, only a(0:3) and b(0:3) can be nonzero.
+
+if (has_poles) then
+  ix_pole_max = max_nonzero(0, a, b)
+else
+  ix_pole_max = max_nonzero(0, a(0:3), b(0:3))
+endif
 
 if (use_ele_tilt) call tilt_this_multipole(ele, +1, a, b, ix_pole_max)
 if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
