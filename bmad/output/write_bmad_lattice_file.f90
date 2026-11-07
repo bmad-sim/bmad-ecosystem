@@ -825,7 +825,7 @@ do ib = 0, ubound(lat%branch, 1)
         if (j == hgapx$ .and. ele%value(hgapx$) == ele%value(hgap$)) cycle
 
         fid = nint(ele%value(fiducial_pt$))
-        if (j == l$ .and. (fid == entrance_end$ .or. fid == entrance_end$)) cycle
+        if (j == l$ .and. (fid == entrance_end$ .or. fid == exit_end$)) cycle
         if (j == l_rectangle$ .and. (fid == none_pt$ .or. fid == center_pt$)) cycle
         if (j == angle$) cycle
       endif
