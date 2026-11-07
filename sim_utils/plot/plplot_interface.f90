@@ -37,6 +37,9 @@ use quick_plot_struct
 #if defined (CESR_PLPLOT)
   
 use plplot
+#if defined (CESR_GTK)
+use, intrinsic :: iso_c_binding, only: c_int
+#endif
 
 type viewport_size
   real(rp) :: x1 !in mm
@@ -61,6 +64,8 @@ type pl_interface_struct
   real(rp) y_inch_page
   real(rp) x_inch_to_mm
   real(rp) y_inch_to_mm
+  logical :: xwin = .false.   ! Screen page drawn by the PLplot xwin driver (needs its own size tweaks).
+  logical :: gtk = .false.    ! Screen page drawn by extcairo into a GTK window (CESR_GTK).
 end type
 
 type (pl_interface_struct), pointer, save, private :: pl_com
@@ -68,6 +73,21 @@ type (pl_interface_struct), save, target, private :: pl_interface_save_com(0:20)
 integer, save, private :: i_save = 0
 logical, save, private :: pl_allow_flush = .true.
 real(rp), save, private :: point_to_mm_conv
+
+#if defined (CESR_GTK)
+! GTK plot window (qp_gtk_window.c). Drawing is done by PLplot's extcairo driver.
+interface
+  function qpg_plplot_open (width, height) result (ix) bind(c, name = 'qpg_plplot_open')
+    use, intrinsic :: iso_c_binding
+    integer(c_int), value :: width, height
+    integer(c_int) ix
+  end function
+  subroutine qpg_page_present () bind(c, name = 'qpg_page_present')
+  end subroutine
+  subroutine qpg_page_close () bind(c, name = 'qpg_page_close')
+  end subroutine
+end interface
+#endif
 
 contains
 
@@ -146,7 +166,9 @@ logical uniform_size
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
       
-h = height * pl_com%page_scale / 3  ! 3 => conversion from points to mm.
+! 76.2 = 3 * 25.4: height (points) / 3 => mm when PLplot mm are real mm (72 dpi page).
+! x_inch_to_mm accounts for the actual PLplot mm (which scale with the display resolution) and page_scale.
+h = height * pl_com%x_inch_to_mm / 76.2
 
 if (uniform_size) then
 
@@ -163,7 +185,7 @@ if (uniform_size) then
     h = h * 0.73
   end select
 
-  if (pl_com%page_type == 'X') then
+  if (pl_com%xwin) then
     select case (symbol_type)
     case (circle_plus_sym$)
       h = h * 0.55
@@ -182,7 +204,7 @@ endif
 
 ! Set symbol size and save this state.
 
-if (pl_com%page_type == 'X' .or. pl_com%page_type(1:2) == 'PS') then
+if (pl_com%xwin) then
   h = h * 0.5
 endif
 
@@ -369,12 +391,6 @@ real(rp) height, d, h
 
 ! call plschr(pl_com%default_cs, height)
 h = height
-if (pl_com%page_type(1:2) == 'X') then
-  !do nothing. Old: h = h ! !0.7
-elseif (pl_com%page_type(1:2) == 'PS') then
-  h = h * 0.85
-endif
-
 call plschr(0.0_rp, h)  ! Set
 call plgchr(d,h)        ! Get
 
@@ -420,7 +436,7 @@ function qp_text_len_basic (text) result (t_len)
 
 implicit none
 
-real(rp) t_len, d, h
+real(rp) t_len, d, h, f
 integer i, n_text
 character(*) text
 
@@ -433,7 +449,13 @@ do i = 1, len_trim(text)
   if (text(i:i) == '\') n_text = n_text - 1    !'
 enddo
 
-t_len = 0.8 * 0.03937 * n_text * h  
+! h is in PLplot mm, which scale with the display resolution. Convert to inches.
+! Before a page is open, assume real mm.
+f = 25.4_rp
+if (i_save > 0) then
+  if (pl_com%x_inch_to_mm > 0) f = pl_com%x_inch_to_mm
+endif
+t_len = 0.8 * n_text * h / f
 
 end function
 
@@ -468,12 +490,7 @@ text2 = text
 do
   ix = index(text2, '\A')
   if (ix == 0) exit
-  ! PS does not backspace properly so leave off the "o"
-  if (pl_com%page_type(1:2) == 'PS') then
-    text2 = text2(1:ix-1) // 'A' // text2(ix+2:)
-  else
-    text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
-  endif
+  text2 = text2(1:ix-1) // 'A\b\uo\d' // text2(ix+2:)
 enddo
 
 do
@@ -624,9 +641,21 @@ else
   call plwind(0.0_rp, xp2-xp1, 0.0_rp, yp2-yp1) ! Set world coords
 endif
 
-if (pl_allow_flush) call plflush()
+if (pl_allow_flush) call pl_flush()
 
-end subroutine qp_restore_state_basic 
+end subroutine qp_restore_state_basic
+
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+! Flush the plot buffer. A GTK screen page is also updated on screen.
+
+subroutine pl_flush()
+call plflush()
+#if defined (CESR_GTK)
+if (pl_com%gtk) call qpg_page_present()
+#endif
+end subroutine pl_flush 
 
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -651,7 +680,7 @@ implicit none
 logical wait
 !
 pl_allow_flush = .not. wait
-if (pl_allow_flush) call plflush()
+if (pl_allow_flush) call pl_flush()
 end subroutine qp_wait_to_flush_basic
 
 !-----------------------------------------------------------------------
@@ -839,7 +868,18 @@ character(*) page_type, plot_file
 character(40) geom
 character(16) :: r_name = 'qp_open_page_basic'
 
+logical screen
+
+#if defined (CESR_GTK)
+logical, parameter :: use_gtk = .true.
+#else
+logical, parameter :: use_gtk = .false.
+#endif
+
 ! set plot type
+! "GTK" (from ACC_PLOT_DISPLAY_TYPE) is another name for the on-screen "X" page.
+
+screen = (page_type == 'X' .or. page_type == 'GTK')
 
 if (i_save == 0) then
   i_ch = 0
@@ -849,13 +889,20 @@ else
 endif
 
 select case (page_type)
-case ('X')
+case ('X', 'GTK')
+#if defined (CESR_GTK)
+  call plsdev ('extcairo')
+#else
   call plsdev ('xwin')
   stat = plsetopt('drvopt', 'nobuffered=1')
+#endif
 
 case ('PS', 'PS-L')
-  call plsori(0)   ! portrait mode
-  call plsdev ('epscairo')
+  ! The cairo PS driver draws rotated by 90 deg. Rotate back, and let the rotated
+  ! drawing fill the page (freeaspect). See also plspage below.
+  call plsori(1)
+  stat = plsetopt('freeaspect', '1')
+  call plsdev ('pscairo')
 
 case ('GIF', 'GIF-L')
   call plsori(0)   ! portrait mode
@@ -875,7 +922,7 @@ end select
 
 ! Set output file name  
 
-if (page_type /= 'X') then
+if (.not. screen) then
    call plsfnam (trim(plot_file))
 endif
 
@@ -894,12 +941,27 @@ call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.
 call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
 ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
 iy_len = nint(y_res * y_len * 25.4)
-call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+if (page_type(1:2) == 'PS') then
+  ! The cairo PS driver makes a page of size (ylength, xlength) and rotates the drawing.
+  ! Swap the lengths here (with plsori(1) above) to get an upright page of the right size.
+  call plspage (0.0_rp, 0.0_rp, iy_len, ix_len, 0, 0)
+else
+  call plspage (0.0_rp, 0.0_rp, ix_len, iy_len, 0, 0)
+endif
 point_to_mm_conv = 0.25 * x_res * 25.4 / 72
 
 ! Initialize plplot
 
 call plstar(1,1)
+
+#if defined (CESR_GTK)
+if (screen) then
+  if (qpg_plplot_open(int(ix_len, c_int), int(iy_len, c_int)) /= 0) then
+    call out_io (s_error$, r_name, 'CANNOT OPEN PLOT WINDOW.')
+  endif
+endif
+#endif
+
 call pladv(0)
 
 ! set viewport/window size
@@ -911,7 +973,9 @@ call plwind (0.0_rp, x2i-x1i, 0.0_rp, y2i-y1i) ! set min/max for window
 ! Get page size info.
 call plgvpw(x1i,x2i,y1i,y2i)      ! Get viewport size in mm
 
-if (page_type == 'X') then 		
+! The xwin driver draws text with its own, larger fonts. The GTK window draws with the same
+! Cairo code as hardcopy (PDF, etc.), so it uses the same text size.
+if (screen .and. .not. use_gtk) then
   call plschr(0.60 * point_to_mm_conv, 1.0_rp)		
 else		
   call plschr(point_to_mm_conv, 1.0_rp)		
@@ -935,7 +999,8 @@ pl_com%char_size = d*h
 pl_com%sym_size = 10
 pl_com%page_scale = real_option(1.0_rp, page_scale)
 pl_com%page_type = page_type
-
+pl_com%gtk  = (screen .and. use_gtk)
+pl_com%xwin = (screen .and. .not. use_gtk)
 
 pl_com%x_inch_to_mm = pl_com%page_scale * x2i / x_len
 pl_com%y_inch_to_mm = pl_com%page_scale * y2i / y_len
@@ -985,8 +1050,13 @@ end subroutine
 
 subroutine qp_close_page_basic
 implicit none
+logical was_gtk
+was_gtk = pl_com%gtk
 call plspause(.false.)  ! Disable end of page pause
 call plend1()
+#if defined (CESR_GTK)
+if (was_gtk) call qpg_page_close()   ! After plend1 since PLplot draws into the window's context.
+#endif
 i_save = i_save - 1
 pl_com => pl_interface_save_com(i_save)
 if (i_save /= 0) then
@@ -1006,6 +1076,9 @@ end subroutine
 subroutine qp_end_basic ()
 
 call plend()
+#if defined (CESR_GTK)
+call qpg_page_close()
+#endif
 
 end subroutine qp_end_basic
 
