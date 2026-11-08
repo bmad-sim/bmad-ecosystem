@@ -25,6 +25,7 @@ integer n_found, n_found2, i
 ! Walk downwards and upwards to get a list of slaves and lords
 
 n_found = 0
+if (allocated(tree)) deallocate(tree)  ! Caller may pass an allocated array.
 allocate(tree(10))
 call walk_downwards (ele, tree, n_found)
 
