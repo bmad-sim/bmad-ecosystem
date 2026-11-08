@@ -1918,6 +1918,7 @@ case ('emittance')
     select case (switch)
 
     case ('-universe')
+      call tao_next_word(what2, aname)
       read (aname, *, iostat = ios) ix
       u => tao_pointer_to_universe(ix)
       if (aname == '' .or. ios /= 0 .or. .not. associated(u)) then
