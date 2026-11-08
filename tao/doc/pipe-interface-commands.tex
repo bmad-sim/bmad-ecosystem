@@ -1860,6 +1860,10 @@ Output lat_layout or floor_plan shapes list
 {who} is one of:
   lat_layout
   floor_plan
+
+Output: One line per shape with the fields:
+  {shape_index};{ele_name};{shape};{color};{shape_size};{type_label};{shape_draw};
+                                              {multi_shape};{line_width};{shape_offset}
 \end{verbatim}
 
 %% pipe shape_manage ------------------------------------
@@ -1955,12 +1959,14 @@ Set lat_layout or floor_plan shape parameters.
 \begin{example}
    pipe shape_set \{who\}^^\{shape_index\}^^\{ele_name\}^^\{shape\}^^\{color\}^^
                     \{shape_size\}^^\{type_label\}^^\{shape_draw\}^^
-                    \{multi_shape\}^^\{line_width\}
+                    \{multi_shape\}^^\{line_width\}^^\{shape_offset\}
 \end{example}
 \begin{verbatim}
 {who} is one of:
   lat_layout
   floor_plan
+
+{shape_offset} is optional. If omitted or blank, the shape keeps its present offset.
 \end{verbatim}
 
 %% pipe show ------------------------------------

@@ -6631,6 +6631,10 @@ case ('ring_general')
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
+!
+! Output: One line per shape with the fields:
+!   {shape_index};{ele_name};{shape};{color};{shape_size};{type_label};{shape_draw};
+!                                               {multi_shape};{line_width};{shape_offset}
 ! 
 ! Parameters
 ! ----------
@@ -6665,6 +6669,7 @@ case ('shape_list')
     nl=incr(nl); write (li(nl), '(i0, 7a, es14.4e3, 3a, 2(l1, a), 2a)') i, ';', &
           trim(shape%ele_id), ';', trim(shape%shape), ';', trim(shape%color), ';', shape%size, ';', &
           trim(shape%label), ';', shape%draw, ';', shape%multi, ';', int_str(shape%line_width)
+    li(nl) = trim(li(nl)) // ';' // re_str(shape%offset, 6)
   enddo
 
 
@@ -6931,11 +6936,13 @@ case ('shape_pattern_point_manage')
 ! Command syntax:
 !   pipe shape_set {who}^^{shape_index}^^{ele_name}^^{shape}^^{color}^^
 !                    {shape_size}^^{type_label}^^{shape_draw}^^
-!                    {multi_shape}^^{line_width}
+!                    {multi_shape}^^{line_width}^^{shape_offset}
 !
 ! {who} is one of:
 !   lat_layout
 !   floor_plan
+!
+! {shape_offset} is optional. If omitted or blank, the shape keeps its present offset.
 ! 
 ! Parameters
 ! ----------
@@ -6949,6 +6956,7 @@ case ('shape_pattern_point_manage')
 ! shape_draw
 ! multi_shape
 ! line_width
+! shape_offset : optional
 !
 ! Returns
 ! -------
@@ -6969,11 +6977,12 @@ case ('shape_pattern_point_manage')
 !    shape_draw:
 !    multi_shape:
 !    line_width:
+!    shape_offset:
  
 
 case ('shape_set')
 
-  allocate (name_arr(10))
+  allocate (name_arr(11))
   call split_this_line (line, name_arr, -1, err, n_arr);  if (err) return
 
   select case (name_arr(1))
@@ -6996,6 +7005,7 @@ case ('shape_set')
   shape_input%draw       = logic_val(name_arr(8), .false., err);  if (err) return
   shape_input%multi      = logic_val(name_arr(9), .false., err);  if (err) return
   shape_input%line_width = int_val(name_arr(10), 1, err);         if (err) return
+  shape_input%offset     = real_val(name_arr(11), drawing%ele_shape(ix)%offset, err);  if (err) return
 
   drawing%ele_shape(ix) = tao_ele_shape_input_to_struct (shape_input)
   call tao_shape_init(drawing%ele_shape(ix), err, .true.)
