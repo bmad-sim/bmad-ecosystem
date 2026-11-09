@@ -66,6 +66,16 @@ ixu = tao_universe_index(ix_uni, .true.)
 
 do k = integer_option(1, ix_shape_min), size(ele_shape)
   es => ele_shape(k)
+
+  if (present(ix_shape_min)) ix_shape_min = k + 1
+  if (.not. es%draw .and. .not. logic_option(.false., include_undrawn)) cycle
+
+  ! For speed, reject shapes whose element class (set by tao_shape_init) does not match before doing
+  ! any string manipulation. ix_key > 0 implies the prefix is an element class so the data, var, etc.
+  ! branches below do not apply.
+
+  if (es%ix_key > 0 .and. es%ix_key /= ele%key) cycle
+
   ix = index(es%ele_id, '::')
   if (ix == 0) then
     prefix = ''
@@ -74,10 +84,6 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
     prefix = es%ele_id(:ix-1) 
     name = es%ele_id(ix+2:)
   endif
-  up_name = upcase(name)
-
-  if (present(ix_shape_min)) ix_shape_min = k + 1
-  if (.not. es%draw .and. .not. logic_option(.false., include_undrawn)) cycle
 
   ! Data
 
@@ -167,6 +173,7 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
   elseif (prefix == 'type') then
     if (.not. match_wild(ele%type, name)) cycle
   elseif (prefix /= 'building_wall') then
+    up_name = upcase(name)
     if (.not. match_wild(ele%name, up_name)) cycle
   endif
 
