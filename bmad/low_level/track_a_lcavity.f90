@@ -381,7 +381,7 @@ pc_end = (1 + pz_end) * orbit%p0c
 
 if (track_spin) then
   field = em_field_struct()
-  field%e(3) = dE / charge_of(orbit%species)
+  field%e(3) = 0.5_rp * dE / charge_of(orbit%species)
   s_omega = spin_omega(field, orbit, orbit%direction*lord%orientation)
   call rotate_spin(s_omega, orbit%spin)
 endif
