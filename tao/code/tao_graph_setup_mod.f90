@@ -2205,6 +2205,7 @@ type (coord_struct), pointer :: orb(:), orb_ref
 type (coord_struct) orbit_end, orbit_last, orbit
 type (lat_struct), pointer :: lat
 type (ele_struct), target :: ele_to_s
+type (ele_struct), pointer :: ele_s   ! Points to ele_to_s or to the cached ele_to_s.
 type (ele_struct), pointer :: ele_last, ele_here, ele_ref, this_ele, ele0
 type (taylor_struct) t_map(6)
 type (branch_struct), pointer :: branch
@@ -2369,6 +2370,8 @@ do ii = 1, size(curve%x_line)
 
   !-----------------------------
 
+  ele_s => ele_to_s
+
   select case (curve%data_source)
   case ('beam')
     if (.not. allocated(tao_branch%bunch_params)) then
@@ -2419,7 +2422,8 @@ do ii = 1, size(curve%x_line)
 
   case ('lat')
     if (cache_status == using_cache$) then
-      ele_to_s  = tao_branch%plot_cache(ii)%ele_to_s
+      ! For speed, point to the cached element instead of copying the entire ele_struct.
+      ele_s     => tao_branch%plot_cache(ii)%ele_to_s
       mat6      = tao_branch%plot_cache(ii)%ele_to_s%mat6
       vec0      = tao_branch%plot_cache(ii)%ele_to_s%vec0
       err_flag  = tao_branch%plot_cache(ii)%err
@@ -2484,7 +2488,7 @@ do ii = 1, size(curve%x_line)
   end select
 
   call this_value_at_s (data_type_select, sub_data_type, value, ii, s_last, s_now, &
-               tao_branch, orb, orbit, lat, branch, ele_to_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
+               tao_branch, orb, orbit, lat, branch, ele_s, ele_ref, ele_here, mat6, err_flag);  if (err_flag) return
 
 
   curve%y_line(ii) = curve%y_line(ii) + comp_sign * value
