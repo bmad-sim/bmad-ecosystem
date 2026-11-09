@@ -315,13 +315,14 @@ subroutine ab_multipole_kick (a, b, n, ref_species, ele_orientation, coord, kx, 
 
 type (coord_struct)  coord
 
-real(rp) a, b, x, y
+real(rp) a, b
 real(rp), optional :: dk(2,2)
 real(rp), optional :: scale
 real(rp) kx, ky, f, a2, b2
+complex(rp) z, zn, zn1
 
 integer, optional :: pole_type
-integer ref_species, ele_orientation, n, m, n1
+integer ref_species, ele_orientation, n, m
 
 ! Init
 
@@ -358,44 +359,34 @@ if (present(scale)) then
   b2 = scale * b2
 endif
 
-x = coord%vec(1)
-y = coord%vec(3)
+! The kick is given by the complex power z^n where z = x + i*y:
+!   kx = -b2 * Re(z^n) + a2 * Im(z^n)
+!   ky =  a2 * Re(z^n) + b2 * Im(z^n)
+! Since dz^n/dx = n z^(n-1) and dz^n/dy = i n z^(n-1), the derivatives follow from z^(n-1).
+! This is equivalent to, but much faster than, summing the binomial expansion term by term.
 
-do m = 0, n, 2
-  f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + b2 * f
-  ky = ky - a2 * f
+z = cmplx(coord%vec(1), coord%vec(3), rp)
+zn1 = (1.0_rp, 0.0_rp)    ! Will be z^(n-1) for n > 0
+do m = 2, n
+  zn1 = zn1 * z
 enddo
 
-do m = 1, n, 2
-  f = c_multi(n, m, .true.) * mexp(x, n-m) * mexp(y, m)
-  kx = kx + a2 * f
-  ky = ky + b2 * f
-enddo
+if (n == 0) then
+  zn = (1.0_rp, 0.0_rp)
+else
+  zn = zn1 * z
+endif
 
-! dk calc
+kx = -b2 * real(zn, rp) + a2 * aimag(zn)
+ky =  a2 * real(zn, rp) + b2 * aimag(zn)
 
-if (present(dk)) then
-  n1 = n - 1
-  
-  do m = 0, n1, 2
-    f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
-    dk(1,1) = dk(1,1) + b2 * f
-    dk(2,1) = dk(2,1) - a2 * f
+! Derivatives
 
-    dk(1,2) = dk(1,2) - a2 * f
-    dk(2,2) = dk(2,2) - b2 * f
-  enddo
-
-
-  do m = 1, n1, 2
-    f = n * c_multi(n1, m, .true.) * mexp(x, n1-m) * mexp(y, m)
-    dk(1,2) = dk(1,2) + b2 * f
-    dk(2,2) = dk(2,2) - a2 * f
-
-    dk(1,1) = dk(1,1) + a2 * f
-    dk(2,1) = dk(2,1) + b2 * f
-  enddo
+if (present(dk) .and. n > 0) then
+  dk(1,1) = n * (-b2 * real(zn1, rp) + a2 * aimag(zn1))
+  dk(1,2) = n * ( a2 * real(zn1, rp) + b2 * aimag(zn1))
+  dk(2,1) = dk(1,2)
+  dk(2,2) = n * ( b2 * real(zn1, rp) - a2 * aimag(zn1))
 endif
 
 end subroutine ab_multipole_kick
