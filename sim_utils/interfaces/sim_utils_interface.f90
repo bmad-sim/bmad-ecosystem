@@ -145,11 +145,12 @@ function determinant (mat) result (det)
   real(rp) det
 end function
 
-subroutine display_size_and_resolution (ix_screen, x_size, y_size, x_res, y_res)
+subroutine display_size_and_resolution (ix_screen, x_size, y_size, x_res, y_res, x_pix, y_pix)
   import
   implicit none
   real(rp) x_size, y_size, x_res, y_res
   integer ix_screen
+  integer, optional :: x_pix, y_pix
 end subroutine
 
 function dJ_bessel(m, arg) result (dj_bes)

@@ -57,9 +57,11 @@ void qpg_set_resize_callback (qpg_resize_fn fn, void *data);
 
 void qpg_close (void);
 
-/* Primary monitor size [mm], resolution [logical pixels / mm] and HiDPI scale factor.
- * Returns 0 on success. */
-int qpg_display_info (double *width_mm, double *height_mm, double *x_res, double *y_res, int *scale);
+/* Primary monitor size [mm], resolution [logical pixels / mm], size [logical pixels] and HiDPI
+ * scale factor. Returns 0 on success. If the monitor does not report a physical size (WSL, for
+ * example), the size in pixels is still set but the other numbers are zero and -1 is returned. */
+int qpg_display_info (double *width_mm, double *height_mm, double *x_res, double *y_res,
+                      int *width_px, int *height_px, int *scale);
 
 /* Write the current off-screen picture (at device resolution) to a PNG file. */
 int qpg_write_png (const char *file);

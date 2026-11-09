@@ -130,9 +130,10 @@ int main (void) {
       printf("done (%g)\n", x);
     } else if (!strcmp(cmd, "info")) {
       double wmm, hmm, xr, yr;
-      int sc;
-      if (qpg_display_info(&wmm, &hmm, &xr, &yr, &sc) == 0)
-        printf("monitor %.0f x %.0f mm, %.3f x %.3f logical px/mm, scale factor %d\n", wmm, hmm, xr, yr, sc);
+      int wpx, hpx, sc;
+      if (qpg_display_info(&wmm, &hmm, &xr, &yr, &wpx, &hpx, &sc) == 0)
+        printf("monitor %.0f x %.0f mm, %d x %d logical px, %.3f x %.3f logical px/mm, scale factor %d\n",
+               wmm, hmm, wpx, hpx, xr, yr, sc);
       else
         printf("display info not available\n");
     } else if (!strcmp(cmd, "png")) {

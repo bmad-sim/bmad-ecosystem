@@ -858,11 +858,11 @@ implicit none
 type (pl_interface_struct), pointer :: pl_ptr
 
 real(rp) x_len, y_len, x_page, y_page, x1i, x2i, y1i, y2i, d, h
-real(rp) x_size, y_size, x_res, y_res
+real(rp) x_size, y_size, x_res, y_res, f
 real(rp), optional :: page_scale
 
 integer, optional :: i_chan
-integer ix, xp, yp, ix_len, iy_len, i_ch, stat
+integer ix, xp, yp, ix_len, iy_len, i_ch, stat, nx_pix, ny_pix
 
 character(*) page_type, plot_file
 character(40) geom
@@ -938,7 +938,20 @@ call plscmap1l(.false., [0.d0, 1.d0], [240.d0, 0.d0], [0.6d0, 0.6d0], [0.8d0, 0.
 
 ! Set size of window.
 
-call display_size_and_resolution(0, x_size, y_size, x_res, y_res)
+call display_size_and_resolution(0, x_size, y_size, x_res, y_res, nx_pix, ny_pix)
+
+! A screen window that would not fit on the screen is shrunk. Since the layout does not depend
+! on the resolution, this is done by drawing at a lower resolution. The vertical limit leaves
+! room for the window title bar, menu bar, task bar, etc.
+
+if (screen) then
+  f = 1
+  if (nx_pix > 0) f = min(f, 0.95_rp * nx_pix / (x_res * x_len * 25.4))
+  if (ny_pix > 0) f = min(f, 0.85_rp * ny_pix / (y_res * y_len * 25.4))
+  x_res = f * x_res
+  y_res = f * y_res
+endif
+
 ix_len = nint(x_res * x_len * 25.4)  ! x_res is in pixels / mm
 iy_len = nint(y_res * y_len * 25.4)
 if (page_type(1:2) == 'PS') then

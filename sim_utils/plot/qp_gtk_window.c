@@ -183,13 +183,15 @@ void qpg_close (void) {
   qpg_pump();
 }
 
-int qpg_display_info (double *width_mm, double *height_mm, double *x_res, double *y_res, int *scale) {
+int qpg_display_info (double *width_mm, double *height_mm, double *x_res, double *y_res,
+                      int *width_px, int *height_px, int *scale) {
   GdkDisplay *disp;
   GdkMonitor *mon;
   GdkRectangle geom;
   int wmm, hmm;
 
   *width_mm = *height_mm = *x_res = *y_res = 0;
+  *width_px = *height_px = 0;
   *scale = 1;
   if (qpg_init() != 0) return -1;
 
@@ -199,6 +201,8 @@ int qpg_display_info (double *width_mm, double *height_mm, double *x_res, double
   if (!mon) return -1;
 
   gdk_monitor_get_geometry(mon, &geom);
+  *width_px = geom.width;
+  *height_px = geom.height;
   wmm = gdk_monitor_get_width_mm(mon);
   hmm = gdk_monitor_get_height_mm(mon);
   *scale = gdk_monitor_get_scale_factor(mon);
