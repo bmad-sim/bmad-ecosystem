@@ -253,7 +253,7 @@ type (coord_struct) orb
 type (lat_param_struct) param
 
 real(rp), optional :: mat6(6,6)
-real(rp) e, g_tot, fint_gap, cos_e, sin_e, tan_e, sec_e, v(6), kmat(6,6)
+real(rp) e, g_tot, fint_gap, cos_e, sin_e, tan_e, sec_e, v(6), mat6_save(6,6)
 real(rp) c_dir, k1, td, b_sign, rel_p, f, c_y2, c_x3, c_xy2, c_b
 integer particle_at, element_end, fringe_type
 logical make_mat, ok
@@ -303,7 +303,12 @@ c_b = b_sign * g_tot / 2
 
 v = orb%vec
 rel_p = 1 + v(6)
-call mat_make_unit (kmat)
+
+! Each factor's Jacobian is the unit matrix plus a few sparse rows so, for speed, each factor
+! is applied directly to the rows of mat6 instead of multiplying full 6x6 matrices.
+! mat6 is saved so it can be restored if the particle is lost.
+
+if (make_mat) mat6_save = mat6
 
 ! The inverse map is the product of the inverse factors in reverse order.
 
@@ -322,16 +327,16 @@ else
 endif
 
 orb%vec = v
-if (make_mat) mat6 = matmul (kmat, mat6)
 
 !-------------------------------------------------------------------------
 contains
 
-! Apply the factor exp(:a*K:) to v and its Jacobian to kmat.
+! Apply the factor exp(:a*K:) to v and its Jacobian to mat6.
+! Jacobian: Unit matrix except for rows 2, 4, and 5.
 
 subroutine k_kick(a)
 
-real(rp) a, x, y, q, qx, qy, m(6,6)
+real(rp) a, x, y, q, qx, qy, m21, m23, m26, m41, m43, m46, m51, m53, m56
 
 x = v(1); y = v(3)
 q  = c_y2 * y**2 + c_x3 * x**3 + c_xy2 * x * y**2
@@ -343,27 +348,31 @@ v(4) = v(4) + a * (-f * y + qy / rel_p)
 v(5) = v(5) + a * q / rel_p**2
 
 if (.not. make_mat) return
-call mat_make_unit (m)
-m(2,1) = a * (f + 6 * c_x3 * x / rel_p)
-m(2,3) = a * 2 * c_xy2 * y / rel_p
-m(2,6) = -a * qx / rel_p**2
-m(4,1) = a * 2 * c_xy2 * y / rel_p
-m(4,3) = a * (-f + (2 * c_y2 + 2 * c_xy2 * x) / rel_p)
-m(4,6) = -a * qy / rel_p**2
-m(5,1) = a * qx / rel_p**2
-m(5,3) = a * qy / rel_p**2
-m(5,6) = -2 * a * q / rel_p**3
-kmat = matmul(m, kmat)
+m21 = a * (f + 6 * c_x3 * x / rel_p)
+m23 = a * 2 * c_xy2 * y / rel_p
+m26 = -a * qx / rel_p**2
+m41 = a * 2 * c_xy2 * y / rel_p
+m43 = a * (-f + (2 * c_y2 + 2 * c_xy2 * x) / rel_p)
+m46 = -a * qy / rel_p**2
+m51 = a * qx / rel_p**2
+m53 = a * qy / rel_p**2
+m56 = -2 * a * q / rel_p**3
+
+! Rows 1, 3, and 6 are not modified so the update order does not matter.
+mat6(2,:) = mat6(2,:) + m21 * mat6(1,:) + m23 * mat6(3,:) + m26 * mat6(6,:)
+mat6(4,:) = mat6(4,:) + m41 * mat6(1,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
+mat6(5,:) = mat6(5,:) + m51 * mat6(1,:) + m53 * mat6(3,:) + m56 * mat6(6,:)
 
 end subroutine k_kick
 
 !-------------------------------------------------------------------------
-! Apply the factor exp(:c * x^2 * px / (1 + pz):) to v and its Jacobian to kmat.
+! Apply the factor exp(:c * x^2 * px / (1 + pz):) to v and its Jacobian to mat6.
+! Jacobian: Unit matrix except for rows 1, 2, and 5.
 ! ok is False and the particle is marked lost if the flow does not exist.
 
 subroutine b1_flow(c, ok)
 
-real(rp) c, b, u, x, px, m(6,6)
+real(rp) c, b, u, x, px, m11, m16, m21, m22, m26, m51, m52, m56, r1(6), r2(6)
 logical ok
 
 b = c / rel_p
@@ -372,6 +381,7 @@ u = 1 + b * x
 ok = (u > 0)
 if (.not. ok) then
   orb%state = lost$
+  if (make_mat) mat6 = mat6_save
   return
 endif
 
@@ -380,25 +390,30 @@ v(2) = px * u**2
 v(5) = v(5) + b * x**2 * px / rel_p
 
 if (.not. make_mat) return
-call mat_make_unit (m)
-m(1,1) = 1 / u**2
-m(1,6) = b * x**2 / (rel_p * u**2)
-m(2,1) = 2 * b * px * u
-m(2,2) = u**2
-m(2,6) = -2 * b * x * px * u / rel_p
-m(5,1) = 2 * b * x * px / rel_p
-m(5,2) = b * x**2 / rel_p
-m(5,6) = -2 * b * x**2 * px / rel_p**2
-kmat = matmul(m, kmat)
+m11 = 1 / u**2
+m16 = b * x**2 / (rel_p * u**2)
+m21 = 2 * b * px * u
+m22 = u**2
+m26 = -2 * b * x * px * u / rel_p
+m51 = 2 * b * x * px / rel_p
+m52 = b * x**2 / rel_p
+m56 = -2 * b * x**2 * px / rel_p**2
+
+r1 = mat6(1,:)
+r2 = mat6(2,:)
+mat6(1,:) = m11 * r1 + m16 * mat6(6,:)
+mat6(2,:) = m21 * r1 + m22 * r2 + m26 * mat6(6,:)
+mat6(5,:) = mat6(5,:) + m51 * r1 + m52 * r2 + m56 * mat6(6,:)
 
 end subroutine b1_flow
 
 !-------------------------------------------------------------------------
-! Apply the factor exp(:c * y^2 * px / (1 + pz):) to v and its Jacobian to kmat.
+! Apply the factor exp(:c * y^2 * px / (1 + pz):) to v and its Jacobian to mat6.
+! Jacobian: Unit matrix except for rows 1, 4, and 5.
 
 subroutine b2_flow(c)
 
-real(rp) c, b, y, px, m(6,6)
+real(rp) c, b, y, px, m13, m16, m42, m43, m46, m52, m53, m56
 
 b = c / rel_p
 y = v(3); px = v(2)
@@ -408,25 +423,30 @@ v(4) = v(4) + 2 * b * y * px
 v(5) = v(5) + b * y**2 * px / rel_p
 
 if (.not. make_mat) return
-call mat_make_unit (m)
-m(1,3) = -2 * b * y
-m(1,6) = b * y**2 / rel_p
-m(4,2) = 2 * b * y
-m(4,3) = 2 * b * px
-m(4,6) = -2 * b * y * px / rel_p
-m(5,2) = b * y**2 / rel_p
-m(5,3) = 2 * b * y * px / rel_p
-m(5,6) = -2 * b * y**2 * px / rel_p**2
-kmat = matmul(m, kmat)
+m13 = -2 * b * y
+m16 = b * y**2 / rel_p
+m42 = 2 * b * y
+m43 = 2 * b * px
+m46 = -2 * b * y * px / rel_p
+m52 = b * y**2 / rel_p
+m53 = 2 * b * y * px / rel_p
+m56 = -2 * b * y**2 * px / rel_p**2
+
+! Rows 2, 3, and 6 are not modified so the update order does not matter.
+mat6(1,:) = mat6(1,:) + m13 * mat6(3,:) + m16 * mat6(6,:)
+mat6(4,:) = mat6(4,:) + m42 * mat6(2,:) + m43 * mat6(3,:) + m46 * mat6(6,:)
+mat6(5,:) = mat6(5,:) + m52 * mat6(2,:) + m53 * mat6(3,:) + m56 * mat6(6,:)
 
 end subroutine b2_flow
 
 !-------------------------------------------------------------------------
-! Apply the factor exp(:c * x * y * py / (1 + pz):) to v and its Jacobian to kmat.
+! Apply the factor exp(:c * x * y * py / (1 + pz):) to v and its Jacobian to mat6.
+! Jacobian: Unit matrix except for rows 2, 3, 4, and 5.
 
 subroutine b3_flow(c)
 
-real(rp) c, b, ex, x, y, py, m(6,6)
+real(rp) c, b, ex, x, y, py, r3(6), r4(6)
+real(rp) m23, m24, m26, m31, m33, m36, m41, m44, m46, m51, m53, m54, m56
 
 b = c / rel_p
 x = v(1); y = v(3); py = v(4)
@@ -438,21 +458,26 @@ v(4) = py / ex
 v(5) = v(5) + b * x * y * py / rel_p
 
 if (.not. make_mat) return
-call mat_make_unit (m)
-m(2,3) = b * py
-m(2,4) = b * y
-m(2,6) = -b * y * py / rel_p
-m(3,1) = -b * y * ex
-m(3,3) = ex
-m(3,6) = b * x * y * ex / rel_p
-m(4,1) = b * py / ex
-m(4,4) = 1 / ex
-m(4,6) = -b * x * py / (rel_p * ex)
-m(5,1) = b * y * py / rel_p
-m(5,3) = b * x * py / rel_p
-m(5,4) = b * x * y / rel_p
-m(5,6) = -2 * b * x * y * py / rel_p**2
-kmat = matmul(m, kmat)
+m23 = b * py
+m24 = b * y
+m26 = -b * y * py / rel_p
+m31 = -b * y * ex
+m33 = ex
+m36 = b * x * y * ex / rel_p
+m41 = b * py / ex
+m44 = 1 / ex
+m46 = -b * x * py / (rel_p * ex)
+m51 = b * y * py / rel_p
+m53 = b * x * py / rel_p
+m54 = b * x * y / rel_p
+m56 = -2 * b * x * y * py / rel_p**2
+
+r3 = mat6(3,:)
+r4 = mat6(4,:)
+mat6(2,:) = mat6(2,:) + m23 * r3 + m24 * r4 + m26 * mat6(6,:)
+mat6(3,:) = m31 * mat6(1,:) + m33 * r3 + m36 * mat6(6,:)
+mat6(4,:) = m41 * mat6(1,:) + m44 * r4 + m46 * mat6(6,:)
+mat6(5,:) = mat6(5,:) + m51 * mat6(1,:) + m53 * r3 + m54 * r4 + m56 * mat6(6,:)
 
 end subroutine b3_flow
 

@@ -26,7 +26,7 @@ type (lat_param_struct) :: param
 type (fringe_field_info_struct) fringe_info
 
 real(rp), optional :: mat6(6,6)
-real(rp) kmat(6,6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), length
+real(rp) kmat(6,6), r1(6), r3(6), r5(6), mat2(2,2), rel_p, dz_x(3), dz_y(3), ddz_x(3), ddz_y(3), length
 real(rp) k1, b1, rel_tracking_charge, charge_dir, r_step, step_len, s_off, mass, e_tot
 real(rp) an(0:n_pole_maxx), bn(0:n_pole_maxx), an_elec(0:n_pole_maxx), bn_elec(0:n_pole_maxx)
 
@@ -102,7 +102,16 @@ do i = 1, n_step
       kmat(4,6) = kmat(5,4) * kmat(4,3) - kmat(5,3) * kmat(4,4)
     endif
 
-    mat6 = matmul(kmat, mat6)
+    ! kmat is block diagonal in (1:2) and (3:4) plus row 5 and column 6. Row 6 is unity.
+    ! For speed, apply directly to the rows of mat6 instead of using a full 6x6 matmul.
+    r5 = mat6(5,:) + kmat(5,1) * mat6(1,:) + kmat(5,2) * mat6(2,:) + kmat(5,3) * mat6(3,:) + &
+                     kmat(5,4) * mat6(4,:) + kmat(5,6) * mat6(6,:)   ! kmat(5,5) = 1
+    r1 = mat6(1,:);  r3 = mat6(3,:)
+    mat6(1,:) = kmat(1,1) * r1 + kmat(1,2) * mat6(2,:) + kmat(1,6) * mat6(6,:)
+    mat6(2,:) = kmat(2,1) * r1 + kmat(2,2) * mat6(2,:) + kmat(2,6) * mat6(6,:)
+    mat6(3,:) = kmat(3,3) * r3 + kmat(3,4) * mat6(4,:) + kmat(3,6) * mat6(6,:)
+    mat6(4,:) = kmat(4,3) * r3 + kmat(4,4) * mat6(4,:) + kmat(4,6) * mat6(6,:)
+    mat6(5,:) = r5
   endif
 
   !
