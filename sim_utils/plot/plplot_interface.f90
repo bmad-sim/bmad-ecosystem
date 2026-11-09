@@ -64,6 +64,7 @@ type pl_interface_struct
   real(rp) y_inch_page
   real(rp) x_inch_to_mm
   real(rp) y_inch_to_mm
+  real(rp) :: line_width_to_pixel = 0.25  ! Device line width per unit of line_width.
   logical :: xwin = .false.   ! Screen page drawn by the PLplot xwin driver (needs its own size tweaks).
   logical :: gtk = .false.    ! Screen page drawn by extcairo into a GTK window (CESR_GTK).
 end type
@@ -308,7 +309,7 @@ subroutine qp_set_line_width_basic (line_width)
 implicit none  
 integer line_width
  
-call plwidth (line_width/4.0) ! set line width
+call plwidth (line_width * pl_com%line_width_to_pixel) ! set line width
 
 !Save this state
 pl_com%line_width = line_width
@@ -621,7 +622,7 @@ if (pl_com%fill_pattern /= 0) then
    call plpsty(pl_com%fill_pattern)
 endif
 
-call plwidth(pl_com%line_width/4.0)
+call plwidth(pl_com%line_width * pl_com%line_width_to_pixel)
 
 if (pl_com%line_pattern /= 0) then
    call pllsty(pl_com%line_pattern)
@@ -1011,6 +1012,8 @@ pl_com%i_chan = i_ch
 pl_com%char_size = d*h
 pl_com%sym_size = 10
 pl_com%page_scale = real_option(1.0_rp, page_scale)
+! A line width of 1 is 0.005 inch (as with PGPLOT). PLplot line widths are in device pixels.
+pl_com%line_width_to_pixel = 0.005_rp * x_res * 25.4_rp
 pl_com%page_type = page_type
 pl_com%gtk  = (screen .and. use_gtk)
 pl_com%xwin = (screen .and. .not. use_gtk)
