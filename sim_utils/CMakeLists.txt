@@ -13,6 +13,7 @@ IF ($ENV{ACC_CONDA_BUILD})
   SET (INC_DIRS
     $ENV{ACC_CONDA_PATH}/include/
     $ENV{ACC_CONDA_PATH}/include/fgsl/
+    $ENV{ACC_CONDA_PATH}/lib/fortran/modules/plplot/
   )
 ELSE ()
   SET (INC_DIRS
