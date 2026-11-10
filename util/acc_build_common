@@ -163,7 +163,11 @@ func_set_conda_flags () {
     if [[ "${CONDA_BUILD}" ]]; then
       export CFLAGS="${CFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
       export FCFLAGS="${FCFLAGS} -L${ACC_CONDA_PATH}/lib -I${ACC_CONDA_PATH}/include"
-      export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib -Wl,-rpath-link,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+      if [ "$(uname)" == "Darwin" ] ; then
+        export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+      else
+        export LDFLAGS="-L${ACC_CONDA_PATH}/lib -Wl,-rpath,${ACC_CONDA_PATH}/lib -Wl,-rpath-link,${ACC_CONDA_PATH}/lib ${LDFLAGS}"
+      fi
     fi
 }
 
