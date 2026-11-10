@@ -167,9 +167,11 @@ logical uniform_size
 ! This generally does not look nice so renormalize to get a consistant size.
 ! This excludes the set of circles with different sizes.
       
-! 76.2 = 3 * 25.4: height (points) / 3 => mm when PLplot mm are real mm (72 dpi page).
+! 152.4 = 6 * 25.4: height (points) / 6 => mm when PLplot mm are real mm (72 dpi page).
+! This makes a circle about half the symbol height across. This is the size that the screen (xwin)
+! and PostScript output have always used. (PDF output used to be twice as large.)
 ! x_inch_to_mm accounts for the actual PLplot mm (which scale with the display resolution) and page_scale.
-h = height * pl_com%x_inch_to_mm / 76.2
+h = height * pl_com%x_inch_to_mm / 152.4
 
 if (uniform_size) then
 
@@ -204,10 +206,6 @@ if (uniform_size) then
 endif
 
 ! Set symbol size and save this state.
-
-if (pl_com%xwin) then
-  h = h * 0.5
-endif
 
 call plssym(h, 1.0_rp)  ! Set symbol scale factor in mm.
 pl_com%sym_size = h
