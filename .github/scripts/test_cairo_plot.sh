@@ -14,6 +14,18 @@ echo '```'
 source ./util/dist_source_me > /dev/null
 
 OUT=$(mktemp -d)
+
+# No library or program may link X11, PGPLOT or PLplot directly. (GTK itself may use X11, so
+# only each file's own NEEDED entries are checked, not everything ldd would list.)
+echo "* Linked libraries"
+bad=0
+for f in production/lib/*.so production/bin/*; do
+  [ -f "$f" ] || continue
+  needed=$(readelf -d "$f" 2>/dev/null | grep NEEDED | grep -iE 'libX11|pgplot|plplot|csirocsa|qsastime' || true)
+  if [ -n "$needed" ]; then echo "  FAIL  $f links: $needed"; bad=1; fi
+done
+[ $bad == 0 ] && echo "  OK    no X11, PGPLOT or PLplot libraries are linked" || exit 1
+
 cd bmad-doc/tao_examples/cesr
 
 # A plot with negative tick labels, written in every hardcopy format.
