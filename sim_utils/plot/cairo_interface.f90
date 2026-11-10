@@ -59,7 +59,9 @@ interface
   subroutine qpc_end () bind(c, name = 'qpc_end')
   end subroutine
 
-  subroutine qpc_flush () bind(c, name = 'qpc_flush')
+  subroutine qpc_flush (force) bind(c, name = 'qpc_flush')
+    import
+    integer(c_int), value :: force
   end subroutine
 
   subroutine qpc_clear () bind(c, name = 'qpc_clear')
@@ -162,9 +164,14 @@ end function
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
 ! Show pending drawing in the plot window unless quick_plot has asked us to wait.
+! force: If True, process window events now (not throttled).
 
-subroutine ca_flush()
-if (ca_allow_flush) call qpc_flush()
+subroutine ca_flush(force)
+logical, optional :: force
+integer(c_int) f
+f = 0
+if (logic_option(.false., force)) f = 1
+if (ca_allow_flush) call qpc_flush(f)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -571,7 +578,7 @@ subroutine qp_wait_to_flush_basic(wait)
 implicit none
 logical wait
 ca_allow_flush = .not. wait
-call ca_flush()
+call ca_flush(.true.)
 end subroutine
 
 !-----------------------------------------------------------------------
@@ -611,8 +618,8 @@ end subroutine
 
 subroutine qp_clear_page_basic
 implicit none
+! No flush: the window keeps showing the old plot until the new one has been drawn.
 call qpc_clear()
-call ca_flush()
 end subroutine
 
 !-----------------------------------------------------------------------

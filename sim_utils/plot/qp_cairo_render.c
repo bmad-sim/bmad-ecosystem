@@ -17,6 +17,7 @@
 
 #if defined (CESR_CAIRO)
 
+#include <ctype.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -289,16 +290,40 @@ static int utf8_char (const unsigned char *t, int i, int n, int *u) {
 /* Convert quick_plot text (PGPLOT escapes) to Pango markup. Follows what plplot_interface.f90,
  * PLplot's text encoding and the Cairo driver's markup conversion do together. */
 
+/* True if text (blanks allowed at either end) is a number, EG "-0.5", "+3", "1.2E-03". */
+
+static int is_number (const char *t, int n) {
+  int i = 0, nd = 0;
+  while (n > 0 && t[n-1] == ' ') n--;
+  while (i < n && t[i] == ' ') i++;
+  if (i < n && (t[i] == '-' || t[i] == '+')) i++;
+  for (; i < n && isdigit((unsigned char)t[i]); i++) nd++;
+  if (i < n && t[i] == '.') for (i++; i < n && isdigit((unsigned char)t[i]); i++) nd++;
+  if (nd == 0) return 0;
+  if (i < n && strchr("eEdD", t[i])) {
+    int ne = 0;
+    i++;
+    if (i < n && (t[i] == '-' || t[i] == '+')) i++;
+    for (; i < n && isdigit((unsigned char)t[i]); i++) ne++;
+    if (ne == 0) return 0;
+  }
+  return i == n;
+}
+
 static void text_to_markup (const char *text_in, int n_in, double font_size, mbuf *m) {
   font_t f = {0, 0};
   int up_down = 0, level = 0, i = 0, n = 0;
+  int number = is_number(text_in, n_in);
   double old_scale = 1, scale = 1, old_off = 0, off = 0;
   char text[2048];
 
-  /* As in plplot_interface.f90: \. -> \u.\d and \x -> x. */
+  /* As in plplot_interface.f90: \. -> \u.\d and \x -> x.
+   * In a number (EG an axis tick label) a hyphen is drawn as a minus sign (U+2212). */
   while (n_in > 0 && text_in[n_in-1] == ' ') n_in--;
   for (i = 0; i < n_in && n < (int)sizeof(text) - 8; i++) {
-    if (text_in[i] == '\\' && i + 1 < n_in && text_in[i+1] == '.') {
+    if (number && text_in[i] == '-') {
+      memcpy(text + n, "\xe2\x88\x92", 3); n += 3;
+    } else if (text_in[i] == '\\' && i + 1 < n_in && text_in[i+1] == '.') {
       memcpy(text + n, "\\u.\\d", 5); n += 5; i++;
     } else if (text_in[i] == '\\' && i + 1 < n_in && text_in[i+1] == 'x') {
       text[n++] = 'x'; i++;

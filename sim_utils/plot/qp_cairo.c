@@ -235,24 +235,29 @@ void qpc_end (void) {
   while (ndev > 0) qpc_close();
 }
 
-/* Show what has been drawn. Window events are processed at most every 20 ms here: the
- * readline event hook keeps the window up to date while the program waits for input. */
+/* Show what has been drawn. Window events are processed at most every 20 ms here unless force
+ * is nonzero: the readline event hook keeps the window up to date while the program waits for
+ * input. quick_plot forces processing when it finishes a plot (qp_wait_to_flush(.false.)) so the
+ * finished plot is always shown even when the program does not wait for input in between, EG
+ * Tao single mode with a key held down. */
 
-void qpc_flush (void) {
+void qpc_flush (int force) {
   static double last_pump = 0;
   qpc_dev *d = cur_dev();
   double t;
   if (!d || d->kind != QPC_SCREEN) return;
   draw_screen(d);
   t = now();
-  if (t - last_pump > 0.02) {
+  if (force || t - last_pump > 0.02) {
     qpg_pump();
     last_pump = t;
   }
 }
 
 /* Clear the page. For the screen the display list is restarted, then the current state
- * stack is replayed into it so ops that follow the clear draw the same as before. */
+ * stack is replayed into it so ops that follow the clear draw the same as before. The window
+ * keeps showing the old plot until the next flush, so it never shows a blank page while a new
+ * plot is being drawn. */
 
 void qpc_clear (void) {
   qpc_dev *d = cur_dev();
