@@ -7,6 +7,10 @@
 if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
     export PLOT_LINK_LIBS="plplotfortran;plplot;csirocsa;qsastime"
     export PLOT_LINK_FLAGS="-lplplotfortran -lplplot -lcsirocsa -lqsastime -lpthread"
+elif [ "${ACC_PLOT_PACKAGE}" == "cairo" ] ; then
+    # The GTK, Pango and Cairo libraries are found with pkg-config in util/Master.cmake.
+    export PLOT_LINK_LIBS=""
+    export PLOT_LINK_FLAGS=""
 else
     export PLOT_LINK_LIBS="pgplot"
     export PLOT_LINK_FLAGS="-lpgplot"

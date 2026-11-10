@@ -237,6 +237,18 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
     LIST (REMOVE_DUPLICATES SHARED_LINK_LIBS)
   ENDIF ()
 
+ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "cairo")
+  # quick_plot Cairo backend (sim_utils/plot/cairo_interface.f90): Cairo and Pango draw everything,
+  # and the plot window is a GTK 3 window. No plot library (PLplot or PGPLOT) and no X11 is needed.
+  find_package(PkgConfig REQUIRED)
+  pkg_check_modules(QP_GTK REQUIRED gtk+-3.0)
+  SET (PLOT_LIBRARY_FLAG "-DCESR_CAIRO -DCESR_GTK")
+  SET (ACC_PLOT_INC_DIRS ${QP_GTK_INCLUDE_DIRS})
+  SET (PLOT_LINK_LIBS ${QP_GTK_LIBRARIES})
+  SET (PLOT_LINK_FLAGS)
+  SET (SHARED_LINK_LIBS ${QP_GTK_LIBRARIES} ${SHARED_LINK_LIBS})
+  LIST (REMOVE_DUPLICATES SHARED_LINK_LIBS)
+
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
   SET (PLOT_LIBRARY_FLAG "-DCESR_PGPLOT")
   IF ("$ENV{ACC_ENABLE_SHARED}" MATCHES "Y")

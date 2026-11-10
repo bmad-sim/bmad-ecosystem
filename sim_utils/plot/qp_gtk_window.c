@@ -161,7 +161,6 @@ void qpg_end_draw (cairo_t *cr) {
   cairo_destroy(cr);
   cairo_surface_flush(g.surf);
   if (g.area) gtk_widget_queue_draw(g.area);
-  qpg_pump();
 }
 
 void qpg_pump (void) {
@@ -230,6 +229,22 @@ static int readline_hook (void) {
   return 0;
 }
 
+static void install_hook (void) {
+  if (!g.hook_installed && !g.no_display) {
+    g.old_hook = rl_event_hook;
+    rl_event_hook = readline_hook;
+    rl_set_keyboard_input_timeout(20000);   /* microseconds */
+    g.hook_installed = 1;
+  }
+}
+
+static void remove_hook (void) {
+  if (g.hook_installed) {
+    rl_event_hook = g.old_hook;
+    g.hook_installed = 0;
+  }
+}
+
 cairo_t *qpg_page_open (int width, int height, const char *title) {
   if (g.page_cr) qpg_page_close();
 
@@ -240,13 +255,7 @@ cairo_t *qpg_page_open (int width, int height, const char *title) {
     ensure_surface(width, height);
   }
   g.page_cr = cairo_create(g.surf);
-
-  if (!g.hook_installed && !g.no_display) {
-    g.old_hook = rl_event_hook;
-    rl_event_hook = readline_hook;
-    rl_set_keyboard_input_timeout(20000);   /* microseconds */
-    g.hook_installed = 1;
-  }
+  install_hook();
   return g.page_cr;
 }
 
@@ -261,10 +270,22 @@ void qpg_page_present (void) {
 }
 
 void qpg_page_close (void) {
-  if (g.hook_installed) {
-    rl_event_hook = g.old_hook;
-    g.hook_installed = 0;
-  }
+  remove_hook();
+  qpg_close();
+}
+
+/*-------------------------------------------------------------------------*/
+/* Screen interface for the quick_plot Cairo backend (qp_cairo.c). */
+
+int qpg_screen_open (int width, int height, const char *title) {
+  if (qpg_init() != 0) return -1;
+  qpg_open(width, height, title);
+  install_hook();
+  return 0;
+}
+
+void qpg_screen_close (void) {
+  remove_hook();
   qpg_close();
 }
 

@@ -2,13 +2,15 @@
  * qp_gtk_window.h
  *
  * Plot window for quick_plot built on GTK 3 and Cairo. Plain C, so it builds with gcc.
- * Compiled when CESR_GTK is defined (ACC_PLOT_DISPLAY_TYPE = "GTK").
+ * Compiled when CESR_GTK is defined (ACC_PLOT_DISPLAY_TYPE = "GTK" with PLplot, or
+ * ACC_PLOT_PACKAGE = "cairo").
  *
- * The plot is drawn by PLplot's extcairo driver into an off-screen Cairo image surface kept at
- * the screen's full pixel resolution (sharp on HiDPI/Retina displays). The window shows that
- * surface, so it can be repainted (uncovered, moved, resized) without redrawing the plot.
+ * The plot is drawn (by PLplot's extcairo driver or by the quick_plot Cairo backend) into an
+ * off-screen Cairo image surface kept at the screen's full pixel resolution (sharp on
+ * HiDPI/Retina displays). The window shows that surface, so it can be repainted (uncovered,
+ * moved) without redrawing the plot.
  *
- * GTK only does work when its events are processed. qpg_page_open installs a readline event
+ * GTK only does work when its events are processed. qpg_page_open and qpg_screen_open install a readline event
  * hook (rl_event_hook) so events are processed while the program (EG Tao) waits for input,
  * and qpg_page_present processes them after each drawing update.
  *
@@ -37,6 +39,15 @@ void qpg_page_close (void);
  * device and have been initialized with plinit). Returns 0 on success. */
 int qpg_plplot_open (int width, int height);
 
+/*---- Screen interface used by the quick_plot Cairo backend (qp_cairo.c) ----*/
+
+/* Open the plot window and install the readline event hook. Drawing is done with
+ * qpg_begin_draw / qpg_end_draw. Returns -1 if no display is available. */
+int qpg_screen_open (int width, int height, const char *title);
+
+/* Remove the event hook and close the window. */
+void qpg_screen_close (void);
+
 /*---- Lower level interface (also used by the standalone test program) ----*/
 
 typedef void (*qpg_resize_fn) (int width, int height, void *data);
@@ -45,6 +56,8 @@ typedef void (*qpg_resize_fn) (int width, int height, void *data);
 int qpg_init (void);
 
 int qpg_open (int width, int height, const char *title);
+
+/* Draw into the window's picture. The window is updated the next time events are processed. */
 cairo_t *qpg_begin_draw (int width, int height);
 void qpg_end_draw (cairo_t *cr);
 
