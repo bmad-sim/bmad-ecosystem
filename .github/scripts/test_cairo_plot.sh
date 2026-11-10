@@ -6,12 +6,13 @@
 #   2. With a virtual X display (Xvfb): the plot must be drawn into the GTK window.
 # Run after Bmad has been built with ACC_PLOT_PACKAGE="cairo".
 
-set -e
-
 echo -e "## Cairo plotting check\n"
 echo '```'
 
+# Sourced before "set -e": dist_source_me can return a nonzero status (as in run_tests.sh).
 source ./util/dist_source_me > /dev/null
+
+set -e
 
 OUT=$(mktemp -d)
 

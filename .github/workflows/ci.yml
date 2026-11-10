@@ -39,6 +39,8 @@ jobs:
         shell: bash
 
     strategy:
+      # Finish every job: a failure with one plot package should not hide the others' results.
+      fail-fast: false
       matrix:
         # Future Ideas:
         # add macOS - check if GH Actions can make intel and arm
