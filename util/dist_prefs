@@ -43,6 +43,11 @@ export DIST_F90_REQUEST="gfortran"
 # Supported options are:
 #   "plplot"         # Only PLPLOT is built
 #   "pgplot"         # Only PGPLOT is built
+#   "cairo"          # Experimental: No plot library is built. quick_plot draws
+#                      with the system Cairo and Pango libraries, and the plot
+#                      window is a GTK 3 window (needs GTK 3, see the
+#                      ACC_PLOT_DISPLAY_TYPE notes below). Plots look the same
+#                      as with "plplot".
 #   "none"           # No Plot Libraries are built. For cases
 #                      where plot lib building is problematical.
 #-----------------------------------------------------------

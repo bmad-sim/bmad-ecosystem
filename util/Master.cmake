@@ -202,7 +202,21 @@ ENDIF ()
 
 find_package(PkgConfig REQUIRED)
 
-find_package(X11)
+# X11 is only needed for the PGPLOT and PLplot (xwin) plot windows, which is also when
+# sim_utils/plot/display_size_and_resolution.c uses Xlib. It is not needed with the GTK plot
+# window (ACC_PLOT_PACKAGE = "cairo", or "plplot" with ACC_PLOT_DISPLAY_TYPE = "GTK") or with no
+# plotting. In that case X11 is also removed from the project's SHARED_DEPS list.
+
+IF ("$ENV{ACC_PLOT_PACKAGE}" MATCHES "cairo" OR "$ENV{ACC_PLOT_PACKAGE}" MATCHES "none" OR
+    ("$ENV{ACC_PLOT_PACKAGE}" MATCHES "plplot" AND "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "GTK"))
+  SET (ACC_USE_X11 FALSE)
+  LIST (REMOVE_ITEM SHARED_DEPS X11)
+  SET (X11_LIBRARIES)
+  SET (X11_INCLUDE_DIR)
+ELSE ()
+  SET (ACC_USE_X11 TRUE)
+  find_package(X11)
+ENDIF ()
 
 #-----------------------------------
 # Plotting Library Linker flags
@@ -213,7 +227,7 @@ SET (PLOT_LINK_LIBS $ENV{PLOT_LINK_LIBS})
 IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   SET (PLOT_LIBRARY_FLAG "-DCESR_PLPLOT")
 
-  IF (NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
+  IF (ACC_USE_X11 AND NOT "$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "QT")
     SET (PLOT_LINK_FLAGS "-lX11 $ENV{PLOT_LINK_FLAGS}")
   ELSE ()
     SET (PLOT_LINK_FLAGS "$ENV{PLOT_LINK_FLAGS}")
@@ -237,6 +251,17 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
     SET (SHARED_LINK_LIBS ${QP_GTK_LIBRARIES} ${SHARED_LINK_LIBS})
     LIST (REMOVE_DUPLICATES SHARED_LINK_LIBS)
   ENDIF ()
+
+ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "cairo")
+  # quick_plot Cairo backend (sim_utils/plot/cairo_interface.f90): Cairo and Pango draw everything,
+  # and the plot window is a GTK 3 window. No plot library (PLplot or PGPLOT) and no X11 is needed.
+  pkg_check_modules(QP_GTK REQUIRED gtk+-3.0)
+  SET (PLOT_LIBRARY_FLAG "-DCESR_CAIRO -DCESR_GTK")
+  SET (ACC_PLOT_INC_DIRS ${QP_GTK_INCLUDE_DIRS})
+  SET (PLOT_LINK_LIBS ${QP_GTK_LIBRARIES})
+  SET (PLOT_LINK_FLAGS)
+  SET (SHARED_LINK_LIBS ${QP_GTK_LIBRARIES} ${SHARED_LINK_LIBS})
+  LIST (REMOVE_DUPLICATES SHARED_LINK_LIBS)
 
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "pgplot")
   SET (PLOT_LIBRARY_FLAG "-DCESR_PGPLOT")

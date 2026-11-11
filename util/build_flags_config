@@ -7,9 +7,14 @@
 if [ "${ACC_PLOT_PACKAGE}" == "plplot" ] ; then
     export PLOT_LINK_LIBS="plplotfortran;plplot;csirocsa;qsastime"
     export PLOT_LINK_FLAGS="-lplplotfortran -lplplot -lcsirocsa -lqsastime -lpthread"
-else
+elif [ "${ACC_PLOT_PACKAGE}" == "pgplot" ] ; then
     export PLOT_LINK_LIBS="pgplot"
     export PLOT_LINK_FLAGS="-lpgplot"
+else
+    # "cairo": the GTK, Pango and Cairo libraries are found with pkg-config in util/Master.cmake.
+    # "none": no plotting library.
+    export PLOT_LINK_LIBS=""
+    export PLOT_LINK_FLAGS=""
 fi
 
 # Set base Bmad Library Linker Flags as updated by dcs16 in RT#56661 and RT#60825
