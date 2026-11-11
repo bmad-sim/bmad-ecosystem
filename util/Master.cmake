@@ -630,6 +630,10 @@ else()
   message(FATAL_ERROR "HDF5 Target not found")
 endif()
 
+# FFTW built as part of the distribution installs fftw3.pc under <base>/lib/pkgconfig,
+# which pkg-config does not search by default (find_package finds HDF5 there via PATH,
+# but pkg-config has no such fallback).
+set(ENV{PKG_CONFIG_PATH} "${OUTPUT_BASEDIR}/lib/pkgconfig:${RELEASE_OUTPUT_BASEDIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 pkg_check_modules(fftw3 REQUIRED IMPORTED_TARGET fftw3)
 set(FFTW_TARGET PkgConfig::fftw3)
 if (${ACC_ENABLE_OPENMP})
