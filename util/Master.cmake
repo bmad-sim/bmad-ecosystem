@@ -200,6 +200,8 @@ ENDIF ()
 # locations.)
 #-----------------------------------
 
+find_package(PkgConfig REQUIRED)
+
 # X11 is only needed for the PGPLOT and PLplot (xwin) plot windows, which is also when
 # sim_utils/plot/display_size_and_resolution.c uses Xlib. It is not needed with the GTK plot
 # window (ACC_PLOT_PACKAGE = "cairo", or "plplot" with ACC_PLOT_DISPLAY_TYPE = "GTK") or with no
@@ -243,7 +245,6 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
   # GTK plot window: PLplot's extcairo driver draws into a GTK 3 window (sim_utils/plot/qp_gtk_window.c).
   # No X11 server (EG XQuartz on macOS) is needed for plotting.
   IF ("$ENV{ACC_PLOT_DISPLAY_TYPE}" MATCHES "GTK")
-    find_package(PkgConfig REQUIRED)
     pkg_check_modules(QP_GTK REQUIRED gtk+-3.0)
     SET (PLOT_LIBRARY_FLAG "${PLOT_LIBRARY_FLAG} -DCESR_GTK")
     SET (ACC_PLOT_INC_DIRS ${QP_GTK_INCLUDE_DIRS})
@@ -254,7 +255,6 @@ IF ($ENV{ACC_PLOT_PACKAGE} MATCHES "plplot")
 ELSEIF ($ENV{ACC_PLOT_PACKAGE} MATCHES "cairo")
   # quick_plot Cairo backend (sim_utils/plot/cairo_interface.f90): Cairo and Pango draw everything,
   # and the plot window is a GTK 3 window. No plot library (PLplot or PGPLOT) and no X11 is needed.
-  find_package(PkgConfig REQUIRED)
   pkg_check_modules(QP_GTK REQUIRED gtk+-3.0)
   SET (PLOT_LIBRARY_FLAG "-DCESR_CAIRO -DCESR_GTK")
   SET (ACC_PLOT_INC_DIRS ${QP_GTK_INCLUDE_DIRS})
@@ -655,6 +655,19 @@ else()
   message(FATAL_ERROR "HDF5 Target not found")
 endif()
 
+# FFTW built as part of the distribution installs fftw3.pc under <base>/lib/pkgconfig,
+# which pkg-config does not search by default (find_package finds HDF5 there via PATH,
+# but pkg-config has no such fallback).
+set(ENV{PKG_CONFIG_PATH} "${OUTPUT_BASEDIR}/lib/pkgconfig:${RELEASE_OUTPUT_BASEDIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
+pkg_check_modules(fftw3 REQUIRED IMPORTED_TARGET fftw3)
+set(FFTW_TARGET PkgConfig::fftw3)
+if (${ACC_ENABLE_OPENMP})
+  find_library(fftw_omp_library NAMES fftw3_omp HINTS ${fftw3_LIBRARY_DIRS} REQUIRED)
+  add_library(FFTW3::OpenMP INTERFACE IMPORTED)
+  set_target_properties(FFTW3::OpenMP PROPERTIES INTERFACE_LINK_LIBRARIES "${fftw_omp_library};PkgConfig::fftw3")
+  set(FFTW_TARGET FFTW3::OpenMP)
+endif()
+
 #------------------------------------------------------
 # Add local include paths to search list if they exist
 #------------------------------------------------------
@@ -817,7 +830,7 @@ IF (ENABLE_SHARED_ONLY AND CREATE_SHARED)
     ADD_LIBRARY (${LIBNAME} SHARED ${sources})
     LIST (APPEND TARGETS ${LIBNAME})
     SET_TARGET_PROPERTIES (${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
-    TARGET_LINK_LIBRARIES (${LIBNAME} ${SHARED_DEPS} ${SHARED_LINK_LIBS} ${HDF5_TARGET})
+    TARGET_LINK_LIBRARIES (${LIBNAME} ${SHARED_DEPS} ${SHARED_LINK_LIBS} ${HDF5_TARGET} ${FFTW_TARGET})
     DARWIN_SHARED ()
   ENDIF ()
 ELSE ()
@@ -825,7 +838,7 @@ ELSE ()
     ADD_LIBRARY (${LIBNAME} STATIC ${sources})
     LIST (APPEND TARGETS ${LIBNAME})
     SET_TARGET_PROPERTIES (${LIBNAME} PROPERTIES OUTPUT_NAME ${LIBNAME})
-    target_link_libraries(${LIBNAME} ${HDF5_TARGET})
+    target_link_libraries(${LIBNAME} ${HDF5_TARGET} ${FFTW_TARGET})
   ENDIF ()
 ENDIF ()
 
@@ -864,7 +877,7 @@ IF (ENABLE_SHARED AND CREATE_SHARED AND NOT ENABLE_SHARED_ONLY)
 
   LIST (APPEND TARGETS ${LIBNAME}-shared)
   SET_TARGET_PROPERTIES (${LIBNAME}-shared PROPERTIES OUTPUT_NAME ${LIBNAME})
-  TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS} ${SHARED_LINK_LIBS} ${HDF5_TARGET})
+  TARGET_LINK_LIBRARIES (${LIBNAME}-shared ${SHARED_DEPS} ${SHARED_LINK_LIBS} ${HDF5_TARGET} ${FFTW_TARGET})
   DARWIN_SHARED ()
 ENDIF ()
 
@@ -1223,7 +1236,7 @@ foreach(exespec ${EXE_SPECS})
   TARGET_LINK_LIBRARIES(${EXENAME}-exe
     ${STATIC_FLAG} ${LINK_LIBS} 
     ${SHARED_FLAG} ${SHARED_LINK_LIBS} ${EXTRA_SHARED_LINK_LIBS}
-    ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS} ${HDF5_TARGET}
+    ${X11_LIBRARIES} ${ACC_LINK_FLAGS} ${OPENMP_LINK_LIBS} ${HDF5_TARGET} ${FFTW_TARGET}
     ${LINK_FLAGS} ${MAPLINE} ${IMPLICIT_LINKER_LIBRARIES}
     )
 
