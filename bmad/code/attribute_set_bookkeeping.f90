@@ -40,11 +40,17 @@ case ('ETAP_X'); ele%x%deta_ds = real_garbage$
 case ('ETAP_Y'); ele%y%deta_ds = real_garbage$
 case ('ETAP_Z'); ele%z%deta_ds = real_garbage$
 
-case ('DETA_A_DS'); ele%a%etap = real_garbage$
-case ('DETA_B_DS'); ele%b%etap = real_garbage$
-case ('DETA_X_DS'); ele%x%etap = real_garbage$
-case ('DETA_Y_DS'); ele%y%etap = real_garbage$
-case ('DETA_Z_DS'); ele%z%etap = real_garbage$
+case ('DETA_A_DS'); ele%a%etap = real_garbage$  ! Old style
+case ('DETA_B_DS'); ele%b%etap = real_garbage$  ! Old style
+case ('DETA_X_DS'); ele%x%etap = real_garbage$  ! Old style
+case ('DETA_Y_DS'); ele%y%etap = real_garbage$  ! Old style
+case ('DETA_Z_DS'); ele%z%etap = real_garbage$  ! Old style
+
+case ('DETA_DS_A'); ele%a%etap = real_garbage$
+case ('DETA_DS_B'); ele%b%etap = real_garbage$
+case ('DETA_DS_X'); ele%x%etap = real_garbage$
+case ('DETA_DS_Y'); ele%y%etap = real_garbage$
+case ('DETA_DS_Z'); ele%z%etap = real_garbage$
 
 case default
   if (.not. field_attribute_free(ele, attrib_name)) then

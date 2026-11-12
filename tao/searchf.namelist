@@ -88,6 +88,31 @@ tao_hook_init_lattice_post_parse
 File: hook/tao_hook_universe_calc_post_process.f90
 tao_hook_universe_calc_post_process
 
+File: code/tao_command_names_mod.f90
+tao_command_names_mod
+tao_visible_command_names
+tao_hidden_command_names
+tao_command_names
+tao_write_action_names
+tao_show_what_names
+tao_set_target_names
+tao_set_data_component_names
+tao_set_var_component_names
+tao_set_ptc_com_logical_names
+tao_set_ptc_com_names
+tao_set_beam_names
+tao_set_beam_deprecated_names
+tao_set_beam_all_names
+tao_change_what_names
+tao_read_what_names
+tao_pipe_cmd_names
+tao_init_switch_names
+tao_init_file_switch_names
+tao_switch_name_len
+no_enum_index$
+tao_enum_value_names
+tao_switches_for
+
 File: code/tao_lmdif_optimizer.f90
 tao_lmdif_optimizer
 
@@ -376,6 +401,7 @@ negated_str
 tao_shape_label_name
 tao_wave_data_name
 n_char_show
+n_file_max_len
 assignment
 tao_cmd_history_struct
 tao_real_pointer_struct
@@ -864,10 +890,14 @@ tao_type_expression_tree
 tao_expression_tree_to_string
 tao_re_associate_node_array
 tao_deallocate_tree
+deallocate_node_components
+
+File: code/tao_completion_mod.f90
+tao_completion_mod
+tao_complete
+tao_rl_complete_c
+append_line
+tao_register_completion
 
 File: program/tao_program.f90
 tao_program
-
-File: version/tao_version_mod.f90
-tao_version_mod
-tao_version_date
