@@ -691,6 +691,9 @@ end subroutine order_particles_in_z
 !
 ! Subroutine to apply the short range wake fields to a bunch. 
 !
+! Note: If ele has short range mode wakes, bunch%ix_z must first be set by calling order_particles_in_z.
+! The z_long wake does not use bunch%ix_z.
+!
 ! Input:
 !   bunch         -- bunch_struct: Bunch of particles.
 !   ele           -- ele_struct: Element with wakefields.
@@ -719,14 +722,17 @@ character(16) :: r_name = 'track1_sr_wake'
 if (.not. bmad_com%sr_wakes_on) return
 if (.not. associated(ele%wake)) return
 
-n_live = bunch%n_live
-if (n_live == 0) return    ! No one left alive.
 p => bunch%particle
+n_live = count(p%state == alive$)
+if (n_live == 0) return    ! No one left alive.
 
-! error check and zero wake sums and order particles in z
+! Head (i1) and tail (i2) particles.
+! These are found directly since bunch%ix_z is only set if the mode wakes need it.
 
-i1 = bunch%ix_z(1)
-i2 = bunch%ix_z(n_live)
+i1 = maxloc(p%vec(5), 1, mask = (p%state == alive$))
+i2 = minloc(p%vec(5), 1, mask = (p%state == alive$))
+
+! Error check and zero wake sums
 
 if (ele%wake%sr%z_max > 0 .and. p(i1)%vec(5) - p(i2)%vec(5) > ele%wake%sr%z_max) then
   call out_io (s_error$, r_name, &
@@ -754,6 +760,8 @@ ele%wake%sr%z_ref_trans = p(i1)%vec(5)
 call sr_z_long_wake(ele, bunch, p((i1+i2)/2)%vec(5))
 
 ! Loop over all particles in the bunch and apply the mode wakes
+
+if (size(ele%wake%sr%long) == 0 .and. size(ele%wake%sr%trans) == 0) return
 
 do j = 1, n_live
   particle => p(bunch%ix_z(j))  ! Particle to kick

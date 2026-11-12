@@ -63,7 +63,7 @@ call save_a_bunch_step (ele, bunch, bunch_track, 0.0_rp)
 ! Without wakefields just track through.
 ! Note: An element may have a wake struct but still not apply any wake. This happens if the relevant
 ! global on/off switch is set to False or if the wake has no active modes. In this case the expensive
-! wake path (which z-orders the particles and splits the element in two) must be avoided.
+! wake path (which splits the element in two and may z-order the particles) must be avoided.
 
 wake_ele => pointer_to_wake_ele(ele, ds_wake)
 
@@ -130,8 +130,12 @@ else
 endif
 
 ! Wakefields
+! The z-ordering of the particles (bunch%ix_z) is only needed by the mode wakes and possibly a wake hook.
+! The sr z_long wake does not need it. For large bunches the sort is most of the cost of the z_long wake.
 
-call order_particles_in_z (bunch)  
+if (associated(track1_wake_hook_ptr) .or. &
+        (bmad_com%sr_wakes_on .and. (size(wake_ele%wake%sr%long) /= 0 .or. size(wake_ele%wake%sr%trans) /= 0)) .or. &
+        (bmad_com%lr_wakes_on .and. size(wake_ele%wake%lr%mode) /= 0)) call order_particles_in_z (bunch)
 
 finished = .false.
 if (associated(track1_wake_hook_ptr)) call track1_wake_hook_ptr (bunch, ele, finished)
