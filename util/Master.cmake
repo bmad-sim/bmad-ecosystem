@@ -660,6 +660,12 @@ endif()
 # but pkg-config has no such fallback).
 set(ENV{PKG_CONFIG_PATH} "${OUTPUT_BASEDIR}/lib/pkgconfig:${RELEASE_OUTPUT_BASEDIR}/lib/pkgconfig:$ENV{PKG_CONFIG_PATH}")
 pkg_check_modules(fftw3 REQUIRED IMPORTED_TARGET fftw3)
+# In older cmake (RHEL8), it's not clever enough to realize that Fortran needs /usr/include in its include search path
+# when using the system fftw3.
+get_property(fftwInc TARGET PkgConfig::fftw3 PROPERTY INTERFACE_INCLUDE_DIRECTORIES SET)
+if (NOT fftwInc AND fftw3_INCLUDEDIR)
+  set_property(TARGET PkgConfig::fftw3 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${fftw3_INCLUDEDIR})
+endif()
 set(FFTW_TARGET PkgConfig::fftw3)
 if (${ACC_ENABLE_OPENMP})
   find_library(fftw_omp_library NAMES fftw3_omp HINTS ${fftw3_LIBRARY_DIRS} REQUIRED)
