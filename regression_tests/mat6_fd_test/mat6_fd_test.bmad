@@ -1,0 +1,27 @@
+! Lattice for mat6_fd_test.
+!
+! Reuse the element set defined for mat6_calc_method_test so that both tests exercise the
+! same collection of elements. This pulls in all element definitions, the particle_start
+! settings, and the `use` line (l1, l2, l3).
+
+call, file = ../mat6_calc_method_test/mat6_calc_method_test.bmad
+
+! Dedicated sbend cases using the exact (full) fringe with fint/hgap defined.
+! These isolate the exact bend edge map + soft-edge (fint/hgap) matrix from the
+! confounding multipoles present in the reused sbend elements. Strong g and edge
+! angles are used to amplify any error in the differentiated fringe formulas.
+
+fd_bend0: sbend, l = 0.5, g = 0.8, e1 = 0.2, e2 = 0.25, fringe_type = full, fint = 0.5, hgap = 0.03
+fd_bend_ef1: fd_bend0
+fd_bend_ef2: fd_bend0, fintx = 0.7, hgapx = 0.05
+fd_bend_ef3: fd_bend0, k1 = 0.3
+fd_bend_ef4: fd_bend0, k1 = 0.3, ref_tilt = 0.1, x_offset = 0.02, y_pitch = 0.001
+fd_bend_ef5: fd_bend0, dg = 0.05, fintx = 0.7, hgapx = 0.05, k1 = 0.3
+fd_bend_hard: fd_bend0, fringe_type = hard_edge_only, k1 = 0.3   ! hwang_bend_edge_kick
+fd_bend_basic: fd_bend0, fringe_type = basic_bend, k1 = 0.3      ! hwang_bend_edge_kick
+
+fd_line: line = (fd_bend_ef1, fd_bend_ef2, fd_bend_ef3, fd_bend_ef4, fd_bend_ef5, fd_bend_hard, fd_bend_basic)
+fd_line[e_tot] = 1e6
+fd_line[geometry] = open
+
+use, l1, l2, l3, fd_line
