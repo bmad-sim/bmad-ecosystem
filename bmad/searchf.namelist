@@ -877,14 +877,14 @@ track1_linear
 File: low_level/ele_nametable_index.f90
 ele_nametable_index
 
+File: low_level/gen_grad_at_s_to_gg_a_taylor.f90
+gen_grad_at_s_to_gg_a_taylor
+
 File: low_level/transfer_lat.f90
 transfer_lat
 
 File: low_level/transfer_twiss.f90
 transfer_twiss
-
-File: low_level/gen_grad1_to_gg_taylor.f90
-gen_grad1_to_gg_taylor
 
 File: low_level/track_a_wiggler.f90
 track_a_wiggler
@@ -1185,6 +1185,9 @@ quad_mat2_calc
 File: low_level/pointer_to_branch.f90
 pointer_to_branch_given_name
 pointer_to_branch_given_ele
+
+File: low_level/aperture_at_is_wall_transition.f90
+aperture_at_is_wall_transition
 
 File: low_level/ramper_value.f90
 ramper_value
@@ -1598,6 +1601,10 @@ ptc_wedger
 ptc_fringe_dipoler
 ptc_rot_xz
 exact_bend_edge_kick
+bmad_wedger
+bmad_rot_xz
+bmad_fringe_dipoler
+exact_bend_edge_kick_ptc
 
 File: modules/bmad_routine_interface.f90
 bmad_routine_interface
@@ -1789,6 +1796,9 @@ slice$
 fft_3d$
 cathode_fft_3d$
 space_charge_method_name
+averaged$
+unaveraged$
+fel_method_name
 pauli_struct
 spin_eigen_struct
 spin_axis_struct
@@ -1833,6 +1843,7 @@ start_end$
 first_track_edge$
 second_track_edge$
 in_between$
+particle_at_name
 fiducial_pt_name
 aperture_at_name
 end_at_name
@@ -2308,6 +2319,7 @@ sig_vx$
 sig_vy$
 constant_ref_energy$
 ks$
+ref_tilt_tot$
 sig_e$
 sig_pz$
 autoscale_amplitude$
@@ -2497,6 +2509,7 @@ b3_gradient$
 e3_gradient$
 ptc_fringe_geometry$
 e_tot_set$
+fel_method$
 bs_field$
 p0c_set$
 ptc_field_geometry$
@@ -2514,7 +2527,7 @@ y_offset_tot$
 z_offset_tot$
 tilt_tot$
 roll_tot$
-ref_tilt_tot$
+dpz_ele_dpz_start$
 multipass_ref_energy$
 dispatch$
 ref_time_start$
@@ -2648,7 +2661,9 @@ superimpose$
 super_offset$
 reference$
 cartesian_map$
+deta_ds_x$
 cylindrical_map$
+deta_ds_y$
 grid_field$
 gen_gradients$
 create_jumbo_slave$
@@ -2827,6 +2842,10 @@ get_taylor
 diff
 term_diff
 
+File: modules/bmad_version_mod.f90
+bmad_version_mod
+bmad_version_date
+
 File: modules/rad_int_common.f90
 rad_int_common
 no_cache$
@@ -2918,6 +2937,7 @@ wall3d_initializer
 wall3d_section_initializer
 calc_wall_radius
 wall3d_d_radius
+wall3d_section_index
 pointer_to_wall3d
 wall3d_to_position
 create_concatenated_wall3d
@@ -3009,6 +3029,7 @@ hdf5_read_dataset_real_rank2
 hdf5_read_dataset_real_rank3
 hdf5_read_dataset_int_rank0
 hdf5_read_dataset_int_rank1
+hdf5_read_dataset_int64_rank1
 hdf5_read_dataset_int_rank2
 hdf5_read_dataset_int_rank3
 
@@ -3063,6 +3084,7 @@ pmd_read_real_dataset_rank3
 pmd_read_complex_dataset_rank1
 pmd_read_complex_dataset_rank2
 pmd_read_complex_dataset_rank3
+pmd_write_particle_patches
 
 File: hdf5/hdf5_read_beam.f90
 hdf5_read_beam

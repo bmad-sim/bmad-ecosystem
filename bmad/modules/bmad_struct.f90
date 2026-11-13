@@ -19,7 +19,7 @@ private next_in_branch
 ! IF YOU CHANGE THE LAT_STRUCT OR ANY ASSOCIATED STRUCTURES YOU MUST INCREASE THE VERSION NUMBER !!!
 ! THIS IS USED BY BMAD_PARSER TO MAKE SURE DIGESTED FILES ARE OK.
 
-integer, parameter :: bmad_inc_version$ = 365
+integer, parameter :: bmad_inc_version$ = 366
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -1939,7 +1939,8 @@ integer, parameter :: alpha_a$ = 99, reflectivity_table$ = 99, energy_probabilit
 
 integer, parameter :: exact_misalign$ = 100, physical_source$ = 100
 integer, parameter :: sr_wake_file$ = 100, alpha_b$ = 100
-integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101, curvature$ = 101, s_long$ = 101
+integer, parameter :: term$ = 101, frequencies$ = 101, old_integrator$ = 101, curvature$ = 101
+integer, parameter :: s_long$ = 101
 integer, parameter :: x_position$ = 102, exact_model$ = 102
 integer, parameter :: symplectify$ = 103, y_position$ = 103, n_slice_spline$ = 103
 integer, parameter :: z_position$ = 104, amp_vs_time$ = 104
@@ -1965,8 +1966,8 @@ integer, parameter :: ele_origin$ = 119
 integer, parameter :: superimpose$     = 120   
 integer, parameter :: super_offset$    = 121
 integer, parameter :: reference$       = 122
-integer, parameter :: cartesian_map$   = 123
-integer, parameter :: cylindrical_map$ = 124
+integer, parameter :: cartesian_map$   = 123, deta_ds_x$ = 123
+integer, parameter :: cylindrical_map$ = 124, deta_ds_y$ = 124
 integer, parameter :: grid_field$      = 125
 integer, parameter :: gen_gradients$   = 126
 integer, parameter :: create_jumbo_slave$ = 127

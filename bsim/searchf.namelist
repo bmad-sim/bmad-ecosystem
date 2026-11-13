@@ -144,6 +144,8 @@ ltt_write_particle_data
 ltt_per_particle_file_write1
 ltt_write_custom
 ltt_write_beam_file
+ltt_beam_output_turn
+ltt_write_at_turn
 ltt_write_params_header
 ltt_calc_bunch_data
 ltt_core_bunch_construct

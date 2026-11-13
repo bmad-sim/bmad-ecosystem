@@ -2364,11 +2364,17 @@ case default   ! normal attribute
       case ('ETAP_Y'); ele%value(deta_ds_master$) = false$
       case ('ETAP_Z'); ele%value(deta_ds_master$) = false$
 
-      case ('DETA_A_DS'); ele%value(deta_ds_master$) = true$
-      case ('DETA_B_DS'); ele%value(deta_ds_master$) = true$
-      case ('DETA_X_DS'); ele%value(deta_ds_master$) = true$
-      case ('DETA_Y_DS'); ele%value(deta_ds_master$) = true$
-      case ('DETA_Z_DS'); ele%value(deta_ds_master$) = true$
+      case ('DETA_A_DS'); ele%value(deta_ds_master$) = true$  ! Old style
+      case ('DETA_B_DS'); ele%value(deta_ds_master$) = true$  ! Old style
+      case ('DETA_X_DS'); ele%value(deta_ds_master$) = true$  ! Old style
+      case ('DETA_Y_DS'); ele%value(deta_ds_master$) = true$  ! Old style
+      case ('DETA_Z_DS'); ele%value(deta_ds_master$) = true$  ! Old style
+
+      case ('DETA_DS_A'); ele%value(deta_ds_master$) = true$
+      case ('DETA_DS_B'); ele%value(deta_ds_master$) = true$
+      case ('DETA_DS_X'); ele%value(deta_ds_master$) = true$
+      case ('DETA_DS_Y'); ele%value(deta_ds_master$) = true$
+      case ('DETA_DS_Z'); ele%value(deta_ds_master$) = true$
 
       case ('E_TOT')
         if (ele%key == def_parameter$) then

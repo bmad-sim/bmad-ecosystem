@@ -513,11 +513,17 @@ case ('ETAP_X');          a_ptr%r => ele%x%etap
 case ('ETAP_Y');          a_ptr%r => ele%y%etap
 case ('ETAP_Z');          a_ptr%r => ele%z%etap
 
-case ('DETA_A_DS');       a_ptr%r => ele%a%deta_ds
-case ('DETA_B_DS');       a_ptr%r => ele%b%deta_ds
-case ('DETA_X_DS');       a_ptr%r => ele%x%deta_ds
-case ('DETA_Y_DS');       a_ptr%r => ele%y%deta_ds
-case ('DETA_Z_DS');       a_ptr%r => ele%z%deta_ds
+case ('DETA_A_DS');       a_ptr%r => ele%a%deta_ds  ! Old style
+case ('DETA_B_DS');       a_ptr%r => ele%b%deta_ds  ! Old style
+case ('DETA_X_DS');       a_ptr%r => ele%x%deta_ds  ! Old style
+case ('DETA_Y_DS');       a_ptr%r => ele%y%deta_ds  ! Old style
+case ('DETA_Z_DS');       a_ptr%r => ele%z%deta_ds  ! Old style
+
+case ('DETA_DS_A');       a_ptr%r => ele%a%deta_ds
+case ('DETA_DS_B');       a_ptr%r => ele%b%deta_ds
+case ('DETA_DS_X');       a_ptr%r => ele%x%deta_ds
+case ('DETA_DS_Y');       a_ptr%r => ele%y%deta_ds
+case ('DETA_DS_Z');       a_ptr%r => ele%z%deta_ds
 
 case ('DETA_DPZ_A');      a_ptr%r => ele%a%deta_dpz
 case ('DETA_DPZ_B');      a_ptr%r => ele%b%deta_dpz

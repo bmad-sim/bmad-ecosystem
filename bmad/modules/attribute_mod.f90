@@ -924,6 +924,8 @@ call init_attribute_name1 (is_ok, beginning_ele$, deta_dpz_x$,                  
 call init_attribute_name1 (is_ok, beginning_ele$, deta_dpz_y$,                  'DETA_DPZ_Y', quasi_free$)
 call init_attribute_name1 (is_ok, beginning_ele$, detap_dpz_x$,                 'DETAP_DPZ_X', quasi_free$)
 call init_attribute_name1 (is_ok, beginning_ele$, detap_dpz_y$,                 'DETAP_DPZ_Y', quasi_free$)
+call init_attribute_name1 (is_ok, beginning_ele$, deta_ds_x$,                   'DETA_DS_X', quasi_free$)
+call init_attribute_name1 (is_ok, beginning_ele$, deta_ds_y$,                   'DETA_DS_Y', quasi_free$)
 call init_attribute_name1 (is_ok, beginning_ele$, eta_x$,                       'ETA_X', quasi_free$)
 call init_attribute_name1 (is_ok, beginning_ele$, eta_y$,                       'ETA_Y', quasi_free$)
 call init_attribute_name1 (is_ok, beginning_ele$, eta_z$,                       'ETA_Z', quasi_free$)
@@ -1009,6 +1011,8 @@ call init_attribute_name1 (is_ok, fixer$, deta_dpz_x$,                  'DETA_DP
 call init_attribute_name1 (is_ok, fixer$, deta_dpz_y$,                  'DETA_DPZ_Y', quasi_free$)
 call init_attribute_name1 (is_ok, fixer$, detap_dpz_x$,                 'DETAP_DPZ_X', quasi_free$)
 call init_attribute_name1 (is_ok, fixer$, detap_dpz_y$,                 'DETAP_DPZ_Y', quasi_free$)
+call init_attribute_name1 (is_ok, fixer$, deta_ds_x$,                   'DETA_DS_X', quasi_free$)
+call init_attribute_name1 (is_ok, fixer$, deta_ds_y$,                   'DETA_DS_Y', quasi_free$)
 call init_attribute_name1 (is_ok, fixer$, eta_x$,                       'ETA_X', quasi_free$)
 call init_attribute_name1 (is_ok, fixer$, eta_y$,                       'ETA_Y', quasi_free$)
 call init_attribute_name1 (is_ok, fixer$, eta_z$,                       'ETA_Z', quasi_free$)
@@ -2184,7 +2188,8 @@ case ('ABS_TOL_ADAPTIVE_TRACKING', 'ABS_TOL_TRACKING', 'ACCORDION_EDGE', 'APERTU
       'DS_SLICE', 'DS_STEP', 'DX_ORIGIN', 'DY_ORIGIN', 'DZ_ORIGIN', 'D_SPACING', 'END_EDGE', 'EPS_STEP_SCALE', &
       'ETA_X_OUT', 'ETA_Y_OUT', 'CSR_DS_STEP', 'X_KICK', 'Y_KICK', 'Z_KICK', 'DBETA_DPZ_A', 'DBETA_DPZ_B', &
       'ETA_X', 'ETA_X0', 'ETA_X1', 'ETA_Y', 'ETA_Y0', 'ETA_Y1', 'ETA_Z', 'FATAL_DS_ADAPTIVE_TRACKING', &
-      'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', 'DETA_DPZ_X', 'DETA_DPZ_Y', &
+      'FB1', 'FB2', 'FQ1', 'FQ2', 'HGAP', 'HGAPX', 'H_DISPLACE', 'INIT_DS_ADAPTIVE_TRACKING', 'L', &
+      'DETA_DPZ_X', 'DETA_DPZ_Y', 'DETA_DS_X', 'DETA_DS_Y', &
       'LORD_PAD1', 'LORD_PAD2', 'L_CHORD', 'L_ACTIVE', 'L_SOFT_EDGE', 'L_PERIOD', 'L_SAGITTA', 'MAX_APERTURE_LIMIT', &
       'MIN_DS_ADAPTIVE_TRACKING', 'OFFSET', 'PENDELLOSUNG_PERIOD_PI', 'PENDELLOSUNG_PERIOD_SIGMA', 'R0_ELEC', 'R0_MAG', &
       'REF_WAVELENGTH', 'RHO', 'S', 'SIGNIFICANT_LENGTH', 'SIG_X', 'SIG_Y', 'SIG_Z', 'S_POSITION', 'THICKNESS', &
@@ -3228,7 +3233,7 @@ select case (attrib_name)
 case ('ALPHA_A', 'ALPHA_B', 'BETA_A', 'BETA_B', 'PHI_A', 'PHI_B', &
       'ETA_A', 'ETAP_A', 'ETA_B', 'ETAP_B', 'ETA_X', 'ETA_Y', 'ETAP_X', 'ETAP_Y', &
       'CMAT_11', 'CMAT_12', 'CMAT_21', 'CMAT_22', 'DBETA_DPZ_A', 'DBETA_DPZ_B', &
-      'DALPHA_DPZ_A', 'DALPHA_DPZ_B', 'DETA_DPZ_X', 'DETA_DPZ_Y', 'DETAP_DPZ_X', 'DETAP_DPZ_Y')
+      'DALPHA_DPZ_A', 'DALPHA_DPZ_B', 'DETA_DPZ_X', 'DETA_DPZ_Y', 'DETAP_DPZ_X', 'DETAP_DPZ_Y', 'DETA_DS_X', 'DETA_DS_Y')
   
   select case(ele%key)
   case (beginning_ele$, fixer$)

@@ -701,6 +701,13 @@ cesr_getarg
 File: io/out_io_line.f90
 out_io_line
 
+File: io/readline_completion.c
+sim_rl_attempted_completion
+readline_set_completion_fn
+readline_suppress_append
+readline_set_app_name
+readline_clear_completion_fn
+
 File: io/ttychr.f90
 ttychr
 
@@ -772,6 +779,35 @@ qp_open_page_basic
 qp_select_page_basic
 qp_close_page_basic
 qp_end_basic
+
+File: plot/qp_gtk_window.c
+scale_factor
+ensure_surface
+on_draw
+do_resize
+on_size_allocate
+on_scale_changed
+on_destroy
+qpg_init
+create_window
+qpg_open
+qpg_end_draw
+qpg_pump
+qpg_set_resize_callback
+qpg_close
+qpg_write_png
+readline_hook
+install_hook
+remove_hook
+qpg_page_present
+qpg_page_close
+qpg_screen_open
+qpg_screen_close
+qpg_plplot_open
+
+File: plot/cairo_interface.f90
+cairo_interface
+cairo_interface_struct
 
 File: plot/qp_css4_colors_mod.f90
 qp_css4_colors_mod
@@ -922,8 +958,43 @@ lightslategrey$
 slategrey$
 springgreen$
 
+File: plot/qp_cairo_render.c
+default_state
+qpr_init
+qpr_set_view
+dev_x
+dev_y
+pt_to_dev
+set_source
+line_width_dev
+solid_line_style
+line_style
+begin_clipped
+end_clipped
+hershey_to_unicode
+greek_unicode
+m_cat
+m_unicode
+rise_span
+open_span
+close_span
+utf8_char
+is_number
+text_to_markup
+qpr_text_len
+draw_hershey
+draw_symbol
+hatch
+draw_rect
+draw_polyline
+draw_arrow
+rd_d
+rd_i
+qpr_exec
+
 File: plot/quick_plot.f90
 quick_plot
+qp_base_library
 qp_base_library
 qp_base_library
 qp_base_library
@@ -1015,10 +1086,6 @@ qp_continuous_color
 qp_continuous_color_inverse
 qp_end
 
-File: plot/display_size_and_resolution.c
-display_size_and_res
-display_size_and_res
-
 File: plot/pgsubs.f90
 palett
 
@@ -1095,6 +1162,37 @@ qp_parse_hex_color
 qp_parse_rgb_color
 qp_normalize_color_string
 
+File: plot/qp_cairo.c
+grow
+ob_put
+ob_begin
+ob_d
+ob_i
+ob_end_ex
+ob_end
+now
+draw_screen
+on_resize
+qpc_open
+qpc_close
+qpc_end
+qpc_flush
+qpc_clear
+qpc_push
+qpc_pop
+qpc_color
+qpc_line_width
+qpc_line_pattern
+qpc_clip
+qpc_char_size
+qpc_sym_size
+qpc_graph_pos
+qpc_polyline
+qpc_rect
+qpc_symbol
+qpc_text
+qpc_text_len
+
 File: plot/noplot_interface.f90
 noplot_interface
 qp_set_graph_position_basic
@@ -1125,30 +1223,12 @@ File: plot/plplot_interface.f90
 plplot_interface
 viewport_size
 pl_interface_struct
-qp_set_graph_position_basic
-qp_set_symbol_size_basic
-qp_paint_rectangle_basic
-qp_set_symbol_fill_basic
-qp_set_line_width_basic
-qp_set_line_pattern_basic
-qp_set_clip_basic
-qp_set_char_size_basic
-qp_set_text_background_color_basic
-qp_text_len_basic
-qp_draw_text_basic
-qp_draw_arrow_basic
-qp_draw_symbol_basic
-qp_save_state_basic
-qp_restore_state_basic
-qp_wait_to_flush_basic
-qp_set_color_basic
-qp_clear_page_basic
-qp_clear_box_basic
-qp_draw_polyline_basic
-qp_open_page_basic
-qp_select_page_basic
-qp_close_page_basic
-qp_end_basic
+
+File: plot/gtk_window/qp_gtk_prototype.c
+render
+on_resize
+event_hook
+main
 
 File: misc/re_allocate_mod.f90
 re_allocate_mod
@@ -1313,6 +1393,7 @@ blue_color
 magenta_color
 cyan_color
 gray_color
+terminal_color_name
 dark_gray_color
 peach_color
 light_green_color
