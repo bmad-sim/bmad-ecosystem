@@ -1,7 +1,8 @@
-/* Called about every 20 ms while get_tty_char_c waits for a key. Set by the GTK plot window
-   (qp_gtk_window.c) so the window keeps repainting while Tao waits in single mode. */
+/* If set, called by get_tty_char_c to wait until a key is available on the given file
+   descriptor. Set by the GTK plot window (qp_gtk_window.c) so the window keeps working while
+   Tao waits in single mode. */
 
-void (*acc_tty_idle_hook) (void) = 0;
+void (*acc_tty_wait_hook) (int fd) = 0;
 
 #ifndef CESR_WINCVF
 
@@ -13,7 +14,6 @@ void (*acc_tty_idle_hook) (void) = 0;
 #include <sys/fcntl.h>  
 #include <sys/ioctl.h> 
 #include <unistd.h>
-#include <poll.h>
 
 static int oldf; 
 static struct termios torig, tnocanon; 
@@ -44,16 +44,9 @@ void get_tty_char_c_(int* ii, int* block, int* flush) {
    } 
    tcsetattr(0, TCSANOW, &tnocanon); 
 
-/* While blocking, call the idle hook (if set) every 20 ms. */
+/* While blocking, let the wait hook (if set) do the waiting. */
 
-   if (*block && acc_tty_idle_hook) {
-      struct pollfd pfd = {0, POLLIN, 0};
-      while (acc_tty_idle_hook) {
-         int np = poll(&pfd, 1, 20);
-         if (np > 0 || (np < 0 && errno != EINTR)) break;
-         acc_tty_idle_hook();
-      }
-   }
+   if (*block && acc_tty_wait_hook) acc_tty_wait_hook(0);
 
 /* EWOULDBLOCK means no characters waiting to be read */ 
 

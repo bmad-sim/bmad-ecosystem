@@ -11,13 +11,13 @@ the plot page) is broken up.
   plot_page%n_curve_pts = 900
 
   region(1)%name     = 'floor'
-  region(1)%location = 0.0, 1.0, 0.5, 0.95
+  region(1)%location = 0.0, 1.0, 0.57, 0.95
   region(2)%name     = 'top'
-  region(2)%location = 0.0, 1.0, 0.3, 0.5
+  region(2)%location = 0.0, 1.0, 0.33, 0.52
   region(3)%name     = 'middle'
-  region(3)%location = 0.0, 1.0, 0.1, 0.26
+  region(3)%location = 0.0, 1.0, 0.09, 0.255
   region(4)%name     = 'bottom'
-  region(4)%location = 0.0, 1.0, 0.0, 0.1
+  region(4)%location = 0.0, 1.0, 0.0, 0.09
 
   region(5)%name     = 'r21'
   region(5)%location = 0.0, .5, 0.1, 0.5
