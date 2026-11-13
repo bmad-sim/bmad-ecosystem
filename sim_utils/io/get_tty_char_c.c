@@ -1,3 +1,8 @@
+/* Called about every 20 ms while get_tty_char_c waits for a key. Set by the GTK plot window
+   (qp_gtk_window.c) so the window keeps repainting while Tao waits in single mode. */
+
+void (*acc_tty_idle_hook) (void) = 0;
+
 #ifndef CESR_WINCVF
 
 #include <stdio.h> 
@@ -9,7 +14,6 @@
 #include <sys/ioctl.h> 
 #include <unistd.h>
 #include <poll.h>
-#include <readline/readline.h>
 
 static int oldf; 
 static struct termios torig, tnocanon; 
@@ -40,12 +44,15 @@ void get_tty_char_c_(int* ii, int* block, int* flush) {
    } 
    tcsetattr(0, TCSANOW, &tnocanon); 
 
-/* While blocking, call readline's event hook (if set) every 20 ms so that, for example,
-   a GTK plot window keeps repainting while waiting for a key (Tao single mode). */
+/* While blocking, call the idle hook (if set) every 20 ms. */
 
-   if (*block && rl_event_hook) {
+   if (*block && acc_tty_idle_hook) {
       struct pollfd pfd = {0, POLLIN, 0};
-      while (poll(&pfd, 1, 20) == 0 && rl_event_hook) rl_event_hook();
+      while (acc_tty_idle_hook) {
+         int np = poll(&pfd, 1, 20);
+         if (np > 0 || (np < 0 && errno != EINTR)) break;
+         acc_tty_idle_hook();
+      }
    }
 
 /* EWOULDBLOCK means no characters waiting to be read */ 

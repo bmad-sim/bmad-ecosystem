@@ -10,9 +10,10 @@
  * HiDPI/Retina displays). The window shows that surface, so it can be repainted (uncovered,
  * moved) without redrawing the plot.
  *
- * GTK only does work when its events are processed. qpg_page_open and qpg_screen_open install a readline event
- * hook (rl_event_hook) so events are processed while the program (EG Tao) waits for input,
- * and qpg_page_present processes them after each drawing update.
+ * GTK only does work when its events are processed. qpg_page_open and qpg_screen_open replace
+ * readline's getc function (rl_getc_function) and set the get_tty_char idle hook so events are
+ * processed while the program (EG Tao) waits for input, and qpg_page_present processes them after
+ * each drawing update.
  *
  * Units: GTK logical pixels ("points" on macOS).
  */
@@ -41,7 +42,7 @@ int qpg_plplot_open (int width, int height);
 
 /*---- Screen interface used by the quick_plot Cairo backend (qp_cairo.c) ----*/
 
-/* Open the plot window and install the readline event hook. Drawing is done with
+/* Open the plot window and install the input hooks. Drawing is done with
  * qpg_begin_draw / qpg_end_draw. Returns -1 if no display is available. */
 int qpg_screen_open (int width, int height, const char *title);
 

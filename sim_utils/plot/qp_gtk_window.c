@@ -10,9 +10,16 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <errno.h>
+#include <poll.h>
+#include <math.h>
+#include <dlfcn.h>
 #include <gtk/gtk.h>
 #include <readline/readline.h>
 #include "qp_gtk_window.h"
+
+/* In get_tty_char_c.c: called while waiting for a key in single character mode. */
+extern void (*acc_tty_idle_hook) (void);
 
 static struct {
   int initialized;
@@ -28,8 +35,9 @@ static struct {
   void *resize_data;
   guint resize_idle;          /* Pending resize redraw (coalesces resize events). */
   cairo_t *page_cr;           /* Context given to PLplot for the open page. */
-  rl_hook_func_t *old_hook;   /* readline event hook in place before ours. */
+  rl_getc_func_t *old_getc;   /* readline getc function in place before ours. */
   int hook_installed;
+  GdkPixbuf *icon;
 } g;
 
 /*-------------------------------------------------------------------------*/
@@ -119,9 +127,115 @@ int qpg_init (void) {
   return g.no_display ? -1 : 0;
 }
 
+/*-------------------------------------------------------------------------*/
+/* Window icon: a small plot drawn with Cairo, so no image file needs to be installed. */
+
+static cairo_surface_t *make_icon_surface (int n) {
+  cairo_surface_t *surf = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, n, n);
+  cairo_t *cr = cairo_create(surf);
+  double u = n / 64.0, x;
+  int i;
+
+  cairo_scale(cr, u, u);
+
+  /* Page: white rounded square with a gray border. */
+  cairo_new_sub_path(cr);
+  cairo_arc(cr, 52, 12, 8, -M_PI/2, 0);
+  cairo_arc(cr, 52, 52, 8, 0, M_PI/2);
+  cairo_arc(cr, 12, 52, 8, M_PI/2, M_PI);
+  cairo_arc(cr, 12, 12, 8, M_PI, 3*M_PI/2);
+  cairo_close_path(cr);
+  cairo_set_source_rgb(cr, 1, 1, 1);
+  cairo_fill_preserve(cr);
+  cairo_set_source_rgb(cr, 0.45, 0.45, 0.45);
+  cairo_set_line_width(cr, 2);
+  cairo_stroke(cr);
+
+  /* Axes box. */
+  cairo_set_source_rgb(cr, 0, 0, 0);
+  cairo_set_line_width(cr, 1.5);
+  cairo_rectangle(cr, 12, 12, 40, 40);
+  cairo_stroke(cr);
+
+  /* Two curves, as in a Tao beta function plot. */
+  cairo_set_line_width(cr, 2.5);
+  cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND);
+  for (i = 0; i < 2; i++) {
+    for (x = 0; x <= 40.01; x += 0.5) {
+      double y = i == 0 ? 38 - 14 * pow(sin(M_PI * x / 20), 2) : 22 + 14 * pow(sin(M_PI * (x + 10) / 20), 2);
+      if (x == 0) cairo_move_to(cr, 12 + x, y);
+      else        cairo_line_to(cr, 12 + x, y);
+    }
+    if (i == 0) cairo_set_source_rgb(cr, 0, 0, 1);
+    else        cairo_set_source_rgb(cr, 1, 0.65, 0);
+    cairo_stroke(cr);
+  }
+
+  cairo_destroy(cr);
+  cairo_surface_flush(surf);
+  return surf;
+}
+
+#if defined (GDK_WINDOWING_QUARTZ)
+
+/* macOS: GTK does not set the Dock icon (gtk_window_set_icon is ignored), so set it with
+ * [NSApp setApplicationIconImage:]. The Objective-C runtime is looked up with dlsym (it is
+ * loaded by GTK's Quartz backend) so no extra link flags are needed. */
+
+typedef void *qpg_id;
+typedef void *qpg_sel;
+
+static cairo_status_t png_to_bytes (void *closure, const unsigned char *data, unsigned int len) {
+  g_byte_array_append((GByteArray *)closure, data, len);
+  return CAIRO_STATUS_SUCCESS;
+}
+
+static void set_macos_dock_icon (void) {
+  qpg_id (*get_class) (const char *) = (qpg_id (*)(const char *))dlsym(RTLD_DEFAULT, "objc_getClass");
+  qpg_sel (*sel) (const char *) = (qpg_sel (*)(const char *))dlsym(RTLD_DEFAULT, "sel_registerName");
+  void *msg = dlsym(RTLD_DEFAULT, "objc_msgSend");
+  qpg_id data, img, app;
+  GByteArray *png;
+  cairo_surface_t *surf;
+
+  if (!get_class || !sel || !msg) return;
+  if (!get_class("NSApplication") || !get_class("NSImage") || !get_class("NSData")) return;
+
+  surf = make_icon_surface(256);
+  png = g_byte_array_new();
+  cairo_surface_write_to_png_stream(surf, png_to_bytes, png);
+  cairo_surface_destroy(surf);
+
+  data = ((qpg_id (*)(qpg_id, qpg_sel))msg)(get_class("NSData"), sel("alloc"));
+  data = ((qpg_id (*)(qpg_id, qpg_sel, const void *, unsigned long))msg)(data, sel("initWithBytes:length:"),
+                                                                          png->data, (unsigned long)png->len);
+  img = ((qpg_id (*)(qpg_id, qpg_sel))msg)(get_class("NSImage"), sel("alloc"));
+  if (data && img) img = ((qpg_id (*)(qpg_id, qpg_sel, qpg_id))msg)(img, sel("initWithData:"), data);
+  app = ((qpg_id (*)(qpg_id, qpg_sel))msg)(get_class("NSApplication"), sel("sharedApplication"));
+  if (app && img) ((void (*)(qpg_id, qpg_sel, qpg_id))msg)(app, sel("setApplicationIconImage:"), img);
+  g_byte_array_unref(png);
+}
+
+#endif
+
+static void set_icon (void) {
+  if (!g.icon) {
+    cairo_surface_t *surf = make_icon_surface(64);
+    g.icon = gdk_pixbuf_get_from_surface(surf, 0, 0, 64, 64);
+    cairo_surface_destroy(surf);
+#if defined (GDK_WINDOWING_QUARTZ)
+    if (strcmp(G_OBJECT_TYPE_NAME(gdk_display_get_default()), "GdkQuartzDisplay") == 0) set_macos_dock_icon();
+#endif
+  }
+  if (g.icon) gtk_window_set_icon(GTK_WINDOW(g.win), g.icon);
+}
+
+/*-------------------------------------------------------------------------*/
+
 static void create_window (void) {
   g.win = gtk_window_new(GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title(GTK_WINDOW(g.win), g.title);
+  set_icon();
   gtk_window_set_default_size(GTK_WINDOW(g.win), g.want_w, g.want_h);
   gtk_window_set_focus_on_map(GTK_WINDOW(g.win), FALSE);   /* Leave keyboard focus in the terminal. */
 
@@ -222,25 +336,50 @@ int qpg_write_png (const char *file) {
 /*-------------------------------------------------------------------------*/
 /* Page interface for PLplot. */
 
-/* Called by readline about 50 times a second while it waits for a key. */
-static int readline_hook (void) {
-  qpg_pump();
-  if (g.old_hook) return g.old_hook();
-  return 0;
+/* readline getc function: process window events every 20 ms until a key is available, then
+ * read it with readline's own getc function.
+ *
+ * This is used instead of readline's rl_event_hook: on macOS with the conda-forge readline the
+ * rl_event_hook input path was seen to stop reading keys and spin at 100% CPU (issue #2276).
+ * Here readline reads every key the normal way.
+ *
+ * Signals that readline has caught (Ctrl-C, terminal resize) are handled while waiting so
+ * that Ctrl-C works even if no key is pressed afterwards. */
+
+static int getc_with_events (FILE *stream) {
+  struct pollfd pfd;
+  pfd.fd = fileno(stream);
+  pfd.events = POLLIN;
+  pfd.revents = 0;
+
+  for (;;) {
+    int n;
+#if defined (RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0800
+    if (rl_pending_signal()) rl_check_signals();
+#endif
+    n = poll(&pfd, 1, 20);
+    if (n > 0 || (n < 0 && errno != EINTR)) break;   /* Key available (or error): let readline read it. */
+    qpg_pump();
+  }
+
+  return g.old_getc ? g.old_getc(stream) : rl_getc(stream);
 }
+
+static void tty_idle (void) {qpg_pump();}
 
 static void install_hook (void) {
   if (!g.hook_installed && !g.no_display) {
-    g.old_hook = rl_event_hook;
-    rl_event_hook = readline_hook;
-    rl_set_keyboard_input_timeout(20000);   /* microseconds */
+    g.old_getc = rl_getc_function;
+    rl_getc_function = getc_with_events;
+    acc_tty_idle_hook = tty_idle;
     g.hook_installed = 1;
   }
 }
 
 static void remove_hook (void) {
   if (g.hook_installed) {
-    rl_event_hook = g.old_hook;
+    rl_getc_function = g.old_getc;
+    acc_tty_idle_hook = NULL;
     g.hook_installed = 0;
   }
 }

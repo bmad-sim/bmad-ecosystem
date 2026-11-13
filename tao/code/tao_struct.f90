@@ -152,9 +152,9 @@ integer, parameter :: var_num$ = 101, lat_num$ = 102, data_num$ = 103, ele_num$ 
 
 type tao_title_struct
   character(100) :: string = ''      ! title character string.
-  real(rp) :: x = 0.5, y = 0.97      ! x, y rwt lower left corner
+  real(rp) :: x = 0.5, y = 0.99      ! x, y rwt lower left corner
   character(16) :: units = '%PAGE'   ! %BOX, POINTS, etc...
-  character(2) :: justify = 'CC'     ! Left, Center, or Right justification.
+  character(2) :: justify = 'CT'     ! Horizontal (L, C, R) and vertical (B, C, T) justification.
   logical :: draw_it = .true.        ! draw the title?
 end type
 
@@ -336,7 +336,7 @@ integer, parameter :: n_curve_pts_init$ = 4001
 
 type tao_plot_page_struct
   type (tao_title_struct) :: title = tao_title_struct()          ! Title  at top of page.
-  type (tao_title_struct) :: subtitle = tao_title_struct()       ! Subtitle below title at top of page.
+  type (tao_title_struct) :: subtitle = tao_title_struct(y = 0.96) ! Subtitle below title at top of page.
   type (qp_rect_struct) :: border = qp_rect_struct()             ! Border around plots edge of page.
   type (tao_drawing_struct) :: floor_plan = tao_drawing_struct(null())
   type (tao_drawing_struct) :: lat_layout = tao_drawing_struct(null())

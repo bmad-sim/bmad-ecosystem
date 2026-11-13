@@ -193,7 +193,7 @@ end type
 
 type tao_plot_page_input
   type (tao_title_struct) :: title = tao_title_struct()         ! Title  at top of page.
-  type (tao_title_struct) :: subtitle = tao_title_struct()      ! Subtitle at top of page.
+  type (tao_title_struct) :: subtitle = tao_title_struct(y = 0.96)  ! Subtitle at top of page.
   type (qp_rect_struct) :: border = qp_rect_struct()            ! Border around plots edge of page.
   character(8) :: plot_display_type = ''  
   real(rp) :: size(2) = 0.0                 ! width and height of window in pixels.
