@@ -10,6 +10,10 @@ Types of entries:
 - `Fixed` for any bug fixes.
 - `Security` in case of vulnerabilities.
 
+- 2026-11-12 Changed: Beam tracking through an element whose only short-range wake is a `z_long` table
+  is faster. The particles were sorted in z at every such element but only the pseudo-mode and
+  long-range wakes need the ordering. With 100k particles the `z_long` wake is now about three times
+  faster. Results are unchanged.
 - 2026-11-03 Fixed: `hkick` and `vkick` were applied twice by bmad_standard tracking through wiggler
   (planar and helical models), rfcavity, lcavity and crab_cavity elements, and not at all by
   runge_kutta tracking through planar and helical model wigglers. Also fixed: runge_kutta applied only
