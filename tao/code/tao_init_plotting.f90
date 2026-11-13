@@ -99,8 +99,6 @@ region%name  = ''       ! a region exists only if its name is not blank
 include_default_plots = .true.
 
 plot_page = tao_plot_page_input()
-plot_page%title%y = 0.99
-plot_page%subtitle%y = 0.97
 plot_page%size = [500, 600]
 plot_page%border = qp_rect_struct(0.001_rp, 0.001_rp, 0.001_rp, 0.001_rp, '%PAGE')
 

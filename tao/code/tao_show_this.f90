@@ -4276,8 +4276,8 @@ case ('plot')
                                                           quote(s%plot_page%title%units), quote(s%plot_page%title%justify)
     nl=nl+1; write(lines(nl), amt)  '  %subtitle%string               = ', quote(s%plot_page%subtitle%string)
     nl=nl+1; write(lines(nl), '(a, 2f10.3, 2x, a, 2x, a)') &
-                                    '  %subtitle%x, y, units, justify = ', s%plot_page%title%x, s%plot_page%title%y, &
-                                                          quote(s%plot_page%title%units), quote(s%plot_page%title%justify)
+                                    '  %subtitle%x, y, units, justify = ', s%plot_page%subtitle%x, s%plot_page%subtitle%y, &
+                                                          quote(s%plot_page%subtitle%units), quote(s%plot_page%subtitle%justify)
     nl=nl+1; write(lines(nl), imt)  '  %size                          = ', nint(s%plot_page%size)
     nl=nl+1; write(lines(nl), imt)  '  %n_curve_pts                   = ', s%plot_page%n_curve_pts
     nl=nl+1; write(lines(nl), '(a, 4(f0.3, 2x), a)') &

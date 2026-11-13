@@ -67,7 +67,8 @@ typedef struct {
 
 typedef struct {
   cairo_t *cr;
-  double scale;               /* device units per inch */
+  double scale;               /* device units per inch for sizes (text, symbols, line widths) */
+  double scale_x, scale_y;    /* device units per inch for positions. Normally equal to scale. */
   double ox, oy;              /* device offset of the page's upper left corner */
   double page_w, page_h;      /* inch */
   int draw;                   /* 0 => only track state */
@@ -78,6 +79,10 @@ typedef struct {
 /* Initialize a renderer drawing onto cr. cr may be NULL if draw = 0. */
 void qpr_init (qpr_renderer *r, cairo_t *cr, double scale, double ox, double oy, int draw);
 void qpr_set_view (qpr_renderer *r, double scale, double ox, double oy);
+
+/* Map page positions with separate horizontal and vertical scales (device units per inch) so the
+ * page fills a window of a different shape. Sizes (text, symbols, line widths) still use scale. */
+void qpr_set_xy_scale (qpr_renderer *r, double scale_x, double scale_y);
 
 /* Execute all ops in buf. Returns 0 on success, -1 if the stream is truncated/corrupt. */
 int qpr_exec (qpr_renderer *r, const uint8_t *buf, size_t len);

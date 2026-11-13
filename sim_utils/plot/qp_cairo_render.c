@@ -60,7 +60,7 @@ static void default_state (qpr_state *s) {
 void qpr_init (qpr_renderer *r, cairo_t *cr, double scale, double ox, double oy, int draw) {
   memset(r, 0, sizeof(*r));
   r->cr = cr;
-  r->scale = scale;
+  r->scale = r->scale_x = r->scale_y = scale;
   r->ox = ox;
   r->oy = oy;
   r->draw = draw;
@@ -71,16 +71,21 @@ void qpr_init (qpr_renderer *r, cairo_t *cr, double scale, double ox, double oy,
 }
 
 void qpr_set_view (qpr_renderer *r, double scale, double ox, double oy) {
-  r->scale = scale;
+  r->scale = r->scale_x = r->scale_y = scale;
   r->ox = ox;
   r->oy = oy;
+}
+
+void qpr_set_xy_scale (qpr_renderer *r, double scale_x, double scale_y) {
+  r->scale_x = scale_x;
+  r->scale_y = scale_y;
 }
 
 /*-------------------------------------------------------------------------*/
 /* Coordinate helpers: inches (origin lower left) -> device (origin upper left). */
 
-static double dev_x (qpr_renderer *r, double x) {return r->ox + x * r->scale;}
-static double dev_y (qpr_renderer *r, double y) {return r->oy + (r->page_h - y) * r->scale;}
+static double dev_x (qpr_renderer *r, double x) {return r->ox + x * r->scale_x;}
+static double dev_y (qpr_renderer *r, double y) {return r->oy + (r->page_h - y) * r->scale_y;}
 static double pt_to_dev (qpr_renderer *r, double pt) {return pt * r->scale / 72.0;}
 static qpr_state *cur (qpr_renderer *r) {return &r->st[r->depth];}
 
@@ -663,7 +668,7 @@ int qpr_exec (qpr_renderer *r, const uint8_t *buf, size_t len) {
       if (r->draw) {
         cairo_save(r->cr);
         cairo_set_source_rgb(r->cr, 1, 1, 1);
-        cairo_rectangle(r->cr, r->ox, r->oy, r->page_w * r->scale, r->page_h * r->scale);
+        cairo_rectangle(r->cr, r->ox, r->oy, r->page_w * r->scale_x, r->page_h * r->scale_y);
         cairo_fill(r->cr);
         cairo_restore(r->cr);
       }

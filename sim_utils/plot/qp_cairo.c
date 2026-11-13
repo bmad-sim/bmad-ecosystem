@@ -7,7 +7,7 @@
  * Every drawing call is encoded as an op (see qp_cairo_render.h) and:
  *   - Hardcopy pages (PS, PDF, SVG, PNG): the op is drawn right away onto a Cairo surface.
  *   - Screen page: the op is added to the page's display list and drawn into the GTK plot window
- *     (qp_gtk_window.c). When the window is resized the whole list is redrawn at the new size.
+ *     (qp_gtk_window.c). When the window is resized the whole list is redrawn to fill the window.
  */
 
 #if defined (CESR_CAIRO)
@@ -115,12 +115,15 @@ static void draw_screen (qpc_dev *d) {
   if (!cr) return;    /* No display. */
 
   if (d->need_redraw) {
-    /* Fit the page in the window, keeping its shape, centered. */
+    /* Stretch the page to fill the window: positions are scaled
+     * separately in x and y, while text, symbols and line widths are scaled by the smaller of
+     * the two so they keep their shape and never grow past what fits. */
     double sx = d->view_w / d->w_in, sy = d->view_h / d->h_in;
     double sc = sx < sy ? sx : sy;
     cairo_set_source_rgb(cr, 1, 1, 1);
     cairo_paint(cr);
-    qpr_init(&d->sr, cr, sc, 0.5 * (d->view_w - sc * d->w_in), 0.5 * (d->view_h - sc * d->h_in), 1);
+    qpr_init(&d->sr, cr, sc, 0, 0, 1);
+    qpr_set_xy_scale(&d->sr, sx, sy);
     d->drawn = 0;
     d->need_redraw = 0;
   }
@@ -236,7 +239,7 @@ void qpc_end (void) {
 }
 
 /* Show what has been drawn. Window events are processed at most every 20 ms here unless force
- * is nonzero: the readline event hook keeps the window up to date while the program waits for
+ * is nonzero: the input hooks (qp_gtk_window.c) keep the window up to date while the program waits for
  * input. quick_plot forces processing when it finishes a plot (qp_wait_to_flush(.false.)) so the
  * finished plot is always shown even when the program does not wait for input in between, EG
  * Tao single mode with a key held down. */

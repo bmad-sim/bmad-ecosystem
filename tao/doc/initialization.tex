@@ -2379,7 +2379,7 @@ The \vn{plot_page%size} parameter sets the horizontal and vertical size of the p
 %
 \item[plot_page\%subtitle] \Newline
 Subtitle text of the plot. See the description for \vn{plot_page%title}. The defaults here are the
-same as \vn{plot_page%title} except that \vn{y} defaults to 0.97.
+same as \vn{plot_page%title} except that \vn{y} defaults to 0.96.
 %
 \item[plot_page\%text_height] \Newline
 The \vn{plot_page%text_height} parameter sets the overall height of the text that is
@@ -2405,9 +2405,10 @@ the page.  This parameter is a structure which has components:
   x = 0.50            ! Horizontal position
   y = 0.99            ! Vertical position
   units = "%PAGE"     ! Units of x and y (\sref{s:qp.units})
-  justify = "CC"      ! Justification (\sref{s:qp.str.just})
+  justify = "CT"      ! Justification (\sref{s:qp.str.just})
 \end{example}
-The values shown are the defaults.
+The values shown are the defaults. With the default top (\vn{"T"}) vertical justification, \vn{y}
+is the position of the top of the text.
 Also see \vn{page%subtitle}.
 %
 \item[region(N)] \Newline
