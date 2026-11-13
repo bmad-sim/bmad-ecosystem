@@ -7,11 +7,13 @@ implicit none
 type (lat_struct), target :: lat
 type (branch_struct), pointer :: branch
 type (ele_struct), pointer :: ele
+type (ele_struct) slice
 type (coord_struct) start_orb, end_orb, orbit
 
+real(rp) dist1, dist2
 integer :: i, j, ib, nargs, isn
 
-logical print_extra
+logical print_extra, err, no_ap1, no_ap2
  
 character(100) lat_file
 character(20) :: ap_name(3:4) = [character(20):: 'Continuous', 'Wall-Transition']
@@ -94,6 +96,28 @@ do ib = 3, 4
                                                                    '  ABS 1E-8', orbit%vec(1), orbit%s, orbit%state
   enddo
 enddo
+
+! A slice_slave of a super_slave (as made with CSR tracking) has aperture_at = lord_defined.
+! distance_to_aperture must query the lords for the aperture as check_aperture_limit does.
+! The wall at x = 1e-3 is hit at 0.01 m past the slice entrance. See issue #2224.
+
+branch => lat%branch(5)
+ele => branch%ele(2)     ! D6\Q6 super_slave: s = 0.2 to 0.8
+call create_element_slice (slice, ele, 0.2_rp, 0.1_rp, branch%param, .false., .false., err)
+
+call init_coord (orbit, ele = slice, element_end = upstream_end$)
+orbit%vec(1) = 0.5e-3_rp
+dist1 = distance_to_aperture (orbit, in_between$, slice, no_ap1)
+orbit%vec(1) = 2e-3_rp
+dist2 = distance_to_aperture (orbit, in_between$, slice, no_ap2)
+write (1, '(a, 2f14.9)') '"Slice-Slave-Dist"  ABS 1E-8', dist1, dist2
+write (1, '(a, 2l2, a)') '"Slice-Slave-No-Aperture-Here"  STR "', no_ap1, no_ap2, '"'
+
+call init_coord (orbit, ele = slice, element_end = upstream_end$)
+orbit%vec(1) = 0.9e-3_rp
+orbit%vec(2) = 0.01_rp
+call track1 (orbit, slice, branch%param, end_orb)
+write (1, '(a, 2f14.9, i4)') '"Slice-Slave-RK"  ABS 1E-8', end_orb%vec(1), end_orb%s, end_orb%state
 
 !
 
