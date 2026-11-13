@@ -849,7 +849,7 @@ do n = 1, n_max
     bp = ele%value(k1$)
   case (sextupole$)
     ap = 0
-    bp = ele%value(k2$) / 2   ! Field coef of (x+iy)^2 is K2/2
+    bp = 0.5_rp * ele%value(k2$)   ! Field coef of (x+iy)^2 is K2/2
     if (n /= 2) cycle
   end select
 
