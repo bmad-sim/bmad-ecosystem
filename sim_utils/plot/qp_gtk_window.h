@@ -11,9 +11,9 @@
  * moved) without redrawing the plot.
  *
  * GTK only does work when its events are processed. qpg_page_open and qpg_screen_open replace
- * readline's getc function (rl_getc_function) and set the get_tty_char idle hook so events are
- * processed while the program (EG Tao) waits for input, and qpg_page_present processes them after
- * each drawing update.
+ * readline's getc function (rl_getc_function) and set the get_tty_char wait hook so that, while
+ * the program (EG Tao) waits for input, it waits in the GLib (on macOS, AppKit) event loop.
+ * qpg_page_present processes pending events after each drawing update.
  *
  * Units: GTK logical pixels ("points" on macOS).
  */

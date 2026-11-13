@@ -15,11 +15,12 @@
 #include <math.h>
 #include <dlfcn.h>
 #include <gtk/gtk.h>
+#include <glib-unix.h>
 #include <readline/readline.h>
 #include "qp_gtk_window.h"
 
-/* In get_tty_char_c.c: called while waiting for a key in single character mode. */
-extern void (*acc_tty_idle_hook) (void);
+/* In get_tty_char_c.c: called to wait for a key in single character mode. */
+extern void (*acc_tty_wait_hook) (int fd);
 
 static struct {
   int initialized;
@@ -336,42 +337,64 @@ int qpg_write_png (const char *file) {
 /*-------------------------------------------------------------------------*/
 /* Page interface for PLplot. */
 
-/* readline getc function: process window events every 20 ms until a key is available, then
- * read it with readline's own getc function.
+/* Wait until input is available on fd while the window keeps working.
  *
- * This is used instead of readline's rl_event_hook: on macOS with the conda-forge readline the
- * rl_event_hook input path was seen to stop reading keys and spin at 100% CPU (issue #2276).
- * Here readline reads every key the normal way.
+ * The waiting is done by the GLib main loop, with fd as one of its watched inputs. On macOS this
+ * means the program sits in AppKit's event loop, as a normal application does, rather than in
+ * poll() with window events processed every 20 ms, which is what was done before. With that,
+ * resizing was slow to start and a window move could be left half done ("Window move completed
+ * without beginning"), after which the window could not be brought back (issue #2276).
  *
- * Signals that readline has caught (Ctrl-C, terminal resize) are handled while waiting so
- * that Ctrl-C works even if no key is pressed afterwards. */
+ * check_signals: Handle signals readline has caught (Ctrl-C, terminal resize) while waiting.
+ * A timer wakes the loop every 50 ms for this since a signal does not interrupt AppKit's wait. */
 
-static int getc_with_events (FILE *stream) {
+static gboolean on_input (gint fd, GIOCondition cond, gpointer data) {
+  *(int *)data = 1;
+  return G_SOURCE_CONTINUE;
+}
+
+static gboolean on_tick (gpointer data) {return G_SOURCE_CONTINUE;}
+
+static void wait_for_input (int fd, int check_signals) {
   struct pollfd pfd;
-  pfd.fd = fileno(stream);
+  int ready = 0;
+  guint watch, tick;
+
+  pfd.fd = fd;
   pfd.events = POLLIN;
   pfd.revents = 0;
+  if (poll(&pfd, 1, 0) != 0) return;   /* Input already waiting (or error): nothing to wait for. */
 
-  for (;;) {
-    int n;
+  watch = g_unix_fd_add(fd, G_IO_IN | G_IO_HUP | G_IO_ERR, on_input, &ready);
+  tick = g_timeout_add(50, on_tick, NULL);
+
+  while (!ready) {
 #if defined (RL_READLINE_VERSION) && RL_READLINE_VERSION >= 0x0800
-    if (rl_pending_signal()) rl_check_signals();
+    if (check_signals && rl_pending_signal()) rl_check_signals();
 #endif
-    n = poll(&pfd, 1, 20);
-    if (n > 0 || (n < 0 && errno != EINTR)) break;   /* Key available (or error): let readline read it. */
-    qpg_pump();
+    g_main_context_iteration(NULL, TRUE);
   }
 
+  g_source_remove(tick);
+  g_source_remove(watch);
+}
+
+/* readline getc function: wait for a key while the window keeps working, then read the key
+ * with readline's own getc function. This is used instead of readline's rl_event_hook, whose
+ * input path was seen to stop reading keys and spin at 100% CPU on macOS (issue #2276). */
+
+static int getc_with_events (FILE *stream) {
+  wait_for_input(fileno(stream), 1);
   return g.old_getc ? g.old_getc(stream) : rl_getc(stream);
 }
 
-static void tty_idle (void) {qpg_pump();}
+static void tty_wait (int fd) {wait_for_input(fd, 0);}
 
 static void install_hook (void) {
   if (!g.hook_installed && !g.no_display) {
     g.old_getc = rl_getc_function;
     rl_getc_function = getc_with_events;
-    acc_tty_idle_hook = tty_idle;
+    acc_tty_wait_hook = tty_wait;
     g.hook_installed = 1;
   }
 }
@@ -379,7 +402,7 @@ static void install_hook (void) {
 static void remove_hook (void) {
   if (g.hook_installed) {
     rl_getc_function = g.old_getc;
-    acc_tty_idle_hook = NULL;
+    acc_tty_wait_hook = NULL;
     g.hook_installed = 0;
   }
 }
