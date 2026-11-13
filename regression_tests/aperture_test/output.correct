@@ -50,3 +50,6 @@
 "Superimpose-Continuous-TRK"  ABS 1E-8   0.005000000   0.099874922   2
 "Superimpose-Wall-Transition-RK"  ABS 1E-8   0.005000000   0.099874922   2
 "Superimpose-Wall-Transition-TRK"  ABS 1E-8   0.005000000   0.099874922   2
+"Slice-Slave-Dist"  ABS 1E-8  -0.500000000   1.000000000
+"Slice-Slave-No-Aperture-Here"  STR " F F"
+"Slice-Slave-RK"  ABS 1E-8   0.001000000   0.309999500   4
