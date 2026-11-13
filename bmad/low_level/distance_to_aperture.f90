@@ -42,10 +42,10 @@ dist = real_garbage$
 no_aperture_here = .true.
 if (.not. bmad_com%aperture_limit_on) return
 
-! super_slave elements have the aperture info stored in the lord(s).
-! In this case return the most positive number
+! Super_slave and slice_slave elements have the aperture info stored in the lord(s).
+! In this case return the most positive number. Same test as check_aperture_limit.
 
-if (ele%slave_status == super_slave$) then
+if (ele%aperture_at == lord_defined$ .or. ele%aperture_type == lord_defined$) then
   physical_end = physical_ele_end (particle_at, orbit, ele%orientation)
   do i = 1, ele%n_lord
     lord => pointer_to_lord(ele, i)
