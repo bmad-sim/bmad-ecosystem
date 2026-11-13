@@ -2699,6 +2699,8 @@ end subroutine qp_draw_axes
 ! Subroutine qp_draw_graph_title (title)
 !
 ! Subroutine to draw the title for a graph.
+! The title is drawn above the graph and above anything the top (X2) axis draws outside the
+! graph (ticks, numbers and label) so they do not overlap.
 !
 ! Input:
 !   title -- Character(*): Title
@@ -2708,17 +2710,35 @@ subroutine qp_draw_graph_title (title)
 
 implicit none
 
+type (qp_axis_struct), pointer :: ax1, ax2
+
 character(*) title
 
-real(rp) xt, yt                 
+real(rp) xt, yt, dy, h_num
 
 !
 
 if (len_trim(title) == 0) return
 
+! Height [inch] taken above the graph by the X2 axis. See qp_draw_x_axis.
+
+ax2 => qp_com%plot%x2
+ax1 => qp_com%plot%x2
+if (qp_com%plot%x2_mirrors_x) ax1 => qp_com%plot%x
+
+dy = 0
+if (ax2%tick_side /= 1) dy = ax1%major_tick_len
+
+if (ax1%number_side == -1) then  ! Numbers and label outside the graph.
+  h_num = qp_text_height_to_inches(qp_com%axis_number%height)
+  if (ax2%draw_numbers) dy = max(dy, ax1%number_offset + h_num)
+  if (ax2%draw_label .and. ax2%label /= '') dy = max(dy, ax1%number_offset + ax1%label_offset + h_num + &
+                                                       qp_text_height_to_inches(qp_com%axis_label%height))
+endif
+
 call qp_set_text_attrib ('GRAPH_TITLE')  
 call qp_to_inch_rel (0.5_rp, 1.0_rp, xt, yt, '%GRAPH')
-call qp_draw_text_no_set (title, xt, yt+0.05, 'INCH', 'CB')
+call qp_draw_text_no_set (title, xt, yt+dy+0.05, 'INCH', 'CB')
 
 end subroutine qp_draw_graph_title
 
