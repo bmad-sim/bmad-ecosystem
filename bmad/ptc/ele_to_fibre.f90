@@ -76,7 +76,7 @@ integer np, max_order, ix_pole_max, nn, n_period, icoef, n_step, n_pan, field(12
 integer, allocatable :: pancake_field(:,:)
 
 logical use_offsets, err_flag, kill_spin_fringe, onemap, found, is_planar_wiggler, use_taylor, done_it
-logical change, pancake_canonical
+logical change, pancake_canonical, has_elec
 logical, optional :: for_layout
 
 character(24) pancake_name
@@ -223,6 +223,17 @@ ptc_key%list%kill_exi_spin = (ix == entrance_end$ .or. ix == no_end$ .or. kill_s
 if (key == sbend$ .and. val(l$) == 0) key = kicker$
 if (ele2%field_calc == fieldmap$ .and. ele2%tracking_method /= bmad_standard$ .and. &
                                                               .not. use_taylor) key = wiggler$
+
+! Electric fields present? If so the element is translated to a PTC sbend (see below).
+! An electric multipole field over zero length gives no kick (same as Bmad) so it is ignored.
+! A PTC wiggler cannot be translated to an sbend so electric multipoles are ignored.
+
+has_elec = (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator$))
+if (has_elec .and. key /= elseparator$ .and. leng == 0) has_elec = .false.
+if (has_elec .and. (key == wiggler$ .or. key == undulator$)) then
+  call out_io (s_warn$, r_name, 'ELECTRIC MULTIPOLES OF A WIGGLER OR UNDULATOR ARE IGNORED BY PTC. FOR: ' // ele%name)
+  has_elec = .false.
+endif
 
 select case (key)
 
@@ -383,6 +394,7 @@ case (rfcavity$, lcavity$)
 
   ix = nint(ele%value(cavity_type$))
   if (ele%tracking_method == bmad_standard$) ix = ptc_standard$
+  if (ix == traveling_wave$ .and. leng == 0) ix = ptc_standard$  ! A PTC twcavity must have a length.
 
   select case (ix)
   case (traveling_wave$)
@@ -503,7 +515,7 @@ endif
 
 ! Electric fields present? Everything is an sbend!
 
-if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator$)) then
+if (has_elec) then
   ptc_key%magnet = 'sbend'
   ptc_key%model = 'DRIFT_KICK'   ! PTC demands this.
   ptc_key%exact = .true.  ! PTC does not implement a non-exact model when there are electric fields.
@@ -951,7 +963,7 @@ endif
 ! The E-field units that PTC wants on input are MV/m (MAD convention). 
 ! Note: PTC convert MV/m to GV/m internally.
 
-if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator$)) then
+if (has_elec) then
   if (key /= sbend$) then
     ptc_fibre%mag%p%bend_fringe = .false.
     ptc_fibre%magp%p%bend_fringe = .false.
