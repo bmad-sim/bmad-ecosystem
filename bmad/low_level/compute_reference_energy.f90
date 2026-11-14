@@ -1001,6 +1001,12 @@ changed = has_changed
 if (ele%tracking_method == taylor$ .and. (.not. associated (ele%taylor(1)%term) .or. &
                   .not. ele_has_constant_ds_dt_ref(ele))) ele%tracking_method = symp_lie_ptc$
 
+! Do not use linear tracking: If ele%mat6 is stale, track1_linear would remake it here with misalignments
+! (tilt, etc.) turned off and then mark it as OK, corrupting later tracking. The linear map is made by
+! bmad_standard tracking anyway.
+
+if (ele%tracking_method == linear$) ele%tracking_method = bmad_standard$
+
 end subroutine zero_errors_in_ele
 
 !---------------------------------------------------------------------------------
