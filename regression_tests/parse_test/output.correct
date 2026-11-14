@@ -9,6 +9,10 @@
 "Common-in-b3_elec" ABS 0      0.00    0.00    0.00    0.00    0.00    0.00    0.00  302.00    0.00    0.00    0.00    0.00
 "Common-out-b3_elec" ABS 0     0.00    0.00    0.00    0.00    0.00    0.00    0.00  302.00    0.00    0.00    0.00    0.00
 "Slice-OK"  STR "T"
+"Ele-Match-OK"  STR "T"
+"Ele-Match-L"    ABS 0   0.0100  0.0300  0.2000  0.3000  0.3000
+"Ele-Match-Tilt" ABS 0   0.0200  0.0000  0.0200  0.0200  0.0000
+"Ele-Match-K1"   ABS 0   0.0000  0.0400
 "Control-K1-Q1"   ABS 0  1.20000000
 "Control-TILT-Q1" ABS 0  3.20000000
 "Control-K1-Q2"   ABS 0  2.20000000

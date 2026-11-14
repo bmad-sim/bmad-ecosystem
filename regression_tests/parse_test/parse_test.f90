@@ -102,6 +102,14 @@ call write_bmad_lattice_file ('z.bmad', lat)
 call bmad_parser('slice.bmad', lat, make_mats6 = .false., err_flag = err)
 write (1, '(2a)') '"Slice-OK"  STR ', quote(logic_str(.not. err))
 
+! Element matching with "&" and type::, alias:: before expand_lattice.
+
+call bmad_parser('ele_match.bmad', lat, make_mats6 = .false., err_flag = err)
+write (1, '(2a)') '"Ele-Match-OK"  STR ', quote(logic_str(.not. err))
+write (1, '(a, 5f8.4)') '"Ele-Match-L"    ABS 0 ', lat%ele(1:5)%value(l$)
+write (1, '(a, 5f8.4)') '"Ele-Match-Tilt" ABS 0 ', lat%ele(1:5)%value(tilt$)
+write (1, '(a, 2f8.4)') '"Ele-Match-K1"   ABS 0 ', lat%ele(4:5)%value(k1$)
+
 ! Control.bmad
 
 call bmad_parser ('control.bmad', lat, make_mats6 = .false.)
