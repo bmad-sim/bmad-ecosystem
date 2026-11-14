@@ -43,7 +43,14 @@ rel_tracking_charge = rel_tracking_charge_to_mass(start_orb, param%particle)
 charge_dir = rel_tracking_charge * orientation
 length = orbit%time_dir * ele%value(l$)
 
-call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$, b1)
+! The b1 component is folded into the body focusing. With zero length there is no body so b1 is
+! left in bn and applied with the other multipoles.
+if (ele%value(l$) == 0) then
+  call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
+  b1 = 0
+else
+  call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$, b1)
+endif
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = 1
