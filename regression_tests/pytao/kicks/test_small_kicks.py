@@ -165,7 +165,6 @@ KNOWN = [
     (("solenoid",), ("bmad_standard", "linear", "symp_lie_bmad"), ("b1",), "solenoid drops its b1 multipole"),
     (("quadrupole_zero",), ("bmad_standard", "linear"), ("b1",), "zero length quadrupole drops its b1 multipole"),
     (("quadrupole_zero", "sextupole_zero"), PTC, MAG + HV, "PTC zero length element ignores kicks and multipoles"),
-    (("wiggler_planar", "wiggler_helical"), RK, MAG + ELEC, "em_field_calc periodic wiggler field has no multipoles"),
     (("wiggler_planar",), PTC, MAG + HV, "PTC periodic wiggler ignores kicks and multipoles"),
     (("wiggler_planar", "wiggler_helical"), ("symp_lie_bmad",), ("b1",), "symp_lie_bmad wiggler drops its b1 multipole"),
 ]
