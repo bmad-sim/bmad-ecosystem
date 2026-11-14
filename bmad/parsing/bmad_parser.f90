@@ -493,8 +493,6 @@ parsing_loop: do
     key = key_name_to_key_index(word_1)
     parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 
 
-    ! If just a name then we can look this up
-
     if (word_1 == 'BEAM_START') then
       word_1 = 'PARTICLE_START'   ! For backwards compatibility
       call parser_error ('Beam_start has been renamed particle_start.', &
@@ -502,16 +500,36 @@ parsing_loop: do
                          'the beam centroid unless beam_init%use_particle_start = True.', level = s_warn$)
     endif
 
+    ! Constructs that depend upon the lattice having been expanded are not valid here.
+
+    str1 = word_1
+    call str_substitute (str1, '::', '##')   ! To detect ":" range construct.
+
+    err = .true.
+    if (index(word_1, '##') /= 0) then
+      call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+    elseif (index(word_1, '>>') /= 0) then
+      call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1, &
+                         'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
+    elseif (index(str1, ':') /= 0) then
+      call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+    elseif (is_integer(word_1)) then
+      call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+    else
+      err = .false.
+    endif
+
+    if (err) then
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
+
+    ! If just a name then we can look this up
+
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
       call find_index (word_1, in_lat%nametable, ix)
       if (ix == -1) then
-        if (index(name, '##') /= 0) then
-          call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-        elseif (is_integer(name)) then
-          call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-        else
-          call parser_error ('ELEMENT NOT FOUND: ' // word_1)
-        endif
+        call parser_error ('ELEMENT NOT FOUND: ' // word_1)
       else
         ele => in_lat%ele(ix)
         bp_com%parse_line = parse_line_save
@@ -524,25 +542,6 @@ parsing_loop: do
     endif
 
     ! Not a simple name so use lat_ele_locator to find the matching element definitions.
-    ! Constructs that depend upon the lattice having been expanded are not valid here.
-
-    str1 = word_1
-    call str_substitute (str1, '::', '##')   ! To detect ":" range construct.
-
-    if (index(word_1, '##') /= 0) then
-      call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
-      bp_com%parse_line = ''
-      cycle parsing_loop
-    elseif (index(word_1, '>>') /= 0) then
-      call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1, &
-                         'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
-      bp_com%parse_line = ''
-      cycle parsing_loop
-    elseif (index(str1, ':') /= 0) then
-      call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
-      bp_com%parse_line = ''
-      cycle parsing_loop
-    endif
 
     if (key > -1) then   ! If Old style "quadrupole[k1] = ..." syntax
       word_1 = trim(word_1) // '::*'
