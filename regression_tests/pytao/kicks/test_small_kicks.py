@@ -162,8 +162,6 @@ KNOWN = [
     (("crab_cavity",), PTC, MAG + HV, "PTC crab_cavity ignores kicks and multipoles"),
     (CAVITIES, ALL, ("a1_elec", "b1_elec"), "electric quadrupole in a cavity gives no kick"),
     (CAVITIES, RK + PTC, ("a0_elec", "b0_elec"), "electric dipole in a cavity is applied over l_active instead of l"),
-    (("lcavity", "lcavity_old", "lcavity_zero"), ("linear",), ("a0", "b0", "a1", "b1", "a0_elec", "b0_elec"),
-     "linear tracking through a tilted lcavity misapplies multipoles", (0.3,)),
     (("solenoid",), ("bmad_standard", "linear", "symp_lie_bmad"), ("b1",), "solenoid drops its b1 multipole"),
     (("quadrupole_zero",), ("bmad_standard", "linear"), ("b1",), "zero length quadrupole drops its b1 multipole"),
     (("quadrupole_zero", "sextupole_zero"), PTC, MAG + HV, "PTC zero length element ignores kicks and multipoles"),
