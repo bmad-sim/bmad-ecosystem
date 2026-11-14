@@ -691,7 +691,8 @@ case (bmad_standard$)
 
     ! Add electric multipoles
 
-    call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, electric$)
+    ! The field is computed in body coords and, if needed, converted to lab coords at the end.
+    call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
     do i = 0, ix_pole_max
       if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
       call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
@@ -1505,7 +1506,9 @@ if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., f
 !----------------------------------------------------------------------------
 contains
 
-! Add the uniform field of hkick/vkick. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
+! Add the uniform field of hkick/vkick. The hkick/vkick are lab frame kicks so they have to be rotated into
+! body coords since the field is computed here in body coords. If local_ref_frame = False, the field
+! is converted back to lab coords at the end of em_field_calc.
 
 subroutine add_hvkick_field()
 
@@ -1529,7 +1532,7 @@ select case (ele%key)
 case (ac_kicker$, kicker$, hkicker$, vkicker$, elseparator$)  
 ! Everything else...
 case default
-  if (.not. local_ref_frame .or. ele%value(tilt_tot$) == 0) then
+  if (ele%value(tilt_tot$) == 0) then
     field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / kick_len
     field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c / kick_len
   else
