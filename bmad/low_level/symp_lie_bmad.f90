@@ -112,7 +112,14 @@ ds2 = 0.5_rp * ds
 
 ! element offset 
 
-call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
+! Only the quadrupole and sol_quad bodies fold b1 into their focusing. For all other elements b1
+! is left in bn and applied with the other multipoles.
+if ((ele%key == quadrupole$ .or. ele%key == sol_quad$) .and. ele%value(l$) /= 0) then
+  call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$, b1)
+else
+  call multipole_ele_to_ab (ele, .false., ix_mag_max, an,      bn,      magnetic$, include_kicks$)
+  b1 = 0
+endif
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 if (do_offset) call offset_particle (ele, set$, orbit, set_hvkicks = .false., set_spin = .true., mat6 = mat6, make_matrix = calculate_mat6)
