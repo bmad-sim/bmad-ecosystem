@@ -65,8 +65,6 @@ integer ix_word, i_use, i, j, k, k2, n, ix, ix1, ix2, n_track, ix_ele_fix
 integer n_ele_use, digested_version, key, loop_counter, n_ic, n_con, ix_set
 integer iseq_tot, iyy, n_ele_max, n_multi, n0, n_ele, ixc, n_slave, n_loc
 integer ib, ie, ib2, ie2, flip, n_branch, n_forks, i_loop, n_branch_max
-integer n_term, term_key(20), term_match(20)
-integer, parameter :: match_ele_name$ = 1, match_type$ = 2, match_alias$ = 3, match_descrip$ = 4
 integer, pointer :: n_max
 
 character(*) lat_file
@@ -77,7 +75,6 @@ character(16), parameter :: r_name = 'bmad_parser'
 character(40) name, this_name, this_branch_name
 character(40), allocatable :: seq_name(:)
 character(80) word_1, word_2, debug_line
-character(80) term_name(20)
 character(280) parse_line_save, line, use_line_str
 character(400) full_lat_file_name, digested_file, call_file, str1, str2
 
@@ -505,13 +502,13 @@ parsing_loop: do
                          'the beam centroid unless beam_init%use_particle_start = True.', level = s_warn$)
     endif
 
-    if (ixc == 0 .and. key == -1 .and. .not. wild_here .and. index(word_1, '&') == 0) then
+    if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
       call find_index (word_1, in_lat%nametable, ix)
       if (ix == -1) then
-        if (index(word_1, '##') /= 0) then
-          call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
-        elseif (is_integer(word_1)) then
-          call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+        if (index(name, '##') /= 0) then
+          call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
+        elseif (is_integer(name)) then
+          call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
         else
           call parser_error ('ELEMENT NOT FOUND: ' // word_1)
         endif
@@ -526,44 +523,62 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    ! Not a simple name so have to loop over all elements and look for a match.
-    ! The name may be of the form "term1 & term2 & ..." in which case an element must match all terms.
-    ! Each term is of the form "{class::}name" where class may be an element key name or
-    ! "type", "alias", or "descrip". This mirrors what lat_ele_locator does after lattice expansion.
+    ! Not a simple name so use lat_ele_locator to find the matching element definitions.
+    ! Constructs that depend upon the lattice having been expanded are not valid here.
 
-    if (key > -1) then   ! If Old style "quadrupole[k1] = ..." syntax
-      n_term = 1
-      term_key(1) = key
-      term_match(1) = match_ele_name$
-      term_name(1) = '*'
-      wild_here = .true.
-    else
-      call parse_match_terms (word_1, err)
-      if (err) then
-        bp_com%parse_line = ''
-        cycle parsing_loop
-      endif
+    str1 = word_1
+    call str_substitute (str1, '::', '##')   ! To detect ":" range construct.
+
+    if (index(word_1, '##') /= 0) then
+      call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    elseif (index(word_1, '>>') /= 0) then
+      call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1, &
+                         'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    elseif (index(str1, ':') /= 0) then
+      call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+      bp_com%parse_line = ''
+      cycle parsing_loop
     endif
 
-    ! Element key of the matched elements (0 if not restricted). Used to decide if the list is heterogeneous.
+    if (key > -1) then   ! If Old style "quadrupole[k1] = ..." syntax
+      word_1 = trim(word_1) // '::*'
+      wild_here = .true.
+    endif
+
+    ! "type::", "alias::", and "descrip::" prefixes do not restrict the element key.
     key = 0
-    do i = 1, n_term
-      if (term_key(i) > 0) key = term_key(i)
+    ixc = index(word_1, '::')
+    if (ixc /= 0) key = max(0, key_name_to_key_index(word_1(1:ixc-1), .true.))
+
+    call lat_ele_locator (word_1, in_lat, eles, n_loc, err, order_by_index = .true.)
+    ! lat_ele_locator may use ele%ixx as scratch space ("&" and "~" constructs). Restore the pointers to plat%ele(:).
+    do i = 0, n_max
+      in_lat%ele(i)%ixx = i
     enddo
 
-    ! When setting an attribute for many elements (EG "quad::*[k1] = ..."), only some of the elements may have
+    if (err) then
+      call parser_error ('MALFORMED ELEMENT(S) NAME: ' // word_1)
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
+
+    ! When setting an attribute for many elements (EG "type::bpm*[k1] = ..."), only some of the elements may have
     ! the attribute to be set. This is acceptible and should not generate an error.
+    ! OK if a homogeneous list is labeled heterogeneous. But not vice versa.
 
     ele_found = .false.
-    heterogeneous_ele_list = (key == 0 .and. (wild_here .or. any(term_match(1:n_term) /= match_ele_name$)))
+    heterogeneous_ele_list = (key == 0 .and. (wild_here .or. n_loc > 1))
 
-    do i = 0, n_max
-      ele => in_lat%ele(i)
+    do i = 1, n_loc
+      ele => eles(i)%ele
       ! No wild card matches permitted for these.
       if (ele%key == beginning_ele$ .or. ele%key == def_mad_beam$ .or. &
           ele%key == def_parameter$ .or. ele%key == def_particle_start$ .or. &
           ele%key == def_bmad_com$ .or. ele%key == def_space_charge_com$) cycle
-      if (.not. ele_matches_terms(ele)) cycle
       ! 
       ix = attribute_index(ele, word_2, print_error = .not. heterogeneous_ele_list)
       if (heterogeneous_ele_list .and. ix < 1) cycle
@@ -1335,142 +1350,6 @@ call out_io (s_important$, r_name, 'Lattice parse time (min):\f5.2\ ', r_array =
 
 !---------------------------------------------------------------------
 contains
-
-!---------------------------------------------------------------------------------------
-! contains
-!+
-! Subroutine parse_match_terms (str, err)
-!
-! Splits an element match string like "monitor::* & type::ABC*", used in an attribute set
-! before lattice expansion, into terms. Results are put in n_term, term_name, term_key and term_match.
-!-
-
-subroutine parse_match_terms (str, err)
-
-character(*) str
-character(80) rest, term, class
-integer ia, ic
-logical err
-
-!
-
-err = .true.
-n_term = 0
-rest = str
-
-do
-  ia = index(rest, '&')
-  if (ia == 0) then
-    term = adjustl(rest)
-  else
-    term = adjustl(rest(:ia-1))
-    rest = rest(ia+1:)
-  endif
-
-  if (term == '') then
-    call parser_error ('BLANK TERM IN "&" INTERSECTION CONSTRUCT: ' // str)
-    return
-  endif
-
-  if (n_term == size(term_name)) then
-    call parser_error ('TOO MANY "&" TERMS IN: ' // str)
-    return
-  endif
-
-  n_term = n_term + 1
-  term_key(n_term) = 0
-  term_match(n_term) = match_ele_name$
-
-  ic = index(term, '::')
-  if (ic == 0) then
-    term_name(n_term) = term
-  else
-    class = term(:ic-1)
-    term_name(n_term) = adjustl(term(ic+2:))
-    select case (class)
-    case ('TYPE');    term_match(n_term) = match_type$
-    case ('ALIAS');   term_match(n_term) = match_alias$
-    case ('DESCRIP'); term_match(n_term) = match_descrip$
-    case default
-      term_key(n_term) = key_name_to_key_index(class, .true.)
-      if (term_key(n_term) == -1) then
-        call parser_error ('BAD ELEMENT CLASS NAME: ' // class)
-        return
-      endif
-    end select
-
-    if (term_name(n_term) == '') then
-      call parser_error('ELEMENT NAME IN "CLASS::NAME" SYNTAX CANNOT BE BLANK', &
-                        'NOTE: USE "*" TO MATCH TO ALL NAMES')
-      return
-    endif
-  endif
-
-  if (term_name(n_term)(1:1) == '"' .or. term_name(n_term)(1:1) == "'") term_name(n_term) = unquote(term_name(n_term))
-
-  if (index(term_name(n_term), '##') /= 0) then
-    call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // str)
-    return
-  elseif (index(term_name(n_term), '>>') /= 0) then
-    call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // str, &
-                       'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
-    return
-  elseif (index(term_name(n_term), ':') /= 0) then
-    call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // str)
-    return
-  elseif (term_name(n_term)(1:1) == '~') then
-    call parser_error ('"~" NEGATION CONSTRUCT NOT VALID IN AN ATTRIBUTE SET BEFORE AN "EXPAND_LATTICE" COMMAND: ' // str)
-    return
-  endif
-
-  if (ia == 0) exit
-enddo
-
-err = .false.
-
-end subroutine parse_match_terms
-
-!---------------------------------------------------------------------------------------
-! contains
-!+
-! Function ele_matches_terms (ele) result (is_match)
-!
-! Returns True if ele matches all the terms found by parse_match_terms.
-!-
-
-function ele_matches_terms (ele) result (is_match)
-
-type (ele_struct) ele
-integer it
-logical is_match
-
-!
-
-is_match = .false.
-
-do it = 1, n_term
-  if (term_key(it) /= 0 .and. ele%key /= term_key(it)) return
-  select case (term_match(it))
-  case (match_ele_name$)
-    if (.not. match_wild(ele%name, trim(term_name(it)))) return
-  case (match_type$)
-    if (ele%type == '') return
-    if (.not. match_wild(upcase(ele%type), trim(term_name(it)))) return
-  case (match_alias$)
-    if (ele%alias == '') return
-    if (.not. match_wild(upcase(ele%alias), trim(term_name(it)))) return
-  case (match_descrip$)
-    if (.not. associated(ele%descrip)) return
-    if (.not. match_wild(upcase(ele%descrip), trim(term_name(it)))) return
-  end select
-enddo
-
-is_match = .true.
-
-end function ele_matches_terms
-
-!---------------------------------------------------------------------------------------
-! contains
 
 subroutine parser_end_stuff (lat0, set_error_flag)
 
