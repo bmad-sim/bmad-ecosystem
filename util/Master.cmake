@@ -662,7 +662,7 @@ set(ENV{PKG_CONFIG_PATH} "${OUTPUT_BASEDIR}/lib/pkgconfig:${RELEASE_OUTPUT_BASED
 pkg_check_modules(fftw3 REQUIRED IMPORTED_TARGET fftw3)
 # In older cmake (RHEL8), it's not clever enough to realize that Fortran needs /usr/include in its include search path
 # when using the system fftw3.
-get_property(fftwInc TARGET PkgConfig::fftw3 PROPERTY INTERFACE_INCLUDE_DIRECTORIES SET)
+get_target_property(fftwInc PkgConfig::fftw3 INTERFACE_INCLUDE_DIRECTORIES)
 if (NOT fftwInc AND fftw3_INCLUDEDIR)
   set_property(TARGET PkgConfig::fftw3 PROPERTY INTERFACE_INCLUDE_DIRECTORIES ${fftw3_INCLUDEDIR})
 endif()
