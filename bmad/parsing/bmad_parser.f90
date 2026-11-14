@@ -493,8 +493,6 @@ parsing_loop: do
     key = key_name_to_key_index(word_1)
     parse_line_save = trim(word_2) // ' = ' // bp_com%parse_line 
 
-    ! If just a name then we can look this up
-
     if (word_1 == 'BEAM_START') then
       word_1 = 'PARTICLE_START'   ! For backwards compatibility
       call parser_error ('Beam_start has been renamed particle_start.', &
@@ -502,16 +500,36 @@ parsing_loop: do
                          'the beam centroid unless beam_init%use_particle_start = True.', level = s_warn$)
     endif
 
+    ! Constructs that depend upon the lattice having been expanded are not valid here.
+
+    str1 = word_1
+    call str_substitute (str1, '::', '##')   ! To detect ":" range construct.
+
+    err = .true.
+    if (index(word_1, '##') /= 0) then
+      call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+    elseif (index(word_1, '>>') /= 0) then
+      call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1, &
+                         'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
+    elseif (index(str1, ':') /= 0) then
+      call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+    elseif (is_integer(word_1)) then
+      call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // word_1)
+    else
+      err = .false.
+    endif
+
+    if (err) then
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
+
+    ! If just a name then we can look this up
+
     if (ixc == 0 .and. key == -1 .and. .not. wild_here) then    
       call find_index (word_1, in_lat%nametable, ix)
       if (ix == -1) then
-        if (index(name, '##') /= 0) then
-          call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-        elseif (is_integer(name)) then
-          call parser_error ('USING AN ELEMENT INDEX NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-        else
-          call parser_error ('ELEMENT NOT FOUND: ' // word_1)
-        endif
+        call parser_error ('ELEMENT NOT FOUND: ' // word_1)
       else
         ele => in_lat%ele(ix)
         bp_com%parse_line = parse_line_save
@@ -523,45 +541,43 @@ parsing_loop: do
       cycle parsing_loop
     endif
 
-    ! Not a simple name so have to loop over all elements and look for a match
+    ! Not a simple name so use lat_ele_locator to find the matching element definitions.
 
     if (key > -1) then   ! If Old style "quadrupole[k1] = ..." syntax
-      name = '*'
+      word_1 = trim(word_1) // '::*'
       wild_here = .true.
-
-    elseif (ixc == 0) then   ! Simple element name: "q01w[k1] = ..."
-      key = 0
-      name = word_1
-
-    else                    ! "key::name" syntax
-      key = key_name_to_key_index(word_1(1:ixc-1), .true.)
-      name = word_1(ixc+2:)
-      if (name == '') then
-        call parser_error('ELEMENT NAME IN "CLASS::NAME" SYNTAX CANNOT BE BLANK', &
-                          'NOTE: USE "*" TO MATCH TO ALL NAMES')
-        cycle parsing_loop
-      endif
-      if (key == -1) then
-        bp_com%parse_line = ''
-        call parser_error ('BAD ELEMENT CLASS NAME: ' // word_1(1:ixc-1))
-        cycle parsing_loop
-      endif
     endif
 
-    ! When setting an attribute for many elements (EG "1:10[k1] = ..."), only some of the elements may have
+    ! "type::", "alias::", and "descrip::" prefixes do not restrict the element key.
+    key = 0
+    ixc = index(word_1, '::')
+    if (ixc /= 0) key = max(0, key_name_to_key_index(word_1(1:ixc-1), .true.))
+
+    call lat_ele_locator (word_1, in_lat, eles, n_loc, err, order_by_index = .true.)
+    ! lat_ele_locator may use ele%ixx as scratch space ("&" and "~" constructs). Restore the pointers to plat%ele(:).
+    do i = 0, n_max
+      in_lat%ele(i)%ixx = i
+    enddo
+
+    if (err) then
+      call parser_error ('MALFORMED ELEMENT(S) NAME: ' // word_1)
+      bp_com%parse_line = ''
+      cycle parsing_loop
+    endif
+
+    ! When setting an attribute for many elements (EG "type::bpm*[k1] = ..."), only some of the elements may have
     ! the attribute to be set. This is acceptible and should not generate an error.
+    ! OK if a homogeneous list is labeled heterogeneous. But not vice versa.
 
     ele_found = .false.
-    heterogeneous_ele_list = (key == 0 .and. wild_here)
+    heterogeneous_ele_list = (key == 0 .and. (wild_here .or. n_loc > 1))
 
-    do i = 0, n_max
-      ele => in_lat%ele(i)
-      if (key /= 0 .and. ele%key /= key) cycle
+    do i = 1, n_loc
+      ele => eles(i)%ele
       ! No wild card matches permitted for these.
       if (ele%key == beginning_ele$ .or. ele%key == def_mad_beam$ .or. &
           ele%key == def_parameter$ .or. ele%key == def_particle_start$ .or. &
           ele%key == def_bmad_com$ .or. ele%key == def_space_charge_com$) cycle
-      if (.not. match_wild(ele%name, trim(name))) cycle
       ! 
       ix = attribute_index(ele, word_2, print_error = .not. heterogeneous_ele_list)
       if (heterogeneous_ele_list .and. ix < 1) cycle
@@ -582,17 +598,8 @@ parsing_loop: do
 
     bp_com%parse_line = '' ! Needed if last call to parser_set_attribute did not have a set.
 
-    if (index(name, '##') /= 0) then
-      call parser_error ('"ELEMENT##N" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-    elseif (index(name, '>>') /= 0) then
-      call parser_error ('AN ELEMENT NAME WHICH CONTAINS ">>" NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name, &
-                         'THE REASON FOR THIS IS THAT LATTICE BRANCHES ARE NOT FORMED UNTIL LATTICE EXPANSION.')
-    elseif (.not. ele_found .and. .not. wild_here) then
-      if (index(name, ':') /= 0) then
-        call parser_error ('"ELEMENT1:ELEMENT2" CONSTRUCT NOT VALID BEFORE AN "EXPAND_LATTICE" COMMAND: ' // name)
-      else
-        call parser_error ('ELEMENT NOT FOUND: ' // name)
-      endif
+    if (.not. ele_found .and. .not. wild_here) then
+      call parser_error ('ELEMENT NOT FOUND: ' // word_1)
     elseif (.not. ele_found .and. attribute_index (key, word_2) == 0) then
       call parser_error ('BAD ATTRIBUTE')
       bp_com%parse_line = '' 

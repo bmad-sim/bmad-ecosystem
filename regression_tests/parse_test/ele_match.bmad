@@ -1,0 +1,19 @@
+! Test element matching in attribute sets before expand_lattice (issue #2271).
+no_digested
+parameter[geometry] = open
+beginning[p0c] = 1e9
+beginning[beta_a] = 10
+beginning[beta_b] = 10
+
+m1: monitor, l = 0.1, type = "ABC1"
+m2: monitor, l = 0.1, type = "XYZ1", alias = "duck"
+d1: drift, l = 0.2, type = "ABC2"
+q1: quadrupole, l = 0.3, type = "ABC3"
+q2: quadrupole, l = 0.3, type = "XYZ2"
+ln: line = (m1, m2, d1, q1, q2)
+use, ln
+
+monitor::* & type::ABC*[L] = 0.01    ! m1 only
+type::ABC*[tilt] = 0.02              ! m1, d1, q1
+alias::duck[L] = 0.03                ! m2 only
+quadrupole::* & type::XYZ*[k1] = 0.04 ! q2 only
