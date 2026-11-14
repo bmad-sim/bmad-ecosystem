@@ -690,8 +690,18 @@ case (bmad_standard$)
     endif
 
     ! Add electric multipoles
+    ! The field of a cavity is zero outside the active region so the field is scaled by l / l_active
+    ! to give the same integrated kick as the element length times the multipole field.
 
     call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, electric$)
+    if (ix_pole_max > -1 .and. ele%value(l_active$) /= 0) then
+      select case (ele%key)
+      case (lcavity$, rfcavity$)
+        a_pole = a_pole * ele%value(l$) / ele%value(l_active$)
+        b_pole = b_pole * ele%value(l$) / ele%value(l_active$)
+      end select
+    endif
+
     do i = 0, ix_pole_max
       if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
       call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)

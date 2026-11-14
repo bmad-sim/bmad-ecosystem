@@ -160,8 +160,6 @@ KNOWN = [
     (("elseparator",), PTC, ("b0",), "PTC: multipoles in an elseparator are not supported"),
     (CAVITIES + ("rfcavity_zero",), PTC, HV, "PTC cavity applies hkick/vkick over l_active instead of l"),
     (("crab_cavity",), PTC, MAG + HV, "PTC crab_cavity ignores kicks and multipoles"),
-    (CAVITIES, ALL, ("a1_elec", "b1_elec"), "electric quadrupole in a cavity gives no kick"),
-    (CAVITIES, RK + PTC, ("a0_elec", "b0_elec"), "electric dipole in a cavity is applied over l_active instead of l"),
     (("solenoid",), ("bmad_standard", "linear", "symp_lie_bmad"), ("b1",), "solenoid drops its b1 multipole"),
     (("quadrupole_zero",), ("bmad_standard", "linear"), ("b1",), "zero length quadrupole drops its b1 multipole"),
     (("quadrupole_zero", "sextupole_zero"), PTC, MAG + HV, "PTC zero length element ignores kicks and multipoles"),
