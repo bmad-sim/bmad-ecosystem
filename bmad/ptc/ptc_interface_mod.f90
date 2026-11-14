@@ -3075,7 +3075,7 @@ end subroutine bmad_patch_parameters_to_ptc
 !------------------------------------------------------------------------
 !------------------------------------------------------------------------
 !+                                
-! Subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
+! Subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max, crab_bn1)
 !
 ! Routine to compute the a(n) and b(n) magnetic multipole components of a magnet.
 ! This is used to interface between eles and PTC fibres
@@ -3093,16 +3093,21 @@ end subroutine bmad_patch_parameters_to_ptc
 !   an(1:n_pole_maxx+1) -- real(rp): Skew multipole component.
 !   n_max               -- integer, optional: Maximum non-zero multipole component.
 !                           Set to zero if there are no multipoles.
+!   crab_bn1            -- real(rp), optional: For a crab_cavity, if present, the RF deflecting field is
+!                           returned here and is not included in bn(1). The PTC cavity modulates the
+!                           multipoles set at fibre creation by the RF so this is needed to separate
+!                           the RF field from the static kicks and multipoles.
 !-
 
-subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max)
+subroutine ele_to_ptc_magnetic_bn_an (ele, bn, an, n_max, crab_bn1)
 
 implicit none
 
 type (ele_struct), target :: ele
 
 real(rp) bn(:), an(:)
-real(rp) cos_t, sin_t, leng, hk, vk, tilt
+real(rp), optional :: crab_bn1
+real(rp) cos_t, sin_t, leng, hk, vk, tilt, kick_len
 real(rp), pointer :: val(:)
 real(rp), target, save :: value0(num_ele_attrib$) = 0
 real(rp) an0(0:n_pole_maxx), bn0(0:n_pole_maxx)
@@ -3116,6 +3121,7 @@ character(*), parameter :: r_name = 'ele_to_ptc_magnetic_bn_an'
 !
 
 if (present(n_max)) n_max = 0
+if (present(crab_bn1)) crab_bn1 = 0
 bn = 0
 an = 0
 
@@ -3150,15 +3156,21 @@ case (crab_cavity$)
   else
     bn(1) = 1d-9 * e_accel_field(ele, voltage$) / leng
   endif
+  if (present(crab_bn1)) then
+    crab_bn1 = bn(1)
+    bn(1) = 0
+  endif
 
 case (rfcavity$, lcavity$, drift$, ab_multipole$, multipole$, beambeam$, wiggler$, undulator$, thick_multipole$)
   ! Nothing to be done
 
+! For a zero length element the integrated k1, k2, k3 strengths are zero.
+
 case (octupole$)
-  bn(4) = val(k3$) / 6
+  if (leng /= 0) bn(4) = val(k3$) / 6
 
 case (quadrupole$) 
-  bn(2) = val(k1$)
+  if (leng /= 0) bn(2) = val(k1$)
 
 case (sad_mult$)
 
@@ -3187,14 +3199,14 @@ case (sbend$)
   endif
 
 case (sextupole$)
-  bn(3) = val(k2$) / 2
+  if (leng /= 0) bn(3) = val(k2$) / 2
 
 case (rcollimator$, ecollimator$, monitor$, instrument$, pipe$, ac_kicker$)
 
 case (solenoid$)
 
 case (sol_quad$)
-  bn(2) = val(k1$)
+  if (leng /= 0) bn(2) = val(k1$)
 
 case (hkicker$, vkicker$)
   if (ele%key == hkicker$) bn(1) = val(kick$)   ! notice that kickers do not have kick scaled by the length
@@ -3207,13 +3219,9 @@ case (kicker$)
   add_kick = .false.
 
 case (elseparator$)
-  call multipole_ele_to_ab (ele, .false., ix_pole_max, an0, bn0) 
-  if (ix_pole_max > -1) then
-    call out_io (s_fatal$, r_name, 'MULTIPOLES IN AN ELSEPARATOR NOT SUPPORTED IN A FIBRE.')
-    if (global_com%exit_on_error) call err_exit
-    an0 = 0; bn0 = 0
-  endif
-  return
+  ! An elseparator is a PTC sbend with electric fields. The hkick and vkick are electric and are
+  ! handled in ele_to_fibre. The magnetic multipoles are added like any other element.
+  add_kick = .false.
 
 case default
   call out_io (s_fatal$, r_name, 'UNKNOWN ELEMENT CLASS: ' // key_name(ele%key), &
@@ -3223,8 +3231,13 @@ case default
 end select
 
 if (add_kick .and. has_hkick_attributes(ele%key) .and. (val(hkick$) /= 0 .or. val(vkick$) /= 0)) then
-  hk = val(hkick$) / leng   ! PTC uses scaled kick for non-kicker elements.
-  vk = val(vkick$) / leng
+  ! PTC uses scaled kick for non-kicker elements. A PTC cavity applies the field over the active length.
+  ! A zero length element is translated to a thin element which uses the integrated kick.
+  kick_len = leng
+  if (ele%key == lcavity$ .or. ele%key == rfcavity$) kick_len = ele%value(l_active$)
+  if (kick_len == 0) kick_len = 1
+  hk = val(hkick$) / kick_len
+  vk = val(vkick$) / kick_len
   if (ele%key == sbend$) then
     tilt = ele%value(ref_tilt_tot$)
   else
@@ -3244,13 +3257,18 @@ if (add_multipoles) then
 
   select case (ele%key)
   case (hkicker$, vkicker$, kicker$)
+    ! A PTC kicker applies the dipole components as integrated kicks with the sign convention of
+    ! hkick and vkick (see above). The higher order components are fields as with other elements.
+    bn0(0) = -bn0(0)
+    if (leng /= 0) then
+      an0(1:) = an0(1:) / leng
+      bn0(1:) = bn0(1:) / leng
+    endif
   case (lcavity$, rfcavity$)
+    ! A zero length cavity is thin and uses the integrated multipoles.
     if (ele%value(l_active$) /= 0) then
       an0 = an0 / ele%value(l_active$)
       bn0 = bn0 / ele%value(l_active$)
-    else
-      an0 = 0    ! Punt
-      bn0 = 0
     endif
   case (multipole$)
     if (nint(ele%value(k0l_status$)) == bends_reference$) then
