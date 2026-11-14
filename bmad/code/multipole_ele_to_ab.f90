@@ -527,7 +527,10 @@ endif
 
 if (.not. this_ele%scale_multipoles) return
 if (p_type == electric$) then
-  radius = this_ele%value(r0_elec$)
+  ! Not all elements with electric multipoles have an r0_elec attribute. EG: For an rfcavity the
+  ! r0_elec$ slot holds rf_frequency.
+  radius = 0
+  if (has_attribute(this_ele, 'R0_ELEC')) radius = this_ele%value(r0_elec$)
   if (radius /= 0 .and. radius /= 1) then
     factor = radius
     do n = 0, n_pole_maxx

@@ -508,6 +508,10 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
   ptc_key%model = 'DRIFT_KICK'   ! PTC demands this.
   ptc_key%exact = .true.  ! PTC does not implement a non-exact model when there are electric fields.
   SOLVE_ELECTRIC = .true.
+  ! A standing wave cavity sets the length to l_active. The sbend must have the full element length.
+  ptc_key%list%l = leng
+  ptc_key%list%h1 = 0
+  ptc_key%list%h2 = 0
   if (leng == 0) then
     call out_io (s_fatal$, r_name, 'ZERO LENGTH ELEMENT WITH AN ELECTRIC FIELD NOT ALLOWED IN PTC: ' // ele%name)
     if (global_com%exit_on_error) call err_exit
