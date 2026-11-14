@@ -65,7 +65,7 @@ real(rp), pointer :: val(:)
 real(rp), target :: value0(num_ele_attrib$)
 real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx)
 real(rp) an_ptc(n_pole_maxx+1), bn_ptc(n_pole_maxx+1)
-real(rp) ld, hd, lc, hc, angc, xc, dc
+real(rp) ld, hd, lc, hc, angc, xc, dc, crab_bn1
 real(rp), parameter :: dz_pan7(0:6) = [0.0_rp, 1.0_rp/9.0_rp, 1.0_rp/6.0_rp, 1.0_rp/3.0_rp, 1.0_rp/2.0_rp, 2.0_rp/3.0_rp, 5.0_rp/6.0_rp]
 
 complex(rp) k_0
@@ -515,12 +515,35 @@ if (key /= multipole$ .and. (associated(ele%a_pole_elec) .or. key == elseparator
   endif
 endif
 
+! A zero length quadrupole, sextupole, etc. with usethin = False is a thick element with zero length
+! in PTC which applies no multipole kicks. Use a thin multipole instead.
+
+if (leng == 0 .and. (ptc_key%magnet == 'quadrupole' .or. ptc_key%magnet == 'sextupole' .or. &
+                                                                     ptc_key%magnet == 'octupole')) then
+  ptc_key%magnet = 'multipole'
+endif
+
 ! Magnetic multipole components
 ! Set for lcavity and rfcavity is after fibre is instantiated.
+! For a crab_cavity, the PTC cavity modulates the multipoles set here by the RF so only the RF
+! deflecting field is set here. The static kicks and multipoles are set after the fibre is instantiated.
 
-call ele_to_ptc_magnetic_bn_an (ele, bn_ptc, an_ptc, n_mult)
+if (ele%key == crab_cavity$) then
+  call ele_to_ptc_magnetic_bn_an (ele, bn_ptc, an_ptc, n_mult, crab_bn1)
+  ptc_key%list%k  = 0
+  ptc_key%list%ks = 0
+  ptc_key%list%k(1) = crab_bn1
+  ptc_key%list%nmul = 1
+else
+  call ele_to_ptc_magnetic_bn_an (ele, bn_ptc, an_ptc, n_mult)
+endif
 
-if (ele%key /= lcavity$ .and. ele%key /= rfcavity$) then
+! The PTC wiggler integrator does not apply multipole kicks.
+if (ptc_key%magnet == 'wiggler' .and. n_mult > 0) then
+  call out_io (s_warn$, r_name, 'HKICK, VKICK AND MAGNETIC MULTIPOLES OF A WIGGLER OR UNDULATOR ARE IGNORED BY PTC. FOR: ' // ele%name)
+endif
+
+if (ele%key /= lcavity$ .and. ele%key /= rfcavity$ .and. ele%key /= crab_cavity$) then
   ptc_key%list%k  = bn_ptc
   ptc_key%list%ks = an_ptc
   ptc_key%list%nmul = n_mult
@@ -745,7 +768,7 @@ endif
 
 !----------------------------------------------
 
-if (ele%key == lcavity$ .or. ele%key == rfcavity$) then
+if (ele%key == lcavity$ .or. ele%key == rfcavity$ .or. ele%key == crab_cavity$) then
   if (ptc_fibre%mag%kind == kind4) then
     do i = n_mult, 1, -1
       call add_to_cavity(ptc_fibre, i, 0, bn_ptc(i))
