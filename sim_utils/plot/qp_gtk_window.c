@@ -217,6 +217,37 @@ static void set_macos_dock_icon (void) {
   g_byte_array_unref(png);
 }
 
+/* macOS: Turn off native full screen for the plot window, so the green title bar button zooms
+ * the window to fill the screen instead. In full screen the title bar is hidden and the plot
+ * window has no menu bar (so no "Exit Full Screen" item or Ctrl-Cmd-F), which left users unable
+ * to get out of full screen (issue #2276). The window must be realized (shown). */
+
+#define QPG_NS_FULLSCREEN_PRIMARY    (1UL << 7)    /* NSWindowCollectionBehaviorFullScreenPrimary   */
+#define QPG_NS_FULLSCREEN_AUXILIARY  (1UL << 8)    /* NSWindowCollectionBehaviorFullScreenAuxiliary */
+#define QPG_NS_FULLSCREEN_NONE       (1UL << 9)    /* NSWindowCollectionBehaviorFullScreenNone      */
+
+static void no_macos_fullscreen (GtkWidget *win) {
+  qpg_sel (*sel) (const char *) = (qpg_sel (*)(const char *))dlsym(RTLD_DEFAULT, "sel_registerName");
+  qpg_id (*get_nswindow) (GdkWindow *) = (qpg_id (*)(GdkWindow *))dlsym(RTLD_DEFAULT, "gdk_quartz_window_get_nswindow");
+  void *msg = dlsym(RTLD_DEFAULT, "objc_msgSend");
+  GdkWindow *gw = gtk_widget_get_window(win);
+  qpg_id nswin;
+  unsigned long behavior;
+
+  if (!sel || !get_nswindow || !msg || !gw) return;
+  nswin = get_nswindow(gw);
+  if (!nswin) return;
+
+  behavior = ((unsigned long (*)(qpg_id, qpg_sel))msg)(nswin, sel("collectionBehavior"));
+  behavior &= ~(QPG_NS_FULLSCREEN_PRIMARY | QPG_NS_FULLSCREEN_AUXILIARY);
+  behavior |= QPG_NS_FULLSCREEN_NONE;
+  ((void (*)(qpg_id, qpg_sel, unsigned long))msg)(nswin, sel("setCollectionBehavior:"), behavior);
+}
+
+static int is_quartz (void) {
+  return strcmp(G_OBJECT_TYPE_NAME(gdk_display_get_default()), "GdkQuartzDisplay") == 0;
+}
+
 #endif
 
 static void set_icon (void) {
@@ -225,7 +256,7 @@ static void set_icon (void) {
     g.icon = gdk_pixbuf_get_from_surface(surf, 0, 0, 64, 64);
     cairo_surface_destroy(surf);
 #if defined (GDK_WINDOWING_QUARTZ)
-    if (strcmp(G_OBJECT_TYPE_NAME(gdk_display_get_default()), "GdkQuartzDisplay") == 0) set_macos_dock_icon();
+    if (is_quartz()) set_macos_dock_icon();
 #endif
   }
   if (g.icon) gtk_window_set_icon(GTK_WINDOW(g.win), g.icon);
@@ -248,6 +279,9 @@ static void create_window (void) {
   g_signal_connect(g.win, "destroy", G_CALLBACK(on_destroy), NULL);
 
   gtk_widget_show_all(g.win);
+#if defined (GDK_WINDOWING_QUARTZ)
+  if (is_quartz()) no_macos_fullscreen(g.win);
+#endif
   qpg_pump();
 }
 
