@@ -702,7 +702,7 @@ PALS:
         kind: Controller
         control_type: ABSOLUTE
         variables:
-          xk:   1.0000E-03             
+          - xk:   1.0000E-03             
         controls:
           - parameter: quadrupole1>MagneticMultipoleP.Kn0
             expression:  -1.1785E+00              * (2*xk)
@@ -723,7 +723,7 @@ PALS:
         kind: Controller
         control_type: ABSOLUTE
         variables:
-          xk2:   2.0000E-03             
+          - xk2:   2.0000E-03             
         controls:
           - parameter: quadrupole1>MagneticMultipoleP.Kn0
             expression:  -1.1785E+00              * (xk2) +  -1.1785E+00              * (3*xk2)
