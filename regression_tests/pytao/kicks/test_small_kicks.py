@@ -155,7 +155,6 @@ KNOWN = [
     (CAVITIES, RK + PTC, ("a0_elec", "b0_elec"), "electric dipole in a cavity is applied over l_active instead of l"),
     (("solenoid",), ("bmad_standard", "linear", "symp_lie_bmad"), ("b1",), "solenoid drops its b1 multipole"),
     (("quadrupole_zero",), ("bmad_standard", "linear"), ("b1",), "zero length quadrupole drops its b1 multipole"),
-    (("wiggler_planar", "wiggler_helical"), RK, MAG + ELEC, "em_field_calc periodic wiggler field has no multipoles"),
     (("wiggler_planar",), PTC, MAG + HV, "PTC periodic wiggler ignores kicks and multipoles"),
     (("wiggler_planar",), PTC, ELEC, "PTC wiggler cannot have electric multipoles so they are ignored"),
     (("lcavity_zero",), PTC, MAG + HV, "PTC zero length lcavity ignores kicks and multipoles"),
