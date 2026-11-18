@@ -146,25 +146,17 @@ CAVITIES = ("rfcavity", "lcavity", "lcavity_old")
 
 # (elements, methods, attributes, reason). Any of these kills the Tao process, so they are skipped
 # rather than marked xfail. None matches everything.
-CRASHES = [
-    (("lcavity_zero",), PTC, None, "PTC stops with 'TWCAVITY MUST HAVE A LENGTH'"),
-    (("wiggler_planar",), PTC, ELEC, "segmentation fault converting a planar wiggler with electric multipoles to PTC"),
-]
+CRASHES: list = []
 
 # (elements, methods, attributes, reason[, tilts]). Known wrong answers, marked xfail(strict) so a fix
 # is noticed. None matches everything.
 KNOWN = [
-    (("kicker", "hkicker", "vkicker"), PTC, ("b0", "a1", "b1", "a2", "b2", "a3", "b3"),
-     "PTC kicker: b0 has the wrong sign and orders 1 to 3 are applied at half strength"),
-    (("kicker_zero",), PTC, ("b0",), "PTC kicker: b0 has the wrong sign"),
-    (("elseparator",), PTC, ("b0",), "PTC: multipoles in an elseparator are not supported"),
-    (CAVITIES + ("rfcavity_zero",), PTC, HV, "PTC cavity applies hkick/vkick over l_active instead of l"),
-    (("crab_cavity",), PTC, MAG + HV, "PTC crab_cavity ignores kicks and multipoles"),
     (CAVITIES, ALL, ("a1_elec", "b1_elec"), "electric quadrupole in a cavity gives no kick"),
     (CAVITIES, RK + PTC, ("a0_elec", "b0_elec"), "electric dipole in a cavity is applied over l_active instead of l"),
-    (("quadrupole_zero", "sextupole_zero"), PTC, MAG + HV, "PTC zero length element ignores kicks and multipoles"),
     (("wiggler_planar", "wiggler_helical"), RK, MAG + ELEC, "em_field_calc periodic wiggler field has no multipoles"),
     (("wiggler_planar",), PTC, MAG + HV, "PTC periodic wiggler ignores kicks and multipoles"),
+    (("wiggler_planar",), PTC, ELEC, "PTC wiggler cannot have electric multipoles so they are ignored"),
+    (("lcavity_zero",), PTC, MAG + HV, "PTC zero length lcavity ignores kicks and multipoles"),
 ]
 
 

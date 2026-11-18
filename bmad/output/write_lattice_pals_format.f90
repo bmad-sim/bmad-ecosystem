@@ -652,7 +652,7 @@ do ie = lat%n_ele_track+1, lat%n_ele_max
     header_needed = .true.
     do i = 1, size(ele%control%var)
       var => ele%control%var(i)
-      call write_real_dict(id2, 'variables', downcase(var%name), var%value, header_needed, .false.)
+      call write_real_list(id2, 'variables', downcase(var%name), var%value, header_needed, .false.)
     enddo
 
     ! Note: A Bmad attribute may map to more than one PALS attribute (EG: HKICK of a tilted element
