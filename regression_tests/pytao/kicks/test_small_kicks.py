@@ -152,12 +152,9 @@ CRASHES: list = []
 # (elements, methods, attributes, reason[, tilts]). Known wrong answers, marked xfail(strict) so a fix
 # is noticed. None matches everything.
 KNOWN = [
-    (("solenoid",), ("bmad_standard", "linear", "symp_lie_bmad"), ("b1",), "solenoid drops its b1 multipole"),
-    (("quadrupole_zero",), ("bmad_standard", "linear"), ("b1",), "zero length quadrupole drops its b1 multipole"),
     (("wiggler_planar",), PTC, MAG + HV, "PTC periodic wiggler ignores kicks and multipoles"),
     (("wiggler_planar",), PTC, ELEC, "PTC wiggler cannot have electric multipoles so they are ignored"),
     (("lcavity_zero",), PTC, MAG + HV, "PTC zero length lcavity ignores kicks and multipoles"),
-    (("wiggler_planar", "wiggler_helical"), ("symp_lie_bmad",), ("b1",), "symp_lie_bmad wiggler drops its b1 multipole"),
 ]
 
 
