@@ -632,7 +632,9 @@ case (bmad_standard$)
   ! Add multipoles
 
   if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
-    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc, calc_potential)
+    ! Like the rest of the field, compute in body coords. If local_ref_frame = F, the field is converted
+    ! to lab coords at the end of em_field_calc.
+    call bend_exact_multipole_field (ele, param, local_orb, .true., field2, do_df_calc, calc_potential)
     field%e = field%e + field2%e
     field%b = field%b + field2%b
     if (do_df_calc) then
@@ -1522,9 +1524,11 @@ if (ix_pole_max > -1) then
   enddo
 endif
 
-! Add electric multipoles
+! Add electric multipoles.
+! Like the magnetic multipoles, these are in body coords. If local_ref_frame = F, the field is converted
+! to lab coords at the end of em_field_calc.
 
-call multipole_ele_to_ab(ele, .not. local_ref_frame, ix_pole_max, a_pole, b_pole, electric$)
+call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
 do i = 0, ix_pole_max
   if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
   call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
@@ -1539,11 +1543,16 @@ end subroutine add_multipole_fields
 !----------------------------------------------------------------------------
 ! contains
 
-! Add the uniform field of hkick/vkick. Since the kick field is not rotated by a tilt then we have to unrotate if in the local_ref_frame
+! Add the uniform field of hkick/vkick.
+! For historical reasons, hkick and vkick are not rotated by the element tilt (ref_tilt for a bend),
+! except for kicker and elseparator elements, whose kick field is computed in the bmad_standard field calc.
+! They do follow the element offsets and pitches. The field here is computed in body coords, so the
+! kick is rotated by -tilt into body coords. If local_ref_frame = F, the conversion to lab coords at the
+! end of em_field_calc rotates it back by +tilt, so the lab frame kick field is independent of the tilt.
 
 subroutine add_hvkick_field()
 
-real(rp) kick_len
+real(rp) kick_len, tilt
 
 !
 
@@ -1563,13 +1572,17 @@ select case (ele%key)
 case (ac_kicker$, kicker$, hkicker$, vkicker$, elseparator$)  
 ! Everything else...
 case default
-  if (.not. local_ref_frame .or. ele%value(tilt_tot$) == 0) then
+  if (ele%key == sbend$) then
+    tilt = ele%value(ref_tilt_tot$)
+  else
+    tilt = ele%value(tilt_tot$)
+  endif
+
+  if (tilt == 0) then
     field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / kick_len
     field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c / kick_len
   else
-    ! Rotate from lab to local
-    tilt = ele%value(tilt_tot$)
-    if (ele%key == sbend$) tilt = ele%value(ref_tilt_tot$)
+    ! Rotate from untilted to body coords
     field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c / kick_len
     field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) + ele%value(vkick$) * sin(tilt)) * f_p0c / kick_len
   endif
