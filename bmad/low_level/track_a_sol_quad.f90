@@ -43,7 +43,14 @@ charge_dir = rel_tracking_charge * ele%orientation * start_orb%direction
 mc2 = mass_of(orbit%species)
 length = orbit%time_dir * ele%value(l$) 
 
-call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$, b1)
+! For a sol_quad the b1 component is folded into the body focusing. A solenoid body has no
+! quadrupole focusing so b1 is left in bn and applied with the other multipoles.
+if (ele%key == sol_quad$) then
+  call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$, b1)
+else
+  call multipole_ele_to_ab (ele, .false., ix_mag_max,  an,      bn,      magnetic$, include_kicks$)
+  b1 = 0
+endif
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
 n_step = 1
