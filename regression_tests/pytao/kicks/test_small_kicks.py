@@ -152,7 +152,6 @@ CRASHES: list = []
 # (elements, methods, attributes, reason[, tilts]). Known wrong answers, marked xfail(strict) so a fix
 # is noticed. None matches everything.
 KNOWN = [
-    (CAVITIES, RK + PTC, ELEC, "electric multipoles in a cavity are applied over l_active instead of l"),
     (("wiggler_planar",), PTC, MAG + HV, "PTC periodic wiggler ignores kicks and multipoles"),
     (("wiggler_planar",), PTC, ELEC, "PTC wiggler cannot have electric multipoles so they are ignored"),
     (("lcavity_zero",), PTC, MAG + HV, "PTC zero length lcavity ignores kicks and multipoles"),
