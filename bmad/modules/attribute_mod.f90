@@ -821,6 +821,7 @@ do i = 1, n_key$
   case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
          sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, &
          hkicker$, vkicker$, sad_mult$, thick_multipole$, rfcavity$, lcavity$, crab_cavity$)
+
     attrib_array(i, a0$:a21$)%name = ['A0 ', &
                                    'A1 ', 'A2 ', 'A3 ', 'A4 ', 'A5 ', & 
                                    'A6 ', 'A7 ', 'A8 ', 'A9 ', 'A10', &
@@ -847,7 +848,16 @@ do i = 1, n_key$
                                     'B6_ELEC ', 'B7_ELEC ', 'B8_ELEC ', 'B9_ELEC ', 'B10_ELEC', &
                                     'B11_ELEC', 'B12_ELEC', 'B13_ELEC', 'B14_ELEC', 'B15_ELEC', &
                                     'B16_ELEC', 'B17_ELEC', 'B18_ELEC', 'B19_ELEC', 'B20_ELEC', 'B21_ELEC']
-    call init_attribute_name1 (is_ok, i, scale_multipoles$,  'SCALE_MULTIPOLES')
+  end select
+
+
+  select case (i)
+  case (ac_kicker$, elseparator$, kicker$, octupole$, quadrupole$, sbend$, rbend$, &
+         sextupole$, solenoid$, sol_quad$, ab_multipole$, wiggler$, undulator$, &
+         hkicker$, vkicker$, sad_mult$, thick_multipole$)
+    call init_attribute_name1 (is_ok, i, r0_mag$,                   'R0_MAG')
+    call init_attribute_name1 (is_ok, i, r0_elec$,                  'R0_ELEC')
+    call init_attribute_name1 (is_ok, i, scale_multipoles$,        'SCALE_MULTIPOLES')
   end select
 enddo
 
@@ -1248,8 +1258,6 @@ call init_attribute_name1 (is_ok, elseparator$, gap$,                      'GAP'
 call init_attribute_name1 (is_ok, elseparator$, e_field$,                  'E_FIELD', quasi_free$)
 call init_attribute_name1 (is_ok, elseparator$, voltage$,                  'VOLTAGE', quasi_free$)
 call init_attribute_name1 (is_ok, elseparator$, voltage_err$,              'voltage_err', private$) ! To fool master_parameter_value
-call init_attribute_name1 (is_ok, elseparator$, r0_mag$,                   'R0_MAG')
-call init_attribute_name1 (is_ok, elseparator$, r0_elec$,                  'R0_ELEC')
 call init_attribute_name1 (is_ok, elseparator$, field_master$,             'FIELD_MASTER')
 call init_attribute_name1 (is_ok, elseparator$, cartesian_map$,            'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, elseparator$, cylindrical_map$,          'CYLINDRICAL_MAP')
@@ -1453,8 +1461,6 @@ attrib_array(vkicker$, :) = attrib_array(hkicker$, :)
 
 call init_attribute_name1 (is_ok, kicker$, h_displace$,                    'H_DISPLACE')
 call init_attribute_name1 (is_ok, kicker$, v_displace$,                    'V_DISPLACE')
-call init_attribute_name1 (is_ok, kicker$, r0_mag$,                        'R0_MAG')
-call init_attribute_name1 (is_ok, kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (is_ok, kicker$, field_master$,                  'FIELD_MASTER')
 call init_attribute_name1 (is_ok, kicker$, cartesian_map$,                 'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
@@ -1463,8 +1469,6 @@ call init_attribute_name1 (is_ok, kicker$, grid_field$,                    'GRID
 call init_attribute_name1 (is_ok, kicker$, ptc_canonical_coords$,          'PTC_CANONICAL_COORDS')
 
 call init_attribute_name1 (is_ok, ac_kicker$, interpolation$,                 'INTERPOLATION')
-call init_attribute_name1 (is_ok, ac_kicker$, r0_mag$,                        'R0_MAG')
-call init_attribute_name1 (is_ok, ac_kicker$, r0_elec$,                       'R0_ELEC')
 call init_attribute_name1 (is_ok, ac_kicker$, field_master$,                  'FIELD_MASTER')
 call init_attribute_name1 (is_ok, ac_kicker$, cartesian_map$,                 'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, ac_kicker$, cylindrical_map$,               'CYLINDRICAL_MAP')
@@ -1510,8 +1514,6 @@ call init_attribute_name1 (is_ok, null_ele$, ix_branch$,                   'ix_b
 
 call init_attribute_name1 (is_ok, quadrupole$, k1$,                        'K1', quasi_free$)
 call init_attribute_name1 (is_ok, quadrupole$, B1_gradient$,               'B1_GRADIENT', quasi_free$)
-call init_attribute_name1 (is_ok, quadrupole$, r0_mag$,                    'R0_MAG')
-call init_attribute_name1 (is_ok, quadrupole$, r0_elec$,                   'R0_ELEC')
 call init_attribute_name1 (is_ok, quadrupole$, field_master$,              'FIELD_MASTER')
 call init_attribute_name1 (is_ok, quadrupole$, cartesian_map$,             'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, quadrupole$, cylindrical_map$,           'CYLINDRICAL_MAP')
@@ -1523,8 +1525,6 @@ call init_attribute_name1 (is_ok, quadrupole$, fq2$,                       'FQ2'
 
 call init_attribute_name1 (is_ok, sextupole$, k2$,                         'K2', quasi_free$)
 call init_attribute_name1 (is_ok, sextupole$, B2_gradient$,                'B2_GRADIENT', quasi_free$)
-call init_attribute_name1 (is_ok, sextupole$, r0_mag$,                     'R0_MAG')
-call init_attribute_name1 (is_ok, sextupole$, r0_elec$,                    'R0_ELEC')
 call init_attribute_name1 (is_ok, sextupole$, field_master$,               'FIELD_MASTER')
 call init_attribute_name1 (is_ok, sextupole$, cartesian_map$,              'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, sextupole$, cylindrical_map$,            'CYLINDRICAL_MAP')
@@ -1534,8 +1534,6 @@ call init_attribute_name1 (is_ok, sextupole$, ptc_canonical_coords$,       'PTC_
 
 call init_attribute_name1 (is_ok, octupole$, k3$,                          'K3', quasi_free$)
 call init_attribute_name1 (is_ok, octupole$, B3_gradient$,                 'B3_GRADIENT', quasi_free$)
-call init_attribute_name1 (is_ok, octupole$, r0_mag$,                      'R0_MAG')
-call init_attribute_name1 (is_ok, octupole$, r0_elec$,                     'R0_ELEC')
 call init_attribute_name1 (is_ok, octupole$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (is_ok, octupole$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, octupole$, cylindrical_map$,             'CYLINDRICAL_MAP')
@@ -1668,8 +1666,6 @@ call init_attribute_name1 (is_ok, sbend$, b_field$,                        'B_FI
 call init_attribute_name1 (is_ok, sbend$, db_field$,                       'DB_FIELD', quasi_free$)
 call init_attribute_name1 (is_ok, sbend$, b1_gradient$,                    'B1_GRADIENT', quasi_free$)
 call init_attribute_name1 (is_ok, sbend$, b2_gradient$,                    'B2_GRADIENT', quasi_free$)
-call init_attribute_name1 (is_ok, sbend$, r0_mag$,                         'R0_MAG')
-call init_attribute_name1 (is_ok, sbend$, r0_elec$,                        'R0_ELEC')
 call init_attribute_name1 (is_ok, sbend$, field_master$,                   'FIELD_MASTER')
 call init_attribute_name1 (is_ok, sbend$, cartesian_map$,                  'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, sbend$, cylindrical_map$,                'CYLINDRICAL_MAP')
@@ -1685,8 +1681,6 @@ attrib_array(rbend$, :) = attrib_array(sbend$, :)
 
 call init_attribute_name1 (is_ok, solenoid$, ks$,                          'KS', quasi_free$)
 call init_attribute_name1 (is_ok, solenoid$, bs_field$,                    'BS_FIELD', quasi_free$)
-call init_attribute_name1 (is_ok, solenoid$, r0_mag$,                      'R0_MAG')
-call init_attribute_name1 (is_ok, solenoid$, r0_elec$,                     'R0_ELEC')
 call init_attribute_name1 (is_ok, solenoid$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (is_ok, solenoid$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, solenoid$, cylindrical_map$,             'CYLINDRICAL_MAP')
@@ -1705,8 +1699,6 @@ call init_attribute_name1 (is_ok, sol_quad$, k1$,                          'K1',
 call init_attribute_name1 (is_ok, sol_quad$, ks$,                          'KS', quasi_free$)
 call init_attribute_name1 (is_ok, sol_quad$, b1_gradient$,                 'B1_GRADIENT', quasi_free$)
 call init_attribute_name1 (is_ok, sol_quad$, bs_field$,                    'BS_FIELD', quasi_free$)
-call init_attribute_name1 (is_ok, sol_quad$, r0_mag$,                      'R0_MAG')
-call init_attribute_name1 (is_ok, sol_quad$, r0_elec$,                     'R0_ELEC') 
 call init_attribute_name1 (is_ok, sol_quad$, field_master$,                'FIELD_MASTER')
 call init_attribute_name1 (is_ok, sol_quad$, cartesian_map$,               'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, sol_quad$, cylindrical_map$,             'CYLINDRICAL_MAP')
@@ -1814,8 +1806,6 @@ call init_attribute_name1 (is_ok, wiggler$, b_max$,                        'B_MA
 call init_attribute_name1 (is_ok, wiggler$, g_max$,                        'G_MAX', dependent$)
 call init_attribute_name1 (is_ok, wiggler$, term$,                         'TERM')
 call init_attribute_name1 (is_ok, wiggler$, polarity$,                     'POLARITY')
-call init_attribute_name1 (is_ok, wiggler$, r0_mag$,                       'R0_MAG')
-call init_attribute_name1 (is_ok, wiggler$, r0_elec$,                      'R0_ELEC')
 call init_attribute_name1 (is_ok, wiggler$, field_master$,                 'FIELD_MASTER')
 call init_attribute_name1 (is_ok, wiggler$, cartesian_map$,                'CARTESIAN_MAP')
 call init_attribute_name1 (is_ok, wiggler$, cylindrical_map$,              'CYLINDRICAL_MAP')
