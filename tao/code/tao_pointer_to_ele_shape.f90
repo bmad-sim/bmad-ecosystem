@@ -159,13 +159,15 @@ do k = integer_option(1, ix_shape_min), size(ele_shape)
   if (es%ix_key == -1) cycle
   if (es%ix_key /= 0 .and. es%ix_key /= ele%key) cycle
 
+  ! Match by index and not by pointer since es%uni(ixu)%eles(:)%ele point to the model lattice and ele
+  ! may be in the design or base lattice (EG: floor_plan%orbit_lattice = "design").
+
   if (allocated(es%uni)) then
     do ie = 1, es%uni(ixu)%n_loc
-      v_ele => es%uni(ixu)%eles(ie)%ele
-      if (associated(v_ele, ele)) then
-        e_shape => es
-        return
-      endif
+      if (es%uni(ixu)%eles(ie)%loc%ix_ele /= ele%ix_ele) cycle
+      if (es%uni(ixu)%eles(ie)%loc%ix_branch /= ele%ix_branch) cycle
+      e_shape => es
+      return
     enddo
     cycle
   elseif (prefix == 'alias') then
