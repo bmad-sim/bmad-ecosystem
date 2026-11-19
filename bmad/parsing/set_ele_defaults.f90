@@ -79,6 +79,7 @@ case (converter$)
 case (crab_cavity$)
   ele%value(field_autoscale$) = 1
   ele%value(num_steps$) = 10
+  ele%scale_multipoles = .false.
 
 case (crystal$)
   ele%value(is_mosaic$) = false$
@@ -213,6 +214,7 @@ case (lcavity$)
   ele%value(n_rf_steps$) = 10
   ! So to not affect the changeover when the step loop was finally implemented in 2/2024
   ele%value(num_steps$) = 1       
+  ele%scale_multipoles = .false.
 
 case (marker$)
   ele%ref_species = not_set$    ! Used when element is after a converter
@@ -317,6 +319,7 @@ case (rfcavity$)
   ele%value(autoscale_phase$) = true$
   ele%value(longitudinal_mode$) = 0
   ele%value(num_steps$) = 10
+  ele%scale_multipoles = .false.
 
 case (sad_mult$)
   ele%value(eps_step_scale$) = 1
