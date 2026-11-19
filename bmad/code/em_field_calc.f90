@@ -632,7 +632,9 @@ case (bmad_standard$)
   ! Add multipoles
 
   if (ele%key == sbend$ .and. nint(ele%value(exact_multipoles$)) /= off$ .and. ele%value(g$) /= 0) then
-    call bend_exact_multipole_field (ele, param, orbit, local_ref_frame, field2, do_df_calc, calc_potential)
+    ! Like the rest of the field, compute in body coords. If local_ref_frame = F, the field is converted
+    ! to lab coords at the end of em_field_calc.
+    call bend_exact_multipole_field (ele, param, local_orb, .true., field2, do_df_calc, calc_potential)
     field%e = field%e + field2%e
     field%b = field%b + field2%b
     if (do_df_calc) then
@@ -643,63 +645,20 @@ case (bmad_standard$)
 
   ! Everything but exact bend multipoles
   else
-    ! First magnetic
     ! This should be cleaned up so that include_kicks is always present.
     ! Do do this, the code above which puts in the kick, dg, k1, k2, k3 kicks needs to be removed.
     if (ele%key == sbend$) then
-      call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, magnetic$, include_kicks$)
+      call add_multipole_fields(include_kicks$, err)
       add_kicks = .false.
     else
-      call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, magnetic$)
+      call add_multipole_fields(no$, err)
       add_kicks = .true.
     endif
 
-    if (ix_pole_max > -1) then
-
-      if (ele%value(l$) == 0) then
-        call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
-        if (global_com%exit_on_error) call err_exit
-        if (present(err_flag)) err_flag = .true.
-        return
-      endif
-
-      ! Note: The spin_integration routine assumes that the field is zero outside of the active region.
-      select case (ele%key)
-      case (lcavity$, rfcavity$)
-        length = ele%value(l_active$)
-      case default
-        length = ele%value(l$)
-      end select
-
-      do i = 0, ix_pole_max
-        if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-        if (do_df_calc) then
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky, dkm)
-        else
-          call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky)
-        endif
-        field%B(1) = field%B(1) + f_p0c * ky / length
-        field%B(2) = field%B(2) - f_p0c * kx / length
-        if (do_df_calc) then
-          field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / length
-          field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / length
-          field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / length
-          field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / length
-        endif
-      enddo
+    if (err) then
+      if (present(err_flag)) err_flag = .true.
+      return
     endif
-
-    ! Add electric multipoles
-
-    ! The field is computed in body coords and, if needed, converted to lab coords at the end.
-    call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
-    do i = 0, ix_pole_max
-      if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
-      call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
-      field%E(1) = field%E(1) + Ex
-      field%E(2) = field%E(2) + Ey
-      if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
-    enddo
 
   endif
 
@@ -742,6 +701,11 @@ case(planar_model$)
     field%db(3,3) = -kz * by * c_x * ch_y * c_z
   endif
 
+  call add_multipole_fields(no$, err)
+  if (err) then
+    if (present(err_flag)) err_flag = .true.
+    return
+  endif
   call add_hvkick_field()
 
 !----------------------------------------------------------------------------------------------
@@ -772,6 +736,11 @@ case(helical_model$)
     field%db(3,3) =  kz * ele%value(b_max$) * (sh_x * s_z - sh_y * c_z)
   endif
 
+  call add_multipole_fields(no$, err)
+  if (err) then
+    if (present(err_flag)) err_flag = .true.
+    return
+  endif
   call add_hvkick_field()
 
 !----------------------------------------------------------------------------------------------
@@ -1506,13 +1475,84 @@ if (.not. local_ref_frame) call convert_field_ele_to_lab (ele, s_body, .true., f
 !----------------------------------------------------------------------------
 contains
 
-! Add the uniform field of hkick/vkick. The hkick/vkick are lab frame kicks so they have to be rotated into
-! body coords since the field is computed here in body coords. If local_ref_frame = False, the field
-! is converted back to lab coords at the end of em_field_calc.
+! Add the field of the magnetic and electric a_n/b_n multipoles.
+! include_kick is passed to multipole_ele_to_ab for the magnetic multipoles.
+
+subroutine add_multipole_fields(include_kick, err)
+
+real(rp) a_pole(0:n_pole_maxx), b_pole(0:n_pole_maxx), kx, ky, Ex, Ey, dkm(2,2), length
+integer include_kick, i, ix_pole_max
+logical err
+
+! First magnetic
+
+err = .false.
+call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, magnetic$, include_kick)
+
+if (ix_pole_max > -1) then
+
+  if (ele%value(l$) == 0) then
+    call out_io (s_fatal$, r_name, 'CANNOT COMPUTE FIELD OF ZERO LENGTH ELEMENT WITH MULTIPOLES. FOR: ' // ele%name)
+    if (global_com%exit_on_error) call err_exit
+    err = .true.
+    return
+  endif
+
+  ! Note: The spin_integration routine assumes that the field is zero outside of the active region.
+  select case (ele%key)
+  case (lcavity$, rfcavity$)
+    length = ele%value(l_active$)
+  case default
+    length = ele%value(l$)
+  end select
+
+  do i = 0, ix_pole_max
+    if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+    if (do_df_calc) then
+      call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky, dkm)
+    else
+      call ab_multipole_kick(a_pole(i), b_pole(i), i, ele%ref_species, 0, local_orb, kx, ky)
+    endif
+    field%B(1) = field%B(1) + f_p0c * ky / length
+    field%B(2) = field%B(2) - f_p0c * kx / length
+    if (do_df_calc) then
+      field%dB(1,1) = field%dB(1,1) + f_p0c * dkm(2,1) / length
+      field%dB(1,2) = field%dB(1,2) + f_p0c * dkm(2,2) / length
+      field%dB(2,1) = field%dB(2,1) - f_p0c * dkm(1,1) / length
+      field%dB(2,2) = field%dB(2,2) - f_p0c * dkm(1,2) / length
+    endif
+  enddo
+endif
+
+! Add electric multipoles.
+! Like the magnetic multipoles, these are in body coords. If local_ref_frame = F, the field is converted
+! to lab coords at the end of em_field_calc.
+
+call multipole_ele_to_ab(ele, .false., ix_pole_max, a_pole, b_pole, electric$)
+do i = 0, ix_pole_max
+  if (a_pole(i) == 0 .and. b_pole(i) == 0) cycle
+  call elec_multipole_field(a_pole(i), b_pole(i), i, local_orb, Ex, Ey, dkm, do_df_calc)
+  field%E(1) = field%E(1) + Ex
+  field%E(2) = field%E(2) + Ey
+  if (do_df_calc) field%dE(1:2,1:2) = field%dE(1:2,1:2) + dkm
+enddo
+
+end subroutine add_multipole_fields
+
+!----------------------------------------------------------------------------
+!----------------------------------------------------------------------------
+! contains
+
+! Add the uniform field of hkick/vkick.
+! For historical reasons, hkick and vkick are not rotated by the element tilt (ref_tilt for a bend),
+! except for kicker and elseparator elements, whose kick field is computed in the bmad_standard field calc.
+! They do follow the element offsets and pitches. The field here is computed in body coords, so the
+! kick is rotated by -tilt into body coords. If local_ref_frame = F, the conversion to lab coords at the
+! end of em_field_calc rotates it back by +tilt, so the lab frame kick field is independent of the tilt.
 
 subroutine add_hvkick_field()
 
-real(rp) kick_len
+real(rp) kick_len, tilt
 
 !
 
@@ -1532,13 +1572,17 @@ select case (ele%key)
 case (ac_kicker$, kicker$, hkicker$, vkicker$, elseparator$)  
 ! Everything else...
 case default
-  if (ele%value(tilt_tot$) == 0) then
+  if (ele%key == sbend$) then
+    tilt = ele%value(ref_tilt_tot$)
+  else
+    tilt = ele%value(tilt_tot$)
+  endif
+
+  if (tilt == 0) then
     field%b(1) = field%b(1) + ele%value(Vkick$) * f_p0c / kick_len
     field%b(2) = field%b(2) - ele%value(Hkick$) * f_p0c / kick_len
   else
-    ! Rotate from lab to local
-    tilt = ele%value(tilt_tot$)
-    if (ele%key == sbend$) tilt = ele%value(ref_tilt_tot$)
+    ! Rotate from untilted to body coords
     field%b(1) = field%b(1) + (ele%value(Vkick$) * cos(tilt) - ele%value(hkick$) * sin(tilt)) * f_p0c / kick_len
     field%b(2) = field%b(2) - (ele%value(Hkick$) * cos(tilt) + ele%value(vkick$) * sin(tilt)) * f_p0c / kick_len
   endif
