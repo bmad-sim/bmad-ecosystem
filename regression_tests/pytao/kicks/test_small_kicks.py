@@ -55,6 +55,7 @@ class Element:
 
 WIG = "b_max = 1e-4, num_steps = 100, ds_step = 0.005"
 # By default an element's a_n/b_n are scaled by its main strength (k1 L, k2 L, ...), which is zero here.
+# Cavities do not scale their multipoles and do not have a scale_multipoles attribute.
 NS = "scale_multipoles = F"
 
 ELEMENTS = [
@@ -77,7 +78,7 @@ ELEMENTS = [
     Element("rfcavity", "rfcavity, l = 0.5, rf_frequency = 500e6, voltage = 0", 0.5, STD),
     Element("lcavity", "lcavity, l = 0.5, rf_frequency = 500e6, voltage = 0", 0.5, STD),
     Element("lcavity_old", "lcavity, l = 0.5, rf_frequency = 500e6, voltage = 0, n_rf_steps = 0", 0.5, STD),
-    Element("crab_cavity", f"crab_cavity, l = 0.5, rf_frequency = 500e6, voltage = 0, {NS}", 0.5,
+    Element("crab_cavity", "crab_cavity, l = 0.5, rf_frequency = 500e6, voltage = 0", 0.5,
             ["bmad_standard", "symp_lie_ptc", "runge_kutta", "time_runge_kutta", "linear"]),
     Element("wiggler_planar", f"wiggler, l = 0.5, l_period = 0.1, field_calc = planar_model, {WIG}, {NS}", 0.5, STD_SLB,
             rtol=1e-4),
@@ -153,7 +154,6 @@ CRASHES: list = []
 KNOWN = [
     (("solenoid",), ("bmad_standard", "linear", "symp_lie_bmad"), ("b1",), "solenoid drops its b1 multipole"),
     (("quadrupole_zero",), ("bmad_standard", "linear"), ("b1",), "zero length quadrupole drops its b1 multipole"),
-    (("wiggler_planar", "wiggler_helical"), RK, MAG + ELEC, "em_field_calc periodic wiggler field has no multipoles"),
     (("wiggler_planar",), PTC, MAG + HV, "PTC periodic wiggler ignores kicks and multipoles"),
     (("wiggler_planar",), PTC, ELEC, "PTC wiggler cannot have electric multipoles so they are ignored"),
     (("lcavity_zero",), PTC, MAG + HV, "PTC zero length lcavity ignores kicks and multipoles"),
