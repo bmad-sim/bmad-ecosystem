@@ -30,8 +30,16 @@ use tao_interface, dummy => tao_shape_init
 implicit none
 
 type (tao_ele_shape_struct) shape
+type (ele_pointer_struct), allocatable :: eles(:)
+type (ele_struct), pointer :: ele, lord
+type (lat_struct), pointer :: lat
 
-integer i, ix, ios
+type in_list_struct
+  logical, allocatable :: ele(:)
+end type
+type (in_list_struct), allocatable :: in_list(:)
+
+integer i, ix, ios, ib, ie, il, n
 
 character(*), parameter :: r_name = 'tao_shape_init'
 character(20) class, b_str
@@ -90,14 +98,64 @@ shape%name_ele = upcase(ele_id)
 ! The reason why lat_ele_locator is not used in all cases is that with something like ele_id = "Q*" will match
 ! to many elements so in large lattices this might be significant time consideration.
 
-if (index(ele_id, ':') == 0 .and. index(ele_id, '##') == 0 .and. b_str == '') then
-  if (allocated(shape%uni)) deallocate(shape%uni)
-  return
-endif
+if (allocated(shape%uni)) deallocate(shape%uni)
+if (index(ele_id, ':') == 0 .and. index(ele_id, '##') == 0 .and. b_str == '') return
 
 allocate (shape%uni(ubound(s%u,1)))
+
+! A range construct like "q1:q3" gives the tracking elements in the range so a super_lord in the range 
+! is represented by its super_slaves. But the lat_layout and floor_plan drawing routines skip super_slaves 
+! and draw the super_lord instead. So replace any super_slave in the list with its super_lord(s).
+! Also %loc is set for all elements since tao_pointer_to_ele_shape matches by element index.
+
 do i = 1, ubound(s%u, 1)
-  call lat_ele_locator(shape%ele_id, s%u(i)%model%lat, shape%uni(i)%eles, shape%uni(i)%n_loc)
+  lat => s%u(i)%model%lat
+  call lat_ele_locator(shape%ele_id, lat, eles, n)
+
+  if (allocated(in_list)) deallocate(in_list)
+  allocate (in_list(0:ubound(lat%branch, 1)))
+  do ib = 0, ubound(lat%branch, 1)
+    allocate (in_list(ib)%ele(0:lat%branch(ib)%n_ele_max))
+    in_list(ib)%ele = .false.
+  enddo
+
+  allocate (shape%uni(i)%eles(max(1, n)))
+  shape%uni(i)%n_loc = 0
+
+  do ie = 1, n
+    ele => eles(ie)%ele
+    if (ele%slave_status == super_slave$) then
+      do il = 1, ele%n_lord
+        lord => pointer_to_lord(ele, il)
+        if (lord%lord_status /= super_lord$) cycle
+        call add_to_list(shape%uni(i), lord)
+      enddo
+    else
+      call add_to_list(shape%uni(i), ele)
+    endif
+  enddo
 enddo
+
+!------------------------------------------------------------------------
+contains
+
+subroutine add_to_list(su, ele)
+
+type (tao_ele_pointer_struct) su
+type (ele_struct), target :: ele
+integer nn
+
+!
+
+if (in_list(ele%ix_branch)%ele(ele%ix_ele)) return  ! Already in list.
+in_list(ele%ix_branch)%ele(ele%ix_ele) = .true.
+
+nn = su%n_loc + 1
+if (nn > size(su%eles)) call re_allocate_eles(su%eles, 2*nn, .true.)
+su%eles(nn)%ele => ele
+su%eles(nn)%loc = lat_ele_loc_struct(ele%ix_ele, ele%ix_branch)
+su%n_loc = nn
+
+end subroutine add_to_list
 
 end subroutine tao_shape_init
