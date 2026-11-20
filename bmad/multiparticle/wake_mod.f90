@@ -219,7 +219,7 @@ do i = 1, size(ele%wake%lr%mode)
     ! longitudinal self-wake
 
     if (ele%wake%lr%self_wake_on) then
-      ff = ff0 * omega / (2 * ele%value(p0c$))
+      ff = ff0 * omega / (2 * particle%p0c)
 
       kx = ff * kx0
       ky = ff * ky0
@@ -237,7 +237,7 @@ do i = 1, size(ele%wake%lr%mode)
 
     ! Longitudinal non-self-wake kick
 
-    ff = exp(-f_exp) / ele%value(p0c$)
+    ff = exp(-f_exp) / particle%p0c
     c_dt = cos (dt_phase * omega + twopi * mode%phi)
     s_dt = sin (dt_phase * omega + twopi * mode%phi)
 
@@ -321,7 +321,7 @@ if (ele%wake%sr%amp_scale == 0) return
 dz = ele%wake%sr%z_scale * (orbit%vec(5) - ele%wake%sr%z_ref_long) ! Should be negative
 ele%wake%sr%z_ref_long = orbit%vec(5)
 
-f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / ele%value(p0c$)
+f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / orbit%p0c
 if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Loop over wakes
@@ -417,7 +417,7 @@ if (ele%wake%sr%amp_scale == 0) return
 dz = ele%wake%sr%z_scale * (orbit%vec(5) - ele%wake%sr%z_ref_trans) ! Should be negative
 ele%wake%sr%z_ref_trans = orbit%vec(5)
 
-f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / ele%value(p0c$)
+f0 = ele%wake%sr%amp_scale * abs(orbit%charge) / orbit%p0c
 if (ele%wake%sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Loop over all wakes
@@ -535,7 +535,7 @@ if (sr%amp_scale == 0) return
 srz => sr%z_long
 if (srz%dz == 0) return
 
-f0 = sr%amp_scale / ele%value(p0c$)
+f0 = sr%amp_scale
 if (sr%scale_with_length) f0 = f0 * ele%value(l$) 
 
 ! Compute binned bunch distribution and wake
@@ -598,13 +598,15 @@ do i = 1, size(bunch%particle)
   r2 = MOD(rz_rel, 1.0_rp)
   r1 = 1 - r2
 
+  kick = (r1 * srz%w_out(ix1) + r2 * srz%w_out(ix2)) / p%p0c
+
   select case (srz%position_dependence)
   case (none$, x_leading$, y_leading$)
-    p%vec(6) = p%vec(6) - (r1 * srz%w_out(ix1) + r2 * srz%w_out(ix2))
+    p%vec(6) = p%vec(6) - kick
   case (x_trailing$)
-    p%vec(6) = p%vec(6) - (r1 * srz%w_out(ix1) + r2 * srz%w_out(ix2)) * p%vec(1)
+    p%vec(6) = p%vec(6) - kick * p%vec(1)
   case (y_trailing$)
-    p%vec(6) = p%vec(6) - (r1 * srz%w_out(ix1) + r2 * srz%w_out(ix2)) * p%vec(3)
+    p%vec(6) = p%vec(6) - kick * p%vec(3)
   end select
 enddo
 

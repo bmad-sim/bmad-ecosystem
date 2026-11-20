@@ -61,5 +61,18 @@ l1[e_tot] = 1e9
 
 
 
-use, l0, l1, l2
+!--------
+! Accelerating lcavity with wakes: the wake kick must not depend upon the reference momentum.
+
+cav: lcavity, l = 1, rf_frequency = 1.3e9, voltage = 20e6,
+  lr_wake = {self_wake_on = F, mode = {1.5e9, 1e5, 0, 0, 1, unpol}},
+  sr_wake = {transverse = {1e14, 0, 1e3, 0.25, none, leading}}
+
+l3: line = (cav)
+l3[geometry] = open
+l3[beta_a] = 10
+l3[beta_b] = 10
+l3[e_tot] = 7e6
+
+use, l0, l1, l2, l3
 

@@ -9,10 +9,10 @@ type (wake_sr_mode_struct), pointer :: w
 type (coord_struct) :: orb0
 type (coord_struct) :: p1, p2
 type (beam_init_struct) :: beam_init
-type (bunch_struct) :: bunch, bunch_init, bunch0, bunch2
+type (bunch_struct) :: bunch, bunch_init, bunch0, bunch2, bunch3
 type (bunch_params_struct) bparams
 
-real(rp) dz, z0
+real(rp) dz, z0, p0c_ref(2), dp_lr(2,2), dp_sr(2,2)
 
 integer i, nargs, n, ie, i0, i1
 
@@ -263,6 +263,55 @@ call track1_bunch (bunch, ele, err_flag)
 
 write (1, '(a, 6es18.9)') '"SRZ-A" REL 1E-8', bunch%particle(1:5)%vec(6) - bunch_init%particle(1:5)%vec(6)
 write (1, '(a, 6es18.9)') '"SRZ-B" REL 1E-8', bunch%particle(21:25)%vec(6) - bunch_init%particle(21:25)%vec(6)
+
+!------------------------------------------------------------------
+! Wakes in an accelerating lcavity.
+! The wake kick is applied at the cavity center where the particle reference momentum is not the
+! element (exit) reference momentum. The momentum kick (dpx * p0c) must not depend upon which
+! reference momentum the particle coordinates are normalized to.
+
+ele => lat%branch(3)%ele(1)
+bmad_com%lr_wakes_on = .true.
+bmad_com%sr_wakes_on = .true.
+p0c_ref = [ele%value(p0c_start$), ele%value(p0c$)]
+
+do n = 1, 2
+  ! Long range: A leading bunch at x = 1 mm excites the mode.
+  ! A trailing bunch a quarter period behind gets kicked.
+  ele%wake%lr%mode%b_sin = 0;  ele%wake%lr%mode%b_cos = 0
+  ele%wake%lr%mode%a_sin = 0;  ele%wake%lr%mode%a_cos = 0
+  ele%wake%lr%t_ref = 0
+
+  call reallocate_bunch(bunch3, 1)
+  bunch3%n_live = 1
+  bunch3%ix_z = 1
+  do i = 1, 2
+    call init_coord (bunch3%particle(1), [1d-3*(2-i), 0d0, 0d0, 0d0, 0d0, 0d0], ele, upstream_end$)
+    bunch3%particle(1)%p0c = p0c_ref(n)
+    bunch3%particle(1)%charge = 1d-9
+    bunch3%particle(1)%t = (i-1) * 0.25_rp / ele%wake%lr%mode(1)%freq
+    call track1_lr_wake (bunch3, ele)
+  enddo
+  dp_lr(:,n) = [bunch3%particle(1)%vec(2), bunch3%particle(1)%vec(6)] * p0c_ref(n)
+
+  ! Short range transverse.
+  ele%wake%sr%trans%b_sin = 0;  ele%wake%sr%trans%b_cos = 0
+  ele%wake%sr%trans%a_sin = 0;  ele%wake%sr%trans%a_cos = 0
+  call reallocate_bunch(bunch3, 2)
+  do i = 1, 2
+    call init_coord (bunch3%particle(i), [1d-3*(2-i), 0d0, 0d0, 0d0, -(i-1)*1d-3, 0d0], ele, upstream_end$)
+    bunch3%particle(i)%p0c = p0c_ref(n)
+    bunch3%particle(i)%charge = 1d-9
+  enddo
+  ele%wake%sr%z_ref_trans = bunch3%particle(1)%vec(5)
+  call sr_transverse_wake_particle (ele, bunch3%particle(1))
+  call sr_transverse_wake_particle (ele, bunch3%particle(2))
+  dp_sr(:,n) = [bunch3%particle(2)%vec(2), bunch3%particle(2)%vec(4)] * p0c_ref(n)
+enddo
+
+write (1, '(a, 4es18.9)') '"LCAV-LR-dP" REL 1E-8', dp_lr
+write (1, '(a, 4es18.9)') '"LCAV-SR-dP" REL 1E-8', dp_sr
+if (print_extra) print '(a, 2f12.1)', 'p0c start/end:', p0c_ref
 
 !------------------------------------------------------------------
 contains
