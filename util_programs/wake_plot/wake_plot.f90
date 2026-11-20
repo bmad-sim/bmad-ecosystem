@@ -233,9 +233,9 @@ case ('sr')
     x_axis(i) = z
     call order_particles_in_z(bunch)
     call track1_sr_wake(bunch, wake_ele)
-    wx(i) = test_p%vec(2) * wake_ele%value(p0c$)
-    wy(i) = test_p%vec(4) * wake_ele%value(p0c$)
-    wz(i) = test_p%vec(6) * wake_ele%value(p0c$)
+    wx(i) = test_p%vec(2) * test_p%p0c
+    wy(i) = test_p%vec(4) * test_p%p0c
+    wz(i) = test_p%vec(6) * test_p%p0c
   enddo
 
 end select
