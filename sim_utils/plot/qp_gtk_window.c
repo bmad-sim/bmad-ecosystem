@@ -109,8 +109,14 @@ static void on_scale_changed (GObject *obj, GParamSpec *p, gpointer data) {
   if (g.resize_fn && !g.resize_idle) g.resize_idle = g_idle_add(do_resize, NULL);
 }
 
+static gboolean on_delete (GtkWidget *w, GdkEvent *event, gpointer data) {
+  /* The user closed the window. Hide it instead of letting GTK destroy it (see qpg_close).
+   * It is shown again on the next qpg_begin_draw or qpg_page_present. */
+  gtk_widget_hide(w);
+  return TRUE;
+}
+
 static void on_destroy (GtkWidget *w, gpointer data) {
-  /* The user closed the window. It is reopened on the next qpg_begin_draw. */
   g.win = NULL;
   g.area = NULL;
 }
@@ -245,10 +251,25 @@ static void create_window (void) {
   g_signal_connect(g.area, "draw", G_CALLBACK(on_draw), NULL);
   g_signal_connect(g.area, "size-allocate", G_CALLBACK(on_size_allocate), NULL);
   g_signal_connect(g.area, "notify::scale-factor", G_CALLBACK(on_scale_changed), NULL);
+  g_signal_connect(g.win, "delete-event", G_CALLBACK(on_delete), NULL);
   g_signal_connect(g.win, "destroy", G_CALLBACK(on_destroy), NULL);
 
   gtk_widget_show_all(g.win);
   qpg_pump();
+}
+
+/* Show the window, creating it the first time. A hidden window (closed by the user or by
+ * qpg_close) is shown again at the size and with the title now wanted. */
+
+static void show_window (void) {
+  if (!g.win) {
+    create_window();
+  } else if (!gtk_widget_get_visible(g.win)) {
+    gtk_window_set_title(GTK_WINDOW(g.win), g.title);
+    gtk_window_resize(GTK_WINDOW(g.win), g.want_w, g.want_h);
+    gtk_widget_show(g.win);
+    qpg_pump();
+  }
 }
 
 int qpg_open (int width, int height, const char *title) {
@@ -259,14 +280,14 @@ int qpg_open (int width, int height, const char *title) {
     strncpy(g.title, title, sizeof(g.title) - 1);
     g.title[sizeof(g.title) - 1] = 0;
   }
-  if (!g.win) create_window();
+  show_window();
   ensure_surface(width, height);
   return 0;
 }
 
 cairo_t *qpg_begin_draw (int width, int height) {
   if (qpg_init() != 0) return NULL;
-  if (!g.win) create_window();
+  show_window();
   ensure_surface(width, height);
   return cairo_create(g.surf);
 }
@@ -288,9 +309,16 @@ void qpg_set_resize_callback (qpg_resize_fn fn, void *data) {
   g.resize_data = data;
 }
 
+/* The window is hidden, not destroyed, and is reused by the next qpg_open. GTK 3's macOS backend
+ * does not fully detach a destroyed window from its NSWindow: the NSWindow keeps a pointer to
+ * the freed GdkWindow and stays registered for the content view's frame-change notification.
+ * If AppKit later resizes that NSWindow (EG when the screen is unlocked), GTK's windowDidResize
+ * handler uses the freed GdkWindow: "Gdk-CRITICAL ... GDK_IS_WINDOW (window)" messages
+ * followed by a segfault (issue #2292). Never destroying the window avoids this. */
+
 void qpg_close (void) {
   if (g.page_cr) {cairo_destroy(g.page_cr); g.page_cr = NULL;}
-  if (g.win) gtk_widget_destroy(g.win);
+  if (g.win) gtk_widget_hide(g.win);
   if (g.surf) cairo_surface_destroy(g.surf);
   g.surf = NULL;
   g.surf_w = g.surf_h = 0;
@@ -424,7 +452,7 @@ cairo_t *qpg_page_open (int width, int height, const char *title) {
 void qpg_page_present (void) {
   if (!g.page_cr || g.no_display) return;
   cairo_surface_flush(g.surf);
-  if (!g.win) create_window();   /* The user closed the window: show it again. */
+  show_window();   /* Show it again if the user closed it. */
   if (g.area) gtk_widget_queue_draw(g.area);
   qpg_pump();
   /* Testing aid: save what the window shows. */

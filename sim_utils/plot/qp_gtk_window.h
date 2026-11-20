@@ -30,10 +30,10 @@
 cairo_t *qpg_page_open (int width, int height, const char *title);
 
 /* Show what has been drawn so far and process pending window events.
- * If the user closed the window it is reopened. */
+ * If the user closed the window it is shown again. */
 void qpg_page_present (void);
 
-/* Close the window and free the page. */
+/* Hide the window (it is reused by the next qpg_page_open) and free the page. */
 void qpg_page_close (void);
 
 /* Open the window and attach it to the current PLplot stream (which must use the extcairo
@@ -46,7 +46,7 @@ int qpg_plplot_open (int width, int height);
  * qpg_begin_draw / qpg_end_draw. Returns -1 if no display is available. */
 int qpg_screen_open (int width, int height, const char *title);
 
-/* Remove the event hook and close the window. */
+/* Remove the event hook and hide the window. */
 void qpg_screen_close (void);
 
 /*---- Lower level interface (also used by the standalone test program) ----*/
@@ -69,6 +69,7 @@ void qpg_pump (void);
  * is scaled to fit. */
 void qpg_set_resize_callback (qpg_resize_fn fn, void *data);
 
+/* Hide the window. It is not destroyed while the program runs (see qp_gtk_window.c). */
 void qpg_close (void);
 
 /* Primary monitor size [mm], resolution [logical pixels / mm], size [logical pixels] and HiDPI
