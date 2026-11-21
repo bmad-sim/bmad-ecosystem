@@ -58,13 +58,13 @@ QMULTIPOLE_8: multipole, K0L = 3.0000E-03, T0 = -7.8540E-01, K1L = 3.0000E-02, &
 Q_KICKER_9: kicker, l =   0.0000E+00, hkick = 2.0000E-03, vkick = 3.0000E-03
 QUADRUPOLE1: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = -9.0976E-05, rm(6,6) = 1.0000E+00
+     kick(5) = -9.1056E-05, rm(6,6) = 1.0000E+00
 QMULTIPOLE_10: multipole, K0L = -3.0000E-03, T0 = -7.8540E-01, &
      K1L = -3.0000E-02
 Q_KICKER_11: kicker, l =   0.0000E+00, vkick = -5.0000E-05
 QUADRUPOLE2: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = -2.7907E-05, rm(6,6) = 1.0000E+00
+     kick(5) = -2.7937E-05, rm(6,6) = 1.0000E+00
 QMULTIPOLE_12: multipole, K0L = 3.0000E-23, T0 = -7.8540E-01, &
      K1L = 3.0000E-22, T1 = -3.0616E-17
 Q_KICKER_13: kicker, l =   0.0000E+00, vkick = -5.0000E-05
@@ -76,13 +76,13 @@ QMULTIPOLE_14: multipole, K0L = 3.0000E-03, T0 = -7.8540E-01, &
 Q_KICKER_15: kicker, l =   0.0000E+00, vkick = -5.0000E-05
 QUADRUPOLE4: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = -2.7121E-05, rm(6,6) = 1.0000E+00
+     kick(5) = -2.7143E-05, rm(6,6) = 1.0000E+00
 QMULTIPOLE_16: multipole, K0L = -3.0000E-03, T0 = -7.8540E-01, &
      K1L = -3.0000E-02
 Q_KICKER_17: kicker, l =   0.0000E+00, vkick = -5.0000E-05
 QUADRUPOLE5: matrix, rm(1,1) = 1.0000E+00, rm(2,2) = 1.0000E+00, &
      rm(3,3) = 1.0000E+00, rm(4,4) = 1.0000E+00, rm(5,5) = 1.0000E+00, &
-     kick(5) = -2.7990E-05, rm(6,6) = 1.0000E+00
+     kick(5) = -2.8019E-05, rm(6,6) = 1.0000E+00
 RCOLLIMATOR1: RCollimator, l =   4.5000E+00, xsize = 2.0000E-01, &
      ysize = 1.0000E-01
 RFCAVITY1: rfcavity, l =   4.5000E+00, volt = 1.0000E-01, lag = 6.0000E-01, &
