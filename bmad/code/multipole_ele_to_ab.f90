@@ -112,8 +112,17 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
 
       if (lord%key == group$ .or. lord%key == overlay$ .or. lord%key == girder$) cycle
       if (.not. lord%is_on) cycle
-      call multipole_ele_to_ab (lord, .true., nn, this_a, this_b, pole_type, include_kicks)
+      call multipole_ele_to_ab (lord, .false., nn, this_a, this_b, pole_type, include_kicks)
       if (nn > -1) then
+        ! Rotate directly from the lord body frame to the slave body frame (or to the lab frame if use_ele_tilt = T).
+        ! Rotating to the lab frame and back leaves round-off residues: A lord with only a b(1) would
+        ! get a tiny but nonzero a(1), which makes the slave look like it has multipoles.
+        if (use_ele_tilt) then
+          call rotate_this_multipole(frame_tilt(lord), this_a, this_b, nn)
+        else
+          call rotate_this_multipole(frame_tilt(lord) - frame_tilt(ele), this_a, this_b, nn)
+        endif
+
         if (p_type == magnetic$) then
           a(0:nn) = a(0:nn) + this_a(0:nn) * (ele%value(l$) / lord%value(l$))
           b(0:nn) = b(0:nn) + this_b(0:nn) * (ele%value(l$) / lord%value(l$))
@@ -125,7 +134,6 @@ if (ele%slave_status == slice_slave$ .or. ele%slave_status == super_slave$) then
       endif
     enddo
 
-    if (.not. use_ele_tilt) call tilt_this_multipole(ele, -1, a, b, ix_pole_max)
     if (present(b1)) b1 = pull_this_b1(a, b, ix_pole_max)
     return
   endif
@@ -459,8 +467,25 @@ integer sgn, ix_pole_max, n
 if (ele%key == sbend$) then
   tilt = sgn * ele%value(ref_tilt_tot$)
 else
-  tilt = sgn * ele%value(tilt_tot$) 
+  tilt = sgn * ele%value(tilt_tot$)
 endif
+
+call rotate_this_multipole (tilt, a, b, ix_pole_max)
+
+end subroutine tilt_this_multipole
+
+!---------------------------------------------
+! contains
+
+! Rotate multipoles by the angle tilt.
+
+subroutine rotate_this_multipole (tilt, a, b, ix_pole_max)
+
+real(rp) tilt, a(0:), b(0:)
+real(rp) an, bn, sin_t, cos_t
+integer ix_pole_max, n
+
+!
 
 if (tilt == 0) return
 
@@ -473,7 +498,30 @@ do n = 0, ix_pole_max
   a(n) = -bn * sin_t + an * cos_t
 enddo
 
-end subroutine tilt_this_multipole
+end subroutine rotate_this_multipole
+
+!---------------------------------------------
+! contains
+
+! Tilt of the frame that multipole_ele_to_ab, with use_ele_tilt = F, returns this_ele's multipoles in,
+! relative to the laboratory frame.
+
+function frame_tilt (this_ele) result (tilt)
+
+type (ele_struct) this_ele
+real(rp) tilt
+
+!
+
+if (this_ele%key == multipole$) then
+  tilt = 0  ! use_ele_tilt is ignored for multipole elements.
+elseif (this_ele%key == sbend$) then
+  tilt = this_ele%value(ref_tilt_tot$)
+else
+  tilt = this_ele%value(tilt_tot$)
+endif
+
+end function frame_tilt
 
 !---------------------------------------------
 ! contains

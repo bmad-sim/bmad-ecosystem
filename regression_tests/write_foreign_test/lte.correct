@@ -58,11 +58,11 @@ PATCH1: malign, dx = 1.0000E-03, dy = 2.0000E-03, dt = 1.0000E-11, &
 QMULTIPOLE_8__1: mult, knl = 3.0000E-02, tilt = -3.0616E-17, order = 1
 Q_KICKER_9: ekicker, hkick = 2.0000E-03, vkick = 3.0000E-03
 QUADRUPOLE1: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = -9.0976E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = -9.1056E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
 QMULTIPOLE_10__1: mult, knl = -3.0000E-02, order = 1
 Q_KICKER_11: ekicker, vkick = -5.0000E-05
 QUADRUPOLE2: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = -2.7907E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = -2.7937E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
 QMULTIPOLE_12__1: mult, knl = 3.0000E-22, tilt = -3.0616E-17, order = 1
 Q_KICKER_13: ekicker, vkick = -5.0000E-05
 QUADRUPOLE3: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
@@ -70,11 +70,11 @@ QUADRUPOLE3: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
 QMULTIPOLE_14__1: mult, knl = 3.0000E-02, tilt = -3.0616E-17, order = 1
 Q_KICKER_15: ekicker, vkick = -5.0000E-05
 QUADRUPOLE4: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = -2.7121E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = -2.7143E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
 QMULTIPOLE_16__1: mult, knl = -3.0000E-02, order = 1
 Q_KICKER_17: ekicker, vkick = -5.0000E-05
 QUADRUPOLE5: ematrix, r11 = 1.0000E+00, r22 = 1.0000E+00, r33 = 1.0000E+00, &
-     r44 = 1.0000E+00, c5 = -2.7990E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
+     r44 = 1.0000E+00, c5 = -2.8019E-05, r55 = 1.0000E+00, r66 = 1.0000E+00
 RCOLLIMATOR1: rcol, x_max = 2.0000E-01, dx = 2.0000E-02, y_max = 1.0000E-01
 RFCAVITY1: rfca, phase = 3.6000E+01, body_focus_model="SRS", standing_wave = 1, &
      end1_focus=1, end2_focus=1, l = 4.5000E+00, volt = 1.0000E+05, &
