@@ -53,8 +53,11 @@ else
 endif
 call multipole_ele_to_ab (ele, .false., ix_elec_max, an_elec, bn_elec, electric$)
 
+! The kinematic splitting of the body is not exact so the body is always integrated in steps of ds_step.
+! Do not tie the number of steps to whether there are multipoles: The step count would then change
+! the result, and round-off level multipole values could change the step count.
 n_step = 1
-if (ix_mag_max > -1 .or. ix_elec_max > -1) n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
+if (length /= 0) n_step = max(nint(abs(length) / ele%value(ds_step$)), 1)
 
 r_step = real(orbit%time_dir, rp) / n_step
 step_len = ele%value(l$) * r_step

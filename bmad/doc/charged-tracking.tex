@@ -1439,9 +1439,9 @@ $L$ is
 \end{equation}
 To first order in $H_{kin}$ this integrates $H_{kin}$ along the paraxial orbit using Simpson's rule
 so the error from the splitting scales as $(k_1 \, L^2)^2$. When $k_1 = 0$, $H_{par}$ and $H_{kin}$
-commute and $M$ is an exact drift. If the quadrupole has multipoles, the body is divided into steps
-of length \vn{ds_step} with multipole kicks in between and each step is tracked as above with $L$
-being the step length.
+commute and $M$ is an exact drift. To reduce the splitting error, the body is divided into steps
+of length \vn{ds_step} (\sref{s:integ}) and each step is tracked as above with $L$ being the step
+length. If the quadrupole has multipoles, multipole kicks are applied in between the steps.
 
 $H_{par}$ is simply solved. Through a length $L$:
 \begin{align}
