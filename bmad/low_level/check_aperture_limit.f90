@@ -49,9 +49,11 @@ logical do_tilt, err, no_wall, inside, old_inside
 logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
-! Care must be taken with OpenMP since param%unstable_factor is common to all threads.
+! Care must be taken with OpenMP since a caller may pass a param shared by all threads.
+! Write param%unstable_factor only when its value changes; unconditional stores on every
+! aperture check take the cache line that holds param from the other threads.
 
-param%unstable_factor = 0
+if (param%unstable_factor /= 0) param%unstable_factor = 0
 unstable_factor = 0
 
 ! Check p_x and p_y
@@ -199,7 +201,7 @@ y2_lim =  ele%value(y2_limit$)
 
 if (ele%aperture_at == wall_transition$) then
   if (.not. present(old_orb)) then
-    param%unstable_factor = unstable_factor
+    if (unstable_factor /= 0) param%unstable_factor = unstable_factor
     return
   endif
 
@@ -261,7 +263,7 @@ if (ele%aperture_at == wall_transition$) then
     if (global_com%exit_on_error) call err_exit
   end select
 
-  param%unstable_factor = unstable_factor
+  if (unstable_factor /= 0) param%unstable_factor = unstable_factor
   return
 endif
 
@@ -274,7 +276,7 @@ case (elliptical$)
   call elliptical_params_setup(ele, y1_lim, y2_lim, y_particle, y_width2, y0, err); if (err) return
   r = (x_particle / x_width2)**2 + (y_particle / y_width2)**2
   if (r < 1) then
-    param%unstable_factor = unstable_factor
+    if (unstable_factor /= 0) param%unstable_factor = unstable_factor
     return
   endif
 
@@ -336,7 +338,7 @@ case default
   if (global_com%exit_on_error) call err_exit
 end select
 
-param%unstable_factor = unstable_factor
+if (unstable_factor /= 0) param%unstable_factor = unstable_factor
 
 !----------------------------------------------------------------------------------
 contains

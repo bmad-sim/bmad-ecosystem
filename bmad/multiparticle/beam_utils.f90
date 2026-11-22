@@ -41,6 +41,7 @@ type (bunch_track_struct), optional :: bunch_track
 type (ele_struct), pointer :: wake_ele
 
 type (branch_struct), pointer :: branch
+type (lat_param_struct) param
 
 real(rp) charge, ds_wake
 
@@ -53,6 +54,7 @@ character(*), parameter :: r_name = 'track1_bunch_hom'
 ! Note: PTC tracking is not not thread safe.
 
 branch => pointer_to_branch(ele)
+param = branch%param
 bunch%particle%direction = integer_option(1, direction)
 if (ele%tracking_method == taylor$ .and. .not. associated(ele%taylor(1)%term)) call ele_to_taylor(ele)
 thread_safe = (ele%tracking_method /= symp_lie_ptc$ .and. global_com%mp_threading_is_safe)
@@ -78,10 +80,10 @@ endif
 if (.not. wake_here) then
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
-  !$OMP parallel do if (thread_safe)
+  !$OMP parallel do if (thread_safe) firstprivate(param)
   do j = 1, size(bunch%particle)
     if (bunch%particle(j)%state /= alive$) cycle
-    call track1 (bunch%particle(j), ele, branch%param, bunch%particle(j))
+    call track1 (bunch%particle(j), ele, param, bunch%particle(j))
   enddo
   !$OMP end parallel do
 
@@ -96,10 +98,10 @@ endif
 
 if (ele%value(l$) == 0) then
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(ele, err_flag)
-  !$OMP parallel do if (thread_safe)
+  !$OMP parallel do if (thread_safe) firstprivate(param)
   do j = 1, size(bunch%particle)
     if (bunch%particle(j)%state /= alive$) cycle
-    call track1 (bunch%particle(j), ele, branch%param, bunch%particle(j))
+    call track1 (bunch%particle(j), ele, param, bunch%particle(j))
   enddo
   !$OMP end parallel do
 
@@ -121,10 +123,10 @@ else
   if (half_ele%tracking_method == taylor$ .and. .not. associated(half_ele%taylor(1)%term)) call ele_to_taylor(half_ele)
 
   if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele, err_flag)
-  !$OMP parallel do if (thread_safe)
+  !$OMP parallel do if (thread_safe) firstprivate(param)
   do j = 1, size(bunch%particle)
     if (bunch%particle(j)%state /= alive$) cycle
-    call track1 (bunch%particle(j), half_ele, branch%param, bunch%particle(j))
+    call track1 (bunch%particle(j), half_ele, param, bunch%particle(j))
   enddo
   !$OMP end parallel do
 endif
@@ -161,10 +163,10 @@ endif
 
 if (bmad_com%radiation_damping_on .or. bmad_com%radiation_fluctuations_on) call radiation_map_setup(half_ele, err_flag)
 
-!$OMP parallel do if (thread_safe)
+!$OMP parallel do if (thread_safe) firstprivate(param)
 do j = 1, size(bunch%particle)
   if (bunch%particle(j)%state /= alive$) cycle
-  call track1 (bunch%particle(j), half_ele, branch%param, bunch%particle(j))
+  call track1 (bunch%particle(j), half_ele, param, bunch%particle(j))
 enddo
 !$OMP end parallel do
 

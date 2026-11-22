@@ -31,6 +31,7 @@ type (ele_struct), target :: drift_ele
 type (ele_struct), pointer :: ele_here
 type (bunch_struct), target :: bunch
 type (branch_struct), target :: branch
+type (lat_param_struct) :: param
 type (em_field_struct), optional :: extra_field(:)
 type (coord_struct), pointer :: orbit
 
@@ -53,8 +54,9 @@ drift_ele%value(l$) = 100
 drift_ele%name = 'end_drift'
 drift_ele%ref_species = branch%ele(n)%ref_species
 call ele_compute_ref_energy_and_time(branch%ele(n), drift_ele, branch%param, err)
+param = branch%param
 
-!$OMP parallel do default(shared) private(dt, orbit, ele_here, err)
+!$OMP parallel do default(shared) private(dt, orbit, ele_here, err) firstprivate(param)
 
 do i = 1, size(bunch%particle)
   if (present(dt_step)) then;  dt = dt_step(i)
@@ -72,9 +74,9 @@ do i = 1, size(bunch%particle)
     if (orbit%state /= alive$) exit
 
     if (present(extra_field)) then
-      call track1_time_RK (orbit, ele_here, branch%param, err, t_end, dt, extra_field(i))
+      call track1_time_RK (orbit, ele_here, param, err, t_end, dt, extra_field(i))
     else
-      call track1_time_RK (orbit, ele_here, branch%param, err, t_end, dt)
+      call track1_time_RK (orbit, ele_here, param, err, t_end, dt)
     endif
   enddo
 
