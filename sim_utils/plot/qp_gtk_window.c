@@ -88,9 +88,21 @@ static gboolean on_draw (GtkWidget *w, cairo_t *cr, gpointer data) {
   return TRUE;
 }
 
+/* The window is hidden, not destroyed, when closed (see qpg_close). While it is hidden, size and
+ * screen scale changes are ignored: redrawing would show the window again. */
+
+static int window_shown (void) {
+  return g.win && gtk_widget_get_visible(g.win);
+}
+
+static void cancel_resize (void) {
+  if (g.resize_idle) g_source_remove(g.resize_idle);
+  g.resize_idle = 0;
+}
+
 static gboolean do_resize (gpointer data) {
   g.resize_idle = 0;
-  if (g.area && g.resize_fn) {
+  if (window_shown() && g.area && g.resize_fn) {
     int aw = gtk_widget_get_allocated_width(g.area), ah = gtk_widget_get_allocated_height(g.area);
     if (aw != g.surf_w || ah != g.surf_h || scale_factor() != g.surf_scale) g.resize_fn(aw, ah, g.resize_data);
   }
@@ -98,6 +110,7 @@ static gboolean do_resize (gpointer data) {
 }
 
 static void on_size_allocate (GtkWidget *w, GdkRectangle *a, gpointer data) {
+  if (!window_shown()) return;
   g.want_w = a->width;
   g.want_h = a->height;
   /* Redraw once things settle rather than for every intermediate size. */
@@ -106,12 +119,13 @@ static void on_size_allocate (GtkWidget *w, GdkRectangle *a, gpointer data) {
 
 static void on_scale_changed (GObject *obj, GParamSpec *p, gpointer data) {
   /* Window moved between a Retina and a non-Retina screen. */
-  if (g.resize_fn && !g.resize_idle) g.resize_idle = g_idle_add(do_resize, NULL);
+  if (window_shown() && g.resize_fn && !g.resize_idle) g.resize_idle = g_idle_add(do_resize, NULL);
 }
 
 static gboolean on_delete (GtkWidget *w, GdkEvent *event, gpointer data) {
   /* The user closed the window. Hide it instead of letting GTK destroy it (see qpg_close).
    * It is shown again on the next qpg_begin_draw or qpg_page_present. */
+  cancel_resize();
   gtk_widget_hide(w);
   return TRUE;
 }
@@ -255,21 +269,31 @@ static void create_window (void) {
   g_signal_connect(g.win, "destroy", G_CALLBACK(on_destroy), NULL);
 
   gtk_widget_show_all(g.win);
-  qpg_pump();
 }
 
 /* Show the window, creating it the first time. A hidden window (closed by the user or by
- * qpg_close) is shown again at the size and with the title now wanted. */
+ * qpg_close) is shown again at the size and with the title now wanted. reconfigure: Also set the
+ * size and title of a window that is already shown.
+ *
+ * Window events are not processed here: qpg_begin_draw calls this, and processing events could
+ * run the resize callback, which would draw at another size in the middle of the caller's draw. */
 
-static void show_window (void) {
+static void show_window (int reconfigure) {
+  GdkWindow *gw;
+
   if (!g.win) {
     create_window();
-  } else if (!gtk_widget_get_visible(g.win)) {
-    gtk_window_set_title(GTK_WINDOW(g.win), g.title);
-    gtk_window_resize(GTK_WINDOW(g.win), g.want_w, g.want_h);
-    gtk_widget_show(g.win);
-    qpg_pump();
+    return;
   }
+  if (window_shown() && !reconfigure) return;
+
+  gtk_window_set_title(GTK_WINDOW(g.win), g.title);
+  gtk_window_resize(GTK_WINDOW(g.win), g.want_w, g.want_h);
+  /* GtkWindow ignores a resize to the size it last asked for, even if the window was resized
+   * since while hidden (AppKit may do that when the screen is unlocked): resize it here too. */
+  gw = gtk_widget_get_window(g.win);
+  if (gw && !window_shown()) gdk_window_resize(gw, g.want_w, g.want_h);
+  gtk_widget_show(g.win);
 }
 
 int qpg_open (int width, int height, const char *title) {
@@ -280,14 +304,15 @@ int qpg_open (int width, int height, const char *title) {
     strncpy(g.title, title, sizeof(g.title) - 1);
     g.title[sizeof(g.title) - 1] = 0;
   }
-  show_window();
+  show_window(1);
   ensure_surface(width, height);
+  qpg_pump();
   return 0;
 }
 
 cairo_t *qpg_begin_draw (int width, int height) {
   if (qpg_init() != 0) return NULL;
-  show_window();
+  show_window(0);
   ensure_surface(width, height);
   return cairo_create(g.surf);
 }
@@ -318,6 +343,7 @@ void qpg_set_resize_callback (qpg_resize_fn fn, void *data) {
 
 void qpg_close (void) {
   if (g.page_cr) {cairo_destroy(g.page_cr); g.page_cr = NULL;}
+  cancel_resize();
   if (g.win) gtk_widget_hide(g.win);
   if (g.surf) cairo_surface_destroy(g.surf);
   g.surf = NULL;
@@ -452,7 +478,7 @@ cairo_t *qpg_page_open (int width, int height, const char *title) {
 void qpg_page_present (void) {
   if (!g.page_cr || g.no_display) return;
   cairo_surface_flush(g.surf);
-  show_window();   /* Show it again if the user closed it. */
+  show_window(0);   /* Show it again if the user closed it. */
   if (g.area) gtk_widget_queue_draw(g.area);
   qpg_pump();
   /* Testing aid: save what the window shows. */
