@@ -1405,11 +1405,45 @@ $L_0$ is the drift length of the reference particle
 The \vn{bmad_standard} calculates the transfer map through an upright
 quadrupole and then transforms that map to the laboratory frame.
 
-The Hamiltonian for an upright quadrupole is
+The Hamiltonian for an upright quadrupole is split into two parts
 \begin{equation}
-  H = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
+  H = H_{par} + H_{kin}
 \end{equation}
-This is simply solved
+where $H_{par}$ is the paraxial Hamiltonian
+\begin{equation}
+  H_{par} = \frac{p_x^2 + p_y^2}{2 (1 + p_z)} + \frac{k_1}{2} (x^2 - y^2)
+\end{equation}
+and $H_{kin}$ holds the remaining kinematic terms
+\begin{equation}
+  H_{kin} = -\sqrt{(1 + p_z)^2 - p_x^2 - p_y^2} + (1 + p_z) - \frac{p_x^2 + p_y^2}{2 (1 + p_z)}
+\end{equation}
+$H_{kin}$ is fourth order in $p_x$ and $p_y$ and gives the terms in the map that are cubic in the
+transverse momenta. These terms are important when the transverse momenta are large as can be the
+case, for example, in an FFAG.
+
+$H_{kin}$ depends only upon the momenta so its map through a length $\Delta s$ is simply
+\begin{align}
+  x_2 &= x_1 + \Delta s \, \frac{p_{x1}}{1 + p_{z1}} \, \left( \frac{1}{p_s} - 1 \right) \CRNO
+  y_2 &= y_1 + \Delta s \, \frac{p_{y1}}{1 + p_{z1}} \, \left( \frac{1}{p_s} - 1 \right) \\
+  z_2 &= z_1 + \Delta s \, \left( 1 - \frac{1}{p_s} + \frac{p_{x1}^2 + p_{y1}^2}{2 \, (1 + p_{z1})^2} \right) \nonumber
+\end{align}
+with $p_x$, $p_y$, and $p_z$ unchanged and where
+\begin{equation}
+  p_s \equiv \sqrt{1 - \frac{p_{x1}^2 + p_{y1}^2}{(1 + p_{z1})^2}}
+\end{equation}
+The maps for $H_{par}$ and $H_{kin}$ are combined using Simpson weights. With $M_{par}(\Delta s)$ and
+$M_{kin}(\Delta s)$ being the maps through a length $\Delta s$, the map through a quadrupole of length
+$L$ is
+\begin{equation}
+  M = M_{kin}(L/6) \; M_{par}(L/2) \; M_{kin}(2L/3) \; M_{par}(L/2) \; M_{kin}(L/6)
+\end{equation}
+To first order in $H_{kin}$ this integrates $H_{kin}$ along the paraxial orbit using Simpson's rule
+so the error from the splitting scales as $(k_1 \, L^2)^2$. When $k_1 = 0$, $H_{par}$ and $H_{kin}$
+commute and $M$ is an exact drift. If the quadrupole has multipoles, the body is divided into steps
+of length \vn{ds_step} with multipole kicks in between and each step is tracked as above with $L$
+being the step length.
+
+$H_{par}$ is simply solved. Through a length $L$:
 \begin{align}
   x_2    &= c_x \, x_1 + s_x \, \frac{p_{x1}}{1 + p_{z1}} \CRNO
   p_{x2} &= \tau_x \, \om^2 \, \, (1 + p_{z1}) \, s_x \, x_1 + c_x \, p_{x1} \CRNO

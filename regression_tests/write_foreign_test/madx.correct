@@ -51,11 +51,11 @@ PATCH1__s: srotation, angle =   2.0000E+00;
 QMULTIPOLE_8: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {2.1213E-03, 0};
 Q_KICKER_9: kicker, l =   0.0000E+00, hkick = 2.0000E-03, vkick = 3.0000E-03;
 QUADRUPOLE1: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
-     rm55 = 1.0000E+00, kick5 = -9.0976E-05, rm66 = 1.0000E+00;
+     rm55 = 1.0000E+00, kick5 = -9.1056E-05, rm66 = 1.0000E+00;
 QMULTIPOLE_10: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {-2.1213E-03, 0};
 Q_KICKER_11: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE2: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
-     rm55 = 1.0000E+00, kick5 = -2.7907E-05, rm66 = 1.0000E+00;
+     rm55 = 1.0000E+00, kick5 = -2.7937E-05, rm66 = 1.0000E+00;
 QMULTIPOLE_12: multipole, knl = {2.1213E-23, 3.0000E-22}, ksl = {2.1213E-23, 0};
 Q_KICKER_13: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE3: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
@@ -63,11 +63,11 @@ QUADRUPOLE3: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm
 QMULTIPOLE_14: multipole, knl = {2.1213E-03, 3.0000E-02}, ksl = {2.1213E-03, 0};
 Q_KICKER_15: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE4: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
-     rm55 = 1.0000E+00, kick5 = -2.7121E-05, rm66 = 1.0000E+00;
+     rm55 = 1.0000E+00, kick5 = -2.7143E-05, rm66 = 1.0000E+00;
 QMULTIPOLE_16: multipole, knl = {-2.1213E-03, -3.0000E-02}, ksl = {-2.1213E-03, 0};
 Q_KICKER_17: kicker, l =   0.0000E+00, vkick = -5.0000E-05;
 QUADRUPOLE5: matrix, rm11 = 1.0000E+00, rm22 = 1.0000E+00, rm33 = 1.0000E+00, rm44 = 1.0000E+00,
-     rm55 = 1.0000E+00, kick5 = -2.7990E-05, rm66 = 1.0000E+00;
+     rm55 = 1.0000E+00, kick5 = -2.8019E-05, rm66 = 1.0000E+00;
 RCOLLIMATOR1: collimator, l =   4.5000E+00, apertype = rectangle, aperture = {  2.0000E-01 
                 ,   1.0000E-01             };
 RFCAVITY1: rfcavity, l =   4.5000E+00, volt = 1.0000E-01, lag = 6.0000E-01, harmon = 184;
