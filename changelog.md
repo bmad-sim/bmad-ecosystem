@@ -11,9 +11,10 @@ Types of entries:
 - `Security` in case of vulnerabilities.
 
 - 2026-11-21 Fixed: Bunch tracking in OpenMP threads lost speed as threads were added. `check_aperture_limit`
-  set `param%unstable_factor` to zero at every call, twice per particle per element, and `param` is
-  shared by all threads, so each thread kept taking the cache line that holds it from the others.
-  The zero is now written only if the value is not already zero. Results are unchanged.
+  wrote zero to `param%unstable_factor` at every entry and surviving exit while `track1_bunch_hom` and
+  `track_bunch_time` passed the shared `branch%param` to all threads, bouncing its cache line across cores.
+  `check_aperture_limit` now writes `param%unstable_factor` only when it changes, and the parallel bunch
+  loops give each thread a private copy of `branch%param`. Results are unchanged.
 - 2026-11-12 Changed: Beam tracking through an element whose only short-range wake is a `z_long` table
   is faster. The particles were sorted in z at every such element but only the pseudo-mode and
   long-range wakes need the ordering. With 100k particles the `z_long` wake is now about three times
