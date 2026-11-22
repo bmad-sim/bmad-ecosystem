@@ -50,8 +50,10 @@ logical, optional :: check_momentum
 character(*), parameter :: r_name = 'check_aperture_limit'
 
 ! Care must be taken with OpenMP since param%unstable_factor is common to all threads.
+! The zero is written only if needed. An unconditional write here, twice per particle per element,
+! has every thread of a parallel tracking loop taking the cache line that holds param from the others.
 
-param%unstable_factor = 0
+if (param%unstable_factor /= 0) param%unstable_factor = 0
 unstable_factor = 0
 
 ! Check p_x and p_y
