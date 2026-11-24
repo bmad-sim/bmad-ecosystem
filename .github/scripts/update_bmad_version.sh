@@ -2,7 +2,8 @@
 #
 # Usage: update_bmad_version.sh <version>
 #
-# Stamps bmad/modules/bmad_version_mod.f90 with the given version string.
+# Stamps bmad/modules/bmad_version_mod.f90 and the Bmad/Tao manual cover page
+# version files ({bmad,tao}/doc/version.tex) with the given version string.
 # Run by the release workflow so the reported version matches the release tag.
 
 set -euo pipefail
@@ -26,3 +27,10 @@ end module
 EOF
 
 echo "Stamped $VERSION_FILE with version $VERSION"
+
+for DOC_DIR in bmad/doc tao/doc; do
+  TEX_FILE="$REPO_ROOT/$DOC_DIR/version.tex"
+  printf '%% Generated automatically via a GitHub action. Do not modify by hand.\n\\newcommand{\\bmadversion}{%s}\n' \
+    "$VERSION" >"$TEX_FILE"
+  echo "Stamped $TEX_FILE with version $VERSION"
+done
