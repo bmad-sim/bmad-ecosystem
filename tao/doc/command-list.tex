@@ -645,6 +645,7 @@ parsing. Format:
 \begin{example}
   pipe \{-append <file_name>\} \{-noprint\} <subcommand> <arguments>
   pipe \{-write <file_name>\} \{-noprint\} <subcommand> <arguments>
+  pipe -python <script> <subcommand> <arguments>
 \end{example}
 
 The \vn{pipe} command has \vn{-append} and \vn{-write} optional arguments which can be used to
@@ -655,7 +656,16 @@ write the results to a file. The \vn{pipe -append} command will appended to the 
 \end{example}
 
 The \vn{-noprint} option suppresses printing and is useful when writing large amounts of data to a
-file.  The \vn{pipe} command can be used to pass information to a parent process when \tao is run
+file.
+
+The \vn{-python} option runs the \vn{Python} script \vn{<script>} with the output of the \vn{pipe}
+command fed to the script's standard input. The output is not printed to the terminal. See the
+\vn{show} command (\sref{s:show}) for more details. Example:
+\begin{example}
+  pipe -python plot_beta.py lat_list -track_only 1@0>>*|model ele.s,ele.a.beta
+\end{example}
+
+The \vn{pipe} command can be used to pass information to a parent process when \tao is run
 as a subprocess.  The parent process may be any scripting program like Pipe, Perl, Tcl, etc.  In
 particular, see the \vn{Python Interface} chapter (\sref{c:python}) for details on how to run
 \tao as a Python subprocess.
@@ -2014,6 +2024,7 @@ Format:
 \begin{example}
   show \{-append <file_name>\} \{-noprint\} \{-no_err_out\} <subcommand>
   show \{-write <file_name>\} \{-noprint\} \{-no_err_out\} <subcommand>
+  show -python <script> <subcommand>
 \end{example}
 
 \vn{<subcommand>} subcommands may be one of:
@@ -2094,8 +2105,23 @@ When writing to a file, if there are any error messages (for example, that somet
 computed), the error messages are reproduced in the file. If this behavior is not wanted, the
 \vn{-no_err_out} switch may be used to block the error messages being written.
 
-The \vn{-append}, \vn{-write}, \vn{-noprint}, and \vn{-no_err_out} switches must be placed before
-\vn{<subcommand>}.
+The \vn{-python} option runs the \vn{Python} script \vn{<script>} with the output of the \vn{show}
+command fed to the script's standard input. The output is not printed to the terminal (anything the
+script prints will be). The script is run using \vn{python3}. Arguments may be passed to the script
+by enclosing the script name and arguments in quotes. Example:
+\begin{example}
+  show -python count_quads.py lat quad::*
+  show -python "summarize.py --brief" universe
+\end{example}
+Within the script, the output can be read with, for example:
+\begin{example}
+  import sys
+  for line in sys.stdin:
+    ...
+\end{example}
+
+The \vn{-append}, \vn{-write}, \vn{-noprint}, \vn{-no_err_out}, and \vn{-python} switches must be
+placed before \vn{<subcommand>}.
 
 Note: When running \tao as a subprocess, use the \vn{pipe} command (\sref{s:pipe.cmd})
 instead of the \vn{show} command for communicating with the parent process.

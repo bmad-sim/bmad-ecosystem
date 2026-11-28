@@ -348,11 +348,11 @@ integer, parameter :: c = tao_switch_name_len
 
 select case (context)
 case ('change');                    switches = [character(c):: '-silent', '-update', '-listing', '-branch', '-mask']
-case ('pipe');                      switches = [character(c):: '-append', '-write', '-noprint']
+case ('pipe');                      switches = [character(c):: '-append', '-write', '-noprint', '-python']
 case ('place');                     switches = [character(c):: '-no_buffer']
 case ('read');                      switches = [character(c):: '-universe', '-silent']
 case ('set');                       switches = [character(c):: '-update', '-mask', '-branch', '-listing', '-silent']
-case ('show');                      switches = [character(c):: '-append', '-write', '-noprint', '-no_err_out']
+case ('show');                      switches = [character(c):: '-append', '-write', '-noprint', '-no_err_out', '-python']
 case ('show beam');                 switches = [character(c):: '-universe', '-lattice', '-comb', '-z']
 case ('show branch');               switches = [character(c):: '-universe']
 case ('show chromaticity');         switches = [character(c):: '-universe', '-taylor']
