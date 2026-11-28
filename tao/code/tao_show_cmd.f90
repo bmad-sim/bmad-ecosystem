@@ -21,6 +21,7 @@ integer :: n_write_file = 0            ! used for indexing 'show write' files
 
 character(*) what
 character(200) file_name, fname
+character(400) python_script
 character(100) result_id
 character(20) switch
 character(len(what)) what2
@@ -33,6 +34,7 @@ logical opened, err, doprint, err_out, valid
 
 what2 = what
 opened = .false.
+python_script = ''
 doprint = s%com%print_to_terminal
 err_out = .true.
 
@@ -49,6 +51,14 @@ do
 
   case ('-no_err_out')
     err_out = .false.
+
+  case ('-python')
+    call tao_next_word(what2, python_script)
+    if (python_script == '') then
+      call out_io (s_error$, r_name, 'NO PYTHON SCRIPT NAME GIVEN AFTER "-python".')
+      return
+    endif
+    doprint = .false.
 
   case ('-append', '-write')
     call tao_next_word(what2, file_name)
@@ -105,6 +115,8 @@ endif
 ! Finish
 
 call output_direct (set = out_dir_state)
+
+if (python_script /= '' .and. result_id /= 'ERROR') call tao_run_python_script (python_script, lines(1:nl))
 
 if (opened) then
   close (iu)

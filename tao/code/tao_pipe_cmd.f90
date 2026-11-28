@@ -53,7 +53,7 @@ use tao_interface, dummy => tao_pipe_cmd
 use location_encode_mod, only: location_encode
 use twiss_and_track_mod, only: twiss_and_track_at_s
 use wall3d_mod, only: calc_wall_radius, wall3d_d_radius
-use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word
+use tao_command_mod, only: tao_next_switch, tao_cmd_split, tao_next_word, tao_run_python_script
 use tao_command_names_mod, only: tao_pipe_cmd_names, tao_switches_for, tao_enum_value_names, no_enum_index$
 use tao_completion_mod, only: tao_complete
 use tao_init_data_mod, only: tao_point_d1_to_data
@@ -191,6 +191,7 @@ character(n_char_show), pointer :: li_ptr(:)
 character(n_char_show) li2
 character(300), allocatable :: name_arr(:)
 character(200) file_name, all_who, tail_str
+character(400) python_script
 character(40) imt, iamt, jmt, rmt, lmt, amt, amt2, vamt, rmt2, ramt, cmt, label_name
 character(40) who, max_loc, ele_name, name1(40), name2(40), a_name, name, attrib_name, command
 character(40), allocatable :: str_arr(:)
@@ -208,6 +209,7 @@ character(*), parameter :: r_name = 'tao_pipe_cmd'
 line = input_str
 doprint = .true.
 opened = .false.
+python_script = ''
 tao_c_interface_com%n_real = 0
 tao_c_interface_com%n_int = 0
 
@@ -218,6 +220,14 @@ do
 
   select case (switch)
   case ('-noprint')
+    doprint = .false.
+
+  case ('-python')
+    call tao_next_word(line, python_script)
+    if (python_script == '') then
+      call out_io (s_error$, r_name, 'NO PYTHON SCRIPT NAME GIVEN AFTER "-python".')
+      return
+    endif
     doprint = .false.
 
   case ('-append', '-write')
@@ -8418,6 +8428,10 @@ if (opened) then
     write (iu_write, '(a)') trim(li(i))
   enddo
   close (iu_write)
+endif
+
+if (python_script /= '' .and. .not. (nl == 1 .and. li(1) == 'INVALID')) then
+  call tao_run_python_script (python_script, li(1:nl))
 endif
 
 call output_direct (get = out_dir_state)

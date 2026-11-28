@@ -430,5 +430,96 @@ call string_trim(line(ix+1:), line, ix)
 
 end subroutine tao_next_switch
 
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!----------------------------------------------------------------------
+!+
+! Subroutine tao_run_python_script (script, lines, err)
+!
+! Routine to run a python3 script with lines(:) fed to the script's standard input.
+! This is used by the "-python" switch of the "show" and "pipe" commands.
+!
+! The lines are written to a temporary file and the script is run via:
+!   python3 <script> < <temp_file>
+! The script's output goes directly to the terminal.
+!
+! Input:
+!   script    -- character(*): Script name. May be followed by arguments for the script.
+!   lines(:)  -- character(*): Lines to feed to the script.
+!
+! Output:
+!   err       -- logical, optional: Set True if there is an error.
+!-
+
+subroutine tao_run_python_script (script, lines, err)
+
+use iso_fortran_env, only: output_unit
+
+implicit none
+
+character(*) script, lines(:)
+character(400) tmp_dir, tmp_file, script_name, full_name
+character(*), parameter :: r_name = 'tao_run_python_script'
+
+integer, save :: n_call = 0
+integer iu, i, ios, ix, n_name, dt(8)
+logical, optional :: err
+logical exists, valid, err_flag
+
+!
+
+if (present(err)) err = .true.
+
+call string_trim(script, script_name, n_name)
+if (n_name == 0) then
+  call out_io (s_error$, r_name, 'NO PYTHON SCRIPT NAME GIVEN.')
+  return
+endif
+
+call fullfilename(script_name(1:n_name), full_name, valid)
+inquire (file = full_name, exist = exists)
+if (.not. valid .or. .not. exists) then
+  call out_io (s_error$, r_name, 'PYTHON SCRIPT NOT FOUND: ' // script_name(1:n_name))
+  return
+endif
+
+! Write lines to a temporary file.
+
+call get_environment_variable('TMPDIR', tmp_dir)
+if (tmp_dir == '') call get_environment_variable('TEMP', tmp_dir)
+if (tmp_dir == '') tmp_dir = '/tmp'
+ix = len_trim(tmp_dir)
+if (tmp_dir(ix:ix) /= '/' .and. tmp_dir(ix:ix) /= char(92)) tmp_dir(ix+1:) = '/'
+
+n_call = n_call + 1
+call date_and_time(values = dt)
+write (tmp_file, '(2a, i2.2, i2.2, i2.2, i3.3, a, i0, a)') trim(tmp_dir), 'tao_python_input_', &
+                                                    dt(5), dt(6), dt(7), dt(8), '_', n_call, '.txt'
+
+iu = lunget()
+open (iu, file = tmp_file, status = 'REPLACE', iostat = ios)
+if (ios /= 0) then
+  call out_io (s_error$, r_name, 'CANNOT OPEN TEMPORARY FILE: ' // tmp_file)
+  return
+endif
+
+do i = 1, size(lines)
+  write (iu, '(a)') trim(lines(i))
+enddo
+close (iu)
+
+! Run the script. Flush stdout first so Tao and script output appear in order.
+
+flush(output_unit)
+call system_command ('python3 ' // trim(full_name) // ' ' // trim(script_name(n_name+1:)) // ' < "' // trim(tmp_file) // '"', err_flag)
+if (err_flag) call out_io (s_error$, r_name, 'PYTHON SCRIPT RETURNED AN ERROR: ' // script)
+
+open (iu, file = tmp_file)
+close (iu, status = 'DELETE')
+
+if (present(err)) err = err_flag
+
+end subroutine tao_run_python_script
+
 end module
 
